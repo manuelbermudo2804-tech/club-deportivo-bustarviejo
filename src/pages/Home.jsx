@@ -1323,16 +1323,26 @@ export default function Home() {
     return items;
   }, [isAdmin, isCoach, isCoordinator, isTreasurer, hasPlayers, loteriaVisible, stats]);
 
-  // Convertir menuItems a formato de availableButtons (SIN chats)
-  const availableButtons = menuItems.map((item, idx) => ({
-    id: `btn_${idx}`,
-    label: item.title,
-    description: item.badgeLabel || 'Acceso rápido',
-    url: item.url,
-    icon: item.icon,
-    bgColor: `bg-gradient-to-br ${item.gradient}`,
-    badge: item.badge
-  }));
+  // Convertir menuItems a formato de availableButtons (SIN chats - filtrar todos los MessageCircle)
+  const availableButtons = useMemo(() => 
+    menuItems
+      .filter(item => 
+        // Excluir TODOS los chats/mensajería
+        !item.title.includes('Chat') && 
+        !item.title.includes('Asistente') &&
+        !item.title.includes('Mensajes') &&
+        !item.title.includes('Conversaciones')
+      )
+      .map((item, idx) => ({
+        id: item.title.replace(/[^a-zA-Z0-9]/g, '_'),
+        label: item.title,
+        description: item.badgeLabel || 'Acceso rápido',
+        url: item.url,
+        icon: item.icon,
+        bgColor: `bg-gradient-to-br ${item.gradient}`,
+        badge: item.badge
+      }))
+  , [menuItems]);
 
   // Aplicar configuración del usuario
   const displayedButtons = useDashboardButtons(availableButtons, buttonConfig);

@@ -181,17 +181,21 @@ export default function CoordinatorDashboard() {
     return byCategory;
   }, [allStandings]);
 
-  // Definir TODOS los botones disponibles (SIN chats) - en useMemo
+  // Definir TODOS los botones disponibles (SIN chats) - basados en el menú lateral
   const availableButtons = React.useMemo(() => [
+    // 6 PRINCIPALES por defecto
     { id: 'callups', label: '🎓 Convocatorias', description: 'Ver convocatorias', url: createPageUrl('CoachCallups'), icon: Bell, bgColor: 'bg-gradient-to-br from-yellow-600 to-yellow-700' },
-    { id: 'attendance', label: '📋 Asistencia', description: 'Asistencia y evaluación', url: createPageUrl('TeamAttendanceEvaluation'), icon: Users, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
+    { id: 'attendance', label: '📋 Asistencia', description: 'Asistencia y evaluación', url: createPageUrl('TeamAttendanceEvaluation'), icon: CheckCircle2, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
     { id: 'rosters', label: '🎓 Plantillas', description: 'Gestionar plantillas', url: createPageUrl('TeamRosters'), icon: Users, bgColor: 'bg-gradient-to-br from-blue-600 to-blue-700' },
-    { id: 'reports', label: '📊 Reportes', description: 'Reportes entrenadores', url: createPageUrl('CoachEvaluationReports'), icon: FileText, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
+    { id: 'reports', label: '📊 Reportes', description: 'Reportes entrenadores', url: createPageUrl('CoachEvaluationReports'), icon: Star, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
     { id: 'tactics', label: '🎯 Pizarra', description: 'Pizarra táctica', url: createPageUrl('TacticsBoard'), icon: Trophy, bgColor: 'bg-gradient-to-br from-slate-600 to-slate-700' },
     { id: 'calendar', label: '📅 Calendario', description: 'Horarios y partidos', url: createPageUrl('CalendarAndSchedules'), icon: Calendar, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
+    // Resto
     { id: 'announcements', label: '📢 Anuncios', description: 'Comunicados del club', url: createPageUrl('Announcements'), icon: Megaphone, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
     { id: 'events', label: '🎉 Eventos', description: 'Eventos del club', url: createPageUrl('ParentEventRSVP'), icon: Calendar, bgColor: 'bg-gradient-to-br from-cyan-600 to-cyan-700' },
     { id: 'gallery', label: '🖼️ Galería', description: 'Fotos y álbumes', url: createPageUrl('Gallery'), icon: Image, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
+    { id: 'surveys', label: '📋 Encuestas', description: 'Participar', url: createPageUrl('Surveys'), icon: FileText, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
+    { id: 'standings', label: '📊 Clasificaciones', description: 'Ver clasificaciones', url: createPageUrl('Clasificaciones'), icon: BarChart3, bgColor: 'bg-gradient-to-br from-blue-600 to-cyan-700' },
   ], []);
 
   // Aplicar configuración del usuario

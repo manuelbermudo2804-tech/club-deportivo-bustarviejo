@@ -479,18 +479,20 @@ export default function PlayerDashboard() {
     );
   }
 
-  // Definir botones disponibles (SIN chats) - en useMemo para evitar recreación
+  // Definir TODOS los botones disponibles (SIN chats) - basados en el menú lateral
   const availableButtons = React.useMemo(() => [
-    { id: 'callups', label: '🏆 Convocatorias', description: 'Confirmar asistencia', url: createPageUrl('ParentCallups'), icon: Bell, bgColor: 'bg-gradient-to-br from-yellow-600 to-yellow-700' },
+    // 6 PRINCIPALES por defecto
+    { id: 'callups', label: '🏆 Convocatorias', description: 'Confirmar asistencia', url: createPageUrl('ParentCallups'), icon: ClipboardCheck, bgColor: 'bg-gradient-to-br from-yellow-600 to-yellow-700' },
     { id: 'signatures', label: '🖊️ Firmas', description: 'Firmas de federación', url: createPageUrl('FederationSignatures'), icon: FileSignature, bgColor: 'bg-gradient-to-br from-yellow-600 to-orange-600' },
     { id: 'payments', label: '💳 Mis Pagos', description: 'Ver estado de pagos', url: createPageUrl('ParentPayments'), icon: CreditCard, bgColor: 'bg-gradient-to-br from-green-600 to-green-700' },
     { id: 'calendar', label: '📅 Calendario', description: 'Horarios y partidos', url: createPageUrl('CalendarAndSchedules'), icon: Calendar, bgColor: 'bg-gradient-to-br from-purple-600 to-purple-700' },
     { id: 'events', label: '🎉 Eventos', description: 'Eventos del club', url: createPageUrl('ParentEventRSVP'), icon: Calendar, bgColor: 'bg-gradient-to-br from-cyan-600 to-cyan-700' },
+    { id: 'standings', label: '📊 Clasificaciones', description: 'Tablas de clasificación', url: createPageUrl('Clasificaciones'), icon: BarChart3, bgColor: 'bg-gradient-to-br from-blue-600 to-cyan-700' },
+    // Resto de opciones
     { id: 'announcements', label: '📢 Anuncios', description: 'Comunicados', url: createPageUrl('Announcements'), icon: Megaphone, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
     { id: 'gallery', label: '🖼️ Galería', description: 'Fotos del club', url: createPageUrl('Gallery'), icon: Image, bgColor: 'bg-gradient-to-br from-indigo-600 to-indigo-700' },
     { id: 'surveys', label: '📋 Encuestas', description: 'Participar', url: createPageUrl('Surveys'), icon: FileText, bgColor: 'bg-gradient-to-br from-violet-600 to-violet-700' },
-    { id: 'documents', label: '📄 Documentos', description: 'Mis documentos', url: createPageUrl('ParentDocuments'), icon: FileText, bgColor: 'bg-gradient-to-br from-slate-600 to-slate-700' },
-    { id: 'clothing', label: '🛍️ Ropa', description: 'Pedidos de ropa', url: createPageUrl('ClothingOrders'), icon: ShoppingBag, bgColor: 'bg-gradient-to-br from-red-600 to-red-700' },
+    { id: 'membership', label: '🎫 Hacerse Socio', description: 'Programa de socios', url: createPageUrl('ClubMembership'), icon: Heart, bgColor: 'bg-gradient-to-br from-pink-600 to-pink-700' },
   ], []);
 
   const displayedButtons = useDashboardButtons(availableButtons, buttonConfig);

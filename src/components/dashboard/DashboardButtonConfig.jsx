@@ -15,7 +15,7 @@ export default function DashboardButtonConfig({
   const [open, setOpen] = useState(false);
   const [buttons, setButtons] = useState(() => {
     // Inicializar con la configuración actual o los 6 primeros por defecto
-    const config = currentConfig || availableButtons.slice(0, 6).map(b => b.id);
+    const config = currentConfig && currentConfig.length > 0 ? currentConfig : availableButtons.slice(0, 6).map(b => b.id);
     return availableButtons.map(btn => ({
       ...btn,
       visible: config.includes(btn.id),
@@ -37,9 +37,9 @@ export default function DashboardButtonConfig({
     const visibleCount = buttons.filter(b => b.visible).length;
     const button = buttons.find(b => b.id === buttonId);
     
-    // No permitir desactivar si solo quedan 1 botón visible
-    if (button.visible && visibleCount <= 1) {
-      toast.error("Debe haber al menos 1 botón visible");
+    // No permitir desactivar si solo quedan 6 botones visibles
+    if (button.visible && visibleCount <= 6) {
+      toast.error("Debe haber al menos 6 botones visibles");
       return;
     }
     
@@ -104,7 +104,7 @@ export default function DashboardButtonConfig({
           <div className="space-y-4">
             <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
               <p className="text-sm text-slate-700">
-                <strong className="text-orange-700">{visibleCount}/15 botones</strong> visibles
+                <strong className="text-orange-700">{visibleCount} botones</strong> visibles (mínimo 6, máximo 15)
               </p>
               <p className="text-xs text-slate-600 mt-1">
                 Arrastra para reordenar • Click en 👁️ para mostrar/ocultar
