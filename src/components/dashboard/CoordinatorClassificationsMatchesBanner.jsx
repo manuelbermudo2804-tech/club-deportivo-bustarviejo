@@ -12,7 +12,6 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function CoordinatorClassificationsMatchesBanner() {
-  const [showAllStandings, setShowAllStandings] = useState(false);
   const [showAllMatches, setShowAllMatches] = useState(false);
 
   const { data: standings = [] } = useQuery({
@@ -131,7 +130,7 @@ export default function CoordinatorClassificationsMatchesBanner() {
           <div className="grid grid-cols-2 divide-x divide-slate-300">
             {/* IZQUIERDA: CLASIFICACIONES */}
             <button
-              onClick={() => additionalCategories > 0 ? setShowAllStandings(true) : window.location.href = createPageUrl("CoachStandingsAnalysis")}
+              onClick={() => window.location.href = createPageUrl("CoachStandingsAnalysis")}
               className="hover:bg-orange-50/50 transition-colors text-left"
             >
               <div className="p-4 bg-gradient-to-br from-orange-50 to-white h-full">
@@ -218,82 +217,7 @@ export default function CoordinatorClassificationsMatchesBanner() {
         </CardContent>
       </Card>
 
-      {/* Dialog todas las clasificaciones */}
-      <Dialog open={showAllStandings} onOpenChange={setShowAllStandings}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-orange-600" />
-              Todas las Clasificaciones ({standingsByCategory.length})
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 overflow-y-auto max-h-[60vh]">
-            {standingsByCategory.map((team, idx) => {
-              const categoryShort = team.categoria.split(' ').slice(1).join(' ') || team.categoria;
-              const posClass = 
-                team.posicion === 1 ? "text-yellow-600" :
-                team.posicion <= 3 ? "text-green-600" :
-                team.posicion > team.totalTeams - 3 ? "text-red-600" :
-                "text-slate-700";
 
-              let trend = null;
-              let trendCol = "";
-              if (team.evolution && team.evolution.length >= 2) {
-                const last = team.evolution[team.evolution.length - 1];
-                const prev = team.evolution[team.evolution.length - 2];
-                if (last < prev) {
-                  trend = <TrendingUp className="w-4 h-4" />;
-                  trendCol = "text-green-600";
-                } else if (last > prev) {
-                  trend = <TrendingDown className="w-4 h-4" />;
-                  trendCol = "text-red-600";
-                } else {
-                  trend = <Minus className="w-4 h-4" />;
-                  trendCol = "text-slate-500";
-                }
-              }
-
-              return (
-                <Link key={idx} to={createPageUrl("CoachStandingsAnalysis")} onClick={() => setShowAllStandings(false)}>
-                  <Card className="border-2 border-slate-200 hover:border-orange-400 transition-colors cursor-pointer hover:shadow-lg">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`text-3xl font-bold ${posClass} flex items-center gap-1`}>
-                            {team.posicion}º
-                            {trend && <span className={trendCol}>{trend}</span>}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-900">{categoryShort}</p>
-                            <p className="text-xs text-slate-500">Jornada {team.jornada}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-orange-600">{team.puntos} pts</div>
-                          {team.partidos_jugados && (
-                            <p className="text-xs text-slate-500">{team.partidos_jugados} PJ</p>
-                          )}
-                        </div>
-                      </div>
-                      {team.evolution && team.evolution.length >= 2 && (
-                        <div className="flex items-center gap-1 mt-3">
-                          {team.evolution.map((pos, i) => {
-                            const size = i === team.evolution.length - 1 ? "w-3 h-3" : "w-2 h-2";
-                            const color = pos <= 3 ? "bg-green-500" : pos > team.totalTeams - 3 ? "bg-red-500" : "bg-slate-400";
-                            return (
-                              <div key={i} className={`${size} ${color} rounded-full`} title={`J${team.jornada - team.evolution.length + i + 1}: ${pos}º`}></div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Dialog todos los partidos */}
       <Dialog open={showAllMatches} onOpenChange={setShowAllMatches}>
