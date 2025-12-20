@@ -15,10 +15,21 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   const [jornadaActual, setJornadaActual] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(() => {
-    return localStorage.getItem('standings_image_url') || "";
+    if (categoria) {
+      return localStorage.getItem(`standings_image_url_${categoria}`) || "";
+    }
+    return "";
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Cargar URL guardada cuando cambie la categoría
+  useEffect(() => {
+    if (categoria) {
+      const savedUrl = localStorage.getItem(`standings_image_url_${categoria}`) || "";
+      setImageUrl(savedUrl);
+    }
+  }, [categoria]);
 
   // Calcular jornada actual automáticamente al cargar
   useEffect(() => {
@@ -47,12 +58,12 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
     }
   }, [categoria, temporada]);
 
-  // Guardar URL cuando cambie (GLOBAL para todas las categorías)
+  // Guardar URL cuando cambie (POR CATEGORÍA)
   useEffect(() => {
-    if (imageUrl) {
-      localStorage.setItem('standings_image_url', imageUrl);
+    if (imageUrl && categoria) {
+      localStorage.setItem(`standings_image_url_${categoria}`, imageUrl);
     }
-  }, [imageUrl]);
+  }, [imageUrl, categoria]);
 
   const processFile = (file) => {
     setImageFile(file);
