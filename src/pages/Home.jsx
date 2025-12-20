@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles, Award } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles, Award, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // toast removido para evitar spam
 
@@ -700,7 +700,7 @@ export default function Home() {
         },
         {
           title: "🔄 Dashboard Renovaciones",
-          icon: RefreshCw,
+          icon: RotateCw,
           url: createPageUrl("RenewalDashboard"),
           gradient: "from-cyan-600 to-cyan-700",
         },
