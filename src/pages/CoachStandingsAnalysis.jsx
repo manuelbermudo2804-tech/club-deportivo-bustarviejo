@@ -49,6 +49,14 @@ export default function CoachStandingsAnalysis() {
     loadUser();
   }, []);
 
+  // Auto-abrir vista detallada si solo hay una clasificación en la categoría activa
+  React.useEffect(() => {
+    if (user && activeTab && standingsByCategory[activeTab]?.length === 1 && !aiAnalysis[activeTab]) {
+      const singleStanding = standingsByCategory[activeTab][0];
+      setSelectedView(singleStanding);
+    }
+  }, [user, activeTab, standingsByCategory, aiAnalysis]);
+
   const { data: standings = [] } = useQuery({
     queryKey: ['clasificaciones'],
     queryFn: () => base44.entities.Clasificacion.list('-jornada'),
