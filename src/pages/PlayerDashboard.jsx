@@ -896,6 +896,32 @@ export default function PlayerDashboard() {
             </div>
           </Link>
 
+          <Link to={createPageUrl("Clasificaciones")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-blue-600 to-cyan-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
+                  <Trophy className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📊 Clasificaciones</h3>
+              </div>
+            </div>
+          </Link>
+
+          <Link to={createPageUrl("ParentDocuments")} className="group">
+            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-slate-600 to-slate-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
+              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce">
+                  <FileText className="w-6 h-6 lg:w-10 lg:h-10 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📄 Documentos</h3>
+              </div>
+            </div>
+          </Link>
+
           <Link to={createPageUrl("ClothingOrders")} className="group">
             <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
               <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>

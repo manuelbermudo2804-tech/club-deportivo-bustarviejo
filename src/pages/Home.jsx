@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // toast removido para evitar spam
 
@@ -699,6 +699,12 @@ export default function Home() {
           badgeLabel: "activos"
         },
         {
+          title: "🔄 Dashboard Renovaciones",
+          icon: RefreshCw,
+          url: createPageUrl("RenewalDashboard"),
+          gradient: "from-cyan-600 to-cyan-700",
+        },
+        {
           title: "👤 Usuarios",
           icon: Users,
           url: createPageUrl("UserManagement"),
@@ -709,6 +715,24 @@ export default function Home() {
           icon: ShoppingBag,
           url: createPageUrl("ClothingOrders"),
           gradient: "from-teal-600 to-teal-700",
+          badge: stats.pendingClothingOrders,
+          badgeLabel: "pendientes"
+        },
+        {
+          title: "🎫 Gestión Socios",
+          icon: Heart,
+          url: createPageUrl("ClubMembersManagement"),
+          gradient: "from-pink-600 to-pink-700",
+          badge: stats.pendingMemberRequests,
+          badgeLabel: "pendientes"
+        },
+        {
+          title: "📧 Solicitudes Invitación",
+          icon: Bell,
+          url: createPageUrl("InvitationRequests"),
+          gradient: "from-purple-600 to-purple-700",
+          badge: pendingInvitationRequests,
+          badgeLabel: "pendientes"
         }
       );
 
@@ -741,6 +765,26 @@ export default function Home() {
           icon: Bell,
           url: createPageUrl("CoachCallups"),
           gradient: "from-yellow-600 to-yellow-700",
+          badge: stats.pendingCallupResponses,
+          badgeLabel: "respuestas"
+        },
+        {
+          title: "📊 Análisis Clasificaciones",
+          icon: BarChart3,
+          url: createPageUrl("CoachStandingsAnalysis"),
+          gradient: "from-blue-600 to-cyan-700",
+        },
+        {
+          title: "📋 Asistencia y Evaluación",
+          icon: CheckCircle2,
+          url: createPageUrl("TeamAttendanceEvaluation"),
+          gradient: "from-green-600 to-green-700",
+        },
+        {
+          title: "🏃 Entrenadores",
+          icon: Award,
+          url: createPageUrl("CoachProfiles"),
+          gradient: "from-indigo-600 to-indigo-700",
         },
         {
           title: "📊 Reportes",
@@ -752,6 +796,26 @@ export default function Home() {
 
       // 5. COMUNICACIÓN
       items.push(
+        {
+          title: "🛡️ Conversaciones Críticas",
+          icon: Bell,
+          url: createPageUrl("AdminChat"),
+          gradient: "from-red-600 to-red-700",
+          badge: stats.unreadPrivateMessages,
+          badgeLabel: "sin resolver"
+        },
+        {
+          title: "💬 Chat Coordinador",
+          icon: MessageCircle,
+          url: createPageUrl("CoordinatorChat"),
+          gradient: "from-cyan-600 to-cyan-700",
+        },
+        {
+          title: "💼 Chat Staff",
+          icon: MessageCircle,
+          url: createPageUrl("StaffChat"),
+          gradient: "from-slate-600 to-slate-700",
+        },
         {
           title: "📢 Anuncios",
           icon: Megaphone,
@@ -769,6 +833,8 @@ export default function Home() {
           icon: FileText,
           url: createPageUrl("Surveys"),
           gradient: "from-purple-600 to-purple-700",
+          badge: stats.recentSurveyResponses,
+          badgeLabel: "nuevas"
         }
       );
 
@@ -785,6 +851,12 @@ export default function Home() {
           icon: Calendar,
           url: createPageUrl("EventManagement"),
           gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "📊 Clasificaciones",
+          icon: BarChart3,
+          url: createPageUrl("Clasificaciones"),
+          gradient: "from-blue-600 to-cyan-700",
         },
         {
           title: "🖼️ Galería",
@@ -1170,6 +1242,12 @@ export default function Home() {
           icon: Calendar,
           url: createPageUrl("ParentEventRSVP"),
           gradient: "from-indigo-600 to-indigo-700",
+        },
+        {
+          title: "📊 Clasificaciones",
+          icon: BarChart3,
+          url: createPageUrl("Clasificaciones"),
+          gradient: "from-blue-600 to-cyan-700",
         },
         {
           title: "🖼️ Galería",

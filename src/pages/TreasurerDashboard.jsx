@@ -23,7 +23,7 @@ import {
   TrendingUp, TrendingDown, DollarSign, Users, AlertCircle, CheckCircle2, Clock, 
   Download, FileText, CreditCard, ShoppingBag, Clover, Building2,
   ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon,
-  Sparkles, RefreshCw, Activity, Award, FileSpreadsheet, Target, Upload
+  Sparkles, RefreshCw, Activity, Award, FileSpreadsheet, Target, Upload, Bell, Heart
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -974,6 +974,65 @@ export default function TreasurerDashboard() {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* Accesos Rápidos - Grid de Botones Grandes */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link to={createPageUrl("Payments")} className="block">
+          <Card className="border-2 border-green-400 hover:border-green-600 transition-all cursor-pointer group hover:shadow-xl h-full">
+            <CardContent className="pt-6 pb-6">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <CreditCard className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-base">💳 Pagos</h3>
+                <p className="text-xs text-slate-600">Gestión de cuotas</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to={createPageUrl("ClothingOrders")} className="block">
+          <Card className="border-2 border-orange-400 hover:border-orange-600 transition-all cursor-pointer group hover:shadow-xl h-full">
+            <CardContent className="pt-6 pb-6">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <ShoppingBag className="w-8 h-8 text-orange-600" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-base">🛍️ Pedidos Ropa</h3>
+                <p className="text-xs text-slate-600">Gestión de equipación</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to={createPageUrl("ClubMembersManagement")} className="block">
+          <Card className="border-2 border-pink-400 hover:border-pink-600 transition-all cursor-pointer group hover:shadow-xl h-full">
+            <CardContent className="pt-6 pb-6">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <Heart className="w-8 h-8 text-pink-600" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-base">🎫 Socios</h3>
+                <p className="text-xs text-slate-600">Gestión de socios</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to={createPageUrl("PaymentReminders")} className="block">
+          <Card className="border-2 border-red-400 hover:border-red-600 transition-all cursor-pointer group hover:shadow-xl h-full">
+            <CardContent className="pt-6 pb-6">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <Bell className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-base">🔔 Recordatorios</h3>
+                <p className="text-xs text-slate-600">Enviar avisos</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Acciones Rápidas - Lotería */}

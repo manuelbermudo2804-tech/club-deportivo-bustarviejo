@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart, FileSignature, Euro, Share2, Sparkles } from "lucide-react";
+import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart, FileSignature, Euro, Share2, Sparkles, BarChart3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -476,6 +476,12 @@ export default function ParentDashboard() {
       icon: Calendar,
       url: createPageUrl("ParentEventRSVP"),
       gradient: "from-cyan-600 to-cyan-700",
+    },
+    {
+      title: "📊 Clasificaciones",
+      icon: BarChart3,
+      url: createPageUrl("Clasificaciones"),
+      gradient: "from-blue-600 to-blue-700",
     },
     // 📢 INFORMACIÓN
     {
