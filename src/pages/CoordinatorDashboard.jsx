@@ -12,7 +12,8 @@ import {
   Bell,
   AlertCircle,
   Image,
-  FileText
+  FileText,
+  Megaphone
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
