@@ -228,14 +228,7 @@ export default function CoordinatorDashboard() {
                     </div>
                   )}
                   <p className="text-sm font-bold text-center">💬 Familias</p>
-                  <p className="text-xs text-green-100 text-center">Todas</p>
-                </div>
-              </Link>
-
-              <Link to={createPageUrl("CoordinatorChat")}>
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
-                  <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
-                  <p className="text-xs text-cyan-100 text-center">Mi chat</p>
+                  <p className="text-xs text-green-100 text-center">Coordinador + Entrenador</p>
                 </div>
               </Link>
 
