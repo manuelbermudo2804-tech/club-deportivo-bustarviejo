@@ -146,7 +146,7 @@ export default function CoordinatorDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               <Link to={createPageUrl("Chatbot")}>
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative">
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
@@ -154,6 +154,13 @@ export default function CoordinatorDashboard() {
                   </div>
                   <p className="text-sm font-bold text-center">🤖 Asistente</p>
                   <p className="text-xs text-indigo-100 text-center">Consulta IA</p>
+                </div>
+              </Link>
+
+              <Link to={createPageUrl("CoordinatorChat")}>
+                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
+                  <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
+                  <p className="text-xs text-cyan-100 text-center">Mi chat</p>
                 </div>
               </Link>
 
