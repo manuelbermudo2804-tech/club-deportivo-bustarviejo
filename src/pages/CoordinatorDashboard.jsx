@@ -9,10 +9,14 @@ import {
   Trophy,
   MessageCircle,
   Sparkles,
-  Shield
+  Bell,
+  AlertCircle
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import StandingsWidget from "../components/standings/StandingsWidget";
+import ContactCard from "../components/ContactCard";
+import AlertCenter from "../components/dashboard/AlertCenter";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -47,6 +51,70 @@ export default function CoordinatorDashboard() {
     queryKey: ['standings'],
     queryFn: () => base44.entities.Clasificacion.list(),
   });
+
+  const { data: coordinatorConversations = [] } = useQuery({
+    queryKey: ['coordinatorConversations'],
+    queryFn: () => base44.entities.CoordinatorConversation.list(),
+  });
+
+  const { data: allSurveys = [] } = useQuery({
+    queryKey: ['surveys'],
+    queryFn: () => base44.entities.Survey.list('-created_date', 10),
+  });
+
+  const { data: allMatchObservations = [] } = useQuery({
+    queryKey: ['matchObservations'],
+    queryFn: () => base44.entities.MatchObservation.list(),
+  });
+
+  // Mensajes no leídos de familias
+  const unreadFamilyMessages = useMemo(() => 
+    coordinatorConversations.reduce((sum, conv) => sum + (conv.no_leidos_coordinador || 0), 0),
+    [coordinatorConversations]
+  );
+
+  // Convocatorias pendientes de respuesta
+  const pendingCallupResponses = useMemo(() => {
+    let count = 0;
+    allCallups.forEach(callup => {
+      if (!callup.publicada || callup.cerrada) return;
+      callup.jugadores_convocados?.forEach(j => {
+        if (j.confirmacion === "pendiente") count++;
+      });
+    });
+    return count;
+  }, [allCallups]);
+
+  // Observaciones post-partido pendientes
+  const pendingMatchObservations = useMemo(() => {
+    const now = new Date();
+    return allCallups.filter(callup => {
+      if (!callup.publicada || callup.cerrada) return false;
+      const matchDate = new Date(callup.fecha_partido);
+      if (matchDate > now) return false;
+      
+      if (callup.hora_partido) {
+        const [hours, minutes] = callup.hora_partido.split(':').map(Number);
+        const matchStart = new Date(matchDate);
+        matchStart.setHours(hours, minutes, 0, 0);
+        const matchEnd = new Date(matchStart.getTime() + 135 * 60000);
+        if (now < matchEnd) return false;
+      }
+      
+      const hasObservation = allMatchObservations.some(obs =>
+        obs.categoria === callup.categoria &&
+        obs.rival === callup.rival &&
+        obs.fecha_partido === callup.fecha_partido
+      );
+      return !hasObservation;
+    }).length;
+  }, [allCallups, allMatchObservations]);
+
+  // Encuestas activas
+  const activeSurveys = useMemo(() => 
+    allSurveys.filter(s => s.activa && new Date(s.fecha_fin) >= new Date()).length,
+    [allSurveys]
+  );
 
   // Stats globales
   const stats = useMemo(() => {
@@ -130,7 +198,11 @@ export default function CoordinatorDashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                <p className="text-xs text-purple-700">Comunicación</p>
+                <p className="text-xs text-purple-700">
+                  {unreadFamilyMessages > 0 
+                    ? `${unreadFamilyMessages} mensaje${unreadFamilyMessages > 1 ? 's' : ''} nuevo${unreadFamilyMessages > 1 ? 's' : ''}`
+                    : 'Comunicación'}
+                </p>
               </div>
             </div>
             
@@ -146,7 +218,12 @@ export default function CoordinatorDashboard() {
               </Link>
 
               <Link to={createPageUrl("FamilyChats")}>
-                <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
+                <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative">
+                  {unreadFamilyMessages > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadFamilyMessages}</span>
+                    </div>
+                  )}
                   <p className="text-sm font-bold text-center">💬 Familias</p>
                   <p className="text-xs text-green-100 text-center">Todas</p>
                 </div>
@@ -168,6 +245,15 @@ export default function CoordinatorDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* AlertCenter - Alertas profesionales del coordinador */}
+        <AlertCenter 
+          pendingCallups={pendingCallupResponses}
+          pendingSurveys={activeSurveys}
+          pendingMatchObservations={pendingMatchObservations}
+          upcomingEvents={upcomingEvents.length}
+          isCoordinator={true}
+        />
 
         {/* Banner dividido: Clasificaciones (izq) + Calendario (der) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -300,6 +386,8 @@ export default function CoordinatorDashboard() {
             </div>
           </div>
         </div>
+
+        <ContactCard />
 
       </div>
     </div>

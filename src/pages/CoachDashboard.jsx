@@ -16,6 +16,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import StandingsWidget from "../components/standings/StandingsWidget";
 import NextMatchWidget from "../components/dashboard/NextMatchWidget";
+import ContactCard from "../components/ContactCard";
+import AlertCenter from "../components/dashboard/AlertCenter";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -194,47 +196,12 @@ export default function CoachDashboard() {
           </CardContent>
         </Card>
 
-        {/* Alertas Entrenador */}
-        {(pendingCallupResponses > 0 || pendingMatchObservations > 0) && (
-          <Card className="border-2 border-red-300 bg-gradient-to-r from-red-50 to-orange-50 shadow-lg">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <AlertCircle className="w-6 h-6 text-red-600" />
-                <h3 className="font-bold text-red-900">⚠️ Alertas Importantes</h3>
-              </div>
-              
-              <div className="space-y-2">
-                {pendingCallupResponses > 0 && (
-                  <Link to={createPageUrl("CoachCallups")}>
-                    <div className="bg-white rounded-lg p-3 hover:bg-red-50 transition-all border border-red-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Bell className="w-5 h-5 text-red-600" />
-                          <p className="font-semibold text-slate-900 text-sm">Convocatorias sin confirmar</p>
-                        </div>
-                        <Badge className="bg-red-500 text-white">{pendingCallupResponses}</Badge>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-                
-                {pendingMatchObservations > 0 && (
-                  <Link to={createPageUrl("CoachStandingsAnalysis")}>
-                    <div className="bg-white rounded-lg p-3 hover:bg-orange-50 transition-all border border-orange-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Trophy className="w-5 h-5 text-orange-600" />
-                          <p className="font-semibold text-slate-900 text-sm">Observaciones post-partido pendientes</p>
-                        </div>
-                        <Badge className="bg-orange-500 text-white">{pendingMatchObservations}</Badge>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* AlertCenter - Alertas del entrenador */}
+        <AlertCenter 
+          pendingCallups={pendingCallupResponses}
+          pendingMatchObservations={pendingMatchObservations}
+          isCoach={true}
+        />
 
         {/* Banner dividido: Clasificación + Próximo Partido */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -290,6 +257,8 @@ export default function CoachDashboard() {
             </div>
           </div>
         </div>
+
+        <ContactCard />
 
       </div>
     </div>
