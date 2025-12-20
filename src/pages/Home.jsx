@@ -68,13 +68,22 @@ export default function Home() {
         setIsCoach(coachCheck);
 
         if (adminCheck) setUserRole("admin");
-        else if (coordinatorCheck) setUserRole("coordinator");
+        else if (coordinatorCheck) {
+          console.log('🎓 [Home] Coordinador en Home - redirigiendo a CoordinatorDashboard');
+          setUserRole("coordinator");
+          window.location.href = createPageUrl('CoordinatorDashboard');
+          return;
+        }
         else if (treasurerCheck) setUserRole("treasurer");
-        else if (coachCheck) setUserRole("coach");
+        else if (coachCheck) {
+          console.log('🏃 [Home] Entrenador en Home - redirigiendo a CoachDashboard');
+          setUserRole("coach");
+          window.location.href = createPageUrl('CoachDashboard');
+          return;
+        }
         else {
           console.log('👨‍👩‍👧 [Home] Usuario padre en Home - redirigiendo a ParentDashboard');
           setUserRole("parent");
-          // Redirigir inmediatamente
           window.location.href = createPageUrl('ParentDashboard');
           return;
         }
