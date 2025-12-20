@@ -3,8 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import DashboardButtonConfig from "../components/dashboard/DashboardButtonConfig";
-import { useDashboardButtons } from "../components/dashboard/useDashboardButtons";
+
 import { 
   Users, 
   Trophy,
@@ -30,7 +29,6 @@ import { es } from "date-fns/locale";
 export default function CoachDashboard() {
   const [user, setUser] = useState(null);
   const [myCategories, setMyCategories] = useState([]);
-  const [buttonConfig, setButtonConfig] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {

@@ -10,7 +10,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Trophy, CreditCard, Star, Award, MessageCircle, Calendar, 
   User, CheckCircle2, Clock, AlertCircle, ChevronRight,
-  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover, Edit, FileSignature, ShoppingBag, BarChart3, ClipboardCheck, Settings
+  MapPin, Users, Megaphone, Image, FileText, Heart, Bell, Sparkles, ShieldAlert, Clover, Edit, FileSignature, ShoppingBag
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -39,7 +39,6 @@ export default function PlayerDashboard() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        setButtonConfig(currentUser.dashboard_buttons_config || []);
         console.log('👤 [PlayerDashboard] Usuario cargado:', currentUser.email);
       } catch (error) {
         console.error("❌ [PlayerDashboard] Error fetching user:", error);

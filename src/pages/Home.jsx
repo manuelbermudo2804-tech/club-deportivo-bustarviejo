@@ -1323,26 +1323,16 @@ export default function Home() {
     return items;
   }, [isAdmin, isCoach, isCoordinator, isTreasurer, hasPlayers, loteriaVisible, stats]);
 
-  // Convertir menuItems a formato de availableButtons (SIN chats - filtrar todos los MessageCircle)
-  const availableButtons = useMemo(() => 
-    menuItems
-      .filter(item => 
-        // Excluir TODOS los chats/mensajería
-        !item.title.includes('Chat') && 
-        !item.title.includes('Asistente') &&
-        !item.title.includes('Mensajes') &&
-        !item.title.includes('Conversaciones')
-      )
-      .map((item, idx) => ({
-        id: item.title.replace(/[^a-zA-Z0-9]/g, '_'),
-        label: item.title,
-        description: item.badgeLabel || 'Acceso rápido',
-        url: item.url,
-        icon: item.icon,
-        bgColor: `bg-gradient-to-br ${item.gradient}`,
-        badge: item.badge
-      }))
-  , [menuItems]);
+  // Convertir menuItems a formato de availableButtons (SIN chats)
+  const availableButtons = menuItems.map((item, idx) => ({
+    id: `btn_${idx}`,
+    label: item.title,
+    description: item.badgeLabel || 'Acceso rápido',
+    url: item.url,
+    icon: item.icon,
+    bgColor: `bg-gradient-to-br ${item.gradient}`,
+    badge: item.badge
+  }));
 
   // Aplicar configuración del usuario
   const displayedButtons = useDashboardButtons(availableButtons, buttonConfig);
@@ -1576,8 +1566,8 @@ export default function Home() {
 
 
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-6 stagger-animation">
-          {displayedButtons.map((button) => (
-            <Link key={button.id} to={button.url} className="group">
+          {menuItems.map((item, index) => (
+            <Link key={index} to={item.url} className="group">
               <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
                 <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${button.bgColor.replace('bg-gradient-to-br', '')} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
