@@ -334,22 +334,7 @@ export default function CoachDashboard() {
             </div>
           </Link>
         </div>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <Trophy className="w-6 h-6 text-green-600" />
-                  <h3 className="font-bold text-slate-900">🏆 Mi Clasificación</h3>
-                </div>
-                <StandingsWidget categoria={myCategories[0]} compact={true} />
-              </CardContent>
-            </Card>
-          )}
 
-          {/* Próximo Partido */}
-          {myCategories.length > 0 && (
-            <Card className="border-2 border-blue-300 bg-white shadow-lg">
-              <CardContent className="p-4">
-                <NextMatchWidget categoria={myCategories[0]} />
-              </CardContent>
         {/* Stats Footer */}
         <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
