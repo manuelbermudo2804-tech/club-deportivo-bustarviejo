@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import StandingsWidget from "../components/standings/StandingsWidget";
 import ContactCard from "../components/ContactCard";
 import AlertCenter from "../components/dashboard/AlertCenter";
+import SocialLinks from "../components/SocialLinks";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -181,6 +182,7 @@ export default function CoordinatorDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
+        <SocialLinks />
         
         {/* Header */}
         <div className="text-center lg:text-left">
