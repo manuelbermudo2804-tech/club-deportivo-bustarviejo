@@ -71,6 +71,14 @@ export default function Clasificaciones() {
     checkAdmin();
   }, []);
 
+  // Auto-abrir vista detallada si solo hay una clasificación para usuarios no admin
+  React.useEffect(() => {
+    if (!isAdmin && !isLoadingUser && activeTab && standingsByCategory[activeTab]?.length === 1) {
+      const singleStanding = standingsByCategory[activeTab][0];
+      setSelectedView(singleStanding);
+    }
+  }, [isAdmin, isLoadingUser, activeTab, standingsByCategory]);
+
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones'],
     queryFn: () => base44.entities.Clasificacion.list('-jornada'),
