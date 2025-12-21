@@ -202,8 +202,8 @@ export default function TreasurerDashboard() {
           </CardContent>
         </Card>
 
-        {/* Banner de Clasificaciones + Próximo Partido */}
-        {hasPlayers && myPlayers && myPlayers.length > 0 && standings && callups && (
+        {/* Banner de Clasificaciones + Próximo Partido - Solo cuando tiene hijos */}
+        {hasPlayers && myPlayers.length > 0 && (
           <CoachClassificationsMatchesBanner 
             standings={standings}
             callups={callups}
@@ -211,63 +211,65 @@ export default function TreasurerDashboard() {
           />
         )}
 
-        {/* AlertCenter - Dividido en 2 columnas cuando tiene hijos */}
-        {hasPlayers && myPlayers && myPlayers.length > 0 && payments && payments.length >= 0 ? (
+        {/* AlertCenter - Dividido en 2 columnas SI TIENE HIJOS, 1 columna si NO */}
+        {hasPlayers && myPlayers.length > 0 ? (
           <div className="grid lg:grid-cols-2 gap-4">
-            {/* Tareas como Padre */}
-            {(() => {
-              const normalizeSeason = (season) => {
-                if (!season) return currentSeason;
-                return season.replace(/-/g, '/');
-              };
-              
-              const myPayments = payments.filter(p => 
-                myPlayers.some(pl => pl.id === p.jugador_id) && 
-                p.is_deleted !== true &&
-                normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
-              );
-              
-              const pendientesCount = myPayments.filter(p => p.estado === "Pendiente").length;
-              const revisionCount = myPayments.filter(p => p.estado === "En revisión").length;
-              
-              const now = new Date();
-              let vencidosCount = 0;
-              myPayments.forEach(payment => {
-                if (payment.estado !== "Pagado") {
-                  const mes = payment.mes;
-                  const year = parseInt(currentSeason.split('/')[0]);
-                  let vencimiento;
-                  
-                  if (mes === "Junio") vencimiento = new Date(year, 5, 30);
-                  else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
-                  else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
-                  
-                  if (vencimiento && now >= vencimiento) vencidosCount++;
-                }
-              });
-              
-              const calcularEdad = (fechaNac) => {
-                if (!fechaNac) return null;
-                const hoy = new Date();
-                const nacimiento = new Date(fechaNac);
-                let edad = hoy.getFullYear() - nacimiento.getFullYear();
-                const m = hoy.getMonth() - nacimiento.getMonth();
-                if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-                return edad;
-              };
-              
-              let firmasCount = 0;
-              myPlayers.forEach(player => {
-                if (player.enlace_firma_jugador && !player.firma_jugador_completada) firmasCount++;
-                const esMayor = calcularEdad(player.fecha_nacimiento) >= 18;
-                if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
-              });
-              
-              const userSports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
-              
-              return (
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">🏠 Mis Tareas como Padre</h3>
+            {/* Columna IZQUIERDA - Tareas como Padre */}
+            <div className="space-y-2">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                🏠 Mis Tareas como Padre
+              </h3>
+              {(() => {
+                const normalizeSeason = (season) => {
+                  if (!season) return currentSeason;
+                  return season.replace(/-/g, '/');
+                };
+                
+                const myPayments = payments.filter(p => 
+                  myPlayers.some(pl => pl.id === p.jugador_id) && 
+                  p.is_deleted !== true &&
+                  normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
+                );
+                
+                const pendientesCount = myPayments.filter(p => p.estado === "Pendiente").length;
+                const revisionCount = myPayments.filter(p => p.estado === "En revisión").length;
+                
+                const now = new Date();
+                let vencidosCount = 0;
+                myPayments.forEach(payment => {
+                  if (payment.estado !== "Pagado") {
+                    const mes = payment.mes;
+                    const year = parseInt(currentSeason.split('/')[0]);
+                    let vencimiento;
+                    
+                    if (mes === "Junio") vencimiento = new Date(year, 5, 30);
+                    else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
+                    else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
+                    
+                    if (vencimiento && now >= vencimiento) vencidosCount++;
+                  }
+                });
+                
+                const calcularEdad = (fechaNac) => {
+                  if (!fechaNac) return null;
+                  const hoy = new Date();
+                  const nacimiento = new Date(fechaNac);
+                  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+                  const m = hoy.getMonth() - nacimiento.getMonth();
+                  if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+                  return edad;
+                };
+                
+                let firmasCount = 0;
+                myPlayers.forEach(player => {
+                  if (player.enlace_firma_jugador && !player.firma_jugador_completada) firmasCount++;
+                  const esMayor = calcularEdad(player.fecha_nacimiento) >= 18;
+                  if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
+                });
+                
+                const userSports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+                
+                return (
                   <AlertCenter 
                     pendingCallups={0}
                     pendingSignatures={firmasCount}
@@ -279,11 +281,53 @@ export default function TreasurerDashboard() {
                     userEmail={user?.email}
                     userSports={userSports}
                   />
-                </div>
-              );
-            })()}
+                );
+              })()}
+            </div>
 
-            {/* Tareas como Tesorero */}
+            {/* Columna DERECHA - Tareas como Tesorero */}
+            <div className="space-y-2">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                💰 Mis Tareas como Tesorero
+              </h3>
+              {(() => {
+                const allPayments = payments.filter(p => p.is_deleted !== true);
+                const paymentsInReview = allPayments.filter(p => p.estado === "En revisión").length;
+                
+                const now = new Date();
+                let overdueClubPayments = 0;
+                allPayments.forEach(payment => {
+                  if (payment.estado !== "Pagado") {
+                    const mes = payment.mes;
+                    const year = parseInt(currentSeason.split('/')[0]);
+                    let vencimiento;
+                    
+                    if (mes === "Junio") vencimiento = new Date(year, 5, 30);
+                    else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
+                    else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
+                    
+                    if (vencimiento && now >= vencimiento) overdueClubPayments++;
+                  }
+                });
+                
+                return (
+                  <AlertCenter 
+                    paymentsInReview={paymentsInReview}
+                    overduePayments={overdueClubPayments}
+                    isAdmin={false}
+                    isParent={false}
+                    isTreasurer={true}
+                    userEmail={user?.email}
+                  />
+                );
+              })()}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              💰 Mis Tareas como Tesorero
+            </h3>
             {(() => {
               const allPayments = payments.filter(p => p.is_deleted !== true);
               const paymentsInReview = allPayments.filter(p => p.estado === "En revisión").length;
@@ -305,55 +349,18 @@ export default function TreasurerDashboard() {
               });
               
               return (
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">💰 Mis Tareas como Tesorero</h3>
-                  <AlertCenter 
-                    paymentsInReview={paymentsInReview}
-                    overduePayments={overdueClubPayments}
-                    isAdmin={false}
-                    isParent={false}
-                    isTreasurer={true}
-                    userEmail={user?.email}
-                  />
-                </div>
+                <AlertCenter 
+                  paymentsInReview={paymentsInReview}
+                  overduePayments={overdueClubPayments}
+                  isAdmin={false}
+                  isParent={false}
+                  isTreasurer={true}
+                  userEmail={user?.email}
+                />
               );
             })()}
           </div>
-        ) : payments && (() => {
-          // Sin hijos - solo AlertCenter de Tesorero
-          const allPayments = payments.filter(p => p.is_deleted !== true);
-          const paymentsInReview = allPayments.filter(p => p.estado === "En revisión").length;
-          
-          const now = new Date();
-          let overdueClubPayments = 0;
-          allPayments.forEach(payment => {
-            if (payment.estado !== "Pagado") {
-              const mes = payment.mes;
-              const year = parseInt(currentSeason.split('/')[0]);
-              let vencimiento;
-              
-              if (mes === "Junio") vencimiento = new Date(year, 5, 30);
-              else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
-              else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
-              
-              if (vencimiento && now >= vencimiento) overdueClubPayments++;
-            }
-          });
-          
-          return (
-            <div>
-              <h3 className="text-lg font-bold text-white mb-2">💰 Mis Tareas como Tesorero</h3>
-              <AlertCenter 
-                paymentsInReview={paymentsInReview}
-                overduePayments={overdueClubPayments}
-                isAdmin={false}
-                isParent={false}
-                isTreasurer={true}
-                userEmail={user?.email}
-              />
-            </div>
-          );
-        })()}
+        )}
 
         {/* Botón personalizar dashboard */}
         <div className="flex justify-end">
