@@ -485,16 +485,52 @@ export default function TreasurerFinancialPanel() {
                   <p className="text-xs text-slate-600 mt-1">Jugadores Activos</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-green-700">{payments.filter(p => p.estado === "Pagado").length}</p>
+                  <p className="text-2xl font-bold text-green-700">
+                    {(() => {
+                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada && p.is_deleted !== true);
+                      return currentSeasonPayments.filter(p => p.estado === "Pagado").length;
+                    })()}
+                  </p>
                   <p className="text-xs text-slate-600 mt-1">Pagos Confirmados</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-orange-700">{payments.filter(p => p.estado === "En revisión").length}</p>
+                  <p className="text-2xl font-bold text-orange-700">
+                    {(() => {
+                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada && p.is_deleted !== true);
+                      return currentSeasonPayments.filter(p => p.estado === "En revisión").length;
+                    })()}
+                  </p>
                   <p className="text-xs text-slate-600 mt-1">En Revisión</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-red-700">{payments.filter(p => p.estado === "Pendiente").length}</p>
-                  <p className="text-xs text-slate-600 mt-1">Pendientes</p>
+                  <p className="text-2xl font-bold text-red-700">
+                    {(() => {
+                      if (!activeSeason) return 0;
+                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
+                      const currentSeasonPlayers = players.filter(p => p.activo === true);
+                      let cuotasPendientes = 0;
+                      
+                      currentSeasonPlayers.forEach(player => {
+                        const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
+                        const hasPagoUnico = playerPayments.some(p => 
+                          (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                          (p.estado === "Pagado" || p.estado === "En revisión")
+                        );
+                        if (hasPagoUnico) return;
+                        
+                        const mesesPagadosORevision = playerPayments
+                          .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+                          .map(p => p.mes);
+                        
+                        const allMonths = ["Junio", "Septiembre", "Diciembre"];
+                        const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+                        cuotasPendientes += mesesFaltantes.length;
+                      });
+                      
+                      return cuotasPendientes;
+                    })()}
+                  </p>
+                  <p className="text-xs text-slate-600 mt-1">Cuotas Pendientes</p>
                 </div>
               </div>
             </CardContent>
