@@ -2,8 +2,8 @@ import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
-import { Users, TrendingUp } from "lucide-react";
+import { BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
+import { Users, TrendingUp, BarChart } from "lucide-react";
 
 const COLORS = ['#3b82f6', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6'];
 
@@ -91,7 +91,7 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
         </CardHeader>
         <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData} layout="vertical">
+            <ReBarChart data={chartData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" />
               <YAxis dataKey="name" type="category" width={120} />
@@ -100,7 +100,7 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
               <Bar dataKey="Cobrado" fill="#22c55e" stackId="a" />
               <Bar dataKey="EnRevision" fill="#f59e0b" stackId="a" />
               <Bar dataKey="Pendiente" fill="#ef4444" stackId="a" />
-            </BarChart>
+            </ReBarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
