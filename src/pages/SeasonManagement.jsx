@@ -164,6 +164,13 @@ export default function SeasonManagement() {
     queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
   });
 
+  const activeSeason = useMemo(() => {
+    console.log('🔍 Buscando temporada activa en:', seasons);
+    const active = seasons.find(s => s.activa === true);
+    console.log('✅ Temporada activa encontrada:', active);
+    return active;
+  }, [seasons]);
+
   const [currentBudget, setCurrentBudget] = useState(null);
   const [showAddTransaction, setShowAddTransaction] = useState(false);
 
@@ -1089,13 +1096,6 @@ export default function SeasonManagement() {
     queryKey: ['privateConversations'],
     queryFn: () => base44.entities.PrivateConversation.list(),
   });
-
-  const activeSeason = useMemo(() => {
-    console.log('🔍 Buscando temporada activa en:', seasons);
-    const active = seasons.find(s => s.activa === true);
-    console.log('✅ Temporada activa encontrada:', active);
-    return active;
-  }, [seasons]);
 
   // Estadísticas actuales
   const currentStats = {
