@@ -359,6 +359,20 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       return;
     }
 
+    // VALIDACIÓN ANTI-DUPLICADOS: verificar si ya existe un pago para este jugador/mes/temporada
+    const duplicado = payments.find(p => 
+      p.jugador_id === currentPayment.jugador_id &&
+      p.mes === currentPayment.mes &&
+      p.temporada === currentPayment.temporada &&
+      p.is_deleted !== true &&
+      (p.estado === "Pendiente" || p.estado === "En revisión" || p.estado === "Pagado")
+    );
+
+    if (duplicado) {
+      toast.error(`❌ Ya existe un pago de ${currentPayment.mes} para este jugador (Estado: ${duplicado.estado}). No puedes crear duplicados.`);
+      return;
+    }
+
     onSubmit(currentPayment);
   };
 
