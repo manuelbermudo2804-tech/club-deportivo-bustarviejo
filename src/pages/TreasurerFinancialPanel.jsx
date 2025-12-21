@@ -153,7 +153,7 @@ export default function TreasurerFinancialPanel() {
   };
 
   // Cálculos financieros - CORREGIDOS para coincidir con Payments.jsx
-  const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada);
+  const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada && p.is_deleted !== true);
   const currentSeasonPlayers = players.filter(p => p.activo === true);
   const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason?.temporada);
   const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason?.temporada);
@@ -178,7 +178,7 @@ export default function TreasurerFinancialPanel() {
       
       // Contar meses pagados o en revisión
       const mesesPagadosORevision = playerPayments
-        .filter(p => p.tipo_pago === "Tres meses" && (p.estado === "Pagado" || p.estado === "En revisión"))
+        .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
         .map(p => p.mes);
       
       // Calcular qué meses faltan
