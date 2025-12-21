@@ -58,8 +58,8 @@ export default function TreasurerDashboard() {
   }, [user?.email, myPlayers.length]);
 
   const { data: allPayments = [] } = useQuery({
-    queryKey: ['payments', user?.email],
-    queryFn: () => base44.entities.Payment.list('-created_date', 100),
+    queryKey: ['paymentsAll', user?.email],
+    queryFn: () => base44.entities.Payment.list('-created_date', 200),
     staleTime: 60000,
     enabled: !!user,
   });
