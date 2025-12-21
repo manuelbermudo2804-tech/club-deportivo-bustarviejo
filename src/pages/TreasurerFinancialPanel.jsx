@@ -381,9 +381,10 @@ export default function TreasurerFinancialPanel() {
                 <p className="text-sm text-green-100 mb-1">Ingresos Cobrados</p>
                 <p className="text-4xl font-bold">{totalIngresos.toFixed(2)}€</p>
                 <div className="mt-3 pt-3 border-t border-white/20">
-                  <p className="text-xs text-green-100">
-                    Cuotas: {stats.cuotasPagadas.toFixed(0)}€ • Ropa: {stats.ropaPagada.toFixed(0)}€
-                  </p>
+                  <div className="flex items-center justify-between text-xs text-green-100">
+                    <span>Tasa de cobro:</span>
+                    <span className="font-bold">{totalEsperado > 0 ? ((totalIngresos / totalEsperado) * 100).toFixed(1) : 0}%</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
