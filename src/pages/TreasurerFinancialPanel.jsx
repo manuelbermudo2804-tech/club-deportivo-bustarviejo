@@ -12,7 +12,6 @@ import {
   Calendar, CheckCircle2, Clock, AlertCircle, BarChart3, Sparkles, Plus,
   PieChart, Target, Award
 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from "recharts";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
@@ -49,6 +48,7 @@ export default function TreasurerFinancialPanel() {
   const [activeSeason, setActiveSeason] = useState(null);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("resumen");
+  const [activeAnalysisTab, setActiveAnalysisTab] = useState("rentabilidad");
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showAIForecasting, setShowAIForecasting] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
@@ -448,29 +448,17 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 bg-slate-800 border-slate-700">
+        <TabsList className="grid w-full grid-cols-3 bg-slate-800 border-slate-700">
           <TabsTrigger value="resumen" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden md:inline">Resumen</span>
-          </TabsTrigger>
-          <TabsTrigger value="analisis" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <TrendingUp className="w-4 h-4" />
-            <span className="hidden md:inline">Análisis</span>
-          </TabsTrigger>
-          <TabsTrigger value="planes" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Users className="w-4 h-4" />
-            <span className="hidden md:inline">Planes Pago</span>
-          </TabsTrigger>
-          <TabsTrigger value="bancario" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Building2 className="w-4 h-4" />
-            <span className="hidden md:inline">Bancario</span>
           </TabsTrigger>
           <TabsTrigger value="presupuestos" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Euro className="w-4 h-4" />
             <span className="hidden md:inline">Presupuestos</span>
           </TabsTrigger>
           <TabsTrigger value="transacciones" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <FileText className="w-4 h-4" />
+            <TrendingUp className="w-4 h-4" />
             <span className="hidden md:inline">Transacciones</span>
           </TabsTrigger>
         </TabsList>
@@ -1123,53 +1111,6 @@ export default function TreasurerFinancialPanel() {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
-
-        {/* TAB ANÁLISIS AVANZADO */}
-        <TabsContent value="analisis" className="space-y-6 mt-6">
-          <CategoryProfitability 
-            payments={payments}
-            transactions={transactions}
-            players={players}
-            activeSeason={activeSeason}
-          />
-          
-          <RetentionAnalysis 
-            allSeasons={allSeasons}
-            allPlayers={players}
-          />
-          
-          <CashFlowAnalysis 
-            payments={payments}
-            transactions={transactions}
-            clothingOrders={clothingOrders}
-            lotteryOrders={lotteryOrders}
-            clubMembers={clubMembers}
-            sponsors={sponsors}
-            activeSeason={activeSeason}
-          />
-          
-          <FinancialRatios 
-            totalIngresos={totalIngresos}
-            totalPendiente={totalPendiente}
-            totalGastos={transactions.filter(t => t.tipo === "Gasto").reduce((sum, t) => sum + (t.cantidad || 0), 0)}
-            stats={stats}
-          />
-          
-          <SeasonalityAnalysis 
-            payments={payments}
-            activeSeason={activeSeason}
-          />
-        </TabsContent>
-
-        {/* TAB PLANES DE PAGO */}
-        <TabsContent value="planes" className="space-y-6 mt-6">
-          <CustomPaymentPlanManager activeSeason={activeSeason} />
-        </TabsContent>
-
-        {/* TAB BANCARIO */}
-        <TabsContent value="bancario" className="space-y-6 mt-6">
-          <BankAccountManager activeSeason={activeSeason} />
         </TabsContent>
 
         {/* TAB PRESUPUESTOS */}
