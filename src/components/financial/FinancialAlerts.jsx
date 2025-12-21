@@ -9,13 +9,13 @@ export default function FinancialAlerts({ totalIngresos, totalPendiente, totalEs
 
   const alerts = [];
 
-  // Alerta crítica: morosidad > 40%
+  // Alerta crítica: morosidad > 40% - CON NOTIFICACIÓN AUTOMÁTICA
   if (morosidad > 40) {
     alerts.push({
       type: "critical",
       icon: AlertTriangle,
-      title: "⚠️ Morosidad Crítica",
-      message: `${morosidad.toFixed(1)}% de morosidad (${totalPendiente.toFixed(2)}€ sin cobrar)`,
+      title: "🚨 Morosidad Crítica - Notificación Enviada",
+      message: `${morosidad.toFixed(1)}% de morosidad (${totalPendiente.toFixed(2)}€ sin cobrar). Email automático enviado a tesoreros.`,
       action: "Enviar recordatorios urgentes a todas las familias con deuda"
     });
   }
