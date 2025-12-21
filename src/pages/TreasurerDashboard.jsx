@@ -14,6 +14,7 @@ import ContactCard from "../components/ContactCard";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_TREASURER_BUTTONS, DEFAULT_TREASURER_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/TreasurerDashboardButtons";
+import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 
 export default function TreasurerDashboard() {
   const queryClient = useQueryClient();
@@ -220,9 +221,6 @@ export default function TreasurerDashboard() {
   // Stats de PADRE
   let pendingCallupsParent = 0;
   let pendingSignaturesParent = 0;
-  let pendingPaymentsParent = 0;
-  let paymentsInReviewParent = 0;
-  let overduePaymentsParent = 0;
   
   callups.forEach(callup => {
     callup.jugadores_convocados?.forEach(jugador => {
@@ -243,44 +241,8 @@ export default function TreasurerDashboard() {
     if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) pendingSignaturesParent++;
   });
 
-  const currentSeason = (() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
-  })();
-
-  const normalizeSeason = (season) => {
-    if (!season) return currentSeason;
-    return season.replace(/-/g, '/');
-  };
-
-  const myPayments = allPayments.filter(p => 
-    myPlayerIds.includes(p.jugador_id) && 
-    p.is_deleted !== true &&
-    normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
-  );
-
-  const now = new Date();
-  myPayments.forEach(payment => {
-    if (payment.estado === "Pendiente") {
-      const mes = payment.mes;
-      const year = parseInt(currentSeason.split('/')[0]);
-      let vencimiento;
-      
-      if (mes === "Junio") vencimiento = new Date(year, 5, 30);
-      else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
-      else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
-      
-      if (vencimiento && now >= vencimiento) {
-        overduePaymentsParent++;
-      } else {
-        pendingPaymentsParent++;
-      }
-    } else if (payment.estado === "En revisión") {
-      paymentsInReviewParent++;
-    }
-  });
+  // USAR HELPER CENTRALIZADO para pagos
+  const { pendingPayments: pendingPaymentsParent, overduePayments: overduePaymentsParent, paymentsInReview: paymentsInReviewParent } = calculatePaymentStats(allPayments, myPlayerIds);
 
   // Stats de TESORERO (todos los pagos del club)
   const paymentsInReviewTreasurer = allPayments.filter(p => 
@@ -319,6 +281,9 @@ export default function TreasurerDashboard() {
     return false;
   }).length;
 
+  const pendingPaymentsParent = pagosPendientesNoVencidos;
+  const paymentsInReviewParent = pagosEnRevisionNoVencidos;
+  const overduePaymentsParent = overduePaymentsCount;
   const totalPendingPaymentsParent = pendingPaymentsParent + paymentsInReviewParent + overduePaymentsParent;
 
   // Determinar qué botones mostrar según configuración del usuario

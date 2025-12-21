@@ -17,6 +17,7 @@ import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
+import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -349,130 +350,45 @@ export default function ParentDashboard() {
     return count;
   }, 0);
 
-  // Calcular pagos considerando planes personalizados
-  const getCurrentSeason = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
-  };
-
-  const currentSeason = getCurrentSeason();
-  const normalizeSeason = (season) => season?.replace(/-/g, '/') || currentSeason;
-
-  let pagosPendientesNoVencidos = 0;
-  let pagosEnRevisionNoVencidos = 0;
-  let overduePaymentsCount = 0;
-
-  myPlayers.forEach(player => {
-    const playerPayments = payments.filter(p => 
-      p.jugador_id === player.id && 
-      normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
-    );
-    
-    console.log(`💳 [PAGOS DEBUG] Jugador: ${player.nombre}`);
-    console.log(`  - Temporada actual: ${currentSeason}`);
-    console.log(`  - Pagos encontrados:`, playerPayments.map(p => ({ mes: p.mes, estado: p.estado, temporada: p.temporada })));
-    
-    // Verificar si tiene plan personalizado
-    const customPlan = customPaymentPlans.find(p => 
-      p.jugador_id === player.id && 
-      p.activo === true &&
-      normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
-    );
-
-    if (customPlan) {
-      // Con plan personalizado
-      customPlan.cuotas_personalizadas.forEach(cuota => {
-        const payment = playerPayments.find(p => p.mes === cuota.mes);
-        const now = new Date();
-        const isOverdue = cuota.fecha_vencimiento && now >= new Date(cuota.fecha_vencimiento);
-
-        if (!payment) {
-          if (isOverdue) {
-            overduePaymentsCount++;
-          } else {
-            pagosPendientesNoVencidos++;
-          }
-        } else if (payment.estado === "Pendiente") {
-          if (isOverdue) {
-            overduePaymentsCount++;
-          } else {
-            pagosPendientesNoVencidos++;
-          }
-        } else if (payment.estado === "En revisión") {
-          if (isOverdue) {
-            overduePaymentsCount++;
-          } else {
-            pagosEnRevisionNoVencidos++;
-          }
-        }
-      });
-    } else {
-      // Sistema estándar
-      const hasPagoUnico = playerPayments.some(p => 
-        p.tipo_pago === "Único" || p.tipo_pago === "único"
-      );
-
-      if (!hasPagoUnico) {
-        ["Junio", "Septiembre", "Diciembre"].forEach(mes => {
-          const payment = playerPayments.find(p => p.mes === mes);
-          
-          const now = new Date();
-          const [year1] = currentSeason.split('/').map(y => parseInt(y));
-          let deadlineDate;
-          if (mes === "Junio") deadlineDate = new Date(year1, 5, 30);
-          else if (mes === "Septiembre") deadlineDate = new Date(year1, 8, 15);
-          else if (mes === "Diciembre") deadlineDate = new Date(year1, 11, 15);
-          
-          const isOverdue = deadlineDate && now >= deadlineDate;
-
-          console.log(`  📅 Mes: ${mes}`);
-          console.log(`    - Fecha límite: ${deadlineDate?.toISOString()}`);
-          console.log(`    - Hoy: ${now.toISOString()}`);
-          console.log(`    - ¿Vencido?: ${isOverdue}`);
-          console.log(`    - Pago existe?: ${!!payment}`);
-          if (payment) console.log(`    - Estado pago: ${payment.estado}`);
-
-          if (!payment) {
-            if (isOverdue) {
-              console.log(`    ✅ CONTANDO como VENCIDO (no existe pago)`);
-              overduePaymentsCount++;
-            } else {
-              console.log(`    ✅ CONTANDO como PENDIENTE NO VENCIDO (no existe pago)`);
-              pagosPendientesNoVencidos++;
-            }
-          } else if (payment.estado === "Pendiente") {
-            if (isOverdue) {
-              console.log(`    ✅ CONTANDO como VENCIDO (estado Pendiente)`);
-              overduePaymentsCount++;
-            } else {
-              console.log(`    ✅ CONTANDO como PENDIENTE NO VENCIDO (estado Pendiente)`);
-              pagosPendientesNoVencidos++;
-            }
-          } else if (payment.estado === "En revisión") {
-            if (isOverdue) {
-              console.log(`    ✅ CONTANDO como VENCIDO (estado En revisión)`);
-              overduePaymentsCount++;
-            } else {
-              console.log(`    ✅ CONTANDO como EN REVISIÓN NO VENCIDO`);
-              pagosEnRevisionNoVencidos++;
-            }
-          } else {
-            console.log(`    ℹ️ NO se cuenta (estado: ${payment.estado})`);
-          }
-        });
-      }
-    }
-  });
+  // USAR HELPER CENTRALIZADO para pagos
+  const myPlayerIds = myPlayers.map(p => p.id);
+  const { pendingPayments: pagosPendientesNoVencidos, overduePayments: overduePaymentsCount, paymentsInReview: pagosEnRevisionNoVencidos } = calculatePaymentStats(allPayments, myPlayerIds);
 
   const pendingPayments = pagosPendientesNoVencidos + pagosEnRevisionNoVencidos + overduePaymentsCount;
 
-  console.log('📊 [PAGOS RESUMEN]');
-  console.log(`  - Vencidos (rojos): ${overduePaymentsCount}`);
-  console.log(`  - Pendientes NO vencidos (amarillos): ${pagosPendientesNoVencidos}`);
-  console.log(`  - En revisión NO vencidos (azules): ${pagosEnRevisionNoVencidos}`);
-  console.log(`  - TOTAL: ${pendingPayments}`);
+  // Calcular edad helper
+  const calcularEdad = (fechaNac) => {
+    if (!fechaNac) return null;
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNac);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+    return edad;
+  };
+
+  // Stats de PADRE
+  let pendingCallupsParent = 0;
+  let pendingSignaturesParent = 0;
+  
+  callups.forEach(callup => {
+    callup.jugadores_convocados?.forEach(jugador => {
+      if (myPlayerIds.includes(jugador.jugador_id) && jugador.confirmacion === "pendiente") {
+        pendingCallupsParent++;
+      }
+    });
+  });
+
+  myPlayers.forEach(player => {
+    const hasEnlaceJugador = !!player.enlace_firma_jugador;
+    const hasEnlaceTutor = !!player.enlace_firma_tutor;
+    const firmaJugadorOk = player.firma_jugador_completada === true;
+    const firmaTutorOk = player.firma_tutor_completada === true;
+    const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
+    
+    if (hasEnlaceJugador && !firmaJugadorOk) pendingSignaturesParent++;
+    if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) pendingSignaturesParent++;
+  });
 
   // Determinar qué botones mostrar según configuración del usuario
   const selectedButtonIds = userButtonConfig?.selected_buttons || DEFAULT_PARENT_BUTTONS;
@@ -632,41 +548,46 @@ export default function ParentDashboard() {
         {playersLoading ? (
           <DashboardCardSkeleton />
         ) : (
-        <AlertCenter 
-          pendingCallups={pendingCallups}
-          pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
-            if (!d.publicado || !d.requiere_firma) return false;
-            const isRelevant = d.tipo_destinatario === "individual" 
-              ? myPlayers.some(p => d.jugadores_destino?.includes(p.id))
-              : (d.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === d.categoria_destino));
-            if (!isRelevant) return false;
-            return myPlayers.some(player => {
-              const isRelevantForPlayer = d.tipo_destinatario === "individual" 
-                ? d.jugadores_destino?.includes(player.id)
-                : (d.categoria_destino === "Todos" || player.deporte === d.categoria_destino);
-              if (!isRelevantForPlayer) return false;
-              const firma = d.firmas?.find(f => f.jugador_id === player.id);
-              return firma && !firma.firmado && !firma.confirmado_firma_externa;
-            });
-          }).length : 0}
-          pendingPayments={pagosPendientesNoVencidos}
-          paymentsInReview={pagosEnRevisionNoVencidos}
-          pendingSurveys={activeSurveys.length}
-          pendingSignatures={pendingFederationSignatures}
-          upcomingEvents={0}
-          overduePayments={overduePaymentsCount}
-          newGalleryPhotos={0}
-          unreadPrivateMessages={unreadPrivateMessages}
-          unreadCoordinatorMessages={0}
-          unreadCoachMessages={unreadCoachMessages}
-          unreadAdminMessages={unreadAdminMessages}
-          hasActiveAdminChat={hasActiveAdminChat}
-          isAdmin={false}
-          isCoach={false}
-          isParent={true}
-          userEmail={user?.email}
-          userSports={myPlayersSports}
-        />
+          (() => {
+            const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id));
+            return (
+              <AlertCenter 
+                pendingCallups={pendingCallups}
+                pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
+                  if (!d.publicado || !d.requiere_firma) return false;
+                  const isRelevant = d.tipo_destinatario === "individual" 
+                    ? myPlayers.some(p => d.jugadores_destino?.includes(p.id))
+                    : (d.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === d.categoria_destino));
+                  if (!isRelevant) return false;
+                  return myPlayers.some(player => {
+                    const isRelevantForPlayer = d.tipo_destinatario === "individual" 
+                      ? d.jugadores_destino?.includes(player.id)
+                      : (d.categoria_destino === "Todos" || player.deporte === d.categoria_destino);
+                    if (!isRelevantForPlayer) return false;
+                    const firma = d.firmas?.find(f => f.jugador_id === player.id);
+                    return firma && !firma.firmado && !firma.confirmado_firma_externa;
+                  });
+                }).length : 0}
+                pendingPayments={pagosPendientes}
+                paymentsInReview={pagosRevision}
+                pendingSurveys={activeSurveys.length}
+                pendingSignatures={pendingFederationSignatures}
+                upcomingEvents={0}
+                overduePayments={pagosVencidos}
+                newGalleryPhotos={0}
+                unreadPrivateMessages={unreadPrivateMessages}
+                unreadCoordinatorMessages={0}
+                unreadCoachMessages={unreadCoachMessages}
+                unreadAdminMessages={unreadAdminMessages}
+                hasActiveAdminChat={hasActiveAdminChat}
+                isAdmin={false}
+                isCoach={false}
+                isParent={true}
+                userEmail={user?.email}
+                userSports={myPlayersSports}
+              />
+            );
+          })()
         )}
 
 
@@ -754,36 +675,42 @@ export default function ParentDashboard() {
         {playersLoading ? (
           <DashboardCardSkeleton />
         ) : (
-        <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-orange-500 mb-1">
-                {myPlayers.length}
+          (() => {
+            const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id));
+            const totalPayments = pagosPendientes + pagosVencidos + pagosRevision;
+            
+            return (
+              <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                  <div className="text-center">
+                    <div className="text-2xl lg:text-4xl font-bold text-orange-500 mb-1">
+                      {myPlayers.length}
+                    </div>
+                    <div className="text-slate-400 text-[10px] lg:text-sm">Jugadores</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
+                      {totalPayments}
+                    </div>
+                    <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Totales</div>
+                    <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
+                      {pagosVencidos > 0 && `${pagosVencidos} vencidos`}
+                      {pagosVencidos > 0 && (pagosPendientes > 0 || pagosRevision > 0) && ' • '}
+                      {pagosPendientes > 0 && `${pagosPendientes} pendientes`}
+                      {pagosPendientes > 0 && pagosRevision > 0 && ' • '}
+                      {pagosRevision > 0 && `${pagosRevision} en revisión`}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl lg:text-4xl font-bold text-yellow-500 mb-1">
+                      {pendingCallups}
+                    </div>
+                    <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
+                  </div>
+                </div>
               </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Jugadores</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
-                {pendingPayments}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Totales</div>
-              <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
-                {overduePaymentsCount > 0 && `${overduePaymentsCount} vencidos`}
-                {overduePaymentsCount > 0 && (pagosPendientesNoVencidos > 0 || pagosEnRevisionNoVencidos > 0) && ' • '}
-                {pagosPendientesNoVencidos > 0 && `${pagosPendientesNoVencidos} pendientes`}
-                {pagosPendientesNoVencidos > 0 && pagosEnRevisionNoVencidos > 0 && ' • '}
-                {pagosEnRevisionNoVencidos > 0 && `${pagosEnRevisionNoVencidos} en revisión`}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-yellow-500 mb-1">
-                {pendingCallups}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
-            </div>
-
-          </div>
-        </div>
+            );
+          })()
         )}
 
         <ContactCard />
