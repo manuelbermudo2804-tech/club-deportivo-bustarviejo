@@ -77,14 +77,14 @@ export default function TreasurerDashboard() {
     },
   });
 
-  // Fetch datos necesarios cuando tiene hijos
+  // Fetch pagos SIEMPRE (tesorero necesita ver todos los pagos del club)
   const { data: payments = [] } = useQuery({
     queryKey: ['payments'],
     queryFn: async () => {
       const allPayments = await base44.entities.Payment.list('-created_date');
       return allPayments.filter(p => p.is_deleted !== true);
     },
-    enabled: hasPlayers,
+    enabled: !!user,
   });
 
   const { data: standings = [] } = useQuery({
@@ -163,21 +163,21 @@ export default function TreasurerDashboard() {
               </div>
             </div>
             
-            <div className={`grid gap-2 ${hasPlayers ? 'grid-cols-4' : 'grid-cols-2'}`}>
+            <div className="grid grid-cols-2 gap-2">
               <Link to={createPageUrl("Chatbot")}>
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-20 flex flex-col justify-center">
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
                     <Sparkles className="w-3 h-3 text-white" />
                   </div>
-                  <p className="text-sm font-bold text-center mb-1">🤖</p>
-                  <p className="text-xs text-indigo-100 text-center">Asistente</p>
+                  <p className="text-sm font-bold text-center mb-1">🤖 Asistente</p>
+                  <p className="text-xs text-indigo-100 text-center">Consulta IA</p>
                 </div>
               </Link>
 
               <Link to={createPageUrl("ParentSystemMessages")}>
                 <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-20 flex flex-col justify-center">
-                  <p className="text-sm font-bold text-center mb-1">🔔</p>
-                  <p className="text-xs text-purple-100 text-center">Mensajes</p>
+                  <p className="text-sm font-bold text-center mb-1">🔔 Mensajes</p>
+                  <p className="text-xs text-purple-100 text-center">Del Club</p>
                 </div>
               </Link>
 
@@ -185,15 +185,15 @@ export default function TreasurerDashboard() {
                 <>
                   <Link to={createPageUrl("ParentCoordinatorChat")}>
                     <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-20 flex flex-col justify-center">
-                      <p className="text-sm font-bold text-center mb-1">💬</p>
-                      <p className="text-xs text-cyan-100 text-center">Coordinador</p>
+                      <p className="text-sm font-bold text-center mb-1">🦁 Coordinador</p>
+                      <p className="text-xs text-cyan-100 text-center">Consultas deportivas</p>
                     </div>
                   </Link>
 
                   <Link to={createPageUrl("ParentCoachChat")}>
                     <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-20 flex flex-col justify-center">
-                      <p className="text-sm font-bold text-center mb-1">⚽</p>
-                      <p className="text-xs text-blue-100 text-center">Entrenador</p>
+                      <p className="text-sm font-bold text-center mb-1">⚽ Entrenador</p>
+                      <p className="text-xs text-blue-100 text-center">Chat del equipo</p>
                     </div>
                   </Link>
                 </>
