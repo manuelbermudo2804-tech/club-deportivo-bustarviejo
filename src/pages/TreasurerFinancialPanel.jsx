@@ -70,6 +70,66 @@ export default function TreasurerFinancialPanel() {
     queryFn: () => base44.entities.Sponsor.list(),
   });
 
+  const { data: budgets = [] } = useQuery({
+    queryKey: ['budgets'],
+    queryFn: () => base44.entities.Budget.list('-created_date'),
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
+  });
+
+  const activeSeason = activeSeasonConfig;
+  const currentBudget = useMemo(() => {
+    if (!activeSeason || budgets.length === 0) return null;
+    return budgets.find(b => b.temporada === activeSeason.temporada) || null;
+  }, [activeSeason, budgets]);
+
+  const createBudgetMutation = useMutation({
+    mutationFn: (data) => base44.entities.Budget.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      toast.success("Presupuesto creado");
+    },
+  });
+
+  const updateBudgetMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Budget.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      toast.success("Presupuesto actualizado");
+    },
+  });
+
+  const deleteBudgetMutation = useMutation({
+    mutationFn: (id) => base44.entities.Budget.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      toast.success("Presupuesto eliminado");
+    },
+  });
+
+  const handleCreateBudget = () => {
+    if (!activeSeason) {
+      toast.error("No hay temporada activa");
+      return;
+    }
+    createBudgetMutation.mutate({
+      temporada: activeSeason.temporada,
+      nombre: `Presupuesto ${activeSeason.temporada}`,
+      partidas: []
+    });
+  };
+
+  const handleUpdateBudget = (data) => {
+    if (!currentBudget) return;
+    updateBudgetMutation.mutate({
+      id: currentBudget.id,
+      data
+    });
+  };
+
   // Cálculos financieros
   const stats = {
     // Cuotas de jugadores

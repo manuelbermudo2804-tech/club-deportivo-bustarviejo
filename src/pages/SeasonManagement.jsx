@@ -16,12 +16,10 @@ import {
   Calendar, Settings, AlertTriangle, CheckCircle2, Clock, Download, Upload,
   RefreshCw, Trash2, Archive, Users, CreditCard, ShoppingBag, Bell, 
   Clover, Building2, FileText, Shield, Lock, Unlock, Eye, EyeOff,
-  ChevronDown, ChevronUp, Info, Smartphone, Mail, Image, Edit, Euro, Gift
+  ChevronDown, ChevronUp, Info, Smartphone, Mail, Image, Edit, Gift
 } from "lucide-react";
 import ReferralConfigCard from "../components/referrals/ReferralConfigCard";
-import BudgetManager from "../components/financial/BudgetManager";
-import TransactionList from "../components/financial/TransactionList";
-import TransactionForm from "../components/financial/TransactionForm";
+
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -33,7 +31,6 @@ export default function SeasonManagement() {
   const fileInputRef = useRef(null);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState("temporadas");
   
   // Estados para diálogos y configuración
   const [showResetDialog, setShowResetDialog] = useState(false);
@@ -154,15 +151,7 @@ export default function SeasonManagement() {
     queryFn: () => base44.entities.ResetHistory.list('-created_date'),
   });
 
-  const { data: budgets = [] } = useQuery({
-    queryKey: ['budgets'],
-    queryFn: () => base44.entities.Budget.list('-created_date'),
-  });
 
-  const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
-  });
 
   const activeSeason = useMemo(() => {
     console.log('🔍 Buscando temporada activa en:', seasons);
@@ -171,59 +160,7 @@ export default function SeasonManagement() {
     return active;
   }, [seasons]);
 
-  const [currentBudget, setCurrentBudget] = useState(null);
-  const [showAddTransaction, setShowAddTransaction] = useState(false);
 
-  useEffect(() => {
-    if (activeSeason && budgets.length > 0) {
-      const seasonBudget = budgets.find(b => b.temporada === activeSeason.temporada);
-      setCurrentBudget(seasonBudget || null);
-    }
-  }, [activeSeason, budgets]);
-
-  const createBudgetMutation = useMutation({
-    mutationFn: (data) => base44.entities.Budget.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      toast.success("Presupuesto creado");
-    },
-  });
-
-  const updateBudgetMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Budget.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      toast.success("Presupuesto actualizado");
-    },
-  });
-
-  const deleteBudgetMutation = useMutation({
-    mutationFn: (id) => base44.entities.Budget.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      toast.success("Presupuesto eliminado");
-    },
-  });
-
-  const handleCreateBudget = () => {
-    if (!activeSeason) {
-      toast.error("No hay temporada activa");
-      return;
-    }
-    createBudgetMutation.mutate({
-      temporada: activeSeason.temporada,
-      nombre: `Presupuesto ${activeSeason.temporada}`,
-      partidas: []
-    });
-  };
-
-  const handleUpdateBudget = (data) => {
-    if (!currentBudget) return;
-    updateBudgetMutation.mutate({
-      id: currentBudget.id,
-      data
-    });
-  };
 
   // Mutación para actualizar configuración de temporada
   const updateSeasonMutation = useMutation({
@@ -1141,118 +1078,10 @@ export default function SeasonManagement() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">💰 Panel Financiero Completo</h1>
-          <p className="text-slate-600 mt-1">Presupuestos, temporadas y configuración financiera</p>
+          <h1 className="text-3xl font-bold text-slate-900">⚙️ Gestión de Temporadas y Categorías</h1>
+          <p className="text-slate-600 mt-1">Configuración de temporadas y características del club</p>
         </div>
       </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 border-b">
-        <button
-          onClick={() => setActiveTab("temporadas")}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === "temporadas"
-              ? "border-b-2 border-orange-600 text-orange-600"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          ⚙️ Temporadas
-        </button>
-        <button
-          onClick={() => setActiveTab("presupuestos")}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === "presupuestos"
-              ? "border-b-2 border-orange-600 text-orange-600"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          💰 Presupuestos
-        </button>
-        <button
-          onClick={() => setActiveTab("transacciones")}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === "transacciones"
-              ? "border-b-2 border-orange-600 text-orange-600"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          📊 Transacciones
-        </button>
-      </div>
-
-      {activeTab === "presupuestos" && (
-        <div className="space-y-6">
-          {!currentBudget ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Euro className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-2">
-                  No hay presupuesto para esta temporada
-                </h3>
-                <p className="text-slate-600 mb-6">
-                  Crea un presupuesto para gestionar ingresos y gastos
-                </p>
-                <Button 
-                  onClick={handleCreateBudget}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  Crear Presupuesto
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <BudgetManager
-              budget={currentBudget}
-              onUpdate={handleUpdateBudget}
-              onDelete={() => deleteBudgetMutation.mutate(currentBudget.id)}
-              historicalTransactions={transactions}
-              historicalBudgets={budgets}
-            />
-          )}
-        </div>
-      )}
-
-      {activeTab === "transacciones" && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>📊 Registro de Transacciones</CardTitle>
-                <Button 
-                  onClick={() => setShowAddTransaction(true)}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  Añadir Transacción
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <TransactionList 
-                transactions={transactions}
-                budget={currentBudget}
-              />
-            </CardContent>
-          </Card>
-
-          <Dialog open={showAddTransaction} onOpenChange={setShowAddTransaction}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nueva Transacción</DialogTitle>
-              </DialogHeader>
-              <TransactionForm
-                budget={currentBudget}
-                onSuccess={() => {
-                  setShowAddTransaction(false);
-                  queryClient.invalidateQueries({ queryKey: ['transactions'] });
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      )}
-
-      {activeTab === "temporadas" && (
-        <>
       {/* Temporada Activa */}
       {activeSeason && (
         <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
@@ -1825,9 +1654,6 @@ export default function SeasonManagement() {
           </CardContent>
         )}
       </Card>
-
-        </>
-      )}
 
       {/* Dialog: Editar Cuotas */}
       <Dialog open={showEditQuotasDialog} onOpenChange={setShowEditQuotasDialog}>
