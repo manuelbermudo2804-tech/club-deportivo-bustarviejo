@@ -24,17 +24,17 @@ import BudgetManager from "../components/financial/BudgetManager";
 import TransactionList from "../components/financial/TransactionList";
 import TransactionForm from "../components/financial/TransactionForm";
 import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
-import TopDebtorsPanel from "../components/financial/TopDebtorsPanel";
-import MonthlyEvolutionChart from "../components/financial/MonthlyEvolutionChart";
-import CategoryBreakdown from "../components/financial/CategoryBreakdown";
-import FinancialAlerts from "../components/financial/FinancialAlerts";
-import IncomeProjection from "../components/financial/IncomeProjection";
-import SeasonComparison from "../components/financial/SeasonComparison";
-import IncomeDistributionPie from "../components/financial/IncomeDistributionPie";
-import EndOfSeasonForecast from "../components/financial/EndOfSeasonForecast";
-import FinancialGoalsTracker from "../components/financial/FinancialGoalsTracker";
-import FinancialHealthIndicator from "../components/financial/FinancialHealthIndicator";
-import AutomaticMorosidadAlert from "../components/financial/AutomaticMorosidadAlert";
+import TopDebtorsPanel from "../components/financial/TopDebtorsPanel.jsx";
+import MonthlyEvolutionChart from "../components/financial/MonthlyEvolutionChart.jsx";
+import CategoryBreakdown from "../components/financial/CategoryBreakdown.jsx";
+import FinancialAlerts from "../components/financial/FinancialAlerts.jsx";
+import IncomeProjection from "../components/financial/IncomeProjection.jsx";
+import SeasonComparison from "../components/financial/SeasonComparison.jsx";
+import IncomeDistributionPie from "../components/financial/IncomeDistributionPie.jsx";
+import EndOfSeasonForecast from "../components/financial/EndOfSeasonForecast.jsx";
+import FinancialGoalsTracker from "../components/financial/FinancialGoalsTracker.jsx";
+import FinancialHealthIndicator from "../components/financial/FinancialHealthIndicator.jsx";
+import AutomaticMorosidadAlert from "../components/financial/AutomaticMorosidadAlert.jsx";
 
 export default function TreasurerFinancialPanel() {
   const [user, setUser] = useState(null);
