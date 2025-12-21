@@ -45,6 +45,7 @@ export default function TreasurerFinancialPanel() {
   const { data: seasonConfigs = [] } = useQuery({
     queryKey: ['seasons'],
     queryFn: () => base44.entities.SeasonConfig.list(),
+    staleTime: 600000, // 10 minutos
   });
 
   useEffect(() => {
@@ -55,41 +56,52 @@ export default function TreasurerFinancialPanel() {
   const { data: payments = [] } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
+    staleTime: 60000, // 1 minuto
   });
 
   const { data: players = [] } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
+    staleTime: 300000, // 5 minutos
   });
 
   const { data: clothingOrders = [] } = useQuery({
     queryKey: ['clothingOrders'],
     queryFn: () => base44.entities.ClothingOrder.list(),
+    staleTime: 120000, // 2 minutos
   });
 
   const { data: lotteryOrders = [] } = useQuery({
     queryKey: ['lotteryOrders'],
     queryFn: () => base44.entities.LotteryOrder.list(),
+    staleTime: 120000, // 2 minutos
   });
 
   const { data: clubMembers = [] } = useQuery({
     queryKey: ['clubMembers'],
     queryFn: () => base44.entities.ClubMember.list(),
+    staleTime: 300000, // 5 minutos
   });
 
   const { data: sponsors = [] } = useQuery({
     queryKey: ['sponsors'],
     queryFn: () => base44.entities.Sponsor.list(),
+    staleTime: 600000, // 10 minutos
   });
 
+  // Cargar presupuestos y transacciones solo si se activa su pestaña
   const { data: budgets = [] } = useQuery({
     queryKey: ['budgets'],
     queryFn: () => base44.entities.Budget.list('-created_date'),
+    staleTime: 300000, // 5 minutos
+    enabled: activeTab === "presupuestos",
   });
 
   const { data: transactions = [] } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
+    staleTime: 120000, // 2 minutos
+    enabled: activeTab === "transacciones" || activeTab === "presupuestos",
   });
 
   const currentBudget = useMemo(() => {
