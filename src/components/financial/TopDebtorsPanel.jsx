@@ -64,7 +64,7 @@ export default function TopDebtorsPanel({ players, payments, activeSeason, getIm
       <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
         <CardContent className="p-8 text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Badge className="text-3xl">🎉</Badge>
+            <span className="text-3xl">🎉</span>
           </div>
           <h3 className="text-xl font-bold text-green-900 mb-2">¡Sin deudas pendientes!</h3>
           <p className="text-green-700">Todas las familias están al día con los pagos</p>
