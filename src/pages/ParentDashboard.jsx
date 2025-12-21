@@ -368,6 +368,9 @@ export default function ParentDashboard() {
     .map(id => availableButtons.find(b => b.id === id))
     .filter(Boolean);
 
+  // Calcular pagos pendientes para badges
+  const { pendingPayments: pagosPendientesCount } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id));
+
   // Añadir badges dinámicos
   const menuItems = displayButtons.map(item => {
     const updated = { ...item };
@@ -380,8 +383,8 @@ export default function ParentDashboard() {
       updated.badge = pendingFederationSignatures;
       updated.badgeLabel = "pendientes";
     }
-    if (item.id === "pagos" && pendingPayments > 0) {
-      updated.badge = pendingPayments;
+    if (item.id === "pagos" && pagosPendientesCount > 0) {
+      updated.badge = pagosPendientesCount;
       updated.badgeLabel = "pendientes";
     }
     if (item.id === "jugadores" && myPlayers.length > 0) {
