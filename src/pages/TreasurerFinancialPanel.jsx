@@ -240,25 +240,32 @@ export default function TreasurerFinancialPanel() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">💰 Panel Financiero Completo</h1>
-          <p className="text-slate-600 mt-1">Gestión integral de presupuestos, ingresos, gastos y análisis IA</p>
-          {activeSeason && (
-            <Badge className="mt-2 bg-green-600">
-              Temporada {activeSeason.temporada}
-            </Badge>
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">💰 Panel Financiero</h1>
+            <p className="text-slate-300 mt-1">Control total de ingresos, gastos y presupuestos</p>
+            <div className="flex gap-2 mt-3">
+              {activeSeason && (
+                <Badge className="bg-green-600 text-white">
+                  📅 {activeSeason.temporada}
+                </Badge>
+              )}
+              <Badge className="bg-orange-600 text-white">
+                {players.filter(p => p.activo).length} jugadores activos
+              </Badge>
+            </div>
+          </div>
+          {activeTab === "presupuestos" && (
+            <Button 
+              onClick={() => setShowAIForecasting(true)}
+              className="bg-purple-600 hover:bg-purple-700 shadow-lg"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Análisis IA
+            </Button>
           )}
         </div>
-        {activeTab === "presupuestos" && (
-          <Button 
-            onClick={() => setShowAIForecasting(true)}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Análisis IA Avanzado
-          </Button>
-        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
