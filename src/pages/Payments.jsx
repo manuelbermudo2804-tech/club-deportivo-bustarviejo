@@ -105,6 +105,7 @@ export default function Payments() {
   const [showCustomPlanForm, setShowCustomPlanForm] = useState(false);
   const [selectedPlayerForPlan, setSelectedPlayerForPlan] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
+  const [displayLimit, setDisplayLimit] = useState(20);
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
@@ -959,9 +960,12 @@ export default function Payments() {
                  );
                 }
 
+                const displayedPlayers = playersToShow.slice(0, displayLimit);
+                const hasMore = playersToShow.length > displayLimit;
+
                 return (
                  <div className="space-y-4">
-                   {playersToShow.map(player => {
+                   {displayedPlayers.map(player => {
                      const allPlayerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
 
                       // Determinar meses según tipo de pago REAL (no del player.tipo_pago)
@@ -1174,6 +1178,26 @@ export default function Payments() {
                         </Card>
                       );
                     })}
+                    
+                    {hasMore && (
+                      <div className="text-center pt-6">
+                        <Button
+                          onClick={() => setDisplayLimit(prev => prev + 20)}
+                          variant="outline"
+                          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                        >
+                          Cargar más jugadores ({playersToShow.length - displayLimit} restantes)
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {!hasMore && playersToShow.length > 20 && (
+                      <div className="text-center pt-4">
+                        <p className="text-sm text-slate-500">
+                          Mostrando todos los {playersToShow.length} jugadores
+                        </p>
+                      </div>
+                    )}
                   </div>
                 );
               })()}
