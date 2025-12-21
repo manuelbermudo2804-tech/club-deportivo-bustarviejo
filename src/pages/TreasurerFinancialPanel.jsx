@@ -34,6 +34,7 @@ import IncomeDistributionPie from "../components/financial/IncomeDistributionPie
 import EndOfSeasonForecast from "../components/financial/EndOfSeasonForecast";
 import FinancialGoalsTracker from "../components/financial/FinancialGoalsTracker";
 import FinancialHealthIndicator from "../components/financial/FinancialHealthIndicator";
+import AutomaticMorosidadAlert from "../components/financial/AutomaticMorosidadAlert";
 
 export default function TreasurerFinancialPanel() {
   const [user, setUser] = useState(null);
@@ -104,6 +105,11 @@ export default function TreasurerFinancialPanel() {
     queryKey: ['sponsors'],
     queryFn: () => base44.entities.Sponsor.list(),
     staleTime: 600000, // 10 minutos
+  });
+
+  const { data: allSeasons = [] } = useQuery({
+    queryKey: ['allSeasons'],
+    queryFn: () => base44.entities.SeasonConfig.list(),
   });
 
   // Cargar presupuestos y transacciones solo si se activa su pestaña
@@ -360,6 +366,13 @@ export default function TreasurerFinancialPanel() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Alerta automática de morosidad */}
+      <AutomaticMorosidadAlert 
+        totalIngresos={totalIngresos}
+        totalPendiente={totalPendiente}
+        totalEsperado={totalEsperado}
+      />
+
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
@@ -1230,6 +1243,16 @@ export default function TreasurerFinancialPanel() {
         open={showAIForecasting}
         onClose={() => setShowAIForecasting(false)}
       />
+
+      {/* Dialog: Comparación Temporadas */}
+      {showSeasonComparison && (
+        <SeasonComparison 
+          open={showSeasonComparison}
+          onClose={() => setShowSeasonComparison(false)}
+          currentSeason={activeSeason}
+          allSeasons={allSeasons}
+        />
+      )}
     </div>
   );
 }
