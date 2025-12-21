@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
-import AlertCenter from "../components/dashboard/AlertCenter";
+import TreasurerAlertCenter from "../components/dashboard/TreasurerAlertCenter";
 import ContactCard from "../components/ContactCard";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
@@ -467,49 +467,27 @@ export default function TreasurerDashboard() {
           <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />
         )}
 
-        {/* Alert Center con 2 columnas */}
+        {/* Alert Center unificado con 2 columnas (Padre | Tesorero) */}
         {playersLoading ? (
           <DashboardCardSkeleton />
         ) : (
-          <div className="grid lg:grid-cols-2 gap-4">
-            {/* Columna Izquierda - Tareas como Padre */}
-            <div>
-              <h2 className="text-lg font-bold text-white mb-3">👨‍👩‍👧 Mis Tareas como Padre</h2>
-              <AlertCenter 
-                pendingCallups={pendingCallupsParent}
-                pendingPayments={pendingPaymentsParent}
-                paymentsInReview={paymentsInReviewParent}
-                overduePayments={overduePaymentsParent}
-                pendingSignatures={pendingSignaturesParent}
-                unreadPrivateMessages={unreadPrivateMessages}
-                unreadCoordinatorMessages={unreadCoordinatorMessages}
-                unreadAdminMessages={unreadAdminMessages}
-                hasActiveAdminChat={hasActiveAdminChat}
-                isAdmin={false}
-                isCoach={false}
-                isParent={true}
-                userEmail={user?.email}
-                userSports={myPlayersSports}
-              />
-            </div>
-
-            {/* Columna Derecha - Tareas como Tesorero */}
-            <div>
-              <h2 className="text-lg font-bold text-white mb-3">💰 Mis Tareas como Tesorero</h2>
-              <AlertCenter 
-                paymentsInReview={paymentsInReviewTreasurer}
-                pendingClothingOrders={pendingClothingOrders}
-                pendingLotteryOrders={pendingLotteryOrders}
-                pendingMemberRequests={pendingMemberRequests}
-                isAdmin={false}
-                isCoach={false}
-                isParent={false}
-                isTreasurer={true}
-                userEmail={user?.email}
-                userSports={[]}
-              />
-            </div>
-          </div>
+          <TreasurerAlertCenter
+            pendingCallupsParent={pendingCallupsParent}
+            pendingPaymentsParent={pendingPaymentsParent}
+            paymentsInReviewParent={paymentsInReviewParent}
+            overduePaymentsParent={overduePaymentsParent}
+            pendingSignaturesParent={pendingSignaturesParent}
+            unreadPrivateMessages={unreadPrivateMessages}
+            unreadCoordinatorMessages={unreadCoordinatorMessages}
+            unreadAdminMessages={unreadAdminMessages}
+            hasActiveAdminChat={hasActiveAdminChat}
+            myPlayersSports={myPlayersSports}
+            userEmail={user?.email}
+            paymentsInReviewTreasurer={paymentsInReviewTreasurer}
+            pendingClothingOrders={pendingClothingOrders}
+            pendingLotteryOrders={pendingLotteryOrders}
+            pendingMemberRequests={pendingMemberRequests}
+          />
         )}
 
         {/* Botón de configuración de dashboard */}
