@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ContactCard from "../components/ContactCard";
-import AlertCenter from "../components/dashboard/AlertCenter";
 import SocialLinks from "../components/SocialLinks";
+import CoachClassificationsMatchesBanner from "../components/dashboard/CoachClassificationsMatchesBanner";
 
 export default function TreasurerDashboard() {
   const queryClient = useQueryClient();
@@ -76,13 +76,17 @@ export default function TreasurerDashboard() {
     },
   });
 
-  // Fetch payments
-  const { data: payments = [] } = useQuery({
-    queryKey: ['payments'],
-    queryFn: async () => {
-      const allPayments = await base44.entities.Payment.list('-created_date');
-      return allPayments.filter(p => p.is_deleted !== true);
-    },
+  // Fetch clasificaciones y partidos si tiene hijos
+  const { data: standings = [] } = useQuery({
+    queryKey: ['standings'],
+    queryFn: () => base44.entities.Clasificacion.list('-jornada', 50),
+    enabled: hasPlayers,
+  });
+
+  const { data: callups = [] } = useQuery({
+    queryKey: ['callups'],
+    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido', 100),
+    enabled: hasPlayers,
   });
 
   // Fetch button configuration
@@ -149,103 +153,48 @@ export default function TreasurerDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-2">
-              <Link to={createPageUrl("Chatbot")} className="flex-1">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
+            <div className="grid grid-cols-3 gap-2">
+              <Link to={createPageUrl("Chatbot")}>
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-20 flex flex-col justify-center">
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
                     <Sparkles className="w-3 h-3 text-white" />
                   </div>
-                  <p className="text-sm font-bold text-center mb-1">🤖 Asistente</p>
-                  <p className="text-xs text-indigo-100 text-center">Consulta IA</p>
+                  <p className="text-sm font-bold text-center mb-1">🤖</p>
+                  <p className="text-xs text-indigo-100 text-center">Asistente</p>
                 </div>
               </Link>
 
-              {hasPlayers && (
+              {hasPlayers ? (
                 <>
-                  <Link to={createPageUrl("ParentCoordinatorChat")} className="flex-1">
-                    <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                      <p className="text-sm font-bold text-center mb-1">💬 Coordinador</p>
-                      <p className="text-xs text-cyan-100 text-center">Chat categoría</p>
+                  <Link to={createPageUrl("ParentCoordinatorChat")}>
+                    <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-20 flex flex-col justify-center">
+                      <p className="text-sm font-bold text-center mb-1">💬</p>
+                      <p className="text-xs text-cyan-100 text-center">Coordinador</p>
                     </div>
                   </Link>
 
-                  <Link to={createPageUrl("ParentCoachChat")} className="flex-1 col-span-2">
-                    <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                      <p className="text-sm font-bold text-center mb-1">⚽ Entrenador</p>
-                      <p className="text-xs text-blue-100 text-center">Chat equipo</p>
+                  <Link to={createPageUrl("ParentCoachChat")}>
+                    <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-20 flex flex-col justify-center">
+                      <p className="text-sm font-bold text-center mb-1">⚽</p>
+                      <p className="text-xs text-blue-100 text-center">Entrenador</p>
                     </div>
                   </Link>
                 </>
+              ) : (
+                <div className="col-span-2"></div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* AlertCenter - Solo si tiene hijos */}
-        {hasPlayers && myPlayers && myPlayers.length > 0 && payments && payments.length >= 0 && (() => {
-          const normalizeSeason = (season) => {
-            if (!season) return currentSeason;
-            return season.replace(/-/g, '/');
-          };
-          
-          const myPayments = payments.filter(p => 
-            myPlayers.some(pl => pl.id === p.jugador_id) && 
-            p.is_deleted !== true &&
-            normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
-          );
-          
-          const pendientesCount = myPayments.filter(p => p.estado === "Pendiente").length;
-          const revisionCount = myPayments.filter(p => p.estado === "En revisión").length;
-          
-          const now = new Date();
-          let vencidosCount = 0;
-          myPayments.forEach(payment => {
-            if (payment.estado !== "Pagado") {
-              const mes = payment.mes;
-              const year = parseInt(currentSeason.split('/')[0]);
-              let vencimiento;
-              
-              if (mes === "Junio") vencimiento = new Date(year, 5, 30);
-              else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
-              else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
-              
-              if (vencimiento && now >= vencimiento) vencidosCount++;
-            }
-          });
-          
-          const calcularEdad = (fechaNac) => {
-            if (!fechaNac) return null;
-            const hoy = new Date();
-            const nacimiento = new Date(fechaNac);
-            let edad = hoy.getFullYear() - nacimiento.getFullYear();
-            const m = hoy.getMonth() - nacimiento.getMonth();
-            if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-            return edad;
-          };
-          
-          let firmasCount = 0;
-          myPlayers.forEach(player => {
-            if (player.enlace_firma_jugador && !player.firma_jugador_completada) firmasCount++;
-            const esMayor = calcularEdad(player.fecha_nacimiento) >= 18;
-            if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
-          });
-          
-          const userSports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
-          
-          return (
-            <AlertCenter 
-              pendingCallups={0}
-              pendingSignatures={firmasCount}
-              pendingPayments={pendientesCount}
-              paymentsInReview={revisionCount}
-              overduePayments={vencidosCount}
-              isParent={true}
-              isTreasurer={true}
-              userEmail={user?.email}
-              userSports={userSports}
-            />
-          );
-        })()}
+        {/* Banner de Clasificaciones + Próximo Partido */}
+        {hasPlayers && myPlayers && myPlayers.length > 0 && standings && callups && (
+          <CoachClassificationsMatchesBanner 
+            standings={standings}
+            callups={callups}
+            myPlayers={myPlayers}
+          />
+        )}
 
         {/* Botón personalizar dashboard */}
         <div className="flex justify-end">
