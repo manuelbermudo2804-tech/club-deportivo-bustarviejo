@@ -509,6 +509,7 @@ export default function Layout({ children, currentPageName }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [isCoordinator, setIsCoordinator] = useState(false);
+  const [isTreasurer, setIsTreasurer] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [playerName, setPlayerName] = useState(null);
@@ -729,6 +730,7 @@ export default function Layout({ children, currentPageName }) {
         setIsAdmin(currentUser.role === "admin");
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
+        setIsTreasurer(currentUser.es_tesorero === true);
 
         // DETECCIÓN DE JUGADOR +18
         // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
@@ -812,8 +814,8 @@ export default function Layout({ children, currentPageName }) {
           role_RAW: currentUser.role
         });
 
-        // Para admin/entrenadores/coordinadores, SOLO usar el campo manual (no verificar BD)
-                if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador) {
+        // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
+                if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
                   const tienehijos = currentUser.tiene_hijos_jugando === true;
                   console.log('🔍 DEPURACIÓN:', {
                     email: currentUser.email,
@@ -874,9 +876,23 @@ export default function Layout({ children, currentPageName }) {
                       return;
                     }
                   }
-                }
+                  }
 
-        // Verificar si tiene conversación activa con admin (para TODOS los usuarios excepto admins)
+                  // REDIRECCIÓN AUTOMÁTICA PARA TESORERO (primera carga)
+                  if (currentUser.es_tesorero === true && !currentUser.es_coordinador && currentUser.role !== "admin") {
+                  setIsLoading(false);
+                  const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+                  const currentPath = window.location.pathname.toLowerCase();
+
+                  if (!hasInitialRedirect && currentPath !== '/treasurerdashboard') {
+                  console.log('🔄 [LAYOUT] Primera carga TESORERO - redirigiendo a TreasurerDashboard');
+                  sessionStorage.setItem('initialRedirectDone', 'true');
+                  window.location.href = createPageUrl('TreasurerDashboard');
+                  return;
+                  }
+                  }
+
+                  // Verificar si tiene conversación activa con admin (para TODOS los usuarios excepto admins)
         if (currentUser.role !== "admin") {
           try {
             const adminConvs = await base44.entities.AdminConversation.filter({ 
@@ -991,10 +1007,11 @@ export default function Layout({ children, currentPageName }) {
           return;
           }
 
-        // Solo aplicar pantallas especiales a padres sin roles (NO a entrenadores, coordinadores)
+        // Solo aplicar pantallas especiales a padres sin roles (NO a entrenadores, coordinadores, tesoreros)
         if (currentUser.role !== "admin" && 
           !currentUser.es_entrenador && 
-          !currentUser.es_coordinador) {
+          !currentUser.es_coordinador &&
+          !currentUser.es_tesorero) {
           const period = getPeriodType();
           if (period === "closed") {
             setShowSpecialScreen("closed");
@@ -1259,11 +1276,33 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
+  const treasurerNavigationItems = [
+    { title: "🏠 Inicio", url: createPageUrl("TreasurerDashboard"), icon: Home },
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
+    { title: "💳 Pagos Club", url: createPageUrl("Payments"), icon: CreditCard },
+    { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
+    { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
+    { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    { title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
+    { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
+    { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
+    { title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard },
+    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    { title: "🖊️ Firmas Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
+    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+  ];
+
   let navigationItems;
     if (isAdmin) {
       navigationItems = adminNavigationItems;
     } else if (isCoordinator) {
       navigationItems = coordinatorNavigationItems;
+    } else if (isTreasurer) {
+      navigationItems = treasurerNavigationItems;
     } else if (isCoach) {
       navigationItems = coachNavigationItems;
     } else if (isPlayer) {
@@ -1637,7 +1676,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100 truncate max-w-[140px]" title={user?.email}>
-                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isCoach ? "Entrenador" : isPlayer ? (playerName || "Jugador") : user?.email?.split('@')[0] || "Familia"}
+                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? (playerName || "Jugador") : user?.email?.split('@')[0] || "Familia"}
                 </p>
               </div>
             </div>
@@ -1752,7 +1791,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h2 className="font-bold text-xl">CD Bustarviejo</h2>
                 <p className="text-xs text-green-400">
-                  {isAdmin ? "Panel Admin" : isCoordinator ? "Panel Coordinador" : isCoach ? "Panel Entrenador" : isPlayer ? "Panel Jugador" : "Panel Familia"}
+                  {isAdmin ? "Panel Admin" : isCoordinator ? "Panel Coordinador" : isTreasurer ? "Panel Tesorero" : isCoach ? "Panel Entrenador" : isPlayer ? "Panel Jugador" : "Panel Familia"}
                 </p>
               </div>
             </div>
@@ -1818,6 +1857,11 @@ export default function Layout({ children, currentPageName }) {
                 {isCoordinator && (
                   <Badge className="mt-2 bg-cyan-600 text-white text-xs">
                     🎓 Coordinador Deportivo
+                  </Badge>
+                )}
+                {isTreasurer && (
+                  <Badge className="mt-2 bg-green-600 text-white text-xs">
+                    💰 Tesorero
                   </Badge>
                 )}
                 {user?.es_entrenador && !isAdmin && (

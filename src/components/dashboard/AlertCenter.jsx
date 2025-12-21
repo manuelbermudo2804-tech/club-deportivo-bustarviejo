@@ -61,8 +61,8 @@ export default function AlertCenter({
   isAdmin = false,
   isCoach = false,
   isParent = true,
-  isTreasurer = false,
   isCoordinator = false,
+  isTreasurer = false,
   userEmail = null,
   userSports = []
 }) {
@@ -483,8 +483,56 @@ export default function AlertCenter({
     }
   }
 
-  // Alertas para padres y tesoreros
-  if ((isParent || isTreasurer) && !isAdmin && !isCoach) {
+  // Alertas para tesoreros (tareas de tesorero)
+  if (isTreasurer && !isAdmin && !isCoach) {
+    if (paymentsInReview > 0) {
+      alerts.push({
+        id: "payments-review-treasurer",
+        icon: CreditCard,
+        title: "💳 Pagos en Revisión",
+        description: `${paymentsInReview} pago${paymentsInReview > 1 ? 's' : ''} esperando validación`,
+        url: createPageUrl("Payments"),
+        color: "bg-orange-600",
+        priority: 1
+      });
+    }
+    if (pendingClothingOrders > 0) {
+      alerts.push({
+        id: "clothing-treasurer",
+        icon: ShoppingBag,
+        title: "🛍️ Pedidos de Ropa",
+        description: `${pendingClothingOrders} pedido${pendingClothingOrders > 1 ? 's' : ''} pendiente${pendingClothingOrders > 1 ? 's' : ''}`,
+        url: createPageUrl("ClothingOrders"),
+        color: "bg-teal-600",
+        priority: 2
+      });
+    }
+    if (pendingLotteryOrders > 0) {
+      alerts.push({
+        id: "lottery-treasurer",
+        icon: Clover,
+        title: "🍀 Lotería Pendiente",
+        description: `${pendingLotteryOrders} pedido${pendingLotteryOrders > 1 ? 's' : ''} sin pagar`,
+        url: createPageUrl("LotteryManagement"),
+        color: "bg-green-700",
+        priority: 3
+      });
+    }
+    if (pendingMemberRequests > 0) {
+      alerts.push({
+        id: "members-treasurer",
+        icon: Users,
+        title: "🎫 Solicitudes de Socio",
+        description: `${pendingMemberRequests} solicitud${pendingMemberRequests > 1 ? 'es' : ''} pendiente${pendingMemberRequests > 1 ? 's' : ''}`,
+        url: createPageUrl("ClubMembersManagement"),
+        color: "bg-pink-600",
+        priority: 4
+      });
+    }
+  }
+
+  // Alertas para padres (incluye tesoreros con hijos)
+  if (isParent && !isAdmin && !isCoach) {
     // Alertas de pagos mejoradas
     if (overduePayments > 0) {
       alerts.push({
