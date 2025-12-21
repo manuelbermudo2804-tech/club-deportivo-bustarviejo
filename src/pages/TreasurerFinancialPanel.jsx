@@ -969,6 +969,40 @@ export default function TreasurerFinancialPanel() {
             </Card>
           </div>
 
+          {/* Proyección de Ingresos */}
+          <IncomeProjection 
+            totalIngresos={totalIngresos}
+            totalPendiente={totalPendiente}
+            totalEsperado={totalEsperado}
+            stats={stats}
+          />
+
+          {/* Evolución Mensual */}
+          <MonthlyEvolutionChart 
+            payments={payments}
+            clothingOrders={clothingOrders}
+            lotteryOrders={lotteryOrders}
+            clubMembers={clubMembers}
+            sponsors={sponsors}
+            activeSeason={activeSeason}
+          />
+
+          {/* Top Deudores */}
+          <TopDebtorsPanel 
+            players={players}
+            payments={payments}
+            activeSeason={activeSeason}
+            getImportePorMes={getImportePorMes}
+          />
+
+          {/* Desglose por Categorías */}
+          <CategoryBreakdown 
+            players={players}
+            payments={payments}
+            activeSeason={activeSeason}
+            getImportePorMes={getImportePorMes}
+          />
+
           {/* Información de Cuotas (Solo lectura) */}
           {activeSeason && (
             <Card className="border-2 border-slate-200">
