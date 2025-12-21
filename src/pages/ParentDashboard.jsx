@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart, FileSignature, Euro, Share2, Sparkles, BarChart3 } from "lucide-react";
@@ -15,6 +15,8 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
+import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
+import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -65,6 +67,7 @@ function FemeninoShareBanner() {
 
 export default function ParentDashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
 
@@ -199,6 +202,43 @@ export default function ParentDashboard() {
     queryFn: () => base44.entities.CustomPaymentPlan.list(),
     staleTime: 300000, // 5 minutos
     enabled: !!user && players.length > 0,
+  });
+
+  // Cargar configuración de botones del usuario
+  const { data: buttonConfigs = [] } = useQuery({
+    queryKey: ['dashboardButtonConfig', user?.email],
+    queryFn: async () => {
+      const configs = await base44.entities.DashboardButtonConfig.filter({ 
+        user_email: user?.email,
+        panel_type: "parent"
+      });
+      return configs;
+    },
+    staleTime: 600000, // 10 minutos
+    enabled: !!user,
+  });
+
+  const userButtonConfig = buttonConfigs[0];
+
+  // Mutation para guardar configuración
+  const saveButtonConfigMutation = useMutation({
+    mutationFn: async (selectedButtonIds) => {
+      if (userButtonConfig) {
+        return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
+          selected_buttons: selectedButtonIds
+        });
+      } else {
+        return await base44.entities.DashboardButtonConfig.create({
+          user_email: user?.email,
+          panel_type: "parent",
+          selected_buttons: selectedButtonIds
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
+      toast.success("✅ Configuración guardada");
+    },
   });
 
   // Surveys - solo si hay jugadores
@@ -434,132 +474,46 @@ export default function ParentDashboard() {
   console.log(`  - En revisión NO vencidos (azules): ${pagosEnRevisionNoVencidos}`);
   console.log(`  - TOTAL: ${pendingPayments}`);
 
-  // Menú base que siempre se muestra (sin depender de datos cargados)
-  const baseMenuItems = [
-    // 💬 COMUNICACIÓN (uso diario)
+  // Determinar qué botones mostrar según configuración del usuario
+  const selectedButtonIds = userButtonConfig?.selected_buttons || DEFAULT_PARENT_BUTTONS;
 
-    // ⚽ ACCIONES URGENTES
-    {
-      title: "🏆 Convocatorias",
-      icon: Bell,
-      url: createPageUrl("ParentCallups"),
-      gradient: "from-yellow-600 to-yellow-700",
-    },
-    {
-      title: "🖊️ Firmas Federación",
-      icon: FileSignature,
-      url: createPageUrl("FederationSignatures"),
-      gradient: "from-yellow-600 to-orange-600",
-    },
-    // 💰 PAGOS Y JUGADORES
-    {
-      title: "💳 Pagos",
-      icon: CreditCard,
-      url: createPageUrl("ParentPayments"),
-      gradient: "from-green-600 to-green-700",
-    },
-    {
-      title: "👥 Mis Jugadores",
-      icon: Users,
-      url: createPageUrl("ParentPlayers"),
-      gradient: "from-orange-600 to-orange-700",
-    },
-    // 📅 CALENDARIO Y EVENTOS
-    {
-      title: "📅 Calendario y Horarios",
-      icon: Calendar,
-      url: createPageUrl("CalendarAndSchedules"),
-      gradient: "from-purple-600 to-purple-700",
-    },
-    {
-      title: "🎉 Eventos Club",
-      icon: Calendar,
-      url: createPageUrl("ParentEventRSVP"),
-      gradient: "from-cyan-600 to-cyan-700",
-    },
-    {
-      title: "📊 Clasificaciones",
-      icon: BarChart3,
-      url: createPageUrl("Clasificaciones"),
-      gradient: "from-blue-600 to-blue-700",
-    },
-    // 📢 INFORMACIÓN
-    {
-      title: "📢 Anuncios",
-      icon: Megaphone,
-      url: createPageUrl("Announcements"),
-      gradient: "from-pink-600 to-pink-700",
-    },
-    {
-      title: "📄 Documentos",
-      icon: FileText,
-      url: createPageUrl("ParentDocuments"),
-      gradient: "from-slate-600 to-slate-700",
-    },
-    // 🛍️ PEDIDOS
-    {
-      title: "🛍️ Pedidos Ropa",
-      icon: ShoppingBag,
-      url: createPageUrl("ClothingOrders"),
-      gradient: "from-red-600 to-red-700",
-    },
-    // 🖼️ CONTENIDO
-    {
-      title: "🖼️ Galería",
-      icon: Image,
-      url: createPageUrl("ParentGallery"),
-      gradient: "from-indigo-600 to-indigo-700",
-    },
-    // 📋 EXTRAS
-    {
-      title: "📋 Encuestas",
-      icon: FileText,
-      url: createPageUrl("Surveys"),
-      gradient: "from-purple-600 to-purple-700",
-    },
-    {
-      title: "🎫 Hacerse Socio",
-      icon: Heart,
-      url: createPageUrl("ClubMembership"),
-      gradient: "from-pink-600 to-pink-700",
-    },
-  ];
+  // Filtrar botones disponibles (excluir condicionales si no aplican)
+  const availableButtons = ALL_PARENT_BUTTONS.filter(button => {
+    if (button.conditional) {
+      if (button.conditionKey === "loteriaVisible") return loteriaVisible;
+      return false;
+    }
+    return true;
+  });
 
-  // Añadir badges dinámicos cuando los datos estén disponibles
-  const menuItems = baseMenuItems.map(item => {
+  // Obtener botones a mostrar en el orden seleccionado
+  const displayButtons = selectedButtonIds
+    .map(id => availableButtons.find(b => b.id === id))
+    .filter(Boolean);
+
+  // Añadir badges dinámicos
+  const menuItems = displayButtons.map(item => {
     const updated = { ...item };
     
-
-    if (item.title === "🏆 Convocatorias" && pendingCallups > 0) {
+    if (item.id === "convocatorias" && pendingCallups > 0) {
       updated.badge = pendingCallups;
       updated.badgeLabel = "pendientes";
     }
-    if (item.title === "🖊️ Firmas Federación" && pendingFederationSignatures > 0) {
+    if (item.id === "firmas" && pendingFederationSignatures > 0) {
       updated.badge = pendingFederationSignatures;
       updated.badgeLabel = "pendientes";
     }
-    if (item.title === "💳 Pagos" && pendingPayments > 0) {
+    if (item.id === "pagos" && pendingPayments > 0) {
       updated.badge = pendingPayments;
       updated.badgeLabel = "pendientes";
     }
-    if (item.title === "👥 Mis Jugadores" && myPlayers.length > 0) {
+    if (item.id === "jugadores" && myPlayers.length > 0) {
       updated.badge = myPlayers.length;
       updated.badgeLabel = "registrados";
     }
-
     
     return updated;
   });
-
-  // Añadir lotería si está visible
-  if (loteriaVisible) {
-    menuItems.splice(10, 0, {
-      title: "🍀 Lotería Navidad",
-      icon: Clover,
-      url: createPageUrl("ParentLottery"),
-      gradient: "from-green-600 to-red-600",
-    });
-  }
 
 
 
@@ -749,6 +703,19 @@ export default function ParentDashboard() {
             </div>
           </Link>
         )}
+
+        {/* Botón de configuración de dashboard */}
+        <div className="flex justify-end">
+          <DashboardButtonSelector
+            allButtons={availableButtons}
+            selectedButtonIds={selectedButtonIds}
+            onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
+            minButtons={MIN_BUTTONS}
+            maxButtons={MAX_BUTTONS}
+            defaultButtons={DEFAULT_PARENT_BUTTONS}
+            panelName="Panel Familias"
+          />
+        </div>
 
 
 
