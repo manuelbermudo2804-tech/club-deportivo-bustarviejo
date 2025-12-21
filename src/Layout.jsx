@@ -1666,7 +1666,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Mobile Search Bar */}
         <div className="lg:hidden fixed top-[52px] left-0 right-0 z-40 bg-white border-b shadow-sm p-2">
-          <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} isTreasurer={isTreasurer} />
+          <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
         </div>
 
         {mobileMenuOpen && (
@@ -1760,7 +1760,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="space-y-2">
             {user && (
               <div className="w-full">
-                <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} isTreasurer={isTreasurer} />
+                <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
               </div>
             )}
             <div className="flex items-center gap-1">
