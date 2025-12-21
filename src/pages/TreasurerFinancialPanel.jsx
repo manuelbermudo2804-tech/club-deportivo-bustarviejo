@@ -530,6 +530,86 @@ export default function TreasurerFinancialPanel() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        {/* TAB PRESUPUESTOS */}
+        <TabsContent value="presupuestos" className="space-y-6 mt-6">
+          {!currentBudget ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Euro className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  No hay presupuesto para la temporada {activeSeason?.temporada}
+                </h3>
+                <p className="text-slate-600 mb-6">
+                  Crea un presupuesto para gestionar partidas de ingresos y gastos con ayuda de IA
+                </p>
+                <Button 
+                  onClick={handleCreateBudget}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Presupuesto
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <BudgetManager
+              budget={currentBudget}
+              onUpdate={handleUpdateBudget}
+              onDelete={() => deleteBudgetMutation.mutate(currentBudget.id)}
+              historicalTransactions={transactions}
+              historicalBudgets={budgets}
+            />
+          )}
+        </TabsContent>
+
+        {/* TAB TRANSACCIONES */}
+        <TabsContent value="transacciones" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>📊 Registro de Transacciones</CardTitle>
+                <Button 
+                  onClick={() => setShowAddTransaction(true)}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Añadir Transacción
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <TransactionList 
+                transactions={transactions}
+                budget={currentBudget}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialog: Nueva Transacción */}
+      <Dialog open={showAddTransaction} onOpenChange={setShowAddTransaction}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nueva Transacción</DialogTitle>
+          </DialogHeader>
+          <TransactionForm
+            budget={currentBudget}
+            onSuccess={() => {
+              setShowAddTransaction(false);
+              queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Análisis IA Avanzado */}
+      <AIFinancialForecasting
+        open={showAIForecasting}
+        onClose={() => setShowAIForecasting(false)}
+      />
     </div>
   );
 }
