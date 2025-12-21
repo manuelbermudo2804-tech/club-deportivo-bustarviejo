@@ -1149,7 +1149,7 @@ export default function Layout({ children, currentPageName }) {
 
   const treasurerNavigationItems = [
     // 🏠 INICIO
-    { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+    { title: "🏠 Inicio", url: createPageUrl("TreasurerDashboard"), icon: Home },
 
     // 💬 COMUNICACIÓN
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
