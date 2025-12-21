@@ -242,7 +242,7 @@ export default function TreasurerDashboard() {
   });
 
   // USAR HELPER CENTRALIZADO para pagos
-  const { pendingPayments: pendingPaymentsParent, overduePayments: overduePaymentsParent, paymentsInReview: paymentsInReviewParent } = calculatePaymentStats(allPayments, myPlayerIds);
+  const { pendingPayments: pagosPendientesNoVencidos, overduePayments: overduePaymentsCount, paymentsInReview: pagosEnRevisionNoVencidos } = calculatePaymentStats(allPayments, myPlayerIds);
 
   // Stats de TESORERO (todos los pagos del club)
   const paymentsInReviewTreasurer = allPayments.filter(p => 
@@ -281,10 +281,7 @@ export default function TreasurerDashboard() {
     return false;
   }).length;
 
-  const pendingPaymentsParent = pagosPendientesNoVencidos;
-  const paymentsInReviewParent = pagosEnRevisionNoVencidos;
-  const overduePaymentsParent = overduePaymentsCount;
-  const totalPendingPaymentsParent = pendingPaymentsParent + paymentsInReviewParent + overduePaymentsParent;
+  const totalPendingPaymentsParent = pagosPendientesNoVencidos + pagosEnRevisionNoVencidos + overduePaymentsCount;
 
   // Determinar qué botones mostrar según configuración del usuario
   const selectedButtonIds = userButtonConfig?.selected_buttons || DEFAULT_TREASURER_BUTTONS;
@@ -438,9 +435,9 @@ export default function TreasurerDashboard() {
         ) : (
           <TreasurerAlertCenter
             pendingCallupsParent={pendingCallupsParent}
-            pendingPaymentsParent={pendingPaymentsParent}
-            paymentsInReviewParent={paymentsInReviewParent}
-            overduePaymentsParent={overduePaymentsParent}
+            pendingPaymentsParent={pagosPendientesNoVencidos}
+            paymentsInReviewParent={pagosEnRevisionNoVencidos}
+            overduePaymentsParent={overduePaymentsCount}
             pendingSignaturesParent={pendingSignaturesParent}
             unreadPrivateMessages={unreadPrivateMessages}
             unreadCoordinatorMessages={unreadCoordinatorMessages}
@@ -517,11 +514,11 @@ export default function TreasurerDashboard() {
                 </div>
                 <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Mis Hijos</div>
                 <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
-                  {overduePaymentsParent > 0 && `${overduePaymentsParent} vencidos`}
-                  {overduePaymentsParent > 0 && (pendingPaymentsParent > 0 || paymentsInReviewParent > 0) && ' • '}
-                  {pendingPaymentsParent > 0 && `${pendingPaymentsParent} pendientes`}
-                  {pendingPaymentsParent > 0 && paymentsInReviewParent > 0 && ' • '}
-                  {paymentsInReviewParent > 0 && `${paymentsInReviewParent} en revisión`}
+                  {overduePaymentsCount > 0 && `${overduePaymentsCount} vencidos`}
+                  {overduePaymentsCount > 0 && (pagosPendientesNoVencidos > 0 || pagosEnRevisionNoVencidos > 0) && ' • '}
+                  {pagosPendientesNoVencidos > 0 && `${pagosPendientesNoVencidos} pendientes`}
+                  {pagosPendientesNoVencidos > 0 && pagosEnRevisionNoVencidos > 0 && ' • '}
+                  {pagosEnRevisionNoVencidos > 0 && `${pagosEnRevisionNoVencidos} en revisión`}
                 </div>
               </div>
               <div className="text-center">

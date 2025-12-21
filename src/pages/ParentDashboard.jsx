@@ -338,6 +338,7 @@ export default function ParentDashboard() {
     return edad;
   };
 
+  // Calcular firmas de federación pendientes
   const pendingFederationSignatures = myPlayers.reduce((count, player) => {
     const hasEnlaceJugador = !!player.enlace_firma_jugador;
     const hasEnlaceTutor = !!player.enlace_firma_tutor;
@@ -349,46 +350,6 @@ export default function ParentDashboard() {
     if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) count++;
     return count;
   }, 0);
-
-  // USAR HELPER CENTRALIZADO para pagos
-  const myPlayerIds = myPlayers.map(p => p.id);
-  const { pendingPayments: pagosPendientesNoVencidos, overduePayments: overduePaymentsCount, paymentsInReview: pagosEnRevisionNoVencidos } = calculatePaymentStats(allPayments, myPlayerIds);
-
-  const pendingPayments = pagosPendientesNoVencidos + pagosEnRevisionNoVencidos + overduePaymentsCount;
-
-  // Calcular edad helper
-  const calcularEdad = (fechaNac) => {
-    if (!fechaNac) return null;
-    const hoy = new Date();
-    const nacimiento = new Date(fechaNac);
-    let edad = hoy.getFullYear() - nacimiento.getFullYear();
-    const m = hoy.getMonth() - nacimiento.getMonth();
-    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-    return edad;
-  };
-
-  // Stats de PADRE
-  let pendingCallupsParent = 0;
-  let pendingSignaturesParent = 0;
-  
-  callups.forEach(callup => {
-    callup.jugadores_convocados?.forEach(jugador => {
-      if (myPlayerIds.includes(jugador.jugador_id) && jugador.confirmacion === "pendiente") {
-        pendingCallupsParent++;
-      }
-    });
-  });
-
-  myPlayers.forEach(player => {
-    const hasEnlaceJugador = !!player.enlace_firma_jugador;
-    const hasEnlaceTutor = !!player.enlace_firma_tutor;
-    const firmaJugadorOk = player.firma_jugador_completada === true;
-    const firmaTutorOk = player.firma_tutor_completada === true;
-    const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
-    
-    if (hasEnlaceJugador && !firmaJugadorOk) pendingSignaturesParent++;
-    if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) pendingSignaturesParent++;
-  });
 
   // Determinar qué botones mostrar según configuración del usuario
   const selectedButtonIds = userButtonConfig?.selected_buttons || DEFAULT_PARENT_BUTTONS;
