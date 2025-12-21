@@ -370,14 +370,22 @@ export default function TreasurerFinancialPanel() {
               </Badge>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               onClick={handleExportPDF}
               disabled={generatingPDF}
               className="bg-red-600 hover:bg-red-700 shadow-lg"
             >
               <Download className="w-4 h-4 mr-2" />
-              {generatingPDF ? 'Generando...' : 'Descargar PDF'}
+              {generatingPDF ? 'Generando...' : 'PDF'}
+            </Button>
+            <Button 
+              onClick={handleExportExcel}
+              disabled={generatingExcel}
+              className="bg-green-600 hover:bg-green-700 shadow-lg"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              {generatingExcel ? 'Generando...' : 'Excel'}
             </Button>
             {activeTab === "presupuestos" && (
               <Button 
