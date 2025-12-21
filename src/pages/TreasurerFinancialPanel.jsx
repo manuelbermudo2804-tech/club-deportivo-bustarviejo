@@ -279,44 +279,99 @@ export default function TreasurerFinancialPanel() {
 
         {/* TAB RESUMEN */}
         <TabsContent value="resumen" className="space-y-6 mt-6">
-          {/* Resumen Global */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-green-700 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Total Ingresos Cobrados
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-green-900">{totalIngresos.toFixed(2)}€</p>
-                <p className="text-xs text-green-600 mt-1">Ingresos confirmados esta temporada</p>
+          {/* Resumen Global - Rediseñado */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Ingresos */}
+            <Card className="border-none shadow-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <CardContent className="p-6 relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <CheckCircle2 className="w-8 h-8 text-white/80" />
+                  <TrendingUp className="w-5 h-5 text-white/60" />
+                </div>
+                <p className="text-sm text-green-100 mb-1">Ingresos Cobrados</p>
+                <p className="text-4xl font-bold">{totalIngresos.toFixed(2)}€</p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <p className="text-xs text-green-100">
+                    Cuotas: {stats.cuotasPagadas.toFixed(0)}€ • Ropa: {stats.ropaPagada.toFixed(0)}€
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-orange-700 flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Total Pendiente de Cobro
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-orange-900">{totalPendiente.toFixed(2)}€</p>
-                <p className="text-xs text-orange-600 mt-1">Pendientes + En revisión</p>
+            {/* Pendientes de Cobro */}
+            <Card className="border-none shadow-xl bg-gradient-to-br from-orange-600 to-red-600 text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <CardContent className="p-6 relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <Clock className="w-8 h-8 text-white/80" />
+                  <AlertCircle className="w-5 h-5 text-white/60" />
+                </div>
+                <p className="text-sm text-orange-100 mb-1">Pendiente de Cobro</p>
+                <p className="text-4xl font-bold">{totalPendiente.toFixed(2)}€</p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <p className="text-xs text-orange-100">
+                    {(() => {
+                      if (!activeSeason) return '0 cuotas';
+                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
+                      const currentSeasonPlayers = players.filter(p => p.activo === true);
+                      let cuotasPendientes = 0;
+                      currentSeasonPlayers.forEach(player => {
+                        const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
+                        const hasPagoUnico = playerPayments.some(p => 
+                          (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                          (p.estado === "Pagado" || p.estado === "En revisión")
+                        );
+                        if (hasPagoUnico) return;
+                        const mesesPagadosORevision = playerPayments
+                          .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+                          .map(p => p.mes);
+                        const allMonths = ["Junio", "Septiembre", "Diciembre"];
+                        cuotasPendientes += allMonths.filter(mes => !mesesPagadosORevision.includes(mes)).length;
+                      });
+                      return `${cuotasPendientes} cuotas sin pagar`;
+                    })()}
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-blue-700 flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
-                  Total Esperado
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-blue-900">{totalEsperado.toFixed(2)}€</p>
-                <p className="text-xs text-blue-600 mt-1">Cobrado + En Revisión + Pendiente</p>
+            {/* En Revisión */}
+            <Card className="border-none shadow-xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <CardContent className="p-6 relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <FileText className="w-8 h-8 text-white/80" />
+                  <TrendingUp className="w-5 h-5 text-white/60" />
+                </div>
+                <p className="text-sm text-yellow-100 mb-1">En Revisión</p>
+                <p className="text-4xl font-bold">{stats.cuotasEnRevision.toFixed(2)}€</p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <p className="text-xs text-yellow-100">
+                    {(() => {
+                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada && p.is_deleted !== true);
+                      return currentSeasonPayments.filter(p => p.estado === "En revisión").length;
+                    })()} pagos esperando validación
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Total Esperado */}
+            <Card className="border-none shadow-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <CardContent className="p-6 relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <DollarSign className="w-8 h-8 text-white/80" />
+                  <BarChart3 className="w-5 h-5 text-white/60" />
+                </div>
+                <p className="text-sm text-blue-100 mb-1">Total Esperado</p>
+                <p className="text-4xl font-bold">{totalEsperado.toFixed(2)}€</p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <p className="text-xs text-blue-100">
+                    100% del objetivo de temporada
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
