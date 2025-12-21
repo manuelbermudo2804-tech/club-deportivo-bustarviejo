@@ -1,74 +1,27 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  Legend, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area 
-} from "recharts";
-import { 
-  TrendingUp, TrendingDown, DollarSign, Users, AlertCircle, CheckCircle2, Clock, 
-  Download, FileText, CreditCard, ShoppingBag, Clover, Building2,
-  ArrowUpRight, ArrowDownRight, Receipt, Calendar, Wallet, Plus, Loader2, PieChart as PieChartIcon,
-  Sparkles, RefreshCw, Activity, Award, FileSpreadsheet, Target, Upload, Bell, Heart
-} from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { jsPDF } from "jspdf";
-import { toast } from "sonner";
-import { getCuotasPorCategoriaSync } from "../components/payments/paymentAmounts";
-
-import BudgetManager from "../components/financial/BudgetManager";
-import TransactionForm from "../components/financial/TransactionForm";
-import TransactionList from "../components/financial/TransactionList";
-import AICommunicationAssistant from "../components/communication/AICommunicationAssistant";
-import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
-import AIReconciliation from "../components/financial/AIReconciliation";
-import { usePageTutorial } from "../components/tutorials/useTutorial";
-import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
-import AlertCenter from "../components/dashboard/AlertCenter";
+import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
+import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
+import { ALL_TREASURER_BUTTONS, DEFAULT_TREASURER_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/TreasurerDashboardButtons";
 
-const COLORS = {
-  pagado: '#16a34a',
-  pendiente: '#dc2626',
-  revision: '#f59e0b',
-  cuotas: '#3b82f6',
-  ropa: '#f97316',
-  loteria: '#10b981',
-  patrocinios: '#8b5cf6'
-};
+import { 
+  MessageCircle,
+  Sparkles
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import ContactCard from "../components/ContactCard";
+import AlertCenter from "../components/dashboard/AlertCenter";
+import SocialLinks from "../components/SocialLinks";
 
 export default function TreasurerDashboard() {
-  usePageTutorial("treasurer_dashboard");
-  
-  const [selectedSeason, setSelectedSeason] = useState("all");
-  const [hasPlayers, setHasPlayers] = useState(false);
-  const [loteriaVisible, setLoteriaVisible] = useState(false);
-  const [showNewBudget, setShowNewBudget] = useState(false);
-  const [showTransactionForm, setShowTransactionForm] = useState(false);
-  const [showCommunicationAssistant, setShowCommunicationAssistant] = useState(false);
-  const [showAIForecasting, setShowAIForecasting] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [uploadedBankStatement, setUploadedBankStatement] = useState(null);
-  const [newBudgetData, setNewBudgetData] = useState({
-    temporada: "",
-    nombre: "Presupuesto Principal"
-  });
   const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
+  const [hasPlayers, setHasPlayers] = useState(false);
+  const [myPlayers, setMyPlayers] = useState([]);
+  const [loteriaVisible, setLoteriaVisible] = useState(false);
 
   const getCurrentSeason = () => {
     const now = new Date();
@@ -79,40 +32,40 @@ export default function TreasurerDashboard() {
 
   const currentSeason = getCurrentSeason();
 
-  // Fetch all financial data
-  const { data: payments = [] } = useQuery({
-    queryKey: ['payments'],
-    queryFn: async () => {
-      const allPayments = await base44.entities.Payment.list('-created_date');
-      return allPayments.filter(p => p.is_deleted !== true);
-    },
-  });
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        
+        // Verificar que sea tesorero
+        if (currentUser.es_tesorero !== true) {
+          console.error('❌ Usuario no es tesorero, redirigiendo...');
+          window.location.href = createPageUrl('Home');
+          return;
+        }
+        
+        setUser(currentUser);
+        
+        const tienehijos = currentUser.tiene_hijos_jugando === true;
+        setHasPlayers(tienehijos);
+        
+        // Si tiene hijos, cargar sus jugadores
+        if (tienehijos) {
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayersList = allPlayers.filter(p => 
+            (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && 
+            p.activo === true
+          );
+          setMyPlayers(myPlayersList);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
 
-  const { data: players = [] } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
-  });
-
-  const { data: clothingOrders = [] } = useQuery({
-    queryKey: ['clothingOrders'],
-    queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
-  });
-
-  const { data: lotteryOrders = [] } = useQuery({
-    queryKey: ['lotteryOrders'],
-    queryFn: () => base44.entities.LotteryOrder.list('-created_date'),
-  });
-
-  const { data: sponsors = [] } = useQuery({
-    queryKey: ['sponsors'],
-    queryFn: () => base44.entities.Sponsor.list(),
-  });
-
-  const { data: clubMembers = [] } = useQuery({
-    queryKey: ['clubMembers'],
-    queryFn: () => base44.entities.ClubMember.list(),
-  });
-
+  // Fetch season config
   const { data: seasons = [] } = useQuery({
     queryKey: ['seasons'],
     queryFn: async () => {
@@ -123,1276 +76,218 @@ export default function TreasurerDashboard() {
     },
   });
 
-  // Verificar si el tesorero tiene jugadores asociados
-  const [user, setUser] = useState(null);
-  const [myPlayers, setMyPlayers] = useState([]);
-  
-  useEffect(() => {
-    const checkPlayers = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        
-        // Verificar que sea tesorero y no coordinador
-        if (currentUser.es_tesorero !== true) {
-          console.error('❌ Usuario no es tesorero, redirigiendo...');
-          window.location.href = createPageUrl('Home');
-          return;
-        }
-        
-        const tienehijos = currentUser.tiene_hijos_jugando === true;
-        setHasPlayers(tienehijos);
-        
-        // Si tiene hijos, cargar sus jugadores para calcular alertas
-        if (tienehijos) {
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayersList = allPlayers.filter(p => 
-            (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && 
-            p.activo === true
-          );
-          setMyPlayers(myPlayersList);
-        }
-      } catch (error) {
-        console.error("Error checking players:", error);
-      }
-    };
-    checkPlayers();
-  }, []);
-
-  // Presupuestos y transacciones financieras
-  const { data: budgets = [], isLoading: loadingBudgets } = useQuery({
-    queryKey: ['budgets'],
-    queryFn: () => base44.entities.Budget.list('-created_date'),
-  });
-
-  const { data: financialTransactions = [], isLoading: loadingFinancialTransactions } = useQuery({
-    queryKey: ['financialTransactions'],
-    queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
-  });
-
-  const { data: paymentHistory = [] } = useQuery({
-    queryKey: ['paymentHistory'],
-    queryFn: () => base44.entities.PaymentHistory.list('-created_date'),
-  });
-
-  const activeSeason = useMemo(() => {
-    return seasons.find(s => s.activa === true);
-  }, [seasons]);
-
-  // Mutations para presupuestos
-  const createBudgetMutation = useMutation({
-    mutationFn: (data) => base44.entities.Budget.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      setShowNewBudget(false);
-      toast.success("Presupuesto creado");
+  // Fetch payments
+  const { data: payments = [] } = useQuery({
+    queryKey: ['payments'],
+    queryFn: async () => {
+      const allPayments = await base44.entities.Payment.list('-created_date');
+      return allPayments.filter(p => p.is_deleted !== true);
     },
   });
 
-  const updateBudgetMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Budget.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+  // Fetch button configuration
+  const { data: buttonConfigs = [] } = useQuery({
+    queryKey: ['dashboardButtonConfig', user?.email],
+    queryFn: async () => {
+      const configs = await base44.entities.DashboardButtonConfig.filter({ 
+        user_email: user?.email,
+        panel_type: "treasurer"
+      });
+      return configs;
     },
+    staleTime: 600000,
+    enabled: !!user,
   });
 
-  const createTransactionMutation = useMutation({
-    mutationFn: async (data) => {
-      const transaction = await base44.entities.FinancialTransaction.create(data);
-      
-      const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
-      if (data.partida_id && currentActiveBudget) {
-        const updatedPartidas = currentActiveBudget.partidas.map(p => {
-          if (p.id === data.partida_id) {
-            return {
-              ...p,
-              ejecutado: (p.ejecutado || 0) + data.cantidad
-            };
-          }
-          return p;
+  const userButtonConfig = buttonConfigs[0];
+
+  const saveButtonConfigMutation = useMutation({
+    mutationFn: async (selectedButtonIds) => {
+      if (userButtonConfig) {
+        return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
+          selected_buttons: selectedButtonIds
         });
-        await base44.entities.Budget.update(currentActiveBudget.id, { partidas: updatedPartidas });
-      }
-      
-      return transaction;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      setShowTransactionForm(false);
-      toast.success("Movimiento registrado");
-    },
-  });
-
-  const deleteTransactionMutation = useMutation({
-    mutationFn: async (id) => {
-      const transaction = financialTransactions.find(t => t.id === id);
-      await base44.entities.FinancialTransaction.delete(id);
-      
-      const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
-      if (transaction?.partida_id && currentActiveBudget) {
-        const updatedPartidas = currentActiveBudget.partidas.map(p => {
-          if (p.id === transaction.partida_id) {
-            return {
-              ...p,
-              ejecutado: Math.max(0, (p.ejecutado || 0) - transaction.cantidad)
-            };
-          }
-          return p;
-        });
-        await base44.entities.Budget.update(currentActiveBudget.id, { partidas: updatedPartidas });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['financialTransactions'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      toast.success("Movimiento eliminado");
-    },
-  });
-
-  const handleCreateBudget = () => {
-    createBudgetMutation.mutate({
-      ...newBudgetData,
-      temporada: newBudgetData.temporada || currentSeason,
-      partidas: [],
-      activo: true
-    });
-  };
-
-  const handleUpdateBudget = (updates) => {
-    const currentActiveBudget = budgets?.find(b => b.activo && b.temporada === currentSeason) || budgets?.[0];
-    if (currentActiveBudget) {
-      updateBudgetMutation.mutate({
-        id: currentActiveBudget.id,
-        data: { ...currentActiveBudget, ...updates }
-      });
-    }
-  };
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['payments'] }),
-      queryClient.invalidateQueries({ queryKey: ['players'] }),
-      queryClient.invalidateQueries({ queryKey: ['clothingOrders'] }),
-      queryClient.invalidateQueries({ queryKey: ['lotteryOrders'] }),
-      queryClient.invalidateQueries({ queryKey: ['sponsors'] }),
-      queryClient.invalidateQueries({ queryKey: ['clubMembers'] }),
-      queryClient.invalidateQueries({ queryKey: ['seasons'] }),
-      queryClient.invalidateQueries({ queryKey: ['budgets'] }),
-      queryClient.invalidateQueries({ queryKey: ['financialTransactions'] })
-    ]);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      toast.success("Datos actualizados");
-    }, 500);
-  };
-
-  const handleExportFinancialTransactions = () => {
-    const csvContent = [
-      ["Fecha", "Tipo", "Concepto", "Categoría", "Proveedor/Cliente", "Importe", "Estado", "Nº Factura"].join(","),
-      ...financialTransactions.map(t => [
-        t.fecha,
-        t.tipo,
-        `"${t.concepto}"`,
-        t.categoria,
-        `"${t.proveedor_cliente || ''}"`,
-        t.cantidad,
-        t.estado,
-        t.numero_factura || ''
-      ].join(","))
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `movimientos_financieros_${currentSeason.replace("/", "-")}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    toast.success("Exportación completada");
-  };
-
-  // Get unique seasons from payments
-  const availableSeasons = useMemo(() => {
-    const seasonSet = new Set(payments.map(p => p.temporada).filter(Boolean));
-    return ["all", ...Array.from(seasonSet)];
-  }, [payments]);
-
-  // Filter data by season
-  const filteredPayments = useMemo(() => {
-    if (selectedSeason === "all") return payments;
-    return payments.filter(p => p.temporada === selectedSeason);
-  }, [payments, selectedSeason]);
-
-  const filteredClothingOrders = useMemo(() => {
-    // Solo mostrar pedidos de la temporada seleccionada (se eliminan en reset)
-    if (selectedSeason === "all") return clothingOrders;
-    return clothingOrders.filter(o => normalizeTemporada(o.temporada) === normalizeTemporada(selectedSeason));
-  }, [clothingOrders, selectedSeason]);
-
-  const filteredClubMembers = useMemo(() => {
-    // Solo socios activos de la temporada seleccionada (los antiguos quedan activo=false en reset)
-    const activeMembers = clubMembers.filter(m => m.activo === true);
-    if (selectedSeason === "all") return activeMembers;
-    return activeMembers.filter(m => normalizeTemporada(m.temporada) === normalizeTemporada(selectedSeason));
-  }, [clubMembers, selectedSeason]);
-
-  // Normalizar temporada
-  const normalizeTemporada = (temporada) => {
-    if (!temporada) return "";
-    return temporada.replace(/-/g, "/");
-  };
-
-  const matchTemporada = (paymentTemp, filterTemp) => {
-    if (filterTemp === "all") return true;
-    return normalizeTemporada(paymentTemp) === normalizeTemporada(filterTemp);
-  };
-
-  // Calculate financial stats
-  const stats = useMemo(() => {
-    const currentSeason = getCurrentSeason();
-    const activePlayers = players.filter(p => p.activo === true);
-    
-    // CALCULAR CUOTAS PENDIENTES CORRECTAMENTE
-    // Para cada jugador activo, calcular cuánto debe pagar en total vs cuánto ya pagó
-    let cuotasPendientesCalculadas = 0;
-    
-    activePlayers.forEach(player => {
-      const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
-      
-      // Verificar si tiene pago único pagado o en revisión
-      const hasPagoUnico = playerPayments.some(p => 
-        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-        (p.estado === "Pagado" || p.estado === "En revisión")
-      );
-      
-      if (hasPagoUnico) {
-        // Si tiene pago único, no debe nada
-        return;
-      }
-      
-      // Si no tiene pago único, contar cuántos meses le faltan
-      const allMonths = ["Junio", "Septiembre", "Diciembre"];
-      const mesesPagados = playerPayments
-        .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
-        .map(p => p.mes);
-      
-      const mesesPendientes = allMonths.filter(mes => !mesesPagados.includes(mes));
-      
-      // Para cada mes pendiente, sumar la cuota correspondiente
-      mesesPendientes.forEach(mes => {
-        const cuotas = getCuotasPorCategoriaSync(player.deporte);
-        const cantidad = mes === "Junio" ? cuotas.inscripcion : 
-                        mes === "Septiembre" ? cuotas.segunda : 
-                        cuotas.tercera;
-        cuotasPendientesCalculadas += cantidad;
-      });
-    });
-    
-    // Cuotas
-    const cuotasPagadas = filteredPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0);
-    const cuotasPendientes = cuotasPendientesCalculadas;
-    const cuotasRevision = filteredPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0);
-
-    // Ropa (solo temporada actual)
-    const ropaTemporadaActual = filteredClothingOrders.filter(o => 
-      selectedSeason === "all" || normalizeTemporada(o.temporada) === normalizeTemporada(selectedSeason)
-    );
-    const ropaPagada = ropaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
-    const ropaPendiente = ropaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + (o.precio_total || 0), 0);
-
-    // Lotería (solo temporada actual) - Beneficio del club: 2€ por décimo
-    const loteriaTemporadaActual = lotteryOrders.filter(o =>
-      selectedSeason === "all" || normalizeTemporada(o.temporada) === normalizeTemporada(selectedSeason)
-    );
-    const loteriaPagada = loteriaTemporadaActual.filter(o => o.pagado).reduce((sum, o) => sum + ((o.numero_decimos || 0) * 2), 0);
-    const loteriaPendiente = loteriaTemporadaActual.filter(o => !o.pagado).reduce((sum, o) => sum + ((o.numero_decimos || 0) * 2), 0);
-
-    // Patrocinios - SOLO contar activos CON pago confirmado (monto > 0)
-    const patrociniosActivos = sponsors.filter(s => s.estado === "Activo" && (s.monto || 0) > 0);
-    const patrociniosTotal = patrociniosActivos.reduce((sum, s) => sum + (s.monto || 0), 0);
-
-    // Socios
-    const sociosPagados = filteredClubMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
-    const sociosPendientes = filteredClubMembers.filter(m => m.estado_pago === "Pendiente" || m.estado_pago === "En revisión").reduce((sum, m) => sum + (m.cuota_socio || 25), 0);
-    const sociosRevision = filteredClubMembers.filter(m => m.estado_pago === "En revisión").length;
-    const sociosCount = filteredClubMembers.length;
-
-    // Totales
-    const totalIngresos = cuotasPagadas + ropaPagada + loteriaPagada + patrociniosTotal + sociosPagados;
-    const totalPendiente = cuotasPendientes + cuotasRevision + ropaPendiente + loteriaPendiente + sociosPendientes;
-
-    return {
-      cuotas: { pagadas: cuotasPagadas, pendientes: cuotasPendientes, revision: cuotasRevision },
-      ropa: { pagada: ropaPagada, pendiente: ropaPendiente },
-      loteria: { pagada: loteriaPagada, pendiente: loteriaPendiente },
-      patrocinios: patrociniosTotal,
-      socios: { pagados: sociosPagados, pendientes: sociosPendientes, revision: sociosRevision, total: sociosCount },
-      totalIngresos,
-      totalPendiente
-    };
-  }, [filteredPayments, filteredClothingOrders, lotteryOrders, sponsors, filteredClubMembers, players]);
-
-  // Income by concept for pie chart
-  const incomeByConceptData = [
-    { name: 'Cuotas', value: stats.cuotas.pagadas, color: COLORS.cuotas },
-    { name: 'Ropa', value: stats.ropa.pagada, color: COLORS.ropa },
-    { name: 'Lotería', value: stats.loteria.pagada, color: COLORS.loteria },
-    { name: 'Patrocinios', value: stats.patrocinios, color: COLORS.patrocinios },
-    { name: 'Socios', value: stats.socios?.pagados || 0, color: '#ec4899' }
-  ].filter(d => d.value > 0);
-
-  // Deudas pendientes (jugadores con pagos atrasados) - LÓGICA CORREGIDA
-  const pendingDebts = useMemo(() => {
-    const debtMap = {};
-    const activePlayers = players.filter(p => p.activo === true);
-    
-    activePlayers.forEach(player => {
-      const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
-      
-      // Verificar si tiene pago único pagado o en revisión
-      const hasPagoUnico = playerPayments.some(p => 
-        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-        (p.estado === "Pagado" || p.estado === "En revisión")
-      );
-      
-      if (hasPagoUnico) {
-        // Si tiene pago único, no debe nada
-        return;
-      }
-      
-      // Si no tiene pago único, calcular meses pendientes
-      const allMonths = ["Junio", "Septiembre", "Diciembre"];
-      const pagosPendientes = [];
-      let deudaTotal = 0;
-      
-      allMonths.forEach(mes => {
-        // Buscar si hay un pago PAGADO o EN REVISIÓN para este mes
-        const pagoPagadoORevision = playerPayments.find(p => 
-          p.mes === mes && (p.estado === "Pagado" || p.estado === "En revisión")
-        );
-        
-        // Si ya está pagado o en revisión, NO incluir como pendiente
-        if (pagoPagadoORevision) return;
-        
-        // Calcular cantidad pendiente para este mes
-        const cuotas = getCuotasPorCategoriaSync(player.deporte);
-        const cantidad = mes === "Junio" ? cuotas.inscripcion : 
-                        mes === "Septiembre" ? cuotas.segunda : 
-                        cuotas.tercera;
-        
-        deudaTotal += cantidad;
-        pagosPendientes.push({ mes, cantidad });
-      });
-      
-      // Solo agregar al mapa si tiene deudas pendientes
-      if (pagosPendientes.length > 0) {
-        debtMap[player.id] = {
-          jugador_id: player.id,
-          jugador_nombre: player.nombre,
-          email_padre: player.email_padre,
-          deporte: player.deporte,
-          deuda_total: deudaTotal,
-          pagos_pendientes: pagosPendientes
-        };
-      }
-    });
-
-    return Object.values(debtMap).sort((a, b) => b.deuda_total - a.deuda_total);
-  }, [filteredPayments, players]);
-
-  // Monthly income data for chart - DECLARAR ANTES DE SMART ALERTS
-  const monthlyIncomeData = useMemo(() => {
-    const data = [
-      { mes: 'Junio', cuotas: 0, ropa: 0, loteria: 0 },
-      { mes: 'Septiembre', cuotas: 0, ropa: 0, loteria: 0 },
-      { mes: 'Diciembre', cuotas: 0, ropa: 0, loteria: 0 }
-    ];
-
-    filteredPayments.filter(p => p.estado === "Pagado").forEach(p => {
-      const monthIndex = data.findIndex(d => d.mes === p.mes);
-      if (monthIndex >= 0) {
-        data[monthIndex].cuotas += p.cantidad || 0;
-      }
-    });
-
-    return data;
-  }, [filteredPayments]);
-
-  // Comparativa interanual
-  const interannualComparison = useMemo(() => {
-    const seasonsList = [...new Set([...payments.map(p => p.temporada), ...paymentHistory.map(p => p.temporada)])].filter(Boolean).sort().reverse();
-    
-    return seasonsList.slice(0, 3).map(season => {
-      const seasonPayments = [...payments, ...paymentHistory].filter(p => normalizeTemporada(p.temporada) === normalizeTemporada(season));
-      const totalCobrado = seasonPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0);
-      const totalPendiente = seasonPayments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + (p.cantidad || 0), 0);
-      
-      return {
-        temporada: season,
-        cobrado: totalCobrado,
-        pendiente: totalPendiente,
-        total: totalCobrado + totalPendiente
-      };
-    });
-  }, [payments, paymentHistory]);
-
-  // Alertas inteligentes
-  const smartAlerts = useMemo(() => {
-    const alerts = [];
-    const now = new Date();
-    
-    // Jugadores sin pagar +30 días
-    const playersDelayed30 = pendingDebts.filter(debt => {
-      const playerPayments = filteredPayments.filter(p => p.jugador_id === debt.jugador_id);
-      const oldestPending = playerPayments.find(p => p.estado === "Pendiente");
-      if (oldestPending?.created_date) {
-        const daysSince = Math.floor((now - new Date(oldestPending.created_date)) / (1000 * 60 * 60 * 24));
-        return daysSince > 30;
-      }
-      return false;
-    });
-    
-    if (playersDelayed30.length > 0) {
-      alerts.push({
-        tipo: 'critico',
-        icono: '🔴',
-        mensaje: `${playersDelayed30.length} jugadores sin pagar desde hace +30 días`,
-        accion: 'Ver deudas'
-      });
-    }
-    
-    // Mejor mes del año
-    if (monthlyIncomeData?.length > 0) {
-      const bestMonth = monthlyIncomeData.reduce((max, m) => m.cuotas > max.cuotas ? m : max, monthlyIncomeData[0]);
-      if (bestMonth?.cuotas > 0) {
-        alerts.push({
-          tipo: 'info',
-          icono: '🟢',
-          mensaje: `Mejor mes: ${bestMonth.mes} (${bestMonth.cuotas.toLocaleString()}€)`,
-          accion: null
-        });
-      }
-    }
-    
-    // Patrocinadores
-    const sponsorsActivos = sponsors.filter(s => s.estado === "Activo").length;
-    if (sponsorsActivos > 0) {
-      alerts.push({
-        tipo: 'exito',
-        icono: '💼',
-        mensaje: `${sponsorsActivos} patrocinadores activos`,
-        accion: null
-      });
-    }
-    
-    return alerts;
-  }, [pendingDebts, monthlyIncomeData, sponsors, filteredPayments]);
-
-  // Top deudores y mejores pagadores
-  const topPayersStats = useMemo(() => {
-    const familyStats = {};
-    
-    players.forEach(player => {
-      const email = player.email_padre;
-      if (!familyStats[email]) {
-        familyStats[email] = {
-          email,
-          nombre: player.nombre_tutor_legal || email,
-          totalPagado: 0,
-          totalPendiente: 0,
-          pagosPuntuales: 0,
-          pagosRetrasados: 0,
-          jugadores: []
-        };
-      }
-      
-      familyStats[email].jugadores.push(player.nombre);
-      
-      const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
-      familyStats[email].totalPagado += playerPayments.filter(p => p.estado === "Pagado").reduce((s, p) => s + (p.cantidad || 0), 0);
-      familyStats[email].totalPendiente += playerPayments.filter(p => p.estado === "Pendiente").reduce((s, p) => s + (p.cantidad || 0), 0);
-    });
-    
-    const families = Object.values(familyStats);
-    const topPayers = families.filter(f => f.totalPagado > 0).sort((a, b) => b.totalPagado - a.totalPagado).slice(0, 5);
-    const topDebtors = families.filter(f => f.totalPendiente > 0).sort((a, b) => b.totalPendiente - a.totalPendiente).slice(0, 5);
-    
-    return { topPayers, topDebtors };
-  }, [players, filteredPayments]);
-
-  // Liquidez
-  const liquidityStats = useMemo(() => {
-    const totalCobrado = stats.totalIngresos;
-    const totalGastado = financialTransactions.filter(t => t.tipo === "Gasto" && t.estado === "Completado").reduce((s, t) => s + (t.cantidad || 0), 0);
-    const efectivoDisponible = totalCobrado - totalGastado;
-    
-    // Próximos cobros esperados
-    const proximos7dias = filteredPayments.filter(p => p.estado === "En revisión").reduce((s, p) => s + (p.cantidad || 0), 0);
-    const proximos30dias = stats.totalPendiente;
-    
-    return {
-      efectivoDisponible,
-      totalGastado,
-      proximos7dias,
-      proximos30dias
-    };
-  }, [stats, financialTransactions, filteredPayments]);
-
-  // Datos por trimestre
-  const quarterlyData = useMemo(() => {
-    const quarters = {
-      'Q1 (Jun-Ago)': { ingresos: 0, gastos: 0, meses: ['Junio', 'Julio', 'Agosto'] },
-      'Q2 (Sep-Nov)': { ingresos: 0, gastos: 0, meses: ['Septiembre', 'Octubre', 'Noviembre'] },
-      'Q3 (Dic-Feb)': { ingresos: 0, gastos: 0, meses: ['Diciembre', 'Enero', 'Febrero'] },
-      'Q4 (Mar-May)': { ingresos: 0, gastos: 0, meses: ['Marzo', 'Abril', 'Mayo'] }
-    };
-    
-    filteredPayments.filter(p => p.estado === "Pagado").forEach(p => {
-      Object.entries(quarters).forEach(([qName, qData]) => {
-        if (qData.meses.includes(p.mes)) {
-          quarters[qName].ingresos += p.cantidad || 0;
-        }
-      });
-    });
-    
-    financialTransactions.filter(t => t.tipo === "Gasto" && t.estado === "Completado").forEach(t => {
-      const mes = format(new Date(t.fecha), 'MMMM', { locale: es });
-      Object.entries(quarters).forEach(([qName, qData]) => {
-        if (qData.meses.map(m => m.toLowerCase()).includes(mes.toLowerCase())) {
-          quarters[qName].gastos += t.cantidad || 0;
-        }
-      });
-    });
-    
-    return Object.entries(quarters).map(([name, data]) => ({
-      trimestre: name,
-      ingresos: data.ingresos,
-      gastos: data.gastos,
-      balance: data.ingresos - data.gastos
-    }));
-  }, [filteredPayments, financialTransactions]);
-
-  // Gastos por categoría
-  const expensesByCategory = useMemo(() => {
-    const categories = {};
-    
-    financialTransactions.filter(t => t.tipo === "Gasto" && t.estado === "Completado").forEach(t => {
-      const cat = t.categoria || "Sin categoría";
-      if (!categories[cat]) {
-        categories[cat] = 0;
-      }
-      categories[cat] += t.cantidad || 0;
-    });
-    
-    return Object.entries(categories)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [financialTransactions]);
-
-  // Recent transactions
-  const recentTransactions = useMemo(() => {
-    const transactions = [];
-
-    // Pagos recientes
-    filteredPayments.filter(p => p.estado === "Pagado" && p.fecha_pago).slice(0, 10).forEach(p => {
-      transactions.push({
-        id: p.id,
-        tipo: 'cuota',
-        concepto: `Cuota ${p.mes} - ${p.jugador_nombre}`,
-        cantidad: p.cantidad,
-        fecha: p.fecha_pago,
-        estado: 'completado'
-      });
-    });
-
-    // Pedidos ropa pagados
-    filteredClothingOrders.filter(o => o.pagado && o.fecha_pago).slice(0, 5).forEach(o => {
-      transactions.push({
-        id: o.id,
-        tipo: 'ropa',
-        concepto: `Equipación - ${o.jugador_nombre}`,
-        cantidad: o.precio_total,
-        fecha: o.fecha_pago,
-        estado: 'completado'
-      });
-    });
-
-    // Lotería pagada - Beneficio del club: 2€ por décimo
-    lotteryOrders.filter(o => o.pagado).slice(0, 5).forEach(o => {
-      transactions.push({
-        id: o.id,
-        tipo: 'loteria',
-        concepto: `Lotería - ${o.jugador_nombre} (${o.numero_decimos} décimos)`,
-        cantidad: (o.numero_decimos || 0) * 2,
-        fecha: o.created_date,
-        estado: 'completado'
-      });
-    });
-
-    // Socios pagados
-    filteredClubMembers.filter(m => m.estado_pago === "Pagado" && m.fecha_pago).slice(0, 5).forEach(m => {
-      transactions.push({
-        id: m.id,
-        tipo: 'socio',
-        concepto: `Cuota Socio - ${m.nombre_completo}`,
-        cantidad: m.cuota_socio || 25,
-        fecha: m.fecha_pago,
-        estado: 'completado'
-      });
-    });
-
-    return transactions
-      .filter(t => t.fecha)
-      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-      .slice(0, 15);
-  }, [filteredPayments, filteredClothingOrders, lotteryOrders, filteredClubMembers]);
-
-  // Export functions
-  const exportToCSV = (type) => {
-    let csvContent = "";
-    let filename = "";
-
-    if (type === "resumen") {
-      csvContent = "Concepto,Cobrado,Pendiente,Total\n";
-      csvContent += `Cuotas,${stats.cuotas.pagadas},${stats.cuotas.pendientes + stats.cuotas.revision},${stats.cuotas.pagadas + stats.cuotas.pendientes + stats.cuotas.revision}\n`;
-      csvContent += `Ropa,${stats.ropa.pagada},${stats.ropa.pendiente},${stats.ropa.pagada + stats.ropa.pendiente}\n`;
-      csvContent += `Lotería,${stats.loteria.pagada},${stats.loteria.pendiente},${stats.loteria.pagada + stats.loteria.pendiente}\n`;
-      csvContent += `Patrocinios,${stats.patrocinios},0,${stats.patrocinios}\n`;
-      csvContent += `Socios,${stats.socios?.pagados || 0},${stats.socios?.pendientes || 0},${(stats.socios?.pagados || 0) + (stats.socios?.pendientes || 0)}\n`;
-      csvContent += `TOTAL,${stats.totalIngresos},${stats.totalPendiente},${stats.totalIngresos + stats.totalPendiente}\n`;
-      filename = `resumen_financiero_${selectedSeason === "all" ? "todas" : selectedSeason}.csv`;
-    } else if (type === "deudas") {
-      csvContent = "Jugador,Deporte,Email Padre,Deuda Total,Pagos Pendientes\n";
-      pendingDebts.forEach(d => {
-        csvContent += `"${d.jugador_nombre}","${d.deporte || ''}","${d.email_padre || ''}",${d.deuda_total},${d.pagos_pendientes.length}\n`;
-      });
-      filename = `deudas_pendientes_${selectedSeason === "all" ? "todas" : selectedSeason}.csv`;
-    } else if (type === "transacciones") {
-      csvContent = "Fecha,Tipo,Concepto,Cantidad\n";
-      recentTransactions.forEach(t => {
-        csvContent += `${t.fecha},"${t.tipo}","${t.concepto}",${t.cantidad}\n`;
-      });
-      filename = `transacciones_${selectedSeason === "all" ? "todas" : selectedSeason}.csv`;
-    }
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const exportToPDF = (type) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let y = 20;
-
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(234, 88, 12); // Orange
-    doc.text("CD Bustarviejo", pageWidth / 2, y, { align: "center" });
-    y += 10;
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Temporada: ${selectedSeason === "all" ? "Todas" : selectedSeason}`, pageWidth / 2, y, { align: "center" });
-    y += 5;
-    doc.text(`Generado: ${format(new Date(), "d MMM yyyy HH:mm", { locale: es })}`, pageWidth / 2, y, { align: "center" });
-    y += 15;
-
-    let filename = "";
-
-    if (type === "resumen") {
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text("Resumen Financiero", 20, y);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setTextColor(50);
-      
-      // Table header
-      doc.setFillColor(240, 240, 240);
-      doc.rect(20, y, pageWidth - 40, 8, 'F');
-      doc.text("Concepto", 25, y + 5);
-      doc.text("Cobrado", 80, y + 5);
-      doc.text("Pendiente", 120, y + 5);
-      doc.text("Total", 160, y + 5);
-      y += 12;
-
-      // Data rows
-      const rows = [
-        { concepto: "Cuotas", cobrado: stats.cuotas.pagadas, pendiente: stats.cuotas.pendientes + stats.cuotas.revision },
-        { concepto: "Ropa", cobrado: stats.ropa.pagada, pendiente: stats.ropa.pendiente },
-        { concepto: "Loteria", cobrado: stats.loteria.pagada, pendiente: stats.loteria.pendiente },
-        { concepto: "Patrocinios", cobrado: stats.patrocinios, pendiente: 0 },
-        { concepto: "Socios", cobrado: stats.socios?.pagados || 0, pendiente: stats.socios?.pendientes || 0 }
-      ];
-
-      rows.forEach(row => {
-        doc.text(row.concepto, 25, y);
-        doc.setTextColor(22, 163, 74); // Green
-        doc.text(`${row.cobrado.toLocaleString()} EUR`, 80, y);
-        doc.setTextColor(220, 38, 38); // Red
-        doc.text(`${row.pendiente.toLocaleString()} EUR`, 120, y);
-        doc.setTextColor(50);
-        doc.text(`${(row.cobrado + row.pendiente).toLocaleString()} EUR`, 160, y);
-        y += 8;
-      });
-
-      // Total
-      y += 5;
-      doc.setDrawColor(200);
-      doc.line(20, y, pageWidth - 20, y);
-      y += 8;
-      doc.setFontSize(11);
-      doc.setTextColor(0);
-      doc.text("TOTAL", 25, y);
-      doc.setTextColor(22, 163, 74);
-      doc.text(`${stats.totalIngresos.toLocaleString()} EUR`, 80, y);
-      doc.setTextColor(220, 38, 38);
-      doc.text(`${stats.totalPendiente.toLocaleString()} EUR`, 120, y);
-      doc.setTextColor(0);
-      doc.text(`${(stats.totalIngresos + stats.totalPendiente).toLocaleString()} EUR`, 160, y);
-
-      filename = `resumen_financiero_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
-
-    } else if (type === "deudas") {
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text("Listado de Deudas", 20, y);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setTextColor(50);
-
-      if (pendingDebts.length === 0) {
-        doc.text("No hay deudas pendientes", 20, y);
       } else {
-        // Table header
-        doc.setFillColor(254, 226, 226);
-        doc.rect(20, y, pageWidth - 40, 8, 'F');
-        doc.text("Jugador", 25, y + 5);
-        doc.text("Deporte", 90, y + 5);
-        doc.text("Deuda", 150, y + 5);
-        y += 12;
-
-        pendingDebts.forEach((debt, idx) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(debt.jugador_nombre?.substring(0, 30) || "", 25, y);
-          doc.text(debt.deporte?.substring(0, 25) || "", 90, y);
-          doc.setTextColor(220, 38, 38);
-          doc.text(`${debt.deuda_total.toLocaleString()} EUR`, 150, y);
-          doc.setTextColor(50);
-          y += 7;
+        return await base44.entities.DashboardButtonConfig.create({
+          user_email: user?.email,
+          panel_type: "treasurer",
+          selected_buttons: selectedButtonIds
         });
-
-        // Total
-        y += 5;
-        doc.setDrawColor(200);
-        doc.line(20, y, pageWidth - 20, y);
-        y += 8;
-        doc.setFontSize(11);
-        doc.setTextColor(220, 38, 38);
-        const totalDeuda = pendingDebts.reduce((sum, d) => sum + d.deuda_total, 0);
-        doc.text(`Total deuda: ${totalDeuda.toLocaleString()} EUR (${pendingDebts.length} jugadores)`, 25, y);
       }
-
-      filename = `deudas_pendientes_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
-
-    } else if (type === "transacciones") {
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text("Historial de Transacciones", 20, y);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setTextColor(50);
-
-      if (recentTransactions.length === 0) {
-        doc.text("No hay transacciones recientes", 20, y);
-      } else {
-        // Table header
-        doc.setFillColor(220, 252, 231);
-        doc.rect(20, y, pageWidth - 40, 8, 'F');
-        doc.text("Fecha", 25, y + 5);
-        doc.text("Concepto", 60, y + 5);
-        doc.text("Cantidad", 160, y + 5);
-        y += 12;
-
-        recentTransactions.forEach((t, idx) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(t.fecha ? format(new Date(t.fecha), "dd/MM/yy") : "-", 25, y);
-          doc.text(t.concepto?.substring(0, 45) || "", 60, y);
-          doc.setTextColor(22, 163, 74);
-          doc.text(`+${t.cantidad?.toLocaleString()} EUR`, 160, y);
-          doc.setTextColor(50);
-          y += 7;
-        });
-
-        // Total
-        y += 5;
-        doc.setDrawColor(200);
-        doc.line(20, y, pageWidth - 20, y);
-        y += 8;
-        doc.setFontSize(11);
-        doc.setTextColor(22, 163, 74);
-        const totalTrans = recentTransactions.reduce((sum, t) => sum + (t.cantidad || 0), 0);
-        doc.text(`Total: ${totalTrans.toLocaleString()} EUR`, 25, y);
-      }
-
-      filename = `transacciones_${selectedSeason === "all" ? "todas" : selectedSeason}.pdf`;
-    }
-
-    doc.save(filename);
-  };
-
-  const tipoIcons = {
-    cuota: <CreditCard className="w-4 h-4 text-blue-600" />,
-    ropa: <ShoppingBag className="w-4 h-4 text-orange-600" />,
-    loteria: <Clover className="w-4 h-4 text-green-600" />,
-    patrocinio: <Building2 className="w-4 h-4 text-purple-600" />,
-    socio: <Users className="w-4 h-4 text-pink-600" />
-  };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
+      toast.success("✅ Configuración guardada");
+    },
+  });
 
 
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">💰 Panel Financiero</h1>
-          <p className="text-slate-600 text-sm">Control completo de ingresos y gastos del club</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
+        <SocialLinks />
+        
+        {/* Header */}
+        <div className="text-center lg:text-left">
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+            💰 Panel Tesorero
+          </h1>
+          <p className="text-slate-400 text-sm lg:text-base">
+            {user?.full_name} - Gestión financiera del club
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Actualizando...' : 'Refrescar'}
-          </Button>
-          <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-            <SelectTrigger className="w-40">
-              <Calendar className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Temporada" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableSeasons.map(s => (
-                <SelectItem key={s} value={s}>
-                  {s === "all" ? "Todas" : s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      {/* AlertCenter - Solo si tiene hijos */}
-      {hasPlayers && myPlayers && myPlayers.length > 0 && payments && payments.length >= 0 && (() => {
-        const normalizeSeason = (season) => {
-          if (!season) return currentSeason;
-          return season.replace(/-/g, '/');
-        };
-        
-        const myPayments = payments.filter(p => 
-          myPlayers.some(pl => pl.id === p.jugador_id) && 
-          p.is_deleted !== true &&
-          normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
-        );
-        
-        const pendientesCount = myPayments.filter(p => p.estado === "Pendiente").length;
-        const revisionCount = myPayments.filter(p => p.estado === "En revisión").length;
-        
-        const now = new Date();
-        let vencidosCount = 0;
-        myPayments.forEach(payment => {
-          if (payment.estado !== "Pagado") {
-            const mes = payment.mes;
-            const year = parseInt(currentSeason.split('/')[0]);
-            let vencimiento;
+        {/* Banner de Mensajes - IDÉNTICO A OTROS DASHBOARDS */}
+        <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
+                <p className="text-xs text-purple-700">Comunicación del club</p>
+              </div>
+            </div>
             
-            if (mes === "Junio") vencimiento = new Date(year, 5, 30);
-            else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
-            else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
-            
-            if (vencimiento && now >= vencimiento) vencidosCount++;
-          }
-        });
-        
-        const calcularEdad = (fechaNac) => {
-          if (!fechaNac) return null;
-          const hoy = new Date();
-          const nacimiento = new Date(fechaNac);
-          let edad = hoy.getFullYear() - nacimiento.getFullYear();
-          const m = hoy.getMonth() - nacimiento.getMonth();
-          if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-          return edad;
-        };
-        
-        let firmasCount = 0;
-        myPlayers.forEach(player => {
-          if (player.enlace_firma_jugador && !player.firma_jugador_completada) firmasCount++;
-          const esMayor = calcularEdad(player.fecha_nacimiento) >= 18;
-          if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
-        });
-        
-        const userSports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
-        
-        return (
-          <AlertCenter 
-            pendingCallups={0}
-            pendingSignatures={firmasCount}
-            pendingPayments={pendientesCount}
-            paymentsInReview={revisionCount}
-            overduePayments={vencidosCount}
-            isParent={true}
-            isTreasurer={true}
-            userEmail={user?.email}
-            userSports={userSports}
-          />
-        );
-      })()}
-
-      {/* Accesos Rápidos - Grid de Botones Grandes */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link to={createPageUrl("Payments")} className="block">
-          <Card className="border-2 border-green-400 hover:border-green-600 transition-all cursor-pointer group hover:shadow-xl h-full">
-            <CardContent className="pt-6 pb-6">
-              <div className="text-center">
-                <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <CreditCard className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-base">💳 Pagos</h3>
-                <p className="text-xs text-slate-600">Gestión de cuotas</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link to={createPageUrl("ClothingOrders")} className="block">
-          <Card className="border-2 border-orange-400 hover:border-orange-600 transition-all cursor-pointer group hover:shadow-xl h-full">
-            <CardContent className="pt-6 pb-6">
-              <div className="text-center">
-                <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <ShoppingBag className="w-8 h-8 text-orange-600" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-base">🛍️ Pedidos Ropa</h3>
-                <p className="text-xs text-slate-600">Gestión de equipación</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link to={createPageUrl("ClubMembersManagement")} className="block">
-          <Card className="border-2 border-pink-400 hover:border-pink-600 transition-all cursor-pointer group hover:shadow-xl h-full">
-            <CardContent className="pt-6 pb-6">
-              <div className="text-center">
-                <div className="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <Heart className="w-8 h-8 text-pink-600" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-base">🎫 Socios</h3>
-                <p className="text-xs text-slate-600">Gestión de socios</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link to={createPageUrl("PaymentReminders")} className="block">
-          <Card className="border-2 border-red-400 hover:border-red-600 transition-all cursor-pointer group hover:shadow-xl h-full">
-            <CardContent className="pt-6 pb-6">
-              <div className="text-center">
-                <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <Bell className="w-8 h-8 text-red-600" />
-                </div>
-                <h3 className="font-bold text-slate-900 text-base">🔔 Recordatorios</h3>
-                <p className="text-xs text-slate-600">Enviar avisos</p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      {/* Acciones Rápidas - Lotería */}
-      {loteriaVisible && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Link to={createPageUrl("LotteryManagement")} className="block">
-            <Card className="border-2 border-green-400 hover:border-green-600 transition-all cursor-pointer group hover:shadow-xl">
-              <CardContent className="pt-6 pb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Clover className="w-8 h-8 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-lg">Gestión Lotería</h3>
-                      <p className="text-sm text-slate-600">Control de pedidos y entregas</p>
-                    </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Link to={createPageUrl("Chatbot")} className="flex-1">
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                    <Sparkles className="w-3 h-3 text-white" />
                   </div>
-                  <ArrowUpRight className="w-6 h-6 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <p className="text-sm font-bold text-center mb-1">🤖 Asistente</p>
+                  <p className="text-xs text-indigo-100 text-center">Consulta IA</p>
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
+              </Link>
 
-          <Link to={createPageUrl("ParentLottery")} className="block">
-            <Card className="border-2 border-yellow-400 hover:border-yellow-600 transition-all cursor-pointer group hover:shadow-xl">
-              <CardContent className="pt-6 pb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Clover className="w-8 h-8 text-yellow-600" />
+              {hasPlayers && (
+                <>
+                  <Link to={createPageUrl("ParentCoordinatorChat")} className="flex-1">
+                    <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                      <p className="text-sm font-bold text-center mb-1">💬 Coordinador</p>
+                      <p className="text-xs text-cyan-100 text-center">Chat categoría</p>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-lg">Mi Lotería</h3>
-                      <p className="text-sm text-slate-600">Pedir décimos para ti</p>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="w-6 h-6 text-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-      )}
+                  </Link>
 
-      {/* Porcentaje de Impagados por Categoría */}
-      {useMemo(() => {
-        const categoryStats = {};
-        const activePlayers = players.filter(p => p.activo === true);
-        
-        activePlayers.forEach(player => {
-          const categoria = player.deporte;
-          if (!categoryStats[categoria]) {
-            categoryStats[categoria] = {
-              total: 0,
-              pagados: 0,
-              pendientes: 0
-            };
-          }
+                  <Link to={createPageUrl("ParentCoachChat")} className="flex-1 col-span-2">
+                    <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                      <p className="text-sm font-bold text-center mb-1">⚽ Entrenador</p>
+                      <p className="text-xs text-blue-100 text-center">Chat equipo</p>
+                    </div>
+                  </Link>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AlertCenter - Solo si tiene hijos */}
+        {hasPlayers && myPlayers && myPlayers.length > 0 && payments && payments.length >= 0 && (() => {
+          const normalizeSeason = (season) => {
+            if (!season) return currentSeason;
+            return season.replace(/-/g, '/');
+          };
           
-          categoryStats[categoria].total++;
-          
-          const playerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
-          
-          // Verificar si tiene pago único pagado
-          const hasPagoUnico = playerPayments.some(p => 
-            (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-            p.estado === "Pagado"
+          const myPayments = payments.filter(p => 
+            myPlayers.some(pl => pl.id === p.jugador_id) && 
+            p.is_deleted !== true &&
+            normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
           );
           
-          if (hasPagoUnico) {
-            categoryStats[categoria].pagados++;
-          } else {
-            // Verificar si tiene todos los pagos mensuales pagados
-            const allMonths = ["Junio", "Septiembre", "Diciembre"];
-            const mesesPagados = playerPayments
-              .filter(p => p.estado === "Pagado")
-              .map(p => p.mes);
-            
-            if (allMonths.every(mes => mesesPagados.includes(mes))) {
-              categoryStats[categoria].pagados++;
-            } else {
-              categoryStats[categoria].pendientes++;
+          const pendientesCount = myPayments.filter(p => p.estado === "Pendiente").length;
+          const revisionCount = myPayments.filter(p => p.estado === "En revisión").length;
+          
+          const now = new Date();
+          let vencidosCount = 0;
+          myPayments.forEach(payment => {
+            if (payment.estado !== "Pagado") {
+              const mes = payment.mes;
+              const year = parseInt(currentSeason.split('/')[0]);
+              let vencimiento;
+              
+              if (mes === "Junio") vencimiento = new Date(year, 5, 30);
+              else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
+              else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
+              
+              if (vencimiento && now >= vencimiento) vencidosCount++;
             }
-          }
-        });
-        
-        const categoriesWithData = Object.entries(categoryStats)
-          .map(([categoria, stats]) => ({
-            categoria,
-            porcentajeImpagados: stats.total > 0 ? ((stats.pendientes / stats.total) * 100).toFixed(0) : 0,
-            jugadoresTotales: stats.total,
-            jugadoresImpagados: stats.pendientes,
-            jugadoresPagados: stats.pagados
-          }))
-          .sort((a, b) => b.porcentajeImpagados - a.porcentajeImpagados);
-        
-        if (categoriesWithData.length === 0) return null;
-        
-        return (
-          <Card className="border-none shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <PieChartIcon className="w-5 h-5 text-purple-600" />
-                Porcentaje de Impagados por Categoría
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {categoriesWithData.map(cat => {
-                  const porcentaje = parseInt(cat.porcentajeImpagados);
-                  const color = porcentaje > 50 ? 'red' : porcentaje > 25 ? 'orange' : 'green';
-                  
-                  return (
-                    <div key={cat.categoria} className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-slate-900">
-                          {cat.categoria.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-600">
-                            {cat.jugadoresImpagados} de {cat.jugadoresTotales}
-                          </span>
-                          <Badge className={`
-                            ${color === 'red' ? 'bg-red-100 text-red-700' : 
-                              color === 'orange' ? 'bg-orange-100 text-orange-700' : 
-                              'bg-green-100 text-green-700'}
-                          `}>
-                            {porcentaje}%
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            color === 'red' ? 'bg-red-500' : 
-                            color === 'orange' ? 'bg-orange-500' : 
-                            'bg-green-500'
-                          }`}
-                          style={{ width: `${porcentaje}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      }, [players, filteredPayments])}
+          });
+          
+          const calcularEdad = (fechaNac) => {
+            if (!fechaNac) return null;
+            const hoy = new Date();
+            const nacimiento = new Date(fechaNac);
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const m = hoy.getMonth() - nacimiento.getMonth();
+            if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+            return edad;
+          };
+          
+          let firmasCount = 0;
+          myPlayers.forEach(player => {
+            if (player.enlace_firma_jugador && !player.firma_jugador_completada) firmasCount++;
+            const esMayor = calcularEdad(player.fecha_nacimiento) >= 18;
+            if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
+          });
+          
+          const userSports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+          
+          return (
+            <AlertCenter 
+              pendingCallups={0}
+              pendingSignatures={firmasCount}
+              pendingPayments={pendientesCount}
+              paymentsInReview={revisionCount}
+              overduePayments={vencidosCount}
+              isParent={true}
+              isTreasurer={true}
+              userEmail={user?.email}
+              userSports={userSports}
+            />
+          );
+        })()}
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-green-800">Total Cobrado</span>
-              <ArrowUpRight className="w-4 h-4 text-green-600" />
-            </div>
-            <div className="text-2xl lg:text-3xl font-bold text-green-700">{stats.totalIngresos.toLocaleString()}€</div>
-            <p className="text-[10px] text-green-600 mt-1">Ingresos confirmados</p>
-          </CardContent>
-        </Card>
+        {/* Botón personalizar dashboard */}
+        <div className="flex justify-end">
+          <DashboardButtonSelector
+            allButtons={ALL_TREASURER_BUTTONS.filter(b => !b.conditional || (b.conditionKey === "loteriaVisible" && loteriaVisible))}
+            selectedButtonIds={userButtonConfig?.selected_buttons || DEFAULT_TREASURER_BUTTONS}
+            onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
+            minButtons={MIN_BUTTONS}
+            maxButtons={MAX_BUTTONS}
+            defaultButtons={DEFAULT_TREASURER_BUTTONS}
+            panelName="Panel Tesorero"
+          />
+        </div>
 
-        <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100">
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-red-800">Pendiente</span>
-              <ArrowDownRight className="w-4 h-4 text-red-600" />
-            </div>
-            <div className="text-2xl lg:text-3xl font-bold text-red-700">{stats.totalPendiente.toLocaleString()}€</div>
-            <p className="text-[10px] text-red-600 mt-1">{pendingDebts.length} jugadores con deuda</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-purple-800">Patrocinios</span>
-              <Building2 className="w-4 h-4 text-purple-600" />
-            </div>
-            <div className="text-2xl lg:text-3xl font-bold text-purple-700">{stats.patrocinios.toLocaleString()}€</div>
-            <p className="text-[10px] text-purple-600 mt-1">{sponsors.filter(s => s.estado === "Activo").length} activos</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-blue-800">Tasa Cobro</span>
-              <TrendingUp className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="text-2xl lg:text-3xl font-bold text-blue-700">
-              {stats.totalIngresos + stats.totalPendiente > 0 
-                ? ((stats.totalIngresos / (stats.totalIngresos + stats.totalPendiente)) * 100).toFixed(0) 
-                : 0}%
-            </div>
-            <p className="text-[10px] text-blue-600 mt-1">del total esperado</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI Forecasting Button */}
-      <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-purple-900">Análisis Financiero con IA</h3>
-                <p className="text-sm text-purple-700">Previsiones, flujo de caja, escenarios e insights inteligentes</p>
-              </div>
-            </div>
-            <Button 
-              onClick={() => setShowAIForecasting(true)}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Abrir Análisis IA
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Alertas Inteligentes */}
-      {smartAlerts.length > 0 && (
-        <div className="space-y-2">
-          {smartAlerts.map((alert, idx) => (
-            <Card key={idx} className={`border-2 ${
-              alert.tipo === 'critico' ? 'border-red-300 bg-red-50' :
-              alert.tipo === 'info' ? 'border-blue-300 bg-blue-50' :
-              'border-green-300 bg-green-50'
-            }`}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{alert.icono}</span>
-                  <p className="font-semibold">{alert.mensaje}</p>
+        {/* GRID DE BOTONES CENTRALES */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
+          {(userButtonConfig?.selected_buttons || DEFAULT_TREASURER_BUTTONS)
+            .map(id => ALL_TREASURER_BUTTONS.find(b => b.id === id))
+            .filter(Boolean)
+            .filter(b => !b.conditional || (b.conditionKey === "loteriaVisible" && loteriaVisible))
+            .map((item, index) => (
+            <Link key={index} to={item.url} className="group">
+              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+                <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
+                <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
+                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
+                    <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
+                  </div>
+                  <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">{item.title}</h3>
                 </div>
-                {alert.accion && (
-                  <Button size="sm" variant="outline">
-                    {alert.accion}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+              </div>
+            </Link>
           ))}
         </div>
-      )}
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="ejecutivo" className="w-full">
-        <TabsList className="w-full flex-wrap h-auto">
-          <TabsTrigger value="ejecutivo" className="flex-1">🎯 Ejecutivo</TabsTrigger>
-          <TabsTrigger value="ingresos" className="flex-1">📊 Ingresos</TabsTrigger>
-          <TabsTrigger value="liquidez" className="flex-1">💧 Liquidez</TabsTrigger>
-          <TabsTrigger value="comparativa" className="flex-1">📈 Comparativa</TabsTrigger>
-          <TabsTrigger value="ranking" className="flex-1">🏆 Ranking</TabsTrigger>
-          <TabsTrigger value="presupuesto" className="flex-1">💰 Presupuesto</TabsTrigger>
-          <TabsTrigger value="movimientos" className="flex-1">📝 Movimientos</TabsTrigger>
-          <TabsTrigger value="conciliacion" className="flex-1">🤖 Conciliación</TabsTrigger>
-          <TabsTrigger value="deudas" className="flex-1">⚠️ Deudas</TabsTrigger>
-          <TabsTrigger value="exportar" className="flex-1">📥 Exportar</TabsTrigger>
-        </TabsList>
+        <ContactCard />
 
-        {/* TAB: DASHBOARD EJECUTIVO */}
-        <TabsContent value="ejecutivo" className="space-y-6">
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* KPI: Tasa de Cobro */}
             <Card className="border-none shadow-2xl bg-gradient-to-br from-green-500 to-green-700">
@@ -1489,8 +384,7 @@ export default function TreasurerDashboard() {
           </Card>
         </TabsContent>
 
-        {/* TAB: LIQUIDEZ */}
-        <TabsContent value="liquidez" className="space-y-6">
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
               <CardContent className="pt-6">
@@ -1589,8 +483,7 @@ export default function TreasurerDashboard() {
           </Card>
         </TabsContent>
 
-        {/* TAB: COMPARATIVA INTERANUAL */}
-        <TabsContent value="comparativa" className="space-y-6">
+
           <Card className="border-none shadow-xl">
             <CardHeader>
               <CardTitle>📈 Comparativa de Temporadas</CardTitle>
@@ -1719,8 +612,7 @@ export default function TreasurerDashboard() {
           </div>
         </TabsContent>
 
-        {/* Ingresos Tab */}
-        <TabsContent value="ingresos" className="space-y-6">
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Pie Chart - Income by Concept */}
             <Card className="border-none shadow-xl">
@@ -1883,8 +775,7 @@ export default function TreasurerDashboard() {
           </div>
         </TabsContent>
 
-        {/* Presupuesto Tab */}
-        <TabsContent value="presupuesto" className="space-y-4">
+
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -1944,8 +835,7 @@ export default function TreasurerDashboard() {
           })()}
         </TabsContent>
 
-        {/* Movimientos Financieros Tab */}
-        <TabsContent value="movimientos" className="space-y-4">
+
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Receipt className="h-5 w-5 text-green-600" />
@@ -2013,8 +903,7 @@ export default function TreasurerDashboard() {
           )}
         </TabsContent>
 
-        {/* Conciliación IA Tab */}
-        <TabsContent value="conciliacion" className="space-y-4">
+
           <Card className="border-2 border-purple-300 bg-purple-50 mb-4">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4 mb-4">
@@ -2065,8 +954,7 @@ export default function TreasurerDashboard() {
           />
         </TabsContent>
 
-        {/* Deudas Tab */}
-        <TabsContent value="deudas" className="space-y-4">
+
           <Card className="border-none shadow-xl">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -2129,8 +1017,7 @@ export default function TreasurerDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Exportar Tab */}
-        <TabsContent value="exportar" className="space-y-4">
+
           <Card className="border-none shadow-xl">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -2208,65 +1095,7 @@ export default function TreasurerDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
 
-      {/* Dialog nuevo presupuesto */}
-      <Dialog open={showNewBudget} onOpenChange={setShowNewBudget}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Crear Nuevo Presupuesto</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>Temporada</Label>
-              <Input
-                value={newBudgetData.temporada}
-                onChange={(e) => setNewBudgetData({...newBudgetData, temporada: e.target.value})}
-                placeholder={currentSeason}
-              />
-            </div>
-            <div>
-              <Label>Nombre del Presupuesto</Label>
-              <Input
-                value={newBudgetData.nombre}
-                onChange={(e) => setNewBudgetData({...newBudgetData, nombre: e.target.value})}
-                placeholder="Presupuesto Principal"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewBudget(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleCreateBudget}
-              disabled={createBudgetMutation.isPending}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              {createBudgetMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creando...
-                </>
-              ) : (
-                "Crear Presupuesto"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Asistente de Comunicación IA */}
-      <AICommunicationAssistant
-        open={showCommunicationAssistant}
-        onClose={() => setShowCommunicationAssistant(false)}
-      />
-
-      {/* Análisis Financiero IA */}
-      <AIFinancialForecasting
-        open={showAIForecasting}
-        onClose={() => setShowAIForecasting(false)}
-      />
     </div>
   );
 }
