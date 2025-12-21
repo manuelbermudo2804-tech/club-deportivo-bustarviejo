@@ -24,6 +24,11 @@ import BudgetManager from "../components/financial/BudgetManager";
 import TransactionList from "../components/financial/TransactionList";
 import TransactionForm from "../components/financial/TransactionForm";
 import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
+import TopDebtorsPanel from "../components/financial/TopDebtorsPanel";
+import MonthlyEvolutionChart from "../components/financial/MonthlyEvolutionChart";
+import CategoryBreakdown from "../components/financial/CategoryBreakdown";
+import FinancialAlerts from "../components/financial/FinancialAlerts";
+import IncomeProjection from "../components/financial/IncomeProjection";
 
 export default function TreasurerFinancialPanel() {
   const [user, setUser] = useState(null);
