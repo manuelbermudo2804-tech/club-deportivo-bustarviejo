@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
+import { ALL_PLAYER_BUTTONS, DEFAULT_PLAYER_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/PlayerDashboardButtons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -247,6 +249,42 @@ export default function PlayerDashboard() {
     },
     enabled: !!player?.id,
     initialData: [],
+  });
+
+  const { data: buttonConfigs = [] } = useQuery({
+    queryKey: ['dashboardButtonConfig', user?.email],
+    queryFn: async () => {
+      const configs = await base44.entities.DashboardButtonConfig.filter({ 
+        user_email: user?.email,
+        panel_type: "player"
+      });
+      return configs;
+    },
+    staleTime: 600000,
+    enabled: !!user,
+  });
+
+  const userButtonConfig = buttonConfigs[0];
+  const loteriaVisible = seasonConfig?.loteria_navidad_abierta === true;
+
+  const saveButtonConfigMutation = useMutation({
+    mutationFn: async (selectedButtonIds) => {
+      if (userButtonConfig) {
+        return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
+          selected_buttons: selectedButtonIds
+        });
+      } else {
+        return await base44.entities.DashboardButtonConfig.create({
+          user_email: user?.email,
+          panel_type: "player",
+          selected_buttons: selectedButtonIds
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
+      toast.success("✅ Configuración guardada");
+    },
   });
 
   // Calcular estadísticas de pagos con separación de vencidos
@@ -585,7 +623,20 @@ export default function PlayerDashboard() {
           </Link>
         )}
 
-        {/* Grid de botones principales - mismo estilo que ParentDashboard */}
+        {/* Botón personalizar */}
+        <div className="flex justify-end">
+          <DashboardButtonSelector
+            allButtons={ALL_PLAYER_BUTTONS}
+            selectedButtonIds={userButtonConfig?.selected_buttons || DEFAULT_PLAYER_BUTTONS}
+            onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
+            minButtons={MIN_BUTTONS}
+            maxButtons={MAX_BUTTONS}
+            defaultButtons={DEFAULT_PLAYER_BUTTONS}
+            panelName="Panel Jugador"
+          />
+        </div>
+
+        {/* Grid de botones principales */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
           <Link to={createPageUrl("ParentCallups")} className="group">
             <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">

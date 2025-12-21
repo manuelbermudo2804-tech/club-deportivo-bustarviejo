@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
+import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
+import { ALL_COORDINATOR_BUTTONS, DEFAULT_COORDINATOR_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/CoordinatorDashboardButtons";
 
 import { 
   Users, 
@@ -24,6 +27,7 @@ import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
 
 export default function CoordinatorDashboard() {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [myCategories, setMyCategories] = useState([]);
 
@@ -70,6 +74,41 @@ export default function CoordinatorDashboard() {
   const { data: allMatchObservations = [] } = useQuery({
     queryKey: ['matchObservations'],
     queryFn: () => base44.entities.MatchObservation.list(),
+  });
+
+  const { data: buttonConfigs = [] } = useQuery({
+    queryKey: ['dashboardButtonConfig', user?.email],
+    queryFn: async () => {
+      const configs = await base44.entities.DashboardButtonConfig.filter({ 
+        user_email: user?.email,
+        panel_type: "coordinator"
+      });
+      return configs;
+    },
+    staleTime: 600000,
+    enabled: !!user,
+  });
+
+  const userButtonConfig = buttonConfigs[0];
+
+  const saveButtonConfigMutation = useMutation({
+    mutationFn: async (selectedButtonIds) => {
+      if (userButtonConfig) {
+        return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
+          selected_buttons: selectedButtonIds
+        });
+      } else {
+        return await base44.entities.DashboardButtonConfig.create({
+          user_email: user?.email,
+          panel_type: "coordinator",
+          selected_buttons: selectedButtonIds
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
+      toast.success("✅ Configuración guardada");
+    },
   });
 
   // Mensajes no leídos de familias
@@ -259,7 +298,20 @@ export default function CoordinatorDashboard() {
           isCoordinator={true}
         />
 
-        {/* GRID DE BOTONES CENTRALES - MENÚ PRINCIPAL */}
+        {/* Botón personalizar */}
+        <div className="flex justify-end">
+          <DashboardButtonSelector
+            allButtons={ALL_COORDINATOR_BUTTONS.filter(b => !b.conditional || (b.conditionKey === "canManageSignatures" && user?.puede_gestionar_firmas))}
+            selectedButtonIds={userButtonConfig?.selected_buttons || DEFAULT_COORDINATOR_BUTTONS}
+            onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
+            minButtons={MIN_BUTTONS}
+            maxButtons={MAX_BUTTONS}
+            defaultButtons={DEFAULT_COORDINATOR_BUTTONS}
+            panelName="Panel Coordinador"
+          />
+        </div>
+
+        {/* GRID DE BOTONES CENTRALES */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
           {/* Convocatorias */}
           <Link to={createPageUrl("CoachCallups")} className="group">

@@ -21,6 +21,7 @@ const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/log
 export default function Home() {
   console.log('🏠 [Home] Componente montado');
   
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
@@ -312,6 +313,42 @@ export default function Home() {
     refetchOnMount: false,
     refetchInterval: false,
     enabled: !!user && !isAdmin,
+  });
+
+  // Configuración de botones del dashboard
+  const { data: buttonConfigs = [] } = useQuery({
+    queryKey: ['dashboardButtonConfig', user?.email],
+    queryFn: async () => {
+      const configs = await base44.entities.DashboardButtonConfig.filter({ 
+        user_email: user?.email,
+        panel_type: "admin"
+      });
+      return configs;
+    },
+    staleTime: 600000,
+    enabled: !!user && isAdmin,
+  });
+
+  const userButtonConfig = buttonConfigs[0];
+
+  const saveButtonConfigMutation = useMutation({
+    mutationFn: async (selectedButtonIds) => {
+      if (userButtonConfig) {
+        return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
+          selected_buttons: selectedButtonIds
+        });
+      } else {
+        return await base44.entities.DashboardButtonConfig.create({
+          user_email: user?.email,
+          panel_type: "admin",
+          selected_buttons: selectedButtonIds
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
+      toast.success("✅ Configuración guardada");
+    },
   });
 
   const myPlayers = useMemo(() => {
@@ -661,10 +698,67 @@ export default function Home() {
 
 
 
+  // Determinar botones a mostrar según configuración
+  const selectedButtonIds = userButtonConfig?.selected_buttons || DEFAULT_ADMIN_BUTTONS;
+  
+  const availableAdminButtons = ALL_ADMIN_BUTTONS.filter(button => {
+    if (button.conditional && button.conditionKey === "loteriaVisible") return loteriaVisible;
+    return true;
+  });
+
+  const displayAdminButtons = selectedButtonIds
+    .map(id => availableAdminButtons.find(b => b.id === id))
+    .filter(Boolean);
+
   const menuItems = useMemo(() => {
     const items = [];
 
     if (isAdmin) {
+      // Usar botones configurados en lugar de lista hardcoded
+      return displayAdminButtons.map(item => {
+        const updated = { ...item };
+        
+        // Añadir badges dinámicos
+        if (item.id === "pagos") {
+          updated.badge = stats.reviewPayments;
+          updated.badgeLabel = "en revisión";
+        }
+        if (item.id === "firmas") {
+          updated.badge = stats.adminPendingSignatures;
+          updated.badgeLabel = "pendientes";
+        }
+        if (item.id === "jugadores") {
+          updated.badge = stats.activePlayers;
+          updated.badgeLabel = "activos";
+        }
+        if (item.id === "ropa") {
+          updated.badge = stats.pendingClothingOrders;
+          updated.badgeLabel = "pendientes";
+        }
+        if (item.id === "socios") {
+          updated.badge = stats.pendingMemberRequests;
+          updated.badgeLabel = "pendientes";
+        }
+        if (item.id === "invitaciones") {
+          updated.badge = pendingInvitationRequests;
+          updated.badgeLabel = "pendientes";
+        }
+        if (item.id === "convocatorias") {
+          updated.badge = stats.pendingCallupResponses;
+          updated.badgeLabel = "respuestas";
+        }
+        if (item.id === "encuestas") {
+          updated.badge = stats.recentSurveyResponses;
+          updated.badgeLabel = "nuevas";
+        }
+        if (item.id === "chat_critico") {
+          updated.badge = stats.unreadPrivateMessages;
+          updated.badgeLabel = "sin resolver";
+        }
+        
+        return updated;
+      });
+    } else if (isAdmin && false) {
       // ADMIN: Ordenado por prioridad de uso diario
       
       // 1. TAREAS URGENTES - Lo primero que necesita revisar
@@ -1317,7 +1411,7 @@ export default function Home() {
     }
 
     return items;
-  }, [isAdmin, isCoach, isCoordinator, isTreasurer, hasPlayers, loteriaVisible, stats]);
+  }, [isAdmin, isCoach, isCoordinator, isTreasurer, hasPlayers, loteriaVisible, stats, displayAdminButtons, pendingInvitationRequests]);
 
   // Redirigir padres normales a ParentDashboard
   useEffect(() => {
@@ -1455,6 +1549,21 @@ export default function Home() {
                 </Link>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Botón de configuración de dashboard - Solo Admin */}
+        {isAdmin && (
+          <div className="flex justify-end">
+            <DashboardButtonSelector
+              allButtons={availableAdminButtons}
+              selectedButtonIds={selectedButtonIds}
+              onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
+              minButtons={8}
+              maxButtons={25}
+              defaultButtons={DEFAULT_ADMIN_BUTTONS}
+              panelName="Panel Admin"
+            />
           </div>
         )}
 
