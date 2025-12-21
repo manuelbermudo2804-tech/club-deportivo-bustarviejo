@@ -40,6 +40,7 @@ import AIReconciliation from "../components/financial/AIReconciliation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
+import AlertCenter from "../components/dashboard/AlertCenter";
 
 const COLORS = {
   pagado: '#16a34a',
