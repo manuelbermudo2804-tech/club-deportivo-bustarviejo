@@ -47,7 +47,12 @@ export default function FinancialRatios({ totalIngresos, totalPendiente, totalGa
               <TrendingUp className="w-5 h-5 text-blue-600" />
               <h4 className="font-bold text-slate-900">Ratio de Liquidez</h4>
             </div>
-            <Badge className={`bg-${liquidezStatus.color}-600`}>
+            <Badge className={
+              liquidezStatus.color === 'green' ? 'bg-green-600 text-white' :
+              liquidezStatus.color === 'blue' ? 'bg-blue-600 text-white' :
+              liquidezStatus.color === 'yellow' ? 'bg-yellow-600 text-white' :
+              'bg-red-600 text-white'
+            }>
               {liquidezStatus.icon} {liquidezStatus.status}
             </Badge>
           </div>
@@ -65,7 +70,12 @@ export default function FinancialRatios({ totalIngresos, totalPendiente, totalGa
               <Shield className="w-5 h-5 text-green-600" />
               <h4 className="font-bold text-slate-900">Ratio de Solvencia</h4>
             </div>
-            <Badge className={`bg-${solvenciaStatus.color}-600`}>
+            <Badge className={
+              solvenciaStatus.color === 'green' ? 'bg-green-600 text-white' :
+              solvenciaStatus.color === 'blue' ? 'bg-blue-600 text-white' :
+              solvenciaStatus.color === 'yellow' ? 'bg-yellow-600 text-white' :
+              'bg-red-600 text-white'
+            }>
               {solvenciaStatus.icon} {solvenciaStatus.status}
             </Badge>
           </div>
@@ -83,7 +93,12 @@ export default function FinancialRatios({ totalIngresos, totalPendiente, totalGa
               <Calendar className="w-5 h-5 text-purple-600" />
               <h4 className="font-bold text-slate-900">Autonomía Financiera</h4>
             </div>
-            <Badge className={`bg-${autonomiaStatus.color}-600`}>
+            <Badge className={
+              autonomiaStatus.color === 'green' ? 'bg-green-600 text-white' :
+              autonomiaStatus.color === 'blue' ? 'bg-blue-600 text-white' :
+              autonomiaStatus.color === 'yellow' ? 'bg-yellow-600 text-white' :
+              'bg-red-600 text-white'
+            }>
               {autonomiaStatus.icon} {autonomiaStatus.status}
             </Badge>
           </div>
@@ -101,7 +116,12 @@ export default function FinancialRatios({ totalIngresos, totalPendiente, totalGa
               <Zap className="w-5 h-5 text-orange-600" />
               <h4 className="font-bold text-slate-900">Eficiencia Operativa</h4>
             </div>
-            <Badge className={`bg-${eficienciaStatus.color}-600`}>
+            <Badge className={
+              eficienciaStatus.color === 'green' ? 'bg-green-600 text-white' :
+              eficienciaStatus.color === 'blue' ? 'bg-blue-600 text-white' :
+              eficienciaStatus.color === 'yellow' ? 'bg-yellow-600 text-white' :
+              'bg-red-600 text-white'
+            }>
               {eficienciaStatus.icon} {eficienciaStatus.status}
             </Badge>
           </div>
