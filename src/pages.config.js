@@ -83,6 +83,7 @@ import CoachStandingsAnalysis from './pages/CoachStandingsAnalysis';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
 import CoachDashboard from './pages/CoachDashboard';
 import TreasurerDashboard from './pages/TreasurerDashboard';
+import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import __Layout from './Layout.jsx';
 
 
@@ -172,6 +173,7 @@ export const PAGES = {
     "CoordinatorDashboard": CoordinatorDashboard,
     "CoachDashboard": CoachDashboard,
     "TreasurerDashboard": TreasurerDashboard,
+    "TreasurerFinancialPanel": TreasurerFinancialPanel,
 }
 
 export const pagesConfig = {

@@ -6,10 +6,10 @@ export const ALL_TREASURER_BUTTONS = [
   {
     id: "panel_financiero",
     title: "💰 Panel Financiero",
-    url: "/SeasonManagement",
+    url: "/TreasurerFinancialPanel",
     icon: BarChart3,
     gradient: "from-purple-600 to-indigo-700",
-    description: "Gestión de temporadas y presupuestos"
+    description: "Vista operativa de ingresos y pagos del club"
   },
   {
     id: "pagos_club",
