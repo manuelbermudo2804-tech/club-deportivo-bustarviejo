@@ -313,7 +313,7 @@ export default function TreasurerFinancialPanel() {
   return (
     <div className="p-6 space-y-6">
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white">💰 Panel Financiero</h1>
             <p className="text-slate-300 mt-1">Control total de ingresos, gastos y presupuestos</p>
@@ -328,15 +328,25 @@ export default function TreasurerFinancialPanel() {
               </Badge>
             </div>
           </div>
-          {activeTab === "presupuestos" && (
+          <div className="flex gap-2">
             <Button 
-              onClick={() => setShowAIForecasting(true)}
-              className="bg-purple-600 hover:bg-purple-700 shadow-lg"
+              onClick={handleExportPDF}
+              disabled={generatingPDF}
+              className="bg-red-600 hover:bg-red-700 shadow-lg"
             >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Análisis IA
+              <Download className="w-4 h-4 mr-2" />
+              {generatingPDF ? 'Generando...' : 'Descargar PDF'}
             </Button>
-          )}
+            {activeTab === "presupuestos" && (
+              <Button 
+                onClick={() => setShowAIForecasting(true)}
+                className="bg-purple-600 hover:bg-purple-700 shadow-lg"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Análisis IA
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
