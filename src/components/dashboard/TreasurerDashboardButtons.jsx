@@ -1,9 +1,9 @@
+
 import React from "react";
 import { CreditCard, TrendingUp, Bell, Archive, ShoppingBag, Heart, Calendar, Megaphone, Image, FileText, BarChart3, Users, Clover, Settings, ClipboardCheck, FileSignature } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 export const ALL_TREASURER_BUTTONS = [
-  { id: "financiero", title: "📊 Panel Financiero", icon: TrendingUp, url: createPageUrl("TreasurerDashboard"), gradient: "from-emerald-600 to-emerald-700", priority: 1 },
   { id: "pagos", title: "💳 Pagos Club", icon: CreditCard, url: createPageUrl("Payments"), gradient: "from-green-600 to-green-700", priority: 2 },
   { id: "recordatorios", title: "🔔 Recordatorios", icon: Bell, url: createPageUrl("PaymentReminders"), gradient: "from-red-600 to-orange-700", priority: 3 },
   { id: "ropa", title: "🛍️ Pedidos Ropa", icon: ShoppingBag, url: createPageUrl("ClothingOrders"), gradient: "from-teal-600 to-teal-700", priority: 4 },
@@ -21,14 +21,14 @@ export const ALL_TREASURER_BUTTONS = [
 ];
 
 export const DEFAULT_TREASURER_BUTTONS = [
-  "financiero",
   "pagos",
   "recordatorios",
   "ropa",
   "historico",
   "socios",
   "calendario",
-  "jugadores"
+  "jugadores",
+  "anuncios"
 ];
 
 export const MIN_BUTTONS = 8;
