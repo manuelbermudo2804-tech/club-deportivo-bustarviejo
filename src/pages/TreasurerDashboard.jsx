@@ -42,6 +42,7 @@ import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_TREASURER_BUTTONS, DEFAULT_TREASURER_BUTTONS } from "../components/dashboard/TreasurerDashboardButtons";
+import AlertCenter from "../components/dashboard/AlertCenter";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -1029,6 +1030,19 @@ export default function TreasurerDashboard() {
           panelName="Panel Tesorero"
         />
       </div>
+
+      {/* AlertCenter - Solo si tiene hijos */}
+      {hasPlayers && (
+        <div className="mb-4">
+          <AlertCenter 
+            pendingCallups={0}
+            pendingSignatures={0}
+            pendingPayments={0}
+            isParent={true}
+            userEmail={user?.email}
+          />
+        </div>
+      )}
 
       {/* Accesos Rápidos - Grid de Botones Grandes */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
