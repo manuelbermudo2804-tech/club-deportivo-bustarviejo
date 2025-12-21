@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles, Award, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// toast removido para evitar spam
+import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
+import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
+import { ALL_ADMIN_BUTTONS, DEFAULT_ADMIN_BUTTONS } from "../components/dashboard/AdminDashboardButtons";
 
 import ClubStats from "../components/dashboard/ClubStats";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
@@ -1643,7 +1645,20 @@ export default function Home() {
           </Link>
         )}
 
-
+        {/* Botón personalizar dashboard - Solo Admin */}
+        {isAdmin && (
+          <div className="flex justify-end">
+            <DashboardButtonSelector
+              allButtons={availableAdminButtons}
+              selectedButtonIds={selectedButtonIds}
+              onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
+              minButtons={8}
+              maxButtons={25}
+              defaultButtons={DEFAULT_ADMIN_BUTTONS}
+              panelName="Panel Admin"
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-6 stagger-animation">
           {menuItems.map((item, index) => (
