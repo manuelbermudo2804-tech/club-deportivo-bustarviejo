@@ -1,22 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   CreditCard, ShoppingBag, Users, TrendingUp, TrendingDown, 
   Download, Euro, Clover, Building2, DollarSign, FileText,
-  Calendar, CheckCircle2, Clock, AlertCircle
+  Calendar, CheckCircle2, Clock, AlertCircle, BarChart3, Sparkles, Plus
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
+
+import BudgetManager from "../components/financial/BudgetManager";
+import TransactionList from "../components/financial/TransactionList";
+import TransactionForm from "../components/financial/TransactionForm";
+import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
 
 export default function TreasurerFinancialPanel() {
   const [user, setUser] = useState(null);
   const [activeSeason, setActiveSeason] = useState(null);
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("resumen");
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [showAIForecasting, setShowAIForecasting] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -80,7 +92,6 @@ export default function TreasurerFinancialPanel() {
     queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
   });
 
-  const activeSeason = activeSeasonConfig;
   const currentBudget = useMemo(() => {
     if (!activeSeason || budgets.length === 0) return null;
     return budgets.find(b => b.temporada === activeSeason.temporada) || null;
@@ -171,15 +182,43 @@ export default function TreasurerFinancialPanel() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">💰 Panel Financiero</h1>
-          <p className="text-slate-600 mt-1">Vista operativa de ingresos y gestión de pagos</p>
+          <h1 className="text-3xl font-bold text-slate-900">💰 Panel Financiero Completo</h1>
+          <p className="text-slate-600 mt-1">Gestión integral de presupuestos, ingresos, gastos y análisis IA</p>
           {activeSeason && (
             <Badge className="mt-2 bg-green-600">
               Temporada {activeSeason.temporada}
             </Badge>
           )}
         </div>
+        {activeTab === "presupuestos" && (
+          <Button 
+            onClick={() => setShowAIForecasting(true)}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Análisis IA Avanzado
+          </Button>
+        )}
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="resumen" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Resumen
+          </TabsTrigger>
+          <TabsTrigger value="presupuestos" className="gap-2">
+            <Euro className="w-4 h-4" />
+            Presupuestos
+          </TabsTrigger>
+          <TabsTrigger value="transacciones" className="gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Transacciones
+          </TabsTrigger>
+        </TabsList>
+
+        {/* TAB RESUMEN */}
+        <TabsContent value="resumen" className="space-y-6 mt-6">
 
       {/* Resumen Global */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
