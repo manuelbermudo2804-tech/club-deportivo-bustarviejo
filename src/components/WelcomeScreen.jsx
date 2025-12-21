@@ -17,9 +17,9 @@ export default function WelcomeScreen({ onEnter }) {
   };
 
   const stats = [
-    { icon: Users, label: "9 Categorías", sublabel: "De Fútbol y Basket" },
-    { icon: Trophy, label: "Desde 1989", sublabel: "De Historia" },
-    { icon: Heart, label: "Una Gran", sublabel: "Familia" }
+    { icon: Users, label: "Pasión", sublabel: "Formando campeones" },
+    { icon: Trophy, label: "Desde 1989", sublabel: "Más de 35 años" },
+    { icon: Heart, label: "Gran Familia", sublabel: "Comunidad unida" }
   ];
 
   return (
