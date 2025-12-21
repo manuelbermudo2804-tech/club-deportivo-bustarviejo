@@ -1826,6 +1826,9 @@ export default function SeasonManagement() {
         )}
       </Card>
 
+        </>
+      )}
+
       {/* Dialog: Editar Cuotas */}
       <Dialog open={showEditQuotasDialog} onOpenChange={setShowEditQuotasDialog}>
         <DialogContent className="max-w-md">
