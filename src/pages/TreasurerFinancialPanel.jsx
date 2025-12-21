@@ -10,9 +10,8 @@ import {
   CreditCard, ShoppingBag, Users, TrendingUp, TrendingDown, 
   Download, Euro, Clover, Building2, DollarSign, FileText,
   Calendar, CheckCircle2, Clock, AlertCircle, BarChart3, Sparkles, Plus,
-  PieChart, Target, Award
+  PieChart, Target, Award, Heart
 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from "recharts";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
@@ -133,7 +132,7 @@ export default function TreasurerFinancialPanel() {
     queryKey: ['transactions'],
     queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
     staleTime: 120000, // 2 minutos
-    enabled: activeTab === "transacciones" || activeTab === "presupuestos" || activeTab === "analisis",
+    enabled: activeTab === "transacciones" || activeTab === "presupuestos",
   });
 
   const currentBudget = useMemo(() => {
@@ -449,7 +448,7 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 bg-slate-800 border-slate-700">
+        <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
           <TabsTrigger value="resumen" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden md:inline">Resumen</span>
@@ -459,7 +458,7 @@ export default function TreasurerFinancialPanel() {
             <span className="hidden md:inline">Análisis</span>
           </TabsTrigger>
           <TabsTrigger value="planes" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Users className="w-4 h-4" />
+            <Heart className="w-4 h-4" />
             <span className="hidden md:inline">Planes Pago</span>
           </TabsTrigger>
           <TabsTrigger value="bancario" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
@@ -469,10 +468,6 @@ export default function TreasurerFinancialPanel() {
           <TabsTrigger value="presupuestos" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Euro className="w-4 h-4" />
             <span className="hidden md:inline">Presupuestos</span>
-          </TabsTrigger>
-          <TabsTrigger value="transacciones" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <FileText className="w-4 h-4" />
-            <span className="hidden md:inline">Transacciones</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1126,10 +1121,10 @@ export default function TreasurerFinancialPanel() {
           )}
         </TabsContent>
 
-        {/* TAB ANÁLISIS AVANZADO */}
+        {/* TAB ANÁLISIS AVANZADOS */}
         <TabsContent value="analisis" className="space-y-6 mt-6">
           <Tabs value={activeAnalysisTab} onValueChange={setActiveAnalysisTab}>
-            <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full bg-slate-100">
+            <TabsList className="grid grid-cols-5 w-full">
               <TabsTrigger value="rentabilidad">💰 Rentabilidad</TabsTrigger>
               <TabsTrigger value="retencion">🔄 Retención</TabsTrigger>
               <TabsTrigger value="flujo">📊 Flujo Caja</TabsTrigger>
@@ -1137,53 +1132,63 @@ export default function TreasurerFinancialPanel() {
               <TabsTrigger value="estacionalidad">📅 Estacionalidad</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="rentabilidad" className="mt-6">
-              <CategoryProfitability 
-                payments={payments}
-                transactions={transactions}
-                players={players}
-                activeSeason={activeSeason}
-              />
-            </TabsContent>
+            {activeAnalysisTab === "rentabilidad" && (
+              <div className="mt-6">
+                <CategoryProfitability 
+                  payments={payments}
+                  transactions={transactions}
+                  players={players}
+                  activeSeason={activeSeason}
+                />
+              </div>
+            )}
 
-            <TabsContent value="retencion" className="mt-6">
-              <RetentionAnalysis 
-                allSeasons={allSeasons}
-                allPlayers={players}
-              />
-            </TabsContent>
+            {activeAnalysisTab === "retencion" && (
+              <div className="mt-6">
+                <RetentionAnalysis 
+                  allSeasons={allSeasons}
+                  allPlayers={players}
+                />
+              </div>
+            )}
 
-            <TabsContent value="flujo" className="mt-6">
-              <CashFlowAnalysis 
-                payments={payments}
-                transactions={transactions}
-                clothingOrders={clothingOrders}
-                lotteryOrders={lotteryOrders}
-                clubMembers={clubMembers}
-                sponsors={sponsors}
-                activeSeason={activeSeason}
-              />
-            </TabsContent>
+            {activeAnalysisTab === "flujo" && (
+              <div className="mt-6">
+                <CashFlowAnalysis 
+                  payments={payments}
+                  transactions={transactions}
+                  clothingOrders={clothingOrders}
+                  lotteryOrders={lotteryOrders}
+                  clubMembers={clubMembers}
+                  sponsors={sponsors}
+                  activeSeason={activeSeason}
+                />
+              </div>
+            )}
 
-            <TabsContent value="ratios" className="mt-6">
-              <FinancialRatios 
-                totalIngresos={totalIngresos}
-                totalPendiente={totalPendiente}
-                totalGastos={transactions.filter(t => t.tipo === "Gasto").reduce((sum, t) => sum + (t.cantidad || 0), 0)}
-                stats={stats}
-              />
-            </TabsContent>
+            {activeAnalysisTab === "ratios" && (
+              <div className="mt-6">
+                <FinancialRatios 
+                  totalIngresos={totalIngresos}
+                  totalPendiente={totalPendiente}
+                  totalGastos={transactions.filter(t => t.tipo === "Gasto").reduce((sum, t) => sum + (t.cantidad || 0), 0)}
+                  stats={stats}
+                />
+              </div>
+            )}
 
-            <TabsContent value="estacionalidad" className="mt-6">
-              <SeasonalityAnalysis 
-                payments={payments}
-                activeSeason={activeSeason}
-              />
-            </TabsContent>
+            {activeAnalysisTab === "estacionalidad" && (
+              <div className="mt-6">
+                <SeasonalityAnalysis 
+                  payments={payments}
+                  activeSeason={activeSeason}
+                />
+              </div>
+            )}
           </Tabs>
         </TabsContent>
 
-        {/* TAB PLANES DE PAGO */}
+        {/* TAB PLANES DE PAGO PERSONALIZADOS */}
         <TabsContent value="planes" className="space-y-6 mt-6">
           <CustomPaymentPlanManager activeSeason={activeSeason} />
         </TabsContent>
