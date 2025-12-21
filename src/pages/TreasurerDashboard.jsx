@@ -163,7 +163,7 @@ export default function TreasurerDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-3 gap-2">
+            <div className={`grid gap-2 ${hasPlayers ? 'grid-cols-4' : 'grid-cols-2'}`}>
               <Link to={createPageUrl("Chatbot")}>
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-20 flex flex-col justify-center">
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
@@ -174,7 +174,14 @@ export default function TreasurerDashboard() {
                 </div>
               </Link>
 
-              {hasPlayers ? (
+              <Link to={createPageUrl("ParentSystemMessages")}>
+                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-20 flex flex-col justify-center">
+                  <p className="text-sm font-bold text-center mb-1">🔔</p>
+                  <p className="text-xs text-purple-100 text-center">Mensajes</p>
+                </div>
+              </Link>
+
+              {hasPlayers && (
                 <>
                   <Link to={createPageUrl("ParentCoordinatorChat")}>
                     <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-20 flex flex-col justify-center">
@@ -190,8 +197,6 @@ export default function TreasurerDashboard() {
                     </div>
                   </Link>
                 </>
-              ) : (
-                <div className="col-span-2"></div>
               )}
             </div>
           </CardContent>
@@ -206,25 +211,122 @@ export default function TreasurerDashboard() {
           />
         )}
 
-        {/* AlertCenter - Solo cuando tiene hijos */}
-        {hasPlayers && myPlayers && myPlayers.length > 0 && payments && payments.length >= 0 && (() => {
-          const normalizeSeason = (season) => {
-            if (!season) return currentSeason;
-            return season.replace(/-/g, '/');
-          };
-          
-          const myPayments = payments.filter(p => 
-            myPlayers.some(pl => pl.id === p.jugador_id) && 
-            p.is_deleted !== true &&
-            normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
-          );
-          
-          const pendientesCount = myPayments.filter(p => p.estado === "Pendiente").length;
-          const revisionCount = myPayments.filter(p => p.estado === "En revisión").length;
+        {/* AlertCenter - Dividido en 2 columnas cuando tiene hijos */}
+        {hasPlayers && myPlayers && myPlayers.length > 0 && payments && payments.length >= 0 ? (
+          <div className="grid lg:grid-cols-2 gap-4">
+            {/* Tareas como Padre */}
+            {(() => {
+              const normalizeSeason = (season) => {
+                if (!season) return currentSeason;
+                return season.replace(/-/g, '/');
+              };
+              
+              const myPayments = payments.filter(p => 
+                myPlayers.some(pl => pl.id === p.jugador_id) && 
+                p.is_deleted !== true &&
+                normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
+              );
+              
+              const pendientesCount = myPayments.filter(p => p.estado === "Pendiente").length;
+              const revisionCount = myPayments.filter(p => p.estado === "En revisión").length;
+              
+              const now = new Date();
+              let vencidosCount = 0;
+              myPayments.forEach(payment => {
+                if (payment.estado !== "Pagado") {
+                  const mes = payment.mes;
+                  const year = parseInt(currentSeason.split('/')[0]);
+                  let vencimiento;
+                  
+                  if (mes === "Junio") vencimiento = new Date(year, 5, 30);
+                  else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
+                  else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
+                  
+                  if (vencimiento && now >= vencimiento) vencidosCount++;
+                }
+              });
+              
+              const calcularEdad = (fechaNac) => {
+                if (!fechaNac) return null;
+                const hoy = new Date();
+                const nacimiento = new Date(fechaNac);
+                let edad = hoy.getFullYear() - nacimiento.getFullYear();
+                const m = hoy.getMonth() - nacimiento.getMonth();
+                if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+                return edad;
+              };
+              
+              let firmasCount = 0;
+              myPlayers.forEach(player => {
+                if (player.enlace_firma_jugador && !player.firma_jugador_completada) firmasCount++;
+                const esMayor = calcularEdad(player.fecha_nacimiento) >= 18;
+                if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
+              });
+              
+              const userSports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+              
+              return (
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2">🏠 Mis Tareas como Padre</h3>
+                  <AlertCenter 
+                    pendingCallups={0}
+                    pendingSignatures={firmasCount}
+                    pendingPayments={pendientesCount}
+                    paymentsInReview={revisionCount}
+                    overduePayments={vencidosCount}
+                    isParent={true}
+                    isTreasurer={false}
+                    userEmail={user?.email}
+                    userSports={userSports}
+                  />
+                </div>
+              );
+            })()}
+
+            {/* Tareas como Tesorero */}
+            {(() => {
+              const allPayments = payments.filter(p => p.is_deleted !== true);
+              const paymentsInReview = allPayments.filter(p => p.estado === "En revisión").length;
+              
+              const now = new Date();
+              let overdueClubPayments = 0;
+              allPayments.forEach(payment => {
+                if (payment.estado !== "Pagado") {
+                  const mes = payment.mes;
+                  const year = parseInt(currentSeason.split('/')[0]);
+                  let vencimiento;
+                  
+                  if (mes === "Junio") vencimiento = new Date(year, 5, 30);
+                  else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
+                  else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
+                  
+                  if (vencimiento && now >= vencimiento) overdueClubPayments++;
+                }
+              });
+              
+              return (
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2">💰 Mis Tareas como Tesorero</h3>
+                  <AlertCenter 
+                    paymentsInReview={paymentsInReview}
+                    overduePayments={overdueClubPayments}
+                    isAdmin={false}
+                    isParent={false}
+                    isTreasurer={true}
+                    userEmail={user?.email}
+                  />
+                </div>
+              );
+            })()}
+          </div>
+        ) : payments && (() => {
+          // Sin hijos - solo AlertCenter de Tesorero
+          const allPayments = payments.filter(p => p.is_deleted !== true);
+          const paymentsInReview = allPayments.filter(p => p.estado === "En revisión").length;
           
           const now = new Date();
-          let vencidosCount = 0;
-          myPayments.forEach(payment => {
+          let overdueClubPayments = 0;
+          allPayments.forEach(payment => {
             if (payment.estado !== "Pagado") {
               const mes = payment.mes;
               const year = parseInt(currentSeason.split('/')[0]);
@@ -234,41 +336,22 @@ export default function TreasurerDashboard() {
               else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
               else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
               
-              if (vencimiento && now >= vencimiento) vencidosCount++;
+              if (vencimiento && now >= vencimiento) overdueClubPayments++;
             }
           });
           
-          const calcularEdad = (fechaNac) => {
-            if (!fechaNac) return null;
-            const hoy = new Date();
-            const nacimiento = new Date(fechaNac);
-            let edad = hoy.getFullYear() - nacimiento.getFullYear();
-            const m = hoy.getMonth() - nacimiento.getMonth();
-            if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-            return edad;
-          };
-          
-          let firmasCount = 0;
-          myPlayers.forEach(player => {
-            if (player.enlace_firma_jugador && !player.firma_jugador_completada) firmasCount++;
-            const esMayor = calcularEdad(player.fecha_nacimiento) >= 18;
-            if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
-          });
-          
-          const userSports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
-          
           return (
-            <AlertCenter 
-              pendingCallups={0}
-              pendingSignatures={firmasCount}
-              pendingPayments={pendientesCount}
-              paymentsInReview={revisionCount}
-              overduePayments={vencidosCount}
-              isParent={true}
-              isTreasurer={true}
-              userEmail={user?.email}
-              userSports={userSports}
-            />
+            <div>
+              <h3 className="text-lg font-bold text-white mb-2">💰 Mis Tareas como Tesorero</h3>
+              <AlertCenter 
+                paymentsInReview={paymentsInReview}
+                overduePayments={overdueClubPayments}
+                isAdmin={false}
+                isParent={false}
+                isTreasurer={true}
+                userEmail={user?.email}
+              />
+            </div>
           );
         })()}
 
