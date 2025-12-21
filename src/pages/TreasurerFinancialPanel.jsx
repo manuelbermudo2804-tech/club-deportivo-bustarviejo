@@ -29,6 +29,11 @@ import MonthlyEvolutionChart from "../components/financial/MonthlyEvolutionChart
 import CategoryBreakdown from "../components/financial/CategoryBreakdown";
 import FinancialAlerts from "../components/financial/FinancialAlerts";
 import IncomeProjection from "../components/financial/IncomeProjection";
+import SeasonComparison from "../components/financial/SeasonComparison";
+import IncomeDistributionPie from "../components/financial/IncomeDistributionPie";
+import EndOfSeasonForecast from "../components/financial/EndOfSeasonForecast";
+import FinancialGoalsTracker from "../components/financial/FinancialGoalsTracker";
+import FinancialHealthIndicator from "../components/financial/FinancialHealthIndicator";
 
 export default function TreasurerFinancialPanel() {
   const [user, setUser] = useState(null);
@@ -40,6 +45,7 @@ export default function TreasurerFinancialPanel() {
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [timeFilter, setTimeFilter] = useState("all");
   const [generatingExcel, setGeneratingExcel] = useState(false);
+  const [showSeasonComparison, setShowSeasonComparison] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -371,6 +377,26 @@ export default function TreasurerFinancialPanel() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Select value={timeFilter} onValueChange={setTimeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toda la temporada</SelectItem>
+                <SelectItem value="30">Últimos 30 días</SelectItem>
+                <SelectItem value="60">Últimos 60 días</SelectItem>
+                <SelectItem value="90">Últimos 90 días</SelectItem>
+                <SelectItem value="fiscal">Año fiscal</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              onClick={() => setShowSeasonComparison(true)}
+              variant="outline"
+              className="shadow-lg"
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Comparar Temporadas
+            </Button>
             <Button 
               onClick={handleExportPDF}
               disabled={generatingPDF}
@@ -418,6 +444,14 @@ export default function TreasurerFinancialPanel() {
 
         {/* TAB RESUMEN */}
         <TabsContent value="resumen" className="space-y-6 mt-6">
+          {/* Indicador de Salud Financiera */}
+          <FinancialHealthIndicator 
+            totalIngresos={totalIngresos}
+            totalPendiente={totalPendiente}
+            totalEsperado={totalEsperado}
+            stats={stats}
+          />
+
           {/* Alertas Financieras */}
           <FinancialAlerts 
             totalIngresos={totalIngresos}
@@ -1001,6 +1035,27 @@ export default function TreasurerFinancialPanel() {
             payments={payments}
             activeSeason={activeSeason}
             getImportePorMes={getImportePorMes}
+          />
+
+          {/* Distribución de Ingresos (Gráfico Pastel) */}
+          <IncomeDistributionPie stats={stats} />
+
+          {/* Predicción Fin de Temporada */}
+          <EndOfSeasonForecast 
+            totalIngresos={totalIngresos}
+            totalPendiente={totalPendiente}
+            totalEsperado={totalEsperado}
+            stats={stats}
+            activeSeason={activeSeason}
+            payments={payments}
+          />
+
+          {/* Sistema de Metas/Objetivos */}
+          <FinancialGoalsTracker 
+            totalIngresos={totalIngresos}
+            totalPendiente={totalPendiente}
+            totalEsperado={totalEsperado}
+            activeSeason={activeSeason}
           />
 
           {/* Información de Cuotas (Solo lectura) */}
