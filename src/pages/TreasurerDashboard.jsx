@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { MessageCircle, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
 import AlertCenter from "../components/dashboard/AlertCenter";
-import TreasurerDashboardButtons from "../components/dashboard/TreasurerDashboardButtons";
 import ContactCard from "../components/ContactCard";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
+import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
+import { ALL_TREASURER_BUTTONS, DEFAULT_TREASURER_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/TreasurerDashboardButtons";
 
 export default function TreasurerDashboard() {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
+  const [loteriaVisible, setLoteriaVisible] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -147,6 +151,58 @@ export default function TreasurerDashboard() {
     enabled: !!user,
   });
 
+  const { data: seasonConfigs = [] } = useQuery({
+    queryKey: ['seasonConfigs', user?.email],
+    queryFn: () => base44.entities.SeasonConfig.list(),
+    staleTime: 600000,
+    enabled: !!user,
+  });
+
+  const activeSeason = seasonConfigs.find(s => s.activa) || null;
+
+  useEffect(() => {
+    if (activeSeason) {
+      setLoteriaVisible(activeSeason.loteria_navidad_abierta === true);
+    }
+  }, [activeSeason]);
+
+  // Cargar configuración de botones del usuario
+  const { data: buttonConfigs = [] } = useQuery({
+    queryKey: ['dashboardButtonConfig', user?.email],
+    queryFn: async () => {
+      const configs = await base44.entities.DashboardButtonConfig.filter({ 
+        user_email: user?.email,
+        panel_type: "treasurer"
+      });
+      return configs;
+    },
+    staleTime: 600000,
+    enabled: !!user,
+  });
+
+  const userButtonConfig = buttonConfigs[0];
+
+  // Mutation para guardar configuración
+  const saveButtonConfigMutation = useMutation({
+    mutationFn: async (selectedButtonIds) => {
+      if (userButtonConfig) {
+        return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
+          selected_buttons: selectedButtonIds
+        });
+      } else {
+        return await base44.entities.DashboardButtonConfig.create({
+          user_email: user?.email,
+          panel_type: "treasurer",
+          selected_buttons: selectedButtonIds
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
+      toast.success("✅ Configuración guardada");
+    },
+  });
+
   // Calcular estadísticas
   const myPlayerIds = myPlayers.map(p => p.id);
 
@@ -264,6 +320,56 @@ export default function TreasurerDashboard() {
   }).length;
 
   const totalPendingPaymentsParent = pendingPaymentsParent + paymentsInReviewParent + overduePaymentsParent;
+
+  // Determinar qué botones mostrar según configuración del usuario
+  const selectedButtonIds = userButtonConfig?.selected_buttons || DEFAULT_TREASURER_BUTTONS;
+
+  // Filtrar botones disponibles (excluir condicionales si no aplican)
+  const availableButtons = ALL_TREASURER_BUTTONS.filter(button => {
+    if (button.conditional) {
+      if (button.conditionKey === "loteriaVisible") return loteriaVisible;
+      if (button.conditionKey === "hasPlayers") return myPlayers.length > 0;
+      return false;
+    }
+    return true;
+  });
+
+  // Obtener botones a mostrar en el orden seleccionado
+  const displayButtons = selectedButtonIds
+    .map(id => availableButtons.find(b => b.id === id))
+    .filter(Boolean);
+
+  // Añadir badges dinámicos
+  const menuItems = displayButtons.map(item => {
+    const updated = { ...item };
+    
+    if (item.id === "pagos_club" && paymentsInReviewTreasurer > 0) {
+      updated.badge = paymentsInReviewTreasurer;
+      updated.badgeLabel = "en revisión";
+    }
+    if (item.id === "pedidos_ropa" && pendingClothingOrders > 0) {
+      updated.badge = pendingClothingOrders;
+      updated.badgeLabel = "pendientes";
+    }
+    if (item.id === "loteria" && pendingLotteryOrders > 0) {
+      updated.badge = pendingLotteryOrders;
+      updated.badgeLabel = "sin pagar";
+    }
+    if (item.id === "socios" && pendingMemberRequests > 0) {
+      updated.badge = pendingMemberRequests;
+      updated.badgeLabel = "pendientes";
+    }
+    if (item.id === "mis_jugadores" && myPlayers.length > 0) {
+      updated.badge = myPlayers.length;
+      updated.badgeLabel = "registrados";
+    }
+    if (item.id === "pagos_hijos" && totalPendingPaymentsParent > 0) {
+      updated.badge = totalPendingPaymentsParent;
+      updated.badgeLabel = "pendientes";
+    }
+    
+    return updated;
+  });
 
   if (!user || playersLoading) {
     return (
@@ -406,8 +512,49 @@ export default function TreasurerDashboard() {
           </div>
         )}
 
-        {/* Botones de Acceso Rápido */}
-        <TreasurerDashboardButtons />
+        {/* Botón de configuración de dashboard */}
+        <div className="flex justify-end">
+          <DashboardButtonSelector
+            allButtons={availableButtons}
+            selectedButtonIds={selectedButtonIds}
+            onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
+            minButtons={MIN_BUTTONS}
+            maxButtons={MAX_BUTTONS}
+            defaultButtons={DEFAULT_TREASURER_BUTTONS}
+            panelName="Panel Tesorero"
+          />
+        </div>
+
+        {/* Botones de Acceso Rápido - Aspecto ParentDashboard */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
+          {menuItems.map((item, index) => (
+            <Link key={index} to={createPageUrl(item.url.replace('/', ''))} className="group">
+              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+                <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
+                <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
+                
+                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
+                    <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
+                  </div>
+                  
+                  <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
+                    {item.title}
+                  </h3>
+                  
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
+                      <p className="text-white text-[10px] lg:text-xs font-semibold">
+                        {item.badge} {item.badgeLabel}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
 
         {/* Estadísticas del Footer */}
         {playersLoading ? (

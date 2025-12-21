@@ -1,91 +1,141 @@
-import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { CreditCard, Bell, Archive, ShoppingBag, Clover, Users } from "lucide-react";
+import React from "react";
+import { CreditCard, Bell, Archive, ShoppingBag, Clover, Users, BarChart3, Euro, Calendar, Image, Megaphone, FileText, Award, TrendingUp } from "lucide-react";
 
-export default function TreasurerDashboardButtons() {
-  const [loteriaVisible, setLoteriaVisible] = useState(false);
+// Todos los botones disponibles para tesoreros
+export const ALL_TREASURER_BUTTONS = [
+  {
+    id: "panel_financiero",
+    title: "💰 Panel Financiero",
+    url: "/SeasonManagement",
+    icon: BarChart3,
+    gradient: "from-purple-600 to-indigo-700",
+    description: "Presupuestos y transacciones"
+  },
+  {
+    id: "pagos_club",
+    title: "💳 Pagos del Club",
+    url: "/Payments",
+    icon: CreditCard,
+    gradient: "from-green-600 to-green-700",
+    description: "Validar y gestionar pagos"
+  },
+  {
+    id: "recordatorios",
+    title: "🔔 Recordatorios",
+    url: "/PaymentReminders",
+    icon: Bell,
+    gradient: "from-red-600 to-orange-700",
+    description: "Enviar recordatorios de pago"
+  },
+  {
+    id: "historico",
+    title: "📁 Histórico",
+    url: "/PaymentHistory",
+    icon: Archive,
+    gradient: "from-slate-600 to-slate-700",
+    description: "Pagos de temporadas anteriores"
+  },
+  {
+    id: "pedidos_ropa",
+    title: "🛍️ Pedidos Ropa",
+    url: "/ClothingOrders",
+    icon: ShoppingBag,
+    gradient: "from-teal-600 to-teal-700",
+    description: "Gestión de pedidos equipación"
+  },
+  {
+    id: "socios",
+    title: "🎫 Socios",
+    url: "/ClubMembersManagement",
+    icon: Users,
+    gradient: "from-pink-600 to-pink-700",
+    description: "Gestionar socios del club"
+  },
+  {
+    id: "calendario",
+    title: "📅 Calendario",
+    url: "/CalendarAndSchedules",
+    icon: Calendar,
+    gradient: "from-blue-600 to-blue-700",
+    description: "Eventos y horarios"
+  },
+  {
+    id: "mis_jugadores",
+    title: "👥 Mis Jugadores",
+    url: "/ParentPlayers",
+    icon: Users,
+    gradient: "from-orange-600 to-orange-700",
+    description: "Mis hijos jugadores",
+    conditional: true,
+    conditionKey: "hasPlayers"
+  },
+  {
+    id: "pagos_hijos",
+    title: "💳 Pagos Mis Hijos",
+    url: "/ParentPayments",
+    icon: Euro,
+    gradient: "from-green-600 to-emerald-700",
+    description: "Pagos de mis jugadores",
+    conditional: true,
+    conditionKey: "hasPlayers"
+  },
+  {
+    id: "clasificaciones",
+    title: "📊 Clasificaciones",
+    url: "/Clasificaciones",
+    icon: TrendingUp,
+    gradient: "from-blue-600 to-cyan-700",
+    description: "Resultados y estadísticas"
+  },
+  {
+    id: "galeria",
+    title: "🖼️ Galería",
+    url: "/Gallery",
+    icon: Image,
+    gradient: "from-purple-600 to-pink-700",
+    description: "Fotos del club"
+  },
+  {
+    id: "anuncios",
+    title: "📢 Anuncios",
+    url: "/Announcements",
+    icon: Megaphone,
+    gradient: "from-orange-600 to-red-700",
+    description: "Comunicados del club"
+  },
+  {
+    id: "encuestas",
+    title: "📋 Encuestas",
+    url: "/Surveys",
+    icon: FileText,
+    gradient: "from-indigo-600 to-purple-700",
+    description: "Feedback y opiniones"
+  },
+  {
+    id: "loteria",
+    title: "🍀 Lotería",
+    url: "/LotteryManagement",
+    icon: Clover,
+    gradient: "from-green-600 to-green-700",
+    description: "Gestión lotería navidad",
+    conditional: true,
+    conditionKey: "loteriaVisible"
+  },
+];
 
-  const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
-    queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
-    },
-  });
+// Botones por defecto para tesoreros
+export const DEFAULT_TREASURER_BUTTONS = [
+  "panel_financiero",
+  "pagos_club",
+  "recordatorios",
+  "historico",
+  "pedidos_ropa",
+  "socios",
+  "calendario",
+  "clasificaciones",
+  "galeria",
+  "anuncios"
+];
 
-  useEffect(() => {
-    if (seasonConfig) {
-      setLoteriaVisible(seasonConfig.loteria_navidad_abierta === true);
-    }
-  }, [seasonConfig]);
-
-  const buttons = [
-    {
-      title: "💳 Pagos del Club",
-      url: createPageUrl("Payments"),
-      icon: CreditCard,
-      gradient: "from-green-600 to-green-700",
-    },
-    {
-      title: "🔔 Recordatorios",
-      url: createPageUrl("PaymentReminders"),
-      icon: Bell,
-      gradient: "from-red-600 to-orange-700",
-    },
-    {
-      title: "📁 Histórico",
-      url: createPageUrl("PaymentHistory"),
-      icon: Archive,
-      gradient: "from-slate-600 to-slate-700",
-    },
-    {
-      title: "🛍️ Pedidos Ropa",
-      url: createPageUrl("ClothingOrders"),
-      icon: ShoppingBag,
-      gradient: "from-teal-600 to-teal-700",
-    },
-    {
-      title: "🎫 Socios",
-      url: createPageUrl("ClubMembersManagement"),
-      icon: Users,
-      gradient: "from-pink-600 to-pink-700",
-    },
-  ];
-
-  if (loteriaVisible) {
-    buttons.push({
-      title: "🍀 Lotería",
-      url: createPageUrl("LotteryManagement"),
-      icon: Clover,
-      gradient: "from-green-600 to-green-700",
-    });
-  }
-
-  return (
-    <div>
-      <h2 className="text-lg font-bold text-slate-900 mb-3">⚡ Acceso Rápido Tesorero</h2>
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-        {buttons.map((button, index) => (
-          <Link key={index} to={button.url} className="group">
-            <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all border-2 border-slate-200 hover:border-orange-500 hover:scale-105 active:scale-95">
-              <div className={`absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl ${button.gradient} opacity-20 blur-xl group-hover:opacity-30 transition-opacity`}></div>
-              
-              <div className="relative z-10 p-4 flex flex-col items-center justify-center min-h-[120px]">
-                <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-gradient-to-br ${button.gradient} flex items-center justify-center mb-3 shadow-lg`}>
-                  <button.icon className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
-                </div>
-                
-                <h3 className="text-slate-900 font-bold text-center text-sm">
-                  {button.title}
-                </h3>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
+export const MIN_BUTTONS = 6;
+export const MAX_BUTTONS = 12;
