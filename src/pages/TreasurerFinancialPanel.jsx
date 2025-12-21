@@ -788,6 +788,129 @@ export default function TreasurerFinancialPanel() {
             </Link>
           </div>
 
+          {/* Gráficos de Análisis */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Gráfico de Barras */}
+            <Card className="border-none shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-orange-600" />
+                  Análisis por Concepto
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
+                    <Legend />
+                    <Bar dataKey="Cobrado" fill="#22c55e" />
+                    <Bar dataKey="EnRevision" fill="#f59e0b" />
+                    <Bar dataKey="Pendiente" fill="#ef4444" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Gráfico Circular */}
+            <Card className="border-none shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="w-5 h-5 text-purple-600" />
+                  Distribución de Ingresos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RePieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
+                  </RePieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Métricas Avanzadas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600">Tasa de Cobro</p>
+                    <p className="text-2xl font-bold text-blue-900">
+                      {totalEsperado > 0 ? ((totalIngresos / totalEsperado) * 100).toFixed(1) : 0}%
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-blue-600 to-cyan-600 h-2 rounded-full transition-all"
+                    style={{ width: `${totalEsperado > 0 ? ((totalIngresos / totalEsperado) * 100) : 0}%` }}
+                  ></div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
+                    <Award className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600">Ingreso Medio/Jugador</p>
+                    <p className="text-2xl font-bold text-green-900">
+                      {players.filter(p => p.activo).length > 0 
+                        ? (totalIngresos / players.filter(p => p.activo).length).toFixed(2) 
+                        : 0}€
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Total: {players.filter(p => p.activo).length} jugadores
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-pink-50">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600">Morosidad</p>
+                    <p className="text-2xl font-bold text-purple-900">
+                      {totalEsperado > 0 ? ((totalPendiente / totalEsperado) * 100).toFixed(1) : 0}%
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500">
+                  {totalPendiente.toFixed(2)}€ sin cobrar
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Información de Cuotas (Solo lectura) */}
           {activeSeason && (
             <Card className="border-2 border-slate-200">
