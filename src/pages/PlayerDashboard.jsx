@@ -638,173 +638,52 @@ export default function PlayerDashboard() {
 
         {/* Grid de botones principales */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
-          <Link to={createPageUrl("ParentCallups")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-yellow-600 to-yellow-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-yellow-600 to-yellow-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-yellow-600 to-yellow-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <Bell className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🏆 Convocatorias</h3>
-                {pendingCallups.length > 0 && (
-                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                    <p className="text-white text-[10px] lg:text-xs font-semibold">
-                      {pendingCallups.length} pendientes
-                    </p>
+          {(userButtonConfig?.selected_buttons || DEFAULT_PLAYER_BUTTONS)
+            .map(id => ALL_PLAYER_BUTTONS.find(b => b.id === id))
+            .filter(Boolean)
+            .map((item, index) => (
+            <Link key={index} to={item.url} className="group">
+              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
+                <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
+                <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
+                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
+                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
+                    <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
                   </div>
-                )}
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("FederationSignatures")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-yellow-600 to-orange-600 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-yellow-600 to-orange-600 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-yellow-600 to-orange-600 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <FileSignature className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
+                  <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">{item.title}</h3>
+                  {item.id === "convocatorias" && pendingCallups.length > 0 && (
+                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
+                      <p className="text-white text-[10px] lg:text-xs font-semibold">
+                        {pendingCallups.length} pendientes
+                      </p>
+                    </div>
+                  )}
+                  {item.id === "firmas" && pendingSignatures > 0 && (
+                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
+                      <p className="text-white text-[10px] lg:text-xs font-semibold">
+                        {pendingSignatures} pendientes
+                      </p>
+                    </div>
+                  )}
+                  {item.id === "pagos" && paymentStats.pendientes > 0 && (
+                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
+                      <p className="text-white text-[10px] lg:text-xs font-semibold">
+                        {paymentStats.pendientes} pendientes
+                      </p>
+                    </div>
+                  )}
+                  {item.id === "ropa" && clothingOrders.filter(o => o.estado !== "Entregado").length > 0 && (
+                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <p className="text-white text-[10px] lg:text-xs font-semibold">
+                        {clothingOrders.filter(o => o.estado !== "Entregado").length} activos
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🖊️ Firmas Federación</h3>
-                {pendingSignatures > 0 && (
-                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                    <p className="text-white text-[10px] lg:text-xs font-semibold">
-                      {pendingSignatures} pendientes
-                    </p>
-                  </div>
-                )}
               </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("ParentPayments")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-green-600 to-green-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-green-600 to-green-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <CreditCard className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">💳 Mis Pagos</h3>
-                {paymentStats.pendientes > 0 && (
-                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                    <p className="text-white text-[10px] lg:text-xs font-semibold">
-                      {paymentStats.pendientes} pendientes
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("CalendarAndSchedules")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-purple-600 to-purple-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-purple-600 to-purple-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <Calendar className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📅 Calendario y Horarios</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("ParentEventRSVP")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-cyan-600 to-cyan-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-cyan-600 to-cyan-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-cyan-600 to-cyan-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <Calendar className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🎉 Eventos Club</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("Announcements")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-pink-600 to-pink-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-pink-600 to-pink-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-pink-600 to-pink-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <Megaphone className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📢 Anuncios</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("Gallery")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-indigo-600 to-indigo-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-indigo-600 to-indigo-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <Image className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🖼️ Galería</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("Surveys")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-violet-600 to-violet-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-violet-600 to-violet-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <FileText className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📋 Encuestas</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("ParentDocuments")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-slate-600 to-slate-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-slate-600 to-slate-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <FileText className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">📄 Documentos</h3>
-              </div>
-            </div>
-          </Link>
-
-          <Link to={createPageUrl("ClothingOrders")} className="group">
-            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-              <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-red-600 to-red-700 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50"></div>
-              <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-red-600 to-red-700 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40"></div>
-              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                <div className="w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300">
-                  <ShoppingBag className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                </div>
-                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">🛍️ Pedidos Ropa</h3>
-                {clothingOrders.filter(o => o.estado !== "Entregado").length > 0 && (
-                  <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-                    <p className="text-white text-[10px] lg:text-xs font-semibold">
-                      {clothingOrders.filter(o => o.estado !== "Entregado").length} activos
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
 
         {/* Stats footer */}

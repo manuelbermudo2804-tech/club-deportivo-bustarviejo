@@ -40,8 +40,6 @@ import AIReconciliation from "../components/financial/AIReconciliation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
-import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
-import { ALL_TREASURER_BUTTONS, DEFAULT_TREASURER_BUTTONS } from "../components/dashboard/TreasurerDashboardButtons";
 import AlertCenter from "../components/dashboard/AlertCenter";
 
 const COLORS = {
@@ -139,41 +137,6 @@ export default function TreasurerDashboard() {
     };
     checkPlayers();
   }, []);
-
-  const { data: buttonConfigs = [] } = useQuery({
-    queryKey: ['dashboardButtonConfig', user?.email],
-    queryFn: async () => {
-      const configs = await base44.entities.DashboardButtonConfig.filter({ 
-        user_email: user?.email,
-        panel_type: "treasurer"
-      });
-      return configs;
-    },
-    staleTime: 600000,
-    enabled: !!user,
-  });
-
-  const userButtonConfig = buttonConfigs[0];
-
-  const saveButtonConfigMutation = useMutation({
-    mutationFn: async (selectedButtonIds) => {
-      if (userButtonConfig) {
-        return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
-          selected_buttons: selectedButtonIds
-        });
-      } else {
-        return await base44.entities.DashboardButtonConfig.create({
-          user_email: user?.email,
-          panel_type: "treasurer",
-          selected_buttons: selectedButtonIds
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
-      toast.success("✅ Configuración guardada");
-    },
-  });
 
   // Presupuestos y transacciones financieras
   const { data: budgets = [], isLoading: loadingBudgets } = useQuery({
@@ -1018,18 +981,7 @@ export default function TreasurerDashboard() {
         </div>
       </div>
 
-      {/* Botón personalizar */}
-      <div className="flex justify-end">
-        <DashboardButtonSelector
-          allButtons={ALL_TREASURER_BUTTONS.filter(b => !b.conditional || (b.conditionKey === "loteriaVisible" && loteriaVisible))}
-          selectedButtonIds={userButtonConfig?.selected_buttons || DEFAULT_TREASURER_BUTTONS}
-          onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
-          minButtons={8}
-          maxButtons={25}
-          defaultButtons={DEFAULT_TREASURER_BUTTONS}
-          panelName="Panel Tesorero"
-        />
-      </div>
+
 
       {/* AlertCenter - Solo si tiene hijos */}
       {hasPlayers && (
