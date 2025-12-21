@@ -29,6 +29,7 @@ import SocialLinks from "../components/SocialLinks";
 import CoachClassificationsMatchesBanner from "../components/dashboard/CoachClassificationsMatchesBanner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 
 export default function CoachDashboard() {
   const queryClient = useQueryClient();
@@ -214,34 +215,20 @@ export default function CoachDashboard() {
   const parentStats = useMemo(() => {
     if (!hasPlayers) return {};
 
+    const myPlayerIds = myParentPlayers.map(p => p.id);
+
     const myCallups = allCallups.filter(c => {
-      const myPlayerIds = myParentPlayers.map(p => p.id);
       return c.jugadores_convocados?.some(j => myPlayerIds.includes(j.jugador_id));
     });
 
     const pendingCallups = myCallups.filter(c => {
-      const myPlayerIds = myParentPlayers.map(p => p.id);
       return c.jugadores_convocados?.some(j => 
         myPlayerIds.includes(j.jugador_id) && j.confirmacion === "pendiente"
       );
     }).length;
 
-    const myPayments = allPayments.filter(p => myParentPlayers.some(pl => pl.id === p.jugador_id));
-    const pendingPayments = myPayments.filter(p => p.estado === "Pendiente").length;
-    const paymentsInReview = myPayments.filter(p => p.estado === "En revisión").length;
-    const overduePayments = myPayments.filter(p => {
-      if (p.estado !== "Pendiente") return false;
-      const mesOrder = { "Junio": 1, "Septiembre": 2, "Diciembre": 3 };
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const paymentMonth = mesOrder[p.mes];
-      if (!paymentMonth) return false;
-      
-      if (paymentMonth === 1) return currentMonth > 6;
-      if (paymentMonth === 2) return currentMonth > 9;
-      if (paymentMonth === 3) return currentMonth > 12;
-      return false;
-    }).length;
+    // Usar helper centralizado
+    const { pendingPayments, overduePayments, paymentsInReview } = calculatePaymentStats(allPayments, myPlayerIds);
 
     const pendingSignatures = myParentPlayers.filter(p =>
       (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
