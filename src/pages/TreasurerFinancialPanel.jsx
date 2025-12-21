@@ -97,6 +97,17 @@ export default function TreasurerFinancialPanel() {
     return budgets.find(b => b.temporada === activeSeason.temporada) || null;
   }, [activeSeason, budgets]);
 
+  // Función para obtener importe por mes y categoría (igual que en Payments)
+  const getImportePorMes = (deporte, mes) => {
+    // Valores predeterminados si no hay configuración
+    const defaultValues = {
+      "Junio": 110,
+      "Septiembre": 70,
+      "Diciembre": 70
+    };
+    return defaultValues[mes] || 70;
+  };
+
   const createBudgetMutation = useMutation({
     mutationFn: (data) => base44.entities.Budget.create(data),
     onSuccess: () => {
@@ -141,16 +152,52 @@ export default function TreasurerFinancialPanel() {
     });
   };
 
-  // Cálculos financieros - FILTRADO POR TEMPORADA ACTIVA
+  // Cálculos financieros - CORREGIDOS para coincidir con Payments.jsx
   const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada);
+  const currentSeasonPlayers = players.filter(p => p.activo === true);
   const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason?.temporada);
   const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason?.temporada);
   const currentSeasonMembers = clubMembers.filter(m => m.temporada === activeSeason?.temporada);
 
+  // CÁLCULO CORRECTO DE PENDIENTES (igual que en Payments.jsx)
+  const calculatePendingAmount = () => {
+    let totalPendiente = 0;
+    
+    currentSeasonPlayers.forEach(player => {
+      const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
+      
+      // Verificar si tiene pago único pagado o en revisión
+      const hasPagoUnico = playerPayments.some(p => 
+        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+        (p.estado === "Pagado" || p.estado === "En revisión")
+      );
+      
+      if (hasPagoUnico) {
+        return; // Si pagó único, no debe nada más
+      }
+      
+      // Contar meses pagados o en revisión
+      const mesesPagadosORevision = playerPayments
+        .filter(p => p.tipo_pago === "Tres meses" && (p.estado === "Pagado" || p.estado === "En revisión"))
+        .map(p => p.mes);
+      
+      // Calcular qué meses faltan
+      const allMonths = ["Junio", "Septiembre", "Diciembre"];
+      const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+      
+      // Sumar el importe de cada mes faltante
+      mesesFaltantes.forEach(mes => {
+        totalPendiente += getImportePorMes(player.deporte, mes);
+      });
+    });
+    
+    return totalPendiente;
+  };
+
   const stats = {
     // Cuotas de jugadores
     cuotasPagadas: currentSeasonPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0),
-    cuotasPendientes: currentSeasonPayments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + (p.cantidad || 0), 0),
+    cuotasPendientes: calculatePendingAmount(),
     cuotasEnRevision: currentSeasonPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0),
     
     // Pedidos ropa
@@ -161,7 +208,7 @@ export default function TreasurerFinancialPanel() {
     // Lotería
     loteriaTotal: currentSeasonLottery.reduce((sum, o) => sum + (o.total || 0), 0),
     loteriaPagada: currentSeasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0),
-    loteriaPendiente: currentSeasonLottery.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.precio_final || 0), 0),
+    loteriaPendiente: currentSeasonLottery.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.total || 0), 0),
     
     // Socios
     sociosTotal: currentSeasonMembers.filter(m => m.activo !== false).reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
@@ -172,8 +219,10 @@ export default function TreasurerFinancialPanel() {
     patrociniosTotal: sponsors.filter(s => s.estado === "Activo" && s.temporada === activeSeason?.temporada).reduce((sum, s) => sum + (s.monto || 0), 0),
   };
 
-  const totalIngresos = stats.cuotasPagadas + stats.ropaPagada + stats.loteriaPagada + stats.sociosPagados + stats.patrociniosTotal;
-  const totalPendiente = stats.cuotasPendientes + stats.cuotasEnRevision + stats.ropaPendiente + stats.loteriaPendiente + stats.sociosPendientes;
+  // TOTALES CORREGIDOS
+  const totalIngresos = stats.cuotasPagadas;
+  const totalPendiente = stats.cuotasPendientes;
+  const totalEsperado = totalIngresos + totalPendiente + stats.cuotasEnRevision;
 
   if (!user) {
     return (
@@ -260,8 +309,8 @@ export default function TreasurerFinancialPanel() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-blue-900">{(totalIngresos + totalPendiente).toFixed(2)}€</p>
-                <p className="text-xs text-blue-600 mt-1">Ingresos totales proyectados</p>
+                <p className="text-3xl font-bold text-blue-900">{totalEsperado.toFixed(2)}€</p>
+                <p className="text-xs text-blue-600 mt-1">Cobrado + En Revisión + Pendiente</p>
               </CardContent>
             </Card>
           </div>
