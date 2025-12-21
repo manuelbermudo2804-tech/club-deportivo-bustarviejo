@@ -5,7 +5,7 @@ import { createPageUrl } from "@/utils";
 export const ALL_ADMIN_BUTTONS = [
   { id: "pagos", title: "💳 Pagos", icon: CreditCard, url: createPageUrl("Payments"), gradient: "from-green-600 to-green-700", priority: 1 },
   { id: "jugadores", title: "👥 Jugadores", icon: Users, url: createPageUrl("Players"), gradient: "from-orange-600 to-orange-700", priority: 2 },
-  { id: "financiero", title: "📊 Panel Financiero", icon: TrendingUp, url: createPageUrl("SeasonManagement"), gradient: "from-emerald-600 to-emerald-700", priority: 3 },
+  { id: "financiero", title: "📊 Panel Financiero", icon: TrendingUp, url: createPageUrl("TreasurerFinancialPanel"), gradient: "from-emerald-600 to-emerald-700", priority: 3 },
   { id: "firmas", title: "🖊️ Firmas Federación", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 4 },
   { id: "ropa", title: "🛍️ Pedidos Ropa", icon: ShoppingBag, url: createPageUrl("ClothingOrders"), gradient: "from-teal-600 to-teal-700", priority: 5 },
   { id: "renovaciones", title: "🔄 Dashboard Renovaciones", icon: RotateCcw, url: createPageUrl("RenewalDashboard"), gradient: "from-cyan-600 to-cyan-700", priority: 6 },
