@@ -24,6 +24,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ContactCard from "../components/ContactCard";
 import AlertCenter from "../components/dashboard/AlertCenter";
+import CoachAlertCenter from "../components/dashboard/CoachAlertCenter";
 import SocialLinks from "../components/SocialLinks";
 import CoachClassificationsMatchesBanner from "../components/dashboard/CoachClassificationsMatchesBanner";
 import { format } from "date-fns";
@@ -33,12 +34,14 @@ export default function CoachDashboard() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [myCategories, setMyCategories] = useState([]);
+  const [hasPlayers, setHasPlayers] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setMyCategories(currentUser.categorias_entrena || []);
+      setHasPlayers(currentUser.tiene_hijos_jugando === true);
     };
     fetchUser();
   }, []);
@@ -66,6 +69,30 @@ export default function CoachDashboard() {
   const { data: allMatchObservations = [] } = useQuery({
     queryKey: ['matchObservations'],
     queryFn: () => base44.entities.MatchObservation.list(),
+  });
+
+  const { data: allPayments = [] } = useQuery({
+    queryKey: ['payments'],
+    queryFn: () => base44.entities.Payment.list(),
+    enabled: hasPlayers,
+  });
+
+  const { data: allCoordinatorConvs = [] } = useQuery({
+    queryKey: ['coordinatorConversations'],
+    queryFn: () => base44.entities.CoordinatorConversation.list(),
+    enabled: hasPlayers,
+  });
+
+  const { data: allCoachConvs = [] } = useQuery({
+    queryKey: ['coachConversations'],
+    queryFn: () => base44.entities.CoachConversation.list(),
+    enabled: hasPlayers,
+  });
+
+  const { data: allAdminConvs = [] } = useQuery({
+    queryKey: ['adminConversations'],
+    queryFn: () => base44.entities.AdminConversation.list(),
+    enabled: hasPlayers,
   });
 
   const { data: buttonConfigs = [] } = useQuery({
@@ -171,6 +198,79 @@ export default function CoachDashboard() {
     return totalExpected > 0 ? Math.round((totalPresent / totalExpected) * 100) : 0;
   }, [allAttendances, myCategories, user?.email]);
 
+  // Stats como PADRE (si tiene hijos)
+  const myParentPlayers = useMemo(() => 
+    hasPlayers ? allPlayers.filter(p => 
+      (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo
+    ) : [],
+    [hasPlayers, allPlayers, user?.email]
+  );
+
+  const myPlayersSports = useMemo(() => 
+    [...new Set(myParentPlayers.map(p => p.deporte))],
+    [myParentPlayers]
+  );
+
+  const parentStats = useMemo(() => {
+    if (!hasPlayers) return {};
+
+    const myCallups = allCallups.filter(c => {
+      const myPlayerIds = myParentPlayers.map(p => p.id);
+      return c.jugadores_convocados?.some(j => myPlayerIds.includes(j.jugador_id));
+    });
+
+    const pendingCallups = myCallups.filter(c => {
+      const myPlayerIds = myParentPlayers.map(p => p.id);
+      return c.jugadores_convocados?.some(j => 
+        myPlayerIds.includes(j.jugador_id) && j.confirmacion === "pendiente"
+      );
+    }).length;
+
+    const myPayments = allPayments.filter(p => myParentPlayers.some(pl => pl.id === p.jugador_id));
+    const pendingPayments = myPayments.filter(p => p.estado === "Pendiente").length;
+    const paymentsInReview = myPayments.filter(p => p.estado === "En revisión").length;
+    const overduePayments = myPayments.filter(p => {
+      if (p.estado !== "Pendiente") return false;
+      const mesOrder = { "Junio": 1, "Septiembre": 2, "Diciembre": 3 };
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const paymentMonth = mesOrder[p.mes];
+      if (!paymentMonth) return false;
+      
+      if (paymentMonth === 1) return currentMonth > 6;
+      if (paymentMonth === 2) return currentMonth > 9;
+      if (paymentMonth === 3) return currentMonth > 12;
+      return false;
+    }).length;
+
+    const pendingSignatures = myParentPlayers.filter(p =>
+      (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
+      (p.enlace_firma_tutor && !p.firma_tutor_completada)
+    ).length;
+
+    const myCoordConv = allCoordinatorConvs.find(c => c.padre_email === user?.email);
+    const unreadCoordinator = myCoordConv?.no_leidos_padre || 0;
+
+    const myCoachConv = allCoachConvs.find(c => c.padre_email === user?.email);
+    const unreadCoach = myCoachConv?.no_leidos_padre || 0;
+
+    const myAdminConv = allAdminConvs.find(c => c.padre_email === user?.email && !c.resuelta);
+    const hasActiveAdminChat = !!myAdminConv;
+    const unreadAdmin = myAdminConv?.no_leidos_padre || 0;
+
+    return {
+      pendingCallups,
+      pendingPayments,
+      paymentsInReview,
+      overduePayments,
+      pendingSignatures,
+      unreadCoordinator,
+      unreadCoach,
+      unreadAdmin,
+      hasActiveAdminChat,
+    };
+  }, [hasPlayers, allCallups, allPayments, myParentPlayers, allCoordinatorConvs, allCoachConvs, allAdminConvs, user?.email]);
+
   const stats = useMemo(() => ({
     myPlayers: myPlayers.length,
     pendingResponses: pendingCallupResponses,
@@ -246,12 +346,30 @@ export default function CoachDashboard() {
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
         <CoachClassificationsMatchesBanner myCategories={myCategories} />
 
-        {/* AlertCenter - Alertas del entrenador */}
-        <AlertCenter 
-          pendingCallups={pendingCallupResponses}
-          pendingMatchObservations={pendingMatchObservations}
-          isCoach={true}
-        />
+        {/* AlertCenter - Dual si tiene hijos, solo entrenador si no */}
+        {hasPlayers ? (
+          <CoachAlertCenter 
+            pendingCallupsParent={parentStats.pendingCallups}
+            pendingPaymentsParent={parentStats.pendingPayments}
+            paymentsInReviewParent={parentStats.paymentsInReview}
+            overduePaymentsParent={parentStats.overduePayments}
+            pendingSignaturesParent={parentStats.pendingSignatures}
+            unreadPrivateMessages={0}
+            unreadCoordinatorMessages={parentStats.unreadCoordinator}
+            unreadAdminMessages={parentStats.unreadAdmin}
+            hasActiveAdminChat={parentStats.hasActiveAdminChat}
+            myPlayersSports={myPlayersSports}
+            userEmail={user?.email}
+            pendingCallupResponsesCoach={pendingCallupResponses}
+            pendingMatchObservations={pendingMatchObservations}
+          />
+        ) : (
+          <AlertCenter 
+            pendingCallupResponses={pendingCallupResponses}
+            pendingMatchObservations={pendingMatchObservations}
+            isCoach={true}
+          />
+        )}
 
         {/* Botón personalizar */}
         <div className="flex justify-end">
