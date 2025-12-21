@@ -269,18 +269,18 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="resumen" className="gap-2">
+        <TabsList className="grid w-full grid-cols-3 bg-slate-800 border-slate-700">
+          <TabsTrigger value="resumen" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
-            Resumen
+            <span className="hidden md:inline">Resumen</span>
           </TabsTrigger>
-          <TabsTrigger value="presupuestos" className="gap-2">
+          <TabsTrigger value="presupuestos" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Euro className="w-4 h-4" />
-            Presupuestos
+            <span className="hidden md:inline">Presupuestos</span>
           </TabsTrigger>
-          <TabsTrigger value="transacciones" className="gap-2">
+          <TabsTrigger value="transacciones" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <TrendingUp className="w-4 h-4" />
-            Transacciones
+            <span className="hidden md:inline">Transacciones</span>
           </TabsTrigger>
         </TabsList>
 
