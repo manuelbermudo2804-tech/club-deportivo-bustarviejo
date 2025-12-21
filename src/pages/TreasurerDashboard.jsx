@@ -1003,7 +1003,7 @@ export default function TreasurerDashboard() {
       </div>
 
       {/* AlertCenter - Solo si tiene hijos */}
-      {hasPlayers && myPlayers.length > 0 && (() => {
+      {hasPlayers && myPlayers && myPlayers.length > 0 && payments && payments.length >= 0 && (() => {
         const normalizeSeason = (season) => {
           if (!season) return currentSeason;
           return season.replace(/-/g, '/');
@@ -1051,6 +1051,8 @@ export default function TreasurerDashboard() {
           if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
         });
         
+        const userSports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+        
         return (
           <AlertCenter 
             pendingCallups={0}
@@ -1061,7 +1063,7 @@ export default function TreasurerDashboard() {
             isParent={true}
             isTreasurer={true}
             userEmail={user?.email}
-            userSports={[...new Set(myPlayers.map(p => p.deporte))]}
+            userSports={userSports}
           />
         );
       })()}
