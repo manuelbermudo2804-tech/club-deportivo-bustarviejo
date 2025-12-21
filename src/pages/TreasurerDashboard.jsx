@@ -124,6 +124,7 @@ export default function TreasurerDashboard() {
 
   // Verificar si el tesorero tiene jugadores asociados
   const [user, setUser] = useState(null);
+  const [myPlayers, setMyPlayers] = useState([]);
   
   useEffect(() => {
     const checkPlayers = async () => {
@@ -138,7 +139,18 @@ export default function TreasurerDashboard() {
           return;
         }
         
-        setHasPlayers(currentUser.tiene_hijos_jugando === true);
+        const tienehijos = currentUser.tiene_hijos_jugando === true;
+        setHasPlayers(tienehijos);
+        
+        // Si tiene hijos, cargar sus jugadores para calcular alertas
+        if (tienehijos) {
+          const allPlayers = await base44.entities.Player.list();
+          const myPlayersList = allPlayers.filter(p => 
+            (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && 
+            p.activo === true
+          );
+          setMyPlayers(myPlayersList);
+        }
       } catch (error) {
         console.error("Error checking players:", error);
       }

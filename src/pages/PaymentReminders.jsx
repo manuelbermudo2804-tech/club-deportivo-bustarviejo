@@ -142,25 +142,45 @@ export default function PaymentReminders() {
         normalizeSeason(p.temporada) === currentSeason
       );
 
-      // Detectar si tiene pago único pagado/en revisión
+      // Detectar si tiene pago único (pagado, en revisión O pendiente)
       const hasPagoUnico = playerPayments.some(p => 
-        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-        (p.estado === "Pagado" || p.estado === "En revisión")
+        p.tipo_pago === "Único" || p.tipo_pago === "único"
       );
 
-      // Si tiene pago único pagado, NO hay cuotas pendientes
+      // Si tiene pago único (independientemente del estado), NO mostrar meses individuales
       if (hasPagoUnico) {
-        // Pago único ya cubierto, 0 pendientes
+        const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+        
+        // Si el pago único está pagado o en revisión, no hay nada pendiente
+        if (pagoUnico.estado === "Pagado" || pagoUnico.estado === "En revisión") {
+          familyMap[familyEmail].jugadores.push({
+            id: player.id,
+            nombre: player.nombre,
+            deporte: player.deporte,
+            foto_url: player.foto_url,
+            pendingMonths: [],
+            totalDue: 0,
+            hasPendingPayments: false
+          });
+          return;
+        }
+        
+        // Si está pendiente, mostrar como un solo pago único
         familyMap[familyEmail].jugadores.push({
           id: player.id,
           nombre: player.nombre,
           deporte: player.deporte,
           foto_url: player.foto_url,
-          pendingMonths: [],
-          totalDue: 0,
-          hasPendingPayments: false
+          pendingMonths: [{ 
+            mes: "Pago Único", 
+            cantidad: pagoUnico.cantidad,
+            payment_id: pagoUnico.id,
+            isVirtual: false
+          }],
+          totalDue: pagoUnico.cantidad,
+          hasPendingPayments: true
         });
-        return; // Continuar con siguiente jugador
+        return;
       }
 
       // Si NO tiene pago único, verificar los 3 meses

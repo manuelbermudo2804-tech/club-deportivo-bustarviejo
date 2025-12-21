@@ -467,8 +467,8 @@ export default function AlertCenter({
     }
   }
 
-  // Alertas para padres
-  if (isParent && !isAdmin && !isCoach) {
+  // Alertas para padres y tesoreros
+  if ((isParent || isTreasurer) && !isAdmin && !isCoach) {
     // Alertas de pagos mejoradas
     if (overduePayments > 0) {
       alerts.push({
