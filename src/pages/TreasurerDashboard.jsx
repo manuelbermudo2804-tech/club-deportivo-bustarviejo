@@ -1002,9 +1002,69 @@ export default function TreasurerDashboard() {
         </div>
       </div>
 
-
-
-
+      {/* AlertCenter - Solo si tiene hijos */}
+      {hasPlayers && myPlayers.length > 0 && (() => {
+        const normalizeSeason = (season) => {
+          if (!season) return currentSeason;
+          return season.replace(/-/g, '/');
+        };
+        
+        const myPayments = payments.filter(p => 
+          myPlayers.some(pl => pl.id === p.jugador_id) && 
+          p.is_deleted !== true &&
+          normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
+        );
+        
+        const pendientesCount = myPayments.filter(p => p.estado === "Pendiente").length;
+        const revisionCount = myPayments.filter(p => p.estado === "En revisión").length;
+        
+        const now = new Date();
+        let vencidosCount = 0;
+        myPayments.forEach(payment => {
+          if (payment.estado !== "Pagado") {
+            const mes = payment.mes;
+            const year = parseInt(currentSeason.split('/')[0]);
+            let vencimiento;
+            
+            if (mes === "Junio") vencimiento = new Date(year, 5, 30);
+            else if (mes === "Septiembre") vencimiento = new Date(year, 8, 15);
+            else if (mes === "Diciembre") vencimiento = new Date(year, 11, 15);
+            
+            if (vencimiento && now >= vencimiento) vencidosCount++;
+          }
+        });
+        
+        const calcularEdad = (fechaNac) => {
+          if (!fechaNac) return null;
+          const hoy = new Date();
+          const nacimiento = new Date(fechaNac);
+          let edad = hoy.getFullYear() - nacimiento.getFullYear();
+          const m = hoy.getMonth() - nacimiento.getMonth();
+          if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+          return edad;
+        };
+        
+        let firmasCount = 0;
+        myPlayers.forEach(player => {
+          if (player.enlace_firma_jugador && !player.firma_jugador_completada) firmasCount++;
+          const esMayor = calcularEdad(player.fecha_nacimiento) >= 18;
+          if (player.enlace_firma_tutor && !player.firma_tutor_completada && !esMayor) firmasCount++;
+        });
+        
+        return (
+          <AlertCenter 
+            pendingCallups={0}
+            pendingSignatures={firmasCount}
+            pendingPayments={pendientesCount}
+            paymentsInReview={revisionCount}
+            overduePayments={vencidosCount}
+            isParent={true}
+            isTreasurer={true}
+            userEmail={user?.email}
+            userSports={[...new Set(myPlayers.map(p => p.deporte))]}
+          />
+        );
+      })()}
 
       {/* Accesos Rápidos - Grid de Botones Grandes */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
