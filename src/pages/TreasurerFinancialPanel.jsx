@@ -640,62 +640,70 @@ export default function TreasurerFinancialPanel() {
             </CardContent>
           </Card>
 
-          {/* Accesos Rápidos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-orange-600" />
-                Accesos Rápidos de Gestión
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                <Link to={createPageUrl("Payments")}>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 justify-start">
-                    <CreditCard className="w-5 h-5 mr-2" />
-                    Gestionar Pagos Cuotas
-                  </Button>
-                </Link>
-                
-                <Link to={createPageUrl("ClothingOrders")}>
-                  <Button className="w-full bg-orange-600 hover:bg-orange-700 justify-start">
-                    <ShoppingBag className="w-5 h-5 mr-2" />
-                    Pedidos de Ropa
-                  </Button>
-                </Link>
-
-                {activeSeason?.loteria_navidad_abierta && (
-                  <Link to={createPageUrl("LotteryManagement")}>
-                    <Button className="w-full bg-green-600 hover:bg-green-700 justify-start">
-                      <Clover className="w-5 h-5 mr-2" />
-                      Lotería de Navidad
-                    </Button>
-                  </Link>
-                )}
-
-                <Link to={createPageUrl("ClubMembersManagement")}>
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700 justify-start">
-                    <Users className="w-5 h-5 mr-2" />
-                    Gestión de Socios
-                  </Button>
-                </Link>
-
-                <Link to={createPageUrl("PaymentHistory")}>
-                  <Button className="w-full bg-slate-600 hover:bg-slate-700 justify-start">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    Histórico de Pagos
-                  </Button>
-                </Link>
-
-                <Link to={createPageUrl("PaymentReminders")}>
-                  <Button className="w-full bg-yellow-600 hover:bg-yellow-700 justify-start">
-                    <AlertCircle className="w-5 h-5 mr-2" />
-                    Recordatorios de Pago
-                  </Button>
-                </Link>
+          {/* Accesos Rápidos - Rediseñado */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Link to={createPageUrl("Payments")}>
+              <div className="group bg-gradient-to-br from-blue-600 to-cyan-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                <div className="flex flex-col items-center text-white text-center">
+                  <CreditCard className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-sm">Gestionar Pagos</p>
+                  <p className="text-xs text-blue-100 mt-1">Cuotas de inscripción</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </Link>
+            
+            <Link to={createPageUrl("ClothingOrders")}>
+              <div className="group bg-gradient-to-br from-orange-600 to-amber-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                <div className="flex flex-col items-center text-white text-center">
+                  <ShoppingBag className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-sm">Pedidos Ropa</p>
+                  <p className="text-xs text-orange-100 mt-1">Equipación club</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link to={createPageUrl("ClubMembersManagement")}>
+              <div className="group bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                <div className="flex flex-col items-center text-white text-center">
+                  <Users className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-sm">Socios</p>
+                  <p className="text-xs text-indigo-100 mt-1">Gestión membresía</p>
+                </div>
+              </div>
+            </Link>
+
+            {activeSeason?.loteria_navidad_abierta && (
+              <Link to={createPageUrl("LotteryManagement")}>
+                <div className="group bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                  <div className="flex flex-col items-center text-white text-center">
+                    <Clover className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
+                    <p className="font-bold text-sm">Lotería</p>
+                    <p className="text-xs text-green-100 mt-1">Número 28720</p>
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            <Link to={createPageUrl("PaymentHistory")}>
+              <div className="group bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                <div className="flex flex-col items-center text-white text-center">
+                  <Calendar className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-sm">Histórico</p>
+                  <p className="text-xs text-slate-200 mt-1">Pagos anteriores</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link to={createPageUrl("PaymentReminders")}>
+              <div className="group bg-gradient-to-br from-yellow-600 to-amber-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                <div className="flex flex-col items-center text-white text-center">
+                  <AlertCircle className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-sm">Recordatorios</p>
+                  <p className="text-xs text-yellow-100 mt-1">Avisos de pago</p>
+                </div>
+              </div>
+            </Link>
+          </div>
 
           {/* Información de Cuotas (Solo lectura) */}
           {activeSeason && (
