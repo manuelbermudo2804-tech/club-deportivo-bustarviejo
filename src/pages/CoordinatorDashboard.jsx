@@ -34,6 +34,14 @@ export default function CoordinatorDashboard() {
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
+      
+      // Verificar que sea coordinador
+      if (currentUser.es_coordinador !== true) {
+        console.error('❌ Usuario no es coordinador, redirigiendo...');
+        window.location.href = createPageUrl('Home');
+        return;
+      }
+      
       setUser(currentUser);
       setMyCategories(currentUser.categorias_coordina || []);
     };

@@ -40,7 +40,6 @@ import AIReconciliation from "../components/financial/AIReconciliation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
-import AlertCenter from "../components/dashboard/AlertCenter";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -125,11 +124,20 @@ export default function TreasurerDashboard() {
 
   // Verificar si el tesorero tiene jugadores asociados
   const [user, setUser] = useState(null);
+  
   useEffect(() => {
     const checkPlayers = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        
+        // Verificar que sea tesorero y no coordinador
+        if (currentUser.es_tesorero !== true) {
+          console.error('❌ Usuario no es tesorero, redirigiendo...');
+          window.location.href = createPageUrl('Home');
+          return;
+        }
+        
         setHasPlayers(currentUser.tiene_hijos_jugando === true);
       } catch (error) {
         console.error("Error checking players:", error);
@@ -983,18 +991,7 @@ export default function TreasurerDashboard() {
 
 
 
-      {/* AlertCenter - Solo si tiene hijos */}
-      {hasPlayers && (
-        <div className="mb-4">
-          <AlertCenter 
-            pendingCallups={0}
-            pendingSignatures={0}
-            pendingPayments={0}
-            isParent={true}
-            userEmail={user?.email}
-          />
-        </div>
-      )}
+
 
       {/* Accesos Rápidos - Grid de Botones Grandes */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
