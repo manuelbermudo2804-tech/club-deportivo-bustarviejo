@@ -309,6 +309,41 @@ export default function TreasurerFinancialPanel() {
     }
   };
 
+  const handleExportExcel = async () => {
+    setGeneratingExcel(true);
+    try {
+      // Crear CSV con todos los datos
+      let csv = "Concepto,Categoria,Jugadores,Esperado,Cobrado,Pendiente,En Revision,Tasa Cobro\n";
+      
+      // Resumen general
+      csv += `RESUMEN GENERAL,Todas,${players.filter(p => p.activo).length},${totalEsperado.toFixed(2)},${totalIngresos.toFixed(2)},${totalPendiente.toFixed(2)},${stats.cuotasEnRevision.toFixed(2)},${(totalEsperado > 0 ? ((totalIngresos / totalEsperado) * 100) : 0).toFixed(1)}%\n`;
+      csv += "\n";
+      
+      // Por concepto
+      csv += `Cuotas,Jugadores,-,${(stats.cuotasPagadas + stats.cuotasPendientes + stats.cuotasEnRevision).toFixed(2)},${stats.cuotasPagadas.toFixed(2)},${stats.cuotasPendientes.toFixed(2)},${stats.cuotasEnRevision.toFixed(2)},-\n`;
+      csv += `Ropa,Equipación,-,${stats.ropaTotal.toFixed(2)},${stats.ropaPagada.toFixed(2)},${stats.ropaPendiente.toFixed(2)},0,-\n`;
+      csv += `Lotería,Navidad,-,${stats.loteriaTotal.toFixed(2)},${stats.loteriaPagada.toFixed(2)},${stats.loteriaPendiente.toFixed(2)},0,-\n`;
+      csv += `Socios,Membresía,-,${stats.sociosTotal.toFixed(2)},${stats.sociosPagados.toFixed(2)},${stats.sociosPendientes.toFixed(2)},0,-\n`;
+      csv += `Patrocinios,Comercial,-,${stats.patrociniosTotal.toFixed(2)},${stats.patrociniosTotal.toFixed(2)},0,0,-\n`;
+
+      // Descargar
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `informe_financiero_${activeSeason?.temporada || 'actual'}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      toast.success("Excel descargado correctamente");
+    } catch (error) {
+      toast.error("Error al generar Excel");
+      console.error(error);
+    } finally {
+      setGeneratingExcel(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
