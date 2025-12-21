@@ -639,6 +639,8 @@ export default function Home() {
     // Calcular mensajes admin no leídos
     let unreadAdminMessages = 0;
     let hasActiveAdminChat = false;
+    let unresolvedAdminChats = 0;
+    
     if (user && adminConversations && !isAdmin) {
       const myAdminConv = adminConversations.find(c => 
         c.padre_email === user.email && !c.resuelta
@@ -647,6 +649,11 @@ export default function Home() {
         hasActiveAdminChat = true;
         unreadAdminMessages = myAdminConv.no_leidos_padre || 0;
       }
+    }
+    
+    // Para admin: contar conversaciones críticas sin resolver
+    if (isAdmin && adminConversations) {
+      unresolvedAdminChats = adminConversations.filter(c => !c.resuelta).length;
     }
 
     // Calcular partidos pendientes de observación (para entrenadores/coordinadores)
@@ -694,7 +701,7 @@ export default function Home() {
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
       recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
-      unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations
+      unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations, unresolvedAdminChats
     };
   }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach, coordinatorConversations, matchObservations]);
 
@@ -1593,6 +1600,7 @@ export default function Home() {
             unreadAdminMessages={stats.unreadAdminMessages}
             hasActiveAdminChat={stats.hasActiveAdminChat}
             pendingMatchObservations={stats.pendingMatchObservations}
+            unresolvedAdminChats={stats.unresolvedAdminChats}
             isAdmin={isAdmin}
             isCoach={isCoach || isCoordinator}
             isParent={hasPlayers}

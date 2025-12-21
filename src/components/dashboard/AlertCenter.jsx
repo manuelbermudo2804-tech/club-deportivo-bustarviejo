@@ -22,7 +22,9 @@ import {
   Mail,
   User,
   Megaphone,
-  CheckCircle2
+  CheckCircle2,
+  ShieldAlert,
+  BarChart3
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
@@ -55,6 +57,7 @@ export default function AlertCenter({
   unreadAdminMessages = 0,
   hasActiveAdminChat = false,
   pendingMatchObservations = 0,
+  unresolvedAdminChats = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true,
@@ -358,6 +361,19 @@ export default function AlertCenter({
 
   // Alertas para admin
   if (isAdmin) {
+    // CONVERSACIONES CRÍTICAS SIN RESOLVER (prioridad máxima)
+    if (unresolvedAdminChats > 0) {
+      alerts.push({
+        id: "admin-critical-chats",
+        icon: ShieldAlert,
+        title: "🚨 Conversaciones Críticas",
+        description: `${unresolvedAdminChats} conversación${unresolvedAdminChats > 1 ? 'es' : ''} escalada${unresolvedAdminChats > 1 ? 's' : ''} sin resolver`,
+        url: createPageUrl("AdminChat"),
+        color: "bg-red-600",
+        priority: 0
+      });
+    }
+    
     if (pendingPayments > 0) {
       alerts.push({
         id: "payments-admin",
