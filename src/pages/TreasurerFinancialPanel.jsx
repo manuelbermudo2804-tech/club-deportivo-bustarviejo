@@ -38,6 +38,8 @@ export default function TreasurerFinancialPanel() {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showAIForecasting, setShowAIForecasting] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [generatingExcel, setGeneratingExcel] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
