@@ -509,7 +509,6 @@ export default function Layout({ children, currentPageName }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [isCoordinator, setIsCoordinator] = useState(false);
-  const [isTreasurer, setIsTreasurer] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [playerName, setPlayerName] = useState(null);
@@ -730,7 +729,6 @@ export default function Layout({ children, currentPageName }) {
         setIsAdmin(currentUser.role === "admin");
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
-        setIsTreasurer(currentUser.es_tesorero === true);
 
         // DETECCIÓN DE JUGADOR +18
         // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
@@ -811,13 +809,11 @@ export default function Layout({ children, currentPageName }) {
           isAdmin: currentUser.role === "admin",
           isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
           isCoordinator: currentUser.es_coordinador === true,
-          isTreasurer: currentUser.es_tesorero === true,
-          es_tesorero_RAW: currentUser.es_tesorero,
           role_RAW: currentUser.role
         });
 
-        // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
-                if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
+        // Para admin/entrenadores/coordinadores, SOLO usar el campo manual (no verificar BD)
+                if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador) {
                   const tienehijos = currentUser.tiene_hijos_jugando === true;
                   console.log('🔍 DEPURACIÓN:', {
                     email: currentUser.email,
@@ -879,20 +875,6 @@ export default function Layout({ children, currentPageName }) {
                     }
                   }
                 }
-
-        // REDIRECCIÓN AUTOMÁTICA PARA TESORERO (primera carga)
-        if (currentUser.es_tesorero === true && !currentUser.es_coordinador && currentUser.role !== "admin") {
-          setIsLoading(false);
-          const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
-          const currentPath = window.location.pathname.toLowerCase();
-
-          if (!hasInitialRedirect && currentPath !== '/treasurerdashboard') {
-            console.log('🔄 [LAYOUT] Primera carga TESORERO - redirigiendo a TreasurerDashboard');
-            sessionStorage.setItem('initialRedirectDone', 'true');
-            window.location.href = createPageUrl('TreasurerDashboard');
-            return;
-          }
-        }
 
         // Verificar si tiene conversación activa con admin (para TODOS los usuarios excepto admins)
         if (currentUser.role !== "admin") {
@@ -1009,11 +991,10 @@ export default function Layout({ children, currentPageName }) {
           return;
           }
 
-        // Solo aplicar pantallas especiales a padres sin roles (NO a entrenadores, coordinadores o tesoreros)
+        // Solo aplicar pantallas especiales a padres sin roles (NO a entrenadores, coordinadores)
         if (currentUser.role !== "admin" && 
-            !currentUser.es_entrenador && 
-            !currentUser.es_coordinador && 
-            !currentUser.es_tesorero) {
+          !currentUser.es_entrenador && 
+          !currentUser.es_coordinador) {
           const period = getPeriodType();
           if (period === "closed") {
             setShowSpecialScreen("closed");
@@ -1068,7 +1049,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0 },
-    { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
@@ -1161,40 +1141,7 @@ export default function Layout({ children, currentPageName }) {
       ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
     ];
 
-  const treasurerNavigationItems = [
-    // 🏠 INICIO
-    { title: "🏠 Inicio", url: createPageUrl("TreasurerDashboard"), icon: Home },
 
-    // 💬 COMUNICACIÓN
-    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    ...(hasPlayers ? [
-      { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
-      { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle }
-    ] : []),
-
-    // 💰 FINANZAS (trabajo principal)
-    { title: "📊 Panel Financiero", url: createPageUrl("TreasurerDashboard"), icon: CreditCard },
-    { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
-    { title: "📁 Histórico Pagos", url: createPageUrl("PaymentHistory"), icon: Archive },
-    { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
-    ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
-
-    // 📅 CALENDARIO E INFO
-    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-    { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
-    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
-
-    // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
-    ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
-    ...(hasPlayers ? [{ title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
-    ...(hasPlayers ? [{ title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
-    ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
-
-    // 🎫 SOCIO
-    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
-  ];
 
   const coordinatorNavigationItems = [
           // 🏠 INICIO
@@ -1317,8 +1264,6 @@ export default function Layout({ children, currentPageName }) {
       navigationItems = adminNavigationItems;
     } else if (isCoordinator) {
       navigationItems = coordinatorNavigationItems;
-    } else if (isTreasurer) {
-      navigationItems = treasurerNavigationItems;
     } else if (isCoach) {
       navigationItems = coachNavigationItems;
     } else if (isPlayer) {
@@ -1692,7 +1637,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
                 <p className="text-xs text-orange-100 truncate max-w-[140px]" title={user?.email}>
-                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isTreasurer ? "Tesorero" : isCoach ? "Entrenador" : isPlayer ? (playerName || "Jugador") : user?.email?.split('@')[0] || "Familia"}
+                  {isAdmin ? "Admin" : isCoordinator ? "Coordinador" : isCoach ? "Entrenador" : isPlayer ? (playerName || "Jugador") : user?.email?.split('@')[0] || "Familia"}
                 </p>
               </div>
             </div>
@@ -1807,7 +1752,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="text-white">
                 <h2 className="font-bold text-xl">CD Bustarviejo</h2>
                 <p className="text-xs text-green-400">
-                  {isAdmin ? "Panel Admin" : isCoordinator ? "Panel Coordinador" : isTreasurer ? "Panel Tesorero" : isCoach ? "Panel Entrenador" : isPlayer ? "Panel Jugador" : "Panel Familia"}
+                  {isAdmin ? "Panel Admin" : isCoordinator ? "Panel Coordinador" : isCoach ? "Panel Entrenador" : isPlayer ? "Panel Jugador" : "Panel Familia"}
                 </p>
               </div>
             </div>
@@ -1819,7 +1764,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
             )}
             <div className="flex items-center gap-1">
-              {!isCoach && !isTreasurer && <NotificationCenter />}
+              {!isCoach && <NotificationCenter />}
               <ThemeToggle />
               <LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} />
             </div>
@@ -1873,11 +1818,6 @@ export default function Layout({ children, currentPageName }) {
                 {isCoordinator && (
                   <Badge className="mt-2 bg-cyan-600 text-white text-xs">
                     🎓 Coordinador Deportivo
-                  </Badge>
-                )}
-                {isTreasurer && (
-                  <Badge className="mt-2 bg-green-600 text-white text-xs">
-                    💰 Tesorero
                   </Badge>
                 )}
                 {user?.es_entrenador && !isAdmin && (

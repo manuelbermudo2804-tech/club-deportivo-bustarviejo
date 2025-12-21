@@ -42,7 +42,6 @@ import ParentDocuments from './pages/ParentDocuments';
 import PWASetup from './pages/PWASetup';
 import CoachProfile from './pages/CoachProfile';
 import Sponsorships from './pages/Sponsorships';
-import TreasurerDashboard from './pages/TreasurerDashboard';
 import ClubMembership from './pages/ClubMembership';
 import FederationSignatures from './pages/FederationSignatures';
 import FederationSignaturesAdmin from './pages/FederationSignaturesAdmin';
@@ -131,7 +130,6 @@ export const PAGES = {
     "PWASetup": PWASetup,
     "CoachProfile": CoachProfile,
     "Sponsorships": Sponsorships,
-    "TreasurerDashboard": TreasurerDashboard,
     "ClubMembership": ClubMembership,
     "FederationSignatures": FederationSignatures,
     "FederationSignaturesAdmin": FederationSignaturesAdmin,

@@ -28,7 +28,6 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
   const [isCoordinator, setIsCoordinator] = useState(false);
-  const [isTreasurer, setIsTreasurer] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [userRole, setUserRole] = useState("parent");
   const [loteriaVisible, setLoteriaVisible] = useState(false);
@@ -63,11 +62,9 @@ export default function Home() {
         setUser(currentUser);
         const adminCheck = currentUser.role === "admin";
         const coordinatorCheck = currentUser.es_coordinador === true;
-        const treasurerCheck = currentUser.es_tesorero === true;
         const coachCheck = currentUser.es_entrenador === true && !coordinatorCheck && !adminCheck;
         setIsAdmin(adminCheck);
         setIsCoordinator(coordinatorCheck);
-        setIsTreasurer(treasurerCheck);
         setIsCoach(coachCheck);
 
         if (adminCheck) setUserRole("admin");
@@ -77,7 +74,6 @@ export default function Home() {
           window.location.href = createPageUrl('CoordinatorDashboard');
           return;
         }
-        else if (treasurerCheck) setUserRole("treasurer");
         else if (coachCheck) {
           console.log('🏃 [Home] Entrenador en Home - redirigiendo a CoachDashboard');
           setUserRole("coach");
@@ -391,8 +387,8 @@ export default function Home() {
     let pendingPayments = 0;
     let reviewPayments = 0;
     let overduePayments = 0;
-    
-    if (isAdmin || isTreasurer) {
+
+    if (isAdmin) {
       // Admin y Tesorero ven TODOS los pagos del club
       // NO contar pagos ya reconciliados como pendientes
       const allPendingPayments = payments?.filter(p => 
@@ -726,7 +722,7 @@ export default function Home() {
       // Usar botones configurados en lugar de lista hardcoded
       return displayAdminButtons.map(item => {
         const updated = { ...item };
-        
+
         // Añadir badges dinámicos
         if (item.id === "pagos") {
           updated.badge = stats.reviewPayments;
@@ -764,10 +760,10 @@ export default function Home() {
           updated.badge = stats.unreadPrivateMessages;
           updated.badgeLabel = "sin resolver";
         }
-        
+
         return updated;
       });
-    } else if (isAdmin && false) {
+    } else if (false) {
       // ADMIN: Ordenado por prioridad de uso diario
       
       // 1. TAREAS URGENTES - Lo primero que necesita revisar
@@ -1028,247 +1024,7 @@ export default function Home() {
             badge: stats.pendingSignatures,
             badgeLabel: "pendientes"
           });
-        }
-      }
-    } else if (isTreasurer) {
-      // 💰 TESORERO: Ordenado por prioridad de uso diario
-      
-      // 1. COMUNICACIÓN - Solo asistente IA (o chats familiares si tiene hijos)
-      items.push(
-        {
-          title: "🤖 Asistente Virtual",
-          icon: MessageCircle,
-          url: createPageUrl("Chatbot"),
-          gradient: "from-indigo-600 to-purple-700",
-        }
-      );
-
-      if (hasPlayers) {
-        items.push(
-          {
-            title: "🔔 Mensajes del Club",
-            icon: Bell,
-            url: createPageUrl("ParentSystemMessages"),
-            gradient: "from-purple-600 to-purple-700",
-            badge: stats.unreadPrivateMessages,
-            badgeLabel: "sin leer"
-          },
-          {
-            title: "💬 Chat Coordinador",
-            icon: MessageCircle,
-            url: createPageUrl("ParentCoordinatorChat"),
-            gradient: "from-cyan-600 to-cyan-700",
-            badge: stats.unreadCoordinatorMessages,
-            badgeLabel: "sin leer"
-          },
-          {
-            title: "⚽ Chat Entrenador",
-            icon: MessageCircle,
-            url: createPageUrl("ParentCoachChat"),
-            gradient: "from-green-600 to-green-700",
-          }
-        );
-      }
-
-      // 2. FINANZAS - Lo más importante para el tesorero
-      items.push(
-        {
-          title: "📊 Panel Financiero",
-          icon: TrendingUp,
-          url: createPageUrl("TreasurerDashboard"),
-          gradient: "from-emerald-600 to-emerald-700",
-        },
-        {
-          title: "💳 Pagos Club",
-          icon: CreditCard,
-          url: createPageUrl("Payments"),
-          gradient: "from-green-600 to-green-700",
-          badge: stats.reviewPayments,
-          badgeLabel: "en revisión"
-        },
-        {
-          title: "🔔 Recordatorios Simples",
-          icon: Bell,
-          url: createPageUrl("PaymentReminders"),
-          gradient: "from-red-600 to-orange-700",
-        }
-      );
-
-      // 3. GESTIÓN DE COBROS
-      items.push(
-        {
-          title: "🛍️ Pedidos Ropa",
-          icon: ShoppingBag,
-          url: createPageUrl("ClothingOrders"),
-          gradient: "from-teal-600 to-teal-700",
-        },
-        {
-          title: "🎫 Gestión Socios",
-          icon: Users,
-          url: createPageUrl("ClubMembersManagement"),
-          gradient: "from-purple-600 to-purple-700",
-        }
-      );
-
-      if (loteriaVisible) {
-        items.push(
-          {
-            title: "🍀 Gestión Lotería",
-            icon: Clover,
-            url: createPageUrl("LotteryManagement"),
-            gradient: "from-green-600 to-green-700",
-          },
-          {
-            title: "🍀 Mi Lotería",
-            icon: Clover,
-            url: createPageUrl("ParentLottery"),
-            gradient: "from-red-600 to-green-700",
-          }
-        );
-      }
-
-      // 4. CONSULTA
-      items.push(
-        {
-          title: "👥 Jugadores",
-          icon: Users,
-          url: createPageUrl("Players"),
-          gradient: "from-orange-600 to-orange-700",
-          badge: stats.activePlayers,
-          badgeLabel: "activos"
-        },
-        {
-          title: "📁 Histórico Pagos",
-          icon: Archive,
-          url: createPageUrl("PaymentHistory"),
-          gradient: "from-slate-600 to-slate-700",
-        }
-      );
-
-      // 5. INFO GENERAL
-      items.push(
-        {
-          title: "📅 Calendario",
-          icon: Calendar,
-          url: createPageUrl("CalendarAndSchedules"),
-          gradient: "from-purple-600 to-purple-700",
-        },
-        {
-          title: "🎉 Eventos Club",
-          icon: Calendar,
-          url: createPageUrl("ParentEventRSVP"),
-          gradient: "from-indigo-600 to-indigo-700",
-        },
-        {
-          title: "📢 Anuncios",
-          icon: Megaphone,
-          url: createPageUrl("Announcements"),
-          gradient: "from-pink-600 to-pink-700",
-        },
-        {
-          title: "🖼️ Galería",
-          icon: Image,
-          url: createPageUrl("Gallery"),
-          gradient: "from-indigo-600 to-indigo-700",
-        },
-        {
-          title: "📋 Encuestas",
-          icon: FileText,
-          url: createPageUrl("Surveys"),
-          gradient: "from-purple-600 to-purple-700",
-        }
-      );
-
-      // 6. SECCIÓN FAMILIA (si tiene hijos) - Al final
-      if (hasPlayers) {
-        items.push(
-          {
-            title: "👨‍👩‍👧 Mis Hijos",
-            icon: Users,
-            url: createPageUrl("ParentPlayers"),
-            gradient: "from-indigo-600 to-indigo-700",
-          },
-          {
-            title: "💳 Pagos Mis Hijos",
-            icon: CreditCard,
-            url: createPageUrl("ParentPayments"),
-            gradient: "from-blue-600 to-blue-700",
-          },
-          {
-            title: "🏆 Convocatorias Hijos",
-            icon: ClipboardCheck,
-            url: createPageUrl("ParentCallups"),
-            gradient: "from-green-600 to-green-700",
-            badge: stats.pendingCallups,
-            badgeLabel: "pendientes"
-          },
-          {
-            title: "🛍️ Pedidos Ropa Hijos",
-            icon: ShoppingBag,
-            url: createPageUrl("ClothingOrders"),
-            gradient: "from-teal-600 to-teal-700",
-          }
-        );
-        if (stats.pendingSignatures > 0) {
-          items.push({
-            title: "🖊️ Firmas Hijos",
-            icon: FileSignature,
-            url: createPageUrl("FederationSignatures"),
-            gradient: "from-yellow-600 to-orange-600",
-            badge: stats.pendingSignatures,
-            badgeLabel: "pendientes"
-          });
-        }
-      }
-
-      // 6. SECCIÓN FAMILIA (si tiene hijos) - Al final
-      if (hasPlayers) {
-        items.push(
-          {
-            title: "👨‍👩‍👧 Mis Hijos",
-            icon: Users,
-            url: createPageUrl("ParentPlayers"),
-            gradient: "from-indigo-600 to-indigo-700",
-          },
-          {
-            title: "💳 Pagos Mis Hijos",
-            icon: CreditCard,
-            url: createPageUrl("ParentPayments"),
-            gradient: "from-blue-600 to-blue-700",
-          },
-          {
-            title: "🏆 Convocatorias Hijos",
-            icon: ClipboardCheck,
-            url: createPageUrl("ParentCallups"),
-            gradient: "from-green-600 to-green-700",
-            badge: stats.pendingCallups,
-            badgeLabel: "pendientes"
-          },
-          {
-            title: "🛍️ Pedidos Ropa Hijos",
-            icon: ShoppingBag,
-            url: createPageUrl("ClothingOrders"),
-            gradient: "from-teal-600 to-teal-700",
-          },
-          {
-            title: "💬 Chat Familia",
-            icon: MessageCircle,
-            url: createPageUrl("ParentChat"),
-            gradient: "from-blue-600 to-blue-700",
-          }
-        );
-        if (stats.pendingSignatures > 0) {
-          items.push({
-            title: "🖊️ Firmas Mis Hijos",
-            icon: FileSignature,
-            url: createPageUrl("FederationSignatures"),
-            gradient: "from-yellow-600 to-orange-600",
-            badge: stats.pendingSignatures,
-            badgeLabel: "pendientes"
-          });
-        }
-      }
-    } else if (isCoach || isCoordinator) {
+        } else if (isCoach || isCoordinator) {
       // ENTRENADOR/COORDINADOR: Ordenado por uso diario
       
       // 1. LO MÁS URGENTE - Convocatorias y Chat
@@ -1420,7 +1176,7 @@ export default function Home() {
     }
 
     return items;
-  }, [isAdmin, isCoach, isCoordinator, isTreasurer, hasPlayers, loteriaVisible, stats, displayAdminButtons, pendingInvitationRequests]);
+    }, [isAdmin, isCoach, isCoordinator, hasPlayers, loteriaVisible, stats, displayAdminButtons, pendingInvitationRequests]);
 
   // Redirigir padres normales a ParentDashboard
   useEffect(() => {
@@ -1472,14 +1228,14 @@ export default function Home() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
-        {/* Accesos rápidos a chats - Para Coordinadores, Entrenadores y Tesorero */}
-        {(isCoordinator || isTreasurer || (isCoach && user?.es_entrenador)) && (
+        {/* Accesos rápidos a chats - Para Coordinadores y Entrenadores */}
+        {(isCoordinator || (isCoach && user?.es_entrenador)) && (
           <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 border border-slate-700">
             <p className="text-white text-sm font-semibold mb-3 flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
               💬 Mensajería
             </p>
-            <div className={`grid ${isTreasurer && !hasPlayers ? 'grid-cols-1' : isCoordinator || isCoach ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-3'} gap-2`}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               {/* ASISTENTE IA - Siempre visible para todos */}
               <Link to={createPageUrl("Chatbot")} className="relative">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
@@ -1531,7 +1287,7 @@ export default function Home() {
                 </Link>
               )}
 
-              {/* CHAT FAMILIAS - Solo para coordinadores/entrenadores (no tesorero) */}
+              {/* CHAT FAMILIAS - Solo para coordinadores/entrenadores */}
               {(isCoordinator || isCoach) && (
                 <Link to={createPageUrl(isCoordinator && user?.es_entrenador ? "FamilyChats" : isCoordinator ? "CoordinatorChat" : "CoachParentChat")} className="relative">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
@@ -1548,7 +1304,7 @@ export default function Home() {
                 </Link>
               )}
 
-              {/* STAFF CHAT - Solo para coordinadores/entrenadores (no tesorero) */}
+              {/* STAFF CHAT - Solo para coordinadores/entrenadores */}
               {(isCoordinator || isCoach) && (
                 <Link to={createPageUrl("StaffChat")} className="relative">
                   <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
@@ -1564,11 +1320,11 @@ export default function Home() {
 
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
-        {(isAdmin || isCoach || isCoordinator || isTreasurer || hasPlayers) && (
+        {(isAdmin || isCoach || isCoordinator || hasPlayers) && (
           <AlertCenter 
             pendingCallups={stats.pendingCallups}
             pendingDocuments={0}
-            pendingPayments={isAdmin || isTreasurer ? stats.reviewPayments : stats.pendingPayments}
+            pendingPayments={isAdmin ? stats.reviewPayments : stats.pendingPayments}
             overduePayments={stats.overduePayments}
             unreadMessages={stats.unreadMessages}
             unreadPrivateMessages={stats.unreadPrivateMessages}
@@ -1591,7 +1347,6 @@ export default function Home() {
             isAdmin={isAdmin}
             isCoach={isCoach || isCoordinator}
             isParent={hasPlayers}
-            isTreasurer={isTreasurer}
             isCoordinator={isCoordinator}
             userEmail={user?.email}
             userSports={myPlayersSports}
