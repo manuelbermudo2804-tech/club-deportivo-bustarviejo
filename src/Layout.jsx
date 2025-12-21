@@ -880,6 +880,20 @@ export default function Layout({ children, currentPageName }) {
                   }
                 }
 
+        // REDIRECCIÓN AUTOMÁTICA PARA TESORERO (primera carga)
+        if (currentUser.es_tesorero === true && !currentUser.es_coordinador && currentUser.role !== "admin") {
+          setIsLoading(false);
+          const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+          const currentPath = window.location.pathname.toLowerCase();
+
+          if (!hasInitialRedirect && currentPath !== '/treasurerdashboard') {
+            console.log('🔄 [LAYOUT] Primera carga TESORERO - redirigiendo a TreasurerDashboard');
+            sessionStorage.setItem('initialRedirectDone', 'true');
+            window.location.href = createPageUrl('TreasurerDashboard');
+            return;
+          }
+        }
+
         // Verificar si tiene conversación activa con admin (para TODOS los usuarios excepto admins)
         if (currentUser.role !== "admin") {
           try {
