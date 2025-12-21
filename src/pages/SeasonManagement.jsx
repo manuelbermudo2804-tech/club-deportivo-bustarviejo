@@ -105,7 +105,8 @@ export default function SeasonManagement() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        setIsAdmin(currentUser.role === "admin");
+        // Permitir acceso a admin Y tesoreros
+        setIsAdmin(currentUser.role === "admin" || currentUser.es_tesorero === true);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
