@@ -67,7 +67,7 @@ export default function DashboardButtonSelector({
         className="bg-slate-800 hover:bg-slate-700 text-white border-slate-600"
       >
         <Settings className="w-4 h-4 mr-2" />
-        Personalizar Botones
+        Personalizar {panelName}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
