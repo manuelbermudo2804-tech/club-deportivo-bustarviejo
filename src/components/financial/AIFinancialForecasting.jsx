@@ -26,6 +26,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   ReferenceLine, ComposedChart
 } from "recharts";
+import { Badge } from "@/components/ui/badge";
 import {
   Sparkles, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2,
   Loader2, RefreshCw, Calendar, DollarSign, PiggyBank, Target,
