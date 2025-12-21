@@ -87,7 +87,7 @@ export default function Home() {
           return;
         }
 
-        if (adminCheck || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
+        if (adminCheck || currentUser.es_entrenador || currentUser.es_coordinador) {
           // Para admin/entrenadores/coordinadores, SOLO usar el campo manual
           const tienehijos = currentUser.tiene_hijos_jugando === true;
           setHasPlayers(tienehijos);
@@ -410,7 +410,7 @@ export default function Home() {
         p.is_deleted !== true && 
         p.reconciliado_banco !== true
       ).length || 0;
-    } else if (user && !isAdmin && !isCoach && !isCoordinator && !isTreasurer) {
+    } else if (user && !isAdmin && !isCoach && !isCoordinator) {
       // Padres ven SOLO pagos de sus jugadores
       const myPlayerIds = players?.filter(p => 
         (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo === true
@@ -591,8 +591,8 @@ export default function Home() {
         } else if (conv.participante_staff_email === user.email) {
           // Staff asignado directamente
           unreadPrivateMessages += (conv.no_leidos_staff || 0);
-        } else if (isAdmin || isCoordinator || isTreasurer) {
-          // Admin, Coordinador y Tesorero ven TODAS las conversaciones con mensajes no leídos
+        } else if (isAdmin || isCoordinator) {
+          // Admin y Coordinador ven TODAS las conversaciones con mensajes no leídos
           unreadPrivateMessages += (conv.no_leidos_staff || 0);
         }
       });
@@ -699,7 +699,7 @@ export default function Home() {
       recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
       unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations, unresolvedAdminChats
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isTreasurer, isCoach, coordinatorConversations, matchObservations]);
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isCoach, coordinatorConversations, matchObservations]);
 
 
 
@@ -1024,19 +1024,18 @@ export default function Home() {
             badge: stats.pendingSignatures,
             badgeLabel: "pendientes"
           });
-        } else if (isCoach || isCoordinator) {
+        }
+      }
+    } else if (isCoach || isCoordinator) {
       // ENTRENADOR/COORDINADOR: Ordenado por uso diario
       
       // 1. LO MÁS URGENTE - Convocatorias y Chat
-      items.push(
-        {
-          title: "🎓 Convocatorias",
-          icon: Bell,
-          url: createPageUrl("CoachCallups"),
-          gradient: "from-yellow-600 to-yellow-700",
-        },
-
-      );
+      items.push({
+        title: "🎓 Convocatorias",
+        icon: Bell,
+        url: createPageUrl("CoachCallups"),
+        gradient: "from-yellow-600 to-yellow-700",
+      });
 
       // 2. GESTIÓN DEPORTIVA
       items.push(
@@ -1176,7 +1175,7 @@ export default function Home() {
     }
 
     return items;
-    }, [isAdmin, isCoach, isCoordinator, hasPlayers, loteriaVisible, stats, displayAdminButtons, pendingInvitationRequests]);
+  }, [isAdmin, isCoach, isCoordinator, hasPlayers, loteriaVisible, stats, displayAdminButtons, pendingInvitationRequests]);
 
   // Redirigir padres normales a ParentDashboard
   useEffect(() => {
