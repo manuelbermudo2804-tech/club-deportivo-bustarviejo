@@ -1561,20 +1561,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Botón de configuración de dashboard - Solo Admin */}
-        {isAdmin && (
-          <div className="flex justify-end">
-            <DashboardButtonSelector
-              allButtons={availableAdminButtons}
-              selectedButtonIds={selectedButtonIds}
-              onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
-              minButtons={8}
-              maxButtons={25}
-              defaultButtons={DEFAULT_ADMIN_BUTTONS}
-              panelName="Panel Admin"
-            />
-          </div>
-        )}
+
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
         {(isAdmin || isCoach || isCoordinator || isTreasurer || hasPlayers) && (
