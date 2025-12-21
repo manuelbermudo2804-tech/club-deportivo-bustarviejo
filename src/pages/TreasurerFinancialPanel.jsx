@@ -948,32 +948,92 @@ export default function TreasurerFinancialPanel() {
         {/* TAB PRESUPUESTOS */}
         <TabsContent value="presupuestos" className="space-y-6 mt-6">
           {!currentBudget ? (
-            <Card>
+            <Card className="border-none shadow-xl">
               <CardContent className="p-12 text-center">
-                <Euro className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-2">
-                  No hay presupuesto para la temporada {activeSeason?.temporada}
+                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Euro className="w-10 h-10 text-orange-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                  No hay presupuesto para {activeSeason?.temporada}
                 </h3>
                 <p className="text-slate-600 mb-6">
                   Crea un presupuesto para gestionar partidas de ingresos y gastos con ayuda de IA
                 </p>
+                <div className="max-w-md mx-auto mb-8">
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="bg-green-50 rounded-lg p-3">
+                      <p className="font-bold text-green-700">📊 Partidas</p>
+                      <p className="text-xs text-slate-600 mt-1">Organiza ingresos y gastos</p>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <p className="font-bold text-blue-700">🤖 IA</p>
+                      <p className="text-xs text-slate-600 mt-1">Asistente inteligente</p>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-3">
+                      <p className="font-bold text-purple-700">📈 Análisis</p>
+                      <p className="text-xs text-slate-600 mt-1">Seguimiento real</p>
+                    </div>
+                  </div>
+                </div>
                 <Button 
                   onClick={handleCreateBudget}
-                  className="bg-orange-600 hover:bg-orange-700"
+                  className="bg-orange-600 hover:bg-orange-700 px-8 py-6 text-lg"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Crear Presupuesto
+                  <Plus className="w-5 h-5 mr-2" />
+                  Crear Presupuesto Ahora
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <BudgetManager
-              budget={currentBudget}
-              onUpdate={handleUpdateBudget}
-              onDelete={() => deleteBudgetMutation.mutate(currentBudget.id)}
-              historicalTransactions={transactions}
-              historicalBudgets={budgets}
-            />
+            <>
+              {/* Resumen del Presupuesto */}
+              <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 to-slate-800 text-white">
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <p className="text-sm text-slate-300 mb-1">Presupuesto Total</p>
+                      <p className="text-3xl font-bold">
+                        {currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_presupuestado || 0), 0).toFixed(2)}€
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-green-300 mb-1">Ejecutado</p>
+                      <p className="text-3xl font-bold text-green-400">
+                        {currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_ejecutado || 0), 0).toFixed(2)}€
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-orange-300 mb-1">Desviación</p>
+                      <p className="text-3xl font-bold text-orange-400">
+                        {(() => {
+                          const presupuestado = currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_presupuestado || 0), 0) || 0;
+                          const ejecutado = currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_ejecutado || 0), 0) || 0;
+                          return (ejecutado - presupuestado).toFixed(2);
+                        })()}€
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-blue-300 mb-1">% Ejecución</p>
+                      <p className="text-3xl font-bold text-blue-400">
+                        {(() => {
+                          const presupuestado = currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_presupuestado || 0), 0) || 0;
+                          const ejecutado = currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_ejecutado || 0), 0) || 0;
+                          return presupuestado > 0 ? ((ejecutado / presupuestado) * 100).toFixed(1) : 0;
+                        })()}%
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <BudgetManager
+                budget={currentBudget}
+                onUpdate={handleUpdateBudget}
+                onDelete={() => deleteBudgetMutation.mutate(currentBudget.id)}
+                historicalTransactions={transactions}
+                historicalBudgets={budgets}
+              />
+            </>
           )}
         </TabsContent>
 
