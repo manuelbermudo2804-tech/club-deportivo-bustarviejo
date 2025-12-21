@@ -164,72 +164,66 @@ export default function TreasurerFinancialPanel() {
     });
   };
 
-  // Cálculos financieros - CORREGIDOS para coincidir con Payments.jsx
-  const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada && p.is_deleted !== true);
-  const currentSeasonPlayers = players.filter(p => p.activo === true);
-  const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason?.temporada);
-  const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason?.temporada);
-  const currentSeasonMembers = clubMembers.filter(m => m.temporada === activeSeason?.temporada);
+  // Cálculos financieros - Memoizados para mejor rendimiento
+  const stats = useMemo(() => {
+    if (!activeSeason) return {
+      cuotasPagadas: 0, cuotasPendientes: 0, cuotasEnRevision: 0,
+      ropaTotal: 0, ropaPagada: 0, ropaPendiente: 0,
+      loteriaTotal: 0, loteriaPagada: 0, loteriaPendiente: 0,
+      sociosTotal: 0, sociosPagados: 0, sociosPendientes: 0,
+      patrociniosTotal: 0
+    };
 
-  // CÁLCULO CORRECTO DE PENDIENTES (igual que en Payments.jsx)
-  const calculatePendingAmount = () => {
+    const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
+    const currentSeasonPlayers = players.filter(p => p.activo === true);
+    const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason.temporada);
+    const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason.temporada);
+    const currentSeasonMembers = clubMembers.filter(m => m.temporada === activeSeason.temporada);
+
+    // CÁLCULO DE PENDIENTES
     let totalPendiente = 0;
-    
     currentSeasonPlayers.forEach(player => {
       const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
       
-      // Verificar si tiene pago único pagado o en revisión
       const hasPagoUnico = playerPayments.some(p => 
         (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
         (p.estado === "Pagado" || p.estado === "En revisión")
       );
       
-      if (hasPagoUnico) {
-        return; // Si pagó único, no debe nada más
-      }
+      if (hasPagoUnico) return;
       
-      // Contar meses pagados o en revisión
       const mesesPagadosORevision = playerPayments
         .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
         .map(p => p.mes);
       
-      // Calcular qué meses faltan
       const allMonths = ["Junio", "Septiembre", "Diciembre"];
       const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
       
-      // Sumar el importe de cada mes faltante
       mesesFaltantes.forEach(mes => {
         totalPendiente += getImportePorMes(player.deporte, mes);
       });
     });
-    
-    return totalPendiente;
-  };
 
-  const stats = {
-    // Cuotas de jugadores
-    cuotasPagadas: currentSeasonPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0),
-    cuotasPendientes: calculatePendingAmount(),
-    cuotasEnRevision: currentSeasonPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0),
-    
-    // Pedidos ropa
-    ropaTotal: currentSeasonClothing.reduce((sum, o) => sum + (o.precio_final || 0), 0),
-    ropaPagada: currentSeasonClothing.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.precio_final || 0), 0),
-    ropaPendiente: currentSeasonClothing.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.precio_final || 0), 0),
-    
-    // Lotería
-    loteriaTotal: currentSeasonLottery.reduce((sum, o) => sum + (o.total || 0), 0),
-    loteriaPagada: currentSeasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0),
-    loteriaPendiente: currentSeasonLottery.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.total || 0), 0),
-    
-    // Socios
-    sociosTotal: currentSeasonMembers.filter(m => m.activo !== false).reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
-    sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
-    sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago === "Pendiente").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
-    
-    // Patrocinios (solo temporada actual)
-    patrociniosTotal: sponsors.filter(s => s.estado === "Activo" && s.temporada === activeSeason?.temporada).reduce((sum, s) => sum + (s.monto || 0), 0),
-  };
+    return {
+      cuotasPagadas: currentSeasonPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0),
+      cuotasPendientes: totalPendiente,
+      cuotasEnRevision: currentSeasonPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0),
+      
+      ropaTotal: currentSeasonClothing.reduce((sum, o) => sum + (o.precio_final || 0), 0),
+      ropaPagada: currentSeasonClothing.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.precio_final || 0), 0),
+      ropaPendiente: currentSeasonClothing.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.precio_final || 0), 0),
+      
+      loteriaTotal: currentSeasonLottery.reduce((sum, o) => sum + (o.total || 0), 0),
+      loteriaPagada: currentSeasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0),
+      loteriaPendiente: currentSeasonLottery.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.total || 0), 0),
+      
+      sociosTotal: currentSeasonMembers.filter(m => m.activo !== false).reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
+      sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
+      sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago === "Pendiente").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
+      
+      patrociniosTotal: sponsors.filter(s => s.estado === "Activo" && s.temporada === activeSeason.temporada).reduce((sum, s) => sum + (s.monto || 0), 0),
+    };
+  }, [activeSeason, payments, players, clothingOrders, lotteryOrders, clubMembers, sponsors]);
 
   // TOTALES CORREGIDOS
   const totalIngresos = stats.cuotasPagadas;
