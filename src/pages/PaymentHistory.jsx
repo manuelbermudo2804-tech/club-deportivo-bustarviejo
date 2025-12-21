@@ -1,17 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, FileText, Calendar, TrendingUp, Archive } from "lucide-react";
+import { Search, FileText, Calendar, TrendingUp, Archive, AlertTriangle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function PaymentHistory() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    const checkUser = async () => {
+      const currentUser = await base44.auth.me();
+      // Permitir acceso a admin Y tesoreros
+      setIsAdmin(currentUser.role === "admin" || currentUser.es_tesorero === true);
+    };
+    checkUser();
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [seasonFilter, setSeasonFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
@@ -89,6 +100,19 @@ export default function PaymentHistory() {
   }, {});
 
   const playerSummaries = Object.values(paymentsByPlayerSeason).sort((a,b) => b.temporada.localeCompare(a.temporada) || a.jugador_nombre.localeCompare(b.jugador_nombre));
+
+  if (!isAdmin) {
+    return (
+      <div className="p-6">
+        <Alert className="bg-red-50 border-red-200">
+          <AlertTriangle className="w-4 h-4 text-red-600" />
+          <AlertDescription className="text-red-800 ml-2">
+            No tienes permisos para acceder a esta sección.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8 space-y-6">

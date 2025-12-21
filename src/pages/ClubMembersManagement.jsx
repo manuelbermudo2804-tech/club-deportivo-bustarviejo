@@ -22,6 +22,7 @@ import MembershipStatsPanel from "../components/members/MembershipStatsPanel";
 
 export default function ClubMembersManagement() {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [seasonFilter, setSeasonFilter] = useState("all");
@@ -42,6 +43,8 @@ export default function ClubMembersManagement() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      // Permitir acceso a admin Y tesoreros
+      setIsAdmin(currentUser.role === "admin" || currentUser.es_tesorero === true);
     };
     fetchUser();
   }, []);
@@ -835,6 +838,19 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         return <Badge className="bg-red-600"><AlertCircle className="w-3 h-3 mr-1" /> Pendiente</Badge>;
     }
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="p-6">
+        <Alert className="bg-red-50 border-red-200">
+          <AlertCircle className="w-4 h-4 text-red-600" />
+          <AlertDescription className="text-red-800 ml-2">
+            No tienes permisos para acceder a esta sección.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
