@@ -230,9 +230,77 @@ export default function TreasurerFinancialPanel() {
   }, [activeSeason, payments, players, clothingOrders, lotteryOrders, clubMembers, sponsors]);
 
   // TOTALES CORREGIDOS
-  const totalIngresos = stats.cuotasPagadas;
-  const totalPendiente = stats.cuotasPendientes;
+  const totalIngresos = stats.cuotasPagadas + stats.ropaPagada + stats.loteriaPagada + stats.sociosPagados + stats.patrociniosTotal;
+  const totalPendiente = stats.cuotasPendientes + stats.ropaPendiente + stats.loteriaPendiente + stats.sociosPendientes;
   const totalEsperado = totalIngresos + totalPendiente + stats.cuotasEnRevision;
+
+  // Datos para gráficos
+  const chartData = useMemo(() => {
+    return [
+      { name: 'Cuotas', Cobrado: stats.cuotasPagadas, Pendiente: stats.cuotasPendientes, EnRevision: stats.cuotasEnRevision },
+      { name: 'Ropa', Cobrado: stats.ropaPagada, Pendiente: stats.ropaPendiente, EnRevision: 0 },
+      { name: 'Lotería', Cobrado: stats.loteriaPagada, Pendiente: stats.loteriaPendiente, EnRevision: 0 },
+      { name: 'Socios', Cobrado: stats.sociosPagados, Pendiente: stats.sociosPendientes, EnRevision: 0 },
+      { name: 'Patrocinios', Cobrado: stats.patrociniosTotal, Pendiente: 0, EnRevision: 0 },
+    ];
+  }, [stats]);
+
+  const pieData = useMemo(() => [
+    { name: 'Cuotas', value: stats.cuotasPagadas, color: '#3b82f6' },
+    { name: 'Ropa', value: stats.ropaPagada, color: '#f97316' },
+    { name: 'Lotería', value: stats.loteriaPagada, color: '#22c55e' },
+    { name: 'Socios', value: stats.sociosPagados, color: '#6366f1' },
+    { name: 'Patrocinios', value: stats.patrociniosTotal, color: '#a855f7' },
+  ], [stats]);
+
+  const handleExportPDF = async () => {
+    setGeneratingPDF(true);
+    try {
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.text('Informe Financiero - CD Bustarviejo', 20, 20);
+      doc.setFontSize(12);
+      doc.text(`Temporada: ${activeSeason?.temporada || 'N/A'}`, 20, 30);
+      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 20, 37);
+      
+      // Resumen Global
+      doc.setFontSize(14);
+      doc.text('Resumen Global', 20, 50);
+      doc.setFontSize(10);
+      let y = 60;
+      doc.text(`Total Ingresos Cobrados: ${totalIngresos.toFixed(2)}€`, 25, y);
+      y += 7;
+      doc.text(`Total Pendiente de Cobro: ${totalPendiente.toFixed(2)}€`, 25, y);
+      y += 7;
+      doc.text(`Total Esperado: ${totalEsperado.toFixed(2)}€`, 25, y);
+      y += 15;
+      
+      // Desglose
+      doc.setFontSize(14);
+      doc.text('Desglose por Conceptos', 20, y);
+      y += 10;
+      doc.setFontSize(10);
+      doc.text(`Cuotas: Cobradas ${stats.cuotasPagadas.toFixed(2)}€ | Pendientes ${stats.cuotasPendientes.toFixed(2)}€`, 25, y);
+      y += 7;
+      doc.text(`Ropa: Cobrada ${stats.ropaPagada.toFixed(2)}€ | Pendiente ${stats.ropaPendiente.toFixed(2)}€`, 25, y);
+      y += 7;
+      doc.text(`Lotería: Cobrada ${stats.loteriaPagada.toFixed(2)}€ | Pendiente ${stats.loteriaPendiente.toFixed(2)}€`, 25, y);
+      y += 7;
+      doc.text(`Socios: Cobrados ${stats.sociosPagados.toFixed(2)}€ | Pendientes ${stats.sociosPendientes.toFixed(2)}€`, 25, y);
+      y += 7;
+      doc.text(`Patrocinios: ${stats.patrociniosTotal.toFixed(2)}€`, 25, y);
+      
+      doc.save(`informe_financiero_${activeSeason?.temporada || 'actual'}.pdf`);
+      toast.success("PDF descargado correctamente");
+    } catch (error) {
+      toast.error("Error al generar PDF");
+      console.error(error);
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
 
   if (!user) {
     return (
