@@ -181,19 +181,29 @@ export default function ParentPayments() {
 
   const createPaymentMutation = useMutation({
     mutationFn: async (paymentData) => {
-      // DOBLE VALIDACIÓN ANTI-DUPLICADOS en backend
+      // Si viene con isUpdate=true, actualizar en lugar de crear
+      if (paymentData.isUpdate && paymentData.id) {
+        console.log('🔄 [ParentPayments] Actualizando pago existente:', paymentData.id);
+        const { id, isUpdate, ...updateData } = paymentData;
+        const payment = await base44.entities.Payment.update(id, updateData);
+        console.log('✅ [ParentPayments] Pago actualizado:', payment.id);
+        return payment;
+      }
+
+      // VALIDACIÓN: solo bloquear si existe Y tiene justificante
       const duplicado = payments.find(p => 
         p.jugador_id === paymentData.jugador_id &&
         p.mes === paymentData.mes &&
         p.temporada === paymentData.temporada &&
         p.is_deleted !== true &&
-        (p.estado === "Pendiente" || p.estado === "En revisión" || p.estado === "Pagado")
+        p.justificante_url
       );
 
       if (duplicado) {
-        throw new Error(`Ya existe un pago de ${paymentData.mes} para este jugador (Estado: ${duplicado.estado})`);
+        throw new Error(`Ya existe un pago de ${paymentData.mes} con justificante (Estado: ${duplicado.estado})`);
       }
 
+      console.log('✅ [ParentPayments] Creando pago nuevo:', paymentData);
       const payment = await base44.entities.Payment.create(paymentData);
       
       // Invalidar queries INMEDIATAMENTE
