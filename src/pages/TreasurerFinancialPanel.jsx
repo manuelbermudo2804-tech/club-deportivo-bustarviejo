@@ -569,6 +569,26 @@ export default function TreasurerFinancialPanel() {
                       currentSeasonPlayers.forEach(player => {
                         const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
                         
+                        // Verificar si tiene plan especial activo
+                        const playerActivePlan = customPlans.find(p => 
+                          p.jugador_id === player.id && 
+                          p.estado === "Activo" &&
+                          p.temporada === activeSeason.temporada
+                        );
+
+                        if (playerActivePlan) {
+                          const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                          const seen = new Set();
+                          const uniquePlanPayments = planPayments.filter(p => {
+                            if (seen.has(p.mes)) return false;
+                            seen.add(p.mes);
+                            return true;
+                          });
+                          const cuotasPendientesPlan = uniquePlanPayments.filter(p => p.estado === "Pendiente").length;
+                          cuotasPendientes += cuotasPendientesPlan;
+                          return;
+                        }
+                        
                         // Si hay pago único (en cualquier estado), solo contar si está pendiente
                         const pagoUnico = playerPayments.find(p => 
                           p.tipo_pago === "Único" || p.tipo_pago === "único"
