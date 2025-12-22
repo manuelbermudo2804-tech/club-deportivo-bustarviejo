@@ -74,7 +74,7 @@ export default function EndOfSeasonForecast({
       <CardContent className="p-6 space-y-6">
         {/* Tiempo restante */}
         <div className="bg-slate-50 rounded-xl p-4 flex items-center gap-4">
-          <Calendar className="w-8 h-8 text-orange-600" />
+          <CalendarIcon className="w-8 h-8 text-orange-600" />
           <div>
             <p className="text-sm text-slate-600">Días hasta fin de temporada</p>
             <p className="text-3xl font-bold text-slate-900">{forecast.daysRemaining} días</p>
