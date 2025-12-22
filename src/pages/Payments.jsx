@@ -217,19 +217,42 @@ export default function Payments() {
   const createCustomPlanMutation = useMutation({
     mutationFn: async (planData) => {
       const currentUser = await base44.auth.me();
-      return base44.entities.CustomPaymentPlan.create({
+      
+      // 1. Crear el plan personalizado
+      const createdPlan = await base44.entities.CustomPaymentPlan.create({
         ...planData,
         aprobado_por: currentUser.email,
         aprobado_por_nombre: currentUser.full_name,
         fecha_aprobacion: new Date().toISOString()
       });
+      
+      // 2. Crear automáticamente los pagos pendientes según las cuotas del plan
+      const paymentsToCreate = planData.cuotas.map(cuota => ({
+        jugador_id: planData.jugador_id,
+        jugador_nombre: planData.jugador_nombre,
+        tipo_pago: "Plan Especial",
+        mes: `Cuota ${cuota.numero}`,
+        temporada: planData.temporada,
+        cantidad: cuota.cantidad,
+        estado: "Pendiente",
+        metodo_pago: "Transferencia",
+        fecha_pago: null,
+        notas: `Plan personalizado de ${planData.numero_cuotas} cuotas - Cuota ${cuota.numero}/${planData.numero_cuotas}. Vence: ${new Date(cuota.fecha_vencimiento).toLocaleDateString('es-ES')}`,
+        plan_especial_id: createdPlan.id
+      }));
+      
+      // Crear todos los pagos en bulk
+      await base44.entities.Payment.bulkCreate(paymentsToCreate);
+      
+      return createdPlan;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
+      queryClient.invalidateQueries({ queryKey: ['myPayments'] });
       setShowCustomPlanForm(false);
       setSelectedPlayerForPlan(null);
       setEditingPlan(null);
-      toast.success("Plan personalizado creado correctamente");
+      toast.success("Plan creado y cuotas generadas automáticamente ✅");
     },
   });
 
@@ -245,11 +268,25 @@ export default function Payments() {
 
   const deleteCustomPlanMutation = useMutation({
     mutationFn: async (planId) => {
-      await base44.entities.CustomPaymentPlan.update(planId, { activo: false });
+      const plan = customPlans.find(p => p.id === planId);
+      
+      // 1. Eliminar los pagos asociados al plan que estén pendientes
+      const planPayments = payments.filter(p => 
+        p.plan_especial_id === planId &&
+        p.estado === "Pendiente"
+      );
+      
+      for (const payment of planPayments) {
+        await base44.entities.Payment.delete(payment.id);
+      }
+      
+      // 2. Eliminar el plan
+      await base44.entities.CustomPaymentPlan.delete(planId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
-      toast.success("Plan desactivado");
+      queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+      toast.success("Plan y cuotas pendientes eliminados ✅");
     },
   });
 
@@ -1245,7 +1282,7 @@ export default function Payments() {
                     setShowCustomPlanForm(true);
                   }}
                   onDelete={(planId) => {
-                    if (confirm("¿Desactivar este plan personalizado?\n\nEl jugador volverá al sistema de cuotas estándar.")) {
+                    if (confirm("¿Eliminar este plan personalizado?\n\nSe borrarán todas las cuotas pendientes asociadas. Las cuotas ya pagadas se mantendrán en el historial.")) {
                       deleteCustomPlanMutation.mutate(planId);
                     }
                   }}
