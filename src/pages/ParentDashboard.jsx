@@ -369,7 +369,7 @@ export default function ParentDashboard() {
     .filter(Boolean);
 
   // Calcular pagos pendientes para badges
-  const { pendingPayments: pagosPendientesCount } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id));
+  const { pendingPayments: pagosPendientesCount } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
 
   // Añadir badges dinámicos
   const menuItems = displayButtons.map(item => {
@@ -513,7 +513,7 @@ export default function ParentDashboard() {
           <DashboardCardSkeleton />
         ) : (
           (() => {
-            const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id));
+            const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
             return (
               <AlertCenter 
                 pendingCallups={pendingCallups}
@@ -640,7 +640,7 @@ export default function ParentDashboard() {
           <DashboardCardSkeleton />
         ) : (
           (() => {
-            const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id));
+            const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
             const totalPayments = pagosPendientes + pagosVencidos + pagosRevision;
             
             return (
