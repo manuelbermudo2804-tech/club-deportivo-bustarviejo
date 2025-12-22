@@ -1028,10 +1028,20 @@ export default function Payments() {
                         ? allPlayerPayments.filter(p => p.mes === "Junio")
                         : allPlayerPayments;
 
+                      // Verificar si tiene plan personalizado
+                      const playerCustomPlan = customPlans.find(p => 
+                        p.jugador_id === player.id && p.estado === "Activo"
+                      );
+
                       // Determinar los meses que debería tener este jugador
-                      const allMonths = hasPagoUnico
-                        ? ["Junio"]
-                        : ["Junio", "Septiembre", "Diciembre"];
+                      let allMonths;
+                      if (playerCustomPlan && playerCustomPlan.cuotas) {
+                        allMonths = playerCustomPlan.cuotas.map(c => `Cuota ${c.numero}`);
+                      } else if (hasPagoUnico) {
+                        allMonths = ["Junio"];
+                      } else {
+                        allMonths = ["Junio", "Septiembre", "Diciembre"];
+                      }
 
                       // Obtener TODOS los pagos reales del jugador para la temporada (sin filtros de estado)
                       const allRealPayments = (payments || []).filter(p => 
@@ -1054,6 +1064,12 @@ export default function Payments() {
                             console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Pago REAL encontrado con estado ${existingPayment.estado}`);
                             return existingPayment;
                           }
+                          
+                          // Si tiene plan personalizado, NO crear virtuales (ya están creados por el sistema)
+                          if (playerCustomPlan && playerCustomPlan.cuotas) {
+                            return null;
+                          }
+                          
                           // Crear un pago virtual pendiente con cantidad correcta
                           const cuotas = getCuotasPorCategoriaSync(player.deporte);
                           const cantidad = hasPagoUnico 
@@ -1072,7 +1088,7 @@ export default function Payments() {
                             tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
                             isVirtual: true
                           };
-                        });
+                        }).filter(Boolean);
                       }
 
                       // Si hay filtro de estado activo, filtrar displayPayments también

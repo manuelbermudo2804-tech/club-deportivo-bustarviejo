@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, Calendar, Euro, AlertTriangle, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { getCuotasPorCategoriaSync } from "./paymentAmounts";
+import { base44 } from "@/api/base44Client";
 
 export default function CustomPaymentPlanForm({ open, onClose, player, existingPlan, onSubmit, isSubmitting, payments = [] }) {
   const [formData, setFormData] = useState({
@@ -22,6 +23,17 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
   });
 
   const [cuotas, setCuotas] = useState([]);
+  const [activeSeason, setActiveSeason] = useState(null);
+
+  // Cargar temporada activa
+  useEffect(() => {
+    const fetchActiveSeason = async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      const active = configs.find(c => c.activa === true);
+      setActiveSeason(active?.temporada || getCurrentSeason());
+    };
+    fetchActiveSeason();
+  }, []);
 
   // Calcular deuda original automáticamente cuando se selecciona el jugador
   useEffect(() => {
@@ -153,7 +165,7 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
       jugador_id: player.id,
       jugador_nombre: player.nombre,
       familia_email: player.email_padre,
-      temporada: player.temporada || getCurrentSeason(),
+      temporada: activeSeason || getCurrentSeason(),
       deuda_original: formData.deuda_original,
       deuda_condonada: formData.deuda_condonada,
       deuda_final: deudaFinal,
@@ -167,6 +179,7 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
       notificaciones_activadas: true
     };
 
+    console.log('📤 [CustomPaymentPlanForm] Enviando plan:', planData);
     onSubmit(planData);
   };
 
