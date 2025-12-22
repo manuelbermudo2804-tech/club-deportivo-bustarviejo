@@ -217,14 +217,18 @@ export default function TreasurerFinancialPanel() {
     currentSeasonPlayers.forEach(player => {
       const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
       
-      // Si hay pago único (en cualquier estado), solo contar si está pendiente
-      const pagoUnico = playerPayments.find(p => 
+      // Si hay ALGÚN pago de tipo único (en cualquier estado), es pago único
+      const hasPagoUnico = playerPayments.some(p => 
         p.tipo_pago === "Único" || p.tipo_pago === "único"
       );
       
-      if (pagoUnico) {
-        // Si está pendiente, contar la cantidad completa
-        if (pagoUnico.estado === "Pendiente") {
+      if (hasPagoUnico) {
+        // Buscar el pago único
+        const pagoUnico = playerPayments.find(p => 
+          p.tipo_pago === "Único" || p.tipo_pago === "único"
+        );
+        // Solo sumar si está pendiente
+        if (pagoUnico && pagoUnico.estado === "Pendiente") {
           totalPendiente += pagoUnico.cantidad || 0;
         }
         return; // No procesar meses individuales

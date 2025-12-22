@@ -556,10 +556,16 @@ export default function ParentPayments() {
                 p.jugador_id === player.id && p.activo === true
               );
 
-              // Determinar tipo de pago (necesario para calcular cantidades después)
+              // Determinar tipo de pago - verificar si ALGÚN pago es de tipo único
               const hasPagoUnico = allPlayerPayments.some(p => 
                 p.tipo_pago === "Único" || p.tipo_pago === "único"
               );
+              
+              console.log(`🔍 [ParentPayments] ${player.nombre}:`, {
+                pagosTotales: allPlayerPayments.length,
+                tiposPago: allPlayerPayments.map(p => p.tipo_pago),
+                hasPagoUnico
+              });
 
               // Determinar los meses que debería tener este jugador
               let allMonths;
