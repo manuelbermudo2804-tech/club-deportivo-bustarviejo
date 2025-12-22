@@ -252,32 +252,41 @@ export default function TreasurerFinancialPanel() {
           totalPendiente += cuota.cantidad || 0;
         });
       } else {
-        // NO tiene plan especial - usar lógica estándar (pago único o fraccionado)
-        const hasPagoUnico = playerPayments.some(p => 
-          p.tipo_pago === "Único" || p.tipo_pago === "único"
-        );
-        
-        if (hasPagoUnico) {
-          // Buscar el pago único
-          const pagoUnico = playerPayments.find(p => 
+        // Backup: si existen pagos registrados como "Plan Especial", usar esos importes
+        const planEspecialPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+        if (planEspecialPayments.length > 0) {
+          const pendiente = planEspecialPayments
+            .filter(p => p.estado === "Pendiente")
+            .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+          totalPendiente += pendiente;
+        } else {
+          // NO tiene plan especial - usar lógica estándar (pago único o fraccionado)
+          const hasPagoUnico = playerPayments.some(p => 
             p.tipo_pago === "Único" || p.tipo_pago === "único"
           );
-          // Solo sumar si está pendiente
-          if (pagoUnico && pagoUnico.estado === "Pendiente") {
-            totalPendiente += pagoUnico.cantidad || 0;
+          
+          if (hasPagoUnico) {
+            // Buscar el pago único
+            const pagoUnico = playerPayments.find(p => 
+              p.tipo_pago === "Único" || p.tipo_pago === "único"
+            );
+            // Solo sumar si está pendiente
+            if (pagoUnico && pagoUnico.estado === "Pendiente") {
+              totalPendiente += pagoUnico.cantidad || 0;
+            }
+          } else {
+            // Para pago fraccionado, calcular meses faltantes
+            const mesesPagadosORevision = playerPayments
+              .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+              .map(p => p.mes);
+            
+            const allMonths = ["Junio", "Septiembre", "Diciembre"];
+            const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+            
+            mesesFaltantes.forEach(mes => {
+              totalPendiente += getImportePorMes(player.deporte, mes);
+            });
           }
-        } else {
-          // Para pago fraccionado, calcular meses faltantes
-          const mesesPagadosORevision = playerPayments
-            .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-            .map(p => p.mes);
-          
-          const allMonths = ["Junio", "Septiembre", "Diciembre"];
-          const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-          
-          mesesFaltantes.forEach(mes => {
-            totalPendiente += getImportePorMes(player.deporte, mes);
-          });
         }
       }
     });
