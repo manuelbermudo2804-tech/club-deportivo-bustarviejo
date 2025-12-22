@@ -218,7 +218,14 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
       
       // SI TIENE PLAN PERSONALIZADO, ignorar lógica estándar
       if (playerCustomPlan && playerCustomPlan.cuotas) {
-        const cuotasPendientes = playerCustomPlan.cuotas.filter(c => c.pagada !== true);
+        // Consultar pagos REALES de BD para ver qué cuotas están pendientes
+        const planPayments = jugadorPayments.filter(p => p.tipo_pago === "Plan Especial");
+        
+        // Encontrar cuotas que NO tienen pago o tienen pago pendiente
+        const cuotasPendientes = playerCustomPlan.cuotas.filter(cuota => {
+          const pagoCuota = planPayments.find(p => p.mes === `Cuota ${cuota.numero}`);
+          return !pagoCuota || pagoCuota.estado === "Pendiente";
+        });
         
         if (cuotasPendientes.length === 0) {
           setPagoUnicoPagado(true);
@@ -236,7 +243,8 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
           jugador_id: player.id,
           jugador_nombre: player.nombre,
           tipo_pago: "Plan Especial",
-          mes: proximaCuota.mes || `Cuota ${proximaCuota.numero}`,
+          mes: `Cuota ${proximaCuota.numero}`,
+          plan_especial_id: playerCustomPlan.id,
           cantidad: proximaCuota.cantidad
         });
         return;
@@ -410,7 +418,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
       return;
     }
 
-    // VALIDACIÓN INTELIGENTE: si existe un pago pendiente SIN justificante, actualizarlo
+    // VALIDACIÓN: si existe un pago pendiente SIN justificante, actualizarlo
     const pagoExistente = payments.find(p => 
       p.jugador_id === currentPayment.jugador_id &&
       p.mes === currentPayment.mes &&
@@ -419,22 +427,24 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
     );
 
     if (pagoExistente) {
-      // Si el pago existe pero NO tiene justificante, actualizarlo
+      // Si el pago existe pero NO tiene justificante Y está pendiente, actualizarlo
       if (!pagoExistente.justificante_url && pagoExistente.estado === "Pendiente") {
         console.log('🔄 [ParentPaymentForm] Actualizando pago pendiente existente:', pagoExistente.id);
         onSubmit({...currentPayment, id: pagoExistente.id, isUpdate: true});
         return;
       }
       
-      // Si ya tiene justificante, es duplicado real
-      console.log('🔴 [ParentPaymentForm] Pago duplicado con justificante:', pagoExistente);
-      toast.error(`❌ Ya existe un pago de ${currentPayment.mes} para este jugador (Estado: ${pagoExistente.estado})`, {
-        duration: 4000
-      });
-      return;
+      // Si ya tiene justificante o NO está pendiente, es duplicado
+      if (pagoExistente.estado !== "Pendiente") {
+        console.log('🔴 [ParentPaymentForm] Pago duplicado (ya está pagado o en revisión):', pagoExistente);
+        toast.error(`❌ Ya existe un pago de ${currentPayment.mes} para este jugador (Estado: ${pagoExistente.estado})`, {
+          duration: 4000
+        });
+        return;
+      }
     }
 
-    console.log('✅ [ParentPaymentForm] Validación pasada, creando pago nuevo:', currentPayment);
+    console.log('✅ [ParentPaymentForm] Validación pasada, creando/actualizando pago:', currentPayment);
     onSubmit(currentPayment);
   };
 
@@ -551,15 +561,26 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
                     );
 
                     if (playerCustomPlan && playerCustomPlan.cuotas) {
-                      // Si tiene plan especial, mostrar selector de cuotas del plan
-                      const cuotasPendientes = playerCustomPlan.cuotas.filter(c => c.pagada !== true);
+                      // Si tiene plan especial, consultar pagos reales de BD
+                      const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
+                      const planPayments = payments.filter(p => 
+                        p.jugador_id === selectedPlayer.id && 
+                        p.tipo_pago === "Plan Especial" &&
+                        p.temporada === temporadaActiva
+                      );
+                      
+                      // Encontrar cuotas que NO tienen pago o están pendientes
+                      const cuotasPendientes = playerCustomPlan.cuotas.filter(cuota => {
+                        const pagoCuota = planPayments.find(p => p.mes === `Cuota ${cuota.numero}`);
+                        return !pagoCuota || pagoCuota.estado === "Pendiente";
+                      });
                       
                       return (
                         <div className="space-y-2 md:col-span-2">
                           <Label>💰 Plan de Pago Personalizado</Label>
                           <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
                             <p className="text-sm font-bold text-purple-900 mb-2">
-                              Este jugador tiene un plan de {playerCustomPlan.cuotas.length} cuotas
+                              Este jugador tiene un plan de {playerCustomPlan.cuotas.length} cuotas • {cuotasPendientes.length} pendientes
                             </p>
                             <Select
                               value={currentPayment.mes}
@@ -571,7 +592,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
                               </SelectTrigger>
                               <SelectContent>
                                 {cuotasPendientes.map(cuota => (
-                                  <SelectItem key={cuota.numero} value={cuota.mes || `Cuota ${cuota.numero}`}>
+                                  <SelectItem key={cuota.numero} value={`Cuota ${cuota.numero}`}>
                                     Cuota {cuota.numero} - {cuota.cantidad.toFixed(2)}€
                                     {cuota.fecha_vencimiento && ` (vence ${new Date(cuota.fecha_vencimiento).toLocaleDateString('es-ES')})`}
                                   </SelectItem>
