@@ -113,28 +113,24 @@ export function calculatePaymentStats(allPayments, playerIds, customPlans = []) 
   let paymentsInReview = 0;
   
   playerIds.forEach(jugadorId => {
-    const playerPayments = allPayments.filter(p => p.jugador_id === jugadorId);
+    const playerPayments = allPayments.filter(p => p.jugador_id === jugadorId && p.is_deleted !== true);
     
     // Verificar si tiene plan especial
     const customPlan = getActiveCustomPlan(jugadorId, customPlans);
     
     if (customPlan && customPlan.cuotas) {
-      // Contar cuotas del plan
-      customPlan.cuotas.forEach(cuota => {
-        if (!cuota.pagada) {
-          const fechaVencimiento = new Date(cuota.fecha_vencimiento);
-          const now = new Date();
-          
-          if (now > fechaVencimiento) {
-            overduePayments++;
-          } else {
-            pendingPayments++;
-          }
-        }
+      // PLAN ESPECIAL: Solo contar cuotas del plan
+      // Filtrar pagos del plan y eliminar duplicados por mes
+      const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+      const seen = new Set();
+      const uniquePlanPayments = planPayments.filter(p => {
+        if (seen.has(p.mes)) return false;
+        seen.add(p.mes);
+        return true;
       });
-    } else {
-      // Lógica estándar
-      playerPayments.forEach(p => {
+      
+      // Contar pendientes y en revisión
+      uniquePlanPayments.forEach(p => {
         if (p.estado === "Pendiente") {
           if (isPaymentOverdue(p)) {
             overduePayments++;
@@ -145,6 +141,40 @@ export function calculatePaymentStats(allPayments, playerIds, customPlans = []) 
           paymentsInReview++;
         }
       });
+    } else {
+      // Verificar si tiene pago único
+      const hasPagoUnico = playerPayments.some(p => 
+        p.tipo_pago === "Único" || p.tipo_pago === "único"
+      );
+      
+      if (hasPagoUnico) {
+        // PAGO ÚNICO: Solo contar el pago único
+        const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+        if (pagoUnico) {
+          if (pagoUnico.estado === "Pendiente") {
+            if (isPaymentOverdue(pagoUnico)) {
+              overduePayments++;
+            } else {
+              pendingPayments++;
+            }
+          } else if (pagoUnico.estado === "En revisión") {
+            paymentsInReview++;
+          }
+        }
+      } else {
+        // TRES MESES: contar pagos pendientes
+        playerPayments.forEach(p => {
+          if (p.estado === "Pendiente") {
+            if (isPaymentOverdue(p)) {
+              overduePayments++;
+            } else {
+              pendingPayments++;
+            }
+          } else if (p.estado === "En revisión") {
+            paymentsInReview++;
+          }
+        });
+      }
     }
   });
   
