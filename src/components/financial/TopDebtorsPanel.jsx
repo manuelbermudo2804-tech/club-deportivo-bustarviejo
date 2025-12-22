@@ -6,11 +6,12 @@ import { AlertTriangle, TrendingDown, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
-export default function TopDebtorsPanel({ players, payments, activeSeason, getImportePorMes }) {
+export default function TopDebtorsPanel({ players, payments, activeSeason, getImportePorMes, customPlans = [] }) {
   if (!activeSeason) return null;
 
   const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
   const currentSeasonPlayers = players.filter(p => p.activo === true);
+  const currentSeasonPlans = customPlans.filter(p => p.temporada === activeSeason.temporada);
 
   // Calcular deuda de cada familia
   const familyDebts = {};
@@ -18,24 +19,48 @@ export default function TopDebtorsPanel({ players, payments, activeSeason, getIm
   currentSeasonPlayers.forEach(player => {
     const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
     
-    const hasPagoUnico = playerPayments.some(p => 
-      (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-      (p.estado === "Pagado" || p.estado === "En revisión")
+    // Verificar si tiene plan especial activo
+    const playerActivePlan = currentSeasonPlans.find(p => 
+      p.jugador_id === player.id && 
+      p.estado === "Activo"
     );
-    
-    if (hasPagoUnico) return;
-    
-    const mesesPagadosORevision = playerPayments
-      .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-      .map(p => p.mes);
-    
-    const allMonths = ["Junio", "Septiembre", "Diciembre"];
-    const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-    
+
     let deudaTotal = 0;
-    mesesFaltantes.forEach(mes => {
-      deudaTotal += getImportePorMes(player.deporte, mes);
-    });
+    let cuotasPendientes = 0;
+
+    if (playerActivePlan && playerActivePlan.cuotas) {
+      // PLAN ESPECIAL: Usar cuotas del plan
+      const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true);
+      cuotasPendientes = cuotasPendientesPlan.length;
+      cuotasPendientesPlan.forEach(cuota => {
+        deudaTotal += cuota.cantidad || 0;
+      });
+    } else {
+      // Lógica estándar
+      const hasPagoUnico = playerPayments.some(p => 
+        p.tipo_pago === "Único" || p.tipo_pago === "único"
+      );
+      
+      if (hasPagoUnico) {
+        const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+        if (pagoUnico && pagoUnico.estado === "Pendiente") {
+          deudaTotal = pagoUnico.cantidad || 0;
+          cuotasPendientes = 1;
+        }
+      } else {
+        const mesesPagadosORevision = playerPayments
+          .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+          .map(p => p.mes);
+        
+        const allMonths = ["Junio", "Septiembre", "Diciembre"];
+        const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+        
+        cuotasPendientes = mesesFaltantes.length;
+        mesesFaltantes.forEach(mes => {
+          deudaTotal += getImportePorMes(player.deporte, mes);
+        });
+      }
+    }
 
     if (deudaTotal > 0) {
       const key = player.email_padre;
@@ -50,7 +75,7 @@ export default function TopDebtorsPanel({ players, payments, activeSeason, getIm
       }
       familyDebts[key].jugadores.push(player.nombre);
       familyDebts[key].deuda += deudaTotal;
-      familyDebts[key].mesesPendientes += mesesFaltantes.length;
+      familyDebts[key].mesesPendientes += cuotasPendientes;
     }
   });
 
