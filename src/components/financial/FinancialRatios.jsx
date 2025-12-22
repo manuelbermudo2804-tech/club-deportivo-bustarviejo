@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Activity, TrendingUp, Shield, Zap } from "lucide-react";
+import { Activity, TrendingUp, Shield, Zap, Calendar } from "lucide-react";
 
 export default function FinancialRatios({ totalIngresos, totalPendiente, totalGastos, stats }) {
   // Ratio de liquidez (capacidad de pagar deudas a corto plazo)
