@@ -565,15 +565,15 @@ export default function TreasurerFinancialPanel() {
                       if (!activeSeason) return '0 cuotas';
                       const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
                       const currentSeasonPlayers = players.filter(p => p.activo === true);
+                      const currentSeasonPlans = customPlans.filter(p => p.temporada === activeSeason.temporada);
                       let cuotasPendientes = 0;
                       currentSeasonPlayers.forEach(player => {
                         const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
                         
                         // Verificar si tiene plan especial activo
-                        const playerActivePlan = customPlans.find(p => 
+                        const playerActivePlan = currentSeasonPlans.find(p => 
                           p.jugador_id === player.id && 
-                          p.estado === "Activo" &&
-                          p.temporada === activeSeason.temporada
+                          p.estado === "Activo"
                         );
 
                         if (playerActivePlan) {
@@ -882,16 +882,16 @@ export default function TreasurerFinancialPanel() {
                       if (!activeSeason) return 0;
                       const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
                       const currentSeasonPlayers = players.filter(p => p.activo === true);
+                      const currentSeasonPlans = customPlans.filter(p => p.temporada === activeSeason.temporada);
                       let cuotasPendientes = 0;
                       
                       currentSeasonPlayers.forEach(player => {
                         const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
                         
                         // Verificar si tiene plan especial activo
-                        const playerActivePlan = customPlans.find(p => 
+                        const playerActivePlan = currentSeasonPlans.find(p => 
                           p.jugador_id === player.id && 
-                          p.estado === "Activo" &&
-                          p.temporada === activeSeason.temporada
+                          p.estado === "Activo"
                         );
 
                         if (playerActivePlan) {
