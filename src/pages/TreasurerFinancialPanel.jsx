@@ -1130,6 +1130,7 @@ export default function TreasurerFinancialPanel() {
             payments={payments}
             activeSeason={activeSeason}
             getImportePorMes={getImportePorMes}
+            customPlans={customPlans}
           />
 
           {/* Desglose por Categorías */}
