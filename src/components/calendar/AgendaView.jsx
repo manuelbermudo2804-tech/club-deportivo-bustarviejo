@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Users } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Clock, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
