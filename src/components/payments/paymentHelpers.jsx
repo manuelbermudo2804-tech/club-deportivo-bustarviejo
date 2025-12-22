@@ -27,23 +27,126 @@ export function isPaymentOverdue(payment) {
 }
 
 /**
+ * Obtiene el plan de pago activo de un jugador (si existe)
+ */
+export function getActiveCustomPlan(jugadorId, customPlans, temporada) {
+  if (!customPlans || customPlans.length === 0) return null;
+  
+  return customPlans.find(plan => 
+    plan.jugador_id === jugadorId &&
+    plan.estado === "Activo" &&
+    (!temporada || plan.temporada === temporada)
+  );
+}
+
+/**
+ * Calcula cuántas cuotas debe tener un jugador
+ * Considera: plan especial > pago único > tres meses estándar
+ */
+export function getExpectedPaymentsCount(jugadorId, payments, customPlans, temporada) {
+  // 1. Verificar si tiene plan especial activo
+  const customPlan = getActiveCustomPlan(jugadorId, customPlans, temporada);
+  if (customPlan) {
+    return customPlan.cuotas?.length || customPlan.numero_cuotas || 0;
+  }
+  
+  // 2. Verificar si tiene pago único
+  const playerPayments = payments.filter(p => 
+    p.jugador_id === jugadorId &&
+    (!temporada || p.temporada === temporada) &&
+    p.is_deleted !== true
+  );
+  
+  const hasPagoUnico = playerPayments.some(p => 
+    p.tipo_pago === "Único" || p.tipo_pago === "único"
+  );
+  
+  if (hasPagoUnico) return 1;
+  
+  // 3. Por defecto: 3 cuotas
+  return 3;
+}
+
+/**
+ * Calcula cuántas cuotas están pendientes para un jugador
+ * Considera planes especiales, pago único y tres meses
+ */
+export function getPendingPaymentsCount(jugadorId, payments, customPlans, temporada) {
+  // 1. Verificar si tiene plan especial activo
+  const customPlan = getActiveCustomPlan(jugadorId, customPlans, temporada);
+  if (customPlan && customPlan.cuotas) {
+    const cuotasPendientes = customPlan.cuotas.filter(c => c.pagada !== true);
+    return cuotasPendientes.length;
+  }
+  
+  // 2. Lógica estándar
+  const playerPayments = payments.filter(p => 
+    p.jugador_id === jugadorId &&
+    (!temporada || p.temporada === temporada) &&
+    p.is_deleted !== true
+  );
+  
+  const hasPagoUnico = playerPayments.some(p => 
+    p.tipo_pago === "Único" || p.tipo_pago === "único"
+  );
+  
+  if (hasPagoUnico) {
+    const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+    return pagoUnico?.estado === "Pendiente" ? 1 : 0;
+  }
+  
+  // Tres meses: contar cuántos faltan
+  const pagadosORevision = playerPayments.filter(p => 
+    p.estado === "Pagado" || p.estado === "En revisión"
+  ).length;
+  
+  return Math.max(0, 3 - pagadosORevision);
+}
+
+/**
  * Calcula estadísticas de pagos para una lista de jugadores
  * Retorna: { pendingPayments, overduePayments, paymentsInReview }
  */
-export function calculatePaymentStats(allPayments, playerIds) {
-  const myPayments = allPayments.filter(p => playerIds.includes(p.jugador_id));
+export function calculatePaymentStats(allPayments, playerIds, customPlans = []) {
+  let pendingPayments = 0;
+  let overduePayments = 0;
+  let paymentsInReview = 0;
   
-  const pendingPayments = myPayments.filter(p => 
-    p.estado === "Pendiente" && !isPaymentOverdue(p)
-  ).length;
-  
-  const overduePayments = myPayments.filter(p => 
-    isPaymentOverdue(p)
-  ).length;
-  
-  const paymentsInReview = myPayments.filter(p => 
-    p.estado === "En revisión"
-  ).length;
+  playerIds.forEach(jugadorId => {
+    const playerPayments = allPayments.filter(p => p.jugador_id === jugadorId);
+    
+    // Verificar si tiene plan especial
+    const customPlan = getActiveCustomPlan(jugadorId, customPlans);
+    
+    if (customPlan && customPlan.cuotas) {
+      // Contar cuotas del plan
+      customPlan.cuotas.forEach(cuota => {
+        if (!cuota.pagada) {
+          const fechaVencimiento = new Date(cuota.fecha_vencimiento);
+          const now = new Date();
+          
+          if (now > fechaVencimiento) {
+            overduePayments++;
+          } else {
+            pendingPayments++;
+          }
+        }
+      });
+    } else {
+      // Lógica estándar
+      playerPayments.forEach(p => {
+        if (p.estado === "Pendiente") {
+          if (isPaymentOverdue(p)) {
+            overduePayments++;
+          } else {
+            pendingPayments++;
+          }
+        } else if (p.estado === "En revisión") {
+          paymentsInReview++;
+        }
+      });
+    }
+  });
   
   return {
     pendingPayments,

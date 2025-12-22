@@ -9,6 +9,7 @@ import PlayerDetailDialog from "./PlayerDetailDialog";
 import PlayerDocumentDownload from "./PlayerDocumentDownload";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { getActiveCustomPlan, getPendingPaymentsCount } from "../payments/paymentHelpers";
 
 const categoryColors = {
   "Prebenjamín": "bg-purple-100 text-purple-700",
@@ -47,7 +48,7 @@ const DIAS_ORDEN = {
   "Viernes": 5
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [] }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showRenewalSuggestion, setShowRenewalSuggestion] = useState(false);
   const [confirmingNotRenew, setConfirmingNotRenew] = useState(false);
@@ -174,20 +175,33 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     return normalizedPaymentSeason === normalizedCurrentSeason;
   });
   
-  // Si hay ALGÚN pago de tipo único (en cualquier estado), es pago único
-  const hasPagoUnico = playerPayments.some(p => 
-    p.tipo_pago === "Único" || p.tipo_pago === "único"
-  );
+  // Verificar si tiene plan especial activo
+  const customPlan = getActiveCustomPlan(player.id, customPlans, normalizedCurrentSeason);
   
-  // Contar estados de pago
-  const paidCount = playerPayments.filter(p => p.estado === "Pagado").length;
-  const reviewCount = playerPayments.filter(p => p.estado === "En revisión").length;
+  let expectedPayments, paidCount, reviewCount, pendingCount, allPaid;
   
-  // Calcular cuotas esperadas (3 para tres meses, 1 para único)
-  const expectedPayments = hasPagoUnico ? 1 : 3;
-  const allPaid = hasPagoUnico 
-    ? playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único")?.estado === "Pagado"
-    : paidCount >= 3;
+  if (customPlan && customPlan.cuotas) {
+    // Usar cuotas del plan especial
+    expectedPayments = customPlan.cuotas.length;
+    paidCount = customPlan.cuotas.filter(c => c.pagada === true).length;
+    reviewCount = 0; // Los planes no tienen estado "en revisión"
+    pendingCount = customPlan.cuotas.filter(c => c.pagada !== true).length;
+    allPaid = paidCount === expectedPayments;
+  } else {
+    // Lógica estándar: pago único o tres meses
+    const hasPagoUnico = playerPayments.some(p => 
+      p.tipo_pago === "Único" || p.tipo_pago === "único"
+    );
+    
+    expectedPayments = hasPagoUnico ? 1 : 3;
+    paidCount = playerPayments.filter(p => p.estado === "Pagado").length;
+    reviewCount = playerPayments.filter(p => p.estado === "En revisión").length;
+    pendingCount = getPendingPaymentsCount(player.id, payments, customPlans, normalizedCurrentSeason);
+    allPaid = hasPagoUnico 
+      ? playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único")?.estado === "Pagado"
+      : paidCount >= 3;
+  }
+  
   const hasPending = !allPaid && (paidCount + reviewCount) < expectedPayments;
   
   // Próximo evento (partido/convocatoria) del jugador
@@ -715,17 +729,62 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               <span className="text-xs font-bold text-slate-700">💳 Pagos {currentSeason}:</span>
               {allPaid ? (
                 <Badge className="bg-green-100 text-green-700 text-xs">✅ Completo</Badge>
-              ) : playerPayments.length === 0 ? (
+              ) : playerPayments.length === 0 && !customPlan ? (
                 <Badge className="bg-slate-200 text-slate-600 text-xs">Sin registrar</Badge>
-              ) : hasPagoUnico ? (
-                <Badge className="bg-yellow-100 text-yellow-700 text-xs">0/1</Badge>
               ) : (
-                <Badge className="bg-yellow-100 text-yellow-700 text-xs">{paidCount}/3</Badge>
+                <Badge className="bg-yellow-100 text-yellow-700 text-xs">{paidCount}/{expectedPayments}</Badge>
               )}
             </div>
             
-            {/* Barra única con 3 segmentos lado a lado */}
-            {!hasPagoUnico && (
+            {/* Si tiene plan especial */}
+            {customPlan && customPlan.cuotas ? (
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 mb-1">
+                  <Heart className="w-3 h-3 text-purple-600" />
+                  <span className="text-xs font-bold text-purple-900">Plan Especial ({customPlan.cuotas.length} cuotas)</span>
+                </div>
+                <div className="flex gap-1 h-6 rounded-lg overflow-hidden bg-slate-200">
+                  {customPlan.cuotas.map((cuota, idx) => {
+                    const isPaid = cuota.pagada === true;
+                    return (
+                      <div 
+                        key={idx}
+                        className={`flex-1 flex items-center justify-center text-[10px] font-bold ${
+                          isPaid ? 'bg-green-500 text-white' : 'bg-red-400 text-white'
+                        }`}
+                        title={`Cuota ${cuota.numero}: ${cuota.cantidad}€`}
+                      >
+                        {cuota.numero} {isPaid ? '✓' : '✗'}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único") ? (
+              /* Si es pago único */
+              <div className="flex h-6 rounded-lg overflow-hidden">
+                {(() => {
+                  const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+                  const isPaid = pagoUnico?.estado === "Pagado";
+                  const isReview = pagoUnico?.estado === "En revisión";
+                  const isPending = pagoUnico?.estado === "Pendiente";
+                  
+                  return (
+                    <div className={`flex-1 flex items-center justify-center text-xs font-bold ${
+                      isPaid ? 'bg-green-500 text-white' :
+                      isReview ? 'bg-orange-400 text-white animate-pulse' :
+                      isPending ? 'bg-red-400 text-white' :
+                      'bg-red-400 text-white'
+                    }`}>
+                      {isPaid ? '✅ Pago Único Completo' : 
+                       isReview ? '⏳ Pago Único en Revisión' : 
+                       '✗ Pago Único Pendiente'}
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              /* Barra estándar con 3 segmentos lado a lado */
               <div className="flex gap-1 h-6 rounded-lg overflow-hidden bg-slate-200">
                 {["Jun", "Sep", "Dic"].map((mes, idx) => {
                   const mesCompleto = ["Junio", "Septiembre", "Diciembre"][idx];
@@ -749,31 +808,6 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                     </div>
                   );
                 })}
-              </div>
-            )}
-            
-            {/* Si es pago único */}
-            {hasPagoUnico && (
-              <div className="flex h-6 rounded-lg overflow-hidden">
-                {(() => {
-                  const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
-                  const isPaid = pagoUnico?.estado === "Pagado";
-                  const isReview = pagoUnico?.estado === "En revisión";
-                  const isPending = pagoUnico?.estado === "Pendiente";
-                  
-                  return (
-                    <div className={`flex-1 flex items-center justify-center text-xs font-bold ${
-                      isPaid ? 'bg-green-500 text-white' :
-                      isReview ? 'bg-orange-400 text-white animate-pulse' :
-                      isPending ? 'bg-red-400 text-white' :
-                      'bg-red-400 text-white'
-                    }`}>
-                      {isPaid ? '✅ Pago Único Completo' : 
-                       isReview ? '⏳ Pago Único en Revisión' : 
-                       '✗ Pago Único Pendiente'}
-                    </div>
-                  );
-                })()}
               </div>
             )}
           </div>
