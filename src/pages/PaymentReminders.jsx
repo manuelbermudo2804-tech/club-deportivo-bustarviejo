@@ -147,6 +147,71 @@ export default function PaymentReminders() {
         normalizeSeason(p.temporada) === currentSeason
       );
 
+      // Verificar si tiene plan especial activo
+      const playerActivePlan = customPlans.find(p => 
+        p.jugador_id === player.id && 
+        p.estado === "Activo" &&
+        normalizeSeason(p.temporada) === currentSeason
+      );
+
+      if (playerActivePlan) {
+        console.log(`[PLAN ESPECIAL] ${player.nombre} tiene plan activo con ${playerActivePlan.numero_cuotas} cuotas`);
+        
+        // Filtrar solo pagos del plan especial
+        const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+        
+        // Eliminar duplicados por mes
+        const seen = new Set();
+        const uniquePlanPayments = planPayments.filter(p => {
+          if (seen.has(p.mes)) return false;
+          seen.add(p.mes);
+          return true;
+        });
+        
+        // Contar cuántas cuotas están pagadas o en revisión
+        const cuotasPagadas = uniquePlanPayments.filter(p => 
+          p.estado === "Pagado" || p.estado === "En revisión"
+        ).length;
+        
+        // Cuotas pendientes
+        const cuotasPendientes = uniquePlanPayments.filter(p => p.estado === "Pendiente");
+        
+        console.log(`[PLAN ESPECIAL] ${player.nombre}: ${cuotasPagadas} pagadas, ${cuotasPendientes.length} pendientes`);
+        
+        // Si no hay cuotas pendientes, no tiene pagos pendientes
+        if (cuotasPendientes.length === 0) {
+          familyMap[familyEmail].jugadores.push({
+            id: player.id,
+            nombre: player.nombre,
+            deporte: player.deporte,
+            foto_url: player.foto_url,
+            pendingMonths: [],
+            totalDue: 0,
+            hasPendingPayments: false
+          });
+          return;
+        }
+        
+        // Mostrar solo las cuotas pendientes
+        const pendingMonths = cuotasPendientes.map(p => ({
+          mes: p.mes,
+          cantidad: p.cantidad,
+          payment_id: p.id,
+          isVirtual: false
+        }));
+        
+        familyMap[familyEmail].jugadores.push({
+          id: player.id,
+          nombre: player.nombre,
+          deporte: player.deporte,
+          foto_url: player.foto_url,
+          pendingMonths: pendingMonths,
+          totalDue: pendingMonths.reduce((sum, m) => sum + m.cantidad, 0),
+          hasPendingPayments: true
+        });
+        return;
+      }
+
       // Detectar si tiene pago único (pagado, en revisión O pendiente)
       const hasPagoUnico = playerPayments.some(p => 
         p.tipo_pago === "Único" || p.tipo_pago === "único"
