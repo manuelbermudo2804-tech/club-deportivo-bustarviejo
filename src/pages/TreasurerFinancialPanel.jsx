@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -159,6 +158,21 @@ export default function TreasurerFinancialPanel() {
     return defaultValues[mes] || 70;
   };
 
+  // Normaliza temporadas ("2024-2025" vs "2024/2025") y utilidades de temporada
+  const normalizeSeasonKey = (s) => (s ? String(s).replace(/[^\d]/g, "") : "");
+  const seasonMatches = (a, b) => {
+    if (!a || !b) return false;
+    return normalizeSeasonKey(a) === normalizeSeasonKey(b);
+  };
+  const isInSeason = (dateStr, season) => {
+    if (!dateStr || !season) return false;
+    const d = new Date(dateStr);
+    const start = season?.fecha_inicio ? new Date(season.fecha_inicio) : null;
+    const end = season?.fecha_fin ? new Date(season.fecha_fin) : null;
+    if (start && end) return d >= start && d <= end;
+    return true; // si no hay fechas configuradas, no filtramos
+  };
+
   const createBudgetMutation = useMutation({
     mutationFn: (data) => base44.entities.Budget.create(data),
     onSuccess: () => {
@@ -213,12 +227,12 @@ export default function TreasurerFinancialPanel() {
       patrociniosTotal: 0
     };
 
-    const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
+    const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason.temporada) && p.is_deleted !== true);
     const currentSeasonPlayers = players.filter(p => p.activo === true);
-    const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason.temporada);
-    const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason.temporada);
-    const currentSeasonMembers = clubMembers.filter(m => m.temporada === activeSeason.temporada);
-    const currentSeasonPlans = customPlans.filter(p => p.temporada === activeSeason.temporada);
+    const currentSeasonClothing = clothingOrders.filter(o => seasonMatches(o.temporada, activeSeason.temporada) || (!o.temporada && isInSeason(o.created_date, activeSeason)));
+    const currentSeasonLottery = lotteryOrders.filter(o => seasonMatches(o.temporada, activeSeason.temporada) || (!o.temporada && isInSeason(o.created_date, activeSeason)));
+    const currentSeasonMembers = clubMembers.filter(m => seasonMatches(m.temporada, activeSeason.temporada));
+    const currentSeasonPlans = customPlans.filter(p => seasonMatches(p.temporada, activeSeason.temporada));
 
     // CÁLCULO DE PENDIENTES
     let totalPendiente = 0;
@@ -285,7 +299,7 @@ export default function TreasurerFinancialPanel() {
       sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
       sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago === "Pendiente").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
       
-      patrociniosTotal: sponsors.filter(s => s.estado === "Activo" && s.temporada === activeSeason.temporada).reduce((sum, s) => sum + (s.monto || 0), 0),
+      patrociniosTotal: sponsors.filter(s => s.estado === "Activo" && seasonMatches(s.temporada, activeSeason.temporada)).reduce((sum, s) => sum + (s.monto || 0), 0),
     };
   }, [activeSeason, payments, players, clothingOrders, lotteryOrders, clubMembers, sponsors, customPlans]);
 
@@ -553,9 +567,9 @@ export default function TreasurerFinancialPanel() {
                   <p className="text-xs text-orange-100">
                     {(() => {
                       if (!activeSeason) return '0 cuotas';
-                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
+                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason.temporada) && p.is_deleted !== true);
                       const currentSeasonPlayers = players.filter(p => p.activo === true);
-                      const currentSeasonPlans = customPlans.filter(p => p.temporada === activeSeason.temporada);
+                      const currentSeasonPlans = customPlans.filter(p => seasonMatches(p.temporada, activeSeason.temporada));
                       let cuotasPendientes = 0;
                       currentSeasonPlayers.forEach(player => {
                         const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
@@ -610,7 +624,7 @@ export default function TreasurerFinancialPanel() {
                 <div className="mt-3 pt-3 border-t border-white/20">
                   <p className="text-xs text-yellow-100">
                     {(() => {
-                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada && p.is_deleted !== true);
+                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason?.temporada) && p.is_deleted !== true);
                       return currentSeasonPayments.filter(p => p.estado === "En revisión").length;
                     })()} pagos esperando validación
                   </p>
@@ -845,7 +859,7 @@ export default function TreasurerFinancialPanel() {
                 <div className="text-center">
                   <p className="text-2xl font-bold text-green-700">
                     {(() => {
-                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada && p.is_deleted !== true);
+                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason?.temporada) && p.is_deleted !== true);
                       return currentSeasonPayments.filter(p => p.estado === "Pagado").length;
                     })()}
                   </p>
@@ -854,7 +868,7 @@ export default function TreasurerFinancialPanel() {
                 <div className="text-center">
                   <p className="text-2xl font-bold text-orange-700">
                     {(() => {
-                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason?.temporada && p.is_deleted !== true);
+                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason?.temporada) && p.is_deleted !== true);
                       return currentSeasonPayments.filter(p => p.estado === "En revisión").length;
                     })()}
                   </p>
@@ -864,9 +878,9 @@ export default function TreasurerFinancialPanel() {
                   <p className="text-2xl font-bold text-red-700">
                     {(() => {
                       if (!activeSeason) return 0;
-                      const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
+                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason.temporada) && p.is_deleted !== true);
                       const currentSeasonPlayers = players.filter(p => p.activo === true);
-                      const currentSeasonPlans = customPlans.filter(p => p.temporada === activeSeason.temporada);
+                      const currentSeasonPlans = customPlans.filter(p => seasonMatches(p.temporada, activeSeason.temporada));
                       let cuotasPendientes = 0;
                       
                       currentSeasonPlayers.forEach(player => {
