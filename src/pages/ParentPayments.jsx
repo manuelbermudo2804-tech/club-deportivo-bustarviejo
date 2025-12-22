@@ -553,7 +553,7 @@ export default function ParentPayments() {
 
               // Verificar si tiene plan personalizado
               const playerCustomPlan = customPlans.find(p => 
-                p.jugador_id === player.id && p.activo === true
+                p.jugador_id === player.id && p.estado === "Activo"
               );
 
               // Determinar tipo de pago - verificar si ALGÚN pago es de tipo único
@@ -569,9 +569,9 @@ export default function ParentPayments() {
 
               // Determinar los meses que debería tener este jugador
               let allMonths;
-              if (playerCustomPlan) {
+              if (playerCustomPlan && playerCustomPlan.cuotas) {
                 // Si tiene plan personalizado, usar esos meses
-                allMonths = playerCustomPlan.cuotas_personalizadas.map(c => c.mes);
+                allMonths = playerCustomPlan.cuotas.map(c => c.mes || `Cuota ${c.numero}`);
               } else {
                 // Lógica estándar (pago único vs tres meses)
                 allMonths = hasPagoUnico
@@ -591,9 +591,9 @@ export default function ParentPayments() {
                 
                 // Solo crear virtual si NO existe ningún pago para este mes
                 let cantidad;
-                if (playerCustomPlan) {
+                if (playerCustomPlan && playerCustomPlan.cuotas) {
                   // Usar cantidad del plan personalizado
-                  const cuotaPlan = playerCustomPlan.cuotas_personalizadas.find(c => c.mes === mes);
+                  const cuotaPlan = playerCustomPlan.cuotas.find(c => (c.mes === mes) || (`Cuota ${c.numero}` === mes));
                   cantidad = cuotaPlan?.cantidad || 0;
                 } else {
                   const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);

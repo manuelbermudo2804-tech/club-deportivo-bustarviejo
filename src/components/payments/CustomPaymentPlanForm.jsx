@@ -6,10 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Trash2, Calendar, Euro, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Calendar, Euro, AlertTriangle, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { getCuotasPorCategoriaSync } from "./paymentAmounts";
 
-export default function CustomPaymentPlanForm({ open, onClose, player, existingPlan, onSubmit, isSubmitting }) {
+export default function CustomPaymentPlanForm({ open, onClose, player, existingPlan, onSubmit, isSubmitting, payments = [] }) {
   const [formData, setFormData] = useState({
     deuda_original: 0,
     deuda_condonada: 0,
@@ -22,6 +23,7 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
 
   const [cuotas, setCuotas] = useState([]);
 
+  // Calcular deuda original automáticamente cuando se selecciona el jugador
   useEffect(() => {
     if (existingPlan) {
       setFormData({
@@ -34,10 +36,13 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
         mensaje_para_familia: existingPlan.mensaje_para_familia || ""
       });
       setCuotas(existingPlan.cuotas || []);
-    } else {
-      // Reset
+    } else if (player) {
+      // CALCULAR DEUDA AUTOMÁTICAMENTE
+      const cuotas = getCuotasPorCategoriaSync(player.deporte);
+      const deudaTotal = cuotas.total;
+      
       setFormData({
-        deuda_original: 0,
+        deuda_original: deudaTotal,
         deuda_condonada: 0,
         numero_cuotas: 3,
         motivo_plan: "Dificultad Económica",
@@ -47,7 +52,7 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
       });
       setCuotas([]);
     }
-  }, [existingPlan, player]);
+  }, [existingPlan, player, payments]);
 
   // Generar cuotas automáticamente cuando cambia el número
   const handleGenerateCuotas = () => {
@@ -83,6 +88,45 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
     });
     
     setCuotas(nuevasCuotas);
+  };
+
+  // Planes rápidos pre-concebidos
+  const handleQuickPlan = (meses) => {
+    setFormData({...formData, numero_cuotas: meses});
+    
+    const deudaFinal = formData.deuda_original - formData.deuda_condonada;
+    const cuotaMensual = Math.round((deudaFinal / meses) * 100) / 100;
+    
+    const nuevasCuotas = [];
+    let total = 0;
+    
+    for (let i = 0; i < meses - 1; i++) {
+      const vencimiento = new Date();
+      vencimiento.setMonth(vencimiento.getMonth() + i + 1);
+      
+      nuevasCuotas.push({
+        numero: i + 1,
+        cantidad: cuotaMensual,
+        fecha_vencimiento: vencimiento.toISOString().split('T')[0],
+        pagada: false
+      });
+      total += cuotaMensual;
+    }
+    
+    // Última cuota ajustada
+    const ultimaCuota = Math.round((deudaFinal - total) * 100) / 100;
+    const vencimientoUltima = new Date();
+    vencimientoUltima.setMonth(vencimientoUltima.getMonth() + meses);
+    
+    nuevasCuotas.push({
+      numero: meses,
+      cantidad: ultimaCuota,
+      fecha_vencimiento: vencimientoUltima.toISOString().split('T')[0],
+      pagada: false
+    });
+    
+    setCuotas(nuevasCuotas);
+    toast.success(`Plan de ${meses} cuotas generado automáticamente`);
   };
 
   const handleSubmit = (e) => {
@@ -162,6 +206,12 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
             <CardContent className="pt-4 space-y-4">
               <h3 className="font-bold text-purple-900">📊 Deuda</h3>
               
+              <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  ℹ️ La deuda se calculó automáticamente según la categoría del jugador
+                </p>
+              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Deuda Original (€)</label>
@@ -172,6 +222,7 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
                     value={formData.deuda_original}
                     onChange={(e) => setFormData({...formData, deuda_original: parseFloat(e.target.value) || 0})}
                     required
+                    className="bg-blue-50 font-bold"
                   />
                 </div>
                 <div>
@@ -198,31 +249,47 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
             </CardContent>
           </Card>
 
+          {/* Planes Rápidos */}
+          <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+            <CardContent className="pt-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-green-600" />
+                <h3 className="font-bold text-green-900">⚡ Planes Rápidos</h3>
+              </div>
+              <p className="text-xs text-slate-600">Selecciona un plan pre-configurado</p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[3, 6, 9, 12].map(meses => {
+                  const cuotaMensual = (deudaFinal / meses).toFixed(2);
+                  return (
+                    <Button
+                      key={meses}
+                      type="button"
+                      onClick={() => handleQuickPlan(meses)}
+                      variant="outline"
+                      className="flex-col h-auto py-3 hover:bg-green-100 hover:border-green-400"
+                      disabled={formData.deuda_original <= 0}
+                    >
+                      <span className="text-2xl font-bold text-green-700">{meses}</span>
+                      <span className="text-xs text-slate-600">cuotas de</span>
+                      <span className="text-sm font-bold text-slate-900">{cuotaMensual}€</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Cuotas */}
-          <Card className="border-2 border-green-200">
+          <Card className="border-2 border-blue-200">
             <CardContent className="pt-4 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-green-900">💰 Cuotas del Plan</h3>
-                <div className="flex items-center gap-2">
-                  <Input 
-                    type="number"
-                    min="1"
-                    max="12"
-                    value={formData.numero_cuotas}
-                    onChange={(e) => setFormData({...formData, numero_cuotas: parseInt(e.target.value) || 1})}
-                    className="w-20"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleGenerateCuotas}
-                    variant="outline"
-                    size="sm"
-                    disabled={formData.deuda_original <= 0}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Generar
-                  </Button>
-                </div>
+                <h3 className="font-bold text-blue-900">💰 Cuotas Generadas</h3>
+                {cuotas.length > 0 && (
+                  <Badge className="bg-blue-100 text-blue-800">
+                    {cuotas.length} cuotas programadas
+                  </Badge>
+                )}
               </div>
 
               {cuotas.length > 0 ? (

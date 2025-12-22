@@ -1338,6 +1338,7 @@ export default function Payments() {
         }}
         player={selectedPlayerForPlan}
         existingPlan={editingPlan}
+        payments={payments}
         onSubmit={(planData) => {
           if (editingPlan) {
             updateCustomPlanMutation.mutate({ id: editingPlan.id, planData });
