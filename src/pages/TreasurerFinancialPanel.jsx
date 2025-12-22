@@ -287,9 +287,9 @@ export default function TreasurerFinancialPanel() {
       cuotasPendientes: totalPendiente,
       cuotasEnRevision: currentSeasonPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0),
       
-      ropaTotal: currentSeasonClothing.reduce((sum, o) => sum + (o.precio_final || 0), 0),
-      ropaPagada: currentSeasonClothing.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.precio_final || 0), 0),
-      ropaPendiente: currentSeasonClothing.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.precio_final || 0), 0),
+      ropaTotal: currentSeasonClothing.reduce((sum, o) => sum + ((o.precio_final ?? o.precio_total) || 0), 0),
+      ropaPagada: currentSeasonClothing.filter(o => (o.pagado === true) || o.estado === "Entregado" || o.estado === "Confirmado").reduce((sum, o) => sum + ((o.precio_final ?? o.precio_total) || 0), 0),
+      ropaPendiente: currentSeasonClothing.filter(o => !((o.pagado === true) || o.estado === "Entregado" || o.estado === "Confirmado")).reduce((sum, o) => sum + ((o.precio_final ?? o.precio_total) || 0), 0),
       
       loteriaTotal: currentSeasonLottery.reduce((sum, o) => sum + (o.total || 0), 0),
       loteriaPagada: currentSeasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0),
