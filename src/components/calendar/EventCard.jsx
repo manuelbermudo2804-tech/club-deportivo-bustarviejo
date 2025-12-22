@@ -109,7 +109,7 @@ export default function EventCard({ event, onEdit, isAdmin, onConfirm, myPlayers
 
           <div className="space-y-1 text-xs border-t border-slate-100 pt-2">
             <div className="flex items-center gap-1.5 text-slate-700">
-              <Calendar className="w-3 h-3 text-orange-600 flex-shrink-0" />
+              <CalendarIcon className="w-3 h-3 text-orange-600 flex-shrink-0" />
               <span className="font-medium">
                 {format(new Date(event.fecha + 'T00:00:00'), "dd MMM yyyy", { locale: es })}
               </span>
