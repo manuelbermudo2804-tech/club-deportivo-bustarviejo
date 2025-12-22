@@ -525,6 +525,18 @@ export default function Payments() {
         (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
       );
       
+      // Verificar si tiene plan especial
+      const hasPlanEspecial = playerPayments.some(p => p.tipo_pago === "Plan Especial");
+      
+      if (hasPlanEspecial) {
+        // Contar cuotas pendientes del plan especial
+        const cuotasPendientes = playerPayments.filter(p => 
+          p.tipo_pago === "Plan Especial" && p.estado === "Pendiente"
+        ).length;
+        totalPendientes += cuotasPendientes;
+        return;
+      }
+      
       // Si hay ALGÚN pago de tipo único (en cualquier estado), es pago único
       const hasPagoUnico = playerPayments.some(p => 
         p.tipo_pago === "Único" || p.tipo_pago === "único"
@@ -568,6 +580,31 @@ export default function Payments() {
         (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
       );
       
+      // Verificar si tiene plan especial
+      const hasPlanEspecial = playerPayments.some(p => p.tipo_pago === "Plan Especial");
+      
+      if (hasPlanEspecial) {
+        // Para planes especiales, contar cuotas vencidas comparando con fecha_vencimiento
+        const plan = customPlans.find(p => 
+          p.jugador_id === player.id && 
+          p.estado === "Activo" &&
+          (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
+        );
+        
+        if (plan && plan.cuotas) {
+          const now = new Date();
+          plan.cuotas.forEach(cuota => {
+            const vencimiento = new Date(cuota.fecha_vencimiento);
+            const pagoCuota = playerPayments.find(p => p.mes === `Cuota ${cuota.numero}`);
+            
+            if (now > vencimiento && (!pagoCuota || pagoCuota.estado === "Pendiente")) {
+              totalVencidos++;
+            }
+          });
+        }
+        return;
+      }
+      
       // Si hay ALGÚN pago de tipo único (en cualquier estado), es pago único
       const hasPagoUnico = playerPayments.some(p => 
         p.tipo_pago === "Único" || p.tipo_pago === "único"
@@ -600,7 +637,7 @@ export default function Payments() {
     });
     
     return totalVencidos;
-  }, [players, payments, temporadaFilter]);
+  }, [players, payments, temporadaFilter, customPlans]);
   
   const overduePayments = (payments || []).filter(p => {
     if (p.estado === "Pagado") return false;
@@ -1109,22 +1146,21 @@ export default function Payments() {
                       // Calcular cuántos pagos REALMENTE faltan
                       const totalPaymentsDue = pendingPayments.length;
                       
-                      // Total pendiente en euros - calcular basado en meses que faltan
-                      let totalPending = 0;
-                      if (!hasPagoUnico && totalPaymentsDue > 0) {
-                        const playerPaymentsTemporada = payments.filter(p => 
-                          p.jugador_id === player.id && 
-                          matchTemporada(p.temporada, temporadaFilter)
-                        );
-                        const mesesConPagoOK = playerPaymentsTemporada
-                          .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
-                          .map(p => p.mes);
-                        const mesesPendientes = allMonths.filter(mes => !mesesConPagoOK.includes(mes));
-                        
-                        mesesPendientes.forEach(mes => {
-                          totalPending += getImportePorMes(player.deporte, mes);
-                        });
+                      // Total pendiente en euros - calcular basado en pagos pendientes
+                      const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+                      
+                      // Calcular progreso - cuántas cuotas espera vs cuántas ha pagado
+                      let totalCuotasEsperadas;
+                      if (hasPlanEspecial && playerCustomPlan) {
+                        totalCuotasEsperadas = playerCustomPlan.numero_cuotas || playerCustomPlan.cuotas?.length || 6;
+                      } else if (hasPagoUnico) {
+                        totalCuotasEsperadas = 1;
+                      } else {
+                        totalCuotasEsperadas = 3;
                       }
+                      
+                      const cuotasPagadas = paidPayments.length;
+                      const porcentajePagado = totalCuotasEsperadas > 0 ? Math.round((cuotasPagadas / totalCuotasEsperadas) * 100) : 0;
 
                       return (
                         <Card key={player.id} className="border hover:shadow-lg transition-shadow">
@@ -1158,6 +1194,16 @@ export default function Payments() {
                             </div>
                           </CardHeader>
                           <CardContent className="p-3 lg:p-4">
+                            {/* Alerta de plan especial */}
+                            {playerCustomPlan && (
+                              <div className="mb-3 p-2 bg-purple-50 border-2 border-purple-300 rounded-lg">
+                                <p className="text-xs font-bold text-purple-900">💰 Plan de Pago Personalizado</p>
+                                <p className="text-xs text-purple-700 mt-1">
+                                  {playerCustomPlan.numero_cuotas} cuotas de {(playerCustomPlan.deuda_final / playerCustomPlan.numero_cuotas).toFixed(2)}€
+                                </p>
+                              </div>
+                            )}
+                            
                             <div className="grid grid-cols-3 gap-2 mb-3">
                               <div className="bg-red-50 rounded p-2 border border-red-200">
                                 <p className="text-[10px] lg:text-xs text-red-700">Pendientes</p>
@@ -1173,7 +1219,31 @@ export default function Payments() {
                               <div className="bg-green-50 rounded p-2 border border-green-200">
                                 <p className="text-[10px] lg:text-xs text-green-700">Pagados</p>
                                 <p className="text-lg lg:text-xl font-bold text-green-600">{paidPayments.length}</p>
+                                <p className="text-[10px] text-green-600">{cuotasPagadas}/{totalCuotasEsperadas}</p>
                               </div>
+                            </div>
+                            
+                            {/* Barra de progreso adaptada */}
+                            <div className="mb-3">
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="text-slate-600">
+                                  {hasPlanEspecial ? "Progreso Plan Especial" : hasPagoUnico ? "Pago Único" : "Progreso Cuotas"}
+                                </span>
+                                <span className="font-bold text-slate-900">{porcentajePagado}%</span>
+                              </div>
+                              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                <div 
+                                  className={`h-full transition-all duration-500 ${
+                                    porcentajePagado === 100 ? 'bg-green-500' : 
+                                    porcentajePagado >= 50 ? 'bg-orange-500' : 'bg-red-500'
+                                  }`}
+                                  style={{ width: `${porcentajePagado}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-slate-500 mt-1">
+                                {cuotasPagadas} de {totalCuotasEsperadas} cuotas pagadas
+                                {totalPaymentsDue > 0 && ` • ${totalPaymentsDue} pendiente${totalPaymentsDue > 1 ? 's' : ''}`}
+                              </p>
                             </div>
 
                             <div className="space-y-1.5">
