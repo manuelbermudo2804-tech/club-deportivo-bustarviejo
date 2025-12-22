@@ -1156,9 +1156,9 @@ export default function Payments() {
                         displayPayments = displayPayments.filter(p => p.estado === estadoFilter);
                       }
                       
-                      // Contar pagos por estado
-                      const reviewPayments = displayPayments.filter(p => p.estado === "En revisión");
-                      const paidPayments = displayPayments.filter(p => p.estado === "Pagado");
+                      // Contar pagos por estado - SOLO pagos NO virtuales
+                      const reviewPayments = displayPayments.filter(p => !p.isVirtual && p.estado === "En revisión");
+                      const paidPayments = displayPayments.filter(p => !p.isVirtual && p.estado === "Pagado");
                       const pendingPayments = displayPayments.filter(p => p.estado === "Pendiente");
                       
                       // Calcular cuántos pagos REALMENTE faltan
