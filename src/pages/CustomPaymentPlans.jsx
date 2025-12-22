@@ -39,7 +39,29 @@ export default function CustomPaymentPlans() {
         fecha_aprobacion: new Date().toISOString()
       });
     },
-    onSuccess: () => {
+    onSuccess: async (createdPlan, variables) => {
+      // Archivar pagos previos (Único o Tres meses) del jugador en la misma temporada
+      try {
+        const user = await base44.auth.me();
+        const jugadorId = createdPlan?.jugador_id || variables?.jugador_id;
+        const temporada = createdPlan?.temporada || variables?.temporada;
+        if (jugadorId && temporada) {
+          const allPayments = await base44.entities.Payment.list();
+          const playerSeasonPayments = allPayments.filter(p => p.jugador_id === jugadorId && p.temporada === temporada && p.is_deleted !== true);
+          const toArchive = playerSeasonPayments.filter(p => {
+            const tipo = (p.tipo_pago || '').toLowerCase();
+            return tipo.includes('único') || tipo.includes('unico') || tipo.includes('tres meses');
+          });
+          for (const p of toArchive) {
+            await base44.entities.Payment.update(p.id, {
+              is_deleted: true,
+              deleted_by: user.email,
+              deleted_date: new Date().toISOString(),
+              deleted_reason: 'Reemplazado por Plan Especial',
+            });
+          }
+        }
+      } catch (e) { console.log('Cleanup pagos previos falló:', e); }
       queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
       setShowForm(false);
       setSelectedPlayer(null);
