@@ -885,15 +885,9 @@ export default function TreasurerFinancialPanel() {
                           p.estado === "Activo"
                         );
 
-                        if (playerActivePlan) {
-                          const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
-                          const seen = new Set();
-                          const uniquePlanPayments = planPayments.filter(p => {
-                            if (seen.has(p.mes)) return false;
-                            seen.add(p.mes);
-                            return true;
-                          });
-                          const cuotasPendientesPlan = uniquePlanPayments.filter(p => p.estado === "Pendiente").length;
+                        if (playerActivePlan && playerActivePlan.cuotas) {
+                          // PLAN ESPECIAL: Contar cuotas del plan no pagadas
+                          const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
                           cuotasPendientes += cuotasPendientesPlan;
                           return;
                         }
