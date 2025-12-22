@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area } from "recharts";
+import { ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area } from "recharts";
 import { TrendingUp, Calendar } from "lucide-react";
 
 export default function CashFlowAnalysis({ payments, transactions, clothingOrders, lotteryOrders, clubMembers, sponsors, activeSeason }) {
