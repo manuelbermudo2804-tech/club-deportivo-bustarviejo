@@ -238,10 +238,15 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
       const descuento = player.tiene_descuento_hermano ? (player.descuento_aplicado || 0) : 0;
       
-      // USAR el mes forzado si viene (desde botón "Pagar"), sino buscar el primer mes disponible
+      // USAR el tipo de pago existente si lo hay, sino mantener el actual
+      const tipoPago = tipoPagoExistente || "Único";
+      
+      // IMPORTANTE: Si es pago único, SIEMPRE usar Junio como mes de referencia
       let mesSeleccionado;
-      if (forcedMonth) {
-        // Si viene un mes forzado desde el botón "Pagar", usarlo SIEMPRE
+      if (tipoPago === "Único") {
+        mesSeleccionado = "Junio";
+      } else if (forcedMonth) {
+        // Si viene un mes forzado desde el botón "Pagar", usarlo
         mesSeleccionado = forcedMonth;
       } else if (mesesPagados.length > 0) {
         // Si hay meses ya pagados, seleccionar el primer mes disponible
@@ -251,9 +256,6 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
         // Por defecto, Junio
         mesSeleccionado = "Junio";
       }
-      
-      // USAR el tipo de pago existente si lo hay, sino mantener el actual
-      const tipoPago = tipoPagoExistente || "Único";
       
       // CALCULAR la cantidad correctamente según el tipo de pago
       let cantidad;
@@ -293,6 +295,7 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       setCurrentPayment(prev => ({
         ...prev,
         tipo_pago: value,
+        mes: value === "Único" ? "Junio" : prev.mes, // Forzar Junio para pago único
         cantidad: cantidad
       }));
     }
