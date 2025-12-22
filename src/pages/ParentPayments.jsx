@@ -576,8 +576,26 @@ export default function ParentPayments() {
               let displayPayments;
               
               if (hasPlanEspecial) {
-                // Plan especial: mostrar SOLO pagos reales del plan
-                displayPayments = allPlayerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                // Plan especial: mostrar SOLO pagos reales del plan, sin duplicados
+                const planPayments = allPlayerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                
+                // Eliminar duplicados basándose en mes (Cuota 1, Cuota 2, etc)
+                const seen = new Set();
+                displayPayments = planPayments.filter(p => {
+                  if (seen.has(p.mes)) {
+                    console.log('⚠️ [ParentPayments] Duplicado detectado:', p.mes, p.id);
+                    return false;
+                  }
+                  seen.add(p.mes);
+                  return true;
+                });
+                
+                // Ordenar por número de cuota
+                displayPayments.sort((a, b) => {
+                  const numA = parseInt(a.mes?.replace('Cuota ', '') || '0');
+                  const numB = parseInt(b.mes?.replace('Cuota ', '') || '0');
+                  return numA - numB;
+                });
               } else {
                 // Determinar los meses que debería tener este jugador
                 const allMonths = hasPagoUnico
