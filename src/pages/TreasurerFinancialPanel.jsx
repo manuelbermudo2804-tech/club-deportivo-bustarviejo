@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   CreditCard, ShoppingBag, Users, TrendingUp, TrendingDown, 
   Download, Euro, Clover, Building2, DollarSign, FileText,
-  Calendar, CheckCircle2, Clock, AlertCircle, BarChart3, Sparkles, Plus,
+  Calendar, CheckCircle2, Clock, AlertCircle, HelpCircle, BarChart3, Sparkles, Plus,
   PieChart, Target, Award, Heart
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from "recharts";
@@ -249,7 +249,16 @@ export default function TreasurerFinancialPanel() {
         // PLAN ESPECIAL: Priorizar pagos registrados de plan especial; si no hay, usar cuotas del plan
         const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
         if (planPayments.length > 0) {
-          const pendientePlan = planPayments
+          // Deduplicar por cuota/mes: si existe Pagado o En revisión de la misma cuota, NO contar el Pendiente
+          const rank = (s) => (s === "Pagado" ? 3 : s === "En revisión" ? 2 : s === "Pendiente" ? 1 : 0);
+          const byMes = {};
+          planPayments.forEach(pp => {
+            const key = pp.mes || String(pp.id);
+            if (!byMes[key] || rank(pp.estado) > rank(byMes[key].estado)) {
+              byMes[key] = pp;
+            }
+          });
+          const pendientePlan = Object.values(byMes)
             .filter(p => p.estado === "Pendiente")
             .reduce((sum, p) => sum + (p.cantidad || 0), 0);
           totalPendiente += pendientePlan;
@@ -578,7 +587,12 @@ export default function TreasurerFinancialPanel() {
                   <Clock className="w-8 h-8 text-white/80" />
                   <AlertCircle className="w-5 h-5 text-white/60" />
                 </div>
-                <p className="text-sm text-orange-100 mb-1">Pendiente de Cobro</p>
+                <p className="text-sm text-orange-100 mb-1 flex items-center gap-2">Pendiente de Cobro
+                  <HelpCircle
+                    className="w-4 h-4 text-white/80"
+                    title="Cómo se calcula: Plan Especial (cuotas no pagadas, deduplicando pagos por cuota si ya hay uno Pagado/En revisión) > Pago Único pendiente > Meses faltantes en Tres Meses. Solo temporada activa. ‘En revisión’ no suma."
+                  />
+                </p>
                 <p className="text-4xl font-bold">{totalPendiente.toFixed(2)}€</p>
                 <div className="mt-3 pt-3 border-t border-white/20">
                   <p className="text-xs text-orange-100">
