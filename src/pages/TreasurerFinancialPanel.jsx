@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -224,49 +225,47 @@ export default function TreasurerFinancialPanel() {
     currentSeasonPlayers.forEach(player => {
       const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
       
-      // Verificar si tiene plan especial activo
+      // Verificar si tiene plan especial activo - MÁXIMA PRIORIDAD
       const playerActivePlan = currentSeasonPlans.find(p => 
         p.jugador_id === player.id && 
         p.estado === "Activo"
       );
 
       if (playerActivePlan && playerActivePlan.cuotas) {
-        // PLAN ESPECIAL: Usar directamente las cuotas del plan, no los pagos de la BD
+        // PLAN ESPECIAL: Usar directamente las cuotas del plan, NO los pagos de la BD
         const cuotasPendientes = playerActivePlan.cuotas.filter(c => c.pagada !== true);
         cuotasPendientes.forEach(cuota => {
           totalPendiente += cuota.cantidad || 0;
         });
-        return;
-      }
-      
-      // Si hay ALGÚN pago de tipo único (en cualquier estado), es pago único
-      const hasPagoUnico = playerPayments.some(p => 
-        p.tipo_pago === "Único" || p.tipo_pago === "único"
-      );
-      
-      if (hasPagoUnico) {
-        // Buscar el pago único
-        const pagoUnico = playerPayments.find(p => 
+      } else {
+        // NO tiene plan especial - usar lógica estándar (pago único o fraccionado)
+        const hasPagoUnico = playerPayments.some(p => 
           p.tipo_pago === "Único" || p.tipo_pago === "único"
         );
-        // Solo sumar si está pendiente
-        if (pagoUnico && pagoUnico.estado === "Pendiente") {
-          totalPendiente += pagoUnico.cantidad || 0;
+        
+        if (hasPagoUnico) {
+          // Buscar el pago único
+          const pagoUnico = playerPayments.find(p => 
+            p.tipo_pago === "Único" || p.tipo_pago === "único"
+          );
+          // Solo sumar si está pendiente
+          if (pagoUnico && pagoUnico.estado === "Pendiente") {
+            totalPendiente += pagoUnico.cantidad || 0;
+          }
+        } else {
+          // Para pago fraccionado, calcular meses faltantes
+          const mesesPagadosORevision = playerPayments
+            .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+            .map(p => p.mes);
+          
+          const allMonths = ["Junio", "Septiembre", "Diciembre"];
+          const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+          
+          mesesFaltantes.forEach(mes => {
+            totalPendiente += getImportePorMes(player.deporte, mes);
+          });
         }
-        return; // No procesar meses individuales
       }
-      
-      // Para pago fraccionado, calcular meses faltantes
-      const mesesPagadosORevision = playerPayments
-        .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-        .map(p => p.mes);
-      
-      const allMonths = ["Junio", "Septiembre", "Diciembre"];
-      const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-      
-      mesesFaltantes.forEach(mes => {
-        totalPendiente += getImportePorMes(player.deporte, mes);
-      });
     });
 
     return {
@@ -561,36 +560,36 @@ export default function TreasurerFinancialPanel() {
                       currentSeasonPlayers.forEach(player => {
                         const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
                         
-                        // Verificar si tiene plan especial activo
+                        // Verificar si tiene plan especial activo - PRIORIDAD MÁXIMA
                         const playerActivePlan = currentSeasonPlans.find(p => 
                           p.jugador_id === player.id && 
                           p.estado === "Activo"
                         );
 
                         if (playerActivePlan && playerActivePlan.cuotas) {
-                          // PLAN ESPECIAL: Contar cuotas del plan no pagadas
+                          // PLAN ESPECIAL: Contar SOLO cuotas del plan no pagadas (ignorar pagos BD)
                           const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
                           cuotasPendientes += cuotasPendientesPlan;
-                          return;
+                        } else {
+                          // NO tiene plan especial - lógica estándar
+                          const hasPagoUnico = playerPayments.some(p => 
+                            p.tipo_pago === "Único" || p.tipo_pago === "único"
+                          );
+                          
+                          if (hasPagoUnico) {
+                            const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+                            if (pagoUnico && pagoUnico.estado === "Pendiente") cuotasPendientes += 1;
+                          } else {
+                            const mesesPagadosORevision = playerPayments
+                              .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+                              .map(p => p.mes);
+                            const allMonths = ["Junio", "Septiembre", "Diciembre"];
+                            const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+                            cuotasPendientes += mesesFaltantes.length;
+                          }
                         }
-                        
-                        // Si hay pago único (en cualquier estado), solo contar si está pendiente
-                        const pagoUnico = playerPayments.find(p => 
-                          p.tipo_pago === "Único" || p.tipo_pago === "único"
-                        );
-                        if (pagoUnico) {
-                          // Si está pendiente, contar como 1 cuota pendiente
-                          if (pagoUnico.estado === "Pendiente") cuotasPendientes += 1;
-                          return;
-                        }
-                        
-                        // Para pago fraccionado, contar meses faltantes
-                        const mesesPagadosORevision = playerPayments
-                          .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-                          .map(p => p.mes);
-                        const allMonths = ["Junio", "Septiembre", "Diciembre"];
-                        cuotasPendientes += allMonths.filter(mes => !mesesPagadosORevision.includes(mes)).length;
                       });
+                      
                       return `${cuotasPendientes} cuotas sin pagar`;
                     })()}
                   </p>
@@ -873,40 +872,37 @@ export default function TreasurerFinancialPanel() {
                       currentSeasonPlayers.forEach(player => {
                         const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
                         
-                        // Verificar si tiene plan especial activo
+                        // Verificar si tiene plan especial activo - PRIORIDAD MÁXIMA
                         const playerActivePlan = currentSeasonPlans.find(p => 
                           p.jugador_id === player.id && 
                           p.estado === "Activo"
                         );
 
                         if (playerActivePlan && playerActivePlan.cuotas) {
-                          // PLAN ESPECIAL: Contar cuotas del plan no pagadas
+                          // PLAN ESPECIAL: Contar SOLO cuotas del plan no pagadas
                           const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
                           cuotasPendientes += cuotasPendientesPlan;
-                          return;
-                        }
-                        
-                        // Si hay pago único (pagado, revisión O pendiente), no contar cuotas
-                        const hasPagoUnico = playerPayments.some(p => 
-                          p.tipo_pago === "Único" || p.tipo_pago === "único"
-                        );
-                        if (hasPagoUnico) {
-                          // Si el pago único está pendiente, contar como 1 cuota pendiente
-                          const pagoUnicoPendiente = playerPayments.find(p => 
-                            (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-                            p.estado === "Pendiente"
+                        } else {
+                          // NO tiene plan especial - lógica estándar
+                          const hasPagoUnico = playerPayments.some(p => 
+                            p.tipo_pago === "Único" || p.tipo_pago === "único"
                           );
-                          if (pagoUnicoPendiente) cuotasPendientes += 1;
-                          return;
+                          if (hasPagoUnico) {
+                            const pagoUnicoPendiente = playerPayments.find(p => 
+                              (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                              p.estado === "Pendiente"
+                            );
+                            if (pagoUnicoPendiente) cuotasPendientes += 1;
+                          } else {
+                            const mesesPagadosORevision = playerPayments
+                              .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+                              .map(p => p.mes);
+                            
+                            const allMonths = ["Junio", "Septiembre", "Diciembre"];
+                            const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+                            cuotasPendientes += mesesFaltantes.length;
+                          }
                         }
-                        
-                        const mesesPagadosORevision = playerPayments
-                          .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-                          .map(p => p.mes);
-                        
-                        const allMonths = ["Junio", "Septiembre", "Diciembre"];
-                        const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-                        cuotasPendientes += mesesFaltantes.length;
                       });
                       
                       return cuotasPendientes;
