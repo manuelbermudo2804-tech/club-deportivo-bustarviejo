@@ -1102,7 +1102,25 @@ export default function Payments() {
                         displayPayments = playerPayments;
                       } else if (hasPlanEspecial) {
                         // Si tiene plan especial, mostrar SOLO pagos reales del plan (no crear virtuales)
-                        displayPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                        const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                        
+                        // Eliminar duplicados basándose en mes (Cuota 1, Cuota 2, etc)
+                        const seen = new Set();
+                        displayPayments = planPayments.filter(p => {
+                          if (seen.has(p.mes)) {
+                            console.log('⚠️ [Payments] Duplicado detectado:', p.mes, p.id);
+                            return false;
+                          }
+                          seen.add(p.mes);
+                          return true;
+                        });
+                        
+                        // Ordenar por número de cuota
+                        displayPayments.sort((a, b) => {
+                          const numA = parseInt(a.mes?.replace('Cuota ', '') || '0');
+                          const numB = parseInt(b.mes?.replace('Cuota ', '') || '0');
+                          return numA - numB;
+                        });
                       } else {
                         // Si hay filtro de temporada, crear virtuales para meses que faltan
                         displayPayments = allMonths.map(mes => {
