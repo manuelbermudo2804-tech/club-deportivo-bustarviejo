@@ -217,13 +217,20 @@ export default function TreasurerFinancialPanel() {
     currentSeasonPlayers.forEach(player => {
       const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
       
-      const hasPagoUnico = playerPayments.some(p => 
-        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-        (p.estado === "Pagado" || p.estado === "En revisión")
+      // Si hay pago único (en cualquier estado), solo contar si está pendiente
+      const pagoUnico = playerPayments.find(p => 
+        p.tipo_pago === "Único" || p.tipo_pago === "único"
       );
       
-      if (hasPagoUnico) return;
+      if (pagoUnico) {
+        // Si está pendiente, contar la cantidad completa
+        if (pagoUnico.estado === "Pendiente") {
+          totalPendiente += pagoUnico.cantidad || 0;
+        }
+        return; // No procesar meses individuales
+      }
       
+      // Para pago fraccionado, calcular meses faltantes
       const mesesPagadosORevision = playerPayments
         .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
         .map(p => p.mes);
@@ -821,11 +828,20 @@ export default function TreasurerFinancialPanel() {
                       
                       currentSeasonPlayers.forEach(player => {
                         const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
+                        
+                        // Si hay pago único (pagado, revisión O pendiente), no contar cuotas
                         const hasPagoUnico = playerPayments.some(p => 
-                          (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-                          (p.estado === "Pagado" || p.estado === "En revisión")
+                          p.tipo_pago === "Único" || p.tipo_pago === "único"
                         );
-                        if (hasPagoUnico) return;
+                        if (hasPagoUnico) {
+                          // Si el pago único está pendiente, contar como 1 cuota pendiente
+                          const pagoUnicoPendiente = playerPayments.find(p => 
+                            (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                            p.estado === "Pendiente"
+                          );
+                          if (pagoUnicoPendiente) cuotasPendientes += 1;
+                          return;
+                        }
                         
                         const mesesPagadosORevision = playerPayments
                           .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
