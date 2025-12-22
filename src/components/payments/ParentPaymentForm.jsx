@@ -427,24 +427,25 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
     );
 
     if (pagoExistente) {
-      // Si el pago existe pero NO tiene justificante Y está pendiente, actualizarlo
-      if (!pagoExistente.justificante_url && pagoExistente.estado === "Pendiente") {
-        console.log('🔄 [ParentPaymentForm] Actualizando pago pendiente existente:', pagoExistente.id);
+      // Verificar si tiene justificante REAL (no vacío)
+      const tieneJustificanteReal = pagoExistente.justificante_url && pagoExistente.justificante_url.trim() !== "";
+      
+      // Si NO tiene justificante real Y está pendiente, actualizarlo
+      if (!tieneJustificanteReal && pagoExistente.estado === "Pendiente") {
+        console.log('🔄 [ParentPaymentForm] Actualizando pago pendiente sin justificante:', pagoExistente.id);
         onSubmit({...currentPayment, id: pagoExistente.id, isUpdate: true});
         return;
       }
       
-      // Si ya tiene justificante o NO está pendiente, es duplicado
-      if (pagoExistente.estado !== "Pendiente") {
-        console.log('🔴 [ParentPaymentForm] Pago duplicado (ya está pagado o en revisión):', pagoExistente);
-        toast.error(`❌ Ya existe un pago de ${currentPayment.mes} para este jugador (Estado: ${pagoExistente.estado})`, {
-          duration: 4000
-        });
-        return;
-      }
+      // Si ya tiene justificante real O está pagado/en revisión, es duplicado
+      console.log('🔴 [ParentPaymentForm] Pago duplicado:', pagoExistente, 'Estado:', pagoExistente.estado, 'Justificante:', tieneJustificanteReal);
+      toast.error(`❌ Ya existe un pago de ${currentPayment.mes} para este jugador (Estado: ${pagoExistente.estado})`, {
+        duration: 4000
+      });
+      return;
     }
 
-    console.log('✅ [ParentPaymentForm] Validación pasada, creando/actualizando pago:', currentPayment);
+    console.log('✅ [ParentPaymentForm] Validación pasada, creando pago nuevo:', currentPayment);
     onSubmit(currentPayment);
   };
 
