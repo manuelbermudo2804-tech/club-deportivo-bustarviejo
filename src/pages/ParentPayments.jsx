@@ -572,26 +572,18 @@ export default function ParentPayments() {
                 hasPlanEspecial
               });
 
-              // Determinar los meses que debería tener este jugador
-              let allMonths;
-              
-              // Si tiene plan personalizado, NO crear virtuales (los pagos reales ya existen en BD)
-              if (playerCustomPlan && playerCustomPlan.cuotas) {
-                allMonths = [];
-              } else {
-                // Lógica estándar (pago único vs tres meses)
-                allMonths = hasPagoUnico
-                  ? ["Junio"]
-                  : ["Junio", "Septiembre", "Diciembre"];
-              }
-
-              // Crear pagos virtuales SOLO para meses que NO tienen ningún pago (ni pagado, ni pendiente, ni revisión)
+              // Si tiene plan especial, mostrar SOLO los pagos reales (no crear virtuales)
               let displayPayments;
               
               if (hasPlanEspecial) {
-                // Si tiene plan especial, mostrar SOLO los pagos reales de BD (ya están creados)
-                displayPayments = allPlayerPayments;
+                // Plan especial: mostrar SOLO pagos reales del plan
+                displayPayments = allPlayerPayments.filter(p => p.tipo_pago === "Plan Especial");
               } else {
+                // Determinar los meses que debería tener este jugador
+                const allMonths = hasPagoUnico
+                  ? ["Junio"]
+                  : ["Junio", "Septiembre", "Diciembre"];
+                
                 displayPayments = allMonths.map(mes => {
                   // Buscar cualquier pago de este mes (pagado, pendiente o en revisión)
                   const existingPayment = allPlayerPayments.find(p => p.mes === mes);
@@ -602,18 +594,10 @@ export default function ParentPayments() {
                   }
                   
                   // Solo crear virtual si NO existe ningún pago para este mes
-                  let cantidad;
-                  if (playerCustomPlan && playerCustomPlan.cuotas) {
-                    // Usar cantidad del plan personalizado
-                    const cuotaPlan = playerCustomPlan.cuotas.find(c => (c.mes === mes) || (`Cuota ${c.numero}` === mes));
-                    cantidad = cuotaPlan?.cantidad || 0;
-                  } else {
-                    const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
-                    // Usar hasPagoUnico del scope externo
-                    cantidad = hasPagoUnico 
-                      ? cuotas.total 
-                      : getImportePorMesFromConfig(player.deporte, mes, categoryConfigs);
-                  }
+                  const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
+                  const cantidad = hasPagoUnico 
+                    ? cuotas.total 
+                    : getImportePorMesFromConfig(player.deporte, mes, categoryConfigs);
                   
                   return {
                     id: `virtual-${player.id}-${mes}`,
@@ -623,10 +607,8 @@ export default function ParentPayments() {
                     temporada: currentSeason,
                     estado: "Pendiente",
                     cantidad: cantidad,
-                    // Usar hasPagoUnico del scope externo
                     tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
-                    isVirtual: true,
-                    customPlan: playerCustomPlan ? true : false
+                    isVirtual: true
                     };
                     });
               }

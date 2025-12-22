@@ -1014,25 +1014,31 @@ export default function Payments() {
                 const hasMore = playersToShow.length > displayLimit;
 
                 return (
-                 <div className="space-y-4">
-                   {displayedPlayers.map(player => {
-                     const allPlayerPayments = filteredPayments.filter(p => p.jugador_id === player.id);
+                <div className="space-y-4">
+                  {displayedPlayers.map(player => {
+                    // CRÍTICO: Usar TODOS los pagos (no filtrados) para detectar tipo de pago
+                    const allPlayerPaymentsRaw = (payments || []).filter(p => 
+                      p.jugador_id === player.id && 
+                      matchTemporada(p.temporada, temporadaFilter)
+                    );
 
-                      // Determinar meses según tipo de pago REAL (no del player.tipo_pago)
-                      // Si tiene un pago "Único" (en cualquier estado), solo mostrar Junio
-                      const hasPagoUnico = allPlayerPayments.some(p => 
-                        p.tipo_pago === "Único" || p.tipo_pago === "único"
-                      );
-                      
-                      // Si tiene plan especial, mostrar TODOS sus pagos
-                      const hasPlanEspecial = allPlayerPayments.some(p => p.tipo_pago === "Plan Especial");
+                    // Determinar meses según tipo de pago REAL (no del player.tipo_pago)
+                    // Si tiene un pago "Único" (en cualquier estado), solo mostrar Junio
+                    const hasPagoUnico = allPlayerPaymentsRaw.some(p => 
+                      p.tipo_pago === "Único" || p.tipo_pago === "único"
+                    );
 
-                      // Si tiene pago único, solo mostrar ese pago (Junio), ignorar los demás
-                      const playerPayments = hasPlanEspecial
-                        ? allPlayerPayments
-                        : hasPagoUnico
-                        ? allPlayerPayments.filter(p => p.mes === "Junio")
-                        : allPlayerPayments;
+                    // Si tiene plan especial, mostrar TODOS sus pagos
+                    const hasPlanEspecial = allPlayerPaymentsRaw.some(p => p.tipo_pago === "Plan Especial");
+
+                    console.log(`[DEBUG TIPO] ${player.nombre}:`, { hasPagoUnico, hasPlanEspecial, totalPagos: allPlayerPaymentsRaw.length });
+
+                    // Filtrar según tipo de pago
+                    const playerPayments = hasPlanEspecial
+                      ? allPlayerPaymentsRaw
+                      : hasPagoUnico
+                      ? allPlayerPaymentsRaw.filter(p => p.mes === "Junio")
+                      : allPlayerPaymentsRaw;
 
                       // Verificar si tiene plan personalizado
                       const playerCustomPlan = customPlans.find(p => 
@@ -1041,8 +1047,8 @@ export default function Payments() {
 
                       // Determinar los meses que debería tener este jugador
                       let allMonths;
-                      if (playerCustomPlan && playerCustomPlan.cuotas) {
-                        // Si tiene plan especial, NO crear virtuales (los pagos ya existen en BD)
+                      if (hasPlanEspecial) {
+                        // Si tiene plan especial, NO crear virtuales
                         allMonths = [];
                       } else if (hasPagoUnico) {
                         allMonths = ["Junio"];
@@ -1050,31 +1056,23 @@ export default function Payments() {
                         allMonths = ["Junio", "Septiembre", "Diciembre"];
                       }
 
-                      // Obtener TODOS los pagos reales del jugador para la temporada (sin filtros de estado)
-                      const allRealPayments = (payments || []).filter(p => 
-                        p.jugador_id === player.id && 
-                        matchTemporada(p.temporada, temporadaFilter)
-                      );
-
-                      console.log(`[DEBUG PAGOS] Jugador: ${player.nombre}, Pagos reales encontrados:`, allRealPayments.length, allRealPayments.map(p => ({mes: p.mes, estado: p.estado})));
+                      console.log(`[DEBUG PAGOS] Jugador: ${player.nombre}, Pagos reales encontrados:`, playerPayments.length, playerPayments.map(p => ({mes: p.mes, estado: p.estado, tipo: p.tipo_pago})));
 
                       // SOLO crear pagos virtuales si hay filtro de temporada específico (NO si es "all")
                       let displayPayments;
                       if (temporadaFilter === "all") {
                         // Si el filtro es "all", SOLO mostrar los pagos reales que existen en BD
-                        displayPayments = allRealPayments;
+                        displayPayments = playerPayments;
+                      } else if (hasPlanEspecial) {
+                        // Si tiene plan especial, mostrar SOLO pagos reales del plan (no crear virtuales)
+                        displayPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
                       } else {
                         // Si hay filtro de temporada, crear virtuales para meses que faltan
                         displayPayments = allMonths.map(mes => {
-                          const existingPayment = allRealPayments.find(p => p.mes === mes);
+                          const existingPayment = playerPayments.find(p => p.mes === mes);
                           if (existingPayment) {
                             console.log(`[DEBUG PAGOS] ${player.nombre} - Mes ${mes}: Pago REAL encontrado con estado ${existingPayment.estado}`);
                             return existingPayment;
-                          }
-                          
-                          // Si tiene plan personalizado, NO crear virtuales (ya están creados por el sistema)
-                          if (playerCustomPlan && playerCustomPlan.cuotas) {
-                            return null;
                           }
                           
                           // Crear un pago virtual pendiente con cantidad correcta
