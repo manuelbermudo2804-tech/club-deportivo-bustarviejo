@@ -36,7 +36,7 @@ import EndOfSeasonForecast from "../components/financial/EndOfSeasonForecast.jsx
 import FinancialGoalsTracker from "../components/financial/FinancialGoalsTracker.jsx";
 import FinancialHealthIndicator from "../components/financial/FinancialHealthIndicator.jsx";
 import AutomaticMorosidadAlert from "../components/financial/AutomaticMorosidadAlert.jsx";
-import CustomPaymentPlanManager from "../components/financial/CustomPaymentPlanManager.jsx";
+
 import BankAccountManager from "../components/financial/BankAccountManager.jsx";
 import CategoryProfitability from "../components/financial/CategoryProfitability.jsx";
 import RetentionAnalysis from "../components/financial/RetentionAnalysis.jsx";
@@ -460,7 +460,7 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
+        <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
           <TabsTrigger value="resumen" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden md:inline">Resumen</span>
@@ -468,10 +468,6 @@ export default function TreasurerFinancialPanel() {
           <TabsTrigger value="analisis" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <TrendingUp className="w-4 h-4" />
             <span className="hidden md:inline">Análisis</span>
-          </TabsTrigger>
-          <TabsTrigger value="planes" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Heart className="w-4 h-4" />
-            <span className="hidden md:inline">Planes Pago</span>
           </TabsTrigger>
           <TabsTrigger value="bancario" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Building2 className="w-4 h-4" />
@@ -1214,11 +1210,6 @@ export default function TreasurerFinancialPanel() {
               </div>
             )}
           </Tabs>
-        </TabsContent>
-
-        {/* TAB PLANES DE PAGO PERSONALIZADOS */}
-        <TabsContent value="planes" className="space-y-6 mt-6">
-          <CustomPaymentPlanManager activeSeason={activeSeason} />
         </TabsContent>
 
         {/* TAB BANCARIO */}
