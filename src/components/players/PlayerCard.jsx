@@ -748,29 +748,40 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                   <span className="text-xs text-purple-700">{paidCount}/{customPlan.cuotas.length} pagadas</span>
                 </div>
                 <div className="flex gap-1 h-6 rounded-lg overflow-hidden bg-slate-200">
-                  {customPlan.cuotas.map((cuota, idx) => {
-                    // Buscar el pago real en BD para esta cuota
-                    const pagoCuota = playerPayments.find(p => 
-                      p.tipo_pago === "Plan Especial" && 
-                      p.mes === `Cuota ${cuota.numero}`
-                    );
-                    const isPaid = pagoCuota?.estado === "Pagado";
-                    const isReview = pagoCuota?.estado === "En revisión";
-                    
-                    return (
-                      <div 
-                        key={idx}
-                        className={`flex-1 flex items-center justify-center text-[10px] font-bold ${
-                          isPaid ? 'bg-green-500 text-white' : 
-                          isReview ? 'bg-orange-400 text-white animate-pulse' :
-                          'bg-red-400 text-white'
-                        }`}
-                        title={`Cuota ${cuota.numero}: ${cuota.cantidad}€ - ${isPaid ? 'Pagada' : isReview ? 'En revisión' : 'Pendiente'}`}
-                      >
-                        {cuota.numero} {isPaid ? '✓' : isReview ? '⏳' : '✗'}
-                      </div>
-                    );
-                  })}
+                  {customPlan.cuotas
+                    .sort((a, b) => a.numero - b.numero)
+                    .map((cuota) => {
+                      // Buscar TODOS los pagos con este número de cuota
+                      const pagosCuota = playerPayments.filter(p => 
+                        p.tipo_pago === "Plan Especial" && 
+                        p.mes === `Cuota ${cuota.numero}`
+                      );
+                      
+                      // Tomar el pago con mejor estado (Pagado > En revisión > Pendiente)
+                      let pagoCuota = null;
+                      if (pagosCuota.length > 0) {
+                        pagoCuota = pagosCuota.find(p => p.estado === "Pagado") ||
+                                    pagosCuota.find(p => p.estado === "En revisión") ||
+                                    pagosCuota[0];
+                      }
+                      
+                      const isPaid = pagoCuota?.estado === "Pagado";
+                      const isReview = pagoCuota?.estado === "En revisión";
+                      
+                      return (
+                        <div 
+                          key={cuota.numero}
+                          className={`flex-1 flex items-center justify-center text-[10px] font-bold ${
+                            isPaid ? 'bg-green-500 text-white' : 
+                            isReview ? 'bg-orange-400 text-white animate-pulse' :
+                            'bg-red-400 text-white'
+                          }`}
+                          title={`Cuota ${cuota.numero}: ${cuota.cantidad}€ - ${isPaid ? 'Pagada' : isReview ? 'En revisión' : 'Pendiente'}`}
+                        >
+                          {cuota.numero} {isPaid ? '✓' : isReview ? '⏳' : '✗'}
+                        </div>
+                      );
+                    })}
                 </div>
                 <p className="text-xs text-purple-600 mt-1">
                   💰 Total plan: {customPlan.deuda_final?.toFixed(0)}€ • {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
