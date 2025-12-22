@@ -246,11 +246,19 @@ export default function TreasurerFinancialPanel() {
       );
 
       if (playerActivePlan && playerActivePlan.cuotas) {
-        // PLAN ESPECIAL: Usar directamente las cuotas del plan, NO los pagos de la BD
-        const cuotasPendientes = playerActivePlan.cuotas.filter(c => c.pagada !== true);
-        cuotasPendientes.forEach(cuota => {
-          totalPendiente += cuota.cantidad || 0;
-        });
+        // PLAN ESPECIAL: Priorizar pagos registrados de plan especial; si no hay, usar cuotas del plan
+        const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+        if (planPayments.length > 0) {
+          const pendientePlan = planPayments
+            .filter(p => p.estado === "Pendiente")
+            .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+          totalPendiente += pendientePlan;
+        } else {
+          const cuotasPendientes = playerActivePlan.cuotas.filter(c => c.pagada !== true);
+          cuotasPendientes.forEach(cuota => {
+            totalPendiente += cuota.cantidad || 0;
+          });
+        }
       } else {
         // Backup: si existen pagos registrados como "Plan Especial", usar esos importes
         const planEspecialPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
@@ -590,9 +598,15 @@ export default function TreasurerFinancialPanel() {
                         );
 
                         if (playerActivePlan && playerActivePlan.cuotas) {
-                          // PLAN ESPECIAL: Contar SOLO cuotas del plan no pagadas (ignorar pagos BD)
-                          const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
-                          cuotasPendientes += cuotasPendientesPlan;
+                          // PLAN ESPECIAL: Priorizar número de pagos pendientes registrados; si no hay, contar cuotas del plan no pagadas
+                          const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                          if (planPayments.length > 0) {
+                            const countPend = planPayments.filter(p => p.estado === "Pendiente").length;
+                            cuotasPendientes += countPend;
+                          } else {
+                            const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
+                            cuotasPendientes += cuotasPendientesPlan;
+                          }
                         } else {
                           // NO tiene plan especial - lógica estándar
                           const hasPagoUnico = playerPayments.some(p => 
@@ -902,9 +916,15 @@ export default function TreasurerFinancialPanel() {
                         );
 
                         if (playerActivePlan && playerActivePlan.cuotas) {
-                          // PLAN ESPECIAL: Contar SOLO cuotas del plan no pagadas
-                          const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
-                          cuotasPendientes += cuotasPendientesPlan;
+                          // PLAN ESPECIAL: Priorizar pagos registrados; si no hay, contar cuotas del plan no pagadas
+                          const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                          if (planPayments.length > 0) {
+                            const countPend = planPayments.filter(p => p.estado === "Pendiente").length;
+                            cuotasPendientes += countPend;
+                          } else {
+                            const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
+                            cuotasPendientes += cuotasPendientesPlan;
+                          }
                         } else {
                           // NO tiene plan especial - lógica estándar
                           const hasPagoUnico = playerPayments.some(p => 
