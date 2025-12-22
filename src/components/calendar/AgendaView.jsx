@@ -41,7 +41,7 @@ export default function AgendaView({ items, onItemClick }) {
       {sortedDates.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center text-slate-500">
-            <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+            <CalendarIcon className="w-12 h-12 mx-auto mb-3 text-slate-300" />
             <p>No hay eventos programados</p>
           </CardContent>
         </Card>
