@@ -615,7 +615,15 @@ export default function TreasurerFinancialPanel() {
                           // PLAN ESPECIAL: Priorizar número de pagos pendientes registrados; si no hay, contar cuotas del plan no pagadas
                           const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
                           if (planPayments.length > 0) {
-                            const countPend = planPayments.filter(p => p.estado === "Pendiente").length;
+                            const rank = (s) => (s === "Pagado" ? 3 : s === "En revisión" ? 2 : s === "Pendiente" ? 1 : 0);
+                              const byMes = {};
+                              planPayments.forEach(pp => {
+                                const key = pp.mes || String(pp.id);
+                                if (!byMes[key] || rank(pp.estado) > rank(byMes[key].estado)) {
+                                  byMes[key] = pp;
+                                }
+                              });
+                              const countPend = Object.values(byMes).filter(p => p.estado === "Pendiente").length;
                             cuotasPendientes += countPend;
                           } else {
                             const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
@@ -933,7 +941,15 @@ export default function TreasurerFinancialPanel() {
                           // PLAN ESPECIAL: Priorizar pagos registrados; si no hay, contar cuotas del plan no pagadas
                           const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
                           if (planPayments.length > 0) {
-                            const countPend = planPayments.filter(p => p.estado === "Pendiente").length;
+                            const rank = (s) => (s === "Pagado" ? 3 : s === "En revisión" ? 2 : s === "Pendiente" ? 1 : 0);
+                              const byMes = {};
+                              planPayments.forEach(pp => {
+                                const key = pp.mes || String(pp.id);
+                                if (!byMes[key] || rank(pp.estado) > rank(byMes[key].estado)) {
+                                  byMes[key] = pp;
+                                }
+                              });
+                              const countPend = Object.values(byMes).filter(p => p.estado === "Pendiente").length;
                             cuotasPendientes += countPend;
                           } else {
                             const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
