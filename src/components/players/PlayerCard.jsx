@@ -181,11 +181,12 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   let expectedPayments, paidCount, reviewCount, pendingCount, allPaid;
   
   if (customPlan && customPlan.cuotas) {
-    // Usar cuotas del plan especial
+    // Plan especial: consultar pagos reales de BD
     expectedPayments = customPlan.cuotas.length;
-    paidCount = customPlan.cuotas.filter(c => c.pagada === true).length;
-    reviewCount = 0; // Los planes no tienen estado "en revisión"
-    pendingCount = customPlan.cuotas.filter(c => c.pagada !== true).length;
+    const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+    paidCount = planPayments.filter(p => p.estado === "Pagado").length;
+    reviewCount = planPayments.filter(p => p.estado === "En revisión").length;
+    pendingCount = planPayments.filter(p => p.estado === "Pendiente").length;
     allPaid = paidCount === expectedPayments;
   } else {
     // Lógica estándar: pago único o tres meses
@@ -739,26 +740,41 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             {/* Si tiene plan especial */}
             {customPlan && customPlan.cuotas ? (
               <div className="space-y-1">
-                <div className="flex items-center gap-1 mb-1">
-                  <Heart className="w-3 h-3 text-purple-600" />
-                  <span className="text-xs font-bold text-purple-900">Plan Especial ({customPlan.cuotas.length} cuotas)</span>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1">
+                    <Heart className="w-3 h-3 text-purple-600" />
+                    <span className="text-xs font-bold text-purple-900">Plan Especial</span>
+                  </div>
+                  <span className="text-xs text-purple-700">{paidCount}/{customPlan.cuotas.length} pagadas</span>
                 </div>
                 <div className="flex gap-1 h-6 rounded-lg overflow-hidden bg-slate-200">
                   {customPlan.cuotas.map((cuota, idx) => {
-                    const isPaid = cuota.pagada === true;
+                    // Buscar el pago real en BD para esta cuota
+                    const pagoCuota = playerPayments.find(p => 
+                      p.tipo_pago === "Plan Especial" && 
+                      p.mes === `Cuota ${cuota.numero}`
+                    );
+                    const isPaid = pagoCuota?.estado === "Pagado";
+                    const isReview = pagoCuota?.estado === "En revisión";
+                    
                     return (
                       <div 
                         key={idx}
                         className={`flex-1 flex items-center justify-center text-[10px] font-bold ${
-                          isPaid ? 'bg-green-500 text-white' : 'bg-red-400 text-white'
+                          isPaid ? 'bg-green-500 text-white' : 
+                          isReview ? 'bg-orange-400 text-white animate-pulse' :
+                          'bg-red-400 text-white'
                         }`}
-                        title={`Cuota ${cuota.numero}: ${cuota.cantidad}€`}
+                        title={`Cuota ${cuota.numero}: ${cuota.cantidad}€ - ${isPaid ? 'Pagada' : isReview ? 'En revisión' : 'Pendiente'}`}
                       >
-                        {cuota.numero} {isPaid ? '✓' : '✗'}
+                        {cuota.numero} {isPaid ? '✓' : isReview ? '⏳' : '✗'}
                       </div>
                     );
                   })}
                 </div>
+                <p className="text-xs text-purple-600 mt-1">
+                  💰 Total plan: {customPlan.deuda_final?.toFixed(0)}€ • {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
+                </p>
               </div>
             ) : playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único") ? (
               /* Si es pago único */
