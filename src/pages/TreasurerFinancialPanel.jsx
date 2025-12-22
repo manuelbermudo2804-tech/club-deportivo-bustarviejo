@@ -537,11 +537,18 @@ export default function TreasurerFinancialPanel() {
                       let cuotasPendientes = 0;
                       currentSeasonPlayers.forEach(player => {
                         const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
-                        const hasPagoUnico = playerPayments.some(p => 
-                          (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-                          (p.estado === "Pagado" || p.estado === "En revisión")
+                        
+                        // Si hay pago único (en cualquier estado), solo contar si está pendiente
+                        const pagoUnico = playerPayments.find(p => 
+                          p.tipo_pago === "Único" || p.tipo_pago === "único"
                         );
-                        if (hasPagoUnico) return;
+                        if (pagoUnico) {
+                          // Si está pendiente, contar como 1 cuota pendiente
+                          if (pagoUnico.estado === "Pendiente") cuotasPendientes += 1;
+                          return;
+                        }
+                        
+                        // Para pago fraccionado, contar meses faltantes
                         const mesesPagadosORevision = playerPayments
                           .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
                           .map(p => p.mes);
