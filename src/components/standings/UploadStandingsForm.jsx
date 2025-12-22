@@ -14,29 +14,34 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   // Calcular jornada automáticamente
   const [jornadaActual, setJornadaActual] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(() => {
-    if (categoria) {
-      return localStorage.getItem(`standings_image_url_${categoria}`) || "";
-    }
-    return "";
-  });
+  const [rfefUrlState, setRfefUrlState] = useState(rfefUrl || "");
+  const [grupoText, setGrupoText] = useState("");
+  const [configId, setConfigId] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Cargar URL guardada cuando cambie la categoría
+  // Cargar configuración RFEF guardada para la categoría
   useEffect(() => {
-    if (categoria) {
-      const savedUrl = localStorage.getItem(`standings_image_url_${categoria}`) || "";
-      setImageUrl(savedUrl);
-    }
+    if (!categoria) return;
+    (async () => {
+      try {
+        const configs = await base44.entities.StandingsConfig.list();
+        const cfg = configs.find(c => c.categoria === categoria);
+        if (cfg) {
+          setRfefUrlState(cfg.rfef_url || "");
+          setGrupoText(cfg.grupo || "");
+          setConfigId(cfg.id);
+        }
+      } catch (e) {}
+    })();
   }, [categoria]);
 
   // Si hay URL RFEF guardada, usar su jornada (Actual) y temporada
   useEffect(() => {
     const run = async () => {
-      if (!rfefUrl) return;
+      if (!rfefUrlState) return;
       try {
-        const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrl });
+        const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrlState });
         if (res?.data?.jornada_actual) setJornadaActual(res.data.jornada_actual);
         if (res?.data?.temporada) setTemporada(res.data.temporada);
       } catch (e) {
@@ -44,7 +49,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       }
     };
     run();
-  }, [rfefUrl]);
+  }, [rfefUrlState]);
 
   // Calcular jornada actual automáticamente al cargar (fallback BD)
   useEffect(() => {
@@ -73,12 +78,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
     }
   }, [categoria, temporada]);
 
-  // Guardar URL cuando cambie (POR CATEGORÍA)
-  useEffect(() => {
-    if (imageUrl && categoria) {
-      localStorage.setItem(`standings_image_url_${categoria}`, imageUrl);
-    }
-  }, [imageUrl, categoria]);
+
 
   const processFile = (file) => {
     setImageFile(file);
@@ -148,21 +148,27 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
       4. NO inventes datos - si un campo no está visible, omítelo
       5. IMPORTANTE: Presta especial atención a la posición y puntos de cada equipo
 
-      Devuelve un array de objetos con esta estructura:
+      Devuelve un objeto con esta estructura:
       {
-      "standings": [
-      {
-      "posicion": 1,
-      "nombre_equipo": "Nombre del Equipo",
-      "puntos": 18,
-      "partidos_jugados": 10,
-      "ganados": 6,
-      "empatados": 0,
-      "perdidos": 4,
-      "goles_favor": 20,
-      "goles_contra": 12
-      }
-      ]
+        "metadata": {
+          "temporada": "2024/2025",
+          "competicion": "Texto de la competición",
+          "grupo": "Grupo 72",
+          "jornada": 14
+        },
+        "standings": [
+          {
+            "posicion": 1,
+            "nombre_equipo": "Nombre del Equipo",
+            "puntos": 18,
+            "partidos_jugados": 10,
+            "ganados": 6,
+            "empatados": 0,
+            "perdidos": 4,
+            "goles_favor": 20,
+            "goles_contra": 12
+          }
+        ]
       }
 
       Lee TODOS los equipos visibles en la tabla, sin omitir ninguno.`,
@@ -170,6 +176,15 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
         response_json_schema: {
           type: "object",
           properties: {
+            metadata: {
+              type: "object",
+              properties: {
+                temporada: { type: "string" },
+                competicion: { type: "string" },
+                grupo: { type: "string" },
+                jornada: { anyOf: [{ type: "number" }, { type: "string" }] }
+              }
+            },
             standings: {
               type: "array",
               items: {
@@ -198,13 +213,22 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
         return;
       }
 
+      const meta = result.metadata || {};
+      let jornadaFromImage = meta.jornada;
+      if (typeof jornadaFromImage === 'string') {
+        const m = jornadaFromImage.match(/\d+/);
+        jornadaFromImage = m ? parseInt(m[0], 10) : null;
+      }
+      const finalTemporada = meta.temporada || temporada;
+      const finalJornada = jornadaFromImage || jornadaActual;
+
       // Ordenar por posición
       const sortedStandings = result.standings.sort((a, b) => a.posicion - b.posicion);
 
       onDataExtracted({
-        temporada,
+        temporada: finalTemporada,
         categoria,
-        jornada: jornadaActual,
+        jornada: finalJornada,
         standings: sortedStandings
       });
 
@@ -242,20 +266,69 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
           </div>
 
           <div>
-            <Label>URL de la Imagen</Label>
-            <div className="flex gap-2">
-              <Input
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="Pega aquí la URL de la imagen"
-              />
+            <Label>URL RFEF (Clasificación del grupo)</Label>
+            <div className="grid md:grid-cols-6 gap-2">
+              <div className="md:col-span-4">
+                <Input
+                  value={rfefUrlState}
+                  onChange={(e) => setRfefUrlState(e.target.value)}
+                  placeholder="Pega la URL directa a la clasificación del grupo"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Input
+                  value={grupoText}
+                  onChange={(e) => setGrupoText(e.target.value)}
+                  placeholder="Ej: Grupo 72"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => imageUrl && window.open(imageUrl, "_blank")}
-                disabled={!imageUrl}
+                onClick={() => rfefUrlState && window.open(rfefUrlState, "_blank")}
+                disabled={!rfefUrlState}
               >
-                Abrir
+                Abrir página
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={async () => {
+                  if (!rfefUrlState) return;
+                  try {
+                    const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrlState });
+                    const j = res.data?.jornada_actual;
+                    const t = res.data?.temporada;
+                    if (j) setJornadaActual(j);
+                    if (t) setTemporada(t);
+                    toast.success(`Detectado: Temporada ${t || '?'}, Jornada actual ${j || '?'}`);
+                  } catch (err) {
+                    toast.error('No se pudo detectar la jornada');
+                  }
+                }}
+              >
+                Probar
+              </Button>
+              <Button
+                type="button"
+                onClick={async () => {
+                  try {
+                    if (configId) {
+                      await base44.entities.StandingsConfig.update(configId, { categoria, grupo: grupoText, rfef_url: rfefUrlState });
+                    } else {
+                      const created = await base44.entities.StandingsConfig.create({ categoria, grupo: grupoText, rfef_url: rfefUrlState });
+                      setConfigId(created.id);
+                    }
+                    toast.success('URL guardada');
+                  } catch (e) {
+                    toast.error('Error al guardar');
+                  }
+                }}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                Guardar URL
               </Button>
             </div>
           </div>

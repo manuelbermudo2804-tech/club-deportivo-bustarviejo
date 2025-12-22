@@ -355,66 +355,7 @@ export default function Clasificaciones() {
                     </CardContent>
                     </Card>
 
-                    {isAdmin && (
-                    <Card className="border border-orange-200">
-                    <CardContent className="p-4 space-y-3">
-                    <div className="grid md:grid-cols-6 gap-3">
-                      <div className="md:col-span-4">
-                        <Label>URL RFEF (Clasificación del grupo)</Label>
-                        <Input
-                          value={rfefUrl}
-                          onChange={(e) => setRfefUrl(e.target.value)}
-                          placeholder="Pega la URL directa a la clasificación del grupo"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label>Grupo</Label>
-                        <Input
-                          value={grupoText}
-                          onChange={(e) => setGrupoText(e.target.value)}
-                          placeholder="Ej: Grupo 72"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => rfefUrl && window.open(rfefUrl, '_blank')}
-                        disabled={!rfefUrl}
-                      >
-                        Abrir página
-                      </Button>
-                      <Button
-                        onClick={() => saveConfigMutation.mutate({
-                          id: configId,
-                          data: { categoria: cat.fullName, grupo: grupoText, rfef_url: rfefUrl }
-                        })}
-                        className="bg-orange-600 hover:bg-orange-700"
-                      >
-                        Guardar URL
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={async () => {
-                          if (!rfefUrl) return;
-                          try {
-                            const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrl });
-                            const j = res.data?.jornada_actual;
-                            const t = res.data?.temporada;
-                            toast.success(`Detectado: Temporada ${t || '?'}, Jornada actual ${j || '?'}`);
-                          } catch (err) {
-                            toast.error('No se pudo detectar la jornada');
-                          }
-                        }}
-                      >
-                        Probar
-                      </Button>
-                    </div>
-                    </CardContent>
-                    </Card>
-                    )}
+
 
               {/* Lista de clasificaciones */}
               {standingsByCategory[cat.id]?.length > 0 ? (
