@@ -107,7 +107,7 @@ const getTotalConDescuentoFromConfig = (categoria, categoryConfigs, descuento = 
   return cuotas.total - descuento;
 };
 
-export default function ParentPaymentForm({ players, payments = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null, preselectedMonth = null }) {
+export default function ParentPaymentForm({ players, payments = [], customPlans = [], onSubmit, onCancel, isSubmitting, isAdmin = false, preselectedPlayerId = null, preselectedMonth = null }) {
   const [currentPayment, setCurrentPayment] = useState({
     jugador_id: "",
     jugador_nombre: "",
@@ -203,6 +203,11 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
     if (player) {
       setSelectedPlayer(player);
       
+      // Verificar si tiene plan personalizado ACTIVO
+      const playerCustomPlan = customPlans.find(p => 
+        p.jugador_id === playerId && p.estado === "Activo"
+      );
+      
       // Verificar pagos existentes del jugador en la temporada ACTIVA (incluyendo TODOS los estados)
       const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
       const jugadorPayments = payments.filter(p => 
@@ -211,6 +216,33 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
       );
       setExistingPayments(jugadorPayments);
       
+      // SI TIENE PLAN PERSONALIZADO, ignorar lógica estándar
+      if (playerCustomPlan && playerCustomPlan.cuotas) {
+        const cuotasPendientes = playerCustomPlan.cuotas.filter(c => c.pagada !== true);
+        
+        if (cuotasPendientes.length === 0) {
+          setPagoUnicoPagado(true);
+          return;
+        }
+        
+        // Seleccionar la primera cuota pendiente
+        const proximaCuota = cuotasPendientes[0];
+        
+        setTipoPagoFijado("Plan Especial");
+        setPagoUnicoPagado(false);
+        
+        setCurrentPayment({
+          ...currentPayment,
+          jugador_id: player.id,
+          jugador_nombre: player.nombre,
+          tipo_pago: "Plan Especial",
+          mes: proximaCuota.mes || `Cuota ${proximaCuota.numero}`,
+          cantidad: proximaCuota.cantidad
+        });
+        return;
+      }
+      
+      // LÓGICA ESTÁNDAR (sin plan personalizado)
       // Verificar si ya tiene un pago único pagado
       const pagoUnico = jugadorPayments.find(p => p.tipo_pago === "Único" && p.estado === "Pagado");
       
@@ -303,10 +335,26 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
 
   const handleMesChange = (value) => {
     if (selectedPlayer) {
-      const descuento = selectedPlayer.tiene_descuento_hermano ? (selectedPlayer.descuento_aplicado || 0) : 0;
-      const cantidad = currentPayment.tipo_pago === "Único"
-        ? getTotalConDescuentoFromConfig(selectedPlayer.deporte, categoryConfigs, descuento)
-        : getImportePorMesFromConfig(selectedPlayer.deporte, value, categoryConfigs, descuento);
+      // Verificar si tiene plan personalizado
+      const playerCustomPlan = customPlans.find(p => 
+        p.jugador_id === selectedPlayer.id && p.estado === "Activo"
+      );
+      
+      let cantidad;
+      
+      if (playerCustomPlan && playerCustomPlan.cuotas) {
+        // Usar cantidad del plan
+        const cuota = playerCustomPlan.cuotas.find(c => 
+          (c.mes === value) || (`Cuota ${c.numero}` === value)
+        );
+        cantidad = cuota?.cantidad || 0;
+      } else {
+        // Lógica estándar
+        const descuento = selectedPlayer.tiene_descuento_hermano ? (selectedPlayer.descuento_aplicado || 0) : 0;
+        cantidad = currentPayment.tipo_pago === "Único"
+          ? getTotalConDescuentoFromConfig(selectedPlayer.deporte, categoryConfigs, descuento)
+          : getImportePorMesFromConfig(selectedPlayer.deporte, value, categoryConfigs, descuento);
+      }
       
       setCurrentPayment(prev => ({
         ...prev,
@@ -497,57 +545,106 @@ export default function ParentPaymentForm({ players, payments = [], onSubmit, on
             {!pagoUnicoPagado && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
-                    <Select
-                      value={currentPayment.tipo_pago}
-                      onValueChange={handleTipoPagoChange}
-                      required
-                      disabled={!!tipoPagoFijado}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Único">Pago Único (Total Temporada)</SelectItem>
-                        <SelectItem value="Tres meses">Tres Pagos (Jun, Sep, Dic)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {tipoPagoFijado && (
-                      <p className="text-xs text-slate-600">
-                        ℹ️ Tipo de pago fijado según inscripción
-                      </p>
-                    )}
-                  </div>
+                  {selectedPlayer && (() => {
+                    const playerCustomPlan = customPlans.find(p => 
+                      p.jugador_id === selectedPlayer.id && p.estado === "Activo"
+                    );
 
-                  <div className="space-y-2">
-                    <Label htmlFor="mes">
-                      {currentPayment.tipo_pago === "Único" 
-                        ? "Tipo de Cuota *" 
-                        : "¿Qué cuota estás pagando? *"}
-                    </Label>
-                    <Select
-                      value={currentPayment.mes}
-                      onValueChange={handleMesChange}
-                      required
-                      disabled={currentPayment.tipo_pago === "Único"}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {!mesesPagados.includes("Junio") && (
-                          <SelectItem value="Junio">Inscripción (Junio)</SelectItem>
-                        )}
-                        {!mesesPagados.includes("Septiembre") && (
-                          <SelectItem value="Septiembre">Segunda Cuota (Septiembre)</SelectItem>
-                        )}
-                        {!mesesPagados.includes("Diciembre") && (
-                          <SelectItem value="Diciembre">Tercera Cuota (Diciembre)</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    if (playerCustomPlan && playerCustomPlan.cuotas) {
+                      // Si tiene plan especial, mostrar selector de cuotas del plan
+                      const cuotasPendientes = playerCustomPlan.cuotas.filter(c => c.pagada !== true);
+                      
+                      return (
+                        <div className="space-y-2 md:col-span-2">
+                          <Label>💰 Plan de Pago Personalizado</Label>
+                          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
+                            <p className="text-sm font-bold text-purple-900 mb-2">
+                              Este jugador tiene un plan de {playerCustomPlan.cuotas.length} cuotas
+                            </p>
+                            <Select
+                              value={currentPayment.mes}
+                              onValueChange={handleMesChange}
+                              required
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {cuotasPendientes.map(cuota => (
+                                  <SelectItem key={cuota.numero} value={cuota.mes || `Cuota ${cuota.numero}`}>
+                                    Cuota {cuota.numero} - {cuota.cantidad.toFixed(2)}€
+                                    {cuota.fecha_vencimiento && ` (vence ${new Date(cuota.fecha_vencimiento).toLocaleDateString('es-ES')})`}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {playerCustomPlan.mensaje_para_familia && (
+                              <p className="text-xs text-purple-700 mt-2">
+                                💬 {playerCustomPlan.mensaje_para_familia}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Lógica estándar para jugadores sin plan especial
+                    return (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
+                          <Select
+                            value={currentPayment.tipo_pago}
+                            onValueChange={handleTipoPagoChange}
+                            required
+                            disabled={!!tipoPagoFijado}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Único">Pago Único (Total Temporada)</SelectItem>
+                              <SelectItem value="Tres meses">Tres Pagos (Jun, Sep, Dic)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {tipoPagoFijado && (
+                            <p className="text-xs text-slate-600">
+                              ℹ️ Tipo de pago fijado según inscripción
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="mes">
+                            {currentPayment.tipo_pago === "Único" 
+                              ? "Tipo de Cuota *" 
+                              : "¿Qué cuota estás pagando? *"}
+                          </Label>
+                          <Select
+                            value={currentPayment.mes}
+                            onValueChange={handleMesChange}
+                            required
+                            disabled={currentPayment.tipo_pago === "Único"}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {!mesesPagados.includes("Junio") && (
+                                <SelectItem value="Junio">Inscripción (Junio)</SelectItem>
+                              )}
+                              {!mesesPagados.includes("Septiembre") && (
+                                <SelectItem value="Septiembre">Segunda Cuota (Septiembre)</SelectItem>
+                              )}
+                              {!mesesPagados.includes("Diciembre") && (
+                                <SelectItem value="Diciembre">Tercera Cuota (Diciembre)</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    );
+                  })()}
 
                   <div className="space-y-2">
                     <Label htmlFor="cantidad">Cantidad Pagada (€) *</Label>
