@@ -17,7 +17,17 @@ export default function EndOfSeasonForecast({
     if (!activeSeason) return null;
 
     const now = new Date();
-    const seasonEnd = new Date(activeSeason.fecha_fin || `${activeSeason.temporada.split('/')[1]}-06-30`);
+    
+    // Calcular fecha fin: usar fecha_fin si existe, sino usar fin de temporada (junio del segundo año)
+    let seasonEnd;
+    if (activeSeason.fecha_fin) {
+      seasonEnd = new Date(activeSeason.fecha_fin);
+    } else {
+      // La temporada es "2024/2025", el fin es junio 2025 (segundo año)
+      const secondYear = activeSeason.temporada.split('/')[1];
+      seasonEnd = new Date(`${secondYear}-06-30`);
+    }
+    
     const daysRemaining = differenceInDays(seasonEnd, now);
     const monthsRemaining = Math.max(0, daysRemaining / 30);
 
