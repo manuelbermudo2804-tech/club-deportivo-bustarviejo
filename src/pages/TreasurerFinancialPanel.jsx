@@ -116,6 +116,12 @@ export default function TreasurerFinancialPanel() {
     staleTime: 600000, // 10 minutos
   });
 
+  const { data: customPlans = [] } = useQuery({
+    queryKey: ['customPaymentPlans'],
+    queryFn: () => base44.entities.CustomPaymentPlan.list(),
+    staleTime: 120000, // 2 minutos
+  });
+
   const { data: allSeasons = [] } = useQuery({
     queryKey: ['allSeasons'],
     queryFn: () => base44.entities.SeasonConfig.list(),
