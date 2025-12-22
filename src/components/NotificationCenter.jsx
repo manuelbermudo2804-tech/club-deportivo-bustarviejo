@@ -202,10 +202,29 @@ export default function NotificationCenter() {
     return eventDate >= today;
   });
 
-  // Payments
-  const pendingPayments = payments.filter(p => 
-    myPlayers.some(player => player.id === p.jugador_id) && p.estado === "Pendiente"
-  );
+  // Payments (evitar duplicados: si hay Pago Único para jugador+temporada, ignorar las 3 cuotas)
+  const myPlayerIds = new Set(myPlayers.map(p => p.id));
+  const nonDeletedPayments = payments.filter(p => myPlayerIds.has(p.jugador_id) && p.is_deleted !== true);
+
+  // Mapear si existe Pago Único por jugador+temporada
+  const hasUniqueByPlayerSeason = new Set();
+  nonDeletedPayments.forEach(p => {
+    const tipo = (p.tipo_pago || '').toLowerCase();
+    if ((tipo.includes('único') || tipo.includes('unico')) && p.temporada) {
+      hasUniqueByPlayerSeason.add(`${p.jugador_id}__${p.temporada}`);
+    }
+  });
+
+  const pendingPayments = nonDeletedPayments.filter(p => {
+    if (p.estado !== 'Pendiente') return false;
+    const key = `${p.jugador_id}__${p.temporada}`;
+    if (hasUniqueByPlayerSeason.has(key)) {
+      // Solo mantener el registro de Pago Único
+      const tipo = (p.tipo_pago || '').toLowerCase();
+      return (tipo.includes('único') || tipo.includes('unico'));
+    }
+    return true;
+  });
 
   // Payment reminders due soon
   const upcomingReminders = reminders.filter(r => {

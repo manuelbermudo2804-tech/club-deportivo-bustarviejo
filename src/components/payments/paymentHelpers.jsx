@@ -8,21 +8,46 @@
  */
 export function isPaymentOverdue(payment) {
   if (payment.estado !== "Pendiente") return false;
-  
+
   const now = new Date();
+
+  // Helper: obtener año de inicio de la temporada ("2024/2025" o "2024-2025")
+  const getSeasonStartYear = (temporada) => {
+    if (!temporada || typeof temporada !== 'string') return now.getFullYear();
+    const match = temporada.match(/(\d{4})[\/-]/);
+    return match ? parseInt(match[1], 10) : now.getFullYear();
+  };
+
+  // Fechas límite por mes (del año actual por defecto)
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // 1-12
-  
-  // Fechas límite por mes
-  const deadlines = {
-    "Junio": new Date(currentYear, 5, 30), // 30 junio
+  const monthDeadlines = {
+    "Junio": new Date(currentYear, 5, 30),      // 30 junio
     "Septiembre": new Date(currentYear, 8, 30), // 30 septiembre
     "Diciembre": new Date(currentYear, 11, 31), // 31 diciembre
   };
-  
-  const deadline = deadlines[payment.mes];
+
+  // Caso especial: Pago Único (ignora meses estándar)
+  const tipo = (payment.tipo_pago || '').toLowerCase();
+  if (tipo.includes('único') || tipo.includes('unico')) {
+    const startYear = getSeasonStartYear(payment.temporada);
+
+    // Si la creación del pago es después de junio, vencer en 7 días
+    const created = payment.created_date ? new Date(payment.created_date) : now;
+    const createdMonth = created.getMonth() + 1; // 1-12
+    if (createdMonth >= 7) {
+      const uniqueDeadlineLate = new Date(created);
+      uniqueDeadlineLate.setDate(uniqueDeadlineLate.getDate() + 7);
+      return now > uniqueDeadlineLate;
+    }
+
+    // Si no, vence el 30 de junio del año inicial de la temporada
+    const uniqueDeadline = new Date(startYear, 5, 30);
+    return now > uniqueDeadline;
+  }
+
+  // Caso estándar por mes (Junio/Sep/Dic)
+  const deadline = monthDeadlines[payment.mes];
   if (!deadline) return false;
-  
   return now > deadline;
 }
 
