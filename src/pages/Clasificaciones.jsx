@@ -79,6 +79,34 @@ export default function Clasificaciones() {
     initialData: [],
   });
 
+  // Config RFEF (URL por categoría+grupo)
+  const { data: standingsConfigs = [] } = useQuery({
+    queryKey: ['standings_config'],
+    queryFn: () => base44.entities.StandingsConfig.list(),
+    initialData: []
+  });
+  const [rfefUrl, setRfefUrl] = useState("");
+  const [grupoText, setGrupoText] = useState("");
+  const [configId, setConfigId] = useState(null);
+
+  React.useEffect(() => {
+    if (!activeTab) return;
+    const catFull = CATEGORIES.find(c => c.id === activeTab)?.fullName;
+    if (!catFull) return;
+    const cfg = standingsConfigs.find(c => c.categoria === catFull);
+    setRfefUrl(cfg?.rfef_url || "");
+    setGrupoText(cfg?.grupo || "");
+    setConfigId(cfg?.id || null);
+  }, [activeTab, standingsConfigs]);
+
+  const saveConfigMutation = useMutation({
+    mutationFn: ({ id, data }) => id ? base44.entities.StandingsConfig.update(id, data) : base44.entities.StandingsConfig.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['standings_config'] });
+      toast.success("Guardado");
+    }
+  });
+
   // Agrupar clasificaciones por categoría
   const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
     const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
@@ -254,18 +282,19 @@ export default function Clasificaciones() {
 
       {showUploadForm && (
         <UploadStandingsForm
-          onDataExtracted={(data) => {
-            setReviewData(data);
-            setShowUploadForm(false);
-          }}
-          onCancel={() => {
-            setShowUploadForm(false);
-            setSelectedCategory(null);
-            setReviewData(null);
-          }}
-          preselectedCategory={selectedCategory}
-          prefillData={reviewData?.isPrefilled ? reviewData : null}
-        />
+           onDataExtracted={(data) => {
+             setReviewData(data);
+             setShowUploadForm(false);
+           }}
+           onCancel={() => {
+             setShowUploadForm(false);
+             setSelectedCategory(null);
+             setReviewData(null);
+           }}
+           preselectedCategory={selectedCategory}
+           prefillData={reviewData?.isPrefilled ? reviewData : null}
+           rfefUrl={rfefUrl}
+         />
       )}
 
       {reviewData && !reviewData.isPrefilled && (
@@ -322,9 +351,70 @@ export default function Clasificaciones() {
                        Actualizar Clasificación
                      </Button>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                    </CardContent>
+                    </Card>
+
+                    {isAdmin && (
+                    <Card className="border border-orange-200">
+                    <CardContent className="p-4 space-y-3">
+                    <div className="grid md:grid-cols-6 gap-3">
+                      <div className="md:col-span-4">
+                        <Label>URL RFEF (Clasificación del grupo)</Label>
+                        <Input
+                          value={rfefUrl}
+                          onChange={(e) => setRfefUrl(e.target.value)}
+                          placeholder="Pega la URL directa a la clasificación del grupo"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Grupo</Label>
+                        <Input
+                          value={grupoText}
+                          onChange={(e) => setGrupoText(e.target.value)}
+                          placeholder="Ej: Grupo 72"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => rfefUrl && window.open(rfefUrl, '_blank')}
+                        disabled={!rfefUrl}
+                      >
+                        Abrir página
+                      </Button>
+                      <Button
+                        onClick={() => saveConfigMutation.mutate({
+                          id: configId,
+                          data: { categoria: cat.fullName, grupo: grupoText, rfef_url: rfefUrl }
+                        })}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        Guardar URL
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={async () => {
+                          if (!rfefUrl) return;
+                          try {
+                            const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrl });
+                            const j = res.data?.jornada_actual;
+                            const t = res.data?.temporada;
+                            toast.success(`Detectado: Temporada ${t || '?'}, Jornada actual ${j || '?'}`);
+                          } catch (err) {
+                            toast.error('No se pudo detectar la jornada');
+                          }
+                        }}
+                      >
+                        Probar
+                      </Button>
+                    </div>
+                    </CardContent>
+                    </Card>
+                    )}
 
               {/* Lista de clasificaciones */}
               {standingsByCategory[cat.id]?.length > 0 ? (

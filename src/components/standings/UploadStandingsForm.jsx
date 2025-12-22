@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
-  const temporada = "2025/2026"; // Fija
+export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData, rfefUrl }) {
+  const [temporada, setTemporada] = React.useState(prefillData?.temporada || "2025/2026");
   const categoria = preselectedCategory || prefillData?.categoria || "";
   
   // Calcular jornada automáticamente
@@ -31,7 +31,22 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
     }
   }, [categoria]);
 
-  // Calcular jornada actual automáticamente al cargar
+  // Si hay URL RFEF guardada, usar su jornada (Actual) y temporada
+  useEffect(() => {
+    const run = async () => {
+      if (!rfefUrl) return;
+      try {
+        const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrl });
+        if (res?.data?.jornada_actual) setJornadaActual(res.data.jornada_actual);
+        if (res?.data?.temporada) setTemporada(res.data.temporada);
+      } catch (e) {
+        // silencioso
+      }
+    };
+    run();
+  }, [rfefUrl]);
+
+  // Calcular jornada actual automáticamente al cargar (fallback BD)
   useEffect(() => {
     const calcularJornada = async () => {
       try {
@@ -219,7 +234,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
               <div>
                 <p className="text-sm font-bold text-green-900">{categoria || "Categoría no seleccionada"}</p>
                 <p className="text-xs text-green-700 mt-1">
-                  📅 Temporada: <strong>2025/2026</strong> • 
+                  📅 Temporada: <strong>{temporada}</strong> • 
                   Jornada: <strong>{jornadaActual !== null ? jornadaActual : '...'}</strong>
                 </p>
               </div>
