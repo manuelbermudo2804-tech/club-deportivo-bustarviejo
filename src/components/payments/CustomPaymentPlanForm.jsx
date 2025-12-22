@@ -1,289 +1,352 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Calendar, Euro, AlertCircle } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-const MESES_OPTIONS = [
-  "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", 
-  "Diciembre", "Enero", "Febrero", "Marzo", "Abril", "Mayo"
-];
-
-const TEMPLATES = [
-  {
-    nombre: "Fraccionado 6 meses",
-    cuotas: [
-      { mes: "Junio", cantidad: 47 },
-      { mes: "Julio", cantidad: 47 },
-      { mes: "Septiembre", cantidad: 47 },
-      { mes: "Octubre", cantidad: 47 },
-      { mes: "Noviembre", cantidad: 47 },
-      { mes: "Diciembre", cantidad: 45 }
-    ]
-  },
-  {
-    nombre: "Mitad temporada (4 meses)",
-    cuotas: [
-      { mes: "Octubre", cantidad: 70 },
-      { mes: "Noviembre", cantidad: 70 },
-      { mes: "Diciembre", cantidad: 70 },
-      { mes: "Enero", cantidad: 70 }
-    ]
-  },
-  {
-    nombre: "Beca 50% (3 cuotas)",
-    cuotas: [
-      { mes: "Junio", cantidad: 58 },
-      { mes: "Septiembre", cantidad: 50 },
-      { mes: "Diciembre", cantidad: 47 }
-    ]
-  }
-];
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, Trash2, Calendar, Euro, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CustomPaymentPlanForm({ open, onClose, player, existingPlan, onSubmit, isSubmitting }) {
-  const [motivo, setMotivo] = useState("");
+  const [formData, setFormData] = useState({
+    deuda_original: 0,
+    deuda_condonada: 0,
+    numero_cuotas: 3,
+    motivo_plan: "Dificultad Económica",
+    motivo_detalle: "",
+    notas_internas: "",
+    mensaje_para_familia: ""
+  });
+
   const [cuotas, setCuotas] = useState([]);
-  const [mensajeFamilia, setMensajeFamilia] = useState("");
-  const [notasInternas, setNotasInternas] = useState("");
 
   useEffect(() => {
     if (existingPlan) {
-      setMotivo(existingPlan.motivo || "");
-      setCuotas(existingPlan.cuotas_personalizadas || []);
-      setMensajeFamilia(existingPlan.mensaje_para_familia || "");
-      setNotasInternas(existingPlan.notas_internas || "");
+      setFormData({
+        deuda_original: existingPlan.deuda_original || 0,
+        deuda_condonada: existingPlan.deuda_condonada || 0,
+        numero_cuotas: existingPlan.numero_cuotas || 3,
+        motivo_plan: existingPlan.motivo_plan || "Dificultad Económica",
+        motivo_detalle: existingPlan.motivo_detalle || "",
+        notas_internas: existingPlan.notas_internas || "",
+        mensaje_para_familia: existingPlan.mensaje_para_familia || ""
+      });
+      setCuotas(existingPlan.cuotas || []);
     } else {
-      setMotivo("");
+      // Reset
+      setFormData({
+        deuda_original: 0,
+        deuda_condonada: 0,
+        numero_cuotas: 3,
+        motivo_plan: "Dificultad Económica",
+        motivo_detalle: "",
+        notas_internas: "",
+        mensaje_para_familia: ""
+      });
       setCuotas([]);
-      setMensajeFamilia("");
-      setNotasInternas("");
     }
-  }, [existingPlan, open]);
+  }, [existingPlan, player]);
 
-  const addCuota = () => {
-    setCuotas([...cuotas, { mes: "Junio", cantidad: 0, fecha_vencimiento: "" }]);
+  // Generar cuotas automáticamente cuando cambia el número
+  const handleGenerateCuotas = () => {
+    const deudaFinal = formData.deuda_original - formData.deuda_condonada;
+    const cuotaMensual = Math.round((deudaFinal / formData.numero_cuotas) * 100) / 100;
+    
+    const nuevasCuotas = [];
+    let total = 0;
+    
+    for (let i = 0; i < formData.numero_cuotas - 1; i++) {
+      const vencimiento = new Date();
+      vencimiento.setMonth(vencimiento.getMonth() + i + 1);
+      
+      nuevasCuotas.push({
+        numero: i + 1,
+        cantidad: cuotaMensual,
+        fecha_vencimiento: vencimiento.toISOString().split('T')[0],
+        pagada: false
+      });
+      total += cuotaMensual;
+    }
+    
+    // Última cuota ajustada
+    const ultimaCuota = Math.round((deudaFinal - total) * 100) / 100;
+    const vencimientoUltima = new Date();
+    vencimientoUltima.setMonth(vencimientoUltima.getMonth() + formData.numero_cuotas);
+    
+    nuevasCuotas.push({
+      numero: formData.numero_cuotas,
+      cantidad: ultimaCuota,
+      fecha_vencimiento: vencimientoUltima.toISOString().split('T')[0],
+      pagada: false
+    });
+    
+    setCuotas(nuevasCuotas);
   };
-
-  const removeCuota = (index) => {
-    setCuotas(cuotas.filter((_, i) => i !== index));
-  };
-
-  const updateCuota = (index, field, value) => {
-    const updated = [...cuotas];
-    updated[index] = { ...updated[index], [field]: value };
-    setCuotas(updated);
-  };
-
-  const applyTemplate = (template) => {
-    setCuotas(template.cuotas.map(c => ({ ...c, fecha_vencimiento: "" })));
-  };
-
-  const totalPlan = cuotas.reduce((sum, c) => sum + (parseFloat(c.cantidad) || 0), 0);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!motivo || cuotas.length === 0) {
+    if (!player) {
+      toast.error("Selecciona un jugador");
+      return;
+    }
+    
+    if (formData.deuda_original <= 0) {
+      toast.error("La deuda original debe ser mayor a 0");
+      return;
+    }
+    
+    if (cuotas.length === 0) {
+      toast.error("Genera las cuotas primero");
       return;
     }
 
+    const deudaFinal = formData.deuda_original - formData.deuda_condonada;
+    
     const planData = {
       jugador_id: player.id,
       jugador_nombre: player.nombre,
-      temporada: player.temporada_renovacion || getCurrentSeason(),
-      motivo,
-      cuotas_personalizadas: cuotas,
-      total_plan: totalPlan,
-      mensaje_para_familia: mensajeFamilia,
-      notas_internas: notasInternas,
-      activo: true
+      familia_email: player.email_padre,
+      temporada: player.temporada || getCurrentSeason(),
+      deuda_original: formData.deuda_original,
+      deuda_condonada: formData.deuda_condonada,
+      deuda_final: deudaFinal,
+      numero_cuotas: formData.numero_cuotas,
+      cuotas: cuotas,
+      motivo_plan: formData.motivo_plan,
+      motivo_detalle: formData.motivo_detalle,
+      notas_internas: formData.notas_internas,
+      mensaje_para_familia: formData.mensaje_para_familia,
+      estado: "Activo",
+      notificaciones_activadas: true
     };
 
     onSubmit(planData);
   };
 
+  const updateCuota = (index, field, value) => {
+    const nuevasCuotas = [...cuotas];
+    nuevasCuotas[index] = { ...nuevasCuotas[index], [field]: value };
+    setCuotas(nuevasCuotas);
+  };
+
+  const deudaFinal = formData.deuda_original - formData.deuda_condonada;
+  const totalCuotas = cuotas.reduce((sum, c) => sum + (c.cantidad || 0), 0);
+
   const getCurrentSeason = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
-    return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+    return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            💰 Plan de Pago Personalizado - {player?.nombre}
-          </DialogTitle>
+          <DialogTitle>💝 {existingPlan ? "Editar" : "Crear"} Plan de Pago Personalizado</DialogTitle>
+          {player && (
+            <div className="flex items-center gap-2 mt-2">
+              <Badge className="bg-purple-100 text-purple-800">
+                {player.nombre} - {player.deporte}
+              </Badge>
+            </div>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Motivo */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              📝 Motivo del plan especial
-            </label>
-            <Textarea
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Ej: Situación económica familiar, Incorporación a mitad de temporada, Beca deportiva..."
-              className="h-20"
-              required
-            />
-          </div>
-
-          {/* Templates rápidos */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              ⚡ Plantillas rápidas (opcional)
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {TEMPLATES.map((template, idx) => (
-                <Button
-                  key={idx}
-                  type="button"
-                  variant="outline"
-                  onClick={() => applyTemplate(template)}
-                  className="text-xs"
-                >
-                  {template.nombre}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Cuotas personalizadas */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium">
-                💳 Cuotas del plan ({cuotas.length} cuotas)
-              </label>
-              <Button type="button" onClick={addCuota} size="sm" className="bg-green-600 hover:bg-green-700">
-                <Plus className="w-4 h-4 mr-1" />
-                Añadir Cuota
-              </Button>
-            </div>
-
-            <div className="space-y-3 max-h-80 overflow-y-auto">
-              {cuotas.map((cuota, index) => (
-                <Card key={index} className="p-3 bg-slate-50">
-                  <div className="grid grid-cols-12 gap-2 items-end">
-                    <div className="col-span-4">
-                      <label className="text-xs text-slate-600 mb-1 block">Mes</label>
-                      <Select
-                        value={cuota.mes}
-                        onValueChange={(value) => updateCuota(index, 'mes', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {MESES_OPTIONS.map(mes => (
-                            <SelectItem key={mes} value={mes}>{mes}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="col-span-3">
-                      <label className="text-xs text-slate-600 mb-1 block">Cantidad (€)</label>
-                      <Input
-                        type="number"
-                        value={cuota.cantidad}
-                        onChange={(e) => updateCuota(index, 'cantidad', parseFloat(e.target.value) || 0)}
-                        placeholder="0"
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                    <div className="col-span-4">
-                      <label className="text-xs text-slate-600 mb-1 block">Vencimiento</label>
-                      <Input
-                        type="date"
-                        value={cuota.fecha_vencimiento || ""}
-                        onChange={(e) => updateCuota(index, 'fecha_vencimiento', e.target.value)}
-                      />
-                    </div>
-                    <div className="col-span-1 flex justify-end">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeCuota(index)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {cuotas.length === 0 && (
-              <div className="text-center py-8 bg-slate-50 rounded-lg border-2 border-dashed border-slate-300">
-                <p className="text-slate-500 text-sm">Añade cuotas personalizadas o usa una plantilla</p>
-              </div>
-            )}
-          </div>
-
-          {/* Resumen del plan */}
-          {cuotas.length > 0 && (
-            <Card className="bg-blue-50 border-blue-200 p-4">
-              <div className="flex items-center justify-between">
+          {/* Deuda */}
+          <Card className="border-2 border-purple-200">
+            <CardContent className="pt-4 space-y-4">
+              <h3 className="font-bold text-purple-900">📊 Deuda</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-blue-900">Total del plan:</p>
-                  <p className="text-xs text-blue-700 mt-1">{cuotas.length} cuotas programadas</p>
+                  <label className="text-sm font-medium mb-2 block">Deuda Original (€)</label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.deuda_original}
+                    onChange={(e) => setFormData({...formData, deuda_original: parseFloat(e.target.value) || 0})}
+                    required
+                  />
                 </div>
-                <div className="text-3xl font-bold text-blue-900">
-                  {totalPlan.toFixed(2)}€
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Cantidad a Condonar (€)</label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={formData.deuda_original}
+                    value={formData.deuda_condonada}
+                    onChange={(e) => setFormData({...formData, deuda_condonada: parseFloat(e.target.value) || 0})}
+                  />
                 </div>
               </div>
-            </Card>
-          )}
 
-          {/* Mensaje para la familia */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              💬 Mensaje para la familia (opcional)
-            </label>
-            <Textarea
-              value={mensajeFamilia}
-              onChange={(e) => setMensajeFamilia(e.target.value)}
-              placeholder="Ej: Hemos ajustado las cuotas según vuestra situación. Cualquier duda, contactadnos."
-              className="h-16"
-            />
-          </div>
+              {formData.deuda_condonada > 0 && (
+                <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-3">
+                  <p className="text-sm text-orange-800">
+                    💝 <strong>Deuda Final:</strong> {deudaFinal.toFixed(2)}€
+                    (Condonado: {formData.deuda_condonada.toFixed(2)}€)
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          {/* Notas internas */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              🔒 Notas internas (solo visible para admins)
-            </label>
-            <Textarea
-              value={notasInternas}
-              onChange={(e) => setNotasInternas(e.target.value)}
-              placeholder="Notas privadas sobre este plan..."
-              className="h-16"
-            />
-          </div>
+          {/* Cuotas */}
+          <Card className="border-2 border-green-200">
+            <CardContent className="pt-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-green-900">💰 Cuotas del Plan</h3>
+                <div className="flex items-center gap-2">
+                  <Input 
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={formData.numero_cuotas}
+                    onChange={(e) => setFormData({...formData, numero_cuotas: parseInt(e.target.value) || 1})}
+                    className="w-20"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleGenerateCuotas}
+                    variant="outline"
+                    size="sm"
+                    disabled={formData.deuda_original <= 0}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Generar
+                  </Button>
+                </div>
+              </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
+              {cuotas.length > 0 ? (
+                <div className="space-y-2">
+                  {cuotas.map((cuota, idx) => (
+                    <div key={idx} className="grid grid-cols-3 gap-2 p-3 bg-slate-50 rounded-lg">
+                      <div>
+                        <label className="text-xs text-slate-600">Cuota {cuota.numero}</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={cuota.cantidad}
+                          onChange={(e) => updateCuota(idx, 'cantidad', parseFloat(e.target.value) || 0)}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-600">Vencimiento</label>
+                        <Input
+                          type="date"
+                          value={cuota.fecha_vencimiento}
+                          onChange={(e) => updateCuota(idx, 'fecha_vencimiento', e.target.value)}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="bg-green-50 border-2 border-green-300 rounded-lg p-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">Total del Plan:</span>
+                      <span className="font-bold text-green-700">{totalCuotas.toFixed(2)}€</span>
+                    </div>
+                    <div className="flex justify-between text-sm mt-1">
+                      <span className="font-medium">Debe ser:</span>
+                      <span className={`font-bold ${Math.abs(totalCuotas - deudaFinal) < 0.01 ? 'text-green-700' : 'text-red-700'}`}>
+                        {deudaFinal.toFixed(2)}€
+                      </span>
+                    </div>
+                    {Math.abs(totalCuotas - deudaFinal) > 0.01 && (
+                      <div className="flex items-center gap-2 mt-2 text-xs text-red-700">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span>Diferencia: {(totalCuotas - deudaFinal).toFixed(2)}€</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500 text-center py-4">
+                  Genera las cuotas automáticamente o añade manualmente
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Motivo */}
+          <Card className="border-2 border-blue-200">
+            <CardContent className="pt-4 space-y-4">
+              <h3 className="font-bold text-blue-900">📝 Motivo del Plan</h3>
+              
+              <div>
+                <label className="text-sm font-medium mb-2 block">Motivo Principal</label>
+                <Select 
+                  value={formData.motivo_plan} 
+                  onValueChange={(value) => setFormData({...formData, motivo_plan: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Dificultad Económica">Dificultad Económica</SelectItem>
+                    <SelectItem value="Pérdida Empleo">Pérdida Empleo</SelectItem>
+                    <SelectItem value="Emergencia Familiar">Emergencia Familiar</SelectItem>
+                    <SelectItem value="Familia Numerosa">Familia Numerosa</SelectItem>
+                    <SelectItem value="Otro">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Detalles del Motivo</label>
+                <Textarea 
+                  placeholder="Explica brevemente la situación..."
+                  value={formData.motivo_detalle}
+                  onChange={(e) => setFormData({...formData, motivo_detalle: e.target.value})}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Mensaje para la Familia</label>
+                <Textarea 
+                  placeholder="Mensaje que verá la familia en su panel..."
+                  value={formData.mensaje_para_familia}
+                  onChange={(e) => setFormData({...formData, mensaje_para_familia: e.target.value})}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Notas Internas (privadas)</label>
+                <Textarea 
+                  placeholder="Notas para el equipo administrativo..."
+                  value={formData.notas_internas}
+                  onChange={(e) => setFormData({...formData, notas_internas: e.target.value})}
+                  className="min-h-[60px]"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Botones */}
+          <div className="flex gap-3 pt-4">
             <Button 
               type="submit" 
-              className="bg-orange-600 hover:bg-orange-700"
-              disabled={isSubmitting || !motivo || cuotas.length === 0}
+              disabled={isSubmitting || cuotas.length === 0 || Math.abs(totalCuotas - deudaFinal) > 0.01}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
             >
               {isSubmitting ? "Guardando..." : existingPlan ? "Actualizar Plan" : "Crear Plan"}
             </Button>
-          </DialogFooter>
+            <Button type="button" onClick={onClose} variant="outline">
+              Cancelar
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
