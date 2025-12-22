@@ -49,7 +49,7 @@ export default function AgendaView({ items, onItemClick }) {
         sortedDates.map(date => (
           <div key={date} className="space-y-3">
             <div className={`flex items-center gap-3 sticky top-0 bg-slate-50 py-2 px-3 rounded-lg border ${isToday(date) ? 'border-orange-400 bg-orange-50' : 'border-slate-200'}`}>
-              <Calendar className={`w-5 h-5 ${isToday(date) ? 'text-orange-600' : 'text-slate-600'}`} />
+              <CalendarIcon className={`w-5 h-5 ${isToday(date) ? 'text-orange-600' : 'text-slate-600'}`} />
               <div>
                 <h3 className={`font-bold ${isToday(date) ? 'text-orange-900' : 'text-slate-900'}`}>
                   {format(new Date(date + 'T00:00:00'), 'EEEE d MMMM yyyy', { locale: es })}
