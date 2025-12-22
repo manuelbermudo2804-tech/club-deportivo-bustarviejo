@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, MapPin, Clock, Calendar, Star, Users, CheckCircle2, XCircle, HelpCircle, Clock as ClockIcon } from "lucide-react";
+import { Pencil, MapPin, Clock, Calendar as CalendarIcon, Star, Users, CheckCircle2, XCircle, HelpCircle, Clock as ClockIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ShareButtons from "../social/ShareButtons";
