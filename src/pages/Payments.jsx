@@ -1022,9 +1022,14 @@ export default function Payments() {
                       const hasPagoUnico = allPlayerPayments.some(p => 
                         p.tipo_pago === "Único" || p.tipo_pago === "único"
                       );
+                      
+                      // Si tiene plan especial, mostrar TODOS sus pagos
+                      const hasPlanEspecial = allPlayerPayments.some(p => p.tipo_pago === "Plan Especial");
 
                       // Si tiene pago único, solo mostrar ese pago (Junio), ignorar los demás
-                      const playerPayments = hasPagoUnico
+                      const playerPayments = hasPlanEspecial
+                        ? allPlayerPayments
+                        : hasPagoUnico
                         ? allPlayerPayments.filter(p => p.mes === "Junio")
                         : allPlayerPayments;
 
@@ -1036,7 +1041,8 @@ export default function Payments() {
                       // Determinar los meses que debería tener este jugador
                       let allMonths;
                       if (playerCustomPlan && playerCustomPlan.cuotas) {
-                        allMonths = playerCustomPlan.cuotas.map(c => `Cuota ${c.numero}`);
+                        // Si tiene plan especial, NO crear virtuales (los pagos ya existen en BD)
+                        allMonths = [];
                       } else if (hasPagoUnico) {
                         allMonths = ["Junio"];
                       } else {

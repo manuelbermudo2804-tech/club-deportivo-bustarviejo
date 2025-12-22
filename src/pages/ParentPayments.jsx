@@ -569,9 +569,10 @@ export default function ParentPayments() {
 
               // Determinar los meses que debería tener este jugador
               let allMonths;
+              
+              // Si tiene plan personalizado, NO crear virtuales (los pagos reales ya existen en BD)
               if (playerCustomPlan && playerCustomPlan.cuotas) {
-                // Si tiene plan personalizado, usar esos meses
-                allMonths = playerCustomPlan.cuotas.map(c => c.mes || `Cuota ${c.numero}`);
+                allMonths = [];
               } else {
                 // Lógica estándar (pago único vs tres meses)
                 allMonths = hasPagoUnico
