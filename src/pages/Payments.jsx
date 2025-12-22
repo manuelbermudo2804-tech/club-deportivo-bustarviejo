@@ -488,14 +488,20 @@ export default function Payments() {
         (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
       );
       
-      // Verificar si tiene pago único pagado o en revisión
+      // Si hay ALGÚN pago de tipo único (en cualquier estado), es pago único
       const hasPagoUnico = playerPayments.some(p => 
-        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-        (p.estado === "Pagado" || p.estado === "En revisión")
+        p.tipo_pago === "Único" || p.tipo_pago === "único"
       );
       
       if (hasPagoUnico) {
-        // Si tiene pago único, no faltan cuotas
+        // Buscar el pago único
+        const pagoUnico = playerPayments.find(p => 
+          p.tipo_pago === "Único" || p.tipo_pago === "único"
+        );
+        // Solo contar 1 si está pendiente
+        if (pagoUnico && pagoUnico.estado === "Pendiente") {
+          totalPendientes += 1;
+        }
         return;
       }
       
@@ -525,14 +531,20 @@ export default function Payments() {
         (targetTemporada === null || matchTemporada(p.temporada, targetTemporada))
       );
       
-      // Verificar si tiene pago único pagado
+      // Si hay ALGÚN pago de tipo único (en cualquier estado), es pago único
       const hasPagoUnico = playerPayments.some(p => 
-        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-        p.estado === "Pagado"
+        p.tipo_pago === "Único" || p.tipo_pago === "único"
       );
       
       if (hasPagoUnico) {
-        // Si tiene pago único pagado, no hay vencidos
+        // Buscar el pago único
+        const pagoUnico = playerPayments.find(p => 
+          p.tipo_pago === "Único" || p.tipo_pago === "único"
+        );
+        // Solo contar como vencido si está pendiente Y ya pasó el vencimiento de Junio
+        if (pagoUnico && pagoUnico.estado === "Pendiente" && calculateDaysOverdue("Junio") > 0) {
+          totalVencidos += 1;
+        }
         return;
       }
       
