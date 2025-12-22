@@ -50,6 +50,11 @@ export default function PaymentReminders() {
     queryFn: () => base44.entities.CategoryConfig.list(),
   });
 
+  const { data: customPlans = [] } = useQuery({
+    queryKey: ['customPaymentPlans'],
+    queryFn: () => base44.entities.CustomPaymentPlan.list(),
+  });
+
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
     queryFn: () => base44.entities.User.list(),
