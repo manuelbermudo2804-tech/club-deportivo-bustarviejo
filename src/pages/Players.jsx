@@ -75,6 +75,12 @@ export default function Players() {
     initialData: [],
   });
 
+  const { data: customPlans = [] } = useQuery({
+    queryKey: ['customPaymentPlans'],
+    queryFn: () => base44.entities.CustomPaymentPlan.list(),
+    initialData: [],
+  });
+
   const { data: evaluations } = useQuery({
     queryKey: ['evaluations'],
     queryFn: () => base44.entities.PlayerEvaluation.list(),
@@ -690,6 +696,7 @@ export default function Players() {
                   payments={payments}
                   seasonConfig={activeSeason}
                   isCoachOrCoordinator={isCoach || user?.es_coordinador}
+                  customPlans={customPlans}
                   onCreateCustomPlan={isAdmin ? (p) => {
                     setSelectedPlayerForPlan(p);
                     setShowCustomPlanForm(true);
