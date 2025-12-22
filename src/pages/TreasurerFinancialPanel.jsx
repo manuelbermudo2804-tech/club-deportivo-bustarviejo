@@ -217,6 +217,7 @@ export default function TreasurerFinancialPanel() {
     const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason.temporada);
     const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason.temporada);
     const currentSeasonMembers = clubMembers.filter(m => m.temporada === activeSeason.temporada);
+    const currentSeasonPlans = customPlans.filter(p => p.temporada === activeSeason.temporada);
 
     // CÁLCULO DE PENDIENTES
     let totalPendiente = 0;
@@ -224,10 +225,9 @@ export default function TreasurerFinancialPanel() {
       const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
       
       // Verificar si tiene plan especial activo
-      const playerActivePlan = customPlans.find(p => 
+      const playerActivePlan = currentSeasonPlans.find(p => 
         p.jugador_id === player.id && 
-        p.estado === "Activo" &&
-        p.temporada === activeSeason.temporada
+        p.estado === "Activo"
       );
 
       if (playerActivePlan) {
@@ -297,7 +297,7 @@ export default function TreasurerFinancialPanel() {
       
       patrociniosTotal: sponsors.filter(s => s.estado === "Activo" && s.temporada === activeSeason.temporada).reduce((sum, s) => sum + (s.monto || 0), 0),
     };
-  }, [activeSeason, payments, players, clothingOrders, lotteryOrders, clubMembers, sponsors]);
+  }, [activeSeason, payments, players, clothingOrders, lotteryOrders, clubMembers, sponsors, customPlans]);
 
   // TOTALES CORREGIDOS
   const totalIngresos = stats.cuotasPagadas + stats.ropaPagada + stats.loteriaPagada + stats.sociosPagados + stats.patrociniosTotal;
