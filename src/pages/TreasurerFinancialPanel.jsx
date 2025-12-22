@@ -230,20 +230,11 @@ export default function TreasurerFinancialPanel() {
         p.estado === "Activo"
       );
 
-      if (playerActivePlan) {
-        // Filtrar pagos del plan y eliminar duplicados
-        const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
-        const seen = new Set();
-        const uniquePlanPayments = planPayments.filter(p => {
-          if (seen.has(p.mes)) return false;
-          seen.add(p.mes);
-          return true;
-        });
-        
-        // Sumar solo las cuotas pendientes
-        const cuotasPendientes = uniquePlanPayments.filter(p => p.estado === "Pendiente");
-        cuotasPendientes.forEach(p => {
-          totalPendiente += p.cantidad || 0;
+      if (playerActivePlan && playerActivePlan.cuotas) {
+        // PLAN ESPECIAL: Usar directamente las cuotas del plan, no los pagos de la BD
+        const cuotasPendientes = playerActivePlan.cuotas.filter(c => c.pagada !== true);
+        cuotasPendientes.forEach(cuota => {
+          totalPendiente += cuota.cantidad || 0;
         });
         return;
       }
