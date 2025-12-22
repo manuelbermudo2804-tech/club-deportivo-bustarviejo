@@ -556,15 +556,20 @@ export default function ParentPayments() {
                 p.jugador_id === player.id && p.estado === "Activo"
               );
 
-              // Determinar tipo de pago - verificar si ALGÚN pago es de tipo único
+              // Determinar tipo de pago - verificar si ALGÚN pago es de tipo único o plan especial
               const hasPagoUnico = allPlayerPayments.some(p => 
                 p.tipo_pago === "Único" || p.tipo_pago === "único"
+              );
+              
+              const hasPlanEspecial = allPlayerPayments.some(p => 
+                p.tipo_pago === "Plan Especial"
               );
               
               console.log(`🔍 [ParentPayments] ${player.nombre}:`, {
                 pagosTotales: allPlayerPayments.length,
                 tiposPago: allPlayerPayments.map(p => p.tipo_pago),
-                hasPagoUnico
+                hasPagoUnico,
+                hasPlanEspecial
               });
 
               // Determinar los meses que debería tener este jugador
@@ -581,43 +586,50 @@ export default function ParentPayments() {
               }
 
               // Crear pagos virtuales SOLO para meses que NO tienen ningún pago (ni pagado, ni pendiente, ni revisión)
-              const displayPayments = allMonths.map(mes => {
-                // Buscar cualquier pago de este mes (pagado, pendiente o en revisión)
-                const existingPayment = allPlayerPayments.find(p => p.mes === mes);
-                
-                if (existingPayment) {
-                  // Si existe el pago (en cualquier estado), mostrarlo
-                  return existingPayment;
-                }
-                
-                // Solo crear virtual si NO existe ningún pago para este mes
-                let cantidad;
-                if (playerCustomPlan && playerCustomPlan.cuotas) {
-                  // Usar cantidad del plan personalizado
-                  const cuotaPlan = playerCustomPlan.cuotas.find(c => (c.mes === mes) || (`Cuota ${c.numero}` === mes));
-                  cantidad = cuotaPlan?.cantidad || 0;
-                } else {
-                  const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
-                  // Usar hasPagoUnico del scope externo
-                  cantidad = hasPagoUnico 
-                    ? cuotas.total 
-                    : getImportePorMesFromConfig(player.deporte, mes, categoryConfigs);
-                }
-                
-                return {
-                  id: `virtual-${player.id}-${mes}`,
-                  jugador_id: player.id,
-                  jugador_nombre: player.nombre,
-                  mes: mes,
-                  temporada: currentSeason,
-                  estado: "Pendiente",
-                  cantidad: cantidad,
-                  // Usar hasPagoUnico del scope externo
-                  tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
-                  isVirtual: true,
-                  customPlan: playerCustomPlan ? true : false
-                  };
-                  });
+              let displayPayments;
+              
+              if (hasPlanEspecial) {
+                // Si tiene plan especial, mostrar SOLO los pagos reales de BD (ya están creados)
+                displayPayments = allPlayerPayments;
+              } else {
+                displayPayments = allMonths.map(mes => {
+                  // Buscar cualquier pago de este mes (pagado, pendiente o en revisión)
+                  const existingPayment = allPlayerPayments.find(p => p.mes === mes);
+                  
+                  if (existingPayment) {
+                    // Si existe el pago (en cualquier estado), mostrarlo
+                    return existingPayment;
+                  }
+                  
+                  // Solo crear virtual si NO existe ningún pago para este mes
+                  let cantidad;
+                  if (playerCustomPlan && playerCustomPlan.cuotas) {
+                    // Usar cantidad del plan personalizado
+                    const cuotaPlan = playerCustomPlan.cuotas.find(c => (c.mes === mes) || (`Cuota ${c.numero}` === mes));
+                    cantidad = cuotaPlan?.cantidad || 0;
+                  } else {
+                    const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
+                    // Usar hasPagoUnico del scope externo
+                    cantidad = hasPagoUnico 
+                      ? cuotas.total 
+                      : getImportePorMesFromConfig(player.deporte, mes, categoryConfigs);
+                  }
+                  
+                  return {
+                    id: `virtual-${player.id}-${mes}`,
+                    jugador_id: player.id,
+                    jugador_nombre: player.nombre,
+                    mes: mes,
+                    temporada: currentSeason,
+                    estado: "Pendiente",
+                    cantidad: cantidad,
+                    // Usar hasPagoUnico del scope externo
+                    tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
+                    isVirtual: true,
+                    customPlan: playerCustomPlan ? true : false
+                    };
+                    });
+              }
               
               // Contar solo pagos REALES (no virtuales)
               const realPayments = displayPayments.filter(p => !p.isVirtual);
@@ -715,13 +727,29 @@ export default function ParentPayments() {
                     ) : (
                       <div className="space-y-3">
                         {displayPayments.map((payment, index) => {
-                            // Lógica para mostrar botón "Pagar" solo si la cuota anterior está pagada
-                            const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
-                            const mesIndex = ordenMeses.indexOf(payment.mes);
-                            const cuotaAnterior = mesIndex > 0 ? displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1]) : null;
-                            const cuotaAnteriorPagada = mesIndex === 0 || cuotaAnterior?.estado === "Pagado";
-                            // Mostrar botón si: está pendiente Y (es la primera cuota O la anterior está pagada)
-                            const mostrarBotonPagar = payment.estado === "Pendiente" && cuotaAnteriorPagada;
+                            // Para PLAN ESPECIAL - mostrar cuotas en orden secuencial
+                            let mostrarBotonPagar = false;
+                            
+                            if (hasPlanEspecial) {
+                              // Plan especial: solo permitir pagar la PRIMERA cuota pendiente
+                              const cuotasPendientes = displayPayments
+                                .filter(p => p.estado === "Pendiente" && !p.isVirtual)
+                                .sort((a, b) => {
+                                  const numA = parseInt(a.mes.replace('Cuota ', ''));
+                                  const numB = parseInt(b.mes.replace('Cuota ', ''));
+                                  return numA - numB;
+                                });
+                              
+                              mostrarBotonPagar = cuotasPendientes.length > 0 && cuotasPendientes[0].id === payment.id;
+                            } else {
+                              // Lógica estándar para mostrar botón "Pagar" solo si la cuota anterior está pagada
+                              const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
+                              const mesIndex = ordenMeses.indexOf(payment.mes);
+                              const cuotaAnterior = mesIndex > 0 ? displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1]) : null;
+                              const cuotaAnteriorPagada = mesIndex === 0 || cuotaAnterior?.estado === "Pagado";
+                              // Mostrar botón si: está pendiente Y (es la primera cuota O la anterior está pagada)
+                              mostrarBotonPagar = payment.estado === "Pendiente" && cuotaAnteriorPagada;
+                            }
 
                             return (
                             <div key={payment.id} className={`border-l-4 p-3 rounded ${
@@ -733,8 +761,11 @@ export default function ParentPayments() {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
                                     <span className="font-bold text-slate-900">{payment.mes}</span>
+                                    {payment.tipo_pago === "Plan Especial" && (
+                                      <Badge className="bg-purple-100 text-purple-700 text-xs">Plan Especial</Badge>
+                                    )}
                                     <span className="text-2xl">{statusEmojis[payment.estado]}</span>
-                                    <span className="text-lg font-bold">{payment.cantidad}€</span>
+                                    <span className="text-lg font-bold">{payment.cantidad?.toFixed(2)}€</span>
                                     <TooltipProvider>
                                       <Tooltip>
                                         <TooltipTrigger asChild>
@@ -751,10 +782,15 @@ export default function ParentPayments() {
                                       </Tooltip>
                                     </TooltipProvider>
                                   </div>
-                                  <p className="text-xs text-slate-600">{payment.estado}{payment.isVirtual ? " (sin registrar)" : ""}</p>
+                                  <p className="text-xs text-slate-600">
+                                    {payment.estado}{payment.isVirtual ? " (sin registrar)" : ""}
+                                    {payment.notas && payment.tipo_pago === "Plan Especial" && (
+                                      <span className="block text-purple-600 mt-1">{payment.notas}</span>
+                                    )}
+                                  </p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {mostrarBotonPagar && (
+                                  {mostrarBotonPagar && !payment.isVirtual && (
                                     <Button
                                       size="sm"
                                       onClick={() => {
