@@ -630,26 +630,40 @@ export default function TreasurerFinancialPanel() {
                             cuotasPendientes += cuotasPendientesPlan;
                           }
                         } else {
-                          // NO tiene plan especial - lógica estándar
-                          const hasPagoUnico = playerPayments.some(p => 
-                            p.tipo_pago === "Único" || p.tipo_pago === "único"
-                          );
-                          
-                          if (hasPagoUnico) {
-                            const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
-                            if (pagoUnico && pagoUnico.estado === "Pendiente") cuotasPendientes += 1;
+                          // NO tiene plan especial - lógica estándar o pagos Plan Especial sin plan activo
+                          const planEspecialPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                          if (planEspecialPayments.length > 0) {
+                            const rank = (s) => (s === "Pagado" ? 3 : s === "En revisión" ? 2 : s === "Pendiente" ? 1 : 0);
+                            const byMes = {};
+                            planEspecialPayments.forEach(pp => {
+                              const key = pp.mes || String(pp.id);
+                              if (!byMes[key] || rank(pp.estado) > rank(byMes[key].estado)) {
+                                byMes[key] = pp;
+                              }
+                            });
+                            const countPend = Object.values(byMes).filter(p => p.estado === "Pendiente").length;
+                            cuotasPendientes += countPend;
                           } else {
-                            const mesesPagadosORevision = playerPayments
-                              .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-                              .map(p => p.mes);
-                            const allMonths = ["Junio", "Septiembre", "Diciembre"];
-                            const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-                            cuotasPendientes += mesesFaltantes.length;
+                            const hasPagoUnico = playerPayments.some(p => 
+                              p.tipo_pago === "Único" || p.tipo_pago === "único"
+                            );
+                            
+                            if (hasPagoUnico) {
+                              const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+                              if (pagoUnico && pagoUnico.estado === "Pendiente") cuotasPendientes += 1;
+                            } else {
+                              const mesesPagadosORevision = playerPayments
+                                .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+                                .map(p => p.mes);
+                              const allMonths = ["Junio", "Septiembre", "Diciembre"];
+                              const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+                              cuotasPendientes += mesesFaltantes.length;
+                            }
                           }
                         }
                       });
                       
-                      return `${cuotasPendientes} cuotas sin pagar`;
+                      return `${cuotasPendientes} cuota${cuotasPendientes === 1 ? '' : 's'} sin pagar`;
                     })()}
                   </p>
                 </div>
@@ -956,24 +970,38 @@ export default function TreasurerFinancialPanel() {
                             cuotasPendientes += cuotasPendientesPlan;
                           }
                         } else {
-                          // NO tiene plan especial - lógica estándar
-                          const hasPagoUnico = playerPayments.some(p => 
-                            p.tipo_pago === "Único" || p.tipo_pago === "único"
-                          );
-                          if (hasPagoUnico) {
-                            const pagoUnicoPendiente = playerPayments.find(p => 
-                              (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-                              p.estado === "Pendiente"
-                            );
-                            if (pagoUnicoPendiente) cuotasPendientes += 1;
+                          // NO tiene plan especial - lógica estándar o pagos Plan Especial sin plan activo
+                          const planEspecialPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+                          if (planEspecialPayments.length > 0) {
+                            const rank = (s) => (s === "Pagado" ? 3 : s === "En revisión" ? 2 : s === "Pendiente" ? 1 : 0);
+                            const byMes = {};
+                            planEspecialPayments.forEach(pp => {
+                              const key = pp.mes || String(pp.id);
+                              if (!byMes[key] || rank(pp.estado) > rank(byMes[key].estado)) {
+                                byMes[key] = pp;
+                              }
+                            });
+                            const countPend = Object.values(byMes).filter(p => p.estado === "Pendiente").length;
+                            cuotasPendientes += countPend;
                           } else {
-                            const mesesPagadosORevision = playerPayments
-                              .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-                              .map(p => p.mes);
-                            
-                            const allMonths = ["Junio", "Septiembre", "Diciembre"];
-                            const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-                            cuotasPendientes += mesesFaltantes.length;
+                            const hasPagoUnico = playerPayments.some(p => 
+                              p.tipo_pago === "Único" || p.tipo_pago === "único"
+                            );
+                            if (hasPagoUnico) {
+                              const pagoUnicoPendiente = playerPayments.find(p => 
+                                (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
+                                p.estado === "Pendiente"
+                              );
+                              if (pagoUnicoPendiente) cuotasPendientes += 1;
+                            } else {
+                              const mesesPagadosORevision = playerPayments
+                                .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
+                                .map(p => p.mes);
+
+                              const allMonths = ["Junio", "Septiembre", "Diciembre"];
+                              const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
+                              cuotasPendientes += mesesFaltantes.length;
+                            }
                           }
                         }
                       });
