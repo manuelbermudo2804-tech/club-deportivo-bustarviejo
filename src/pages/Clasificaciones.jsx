@@ -139,35 +139,40 @@ export default function Clasificaciones() {
   const saveStandingsMutation = useMutation({
     mutationFn: async (data) => {
       const { temporada, categoria, jornada, standings } = data;
-      
-      // Borrar clasificaciones anteriores de la misma jornada
-      const existing = await base44.entities.Clasificacion.filter({ 
-        temporada, 
-        categoria, 
-        jornada 
+
+      // Normalizar valores para evitar no-coincidencias y duplicados
+      const temporadaNorm = String(temporada).trim();
+      const categoriaNorm = String(categoria).trim();
+      const jornadaNum = Number(jornada);
+
+      // Borrar de forma robusta todas las filas previas de esa jornada
+      const preList = await base44.entities.Clasificacion.filter({ 
+        temporada: temporadaNorm, 
+        categoria: categoriaNorm 
       });
-      
-      for (const record of existing) {
-        await base44.entities.Clasificacion.delete(record.id);
+      const toDelete = preList.filter(r => Number(r.jornada) === jornadaNum);
+      if (toDelete.length > 0) {
+        await Promise.all(toDelete.map(r => base44.entities.Clasificacion.delete(r.id)));
       }
-      
-      // Guardar nuevas clasificaciones
+
+      // Crear filas nuevas ya normalizadas
+      const nowIso = new Date().toISOString();
       const recordsToCreate = standings.map(s => ({
-        temporada,
-        categoria,
-        jornada,
-        posicion: s.posicion,
-        nombre_equipo: s.nombre_equipo,
-        puntos: s.puntos,
-        partidos_jugados: s.partidos_jugados,
-        ganados: s.ganados,
-        empatados: s.empatados,
-        perdidos: s.perdidos,
-        goles_favor: s.goles_favor,
-        goles_contra: s.goles_contra,
-        fecha_actualizacion: new Date().toISOString()
+        temporada: temporadaNorm,
+        categoria: categoriaNorm,
+        jornada: jornadaNum,
+        posicion: Number(s.posicion),
+        nombre_equipo: String(s.nombre_equipo).trim(),
+        puntos: Number(s.puntos),
+        partidos_jugados: Number(s.partidos_jugados),
+        ganados: Number(s.ganados),
+        empatados: Number(s.empatados),
+        perdidos: Number(s.perdidos),
+        goles_favor: Number(s.goles_favor),
+        goles_contra: Number(s.goles_contra),
+        fecha_actualizacion: nowIso
       }));
-      
+
       await base44.entities.Clasificacion.bulkCreate(recordsToCreate);
     },
     onSuccess: () => {
