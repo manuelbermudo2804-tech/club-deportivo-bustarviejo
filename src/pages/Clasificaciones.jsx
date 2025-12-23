@@ -427,7 +427,21 @@ export default function Clasificaciones() {
                     const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
                     const { data } = await base44.functions.invoke('fetchRfefScorers', { url });
                     const players = (data?.players || []).filter(p => p.jugador_nombre && p.equipo && Number.isFinite(Number(p.goles)));
-                    if (players.length === 0) { toast error } // placeholder fixed below
+                    if (players.length === 0) { toast.error('No se detectaron goleadores'); return; }
+                    const prev = await base44.entities.Goleador.filter({ temporada, categoria: catFull });
+                    await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
+                    const nowIso = new Date().toISOString();
+                    await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
+                      temporada,
+                      categoria: catFull,
+                      jugador_nombre: String(p.jugador_nombre).trim(),
+                      equipo: String(p.equipo).trim(),
+                      goles: Number(p.goles),
+                      posicion: idx + 1,
+                      fecha_actualizacion: nowIso,
+                    })));
+                    await queryClient.invalidateQueries({ queryKey: ['goleadores', catFull] });
+                    toast.success('Goleadores guardados');
                   }}
                   className="bg-orange-600 hover:bg-orange-700"
                 >
