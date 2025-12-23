@@ -457,15 +457,22 @@ export default function Clasificaciones() {
     return (
       <div className="p-6 space-y-6">
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
-              <p className="text-slate-600">Top goleadores por categoría</p>
-            </div>
-            {isAdmin && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={async () => {
+         <CardContent className="p-6 flex items-center justify-between">
+           <div>
+             <h2 className="text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+             <p className="text-slate-600">Top goleadores por categoría</p>
+           </div>
+           <div className="flex gap-2">
+             <Button
+               onClick={() => setShowScorersForm(true)}
+               variant="outline"
+             >
+               Subir desde imagen
+             </Button>
+             {isAdmin && (
+               <> 
+               <Button
+                 onClick={async () => {
                     let url = rfefScorersUrl;
                     if (!url) {
                       url = window.prompt('Pega la URL de Goleadores de la RFFM para esta categoría');
