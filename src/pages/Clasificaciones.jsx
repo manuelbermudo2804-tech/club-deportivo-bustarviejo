@@ -148,7 +148,8 @@ export default function Clasificaciones() {
       // Borrar de forma robusta todas las filas previas de esa jornada
       const preList = await base44.entities.Clasificacion.filter({ 
         temporada: temporadaNorm, 
-        categoria: categoriaNorm 
+        categoria: categoriaNorm,
+        jornada: 'Actual'
       });
       const toDelete = preList;
       if (toDelete.length > 0) {
