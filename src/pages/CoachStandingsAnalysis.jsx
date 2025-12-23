@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, Sparkles, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Zap } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BarChart3, Sparkles, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Zap, Target, Shield, Swords } from "lucide-react";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import QuickMatchObservationForm from "../components/coach/QuickMatchObservationForm";
 import { toast } from "sonner";
@@ -30,6 +31,9 @@ export default function CoachStandingsAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState({});
   const [selectedView, setSelectedView] = useState(null);
   const [showObservationForm, setShowObservationForm] = useState(false);
+  const [rivalAnalysis, setRivalAnalysis] = useState(null);
+  const [isAnalyzingRival, setIsAnalyzingRival] = useState(false);
+  const [showRivalDialog, setShowRivalDialog] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -79,6 +83,18 @@ export default function CoachStandingsAnalysis() {
     enabled: !!user,
   });
 
+  const { data: resultados = [] } = useQuery({
+    queryKey: ['resultados'],
+    queryFn: () => base44.entities.Resultado.list('-jornada', 500),
+    enabled: !!user,
+  });
+
+  const { data: goleadores = [] } = useQuery({
+    queryKey: ['goleadores'],
+    queryFn: () => base44.entities.Goleador.list('-goles', 300),
+    enabled: !!user,
+  });
+
   const saveObservationMutation = useMutation({
     mutationFn: (data) => base44.entities.MatchObservation.create(data),
     onSuccess: () => {
@@ -114,6 +130,180 @@ export default function CoachStandingsAnalysis() {
     
     return acc;
   }, {});
+
+  const analyzeRival = async (categoria) => {
+    setIsAnalyzingRival(true);
+
+    const cat = CATEGORIES.find(c => c.id === categoria);
+    if (!cat) return;
+
+    // Buscar próximo partido
+    const today = new Date().toISOString().split('T')[0];
+    const nextCallup = callups
+      .filter(c => c.categoria === cat.fullName && c.publicada && c.fecha_partido >= today && !c.cerrada && c.rival)
+      .sort((a, b) => a.fecha_partido.localeCompare(b.fecha_partido))[0];
+
+    if (!nextCallup) {
+      toast.error("No hay próximos partidos programados");
+      setIsAnalyzingRival(false);
+      return;
+    }
+
+    const rivalName = nextCallup.rival;
+    
+    // Recopilar datos del rival
+    const latestStanding = standingsByCategory[categoria]?.[0];
+    const rivalStanding = latestStanding?.data.find(s => 
+      s.nombre_equipo.toLowerCase().includes(rivalName.toLowerCase())
+    );
+
+    const bustarStanding = latestStanding?.data.find(s => 
+      s.nombre_equipo.toLowerCase().includes('bustarviejo')
+    );
+
+    // Últimos resultados del rival
+    const rivalResults = resultados
+      .filter(r => 
+        r.categoria === cat.fullName && 
+        (r.local.toLowerCase().includes(rivalName.toLowerCase()) || 
+         r.visitante.toLowerCase().includes(rivalName.toLowerCase()))
+      )
+      .sort((a, b) => b.jornada - a.jornada)
+      .slice(0, 5);
+
+    // Goleadores del rival
+    const rivalScorers = goleadores
+      .filter(g => 
+        g.categoria === cat.fullName && 
+        g.equipo.toLowerCase().includes(rivalName.toLowerCase())
+      )
+      .sort((a, b) => b.goles - a.goles)
+      .slice(0, 3);
+
+    // Histórico de enfrentamientos
+    const historicMatches = resultados
+      .filter(r => 
+        r.categoria === cat.fullName &&
+        ((r.local.toLowerCase().includes('bustarviejo') && r.visitante.toLowerCase().includes(rivalName.toLowerCase())) ||
+         (r.visitante.toLowerCase().includes('bustarviejo') && r.local.toLowerCase().includes(rivalName.toLowerCase())))
+      )
+      .sort((a, b) => b.jornada - a.jornada)
+      .slice(0, 3);
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Eres un analista táctico de fútbol. Analiza al próximo rival y proporciona un informe PRE-PARTIDO con recomendaciones concretas.
+
+**PRÓXIMO PARTIDO:**
+- 🆚 Rival: ${rivalName}
+- 📅 Fecha: ${nextCallup.fecha_partido}
+- ⏰ Hora: ${nextCallup.hora_partido || 'Por confirmar'}
+- 🏟️ Campo: ${nextCallup.local_visitante === 'Local' ? 'Casa (ventaja)' : 'Fuera'}
+- 📍 ${nextCallup.ubicacion}
+
+**CLASIFICACIÓN ACTUAL:**
+${rivalStanding ? `
+- Posición rival: ${rivalStanding.posicion}º de ${latestStanding.data.length}
+- Puntos: ${rivalStanding.puntos} pts
+- Partidos: ${rivalStanding.partidos_jugados || 'N/A'} (${rivalStanding.ganados || 0}G-${rivalStanding.empatados || 0}E-${rivalStanding.perdidos || 0}P)
+- Goles a favor: ${rivalStanding.goles_favor || 0}
+- Goles en contra: ${rivalStanding.goles_contra || 0}
+- Diferencia: ${(rivalStanding.goles_favor || 0) - (rivalStanding.goles_contra || 0)}
+` : '- Sin datos de clasificación'}
+
+${bustarStanding ? `
+**TU EQUIPO (CD Bustarviejo):**
+- Posición: ${bustarStanding.posicion}º
+- Puntos: ${bustarStanding.puntos} pts
+- Partidos: ${bustarStanding.partidos_jugados || 'N/A'} (${bustarStanding.ganados || 0}G-${bustarStanding.empatados || 0}E-${bustarStanding.perdidos || 0}P)
+- Diferencia goles: ${(bustarStanding.goles_favor || 0) - (bustarStanding.goles_contra || 0)}
+` : ''}
+
+**ÚLTIMOS 5 RESULTADOS DEL RIVAL:**
+${rivalResults.length > 0 ? rivalResults.map(r => {
+  const isLocal = r.local.toLowerCase().includes(rivalName.toLowerCase());
+  const golesRival = isLocal ? r.goles_local : r.goles_visitante;
+  const golesContra = isLocal ? r.goles_visitante : r.goles_local;
+  const resultado = golesRival > golesContra ? 'Victoria' : golesRival < golesContra ? 'Derrota' : 'Empate';
+  return `- J${r.jornada}: ${r.local} ${r.goles_local ?? '?'}-${r.goles_visitante ?? '?'} ${r.visitante} → ${resultado}`;
+}).join('\n') : '- Sin resultados recientes disponibles'}
+
+**GOLEADORES PELIGROSOS DEL RIVAL:**
+${rivalScorers.length > 0 ? rivalScorers.map(g => 
+  `- ${g.jugador_nombre}: ${g.goles} goles`
+).join('\n') : '- Sin datos de goleadores'}
+
+${historicMatches.length > 0 ? `
+**HISTÓRICO DE ENFRENTAMIENTOS:**
+${historicMatches.map(h => {
+  const bustarLocal = h.local.toLowerCase().includes('bustarviejo');
+  const resultado = bustarLocal 
+    ? (h.goles_local > h.goles_visitante ? 'Victoria' : h.goles_local < h.goles_visitante ? 'Derrota' : 'Empate')
+    : (h.goles_visitante > h.goles_local ? 'Victoria' : h.goles_visitante < h.goles_local ? 'Derrota' : 'Empate');
+  return `- J${h.jornada}: ${h.local} ${h.goles_local ?? '?'}-${h.goles_visitante ?? '?'} ${h.visitante} → ${resultado}`;
+}).join('\n')}` : ''}
+
+Proporciona un **INFORME PRE-PARTIDO** con:
+1. **Racha Reciente** del rival (si vienen ganando, perdiendo, irregulares)
+2. **Puntos Fuertes** del rival (2-3 aspectos detectados)
+3. **Debilidades Detectadas** (2-3 aspectos que podemos explotar)
+4. **Jugadores Clave** a marcar/neutralizar
+5. **Plan Táctico Recomendado** (3-4 acciones específicas)
+6. **Pronóstico Realista** y nivel de dificultad del partido
+
+Sé directo, práctico y enfocado en cómo GANAR este partido.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            racha_rival: {
+              type: "string",
+              description: "Descripción de la racha reciente"
+            },
+            puntos_fuertes_rival: {
+              type: "array",
+              items: { type: "string" }
+            },
+            debilidades_rival: {
+              type: "array",
+              items: { type: "string" }
+            },
+            jugadores_clave: {
+              type: "array",
+              items: { type: "string" }
+            },
+            plan_tactico: {
+              type: "array",
+              items: { type: "string" }
+            },
+            pronostico: {
+              type: "string"
+            },
+            nivel_dificultad: {
+              type: "string",
+              enum: ["Fácil", "Medio", "Difícil", "Muy Difícil"]
+            }
+          }
+        }
+      });
+
+      setRivalAnalysis({
+        ...result,
+        rival: rivalName,
+        fecha: nextCallup.fecha_partido,
+        hora: nextCallup.hora_partido,
+        ubicacion: nextCallup.ubicacion,
+        local_visitante: nextCallup.local_visitante,
+        categoria: cat.fullName
+      });
+      setShowRivalDialog(true);
+      toast.success("✨ Análisis del rival completado");
+    } catch (error) {
+      console.error("Error analyzing rival:", error);
+      toast.error("Error al generar análisis");
+    } finally {
+      setIsAnalyzingRival(false);
+    }
+  };
 
   const analyzeWithAI = async (categoria) => {
     setIsAnalyzing(prev => ({ ...prev, [categoria]: true }));
@@ -370,6 +560,24 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                               Ver Tabla Completa
                             </Button>
                             <Button
+                              onClick={() => analyzeRival(cat.id)}
+                              disabled={isAnalyzingRival}
+                              className="bg-red-600 hover:bg-red-700"
+                              size="sm"
+                            >
+                              {isAnalyzingRival ? (
+                                <>
+                                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                                  Analizando...
+                                </>
+                              ) : (
+                                <>
+                                  <Target className="w-4 h-4 mr-2" />
+                                  Analizar Próximo Rival
+                                </>
+                              )}
+                            </Button>
+                            <Button
                               onClick={() => analyzeWithAI(cat.id)}
                               disabled={analyzing}
                               className="bg-purple-600 hover:bg-purple-700"
@@ -383,7 +591,7 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                               ) : (
                                 <>
                                   <Sparkles className="w-4 h-4 mr-2" />
-                                  Analizar con IA
+                                  Analizar Mi Equipo
                                 </>
                               )}
                             </Button>
@@ -496,6 +704,146 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
           })}
         </Tabs>
       )}
+
+      {/* Modal de Análisis de Rival */}
+      <Dialog open={showRivalDialog} onOpenChange={setShowRivalDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Swords className="w-7 h-7 text-red-600" />
+              🎯 Análisis Pre-Partido: {rivalAnalysis?.rival}
+            </DialogTitle>
+          </DialogHeader>
+
+          {rivalAnalysis && (
+            <div className="space-y-4">
+              {/* Info del partido */}
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-xl p-4">
+                <div className="grid md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-slate-600">📅 <strong>Fecha:</strong> {format(new Date(rivalAnalysis.fecha), "EEEE d 'de' MMMM", { locale: es })}</p>
+                    <p className="text-slate-600">⏰ <strong>Hora:</strong> {rivalAnalysis.hora}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">🏟️ <strong>Campo:</strong> {rivalAnalysis.local_visitante}</p>
+                    <p className="text-slate-600">📍 <strong>Ubicación:</strong> {rivalAnalysis.ubicacion}</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-center gap-2">
+                  <Badge className={
+                    rivalAnalysis.nivel_dificultad === "Fácil" ? "bg-green-600" :
+                    rivalAnalysis.nivel_dificultad === "Medio" ? "bg-yellow-600" :
+                    rivalAnalysis.nivel_dificultad === "Difícil" ? "bg-orange-600" :
+                    "bg-red-600"
+                  }>
+                    {rivalAnalysis.nivel_dificultad}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Racha reciente */}
+              <Card className="border-2 border-blue-300">
+                <CardHeader>
+                  <CardTitle className="text-blue-700 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Racha Reciente del Rival
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">{rivalAnalysis.racha_rival}</p>
+                </CardContent>
+              </Card>
+
+              {/* Grid de análisis */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card className="border-2 border-red-300">
+                  <CardHeader>
+                    <CardTitle className="text-red-700 flex items-center gap-2">
+                      <Shield className="w-5 h-5" />
+                      Puntos Fuertes del Rival
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {rivalAnalysis.puntos_fuertes_rival?.map((punto, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-red-600 mt-1 flex-shrink-0" />
+                          <span className="text-sm">{punto}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-green-300">
+                  <CardHeader>
+                    <CardTitle className="text-green-700 flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      Debilidades a Explotar
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {rivalAnalysis.debilidades_rival?.map((debilidad, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                          <span className="text-sm">{debilidad}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Jugadores clave */}
+              {rivalAnalysis.jugadores_clave?.length > 0 && (
+                <Card className="border-2 border-orange-300">
+                  <CardHeader>
+                    <CardTitle className="text-orange-700">⚠️ Jugadores Clave a Marcar</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-2">
+                      {rivalAnalysis.jugadores_clave.map((jugador, idx) => (
+                        <div key={idx} className="bg-orange-50 p-3 rounded-lg text-sm">
+                          <Badge className="bg-orange-600 mb-1">{idx + 1}</Badge> {jugador}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Plan táctico */}
+              <Card className="border-2 border-purple-300">
+                <CardHeader>
+                  <CardTitle className="text-purple-700 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    🎯 Plan Táctico Recomendado
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {rivalAnalysis.plan_tactico?.map((accion, idx) => (
+                      <li key={idx} className="flex items-start gap-3 bg-purple-50 p-3 rounded-lg">
+                        <Badge className="bg-purple-600">{idx + 1}</Badge>
+                        <span className="text-sm flex-1">{accion}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {/* Pronóstico */}
+              <Card className="bg-gradient-to-r from-slate-50 to-slate-100 border-2 border-slate-300">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-slate-700 mb-1">💭 Pronóstico del Analista:</p>
+                  <p className="text-sm text-slate-900 italic">{rivalAnalysis.pronostico}</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Info sobre registro post-partido */}
       <Card className="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300 mt-6">
