@@ -427,29 +427,7 @@ export default function PaymentReminders() {
         }
 
         // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
-        const notifMasivo1 = await base44.entities.AppNotification.create({
-          usuario_email: family.email,
-          titulo: "💳 Recordatorio de Pagos",
-          mensaje: `Tienes pagos pendientes por ${family.totalFamilyDue}€. Revisa los detalles en Mensajes del Club.`,
-          tipo: "importante",
-          icono: "💳",
-          enlace: "ParentSystemMessages",
-          vista: false
-        });
-        console.log(`✅ [MASIVO] Notificación creada para ${family.email}:`, notifMasivo1);
 
-        if (family.email_tutor_2) {
-          const notifMasivo2 = await base44.entities.AppNotification.create({
-            usuario_email: family.email_tutor_2,
-            titulo: "💳 Recordatorio de Pagos",
-            mensaje: `Tienes pagos pendientes por ${family.totalFamilyDue}€. Revisa los detalles en Mensajes del Club.`,
-            tipo: "importante",
-            icono: "💳",
-            enlace: "ParentSystemMessages",
-            vista: false
-          });
-          console.log(`✅ [MASIVO] Notificación creada para tutor 2 ${family.email_tutor_2}:`, notifMasivo2);
-        }
 
         sent++;
         console.log(`✅ Recordatorio enviado a ${family.email}`);
@@ -573,29 +551,7 @@ export default function PaymentReminders() {
       }
 
       // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
-      const notif1 = await base44.entities.AppNotification.create({
-        usuario_email: family.email,
-        titulo: "💳 Recordatorio de Pagos",
-        mensaje: `Tienes pagos pendientes por ${totalRecordatorio}€. Revisa los detalles en Mensajes del Club.`,
-        tipo: "importante",
-        icono: "💳",
-        enlace: "ParentSystemMessages",
-        vista: false
-      });
-      console.log(`✅ [SELECTIVO] Notificación creada para ${family.email}:`, notif1);
 
-      if (family.email_tutor_2) {
-        const notif2 = await base44.entities.AppNotification.create({
-          usuario_email: family.email_tutor_2,
-          titulo: "💳 Recordatorio de Pagos",
-          mensaje: `Tienes pagos pendientes por ${totalRecordatorio}€. Revisa los detalles en Mensajes del Club.`,
-          tipo: "importante",
-          icono: "💳",
-          enlace: "ParentSystemMessages",
-          vista: false
-        });
-        console.log(`✅ [SELECTIVO] Notificación creada para tutor 2 ${family.email_tutor_2}:`, notif2);
-      }
 
       toast.dismiss(`selective-${family.email}`);
       setSuccessMessage(`✅ Recordatorio enviado a ${family.nombre_tutor}`);
@@ -1056,27 +1012,7 @@ export default function PaymentReminders() {
                         }
 
                         // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
-                        await base44.entities.AppNotification.create({
-                          usuario_email: family.email,
-                          titulo: "💳 Recordatorio de Pagos",
-                          mensaje: `Tienes pagos pendientes por ${family.totalFamilyDue}€. Revisa los detalles en Mensajes del Club.`,
-                          tipo: "importante",
-                          icono: "💳",
-                          enlace: "ParentSystemMessages",
-                          vista: false
-                        });
 
-                        if (family.email_tutor_2) {
-                          await base44.entities.AppNotification.create({
-                            usuario_email: family.email_tutor_2,
-                            titulo: "💳 Recordatorio de Pagos",
-                            mensaje: `Tienes pagos pendientes por ${family.totalFamilyDue}€. Revisa los detalles en Mensajes del Club.`,
-                            tipo: "importante",
-                            icono: "💳",
-                            enlace: "ParentSystemMessages",
-                            vista: false
-                          });
-                        }
 
                         console.log(`✅ Recordatorio enviado a ${family.email}`);
                         toast.dismiss(`reminder-${family.email}`);
