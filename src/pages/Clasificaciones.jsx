@@ -216,8 +216,9 @@ export default function Clasificaciones() {
       setSelectedCategory(null);
     },
     onError: (error) => {
-      toast.error("Error al guardar la clasificación");
-      console.error(error);
+      const msg = (error && (error.message || error.error || JSON.stringify(error))) || 'Error desconocido';
+      toast.error(`Error al guardar: ${msg}`);
+      console.error('[Clasificaciones] Save error:', error);
     }
   });
 
