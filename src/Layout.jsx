@@ -959,7 +959,7 @@ export default function Layout({ children, currentPageName }) {
         if (currentUser.role === "admin") {
           try {
             // Conversaciones críticas sin resolver
-            const adminChats = await base44.entities.AdminConversation.filter({ resuelta: false });
+            const adminChats = await base44.entities.AdminConversation.filter({ resuelta: false }, '-updated_date', 200);
             setUnresolvedAdminChats(adminChats.length);
 
             // Pagos en revisión
