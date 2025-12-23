@@ -189,20 +189,40 @@ export default function Clasificaciones() {
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
-      const { temporada, categoria } = variables || {};
+      const { temporada, categoria, standings } = variables || {};
       try {
         if (temporada && categoria) {
           const t = String(temporada).trim();
           const c = String(categoria).trim();
-          const check = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c });
-          const rows = check.filter(r => String(r.jornada) === 'Actual');
 
-          // Actualiza caché inmediatamente para que se vea sin esperar a refetch
+          // Optimistic cache update usando lo confirmado en el formulario
+          const nowIso = new Date().toISOString();
+          const optimisticRows = (standings || []).map(s => ({
+            temporada: t,
+            categoria: c,
+            jornada: 'Actual',
+            posicion: Number(s.posicion) || 0,
+            nombre_equipo: String(s.nombre_equipo || '').trim(),
+            puntos: Number(s.puntos) || 0,
+            ...(s.partidos_jugados !== undefined ? { partidos_jugados: Number(s.partidos_jugados) } : {}),
+            ...(s.ganados !== undefined ? { ganados: Number(s.ganados) } : {}),
+            ...(s.empatados !== undefined ? { empatados: Number(s.empatados) } : {}),
+            ...(s.perdidos !== undefined ? { perdidos: Number(s.perdidos) } : {}),
+            ...(s.goles_favor !== undefined ? { goles_favor: Number(s.goles_favor) } : {}),
+            ...(s.goles_contra !== undefined ? { goles_contra: Number(s.goles_contra) } : {}),
+            fecha_actualizacion: nowIso,
+            id: `optimistic-${Math.random().toString(36).slice(2)}`
+          }));
+
           queryClient.setQueryData(['clasificaciones'], (prev) => {
             const safePrev = Array.isArray(prev) ? prev : [];
             const filteredPrev = safePrev.filter(r => !(String(r.temporada).trim() === t && String(r.categoria).trim() === c));
-            return [...filteredPrev, ...rows];
+            return [...filteredPrev, ...optimisticRows];
           });
+
+          // Double-check desde BD para confirmar
+          const check = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c });
+          const rows = check.filter(r => String(r.jornada) === 'Actual');
 
           if (rows.length > 0) {
             toast.success(`✅ Clasificación reescrita (${rows.length} filas)`);
@@ -210,7 +230,9 @@ export default function Clasificaciones() {
             toast.error('⚠️ No se encontraron filas guardadas tras guardar.');
           }
         }
-      } catch {}
+      } catch (e) {
+        console.log('[Clasificaciones] Post-save check error', e);
+      }
       setReviewData(null);
       setShowUploadForm(false);
       setSelectedCategory(null);
