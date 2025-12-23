@@ -458,12 +458,112 @@ export default function Clasificaciones() {
     return (
       <div className="p-6 space-y-6">
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-         <CardContent className="p-6 flex items-center justify-between">
-           <div>
-             <h2 className="text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
-             <p className="text-slate-600">Top goleadores por categoría</p>
-           </div>
-           <div className="flex gap-2">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+              <p className="text-slate-600">Top goleadores por categoría</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowScorersForm(true)} variant="outline">Subir desde imagen</Button>
+              {isAdmin && (
+                <Button
+                  onClick={async () => {
+                    let url = rfefScorersUrl;
+                    if (!url) {
+                      url = window.prompt('Pega la URL de Goleadores de la RFFM para esta categoría');
+                      if (!url) return;
+                      saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_scorers_url: url } });
+                      setRfefScorersUrl(url);
+                    }
+                    const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
+                    const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
+                    const { data } = await base44.functions.invoke('fetchRfefScorers', { url });
+                    const players = (data?.players || []).filter(p => p.jugador_nombre && p.equipo && Number.isFinite(Number(p.goles)));
+                    if (players.length === 0) { toast.error('No se detectaron goleadores'); return; }
+                    const prev = await base44.entities.Goleador.filter({ temporada, categoria: catFull });
+                    await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
+                    const nowIso = new Date().toISOString();
+                    await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
+                      temporada,
+                      categoria: catFull,
+                      jugador_nombre: String(p.jugador_nombre).trim(),
+                      equipo: String(p.equipo).trim(),
+                      goles: Number(p.goles),
+                      posicion: idx + 1,
+                      fecha_actualizacion: nowIso,
+                    })));
+                    await queryClient.invalidateQueries({ queryKey: ['goleadores', catFull] });
+                    toast.success('Goleadores guardados');
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Actualizar Goleadores (URL)
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {showScorersForm && (
+          <UploadScorersForm
+            categoria={catFull}
+            onDataExtracted={(data) => { setScorersReviewData(data); setShowScorersForm(false); }}
+            onCancel={() => setShowScorersForm(false)}
+          />
+        )}
+
+        {scorersReviewData && (
+          <ReviewScorersTable
+            data={scorersReviewData}
+            onCancel={() => setScorersReviewData(null)}
+            isSubmitting={savingScorers}
+            onConfirm={async ({ temporada, categoria, players }) => {
+              try {
+                setSavingScorers(true);
+                const prev = await base44.entities.Goleador.filter({ temporada, categoria });
+                await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
+                const nowIso = new Date().toISOString();
+                await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
+                  temporada,
+                  categoria,
+                  jugador_nombre: String(p.jugador_nombre).trim(),
+                  equipo: String(p.equipo).trim(),
+                  goles: Number(p.goles),
+                  posicion: idx + 1,
+                  fecha_actualizacion: nowIso,
+                })));
+                await queryClient.invalidateQueries({ queryKey: ['goleadores', categoria] });
+                setScorersReviewData(null);
+                toast.success('Goleadores guardados');
+              } finally {
+                setSavingScorers(false);
+              }
+            }}
+          />
+        )}
+
+        {!showScorersForm && !scorersReviewData && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
+              {visibleCategories.map((cat) => (
+                <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="font-semibold text-sm">{cat.name}</span>
+                  </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {visibleCategories.map((cat) => (
+              <TabsContent key={cat.id} value={cat.id} className="space-y-6">
+                <ScorersList categoryFullName={cat.fullName} />
+              </TabsContent>
+            ))}
+          </Tabs>
+        )}
+      </div>
+    );
+  }
              <Button
                onClick={() => setShowScorersForm(true)}
                variant="outline"
