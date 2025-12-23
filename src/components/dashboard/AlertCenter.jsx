@@ -533,8 +533,12 @@ export default function AlertCenter({
 
   // Alertas para padres (incluye tesoreros con hijos)
   if (isParent && !isAdmin && !isCoach) {
-    // Alertas de pagos mejoradas
+    // CONSOLIDAR PAGOS: Si hay vencidos, mostrar solo esos (incluyen a los pendientes)
+    // Si NO hay vencidos, mostrar pendientes normales
+    // Los pagos en revisión se muestran aparte siempre
+    
     if (overduePayments > 0) {
+      // Si hay vencidos, NO mostrar "pendientes" porque se duplicaría
       alerts.push({
         id: "overdue",
         icon: AlertTriangle,
@@ -544,8 +548,8 @@ export default function AlertCenter({
         color: "bg-red-600",
         priority: 1
       });
-    }
-    if (pendingPayments > 0) {
+    } else if (pendingPayments > 0) {
+      // Solo mostrar pendientes si NO hay vencidos
       alerts.push({
         id: "payments-pending",
         icon: CreditCard,
@@ -556,6 +560,7 @@ export default function AlertCenter({
         priority: 3
       });
     }
+    
     if (paymentsInReview > 0) {
       alerts.push({
         id: "payments-review",
@@ -567,7 +572,6 @@ export default function AlertCenter({
         priority: 5
       });
     }
-    // Galería eliminada del centro de alertas - no es urgente
   }
 
   // Ordenar por prioridad
