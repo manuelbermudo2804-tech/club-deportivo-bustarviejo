@@ -240,7 +240,11 @@ export default function Clasificaciones() {
   });
 
   const handleConfirmStandings = (data) => {
-    // Garantiza que siempre se reescriba la jornada "Actual"
+    if (!data?.categoria || !data?.temporada || !Array.isArray(data?.standings) || data.standings.length === 0) {
+      toast.error('Faltan datos para guardar (categoría/temporada/equipos)');
+      return;
+    }
+    // Reescribe siempre la jornada "Actual"
     saveStandingsMutation.mutate({ ...data, jornada: 'Actual' });
   };
 
