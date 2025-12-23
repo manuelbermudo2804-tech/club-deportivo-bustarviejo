@@ -175,12 +175,24 @@ export default function Clasificaciones() {
 
       await base44.entities.Clasificacion.bulkCreate(recordsToCreate);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
+    onSuccess: async (_, variables) => {
+      // Invalida y confirma que se sustituyó correctamente releyendo la jornada guardada
+      await queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
+      const { temporada, categoria, jornada } = variables || {};
+      try {
+        if (temporada && categoria && jornada !== undefined) {
+          const check = await base44.entities.Clasificacion.filter({ temporada: String(temporada).trim(), categoria: String(categoria).trim() });
+          const rows = check.filter(r => Number(r.jornada) === Number(jornada));
+          if (rows.length > 0) {
+            toast.success(`✅ Jornada ${jornada} guardada (${rows.length} filas)`);
+          } else {
+            toast.error('⚠️ No se encontraron filas guardadas para la jornada tras guardar.');
+          }
+        }
+      } catch {}
       setReviewData(null);
       setShowUploadForm(false);
       setSelectedCategory(null);
-      toast.success("✅ Clasificación guardada correctamente");
     },
     onError: (error) => {
       toast.error("Error al guardar la clasificación");
