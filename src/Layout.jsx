@@ -788,12 +788,12 @@ export default function Layout({ children, currentPageName }) {
         } else if (playerDetected) {
           // Si ya está marcado como jugador, intentar cargar el nombre si existe ficha
           try {
-            const allPlayers = await base44.entities.Player.list();
-            const linkedPlayer = allPlayers.find(p => 
-              p.email_jugador === currentUser.email && 
-              p.acceso_jugador_autorizado === true &&
-              p.activo === true
-            );
+            const linkedCandidates2 = await base44.entities.Player.filter({ 
+              email_jugador: currentUser.email, 
+              acceso_jugador_autorizado: true, 
+              activo: true 
+            });
+            const linkedPlayer = linkedCandidates2[0];
             if (linkedPlayer) {
               setPlayerName(linkedPlayer.nombre);
               console.log('✅ [LAYOUT] Nombre de jugador cargado:', linkedPlayer.nombre);
