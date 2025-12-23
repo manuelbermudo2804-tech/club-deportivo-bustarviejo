@@ -88,12 +88,12 @@ export default function PlanPaymentReminders({ user }) {
             mensaje += `Si ya realizaste el pago, ignora este mensaje.\n\n`;
             mensaje += `Atentamente,\nCD Bustarviejo`;
 
-            // Buscar/crear conversación "Mensajes del Club"
-            const allConvs = await base44.entities.PrivateConversation.list();
-            let conv = allConvs.find(c => 
-              c.participante_familia_email === familyEmail &&
-              c.participante_staff_email === 'sistema@cdbustarviejo.com'
-            );
+            // Buscar/crear conversación "Mensajes del Club" (optimizado con filter)
+            const existingConvs = await base44.entities.PrivateConversation.filter({ 
+              participante_familia_email: familyEmail,
+              participante_staff_email: 'sistema@cdbustarviejo.com'
+            });
+            let conv = existingConvs[0];
             if (!conv) {
               conv = await base44.entities.PrivateConversation.create({
                 participante_familia_email: familyEmail,
