@@ -126,7 +126,6 @@ export default function Clasificaciones() {
   // Agrupar clasificaciones por categoría
   const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
     const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
-    
     // Agrupar por temporada/jornada dentro de cada categoría
     const grouped = categoryStandings.reduce((groupAcc, standing) => {
       const key = `${standing.temporada}|${standing.jornada}`;
@@ -146,39 +145,26 @@ export default function Clasificaciones() {
     acc[cat.id] = Object.values(grouped).sort((a, b) => 
       new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
     );
-    
     return acc;
   }, {});
-
-
 
   const saveStandingsMutation = useMutation({
     mutationFn: async (data) => {
       const { temporada, categoria, jornada, standings } = data;
 
-      console.log('[SAVE MUTATION] Iniciando guardado:', { temporada, categoria, jornada, count: standings.length });
-
-      // Normalizar valores para evitar no-coincidencias y duplicados
       const temporadaNorm = String(temporada).trim();
       const categoriaNorm = String(categoria).trim();
       const jornadaKey = Number(jornada) && !Number.isNaN(Number(jornada)) ? Number(jornada) : 1;
 
-      // Borrar de forma robusta todas las filas previas de esa jornada
-      console.log('[SAVE MUTATION] Buscando registros previos...');
       const preList = await base44.entities.Clasificacion.filter({ 
         temporada: temporadaNorm, 
         categoria: categoriaNorm,
         jornada: jornadaKey
       });
-      console.log(`[SAVE MUTATION] Encontrados ${preList.length} registros previos`);
-
       if (preList.length > 0) {
-        console.log('[SAVE MUTATION] Borrando registros previos...');
         await Promise.all(preList.map(r => base44.entities.Clasificacion.delete(r.id)));
-        console.log('[SAVE MUTATION] Registros previos borrados');
       }
 
-      // Crear filas nuevas ya normalizadas
       const nowIso = new Date().toISOString();
       const toNum = (v) => (v === '' || v === null || v === undefined ? undefined : Number(v));
       const recordsToCreate = standings.map(s => {
@@ -208,9 +194,7 @@ export default function Clasificaciones() {
         };
       });
 
-      console.log('[SAVE MUTATION] Creando nuevos registros:', recordsToCreate);
       await base44.entities.Clasificacion.bulkCreate(recordsToCreate);
-      console.log('[SAVE MUTATION] Registros creados exitosamente');
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
@@ -221,7 +205,6 @@ export default function Clasificaciones() {
           const c = String(categoria).trim();
           const j = (variables && Number(variables.jornada)) || 1;
 
-          // Optimistic cache update usando lo confirmado en el formulario
           const nowIso = new Date().toISOString();
           const optimisticRows = (standings || []).map(s => ({
             temporada: t,
@@ -246,10 +229,7 @@ export default function Clasificaciones() {
             return [...filteredPrev, ...optimisticRows];
           });
 
-          // Double-check desde BD para confirmar
-          const check = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c, jornada: j });
-          const rows = check;
-
+          const rows = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c, jornada: j });
           if (rows.length > 0) {
             toast.success(`✅ Clasificación reescrita (${rows.length} filas)`);
           } else {
@@ -277,7 +257,6 @@ export default function Clasificaciones() {
         categoria, 
         jornada 
       });
-      
       for (const record of toDelete) {
         await base44.entities.Clasificacion.delete(record.id);
       }
@@ -289,35 +268,22 @@ export default function Clasificaciones() {
   });
 
   const handleConfirmStandings = (data) => {
-    console.log('[CLASIFICACIONES] Confirmando datos:', data);
-
     if (!data?.categoria || !data?.temporada) {
       toast.error('Faltan datos obligatorios (categoría/temporada)');
       return;
     }
-
     if (!Array.isArray(data?.standings) || data.standings.length === 0) {
       toast.error('No hay equipos para guardar');
       return;
     }
-
-    // Validar que cada equipo tenga los campos requeridos
     const validStandings = data.standings.filter(s => 
-      s && 
-      s.nombre_equipo && 
-      String(s.nombre_equipo).trim() !== '' &&
-      typeof s.posicion === 'number' &&
-      typeof s.puntos === 'number'
+      s && s.nombre_equipo && String(s.nombre_equipo).trim() !== '' &&
+      typeof s.posicion === 'number' && typeof s.puntos === 'number'
     );
-
     if (validStandings.length === 0) {
       toast.error('No hay equipos válidos para guardar');
       return;
     }
-
-    console.log(`[CLASIFICACIONES] Guardando ${validStandings.length} equipos válidos`);
-
-    // Reescribe siempre la jornada "Actual"
     saveStandingsMutation.mutate({ 
       temporada: data.temporada,
       categoria: data.categoria,
@@ -330,8 +296,6 @@ export default function Clasificaciones() {
     setSelectedCategory(categoryFullName);
     setReviewData(null);
     setShowUploadForm(true);
-    
-    // Si hay datos pre-rellenados, pasarlos al formulario
     if (prefillData) {
       setReviewData({ ...prefillData, isPrefilled: true });
     }
@@ -430,7 +394,7 @@ export default function Clasificaciones() {
           </CardContent>
         </Card>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
             {visibleCategories.map((cat) => (
               <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
@@ -563,207 +527,6 @@ export default function Clasificaciones() {
       </div>
     );
   }
-             <Button
-               onClick={() => setShowScorersForm(true)}
-               variant="outline"
-             >
-               Subir desde imagen
-             </Button>
-             {isAdmin && (
-               <div className="flex gap-2"> 
-               <Button
-                 onClick={async () => {
-                    let url = rfefScorersUrl;
-                    if (!url) {
-                      url = window.prompt('Pega la URL de Goleadores de la RFFM para esta categoría');
-                      if (!url) return;
-                      saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_scorers_url: url } });
-                      setRfefScorersUrl(url);
-                    }
-                    const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
-                    const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
-                    const { data } = await base44.functions.invoke('fetchRfefScorers', { url });
-                    const players = (data?.players || []).filter(p => p.jugador_nombre && p.equipo && Number.isFinite(Number(p.goles)));
-                    if (players.length === 0) { toast.error('No se detectaron goleadores'); return; }
-                    const prev = await base44.entities.Goleador.filter({ temporada, categoria: catFull });
-                    await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
-                    const nowIso = new Date().toISOString();
-                    await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
-                      temporada,
-                      categoria: catFull,
-                      jugador_nombre: String(p.jugador_nombre).trim(),
-                      equipo: String(p.equipo).trim(),
-                      goles: Number(p.goles),
-                      posicion: idx + 1,
-                      fecha_actualizacion: nowIso,
-                    })));
-                    await queryClient.invalidateQueries({ queryKey: ['goleadores', catFull] });
-                    toast.success('Goleadores guardados');
-                  }}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  Actualizar Goleadores (URL)
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowScorersForm(true)}
-                >
-                  Subir desde imagen
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {showScorersForm && (
-          <UploadScorersForm
-            categoria={catFull}
-            onDataExtracted={(data) => {
-              setScorersReviewData(data);
-              setShowScorersForm(false);
-            }}
-            onCancel={() => setShowScorersForm(false)}
-          />
-        )}
-
-        {scorersReviewData && (
-          <ReviewScorersTable
-            data={scorersReviewData}
-            onCancel={() => setScorersReviewData(null)}
-            isSubmitting={savingScorers}
-            onConfirm={async ({ temporada, categoria, players }) => {
-              try {
-                setSavingScorers(true);
-                const prev = await base44.entities.Goleador.filter({ temporada, categoria });
-                await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
-                const nowIso = new Date().toISOString();
-                await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
-                  temporada,
-                  categoria,
-                  jugador_nombre: String(p.jugador_nombre).trim(),
-                  equipo: String(p.equipo).trim(),
-                  goles: Number(p.goles),
-                  posicion: idx + 1,
-                  fecha_actualizacion: nowIso,
-                })));
-                await queryClient.invalidateQueries({ queryKey: ['goleadores', categoria] });
-                setScorersReviewData(null);
-                toast.success('Goleadores guardados');
-              } finally {
-                setSavingScorers(false);
-              }
-            }}
-          />
-        )}
-
-        {!showScorersForm && !scorersReviewData && (
-          {showScorersForm && (
-            <UploadScorersForm
-              categoria={catFull}
-              onDataExtracted={(data) => {
-                setScorersReviewData(data);
-                setShowScorersForm(false);
-              }}
-              onCancel={() => setShowScorersForm(false)}
-            />
-          )}
-
-          {scorersReviewData && (
-            <ReviewScorersTable
-              data={scorersReviewData}
-              onCancel={() => setScorersReviewData(null)}
-              isSubmitting={savingScorers}
-              onConfirm={async ({ temporada, categoria, players }) => {
-                try {
-                  setSavingScorers(true);
-                  const prev = await base44.entities.Goleador.filter({ temporada, categoria });
-                  await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
-                  const nowIso = new Date().toISOString();
-                  await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
-                    temporada,
-                    categoria,
-                    jugador_nombre: String(p.jugador_nombre).trim(),
-                    equipo: String(p.equipo).trim(),
-                    goles: Number(p.goles),
-                    posicion: idx + 1,
-                    fecha_actualizacion: nowIso,
-                  })));
-                  await queryClient.invalidateQueries({ queryKey: ['goleadores', categoria] });
-                  setScorersReviewData(null);
-                  toast.success('Goleadores guardados');
-                } finally {
-                  setSavingScorers(false);
-                }
-              }}
-            />
-          )}
-
-          {!showScorersForm && !scorersReviewData && (
-            {showScorersForm && (
-              <UploadScorersForm
-                categoria={catFull}
-                onDataExtracted={(data) => {
-                  setScorersReviewData(data);
-                  setShowScorersForm(false);
-                }}
-                onCancel={() => setShowScorersForm(false)}
-              />
-            )}
-
-            {scorersReviewData && (
-              <ReviewScorersTable
-                data={scorersReviewData}
-                onCancel={() => setScorersReviewData(null)}
-                isSubmitting={savingScorers}
-                onConfirm={async ({ temporada, categoria, players }) => {
-                  try {
-                    setSavingScorers(true);
-                    const prev = await base44.entities.Goleador.filter({ temporada, categoria });
-                    await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
-                    const nowIso = new Date().toISOString();
-                    await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
-                      temporada,
-                      categoria,
-                      jugador_nombre: String(p.jugador_nombre).trim(),
-                      equipo: String(p.equipo).trim(),
-                      goles: Number(p.goles),
-                      posicion: idx + 1,
-                      fecha_actualizacion: nowIso,
-                    })));
-                    await queryClient.invalidateQueries({ queryKey: ['goleadores', categoria] });
-                    setScorersReviewData(null);
-                    toast.success('Goleadores guardados');
-                  } finally {
-                    setSavingScorers(false);
-                  }
-                }}
-              />
-            )}
-
-            {!showScorersForm && !scorersReviewData && (
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
-                  {visibleCategories.map((cat) => (
-                    <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="font-semibold text-sm">{cat.name}</span>
-                      </div>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-
-                {visibleCategories.map((cat) => (
-                  <TabsContent key={cat.id} value={cat.id} className="space-y-6">
-                    <ScorersList categoryFullName={cat.fullName} />
-                  </TabsContent>
-                ))}
-              </Tabs>
-            )}
-          )}
-        )}
-      </div>
-    );
-  }
 
   // Si hay una clasificación seleccionada, mostrar solo esa vista
   if (selectedView) {
@@ -871,11 +634,9 @@ export default function Clasificaciones() {
                        Actualizar Clasificación
                      </Button>
                     )}
-                    </div>
-                    </CardContent>
-                    </Card>
-
-
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Lista de clasificaciones */}
               {standingsByCategory[cat.id]?.length > 0 ? (
