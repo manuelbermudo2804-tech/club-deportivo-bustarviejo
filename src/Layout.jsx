@@ -846,11 +846,12 @@ export default function Layout({ children, currentPageName }) {
                   }
                 } else {
                   // Para padres normales, verificar en la base de datos
-                  const allPlayers = await base44.entities.Player.list();
-                  const myPlayers = allPlayers.filter(p => 
-                    p.email_padre === currentUser.email || 
-                    p.email_tutor_2 === currentUser.email
-                  );
+                  const myPlayers = await base44.entities.Player.filter({ 
+                    $or: [
+                      { email_padre: currentUser.email },
+                      { email_tutor_2: currentUser.email }
+                    ]
+                  });
                   console.log('👨‍👩‍👧 [LAYOUT] Padre normal - jugadores encontrados:', myPlayers.length);
                   setHasPlayers(myPlayers.length > 0);
 
