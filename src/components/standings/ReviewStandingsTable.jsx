@@ -28,9 +28,10 @@ export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubm
   };
 
   const handleConfirm = () => {
+    const cleaned = (standings || []).filter(r => r && String(r.nombre_equipo || '').trim() !== '');
     onConfirm({
       ...data,
-      standings
+      standings: cleaned
     });
   };
 
