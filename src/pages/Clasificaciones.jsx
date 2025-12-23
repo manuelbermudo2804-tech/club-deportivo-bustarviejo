@@ -143,14 +143,14 @@ export default function Clasificaciones() {
       // Normalizar valores para evitar no-coincidencias y duplicados
       const temporadaNorm = String(temporada).trim();
       const categoriaNorm = String(categoria).trim();
-      const jornadaNum = Number(jornada);
+      const jornadaKey = 'Actual';
 
       // Borrar de forma robusta todas las filas previas de esa jornada
       const preList = await base44.entities.Clasificacion.filter({ 
         temporada: temporadaNorm, 
         categoria: categoriaNorm 
       });
-      const toDelete = preList.filter(r => Number(r.jornada) === jornadaNum);
+      const toDelete = preList;
       if (toDelete.length > 0) {
         await Promise.all(toDelete.map(r => base44.entities.Clasificacion.delete(r.id)));
       }
@@ -160,7 +160,7 @@ export default function Clasificaciones() {
       const recordsToCreate = standings.map(s => ({
         temporada: temporadaNorm,
         categoria: categoriaNorm,
-        jornada: jornadaNum,
+        jornada: jornadaKey,
         posicion: Number(s.posicion),
         nombre_equipo: String(s.nombre_equipo).trim(),
         puntos: Number(s.puntos),
@@ -176,17 +176,16 @@ export default function Clasificaciones() {
       await base44.entities.Clasificacion.bulkCreate(recordsToCreate);
     },
     onSuccess: async (_, variables) => {
-      // Invalida y confirma que se sustituyó correctamente releyendo la jornada guardada
       await queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
-      const { temporada, categoria, jornada } = variables || {};
+      const { temporada, categoria } = variables || {};
       try {
-        if (temporada && categoria && jornada !== undefined) {
+        if (temporada && categoria) {
           const check = await base44.entities.Clasificacion.filter({ temporada: String(temporada).trim(), categoria: String(categoria).trim() });
-          const rows = check.filter(r => Number(r.jornada) === Number(jornada));
+          const rows = check.filter(r => String(r.jornada) === 'Actual');
           if (rows.length > 0) {
-            toast.success(`✅ Jornada ${jornada} guardada (${rows.length} filas)`);
+            toast.success(`✅ Clasificación reescrita (${rows.length} filas)`);
           } else {
-            toast.error('⚠️ No se encontraron filas guardadas para la jornada tras guardar.');
+            toast.error('⚠️ No se encontraron filas guardadas tras guardar.');
           }
         }
       } catch {}
