@@ -291,9 +291,7 @@ export default function Clasificaciones() {
     if (prefillData) setReviewData({ ...prefillData, isPrefilled: true });
   };
 
-  const visibleCategories = isAdmin 
-    ? CATEGORIES 
-    : CATEGORIES.filter(cat => userCategories.includes(cat.fullName));
+  const visibleCategories = CATEGORIES;
 
   if (isLoadingUser) {
     return (
