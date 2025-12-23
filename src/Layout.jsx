@@ -747,12 +747,12 @@ export default function Layout({ children, currentPageName }) {
 
         if (!playerDetected && currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
           try {
-            const allPlayers = await base44.entities.Player.list();
-            const linkedPlayer = allPlayers.find(p => 
-              p.email_jugador === currentUser.email && 
-              p.acceso_jugador_autorizado === true &&
-              p.activo === true
-            );
+            const linkedCandidates = await base44.entities.Player.filter({ 
+              email_jugador: currentUser.email, 
+              acceso_jugador_autorizado: true, 
+              activo: true 
+            });
+            const linkedPlayer = linkedCandidates[0];
 
             if (linkedPlayer) {
               // Verificar si es mayor de 18
