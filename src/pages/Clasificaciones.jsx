@@ -173,7 +173,7 @@ export default function Clasificaciones() {
         const base = {
           temporada: temporadaNorm,
           categoria: categoriaNorm,
-          jornada: j,
+          jornada: jornadaKey,
           posicion: Number(s.posicion) || 0,
           nombre_equipo: String(s.nombre_equipo || '').trim(),
           puntos: Number(s.puntos) || 0,
