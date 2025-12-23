@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import UploadStandingsForm from "../components/standings/UploadStandingsForm";
 import ReviewStandingsTable from "../components/standings/ReviewStandingsTable";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
+import ResultsList from "../components/results/ResultsList";
+import ScorersList from "../components/scorers/ScorersList";
 
 const CATEGORIES = [
   { id: "benjamin", name: "Benjamín", fullName: "Fútbol Benjamín (Mixto)" },
@@ -90,8 +92,11 @@ export default function Clasificaciones() {
     gcTime: 10 * 60_000,
   });
   const [rfefUrl, setRfefUrl] = useState("");
+  const [rfefResultsUrl, setRfefResultsUrl] = useState("");
+  const [rfefScorersUrl, setRfefScorersUrl] = useState("");
   const [grupoText, setGrupoText] = useState("");
   const [configId, setConfigId] = useState(null);
+  const [viewMode, setViewMode] = useState("standings");
 
   React.useEffect(() => {
     if (!activeTab) return;
@@ -99,6 +104,8 @@ export default function Clasificaciones() {
     if (!catFull) return;
     const cfg = standingsConfigs.find(c => c.categoria === catFull);
     setRfefUrl(cfg?.rfef_url || "");
+    setRfefResultsUrl(cfg?.rfef_results_url || "");
+    setRfefScorersUrl(cfg?.rfef_scorers_url || "");
     setGrupoText(cfg?.grupo || "");
     setConfigId(cfg?.id || null);
   }, [activeTab, standingsConfigs]);
@@ -348,13 +355,165 @@ export default function Clasificaciones() {
           <CardContent className="p-12 text-center">
             <BarChart3 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-slate-700 mb-2">
-              No hay clasificaciones disponibles
+              No hay datos disponibles todavía
             </h2>
             <p className="text-slate-500">
-              Aún no tienes jugadores registrados o no hay clasificaciones subidas para tus equipos.
+              Aún no tienes jugadores registrados o no hay datos subidos para tus equipos.
             </p>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  // Vista Resultados
+  if (viewMode === 'results') {
+    const catFull = CATEGORIES.find(c => c.id === activeTab)?.fullName;
+    return (
+      <div className="p-6 space-y-6">
+        <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-orange-700">Resultados · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+              <p className="text-slate-600">Actualiza desde URL de RFFM (sin fechas públicas)</p>
+            </div>
+            {isAdmin && (
+              <div className="flex gap-2">
+                <Button
+                  onClick={async () => {
+                    let url = rfefResultsUrl;
+                    if (!url) {
+                      url = window.prompt('Pega la URL de Resultados/Jornadas de la RFFM para esta categoría');
+                      if (!url) return;
+                      saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_results_url: url } });
+                      setRfefResultsUrl(url);
+                    }
+                    const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
+                    const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
+                    const jStr = window.prompt('Número de jornada a guardar (ej 9)');
+                    const jornada = Number(jStr);
+                    if (!Number.isFinite(jornada)) { toast.error('Jornada inválida'); return; }
+                    const { data } = await base44.functions.invoke('fetchRfefResults', { url });
+                    const matches = (data?.matches || []).map(m => ({ ...m, local: String(m.local||'').trim(), visitante: String(m.visitante||'').trim() }));
+                    if (matches.length === 0) { toast.error('No se detectaron partidos'); return; }
+                    // Guardar
+                    // borrar previos y crear
+                    const prev = await base44.entities.Resultado.filter({ temporada, categoria: catFull, jornada });
+                    await Promise.all(prev.map(r => base44.entities.Resultado.delete(r.id)));
+                    const nowIso = new Date().toISOString();
+                    await base44.entities.Resultado.bulkCreate(matches.map(m => ({
+                      temporada,
+                      categoria: catFull,
+                      jornada,
+                      local: m.local,
+                      visitante: m.visitante,
+                      ...(Number.isFinite(m.goles_local) ? { goles_local: Number(m.goles_local) } : {}),
+                      ...(Number.isFinite(m.goles_visitante) ? { goles_visitante: Number(m.goles_visitante) } : {}),
+                      estado: (Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante)) ? 'finalizado' : 'pendiente',
+                      acta_url: m.acta_url || undefined,
+                      fecha_actualizacion: nowIso,
+                    })));
+                    await queryClient.invalidateQueries({ queryKey: ['resultados', catFull] });
+                    toast.success('Resultados guardados');
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Actualizar Resultados (URL)
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
+            {visibleCategories.map((cat) => (
+              <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="font-semibold text-sm">{cat.name}</span>
+                </div>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {visibleCategories.map((cat) => (
+            <TabsContent key={cat.id} value={cat.id} className="space-y-6">
+              <ResultsList categoryFullName={cat.fullName} />
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+    );
+  }
+
+  // Vista Goleadores
+  if (viewMode === 'scorers') {
+    const catFull = CATEGORIES.find(c => c.id === activeTab)?.fullName;
+    return (
+      <div className="p-6 space-y-6">
+        <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+              <p className="text-slate-600">Top goleadores por categoría</p>
+            </div>
+            {isAdmin && (
+              <div className="flex gap-2">
+                <Button
+                  onClick={async () => {
+                    let url = rfefScorersUrl;
+                    if (!url) {
+                      url = window.prompt('Pega la URL de Goleadores de la RFFM para esta categoría');
+                      if (!url) return;
+                      saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_scorers_url: url } });
+                      setRfefScorersUrl(url);
+                    }
+                    const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
+                    const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
+                    const { data } = await base44.functions.invoke('fetchRfefScorers', { url });
+                    const players = (data?.players || []).filter(p => p.jugador_nombre && p.equipo && Number.isFinite(Number(p.goles)));
+                    if (players.length === 0) { toast.error('No se detectaron goleadores'); return; }
+                    const prev = await base44.entities.Goleador.filter({ temporada, categoria: catFull });
+                    await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
+                    const nowIso = new Date().toISOString();
+                    await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
+                      temporada,
+                      categoria: catFull,
+                      jugador_nombre: String(p.jugador_nombre).trim(),
+                      equipo: String(p.equipo).trim(),
+                      goles: Number(p.goles),
+                      posicion: idx + 1,
+                      fecha_actualizacion: nowIso,
+                    })));
+                    await queryClient.invalidateQueries({ queryKey: ['goleadores', catFull] });
+                    toast.success('Goleadores guardados');
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Actualizar Goleadores (URL)
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
+            {visibleCategories.map((cat) => (
+              <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="font-semibold text-sm">{cat.name}</span>
+                </div>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {visibleCategories.map((cat) => (
+            <TabsContent key={cat.id} value={cat.id} className="space-y-6">
+              <ScorersList categoryFullName={cat.fullName} />
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     );
   }
@@ -384,12 +543,17 @@ export default function Clasificaciones() {
       <div>
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
           <BarChart3 className="w-8 h-8 text-orange-600" />
-          Clasificaciones
+          Clasificaciones, Resultados y Goleadores
         </h1>
-        <p className="text-slate-600 mt-1">Gestión de clasificaciones por equipos</p>
+        <p className="text-slate-600 mt-1">Gestión y consulta unificada para familias, entrenadores y admin</p>
+        <div className="mt-4 flex gap-2">
+          <Button variant={viewMode === 'standings' ? 'default' : 'outline'} onClick={() => setViewMode('standings')}>Clasificaciones</Button>
+          <Button variant={viewMode === 'results' ? 'default' : 'outline'} onClick={() => setViewMode('results')}>Resultados</Button>
+          <Button variant={viewMode === 'scorers' ? 'default' : 'outline'} onClick={() => setViewMode('scorers')}>Goleadores</Button>
+        </div>
       </div>
 
-      {showUploadForm && (
+      {viewMode === 'standings' && showUploadForm && (
         <UploadStandingsForm
            onDataExtracted={(data) => {
              setReviewData(data);
@@ -406,7 +570,7 @@ export default function Clasificaciones() {
          />
       )}
 
-      {reviewData && !reviewData.isPrefilled && (
+      {viewMode === 'standings' && reviewData && !reviewData.isPrefilled && (
         <ReviewStandingsTable
           data={reviewData}
           onConfirm={handleConfirmStandings}
@@ -418,7 +582,7 @@ export default function Clasificaciones() {
         />
       )}
 
-      {!showUploadForm && !reviewData && activeTab && (
+      {viewMode === 'standings' && !showUploadForm && !reviewData && activeTab && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
             {visibleCategories.map((cat) => (
