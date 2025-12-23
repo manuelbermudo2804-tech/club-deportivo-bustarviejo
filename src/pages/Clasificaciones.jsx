@@ -230,7 +230,8 @@ export default function Clasificaciones() {
   });
 
   const handleConfirmStandings = (data) => {
-    saveStandingsMutation.mutate(data);
+    // Garantiza que siempre se reescriba la jornada "Actual"
+    saveStandingsMutation.mutate({ ...data, jornada: 'Actual' });
   };
 
   const handleNewUpload = (categoryFullName, prefillData = null) => {
