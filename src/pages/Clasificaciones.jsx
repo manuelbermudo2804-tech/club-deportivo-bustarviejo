@@ -471,7 +471,7 @@ export default function Clasificaciones() {
                Subir desde imagen
              </Button>
              {isAdmin && (
-               <> 
+               <div className="flex gap-2"> 
                <Button
                  onClick={async () => {
                     let url = rfefScorersUrl;
