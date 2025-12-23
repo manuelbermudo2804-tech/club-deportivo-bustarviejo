@@ -54,9 +54,9 @@ export default function PlanPaymentReminders({ user }) {
             const dPlus2 = new Date(due); dPlus2.setDate(due.getDate() + 2);
 
             let tipo = null;
-            if (isSameDate(now, dMinus15)) tipo = "15_dias_antes";
-            else if (isSameDate(now, dMinus7)) tipo = "7_dias_antes";
-            else if (isSameDate(now, dPlus2)) tipo = "2_dias_despues";
+            if (isSameDate(nowDate, dMinus15)) tipo = "15_dias_antes";
+            else if (isSameDate(nowDate, dMinus7)) tipo = "7_dias_antes";
+            else if (isSameDate(nowDate, dPlus2)) tipo = "2_dias_despues";
             if (!tipo) continue;
 
             // Idempotencia por familia + cuota + tipo + día
