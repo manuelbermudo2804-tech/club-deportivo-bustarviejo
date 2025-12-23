@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, BarChart3, Eye, Trash2, Plus } from "lucide-react";
+import { Upload, BarChart3, Eye, Trash2, Plus, ArrowLeft, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -116,7 +116,7 @@ export default function Clasificaciones() {
     mutationFn: ({ id, data }) => id ? base44.entities.StandingsConfig.update(id, data) : base44.entities.StandingsConfig.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['standings_config'] });
-      toast.success("Guardado");
+      toast.success("URL guardada correctamente");
     }
   });
 
@@ -193,50 +193,10 @@ export default function Clasificaciones() {
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
-      const { temporada, categoria, standings } = variables || {};
-      try {
-        if (temporada && categoria) {
-          const t = String(temporada).trim();
-          const c = String(categoria).trim();
-          const j = (variables && Number(variables.jornada)) || 1;
-
-          const nowIso = new Date().toISOString();
-          const optimisticRows = (standings || []).map(s => ({
-            temporada: t,
-            categoria: c,
-            jornada: j,
-            posicion: Number(s.posicion) || 0,
-            nombre_equipo: String(s.nombre_equipo || '').trim(),
-            puntos: Number(s.puntos) || 0,
-            ...(s.partidos_jugados !== undefined ? { partidos_jugados: Number(s.partidos_jugados) } : {}),
-            ...(s.ganados !== undefined ? { ganados: Number(s.ganados) } : {}),
-            ...(s.empatados !== undefined ? { empatados: Number(s.empatados) } : {}),
-            ...(s.perdidos !== undefined ? { perdidos: Number(s.perdidos) } : {}),
-            ...(s.goles_favor !== undefined ? { goles_favor: Number(s.goles_favor) } : {}),
-            ...(s.goles_contra !== undefined ? { goles_contra: Number(s.goles_contra) } : {}),
-            fecha_actualizacion: nowIso,
-            id: `optimistic-${Math.random().toString(36).slice(2)}`
-          }));
-
-          queryClient.setQueryData(['clasificaciones'], (prev) => {
-            const safePrev = Array.isArray(prev) ? prev : [];
-            const filteredPrev = safePrev.filter(r => !(String(r.temporada).trim() === t && String(r.categoria).trim() === c));
-            return [...filteredPrev, ...optimisticRows];
-          });
-
-          const rows = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c, jornada: j });
-          if (rows.length > 0) {
-            toast.success(`✅ Clasificación reescrita (${rows.length} filas)`);
-          } else {
-            toast.error('⚠️ No se encontraron filas guardadas tras guardar.');
-          }
-        }
-      } catch (e) {
-        console.log('[Clasificaciones] Post-save check error', e);
-      }
       setReviewData(null);
       setShowUploadForm(false);
       setSelectedCategory(null);
+      toast.success('Clasificación guardada correctamente');
     },
     onError: (error) => {
       const msg = (error && (error.message || error.error || JSON.stringify(error))) || 'Error desconocido';
@@ -327,69 +287,85 @@ export default function Clasificaciones() {
     );
   }
 
+  // VISTA RESULTADOS
   if (viewMode === 'results') {
     const catFull = CATEGORIES.find(c => c.id === activeTab)?.fullName;
     return (
       <div className="p-6 space-y-6">
-        <Button onClick={() => setViewMode('standings')} variant="outline" className="mb-4">← Volver</Button>
+        {/* BOTÓN VOLVER */}
+        <Button onClick={() => setViewMode('standings')} variant="outline">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
 
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-orange-700">Resultados · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
-                <p className="text-slate-600">Resultados de la RFFM</p>
-              </div>
-              {rfefResultsUrl && (
-                <a href={rfefResultsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 underline text-sm">
-                  🔗 Ver página oficial de Resultados
-                </a>
-              )}
-              {isAdmin && (
-                <div className="flex gap-2">
-                  <Button onClick={() => setShowResultsForm(true)} variant="outline">Subir desde imagen</Button>
-                  <Button
-                    onClick={async () => {
-                      let url = rfefResultsUrl;
-                      if (!url) {
-                        url = window.prompt('Pega la URL de Resultados/Jornadas de la RFFM para esta categoría');
-                        if (!url) return;
-                        saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_results_url: url } });
-                        setRfefResultsUrl(url);
-                      }
-                      const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
-                      const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
-                      const jStr = window.prompt('Número de jornada a guardar (ej 9)');
-                      const jornada = Number(jStr);
-                      if (!Number.isFinite(jornada)) { toast.error('Jornada inválida'); return; }
-                      const { data } = await base44.functions.invoke('fetchRfefResults', { url });
-                      const matches = (data?.matches || []).map(m => ({ ...m, local: String(m.local||'').trim(), visitante: String(m.visitante||'').trim() }));
-                      if (matches.length === 0) { toast.error('No se detectaron partidos'); return; }
-                      const prev = await base44.entities.Resultado.filter({ temporada, categoria: catFull, jornada });
-                      await Promise.all(prev.map(r => base44.entities.Resultado.delete(r.id)));
-                      const nowIso = new Date().toISOString();
-                      await base44.entities.Resultado.bulkCreate(matches.map(m => ({
-                        temporada,
-                        categoria: catFull,
-                        jornada,
-                        local: m.local,
-                        visitante: m.visitante,
-                        ...(Number.isFinite(m.goles_local) ? { goles_local: Number(m.goles_local) } : {}),
-                        ...(Number.isFinite(m.goles_visitante) ? { goles_visitante: Number(m.goles_visitante) } : {}),
-                        estado: (Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante)) ? 'finalizado' : 'pendiente',
-                        acta_url: m.acta_url || undefined,
-                        fecha_actualizacion: nowIso,
-                      })));
-                      await queryClient.invalidateQueries({ queryKey: ['resultados', catFull] });
-                      toast.success('Resultados guardados');
-                    }}
-                    className="bg-orange-600 hover:bg-orange-700"
-                  >
-                    Actualizar Resultados (URL)
-                  </Button>
-                </div>
-              )}
+          <CardContent className="p-6 space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold text-orange-700">Resultados · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+              <p className="text-slate-600 mt-1">Resultados de jornadas</p>
             </div>
+
+            {/* ENLACE CLICABLE A URL */}
+            {rfefResultsUrl && (
+              <a 
+                href={rfefResultsUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 underline font-medium"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Ver página oficial de Resultados RFFM
+              </a>
+            )}
+
+            {/* BOTONES ADMIN */}
+            {isAdmin && (
+              <div className="flex gap-2">
+                <Button onClick={() => setShowResultsForm(true)} variant="outline">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Subir desde imagen
+                </Button>
+                <Button
+                  onClick={async () => {
+                    let url = rfefResultsUrl;
+                    if (!url) {
+                      url = window.prompt('Pega la URL de Resultados/Jornadas de la RFFM para esta categoría');
+                      if (!url) return;
+                      saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_results_url: url } });
+                      setRfefResultsUrl(url);
+                    }
+                    const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
+                    const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
+                    const jStr = window.prompt('Número de jornada a guardar (ej 9)');
+                    const jornada = Number(jStr);
+                    if (!Number.isFinite(jornada)) { toast.error('Jornada inválida'); return; }
+                    const { data } = await base44.functions.invoke('fetchRfefResults', { url });
+                    const matches = (data?.matches || []).map(m => ({ ...m, local: String(m.local||'').trim(), visitante: String(m.visitante||'').trim() }));
+                    if (matches.length === 0) { toast.error('No se detectaron partidos'); return; }
+                    const prev = await base44.entities.Resultado.filter({ temporada, categoria: catFull, jornada });
+                    await Promise.all(prev.map(r => base44.entities.Resultado.delete(r.id)));
+                    const nowIso = new Date().toISOString();
+                    await base44.entities.Resultado.bulkCreate(matches.map(m => ({
+                      temporada,
+                      categoria: catFull,
+                      jornada,
+                      local: m.local,
+                      visitante: m.visitante,
+                      ...(Number.isFinite(m.goles_local) ? { goles_local: Number(m.goles_local) } : {}),
+                      ...(Number.isFinite(m.goles_visitante) ? { goles_visitante: Number(m.goles_visitante) } : {}),
+                      estado: (Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante)) ? 'finalizado' : 'pendiente',
+                      acta_url: m.acta_url || undefined,
+                      fecha_actualizacion: nowIso,
+                    })));
+                    await queryClient.invalidateQueries({ queryKey: ['resultados', catFull] });
+                    toast.success('Resultados guardados');
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Actualizar Resultados (URL)
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -438,9 +414,7 @@ export default function Clasificaciones() {
             <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
               {visibleCategories.map((cat) => (
                 <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="font-semibold text-sm">{cat.name}</span>
-                  </div>
+                  <span className="font-semibold text-sm">{cat.name}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -456,63 +430,79 @@ export default function Clasificaciones() {
     );
   }
 
+  // VISTA GOLEADORES
   if (viewMode === 'scorers') {
     const catFull = CATEGORIES.find(c => c.id === activeTab)?.fullName;
     return (
       <div className="p-6 space-y-6">
-        <Button onClick={() => setViewMode('standings')} variant="outline" className="mb-4">← Volver</Button>
+        {/* BOTÓN VOLVER */}
+        <Button onClick={() => setViewMode('standings')} variant="outline">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
 
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
-                <p className="text-slate-600">Top goleadores por categoría</p>
-              </div>
-              {rfefScorersUrl && (
-                <a href={rfefScorersUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 underline text-sm">
-                  🔗 Ver página oficial de Goleadores
-                </a>
-              )}
-              {isAdmin && (
-                <div className="flex gap-2">
-                  <Button onClick={() => setShowScorersForm(true)} variant="outline">Subir desde imagen</Button>
-                  <Button
-                    onClick={async () => {
-                      let url = rfefScorersUrl;
-                      if (!url) {
-                        url = window.prompt('Pega la URL de Goleadores de la RFFM para esta categoría');
-                        if (!url) return;
-                        saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_scorers_url: url } });
-                        setRfefScorersUrl(url);
-                      }
-                      const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
-                      const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
-                      const { data } = await base44.functions.invoke('fetchRfefScorers', { url });
-                      const players = (data?.players || []).filter(p => p.jugador_nombre && p.equipo && Number.isFinite(Number(p.goles)));
-                      if (players.length === 0) { toast.error('No se detectaron goleadores'); return; }
-                      const prev = await base44.entities.Goleador.filter({ temporada, categoria: catFull });
-                      await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
-                      const nowIso = new Date().toISOString();
-                      await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
-                        temporada,
-                        categoria: catFull,
-                        jugador_nombre: String(p.jugador_nombre).trim(),
-                        equipo: String(p.equipo).trim(),
-                        goles: Number(p.goles),
-                        posicion: idx + 1,
-                        fecha_actualizacion: nowIso,
-                      })));
-                      await queryClient.invalidateQueries({ queryKey: ['goleadores', catFull] });
-                      toast.success('Goleadores guardados');
-                    }}
-                    className="bg-orange-600 hover:bg-orange-700"
-                  >
-                    Actualizar Goleadores (URL)
-                  </Button>
-                </div>
-              )}
+          <CardContent className="p-6 space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+              <p className="text-slate-600 mt-1">Máximos goleadores de la categoría</p>
             </div>
+
+            {/* ENLACE CLICABLE A URL */}
+            {rfefScorersUrl && (
+              <a 
+                href={rfefScorersUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 underline font-medium"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Ver página oficial de Goleadores RFFM
+              </a>
+            )}
+
+            {/* BOTONES ADMIN */}
+            {isAdmin && (
+              <div className="flex gap-2">
+                <Button onClick={() => setShowScorersForm(true)} variant="outline">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Subir desde imagen
+                </Button>
+                <Button
+                  onClick={async () => {
+                    let url = rfefScorersUrl;
+                    if (!url) {
+                      url = window.prompt('Pega la URL de Goleadores de la RFFM para esta categoría');
+                      if (!url) return;
+                      saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_scorers_url: url } });
+                      setRfefScorersUrl(url);
+                    }
+                    const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
+                    const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
+                    const { data } = await base44.functions.invoke('fetchRfefScorers', { url });
+                    const players = (data?.players || []).filter(p => p.jugador_nombre && p.equipo && Number.isFinite(Number(p.goles)));
+                    if (players.length === 0) { toast.error('No se detectaron goleadores'); return; }
+                    const prev = await base44.entities.Goleador.filter({ temporada, categoria: catFull });
+                    await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
+                    const nowIso = new Date().toISOString();
+                    await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
+                      temporada,
+                      categoria: catFull,
+                      jugador_nombre: String(p.jugador_nombre).trim(),
+                      equipo: String(p.equipo).trim(),
+                      goles: Number(p.goles),
+                      posicion: idx + 1,
+                      fecha_actualizacion: nowIso,
+                    })));
+                    await queryClient.invalidateQueries({ queryKey: ['goleadores', catFull] });
+                    toast.success('Goleadores guardados');
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Actualizar Goleadores (URL)
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -559,9 +549,7 @@ export default function Clasificaciones() {
             <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
               {visibleCategories.map((cat) => (
                 <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="font-semibold text-sm">{cat.name}</span>
-                  </div>
+                  <span className="font-semibold text-sm">{cat.name}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -577,15 +565,20 @@ export default function Clasificaciones() {
     );
   }
 
+  // VISTA DETALLE DE CLASIFICACIÓN
   if (selectedView) {
     return (
       <div className="p-6 space-y-6">
-        <Button onClick={() => setSelectedView(null)} variant="outline" className="mb-4">← Volver a clasificaciones</Button>
+        <Button onClick={() => setSelectedView(null)} variant="outline">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
         <StandingsDisplay data={selectedView} onClose={() => setSelectedView(null)} fullPage />
       </div>
     );
   }
 
+  // VISTA PRINCIPAL
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -593,7 +586,7 @@ export default function Clasificaciones() {
           <BarChart3 className="w-8 h-8 text-orange-600" />
           Clasificaciones, Resultados y Goleadores
         </h1>
-        <p className="text-slate-600 mt-1">Gestión y consulta unificada para familias, entrenadores y admin</p>
+        <p className="text-slate-600 mt-1">Información deportiva de todas las categorías</p>
         <div className="mt-4 flex gap-2">
           <Button variant={viewMode === 'standings' ? 'default' : 'outline'} onClick={() => setViewMode('standings')}>Clasificaciones</Button>
           <Button variant={viewMode === 'results' ? 'default' : 'outline'} onClick={() => setViewMode('results')}>Resultados</Button>
@@ -616,7 +609,7 @@ export default function Clasificaciones() {
           data={reviewData}
           onConfirm={handleConfirmStandings}
           onCancel={() => { setReviewData(null); setSelectedCategory(null); }}
-          isSubmitting={false}
+          isSubmitting={saveStandingsMutation.isPending}
         />
       )}
 
