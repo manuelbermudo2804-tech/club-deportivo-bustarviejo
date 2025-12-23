@@ -1178,6 +1178,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
       { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
       { title: "📊 Análisis Clasificaciones", url: createPageUrl("CoachStandingsAnalysis"), icon: BarChart3, badge: pendingMatchObservations > 0 ? pendingMatchObservations : null, urgentBadge: pendingMatchObservations > 0 },
+      { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
       ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
       // 📊 REPORTES

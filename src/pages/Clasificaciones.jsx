@@ -388,6 +388,17 @@ export default function Clasificaciones() {
           </CardContent>
         </Card>
 
+        {showResultsForm && (
+          <UploadResultsForm
+            categoria={catFull}
+            onCancel={() => setShowResultsForm(false)}
+            onSaved={async () => {
+              setShowResultsForm(false);
+              await queryClient.invalidateQueries({ queryKey: ['resultados', catFull] });
+            }}
+          />
+        )}
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
             {visibleCategories.map((cat) => (
