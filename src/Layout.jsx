@@ -572,8 +572,8 @@ export default function Layout({ children, currentPageName }) {
     
     const fetchSeasonConfig = async () => {
       try {
-        const configs = await base44.entities.SeasonConfig.list();
-        const activeConfig = configs.find(c => c.activa === true);
+        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+        const activeConfig = configs[0];
         setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
         setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
         setSeasonConfigLoaded(true);
