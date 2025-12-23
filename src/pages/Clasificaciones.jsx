@@ -214,7 +214,7 @@ export default function Clasificaciones() {
           const optimisticRows = (standings || []).map(s => ({
             temporada: t,
             categoria: c,
-            jornada: jornadaKey,
+            jornada: j,
             posicion: Number(s.posicion) || 0,
             nombre_equipo: String(s.nombre_equipo || '').trim(),
             puntos: Number(s.puntos) || 0,
