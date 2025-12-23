@@ -15,7 +15,6 @@ import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
 import UploadScorersForm from "../components/scorers/UploadScorersForm";
 import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
-import UploadResultsForm from "../components/results/UploadResultsForm";
 
 const CATEGORIES = [
   { id: "benjamin", name: "Benjamín", fullName: "Fútbol Benjamín (Mixto)" },
@@ -95,7 +94,6 @@ export default function Clasificaciones() {
   const [showScorersForm, setShowScorersForm] = useState(false);
   const [scorersReviewData, setScorersReviewData] = useState(null);
   const [savingScorers, setSavingScorers] = useState(false);
-  const [showResultsForm, setShowResultsForm] = useState(false);
 
   React.useEffect(() => {
     if (!activeTab) return;
@@ -291,7 +289,9 @@ export default function Clasificaciones() {
     if (prefillData) setReviewData({ ...prefillData, isPrefilled: true });
   };
 
-  const visibleCategories = CATEGORIES;
+  const visibleCategories = isAdmin 
+    ? CATEGORIES 
+    : CATEGORIES.filter(cat => userCategories.includes(cat.fullName));
 
   if (isLoadingUser) {
     return (
@@ -326,11 +326,6 @@ export default function Clasificaciones() {
     const catFull = CATEGORIES.find(c => c.id === activeTab)?.fullName;
     return (
       <div className="p-6 space-y-6">
-        <div className="mb-4 flex gap-2">
-          <Button variant={viewMode === 'standings' ? 'default' : 'outline'} onClick={() => setViewMode('standings')}>Clasificaciones</Button>
-          <Button variant={viewMode === 'results' ? 'default' : 'outline'} onClick={() => setViewMode('results')}>Resultados</Button>
-          <Button variant={viewMode === 'scorers' ? 'default' : 'outline'} onClick={() => setViewMode('scorers')}>Goleadores</Button>
-        </div>
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -340,9 +335,6 @@ export default function Clasificaciones() {
               </div>
               {isAdmin && (
                 <div className="flex gap-2">
-                  <Button onClick={() => setShowResultsForm(true)} variant="outline">
-                    Subir desde imagen
-                  </Button>
                   <Button
                     onClick={async () => {
                       let url = rfefResultsUrl;
@@ -388,17 +380,6 @@ export default function Clasificaciones() {
           </CardContent>
         </Card>
 
-        {showResultsForm && (
-          <UploadResultsForm
-            categoria={catFull}
-            onCancel={() => setShowResultsForm(false)}
-            onSaved={async () => {
-              setShowResultsForm(false);
-              await queryClient.invalidateQueries({ queryKey: ['resultados', catFull] });
-            }}
-          />
-        )}
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
             {visibleCategories.map((cat) => (
@@ -424,11 +405,6 @@ export default function Clasificaciones() {
     const catFull = CATEGORIES.find(c => c.id === activeTab)?.fullName;
     return (
       <div className="p-6 space-y-6">
-        <div className="mb-4 flex gap-2">
-          <Button variant={viewMode === 'standings' ? 'default' : 'outline'} onClick={() => setViewMode('standings')}>Clasificaciones</Button>
-          <Button variant={viewMode === 'results' ? 'default' : 'outline'} onClick={() => setViewMode('results')}>Resultados</Button>
-          <Button variant={viewMode === 'scorers' ? 'default' : 'outline'} onClick={() => setViewMode('scorers')}>Goleadores</Button>
-        </div>
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
