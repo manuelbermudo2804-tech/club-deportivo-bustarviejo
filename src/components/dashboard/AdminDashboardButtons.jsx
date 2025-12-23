@@ -19,7 +19,7 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "socios", title: "🎫 Gestión Socios", icon: Heart, url: createPageUrl("ClubMembersManagement"), gradient: "from-pink-600 to-pink-700", priority: 14 },
   { id: "entrenadores", title: "🏃 Entrenadores", icon: Award, url: createPageUrl("CoachProfiles"), gradient: "from-indigo-600 to-indigo-700", priority: 15 },
   { id: "reportes", title: "📊 Reportes", icon: Star, url: createPageUrl("CoachEvaluationReports"), gradient: "from-purple-600 to-purple-700", priority: 16 },
-  { id: "clasificaciones", title: "📊 Clasificaciones", icon: BarChart3, url: createPageUrl("CoachStandingsAnalysis"), gradient: "from-blue-600 to-cyan-700", priority: 17 },
+  { id: "clasificaciones", title: "📊 Clasificaciones", icon: BarChart3, url: createPageUrl("Clasificaciones"), gradient: "from-blue-600 to-cyan-700", priority: 17 },
   { id: "asistencia", title: "📋 Asistencia", icon: CheckCircle2, url: createPageUrl("TeamAttendanceEvaluation"), gradient: "from-green-600 to-green-700", priority: 18 },
   { id: "chat_coordinador", title: "💬 Chat Coordinador", icon: MessageCircle, url: createPageUrl("CoordinatorChat"), gradient: "from-cyan-600 to-cyan-700", priority: 19 },
   { id: "anuncios", title: "📢 Anuncios", icon: Megaphone, url: createPageUrl("Announcements"), gradient: "from-pink-600 to-pink-700", priority: 20 },
