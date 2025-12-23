@@ -1,11 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import cheerio from 'npm:cheerio@1.0.0';
+import { load } from 'npm:cheerio@1.0.0';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const isAuth = await base44.auth.isAuthenticated();
-    if (!isAuth) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { url } = await req.json().catch(() => ({}));
     if (!url) return Response.json({ error: 'Missing url' }, { status: 400 });
@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
       }
     });
     const html = await resp.text();
-    const $ = cheerio.load(html);
+    const $ = load(html);
 
     // Texto general de migas/cabecera
     const pageText = $('body').text();
