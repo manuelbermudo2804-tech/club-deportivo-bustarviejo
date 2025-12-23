@@ -149,14 +149,14 @@ export default function Clasificaciones() {
       // Normalizar valores para evitar no-coincidencias y duplicados
       const temporadaNorm = String(temporada).trim();
       const categoriaNorm = String(categoria).trim();
-      const jornadaKey = 'Actual';
+      const jornadaKey = Number(jornada) && !Number.isNaN(Number(jornada)) ? Number(jornada) : 1;
 
       // Borrar de forma robusta todas las filas previas de esa jornada
       console.log('[SAVE MUTATION] Buscando registros previos...');
       const preList = await base44.entities.Clasificacion.filter({ 
         temporada: temporadaNorm, 
         categoria: categoriaNorm,
-        jornada: 'Actual'
+        jornada: jornadaKey
       });
       console.log(`[SAVE MUTATION] Encontrados ${preList.length} registros previos`);
 
@@ -213,7 +213,7 @@ export default function Clasificaciones() {
           const optimisticRows = (standings || []).map(s => ({
             temporada: t,
             categoria: c,
-            jornada: 'Actual',
+            jornada: jornadaKey,
             posicion: Number(s.posicion) || 0,
             nombre_equipo: String(s.nombre_equipo || '').trim(),
             puntos: Number(s.puntos) || 0,
@@ -234,8 +234,8 @@ export default function Clasificaciones() {
           });
 
           // Double-check desde BD para confirmar
-          const check = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c });
-          const rows = check.filter(r => String(r.jornada) === 'Actual');
+          const check = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c, jornada: jornadaKey });
+          const rows = check;
 
           if (rows.length > 0) {
             toast.success(`✅ Clasificación reescrita (${rows.length} filas)`);
@@ -308,7 +308,7 @@ export default function Clasificaciones() {
     saveStandingsMutation.mutate({ 
       temporada: data.temporada,
       categoria: data.categoria,
-      jornada: 'Actual',
+      jornada: jornadaKey,
       standings: validStandings 
     });
   };
