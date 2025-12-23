@@ -550,23 +550,66 @@ export default function Clasificaciones() {
         )}
 
         {!showScorersForm && !scorersReviewData && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
-              {visibleCategories.map((cat) => (
-                <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="font-semibold text-sm">{cat.name}</span>
-                  </div>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          {showScorersForm && (
+            <UploadScorersForm
+              categoria={catFull}
+              onDataExtracted={(data) => {
+                setScorersReviewData(data);
+                setShowScorersForm(false);
+              }}
+              onCancel={() => setShowScorersForm(false)}
+            />
+          )}
 
-            {visibleCategories.map((cat) => (
-              <TabsContent key={cat.id} value={cat.id} className="space-y-6">
-                <ScorersList categoryFullName={cat.fullName} />
-              </TabsContent>
-            ))}
-          </Tabs>
+          {scorersReviewData && (
+            <ReviewScorersTable
+              data={scorersReviewData}
+              onCancel={() => setScorersReviewData(null)}
+              isSubmitting={savingScorers}
+              onConfirm={async ({ temporada, categoria, players }) => {
+                try {
+                  setSavingScorers(true);
+                  const prev = await base44.entities.Goleador.filter({ temporada, categoria });
+                  await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
+                  const nowIso = new Date().toISOString();
+                  await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
+                    temporada,
+                    categoria,
+                    jugador_nombre: String(p.jugador_nombre).trim(),
+                    equipo: String(p.equipo).trim(),
+                    goles: Number(p.goles),
+                    posicion: idx + 1,
+                    fecha_actualizacion: nowIso,
+                  })));
+                  await queryClient.invalidateQueries({ queryKey: ['goleadores', categoria] });
+                  setScorersReviewData(null);
+                  toast.success('Goleadores guardados');
+                } finally {
+                  setSavingScorers(false);
+                }
+              }}
+            />
+          )}
+
+          {!showScorersForm && !scorersReviewData && (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
+                {visibleCategories.map((cat) => (
+                  <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="font-semibold text-sm">{cat.name}</span>
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {visibleCategories.map((cat) => (
+                <TabsContent key={cat.id} value={cat.id} className="space-y-6">
+                  <ScorersList categoryFullName={cat.fullName} />
+                </TabsContent>
+              ))}
+            </Tabs>
+          )}
         )}
       </div>
     );
