@@ -119,6 +119,28 @@ export default function PlanPaymentReminders({ user }) {
               no_leidos_familia: (conv.no_leidos_familia || 0) + 1
             });
 
+            // Centro de Alertas (AppNotification)
+            await base44.entities.AppNotification.create({
+              usuario_email: familyEmail,
+              titulo: "💳 Recordatorio de Pagos (Plan Especial)",
+              mensaje: `Cuota ${cuota.numero}: ${cantidad}€ · Vencimiento ${fechaLimiteStr}. Revisa Mensajes del Club.`,
+              tipo: "importante",
+              icono: "💳",
+              enlace: "ParentSystemMessages",
+              vista: false
+            });
+            if (player.email_tutor_2) {
+              await base44.entities.AppNotification.create({
+                usuario_email: player.email_tutor_2,
+                titulo: "💳 Recordatorio de Pagos (Plan Especial)",
+                mensaje: `Cuota ${cuota.numero}: ${cantidad}€ · Vencimiento ${fechaLimiteStr}. Revisa Mensajes del Club.`,
+                tipo: "importante",
+                icono: "💳",
+                enlace: "ParentSystemMessages",
+                vista: false
+              });
+            }
+
             // Email (remitente configurado en función)
             await base44.functions.invoke('sendEmail', {
               to: familyEmail,
