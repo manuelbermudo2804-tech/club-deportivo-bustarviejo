@@ -75,8 +75,10 @@ export default function Clasificaciones() {
 
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
+    queryFn: () => base44.entities.Clasificacion.list('-updated_date', 500),
     initialData: [],
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 
   // Config RFEF (URL por categoría+grupo)
