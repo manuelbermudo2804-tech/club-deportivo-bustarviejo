@@ -85,7 +85,9 @@ export default function Clasificaciones() {
   const { data: standingsConfigs = [] } = useQuery({
     queryKey: ['standings_config'],
     queryFn: () => base44.entities.StandingsConfig.list(),
-    initialData: []
+    initialData: [],
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
   const [rfefUrl, setRfefUrl] = useState("");
   const [grupoText, setGrupoText] = useState("");
