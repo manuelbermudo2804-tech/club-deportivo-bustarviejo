@@ -413,7 +413,7 @@ export default function Clasificaciones() {
 
         {!showResultsForm && !resultsReviewData && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
               {visibleCategories.map((cat) => (
                 <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
                   <span className="font-semibold text-sm">{cat.name}</span>
@@ -550,7 +550,7 @@ export default function Clasificaciones() {
 
         {!showScorersForm && !scorersReviewData && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
               {visibleCategories.map((cat) => (
                 <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
                   <span className="font-semibold text-sm">{cat.name}</span>
@@ -650,7 +650,7 @@ export default function Clasificaciones() {
 
       {viewMode === 'standings' && !showUploadForm && !reviewData && activeTab && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
             {visibleCategories.map((cat) => (
               <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
                 <div className="flex flex-col items-center gap-1">
