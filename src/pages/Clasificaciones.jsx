@@ -15,6 +15,8 @@ import ReviewStandingsTable from "../components/standings/ReviewStandingsTable";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
+import UploadScorersForm from "../components/scorers/UploadScorersForm";
+import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
 
 const CATEGORIES = [
   { id: "benjamin", name: "Benjamín", fullName: "Fútbol Benjamín (Mixto)" },
@@ -97,6 +99,9 @@ export default function Clasificaciones() {
   const [grupoText, setGrupoText] = useState("");
   const [configId, setConfigId] = useState(null);
   const [viewMode, setViewMode] = useState("standings");
+  const [showScorersForm, setShowScorersForm] = useState(false);
+  const [scorersReviewData, setScorersReviewData] = useState(null);
+  const [savingScorers, setSavingScorers] = useState(false);
 
   React.useEffect(() => {
     if (!activeTab) return;
@@ -491,6 +496,12 @@ export default function Clasificaciones() {
                   className="bg-orange-600 hover:bg-orange-700"
                 >
                   Actualizar Goleadores (URL)
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowScorersForm(true)}
+                >
+                  Subir desde imagen
                 </Button>
               </div>
             )}
