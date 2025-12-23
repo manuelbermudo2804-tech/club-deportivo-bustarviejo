@@ -299,10 +299,10 @@ export default function Clasificaciones() {
         </Button>
 
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardContent className="p-6 space-y-4">
+          <CardContent className="p-4 md:p-6 space-y-4">
             <div>
-              <h2 className="text-2xl font-bold text-orange-700">Resultados · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
-              <p className="text-slate-600 mt-1">Resultados de jornadas</p>
+              <h2 className="text-xl md:text-2xl font-bold text-orange-700">Resultados · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+              <p className="text-slate-600 mt-1 text-sm">Resultados de jornadas</p>
             </div>
 
             {/* ENLACE CLICABLE A URL */}
@@ -320,10 +320,11 @@ export default function Clasificaciones() {
 
             {/* BOTONES ADMIN */}
             {isAdmin && (
-              <div className="flex gap-2">
-                <Button onClick={() => setShowResultsForm(true)} variant="outline">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={() => setShowResultsForm(true)} variant="outline" className="text-xs md:text-sm">
                   <Upload className="w-4 h-4 mr-2" />
-                  Subir desde imagen
+                  <span className="hidden sm:inline">Subir desde imagen</span>
+                  <span className="sm:hidden">Imagen</span>
                 </Button>
                 <Button
                   onClick={async () => {
@@ -360,9 +361,10 @@ export default function Clasificaciones() {
                     await queryClient.invalidateQueries({ queryKey: ['resultados', catFull] });
                     toast.success('Resultados guardados');
                   }}
-                  className="bg-orange-600 hover:bg-orange-700"
+                  className="bg-orange-600 hover:bg-orange-700 text-xs md:text-sm"
                 >
-                  Actualizar Resultados (URL)
+                  <span className="hidden sm:inline">Actualizar Resultados (URL)</span>
+                  <span className="sm:hidden">URL</span>
                 </Button>
               </div>
             )}
@@ -442,10 +444,10 @@ export default function Clasificaciones() {
         </Button>
 
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardContent className="p-6 space-y-4">
+          <CardContent className="p-4 md:p-6 space-y-4">
             <div>
-              <h2 className="text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
-              <p className="text-slate-600 mt-1">Máximos goleadores de la categoría</p>
+              <h2 className="text-xl md:text-2xl font-bold text-orange-700">Goleadores · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+              <p className="text-slate-600 mt-1 text-sm">Máximos goleadores de la categoría</p>
             </div>
 
             {/* ENLACE CLICABLE A URL */}
@@ -463,10 +465,11 @@ export default function Clasificaciones() {
 
             {/* BOTONES ADMIN */}
             {isAdmin && (
-              <div className="flex gap-2">
-                <Button onClick={() => setShowScorersForm(true)} variant="outline">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={() => setShowScorersForm(true)} variant="outline" className="text-xs md:text-sm">
                   <Upload className="w-4 h-4 mr-2" />
-                  Subir desde imagen
+                  <span className="hidden sm:inline">Subir desde imagen</span>
+                  <span className="sm:hidden">Imagen</span>
                 </Button>
                 <Button
                   onClick={async () => {
@@ -497,9 +500,10 @@ export default function Clasificaciones() {
                     await queryClient.invalidateQueries({ queryKey: ['goleadores', catFull] });
                     toast.success('Goleadores guardados');
                   }}
-                  className="bg-orange-600 hover:bg-orange-700"
+                  className="bg-orange-600 hover:bg-orange-700 text-xs md:text-sm"
                 >
-                  Actualizar Goleadores (URL)
+                  <span className="hidden sm:inline">Actualizar Goleadores (URL)</span>
+                  <span className="sm:hidden">URL</span>
                 </Button>
               </div>
             )}
@@ -582,15 +586,34 @@ export default function Clasificaciones() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <BarChart3 className="w-8 h-8 text-orange-600" />
-          Clasificaciones, Resultados y Goleadores
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
+          <BarChart3 className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />
+          <span className="hidden md:inline">Clasificaciones, Resultados y Goleadores</span>
+          <span className="md:hidden">Clasificaciones</span>
         </h1>
-        <p className="text-slate-600 mt-1">Información deportiva de todas las categorías</p>
-        <div className="mt-4 flex gap-2">
-          <Button variant={viewMode === 'standings' ? 'default' : 'outline'} onClick={() => setViewMode('standings')}>Clasificaciones</Button>
-          <Button variant={viewMode === 'results' ? 'default' : 'outline'} onClick={() => setViewMode('results')}>Resultados</Button>
-          <Button variant={viewMode === 'scorers' ? 'default' : 'outline'} onClick={() => setViewMode('scorers')}>Goleadores</Button>
+        <p className="text-slate-600 mt-1 text-sm md:text-base">Información deportiva de todas las categorías</p>
+        <div className="mt-4 grid grid-cols-3 gap-2 md:flex">
+          <Button 
+            variant={viewMode === 'standings' ? 'default' : 'outline'} 
+            onClick={() => setViewMode('standings')}
+            className="text-xs md:text-sm"
+          >
+            📊 Clasificaciones
+          </Button>
+          <Button 
+            variant={viewMode === 'results' ? 'default' : 'outline'} 
+            onClick={() => setViewMode('results')}
+            className="text-xs md:text-sm"
+          >
+            ⚽ Resultados
+          </Button>
+          <Button 
+            variant={viewMode === 'scorers' ? 'default' : 'outline'} 
+            onClick={() => setViewMode('scorers')}
+            className="text-xs md:text-sm"
+          >
+            🎯 Goleadores
+          </Button>
         </div>
       </div>
 
@@ -647,15 +670,17 @@ export default function Clasificaciones() {
             return (
               <TabsContent key={cat.id} value={cat.id} className="space-y-6">
                 <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex items-center justify-between">
+                  <CardContent className="p-4 md:p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <div>
-                        <h2 className="text-2xl font-bold text-orange-700">{cat.name}</h2>
-                        <p className="text-slate-600 mt-1">{standingsByCategory[cat.id]?.length || 0} clasificaciones guardadas</p>
+                        <h2 className="text-xl md:text-2xl font-bold text-orange-700">{cat.name}</h2>
+                        <p className="text-slate-600 mt-1 text-sm">{standingsByCategory[cat.id]?.length || 0} clasificaciones guardadas</p>
                       </div>
                       {isAdmin && (
-                        <Button onClick={() => handleNewUpload(cat.fullName)} className="bg-orange-600 hover:bg-orange-700">
-                          <Upload className="w-4 h-4 mr-2" /> Actualizar Clasificación
+                        <Button onClick={() => handleNewUpload(cat.fullName)} className="bg-orange-600 hover:bg-orange-700 text-xs md:text-sm whitespace-nowrap">
+                          <Upload className="w-4 h-4 mr-2" /> 
+                          <span className="hidden sm:inline">Actualizar Clasificación</span>
+                          <span className="sm:hidden">Actualizar</span>
                         </Button>
                       )}
                     </div>
