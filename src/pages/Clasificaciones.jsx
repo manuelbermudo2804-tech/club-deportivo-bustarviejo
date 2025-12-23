@@ -144,20 +144,26 @@ export default function Clasificaciones() {
     mutationFn: async (data) => {
       const { temporada, categoria, jornada, standings } = data;
 
+      console.log('[SAVE MUTATION] Iniciando guardado:', { temporada, categoria, jornada, count: standings.length });
+
       // Normalizar valores para evitar no-coincidencias y duplicados
       const temporadaNorm = String(temporada).trim();
       const categoriaNorm = String(categoria).trim();
       const jornadaKey = 'Actual';
 
       // Borrar de forma robusta todas las filas previas de esa jornada
+      console.log('[SAVE MUTATION] Buscando registros previos...');
       const preList = await base44.entities.Clasificacion.filter({ 
         temporada: temporadaNorm, 
         categoria: categoriaNorm,
         jornada: 'Actual'
       });
-      const toDelete = preList;
-      if (toDelete.length > 0) {
-        await Promise.all(toDelete.map(r => base44.entities.Clasificacion.delete(r.id)));
+      console.log(`[SAVE MUTATION] Encontrados ${preList.length} registros previos`);
+
+      if (preList.length > 0) {
+        console.log('[SAVE MUTATION] Borrando registros previos...');
+        await Promise.all(preList.map(r => base44.entities.Clasificacion.delete(r.id)));
+        console.log('[SAVE MUTATION] Registros previos borrados');
       }
 
       // Crear filas nuevas ya normalizadas
@@ -190,7 +196,9 @@ export default function Clasificaciones() {
         };
       });
 
+      console.log('[SAVE MUTATION] Creando nuevos registros:', recordsToCreate);
       await base44.entities.Clasificacion.bulkCreate(recordsToCreate);
+      console.log('[SAVE MUTATION] Registros creados exitosamente');
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
