@@ -425,7 +425,7 @@ export default function Clasificaciones() {
                 >
                   Actualizar Resultados (URL)
                 </Button>
-                </>
+                </div>
                 )}
                 </div>
                 </CardContent>
