@@ -207,6 +207,7 @@ export default function Clasificaciones() {
         if (temporada && categoria) {
           const t = String(temporada).trim();
           const c = String(categoria).trim();
+          const j = (variables && Number(variables.jornada)) || 1;
 
           // Optimistic cache update usando lo confirmado en el formulario
           const nowIso = new Date().toISOString();
@@ -234,7 +235,7 @@ export default function Clasificaciones() {
           });
 
           // Double-check desde BD para confirmar
-          const check = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c, jornada: jornadaKey });
+          const check = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c, jornada: j });
           const rows = check;
 
           if (rows.length > 0) {
@@ -308,7 +309,7 @@ export default function Clasificaciones() {
     saveStandingsMutation.mutate({ 
       temporada: data.temporada,
       categoria: data.categoria,
-      jornada: jornadaKey,
+      jornada: data.jornada,
       standings: validStandings 
     });
   };
