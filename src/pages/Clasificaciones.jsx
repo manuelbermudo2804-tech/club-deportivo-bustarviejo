@@ -595,22 +595,34 @@ export default function Clasificaciones() {
       </div>
 
       {viewMode === 'standings' && showUploadForm && (
-        <UploadStandingsForm
-          onDataExtracted={(data) => { setReviewData(data); setShowUploadForm(false); }}
-          onCancel={() => { setShowUploadForm(false); setSelectedCategory(null); setReviewData(null); }}
-          preselectedCategory={selectedCategory}
-          prefillData={reviewData?.isPrefilled ? reviewData : null}
-          rfefUrl={rfefUrl}
-        />
+        <>
+          <Button onClick={() => { setShowUploadForm(false); setSelectedCategory(null); setReviewData(null); }} variant="outline">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver
+          </Button>
+          <UploadStandingsForm
+            onDataExtracted={(data) => { setReviewData(data); setShowUploadForm(false); }}
+            onCancel={() => { setShowUploadForm(false); setSelectedCategory(null); setReviewData(null); }}
+            preselectedCategory={selectedCategory}
+            prefillData={reviewData?.isPrefilled ? reviewData : null}
+            rfefUrl={rfefUrl}
+          />
+        </>
       )}
 
       {viewMode === 'standings' && reviewData && !reviewData.isPrefilled && (
-        <ReviewStandingsTable
-          data={reviewData}
-          onConfirm={handleConfirmStandings}
-          onCancel={() => { setReviewData(null); setSelectedCategory(null); }}
-          isSubmitting={saveStandingsMutation.isPending}
-        />
+        <>
+          <Button onClick={() => { setReviewData(null); setSelectedCategory(null); }} variant="outline">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Volver
+          </Button>
+          <ReviewStandingsTable
+            data={reviewData}
+            onConfirm={handleConfirmStandings}
+            onCancel={() => { setReviewData(null); setSelectedCategory(null); }}
+            isSubmitting={saveStandingsMutation.isPending}
+          />
+        </>
       )}
 
       {viewMode === 'standings' && !showUploadForm && !reviewData && activeTab && (
@@ -628,23 +640,39 @@ export default function Clasificaciones() {
             ))}
           </TabsList>
 
-          {visibleCategories.map((cat) => (
-            <TabsContent key={cat.id} value={cat.id} className="space-y-6">
-              <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold text-orange-700">{cat.name}</h2>
-                      <p className="text-slate-600 mt-1">{standingsByCategory[cat.id]?.length || 0} clasificaciones guardadas</p>
+          {visibleCategories.map((cat) => {
+            const catConfig = standingsConfigs.find(c => c.categoria === cat.fullName);
+            const catRfefUrl = catConfig?.rfef_url || "";
+            
+            return (
+              <TabsContent key={cat.id} value={cat.id} className="space-y-6">
+                <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold text-orange-700">{cat.name}</h2>
+                        <p className="text-slate-600 mt-1">{standingsByCategory[cat.id]?.length || 0} clasificaciones guardadas</p>
+                      </div>
+                      {isAdmin && (
+                        <Button onClick={() => handleNewUpload(cat.fullName)} className="bg-orange-600 hover:bg-orange-700">
+                          <Upload className="w-4 h-4 mr-2" /> Actualizar Clasificación
+                        </Button>
+                      )}
                     </div>
-                    {isAdmin && (
-                      <Button onClick={() => handleNewUpload(cat.fullName)} className="bg-orange-600 hover:bg-orange-700">
-                        <Upload className="w-4 h-4 mr-2" /> Actualizar Clasificación
-                      </Button>
+                    
+                    {catRfefUrl && (
+                      <a 
+                        href={catRfefUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 underline font-medium"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Ver página oficial de Clasificación RFFM
+                      </a>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
               {standingsByCategory[cat.id]?.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -706,8 +734,9 @@ export default function Clasificaciones() {
                   </CardContent>
                 </Card>
               )}
-            </TabsContent>
-          ))}
+              </TabsContent>
+            );
+          })}
         </Tabs>
       )}
     </div>
