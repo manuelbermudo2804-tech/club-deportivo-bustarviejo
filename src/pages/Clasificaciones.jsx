@@ -157,21 +157,33 @@ export default function Clasificaciones() {
 
       // Crear filas nuevas ya normalizadas
       const nowIso = new Date().toISOString();
-      const recordsToCreate = standings.map(s => ({
-        temporada: temporadaNorm,
-        categoria: categoriaNorm,
-        jornada: jornadaKey,
-        posicion: Number(s.posicion),
-        nombre_equipo: String(s.nombre_equipo).trim(),
-        puntos: Number(s.puntos),
-        partidos_jugados: Number(s.partidos_jugados),
-        ganados: Number(s.ganados),
-        empatados: Number(s.empatados),
-        perdidos: Number(s.perdidos),
-        goles_favor: Number(s.goles_favor),
-        goles_contra: Number(s.goles_contra),
-        fecha_actualizacion: nowIso
-      }));
+      const toNum = (v) => (v === '' || v === null || v === undefined ? undefined : Number(v));
+      const recordsToCreate = standings.map(s => {
+        const base = {
+          temporada: temporadaNorm,
+          categoria: categoriaNorm,
+          jornada: jornadaKey,
+          posicion: Number(s.posicion) || 0,
+          nombre_equipo: String(s.nombre_equipo || '').trim(),
+          puntos: Number(s.puntos) || 0,
+          fecha_actualizacion: nowIso
+        };
+        const pj = toNum(s.partidos_jugados);
+        const g = toNum(s.ganados);
+        const e = toNum(s.empatados);
+        const p = toNum(s.perdidos);
+        const gf = toNum(s.goles_favor);
+        const gc = toNum(s.goles_contra);
+        return {
+          ...base,
+          ...(pj !== undefined && { partidos_jugados: pj }),
+          ...(g !== undefined && { ganados: g }),
+          ...(e !== undefined && { empatados: e }),
+          ...(p !== undefined && { perdidos: p }),
+          ...(gf !== undefined && { goles_favor: gf }),
+          ...(gc !== undefined && { goles_contra: gc })
+        };
+      });
 
       await base44.entities.Clasificacion.bulkCreate(recordsToCreate);
     },
