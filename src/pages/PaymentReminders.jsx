@@ -558,19 +558,17 @@ export default function PaymentReminders() {
       });
 
       // Enviar emails
-      await base44.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo",
+      await base44.functions.invoke('sendEmail', {
         to: family.email,
         subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
-        body: mensaje
+        html: mensaje.replace(/\n/g, '<br>')
       });
 
       if (family.email_tutor_2) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
+        await base44.functions.invoke('sendEmail', {
           to: family.email_tutor_2,
           subject: "Recordatorio de Pagos Pendientes - CD Bustarviejo",
-          body: mensaje
+          html: mensaje.replace(/\n/g, '<br>')
         });
       }
 

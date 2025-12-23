@@ -23,6 +23,7 @@ import NotificationManager from "./components/notifications/NotificationManager"
 import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
 import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
 import AutomaticPaymentReminders from "./components/reminders/AutomaticPaymentReminders";
+import PlanPaymentReminders from "./components/reminders/PlanPaymentReminders";
 import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
 import AutomaticRenewalClosure from "./components/renewals/AutomaticRenewalClosure";
 import RenewalNotificationEngine from "./components/renewals/RenewalNotificationEngine";
@@ -1662,7 +1663,8 @@ export default function Layout({ children, currentPageName }) {
               <SessionManager />
               <NotificationBadge />
               <PaymentApprovalNotifier isAdmin={isAdmin} />
-              <AutomaticRenewalReminders />
+                                  <PlanPaymentReminders user={user} />
+                                  <AutomaticRenewalReminders />
               <AutomaticRenewalClosure />
               <RenewalNotificationEngine />
               <PostRenewalPaymentReminder />
