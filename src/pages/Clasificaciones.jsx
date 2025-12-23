@@ -192,8 +192,18 @@ export default function Clasificaciones() {
       const { temporada, categoria } = variables || {};
       try {
         if (temporada && categoria) {
-          const check = await base44.entities.Clasificacion.filter({ temporada: String(temporada).trim(), categoria: String(categoria).trim() });
+          const t = String(temporada).trim();
+          const c = String(categoria).trim();
+          const check = await base44.entities.Clasificacion.filter({ temporada: t, categoria: c });
           const rows = check.filter(r => String(r.jornada) === 'Actual');
+
+          // Actualiza caché inmediatamente para que se vea sin esperar a refetch
+          queryClient.setQueryData(['clasificaciones'], (prev) => {
+            const safePrev = Array.isArray(prev) ? prev : [];
+            const filteredPrev = safePrev.filter(r => !(String(r.temporada).trim() === t && String(r.categoria).trim() === c));
+            return [...filteredPrev, ...rows];
+          });
+
           if (rows.length > 0) {
             toast.success(`✅ Clasificación reescrita (${rows.length} filas)`);
           } else {
