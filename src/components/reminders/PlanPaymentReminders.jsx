@@ -1,25 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 
 export default function PlanPaymentReminders({ user }) {
   const [processing, setProcessing] = useState(false);
+  const lastRunRef = useRef(null);
 
   useEffect(() => {
     if (!user) return;
     const isAuthorized = user.role === "admin" || user.es_tesorero === true;
     if (!isAuthorized || processing) return;
+    
+    // Ejecutar máximo 1 vez cada 5 minutos
+    const now = Date.now();
+    if (lastRunRef.current && (now - lastRunRef.current) < 5 * 60 * 1000) {
+      return;
+    }
 
     const run = async () => {
       try {
         setProcessing(true);
-        const now = new Date();
-        const todayStr = now.toDateString();
+        lastRunRef.current = Date.now();
+        const nowDate = new Date();
+        const todayStr = nowDate.toDateString();
 
-        const [players, payments, plans, reminders] = await Promise.all([
-          base44.entities.Player.list(),
-          base44.entities.Payment.list(),
-          base44.entities.CustomPaymentPlan.list(),
-          base44.entities.AutomaticReminder.list()
+        // Reducir llamadas con filtros específicos y límites
+        const [players, plans, reminders] = await Promise.all([
+          base44.entities.Player.filter({ activo: true }, '-updated_date', 300),
+          base44.entities.CustomPaymentPlan.filter({ estado: 'Activo' }, '-updated_date', 100),
+          base44.entities.AutomaticReminder.list('-created_date', 200)
         ]);
 
         const playerById = Object.fromEntries(players.map(p => [p.id, p]));
