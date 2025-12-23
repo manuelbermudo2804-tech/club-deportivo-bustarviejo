@@ -425,12 +425,13 @@ export default function Clasificaciones() {
                 >
                   Actualizar Resultados (URL)
                 </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </>
+                )}
+                </div>
+                </CardContent>
+                </Card>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
             {visibleCategories.map((cat) => (
               <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
