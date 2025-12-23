@@ -377,59 +377,58 @@ export default function Clasificaciones() {
     return (
       <div className="p-6 space-y-6">
         <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-orange-700">Resultados · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
-              <p className="text-slate-600">Actualiza desde URL de RFFM (sin fechas públicas)</p>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-orange-700">Resultados · {CATEGORIES.find(c => c.id === activeTab)?.name}</h2>
+                <p className="text-slate-600">Actualiza desde URL de RFFM (sin fechas públicas)</p>
+              </div>
+              {isAdmin && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={async () => {
+                      let url = rfefResultsUrl;
+                      if (!url) {
+                        url = window.prompt('Pega la URL de Resultados/Jornadas de la RFFM para esta categoría');
+                        if (!url) return;
+                        saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_results_url: url } });
+                        setRfefResultsUrl(url);
+                      }
+                      const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
+                      const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
+                      const jStr = window.prompt('Número de jornada a guardar (ej 9)');
+                      const jornada = Number(jStr);
+                      if (!Number.isFinite(jornada)) { toast.error('Jornada inválida'); return; }
+                      const { data } = await base44.functions.invoke('fetchRfefResults', { url });
+                      const matches = (data?.matches || []).map(m => ({ ...m, local: String(m.local||'').trim(), visitante: String(m.visitante||'').trim() }));
+                      if (matches.length === 0) { toast.error('No se detectaron partidos'); return; }
+                      const prev = await base44.entities.Resultado.filter({ temporada, categoria: catFull, jornada });
+                      await Promise.all(prev.map(r => base44.entities.Resultado.delete(r.id)));
+                      const nowIso = new Date().toISOString();
+                      await base44.entities.Resultado.bulkCreate(matches.map(m => ({
+                        temporada,
+                        categoria: catFull,
+                        jornada,
+                        local: m.local,
+                        visitante: m.visitante,
+                        ...(Number.isFinite(m.goles_local) ? { goles_local: Number(m.goles_local) } : {}),
+                        ...(Number.isFinite(m.goles_visitante) ? { goles_visitante: Number(m.goles_visitante) } : {}),
+                        estado: (Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante)) ? 'finalizado' : 'pendiente',
+                        acta_url: m.acta_url || undefined,
+                        fecha_actualizacion: nowIso,
+                      })));
+                      await queryClient.invalidateQueries({ queryKey: ['resultados', catFull] });
+                      toast.success('Resultados guardados');
+                    }}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    Actualizar Resultados (URL)
+                  </Button>
+                </div>
+              )}
             </div>
-            {isAdmin && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={async () => {
-                    let url = rfefResultsUrl;
-                    if (!url) {
-                      url = window.prompt('Pega la URL de Resultados/Jornadas de la RFFM para esta categoría');
-                      if (!url) return;
-                      saveConfigMutation.mutate({ id: configId, data: { categoria: catFull, rfef_results_url: url } });
-                      setRfefResultsUrl(url);
-                    }
-                    const defSeason = (() => { const d=new Date(); const y=d.getFullYear(); const m=d.getMonth()+1; return m>=9 ? `${y}/${y+1}` : `${y-1}/${y}`; })();
-                    const temporada = window.prompt('Temporada (ej 2024/2025)', defSeason) || defSeason;
-                    const jStr = window.prompt('Número de jornada a guardar (ej 9)');
-                    const jornada = Number(jStr);
-                    if (!Number.isFinite(jornada)) { toast.error('Jornada inválida'); return; }
-                    const { data } = await base44.functions.invoke('fetchRfefResults', { url });
-                    const matches = (data?.matches || []).map(m => ({ ...m, local: String(m.local||'').trim(), visitante: String(m.visitante||'').trim() }));
-                    if (matches.length === 0) { toast.error('No se detectaron partidos'); return; }
-                    // Guardar
-                    // borrar previos y crear
-                    const prev = await base44.entities.Resultado.filter({ temporada, categoria: catFull, jornada });
-                    await Promise.all(prev.map(r => base44.entities.Resultado.delete(r.id)));
-                    const nowIso = new Date().toISOString();
-                    await base44.entities.Resultado.bulkCreate(matches.map(m => ({
-                      temporada,
-                      categoria: catFull,
-                      jornada,
-                      local: m.local,
-                      visitante: m.visitante,
-                      ...(Number.isFinite(m.goles_local) ? { goles_local: Number(m.goles_local) } : {}),
-                      ...(Number.isFinite(m.goles_visitante) ? { goles_visitante: Number(m.goles_visitante) } : {}),
-                      estado: (Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante)) ? 'finalizado' : 'pendiente',
-                      acta_url: m.acta_url || undefined,
-                      fecha_actualizacion: nowIso,
-                    })));
-                    await queryClient.invalidateQueries({ queryKey: ['resultados', catFull] });
-                    toast.success('Resultados guardados');
-                  }}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  Actualizar Resultados (URL)
-                </Button>
-                </div>
-                )}
-                </div>
-                </CardContent>
-                </Card>
+          </CardContent>
+        </Card>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
