@@ -910,8 +910,8 @@ export default function Layout({ children, currentPageName }) {
         // Verificar partidos pendientes de observación (para entrenadores/coordinadores)
         if (currentUser.es_entrenador || currentUser.es_coordinador) {
           try {
-            const allCallups = await base44.entities.Convocatoria.list();
-            const allObservations = await base44.entities.MatchObservation.list();
+            const allCallups = await base44.entities.Convocatoria.filter({ entrenador_email: currentUser.email, publicada: true });
+            const allObservations = await base44.entities.MatchObservation.list('-updated_date', 500);
             
             const now = new Date();
             
