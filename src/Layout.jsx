@@ -1264,6 +1264,7 @@ export default function Layout({ children, currentPageName }) {
 
     // ⚽ DEPORTIVO
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
     { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
 
     // 📅 CALENDARIO E INFO
