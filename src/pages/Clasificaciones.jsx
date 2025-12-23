@@ -268,12 +268,41 @@ export default function Clasificaciones() {
   });
 
   const handleConfirmStandings = (data) => {
-    if (!data?.categoria || !data?.temporada || !Array.isArray(data?.standings) || data.standings.length === 0) {
-      toast.error('Faltan datos para guardar (categoría/temporada/equipos)');
+    console.log('[CLASIFICACIONES] Confirmando datos:', data);
+
+    if (!data?.categoria || !data?.temporada) {
+      toast.error('Faltan datos obligatorios (categoría/temporada)');
       return;
     }
+
+    if (!Array.isArray(data?.standings) || data.standings.length === 0) {
+      toast.error('No hay equipos para guardar');
+      return;
+    }
+
+    // Validar que cada equipo tenga los campos requeridos
+    const validStandings = data.standings.filter(s => 
+      s && 
+      s.nombre_equipo && 
+      String(s.nombre_equipo).trim() !== '' &&
+      typeof s.posicion === 'number' &&
+      typeof s.puntos === 'number'
+    );
+
+    if (validStandings.length === 0) {
+      toast.error('No hay equipos válidos para guardar');
+      return;
+    }
+
+    console.log(`[CLASIFICACIONES] Guardando ${validStandings.length} equipos válidos`);
+
     // Reescribe siempre la jornada "Actual"
-    saveStandingsMutation.mutate({ ...data, jornada: 'Actual' });
+    saveStandingsMutation.mutate({ 
+      temporada: data.temporada,
+      categoria: data.categoria,
+      jornada: 'Actual',
+      standings: validStandings 
+    });
   };
 
   const handleNewUpload = (categoryFullName, prefillData = null) => {
