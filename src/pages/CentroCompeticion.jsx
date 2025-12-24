@@ -70,6 +70,7 @@ export default function CentroCompeticion() {
       setScorersUrl('');
     }
   }, [config]);
+  React.useEffect(() => { if (isAdmin) setAdminTab(view); }, [view, isAdmin]);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -259,7 +260,7 @@ export default function CentroCompeticion() {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <ViewToggle />
+          {!isAdmin && <ViewToggle />}
           <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3"><Share2 className="w-4 h-4"/></Button>
         </div>
       </div>
@@ -270,9 +271,9 @@ export default function CentroCompeticion() {
             <div className="flex items-center justify-between">
               <div className="font-semibold">Herramientas de Administración</div>
               <div className="flex gap-1">
-                <Button variant={adminTab === 'clasificacion' ? 'default' : 'outline'} onClick={() => setAdminTab('clasificacion')} className={adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Clasificación</Button>
-                <Button variant={adminTab === 'resultados' ? 'default' : 'outline'} onClick={() => setAdminTab('resultados')} className={adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Resultados</Button>
-                <Button variant={adminTab === 'goleadores' ? 'default' : 'outline'} onClick={() => setAdminTab('goleadores')} className={adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Goleadores</Button>
+                <Button variant={adminTab === 'clasificacion' ? 'default' : 'outline'} onClick={() => { setAdminTab('clasificacion'); setView('clasificacion'); }} className={adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Clasificación</Button>
+                <Button variant={adminTab === 'resultados' ? 'default' : 'outline'} onClick={() => { setAdminTab('resultados'); setView('resultados'); }} className={adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Resultados</Button>
+                <Button variant={adminTab === 'goleadores' ? 'default' : 'outline'} onClick={() => { setAdminTab('goleadores'); setView('goleadores'); }} className={adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Goleadores</Button>
               </div>
             </div>
             <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
