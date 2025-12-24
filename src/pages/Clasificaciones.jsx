@@ -118,12 +118,12 @@ export default function Clasificaciones() {
     staleTime: 5 * 60_000,
     gcTime: 10 * 60_000,
   });
+  const [viewMode, setViewMode] = useState("standings");
   const [rfefUrl, setRfefUrl] = useState("");
   const [rfefResultsUrl, setRfefResultsUrl] = useState("");
   const [rfefScorersUrl, setRfefScorersUrl] = useState("");
   const [grupoText, setGrupoText] = useState("");
   const [configId, setConfigId] = useState(null);
-  const [viewMode, setViewMode] = useState("standings");
   const [showScorersForm, setShowScorersForm] = useState(false);
   const [scorersReviewData, setScorersReviewData] = useState(null);
   const [savingScorers, setSavingScorers] = useState(false);
