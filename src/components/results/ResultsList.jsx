@@ -92,28 +92,19 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
               .map((m) => {
                 const hasScore = Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante);
                 return (
-                  <div key={m.id} className="flex items-center py-3 gap-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div className="h-7 w-7 rounded-full bg-slate-100 border flex items-center justify-center text-[11px] font-semibold text-slate-600">
-                        {initials(m.local)}
-                      </div>
-                      <span className="truncate font-medium text-slate-800">{m.local}</span>
+                  <div key={m.id} className="grid grid-cols-[1fr_auto_1fr] items-center py-3 gap-3">
+                    <div className="pr-2 text-slate-800 whitespace-normal break-words font-medium">
+                      {m.local}
                     </div>
 
-                    <div className="w-24 text-center">
+                    <div className="px-2 text-center">
                       <div className={`text-lg font-extrabold ${hasScore ? 'text-slate-900' : 'text-slate-400'}`}>
-                        {hasScore ? `${m.goles_local} - ${m.goles_visitante}` : '-'}
-                      </div>
-                      <div className={`text-[10px] uppercase tracking-wide ${hasScore ? 'text-red-600' : 'text-amber-600'}`}>
-                        {hasScore ? 'Ver acta' : 'Pendiente'}
+                        {hasScore ? `${m.goles_local} - ${m.goles_visitante}` : ' - '}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                      <span className="truncate font-medium text-right text-slate-800">{m.visitante}</span>
-                      <div className="h-7 w-7 rounded-full bg-slate-100 border flex items-center justify-center text-[11px] font-semibold text-slate-600">
-                        {initials(m.visitante)}
-                      </div>
+                    <div className="pl-2 text-right text-slate-800 whitespace-normal break-words font-medium">
+                      {m.visitante}
                     </div>
                   </div>
                 );
