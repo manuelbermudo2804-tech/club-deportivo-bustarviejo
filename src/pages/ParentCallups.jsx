@@ -39,7 +39,7 @@ export default function ParentCallups() {
   const [selectedCallup, setSelectedCallup] = useState(null);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [confirmationData, setConfirmationData] = useState({
-    confirmacion: "asistire",
+    confirmacion: "",
     comentario: ""
   });
   const [showSuccess, setShowSuccess] = useState(false);
@@ -101,7 +101,7 @@ export default function ParentCallups() {
         comentario: existingConfirmation.comentario || ""
       });
     } else {
-      setConfirmationData({ confirmacion: "asistire", comentario: "" });
+      setConfirmationData({ confirmacion: "", comentario: "" });
     }
     
     setShowConfirmDialog(true);
@@ -340,7 +340,7 @@ export default function ParentCallups() {
                 onValueChange={(value) => setConfirmationData({...confirmationData, confirmacion: value})}
               >
                 <SelectTrigger id="confirmation-status">
-                  <SelectValue />
+                  <SelectValue placeholder="Selecciona una opción..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="asistire">✅ Sí, asistiré</SelectItem>
@@ -379,8 +379,8 @@ export default function ParentCallups() {
             </Button>
             <Button
               onClick={handleSubmitConfirmation}
-              disabled={updateCallupMutation.isPending}
-              className="bg-orange-600 hover:bg-orange-700"
+              disabled={updateCallupMutation.isPending || !confirmationData.confirmacion}
+              className="bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {updateCallupMutation.isPending ? (
                 <>
