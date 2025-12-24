@@ -85,13 +85,6 @@ export default function Clasificaciones() {
 
   const activeCategory = CATEGORIES.find(c => c.id === activeTab);
 
-  console.log('📊 [Clasificaciones] Estado actual:', { 
-    activeTab, 
-    activeCategoryName: activeCategory?.fullName,
-    standingsQueryEnabled: !!activeCategory,
-    viewMode 
-  });
-
   const { data: standings, isLoading: standingsLoading, isFetching } = useQuery({
     queryKey: ['clasificaciones', activeCategory?.fullName],
     queryFn: async () => {
@@ -108,7 +101,7 @@ export default function Clasificaciones() {
       console.log(`✅ [Query] Clasificaciones cargadas en ${endTime - startTime}ms:`, result.length, 'registros');
       return result;
     },
-    enabled: !!activeCategory && viewMode === 'standings',
+    enabled: !!activeCategory,
     initialData: [],
     staleTime: 15 * 60_000,
     gcTime: 60 * 60_000,
