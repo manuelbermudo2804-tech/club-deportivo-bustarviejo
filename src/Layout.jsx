@@ -1103,12 +1103,13 @@ export default function Layout({ children, currentPageName }) {
                 // 🎉 CONTENIDO
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
         { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
-        
+
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
     // ⚙️ CONFIGURACIÓN
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+    // Eliminado: Clasificaciones (migrado a Centro de Competición)
     ];
 
   const coachNavigationItems = [
