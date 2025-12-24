@@ -55,8 +55,11 @@ export default function CoachStandingsAnalysis() {
 
   const { data: standings = [] } = useQuery({
     queryKey: ['clasificaciones'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
+    queryFn: () => base44.entities.Clasificacion.list('-jornada', 200),
     initialData: [],
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: attendances = [] } = useQuery({

@@ -17,8 +17,11 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
   // Fetch standings
   const { data: standings = [] } = useQuery({
     queryKey: ['clasificaciones-widget'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
-    enabled: !!userEmail && myPlayers.length > 0
+    queryFn: () => base44.entities.Clasificacion.list('-jornada', 200),
+    enabled: !!userEmail && myPlayers.length > 0,
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000, // 10 minutos
+    refetchOnWindowFocus: false,
   });
 
   // Fetch callups for next matches

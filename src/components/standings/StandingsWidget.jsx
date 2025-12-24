@@ -26,8 +26,11 @@ export default function StandingsWidget({ userEmail, categoria, compact = false 
 
   const { data: standings } = useQuery({
     queryKey: ['clasificaciones-widget', categoria],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
+    queryFn: () => base44.entities.Clasificacion.list('-jornada', 200),
     initialData: [],
+    staleTime: 300000, // 5 minutos
+    gcTime: 600000, // 10 minutos
+    refetchOnWindowFocus: false,
   });
 
   const { data: events } = useQuery({

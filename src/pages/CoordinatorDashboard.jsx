@@ -70,7 +70,10 @@ export default function CoordinatorDashboard() {
 
   const { data: allStandings = [] } = useQuery({
     queryKey: ['standings'],
-    queryFn: () => base44.entities.Clasificacion.list(),
+    queryFn: () => base44.entities.Clasificacion.list('-jornada', 200),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: coordinatorConversations = [] } = useQuery({
