@@ -85,23 +85,23 @@ export default function CentroCompeticion() {
   };
 
   const ViewToggle = () => (
-    <div className="inline-flex rounded-xl overflow-hidden border">
-      <Button variant={view === 'clasificacion' ? 'default' : 'ghost'} onClick={() => setView('clasificacion')} className={view === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''}>
-        <Trophy className="w-4 h-4 mr-2" /> Clasificación
+    <div className="flex flex-wrap rounded-xl overflow-hidden border max-w-full">
+      <Button variant={view === 'clasificacion' ? 'default' : 'ghost'} onClick={() => setView('clasificacion')} className={`${view === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-9 px-3 text-xs sm:text-sm`}>
+        <Trophy className="w-4 h-4 mr-1.5" /> Clasificación
       </Button>
-      <Button variant={view === 'resultados' ? 'default' : 'ghost'} onClick={() => setView('resultados')} className={view === 'resultados' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''}>
-        <List className="w-4 h-4 mr-2" /> Resultados
+      <Button variant={view === 'resultados' ? 'default' : 'ghost'} onClick={() => setView('resultados')} className={`${view === 'resultados' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-9 px-3 text-xs sm:text-sm`}>
+        <List className="w-4 h-4 mr-1.5" /> Resultados
       </Button>
-      <Button variant={view === 'goleadores' ? 'default' : 'ghost'} onClick={() => setView('goleadores')} className={view === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''}>
-        <Users className="w-4 h-4 mr-2" /> Goleadores
+      <Button variant={view === 'goleadores' ? 'default' : 'ghost'} onClick={() => setView('goleadores')} className={`${view === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-9 px-3 text-xs sm:text-sm`}>
+        <Users className="w-4 h-4 mr-1.5" /> Goleadores
       </Button>
     </div>
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-2">
+    <div className="max-w-6xl mx-auto p-4 md:p-6 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 w-full">
+        <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl md:text-3xl font-bold">Centro de Competición</h1>
           {fav ? (
             <Button variant="ghost" size="icon" onClick={toggleFav} title="Quitar favorito"><Star className="w-5 h-5 text-yellow-500"/></Button>
@@ -109,9 +109,9 @@ export default function CentroCompeticion() {
             <Button variant="ghost" size="icon" onClick={toggleFav} title="Marcar favorito"><StarOff className="w-5 h-5 text-slate-500"/></Button>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <ViewToggle />
-          <Button variant="outline" onClick={copyLink} title="Copiar enlace"><Share2 className="w-4 h-4"/></Button>
+          <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3"><Share2 className="w-4 h-4"/></Button>
         </div>
       </div>
 
