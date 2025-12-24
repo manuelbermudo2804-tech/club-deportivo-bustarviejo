@@ -129,8 +129,7 @@ export default function Clasificaciones() {
     }
   });
 
-  const categoryStandings = standings || [];
-  const groupedStandings = categoryStandings.reduce((groupAcc, standing) => {
+  const groupedStandings = (standings || []).reduce((groupAcc, standing) => {
     const key = `${standing.temporada}|${standing.jornada}`;
     if (!groupAcc[key]) {
       groupAcc[key] = {
@@ -145,11 +144,9 @@ export default function Clasificaciones() {
     return groupAcc;
   }, {});
 
-  const standingsByCategory = {
-    [activeTab]: Object.values(groupedStandings).sort((a, b) => 
-      new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
-    )
-  };
+  const currentCategoryStandings = Object.values(groupedStandings).sort((a, b) => 
+    new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
+  );
 
   const saveStandingsMutation = useMutation({
     mutationFn: async (data) => {
@@ -197,7 +194,7 @@ export default function Clasificaciones() {
       await base44.entities.Clasificacion.bulkCreate(recordsToCreate);
     },
     onSuccess: async (_, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
+      await queryClient.invalidateQueries({ queryKey: ['clasificaciones', variables.categoria] });
       setReviewData(null);
       setShowUploadForm(false);
       setSelectedCategory(null);
@@ -218,8 +215,8 @@ export default function Clasificaciones() {
         jornada 
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['clasificaciones', variables.categoria] });
       toast.success("Clasificación eliminada");
     },
     onError: (error) => {
@@ -685,12 +682,7 @@ export default function Clasificaciones() {
           <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 h-auto bg-white p-2 rounded-xl shadow-sm mb-6">
             {visibleCategories.map((cat) => (
               <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-lg py-3">
-                <div className="flex flex-col items-center gap-1">
-                  <span className="font-semibold text-sm">{cat.name}</span>
-                  {standingsByCategory[cat.id]?.length > 0 && (
-                    <Badge className="bg-green-500 text-white text-xs">{standingsByCategory[cat.id].length}</Badge>
-                  )}
-                </div>
+                <span className="font-semibold text-sm">{cat.name}</span>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -706,7 +698,7 @@ export default function Clasificaciones() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <div>
                         <h2 className="text-xl md:text-2xl font-bold text-orange-700">{cat.name}</h2>
-                        <p className="text-slate-600 mt-1 text-sm">{standingsByCategory[cat.id]?.length || 0} clasificaciones guardadas</p>
+                        <p className="text-slate-600 mt-1 text-sm">{currentCategoryStandings?.length || 0} clasificaciones guardadas</p>
                       </div>
                       {isAdmin && (
                         <Button onClick={() => handleNewUpload(cat.fullName)} className="bg-orange-600 hover:bg-orange-700 text-xs md:text-sm whitespace-nowrap">
@@ -731,9 +723,9 @@ export default function Clasificaciones() {
                   </CardContent>
                 </Card>
 
-              {standingsByCategory[cat.id]?.length > 0 ? (
+              {cat.id === activeTab && currentCategoryStandings?.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {standingsByCategory[cat.id].map((group, index) => (
+                  {currentCategoryStandings.map((group, index) => (
                     <Card key={index} className="hover:shadow-lg transition-shadow">
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between">
