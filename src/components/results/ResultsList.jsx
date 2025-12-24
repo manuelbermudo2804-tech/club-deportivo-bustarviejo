@@ -9,11 +9,13 @@ import { Trash2 } from "lucide-react";
 export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
   const { data: results = [] } = useQuery({
     queryKey: ['resultados', categoryFullName],
-    queryFn: () => base44.entities.Resultado.filter({ categoria: categoryFullName }, '-updated_date', 200),
+    queryFn: () => base44.entities.Resultado.filter({ categoria: categoryFullName }, '-updated_date', 100),
     initialData: [],
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
+    staleTime: 10 * 60_000, // 10 minutos
+    gcTime: 30 * 60_000, // 30 minutos
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   const grouped = results.reduce((acc, r) => {

@@ -78,13 +78,15 @@ export default function Clasificaciones() {
     queryKey: ['clasificaciones', activeCategory?.fullName],
     queryFn: () => {
       if (!activeCategory) return [];
-      return base44.entities.Clasificacion.filter({ categoria: activeCategory.fullName }, '-updated_date', 200);
+      return base44.entities.Clasificacion.filter({ categoria: activeCategory.fullName }, '-updated_date', 100);
     },
     enabled: !!activeCategory,
     initialData: [],
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
+    staleTime: 10 * 60_000, // 10 minutos
+    gcTime: 30 * 60_000, // 30 minutos en caché
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   const { data: standingsConfigs = [] } = useQuery({

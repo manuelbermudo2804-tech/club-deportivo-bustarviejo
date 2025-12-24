@@ -9,11 +9,13 @@ import { Trash2 } from "lucide-react";
 export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
   const { data: scorers = [] } = useQuery({
     queryKey: ['goleadores', categoryFullName],
-    queryFn: () => base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 200),
+    queryFn: () => base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 100),
     initialData: [],
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
+    staleTime: 10 * 60_000, // 10 minutos
+    gcTime: 30 * 60_000, // 30 minutos
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   // Agrupar por temporada
