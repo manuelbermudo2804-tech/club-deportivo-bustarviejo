@@ -82,9 +82,9 @@ export const ALL_TREASURER_BUTTONS = [
   {
     id: "clasificaciones",
     title: "📊 Clasificaciones",
-    url: "/Clasificaciones",
-    icon: TrendingUp,
-    gradient: "from-blue-600 to-cyan-700",
+    url: "/CentroCompeticion",
+    icon: Trophy,
+    gradient: "from-orange-600 to-orange-700",
     description: "Resultados y estadísticas"
   },
   {
