@@ -182,6 +182,8 @@ export default function CentroCompeticion() {
       if (rows.length) await base44.entities.Resultado.bulkCreate(rows);
 
       setResultsDraft(null);
+      // Refrescar lista de resultados de la categoría actual
+      queryClient.invalidateQueries({ queryKey: ['resultados', categoria] });
       alert('Resultados guardados');
     } finally {
       setSavingResults(false);
