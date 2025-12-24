@@ -27,17 +27,22 @@ export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubm
 
   React.useEffect(() => {
     let valid = 0, invalid = 0, toCreate = 0, toUpdate = 0;
+    const toNum = (v) => v === undefined || v === '' ? 0 : Number(v);
     standings.forEach(r => {
       const issues = [];
       if (!r || !String(r.nombre_equipo || '').trim()) issues.push('Equipo vacío');
-      if (!Number.isFinite(Number(r.puntos)) || Number(r.puntos) < 0) issues.push('Pts inválidos');
-      const pj = r.partidos_jugados, g = r.ganados, e = r.empatados, p = r.perdidos;
-      if ([pj,g,e,p].some(v => v !== undefined)) {
-        if (![pj,g,e,p].every(v => Number.isFinite(Number(v)) && Number(v) >= 0)) issues.push('PJ/G/E/P inválidos');
-        else if (Number(g)+Number(e)+Number(p) !== Number(pj)) issues.push('PJ ≠ G+E+P');
-      }
-      if (r.goles_favor !== undefined && (!Number.isFinite(Number(r.goles_favor)) || Number(r.goles_favor) < 0)) issues.push('GF inválido');
-      if (r.goles_contra !== undefined && (!Number.isFinite(Number(r.goles_contra)) || Number(r.goles_contra) < 0)) issues.push('GC inválido');
+
+      const pj = toNum(r.partidos_jugados);
+      const g = toNum(r.ganados);
+      const e = toNum(r.empatados);
+      const p = toNum(r.perdidos);
+      const gf = toNum(r.goles_favor);
+      const gc = toNum(r.goles_contra);
+      const pts = toNum(r.puntos);
+
+      if ([pj,g,e,p,gf,gc,pts].some(n => !Number.isFinite(n) || n < 0)) issues.push('Valores inválidos');
+      // Nota: ya no bloqueamos por PJ ≠ G+E+P (solo aviso visual en futuras mejoras)
+
       if (issues.length === 0) valid++; else invalid++;
       if (existingMap[norm(r.nombre_equipo)]) toUpdate++; else toCreate++;
     });
@@ -64,7 +69,19 @@ export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubm
   };
 
   const handleConfirm = () => {
-    const cleaned = (standings || []).filter(r => r && String(r.nombre_equipo || '').trim() !== '');
+    const toNum = (v) => v === undefined || v === '' ? 0 : Number(v);
+    const cleaned = (standings || [])
+      .filter(r => r && String(r.nombre_equipo || '').trim() !== '')
+      .map(r => ({
+        ...r,
+        puntos: toNum(r.puntos),
+        partidos_jugados: toNum(r.partidos_jugados),
+        ganados: toNum(r.ganados),
+        empatados: toNum(r.empatados),
+        perdidos: toNum(r.perdidos),
+        goles_favor: toNum(r.goles_favor),
+        goles_contra: toNum(r.goles_contra),
+      }));
     onConfirm({
       ...data,
       standings: cleaned
@@ -87,7 +104,7 @@ export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubm
       <CardContent>
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
           <p className="text-sm text-orange-800">
-            <strong>⚠️ Revisa los datos:</strong> Validación en tiempo real. Solo se podrá guardar si todas las filas son válidas.
+            <strong>⚠️ Revisa los datos:</strong> Validación en tiempo real. Los campos vacíos se guardarán como 0.
           </p>
           <div className="flex flex-wrap gap-2 mt-2 text-xs">
             <Badge variant="outline">Total: {stats.total}</Badge>
