@@ -11,7 +11,9 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
     queryKey: ['goleadores', categoryFullName],
     queryFn: () => base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 200),
     initialData: [],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   // Agrupar por temporada

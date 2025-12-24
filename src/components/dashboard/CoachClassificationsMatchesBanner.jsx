@@ -16,9 +16,20 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
   const [showAllMatches, setShowAllMatches] = useState(false);
 
   const { data: standings = [] } = useQuery({
-    queryKey: ['clasificaciones-coach'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
-    enabled: myCategories.length > 0
+    queryKey: ['clasificaciones-coach', myCategories.join(',')],
+    queryFn: async () => {
+      if (myCategories.length === 0) return [];
+      const allStandings = await Promise.all(
+        myCategories.map(cat => 
+          base44.entities.Clasificacion.filter({ categoria: cat }, '-jornada', 100)
+        )
+      );
+      return allStandings.flat();
+    },
+    enabled: myCategories.length > 0,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allCallups = [] } = useQuery({

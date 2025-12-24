@@ -14,13 +14,24 @@ import { es } from "date-fns/locale";
 export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers = [] }) {
   const [showAllMatches, setShowAllMatches] = useState(false);
 
-  // Fetch standings
+  // Obtener categorías de mis jugadores
+  const playerCategories = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+  
+  // Fetch standings SOLO de categorías relevantes
   const { data: standings = [] } = useQuery({
-    queryKey: ['clasificaciones-widget'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada', 200),
-    enabled: !!userEmail && myPlayers.length > 0,
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000, // 10 minutos
+    queryKey: ['clasificaciones-widget', playerCategories.join(',')],
+    queryFn: async () => {
+      if (playerCategories.length === 0) return [];
+      const allStandings = await Promise.all(
+        playerCategories.map(cat => 
+          base44.entities.Clasificacion.filter({ categoria: cat }, '-jornada', 100)
+        )
+      );
+      return allStandings.flat();
+    },
+    enabled: !!userEmail && myPlayers.length > 0 && playerCategories.length > 0,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
     refetchOnWindowFocus: false,
   });
 
@@ -34,8 +45,6 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
   const today = new Date().toISOString().split('T')[0];
 
   // === CLASIFICACIONES LOGIC ===
-  const playerCategories = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
-
   const latestStandings = playerCategories.map(categoria => {
     const categoryStandings = standings.filter(s => s.categoria === categoria);
     if (categoryStandings.length === 0) return null;

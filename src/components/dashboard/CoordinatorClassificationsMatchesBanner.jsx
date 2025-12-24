@@ -16,7 +16,10 @@ export default function CoordinatorClassificationsMatchesBanner() {
 
   const { data: standings = [] } = useQuery({
     queryKey: ['clasificaciones-coordinator'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada'),
+    queryFn: () => base44.entities.Clasificacion.list('-jornada', 200),
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allCallups = [] } = useQuery({
