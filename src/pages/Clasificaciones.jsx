@@ -96,11 +96,37 @@ export default function Clasificaciones() {
         return [];
       }
 
-      const result = await base44.entities.Clasificacion.filter({ categoria: activeCategory.fullName }, '-updated_date', 50);
+      const catFull = activeCategory.fullName;
+      let result = await base44.entities.Clasificacion.filter({ categoria: catFull }, '-updated_date', 50);
       const endTime = Date.now();
-      console.log(`✅ [Query] Clasificaciones cargadas en ${endTime - startTime}ms:`, result.length, 'registros');
+      console.log(`✅ [Query] Clasificaciones cargadas en ${endTime - startTime}ms:`, result.length, 'registros para', catFull);
+      
+      // Fallback: probar sin " (Mixto)"
+      if (!result || result.length === 0) {
+        const alt = catFull.replace(' (Mixto)', '');
+        if (alt !== catFull) {
+          console.log('🔎 [Query] Sin resultados; probando variante de categoría:', alt);
+          try {
+            result = await base44.entities.Clasificacion.filter({ categoria: alt }, '-updated_date', 50);
+          } catch (e) {
+            console.log('⚠️ [Query] Error probando variante:', e?.message || e);
+          }
+        }
+      }
+      
+      // Debug: listar una muestra para ver categorías existentes
+      if (!result || result.length === 0) {
+        try {
+          const sample = await base44.entities.Clasificacion.list('-updated_date', 20);
+          const cats = Array.from(new Set(sample.map(s => s.categoria))).slice(0, 10);
+          console.log('🧭 [Debug] Categorías encontradas en BD (muestra):', cats);
+        } catch (e) {
+          console.log('⚠️ [Debug] No se pudo listar muestra de clasificaciones:', e?.message || e);
+        }
+      }
+      
       console.log('📊 [Query] Datos recibidos:', result);
-      return result;
+      return result || [];
     },
     enabled: !!activeCategory,
     initialData: [],
