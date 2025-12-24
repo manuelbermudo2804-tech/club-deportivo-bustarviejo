@@ -153,7 +153,7 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
         <CardContent className="p-0">
           <div className="grid grid-cols-2 divide-x divide-slate-300">
             {/* IZQUIERDA: CLASIFICACIONES */}
-            <Link to={createPageUrl("Clasificaciones")} className="hover:bg-orange-50/50 transition-colors">
+            <Link to={createPageUrl("CentroCompeticion")} className="hover:bg-orange-50/50 transition-colors">
               <div className="p-4 bg-gradient-to-br from-orange-50 to-white">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">

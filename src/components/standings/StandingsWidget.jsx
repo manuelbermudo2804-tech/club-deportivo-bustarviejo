@@ -335,7 +335,7 @@ export default function StandingsWidget({ userEmail, categoria, compact = false 
         </div>
 
         {!compact && (
-          <Link to={createPageUrl("Clasificaciones")}>
+          <Link to={createPageUrl("CentroCompeticion")}>
             <button className="w-full mt-3 text-sm text-orange-600 hover:text-orange-700 font-medium">
               Ver clasificación completa →
             </button>
