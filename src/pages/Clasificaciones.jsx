@@ -157,14 +157,11 @@ export default function Clasificaciones() {
       const categoriaNorm = String(categoria).trim();
       const jornadaKey = Number(jornada) && !Number.isNaN(Number(jornada)) ? Number(jornada) : 1;
 
-      const preList = await base44.entities.Clasificacion.filter({ 
+      await base44.asServiceRole.entities.Clasificacion.bulkDelete({ 
         temporada: temporadaNorm, 
         categoria: categoriaNorm,
         jornada: jornadaKey
       });
-      if (preList.length > 0) {
-        await Promise.all(preList.map(r => base44.entities.Clasificacion.delete(r.id)));
-      }
 
       const nowIso = new Date().toISOString();
       const toNum = (v) => (v === '' || v === null || v === undefined ? undefined : Number(v));
@@ -213,18 +210,18 @@ export default function Clasificaciones() {
 
   const deleteStandingsMutation = useMutation({
     mutationFn: async ({ temporada, categoria, jornada }) => {
-      const toDelete = await base44.entities.Clasificacion.filter({ 
+      await base44.asServiceRole.entities.Clasificacion.bulkDelete({ 
         temporada, 
         categoria, 
         jornada 
       });
-      for (const record of toDelete) {
-        await base44.entities.Clasificacion.delete(record.id);
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clasificaciones'] });
       toast.success("Clasificación eliminada");
+    },
+    onError: (error) => {
+      toast.error("Error al eliminar: " + (error.message || "Error desconocido"));
     }
   });
 
@@ -349,8 +346,7 @@ export default function Clasificaciones() {
                     const { data } = await base44.functions.invoke('fetchRfefResults', { url });
                     const matches = (data?.matches || []).map(m => ({ ...m, local: String(m.local||'').trim(), visitante: String(m.visitante||'').trim() }));
                     if (matches.length === 0) { toast.error('No se detectaron partidos'); return; }
-                    const prev = await base44.entities.Resultado.filter({ temporada, categoria: catFull, jornada });
-                    await Promise.all(prev.map(r => base44.entities.Resultado.delete(r.id)));
+                    await base44.asServiceRole.entities.Resultado.bulkDelete({ temporada, categoria: catFull, jornada });
                     const nowIso = new Date().toISOString();
                     await base44.entities.Resultado.bulkCreate(matches.map(m => ({
                       temporada,
@@ -393,8 +389,7 @@ export default function Clasificaciones() {
             onConfirm={async ({ temporada, categoria, jornada, matches }) => {
               try {
                 setSavingResults(true);
-                const prev = await base44.entities.Resultado.filter({ temporada, categoria, jornada });
-                await Promise.all(prev.map(r => base44.entities.Resultado.delete(r.id)));
+                await base44.asServiceRole.entities.Resultado.bulkDelete({ temporada, categoria, jornada });
                 const nowIso = new Date().toISOString();
                 await base44.entities.Resultado.bulkCreate(matches.map(m => ({
                   temporada,
@@ -433,14 +428,17 @@ export default function Clasificaciones() {
                   categoryFullName={cat.fullName} 
                   isAdmin={isAdmin}
                   onDelete={async ({ temporada, jornada }) => {
-                    const toDelete = await base44.entities.Resultado.filter({ 
-                      temporada, 
-                      categoria: cat.fullName, 
-                      jornada 
-                    });
-                    await Promise.all(toDelete.map(r => base44.entities.Resultado.delete(r.id)));
-                    await queryClient.invalidateQueries({ queryKey: ['resultados', cat.fullName] });
-                    toast.success("Resultados eliminados");
+                    try {
+                      await base44.asServiceRole.entities.Resultado.bulkDelete({ 
+                        temporada, 
+                        categoria: cat.fullName, 
+                        jornada 
+                      });
+                      await queryClient.invalidateQueries({ queryKey: ['resultados', cat.fullName] });
+                      toast.success("Resultados eliminados");
+                    } catch (error) {
+                      toast.error("Error al eliminar: " + (error.message || "Error desconocido"));
+                    }
                   }}
                 />
               </TabsContent>
@@ -504,8 +502,7 @@ export default function Clasificaciones() {
                     const { data } = await base44.functions.invoke('fetchRfefScorers', { url });
                     const players = (data?.players || []).filter(p => p.jugador_nombre && p.equipo && Number.isFinite(Number(p.goles)));
                     if (players.length === 0) { toast.error('No se detectaron goleadores'); return; }
-                    const prev = await base44.entities.Goleador.filter({ temporada, categoria: catFull });
-                    await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
+                    await base44.asServiceRole.entities.Goleador.bulkDelete({ temporada, categoria: catFull });
                     const nowIso = new Date().toISOString();
                     await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
                       temporada,
@@ -545,8 +542,7 @@ export default function Clasificaciones() {
             onConfirm={async ({ temporada, categoria, players }) => {
               try {
                 setSavingScorers(true);
-                const prev = await base44.entities.Goleador.filter({ temporada, categoria });
-                await Promise.all(prev.map(r => base44.entities.Goleador.delete(r.id)));
+                await base44.asServiceRole.entities.Goleador.bulkDelete({ temporada, categoria });
                 const nowIso = new Date().toISOString();
                 await base44.entities.Goleador.bulkCreate(players.map((p, idx) => ({
                   temporada,
@@ -583,13 +579,16 @@ export default function Clasificaciones() {
                   categoryFullName={cat.fullName}
                   isAdmin={isAdmin}
                   onDelete={async ({ temporada }) => {
-                    const toDelete = await base44.entities.Goleador.filter({ 
-                      temporada, 
-                      categoria: cat.fullName 
-                    });
-                    await Promise.all(toDelete.map(r => base44.entities.Goleador.delete(r.id)));
-                    await queryClient.invalidateQueries({ queryKey: ['goleadores', cat.fullName] });
-                    toast.success("Goleadores eliminados");
+                    try {
+                      await base44.asServiceRole.entities.Goleador.bulkDelete({ 
+                        temporada, 
+                        categoria: cat.fullName 
+                      });
+                      await queryClient.invalidateQueries({ queryKey: ['goleadores', cat.fullName] });
+                      toast.success("Goleadores eliminados");
+                    } catch (error) {
+                      toast.error("Error al eliminar: " + (error.message || "Error desconocido"));
+                    }
                   }}
                 />
               </TabsContent>
