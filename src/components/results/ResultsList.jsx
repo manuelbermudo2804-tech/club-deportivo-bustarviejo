@@ -43,6 +43,13 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
 
   const groups = Object.values(grouped).sort((a, b) => (b.jornada ?? 0) - (a.jornada ?? 0));
 
+  const initials = (s) => {
+    const str = String(s || '').trim();
+    if (!str) return '';
+    const parts = str.split(/\s+/);
+    return (parts[0][0] || '').toUpperCase();
+  };
+
   if (groups.length === 0) {
     return (
       <Card className="border-2 border-dashed border-slate-300">
@@ -79,16 +86,38 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="divide-y">
             {g.data
               .sort((a, b) => (a.local || '').localeCompare(b.local || ''))
-              .map((m) => (
-              <div key={m.id} className="flex items-center justify-between py-1 text-sm">
-                <span className="truncate mr-2">{m.local}</span>
-                <span className="font-semibold">{Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante) ? `${m.goles_local} - ${m.goles_visitante}` : '-'}</span>
-                <span className="truncate ml-2 text-right">{m.visitante}</span>
-              </div>
-            ))}
+              .map((m) => {
+                const hasScore = Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante);
+                return (
+                  <div key={m.id} className="flex items-center py-3 gap-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="h-7 w-7 rounded-full bg-slate-100 border flex items-center justify-center text-[11px] font-semibold text-slate-600">
+                        {initials(m.local)}
+                      </div>
+                      <span className="truncate font-medium text-slate-800">{m.local}</span>
+                    </div>
+
+                    <div className="w-24 text-center">
+                      <div className={`text-lg font-extrabold ${hasScore ? 'text-slate-900' : 'text-slate-400'}`}>
+                        {hasScore ? `${m.goles_local} - ${m.goles_visitante}` : '-'}
+                      </div>
+                      <div className={`text-[10px] uppercase tracking-wide ${hasScore ? 'text-red-600' : 'text-amber-600'}`}>
+                        {hasScore ? 'Ver acta' : 'Pendiente'}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                      <span className="truncate font-medium text-right text-slate-800">{m.visitante}</span>
+                      <div className="h-7 w-7 rounded-full bg-slate-100 border flex items-center justify-center text-[11px] font-semibold text-slate-600">
+                        {initials(m.visitante)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
           </CardContent>
         </Card>
       ))}
