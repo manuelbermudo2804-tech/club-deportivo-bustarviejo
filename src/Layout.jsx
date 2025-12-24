@@ -1235,6 +1235,7 @@ export default function Layout({ children, currentPageName }) {
     // 📅 CALENDARIO Y EVENTOS
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
 
     // 📢 INFORMACIÓN
