@@ -72,7 +72,7 @@ export const ALL_PARENT_BUTTONS = [
     id: "clasificaciones",
     title: "📊 Clasificaciones",
     icon: BarChart3,
-    url: createPageUrl("Clasificaciones"),
+    url: createPageUrl("CentroCompeticion"),
     gradient: "from-blue-600 to-blue-700",
     priority: 9
   },
