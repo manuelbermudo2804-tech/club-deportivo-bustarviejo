@@ -1102,6 +1102,7 @@ export default function Layout({ children, currentPageName }) {
 
                 // 🎉 CONTENIDO
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
+        { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
         { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
@@ -1213,8 +1214,8 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const parentNavigationItems = [
-    // 🏠 INICIO
-    { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
+          // 🏠 INICIO
+          { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
@@ -1253,8 +1254,8 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const playerNavigationItems = [
-    // 🏠 INICIO
-    { title: "🏠 Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
+          // 🏠 INICIO
+          { title: "🏠 Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
