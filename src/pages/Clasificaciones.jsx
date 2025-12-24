@@ -84,24 +84,39 @@ export default function Clasificaciones() {
   }, []);
 
   const activeCategory = CATEGORIES.find(c => c.id === activeTab);
-  
-  const { data: standings, isLoading: standingsLoading } = useQuery({
+
+  console.log('📊 [Clasificaciones] Estado actual:', { 
+    activeTab, 
+    activeCategoryName: activeCategory?.fullName,
+    standingsQueryEnabled: !!activeCategory,
+    viewMode 
+  });
+
+  const { data: standings, isLoading: standingsLoading, isFetching } = useQuery({
     queryKey: ['clasificaciones', activeCategory?.fullName],
     queryFn: async () => {
-      if (!activeCategory) return [];
-      console.log('🔄 Cargando clasificaciones para:', activeCategory.fullName);
+      const startTime = Date.now();
+      console.log('🔄 [Query] Iniciando carga clasificaciones para:', activeCategory?.fullName);
+
+      if (!activeCategory) {
+        console.log('⚠️ [Query] No hay categoría activa');
+        return [];
+      }
+
       const result = await base44.entities.Clasificacion.filter({ categoria: activeCategory.fullName }, '-updated_date', 50);
-      console.log('✅ Clasificaciones cargadas:', result.length);
+      const endTime = Date.now();
+      console.log(`✅ [Query] Clasificaciones cargadas en ${endTime - startTime}ms:`, result.length, 'registros');
       return result;
     },
-    enabled: !!activeCategory,
+    enabled: !!activeCategory && viewMode === 'standings',
     initialData: [],
     staleTime: 15 * 60_000,
     gcTime: 60 * 60_000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
+    refetchOnMount: true,
   });
+
+  console.log('📊 [Query] Estado standings:', { isLoading: standingsLoading, isFetching, dataCount: standings?.length });
 
   const { data: standingsConfigs = [] } = useQuery({
     queryKey: ['standings_config'],
