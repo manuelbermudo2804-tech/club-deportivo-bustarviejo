@@ -43,28 +43,39 @@ export default function Clasificaciones() {
   React.useEffect(() => {
     const checkAdmin = async () => {
       try {
+        console.log('🔄 [Clasificaciones] Cargando usuario...');
         const user = await base44.auth.me();
-        setIsAdmin(user.role === "admin");
+        const admin = user.role === "admin";
+        setIsAdmin(admin);
+        console.log('✅ [Clasificaciones] Usuario cargado - Admin:', admin);
 
-        if (user.role !== "admin") {
-          const allPlayers = await base44.entities.Player.list();
-          const myPlayers = allPlayers.filter(p => 
-            p.email_padre === user.email || 
-            p.email_tutor_2 === user.email ||
-            (p.email_jugador === user.email && p.acceso_jugador_autorizado)
-          );
+        if (!admin) {
+          console.log('🔄 [Clasificaciones] Cargando jugadores del usuario...');
+          const myPlayers = await base44.entities.Player.filter({ 
+            $or: [
+              { email_padre: user.email }, 
+              { email_tutor_2: user.email },
+              { email_jugador: user.email }
+            ]
+          });
+          console.log('✅ [Clasificaciones] Jugadores encontrados:', myPlayers.length);
           const categories = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
           setUserCategories(categories);
+          console.log('📊 [Clasificaciones] Categorías del usuario:', categories);
 
           if (categories.length > 0) {
             const firstCat = CATEGORIES.find(c => categories.includes(c.fullName));
-            if (firstCat) setActiveTab(firstCat.id);
+            if (firstCat) {
+              setActiveTab(firstCat.id);
+              console.log('✅ [Clasificaciones] Tab inicial:', firstCat.id);
+            }
           }
         } else {
           setActiveTab(CATEGORIES[0].id);
+          console.log('✅ [Clasificaciones] Admin - Tab inicial:', CATEGORIES[0].id);
         }
       } catch (error) {
-        console.error("Error loading user:", error);
+        console.error("❌ [Clasificaciones] Error loading user:", error);
       } finally {
         setIsLoadingUser(false);
       }
