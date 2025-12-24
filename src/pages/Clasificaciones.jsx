@@ -72,12 +72,19 @@ export default function Clasificaciones() {
     checkAdmin();
   }, []);
 
+  const activeCategory = CATEGORIES.find(c => c.id === activeTab);
+  
   const { data: standings } = useQuery({
-    queryKey: ['clasificaciones'],
-    queryFn: () => base44.entities.Clasificacion.list('-updated_date', 500),
+    queryKey: ['clasificaciones', activeCategory?.fullName],
+    queryFn: () => {
+      if (!activeCategory) return [];
+      return base44.entities.Clasificacion.filter({ categoria: activeCategory.fullName }, '-updated_date', 200);
+    },
+    enabled: !!activeCategory,
     initialData: [],
-    staleTime: 60_000,
-    gcTime: 5 * 60_000,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: standingsConfigs = [] } = useQuery({
@@ -120,28 +127,27 @@ export default function Clasificaciones() {
     }
   });
 
-  const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
-    const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
-    const grouped = categoryStandings.reduce((groupAcc, standing) => {
-      const key = `${standing.temporada}|${standing.jornada}`;
-      if (!groupAcc[key]) {
-        groupAcc[key] = {
-          temporada: standing.temporada,
-          categoria: standing.categoria,
-          jornada: standing.jornada,
-          fecha_actualizacion: standing.fecha_actualizacion,
-          data: []
-        };
-      }
-      groupAcc[key].data.push(standing);
-      return groupAcc;
-    }, {});
-
-    acc[cat.id] = Object.values(grouped).sort((a, b) => 
-      new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
-    );
-    return acc;
+  const categoryStandings = standings || [];
+  const groupedStandings = categoryStandings.reduce((groupAcc, standing) => {
+    const key = `${standing.temporada}|${standing.jornada}`;
+    if (!groupAcc[key]) {
+      groupAcc[key] = {
+        temporada: standing.temporada,
+        categoria: standing.categoria,
+        jornada: standing.jornada,
+        fecha_actualizacion: standing.fecha_actualizacion,
+        data: []
+      };
+    }
+    groupAcc[key].data.push(standing);
+    return groupAcc;
   }, {});
+
+  const standingsByCategory = {
+    [activeTab]: Object.values(groupedStandings).sort((a, b) => 
+      new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
+    )
+  };
 
   const saveStandingsMutation = useMutation({
     mutationFn: async (data) => {
