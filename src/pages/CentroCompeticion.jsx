@@ -163,25 +163,24 @@ export default function CentroCompeticion() {
     setSavingResults(true);
     try {
       const { temporada, categoria, jornada, matches } = payload;
-      for (const m of matches) {
-        const existing = await base44.entities.Resultado.filter({ categoria, temporada, jornada, local: m.local, visitante: m.visitante });
-        if (existing.length) {
-          await base44.entities.Resultado.update(existing[0].id, {
-            goles_local: m.goles_local ?? existing[0].goles_local,
-            goles_visitante: m.goles_visitante ?? existing[0].goles_visitante,
-          });
-        } else {
-          await base44.entities.Resultado.create({
-            categoria,
-            temporada,
-            jornada,
-            local: m.local,
-            visitante: m.visitante,
-            goles_local: m.goles_local,
-            goles_visitante: m.goles_visitante,
-          });
-        }
-      }
+
+      // 1) Borrar todos los resultados previos de esa jornada para evitar duplicados
+      const prev = await base44.entities.Resultado.filter({ categoria, temporada, jornada }, '-updated_date', 400);
+      for (const rec of prev) await base44.entities.Resultado.delete(rec.id);
+
+      // 2) Insertar todo normalizado (partidos pendientes sin marcador)
+      const isNum = (v) => Number.isFinite(Number(v)) && Number(v) >= 0;
+      const rows = (matches || []).map(m => ({
+        categoria,
+        temporada,
+        jornada,
+        local: String(m.local || '').trim(),
+        visitante: String(m.visitante || '').trim(),
+        goles_local: isNum(m.goles_local) && isNum(m.goles_visitante) ? Number(m.goles_local) : undefined,
+        goles_visitante: isNum(m.goles_local) && isNum(m.goles_visitante) ? Number(m.goles_visitante) : undefined,
+      }));
+      if (rows.length) await base44.entities.Resultado.bulkCreate(rows);
+
       setResultsDraft(null);
       alert('Resultados guardados');
     } finally {

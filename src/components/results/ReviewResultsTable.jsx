@@ -33,7 +33,9 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
       const gl = r.goles_local, gv = r.goles_visitante;
       const bothEmpty = gl === undefined && gv === undefined;
       const bothNumbers = Number.isFinite(Number(gl)) && Number.isFinite(Number(gv)) && Number(gl) >= 0 && Number(gv) >= 0;
-      if (!(bothEmpty || bothNumbers)) issues.push('Marcador inválido');
+      const oneSideOnly = (gl !== undefined && gv === undefined) || (gl === undefined && gv !== undefined);
+      // Permitimos partidos pendientes (uno solo informado) para que puedas guardar
+      if (!(bothEmpty || bothNumbers || oneSideOnly)) issues.push('Marcador inválido');
       if (seen.has(key)) issues.push('Duplicado'); else seen.add(key);
       if (issues.length === 0) valid++; else invalid++;
       if (existingMap[key]) toUpdate++; else toCreate++;
@@ -48,10 +50,17 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
   };
 
   const handleConfirm = () => {
-    const cleaned = rows.filter(r => 
-      String(r.local || '').trim() !== '' && 
-      String(r.visitante || '').trim() !== ''
-    );
+    const isNum = (v) => Number.isFinite(Number(v)) && Number(v) >= 0;
+    const cleaned = rows
+      .filter(r => String(r.local || '').trim() !== '' && String(r.visitante || '').trim() !== '')
+      .map(r => {
+        const gl = r.goles_local, gv = r.goles_visitante;
+        const bothNumbers = isNum(gl) && isNum(gv);
+        // Si solo hay un lado, lo guardamos como pendiente (sin goles)
+        const goles_local = bothNumbers ? Number(gl) : undefined;
+        const goles_visitante = bothNumbers ? Number(gv) : undefined;
+        return { ...r, goles_local, goles_visitante };
+      });
     onConfirm({ ...data, matches: cleaned });
   };
 
@@ -71,11 +80,11 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
       <CardContent>
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
           <p className="text-sm text-orange-800">
-            <strong>⚠️ Revisa los datos:</strong> Validación en tiempo real y detección de duplicados Local-Visitante.
+            <strong>⚠️ Revisa los datos:</strong> Se permiten partidos pendientes (si falta un gol). Al guardar, esos partidos se guardan sin marcador.
           </p>
           <div className="flex flex-wrap gap-2 mt-2 text-xs">
             <Badge variant="outline">Total: {stats.total}</Badge>
-            <Badge className="bg-green-600">Válidas: {stats.valid}</Badge>
+            <Badge className="bg-green-600">Válidas/Pend.: {stats.valid}</Badge>
             <Badge className="bg-red-600">Con errores: {stats.invalid}</Badge>
             <Badge className="bg-slate-600">Actualizar: {stats.toUpdate}</Badge>
             <Badge className="bg-blue-600">Crear: {stats.toCreate}</Badge>
@@ -116,10 +125,11 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
                       const bothEmpty = gl === undefined && gv === undefined;
                       const bothNumbers = Number.isFinite(Number(gl)) && Number.isFinite(Number(gv)) && Number(gl) >= 0 && Number(gv) >= 0;
                       const okTeams = String(r.local || '').trim() && String(r.visitante || '').trim();
-                      const isValid = okTeams && (bothEmpty || bothNumbers);
+                      const oneSideOnly = (gl !== undefined && gv === undefined) || (gl === undefined && gv !== undefined);
+                      const isValid = okTeams && (bothEmpty || bothNumbers || oneSideOnly);
                       const exists = existingMap[key];
-                      const color = isValid ? (exists ? 'bg-slate-600' : 'bg-blue-600') : 'bg-red-600';
-                      const label = isValid ? (exists ? 'Actualizar' : 'Crear') : 'Corregir';
+                      const color = !isValid ? 'bg-red-600' : oneSideOnly ? 'bg-amber-500' : (exists ? 'bg-slate-600' : 'bg-blue-600');
+                      const label = !isValid ? 'Corregir' : oneSideOnly ? 'Pendiente' : (exists ? 'Actualizar' : 'Crear');
                       return <Badge className={`${color}`}>{label}</Badge>;
                     })()}
                   </td>
