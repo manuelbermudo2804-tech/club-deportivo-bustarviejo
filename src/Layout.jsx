@@ -1103,7 +1103,7 @@ export default function Layout({ children, currentPageName }) {
                 // 🎉 CONTENIDO
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
         { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
-        { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
+        
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
     // ⚙️ CONFIGURACIÓN
@@ -1236,7 +1236,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
-    { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
+    
 
     // 📢 INFORMACIÓN
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
@@ -1273,7 +1273,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
-    { title: "📊 Clasificaciones", url: createPageUrl("Clasificaciones"), icon: BarChart3 },
+    
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
