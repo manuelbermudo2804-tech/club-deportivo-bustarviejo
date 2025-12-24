@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
+import UploadStandingsForm from "../components/standings/UploadStandingsForm";
+import ReviewStandingsTable from "../components/standings/ReviewStandingsTable";
+import UploadResultsForm from "../components/results/UploadResultsForm";
+import ReviewResultsTable from "../components/results/ReviewResultsTable";
+import UploadScorersForm from "../components/scorers/UploadScorersForm";
+import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
 import { Trophy, List, Users, Star, StarOff, Share2, Search } from "lucide-react";
 
 const CATEGORIES = [
@@ -36,6 +42,34 @@ export default function CentroCompeticion() {
   const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores'
   const [search, setSearch] = React.useState('');
   const [fav, setFav] = React.useState(() => storedFav === defaultCat);
+  const queryClient = useQueryClient();
+  const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+  const isAdmin = me?.role === 'admin';
+  const [adminTab, setAdminTab] = React.useState('clasificacion');
+  const [standingsDraft, setStandingsDraft] = React.useState(null);
+  const [savingStandings, setSavingStandings] = React.useState(false);
+  const [resultsDraft, setResultsDraft] = React.useState(null);
+  const [savingResults, setSavingResults] = React.useState(false);
+  const [scorersDraft, setScorersDraft] = React.useState(null);
+  const [savingScorers, setSavingScorers] = React.useState(false);
+  const { data: config } = useQuery({
+    queryKey: ['standings-config', category],
+    queryFn: async () => {
+      const list = await base44.entities.StandingsConfig.filter({ categoria: category });
+      return list[0] || null;
+    }
+  });
+  const [resultsUrl, setResultsUrl] = React.useState('');
+  const [scorersUrl, setScorersUrl] = React.useState('');
+  React.useEffect(() => {
+    if (config) {
+      setResultsUrl(config.rfef_results_url || '');
+      setScorersUrl(config.rfef_scorers_url || '');
+    } else {
+      setResultsUrl('');
+      setScorersUrl('');
+    }
+  }, [config]);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -84,6 +118,121 @@ export default function CentroCompeticion() {
     navigator.clipboard.writeText(url);
   };
 
+  const saveStandingsToDB = async (payload) => {
+    setSavingStandings(true);
+    try {
+      const { temporada, categoria, jornada, standings } = payload;
+      for (const row of standings) {
+        const existing = await base44.entities.Clasificacion.filter({ categoria, temporada, jornada, nombre_equipo: row.nombre_equipo });
+        if (existing.length) {
+          await base44.entities.Clasificacion.update(existing[0].id, {
+            posicion: row.posicion,
+            puntos: row.puntos,
+            partidos_jugados: row.partidos_jugados,
+            ganados: row.ganados,
+            empatados: row.empatados,
+            perdidos: row.perdidos,
+            goles_favor: row.goles_favor,
+            goles_contra: row.goles_contra,
+          });
+        } else {
+          await base44.entities.Clasificacion.create({
+            categoria,
+            temporada,
+            jornada,
+            nombre_equipo: row.nombre_equipo,
+            posicion: row.posicion,
+            puntos: row.puntos,
+            partidos_jugados: row.partidos_jugados,
+            ganados: row.ganados,
+            empatados: row.empatados,
+            perdidos: row.perdidos,
+            goles_favor: row.goles_favor,
+            goles_contra: row.goles_contra,
+          });
+        }
+      }
+      setStandingsDraft(null);
+      queryClient.invalidateQueries({ queryKey: ['centro-standings', category] });
+      alert('Clasificación guardada');
+    } finally {
+      setSavingStandings(false);
+    }
+  };
+
+  const saveResultsToDB = async (payload) => {
+    setSavingResults(true);
+    try {
+      const { temporada, categoria, jornada, matches } = payload;
+      for (const m of matches) {
+        const existing = await base44.entities.Resultado.filter({ categoria, temporada, jornada, local: m.local, visitante: m.visitante });
+        if (existing.length) {
+          await base44.entities.Resultado.update(existing[0].id, {
+            goles_local: m.goles_local ?? existing[0].goles_local,
+            goles_visitante: m.goles_visitante ?? existing[0].goles_visitante,
+          });
+        } else {
+          await base44.entities.Resultado.create({
+            categoria,
+            temporada,
+            jornada,
+            local: m.local,
+            visitante: m.visitante,
+            goles_local: m.goles_local,
+            goles_visitante: m.goles_visitante,
+          });
+        }
+      }
+      setResultsDraft(null);
+      alert('Resultados guardados');
+    } finally {
+      setSavingResults(false);
+    }
+  };
+
+  const saveScorersToDB = async (payload) => {
+    setSavingScorers(true);
+    try {
+      const { temporada, categoria, players } = payload;
+      for (const p of players) {
+        const existing = await base44.entities.Goleador.filter({ categoria, temporada, jugador_nombre: p.jugador_nombre, equipo: p.equipo });
+        if (existing.length) {
+          await base44.entities.Goleador.update(existing[0].id, { goles: p.goles });
+        } else {
+          await base44.entities.Goleador.create({ categoria, temporada, jugador_nombre: p.jugador_nombre, equipo: p.equipo, goles: p.goles });
+        }
+      }
+      setScorersDraft(null);
+      alert('Goleadores guardados');
+    } finally {
+      setSavingScorers(false);
+    }
+  };
+
+  const openUrl = (url) => url && window.open(url, '_blank');
+
+  const saveConfigUrls = async (updates) => {
+    if (config) {
+      await base44.entities.StandingsConfig.update(config.id, { categoria: category, ...updates });
+    } else {
+      await base44.entities.StandingsConfig.create({ categoria: category, ...updates });
+    }
+    queryClient.invalidateQueries({ queryKey: ['standings-config', category] });
+    alert('URL guardada');
+  };
+
+  const tryResultsUrl = async () => {
+    if (!resultsUrl) return;
+    const res = await base44.functions.invoke('fetchRfefResults', { url: resultsUrl });
+    if (res?.data?.matches?.length) alert(`Detectados ${res.data.matches.length} partidos`); else alert('No se pudieron detectar partidos');
+  };
+
+  const tryScorersUrl = async () => {
+    if (!scorersUrl) return;
+    const res = await base44.functions.invoke('fetchRfefScorers', { url: scorersUrl });
+    if (res?.data?.players?.length) alert(`Detectados ${res.data.players.length} goleadores`); else alert('No se pudieron detectar goleadores');
+  };
+
   const ViewToggle = () => (
     <div className="flex flex-wrap rounded-xl overflow-hidden border max-w-full">
       <Button variant={view === 'clasificacion' ? 'default' : 'ghost'} onClick={() => setView('clasificacion')} className={`${view === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-9 px-3 text-xs sm:text-sm`}>
@@ -114,6 +263,77 @@ export default function CentroCompeticion() {
           <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3"><Share2 className="w-4 h-4"/></Button>
         </div>
       </div>
+
+      {isAdmin && (
+        <Card className="mb-4 border-2 border-orange-500">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="font-semibold">Herramientas de Administración</div>
+              <div className="flex gap-1">
+                <Button variant={adminTab === 'clasificacion' ? 'default' : 'outline'} onClick={() => setAdminTab('clasificacion')} className={adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Clasificación</Button>
+                <Button variant={adminTab === 'resultados' ? 'default' : 'outline'} onClick={() => setAdminTab('resultados')} className={adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Resultados</Button>
+                <Button variant={adminTab === 'goleadores' ? 'default' : 'outline'} onClick={() => setAdminTab('goleadores')} className={adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Goleadores</Button>
+              </div>
+            </div>
+            <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
+
+            {adminTab === 'clasificacion' && (
+              <>
+                {!standingsDraft ? (
+                  <UploadStandingsForm
+                    preselectedCategory={category}
+                    onDataExtracted={(d) => setStandingsDraft(d)}
+                    onCancel={() => setStandingsDraft(null)}
+                  />
+                ) : (
+                  <ReviewStandingsTable
+                    data={standingsDraft}
+                    onCancel={() => setStandingsDraft(null)}
+                    onConfirm={saveStandingsToDB}
+                    isSubmitting={savingStandings}
+                  />
+                )}
+              </>
+            )}
+
+            {adminTab === 'resultados' && (
+              <>
+                <div className="grid md:grid-cols-6 gap-2">
+                  <Input className="md:col-span-4" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL RFFM/RFEF de resultados" />
+                  <div className="flex gap-2 md:col-span-2">
+                    <Button variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
+                    <Button variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
+                    <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_results_url: resultsUrl })} disabled={!resultsUrl}>Guardar URL</Button>
+                  </div>
+                </div>
+                {!resultsDraft ? (
+                  <UploadResultsForm categoria={category} onDataExtracted={(d) => setResultsDraft(d)} onCancel={() => setResultsDraft(null)} />
+                ) : (
+                  <ReviewResultsTable data={resultsDraft} onCancel={() => setResultsDraft(null)} onConfirm={saveResultsToDB} isSubmitting={savingResults} />
+                )}
+              </>
+            )}
+
+            {adminTab === 'goleadores' && (
+              <>
+                <div className="grid md:grid-cols-6 gap-2">
+                  <Input className="md:col-span-4" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL RFFM/RFEF de goleadores" />
+                  <div className="flex gap-2 md:col-span-2">
+                    <Button variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
+                    <Button variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>
+                    <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_scorers_url: scorersUrl })} disabled={!scorersUrl}>Guardar URL</Button>
+                  </div>
+                </div>
+                {!scorersDraft ? (
+                  <UploadScorersForm categoria={category} onDataExtracted={(d) => setScorersDraft(d)} onCancel={() => setScorersDraft(null)} />
+                ) : (
+                  <ReviewScorersTable data={scorersDraft} onCancel={() => setScorersDraft(null)} onConfirm={saveScorersToDB} isSubmitting={savingScorers} />
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Categorías */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
@@ -149,11 +369,11 @@ export default function CentroCompeticion() {
       )}
 
       {view === 'resultados' && (
-        <ResultsList categoryFullName={category} isAdmin={false} />
+        <ResultsList categoryFullName={category} isAdmin={isAdmin} />
       )}
 
       {view === 'goleadores' && (
-        <ScorersList categoryFullName={category} isAdmin={false} />
+        <ScorersList categoryFullName={category} isAdmin={isAdmin} />
       )}
 
       {/* Notas */}
