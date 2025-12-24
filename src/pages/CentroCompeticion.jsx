@@ -234,14 +234,26 @@ export default function CentroCompeticion() {
   };
 
   const ViewToggle = () => (
-    <div className="flex flex-wrap rounded-xl overflow-hidden border max-w-full">
-      <Button variant={view === 'clasificacion' ? 'default' : 'ghost'} onClick={() => setView('clasificacion')} className={`${view === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-9 px-3 text-xs sm:text-sm`}>
+    <div className="w-full grid grid-cols-3 rounded-xl border overflow-hidden">
+      <Button
+        variant={view === 'clasificacion' ? 'default' : 'ghost'}
+        onClick={() => setView('clasificacion')}
+        className={`${view === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+      >
         <Trophy className="w-4 h-4 mr-1.5" /> Clasificación
       </Button>
-      <Button variant={view === 'resultados' ? 'default' : 'ghost'} onClick={() => setView('resultados')} className={`${view === 'resultados' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-9 px-3 text-xs sm:text-sm`}>
+      <Button
+        variant={view === 'resultados' ? 'default' : 'ghost'}
+        onClick={() => setView('resultados')}
+        className={`${view === 'resultados' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+      >
         <List className="w-4 h-4 mr-1.5" /> Resultados
       </Button>
-      <Button variant={view === 'goleadores' ? 'default' : 'ghost'} onClick={() => setView('goleadores')} className={`${view === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-9 px-3 text-xs sm:text-sm`}>
+      <Button
+        variant={view === 'goleadores' ? 'default' : 'ghost'}
+        onClick={() => setView('goleadores')}
+        className={`${view === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+      >
         <Users className="w-4 h-4 mr-1.5" /> Goleadores
       </Button>
     </div>
