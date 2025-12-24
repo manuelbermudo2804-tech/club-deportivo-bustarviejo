@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Image as ImageIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import DropzoneWithPreview from "../upload/DropzoneWithPreview";
 import { toast } from "sonner";
 
 export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData, rfefUrl }) {
@@ -341,31 +343,20 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
 
           <div>
             <Label>Subir Imagen</Label>
-            <div 
-              className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors"
+            <DropzoneWithPreview
+              id="standings-image-upload"
+              accept="image/*"
+              preview={imagePreview}
+              onFile={(file) => processFile(file)}
+              onClear={() => { setImageFile(null); setImagePreview(null); }}
               onPaste={handlePaste}
-              tabIndex={0}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                id="image-upload"
-              />
-              <label htmlFor="image-upload" className="cursor-pointer">
-                {imagePreview ? (
-                  <div className="space-y-2">
-                    <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
-                    <p className="text-sm text-slate-600">Clic para cambiar</p>
-                  </div>
-                ) : (
-                  <div>
-                    <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-                    <p className="text-slate-600 font-medium">Clic para subir o Ctrl+V para pegar</p>
-                  </div>
-                )}
-              </label>
+            />
+            <div className="flex items-center gap-2 text-xs text-slate-600 mt-2">
+              <Badge variant="outline">1 · Subir</Badge>
+              <span>→</span>
+              <Badge variant="outline">2 · Analizar</Badge>
+              <span>→</span>
+              <Badge variant="outline">3 · Revisar</Badge>
             </div>
           </div>
 

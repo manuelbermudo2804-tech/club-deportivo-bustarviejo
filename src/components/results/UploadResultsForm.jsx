@@ -3,6 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Image as ImageIcon, Loader2, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import DropzoneWithPreview from "../upload/DropzoneWithPreview";
 import { toast } from "sonner";
 
 export default function UploadResultsForm({ categoria, onDataExtracted, onCancel }) {
@@ -107,33 +109,21 @@ Devuelve JSON con: { jornada: number, partidos: [{local, visitante, goles_local?
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4" onPaste={handlePaste}>
-        <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
-            className="hidden"
+        <div>
+          <DropzoneWithPreview
             id="results-image-upload"
+            preview={imagePreview}
+            onFile={(file) => { setImageFile(file); const r=new FileReader(); r.onload=(e)=>setImagePreview(e.target.result); r.readAsDataURL(file); }}
+            onClear={() => { setImageFile(null); setImagePreview(null); }}
+            onPaste={handlePaste}
           />
-          {imagePreview ? (
-            <div className="relative">
-              <img src={imagePreview} alt="Preview" className="max-h-96 mx-auto rounded-lg shadow-lg" />
-              <Button
-                onClick={() => { setImageFile(null); setImagePreview(null); }}
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <label htmlFor="results-image-upload" className="cursor-pointer">
-              <ImageIcon className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-600 font-semibold mb-2">Haz clic para seleccionar o pega una imagen</p>
-              <p className="text-sm text-slate-500">Captura de pantalla de la tabla de resultados</p>
-            </label>
-          )}
+          <div className="flex items-center gap-2 text-xs text-slate-600 mt-2">
+            <Badge variant="outline">1 · Subir</Badge>
+            <span>→</span>
+            <Badge variant="outline">2 · Analizar</Badge>
+            <span>→</span>
+            <Badge variant="outline">3 · Revisar</Badge>
+          </div>
         </div>
 
         <div className="flex gap-3">

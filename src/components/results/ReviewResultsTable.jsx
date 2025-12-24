@@ -2,10 +2,44 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { base44 } from "@/api/base44Client";
 import { CheckCircle2, Edit2 } from "lucide-react";
 
 export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmitting }) {
   const [rows, setRows] = useState(data.matches || []);
+  const [existingMap, setExistingMap] = React.useState({});
+  const [stats, setStats] = React.useState({ valid: 0, invalid: 0, toCreate: 0, toUpdate: 0, total: (data.matches || []).length });
+  const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const existing = await base44.entities.Resultado.filter({ categoria: data.categoria, temporada: data.temporada, jornada: data.jornada }, '-updated_date', 200);
+        const map = {};
+        existing.forEach(r => { map[`${norm(r.local)}|${norm(r.visitante)}`] = r; });
+        setExistingMap(map);
+      } catch (e) { /* ignore */ }
+    })();
+  }, [data.categoria, data.temporada, data.jornada]);
+
+  React.useEffect(() => {
+    let valid = 0, invalid = 0, toCreate = 0, toUpdate = 0;
+    const seen = new Set();
+    rows.forEach(r => {
+      const key = `${norm(r.local)}|${norm(r.visitante)}`;
+      const issues = [];
+      if (!String(r.local || '').trim() || !String(r.visitante || '').trim()) issues.push('Equipos vacíos');
+      const gl = r.goles_local, gv = r.goles_visitante;
+      const bothEmpty = gl === undefined && gv === undefined;
+      const bothNumbers = Number.isFinite(Number(gl)) && Number.isFinite(Number(gv)) && Number(gl) >= 0 && Number(gv) >= 0;
+      if (!(bothEmpty || bothNumbers)) issues.push('Marcador inválido');
+      if (seen.has(key)) issues.push('Duplicado'); else seen.add(key);
+      if (issues.length === 0) valid++; else invalid++;
+      if (existingMap[key]) toUpdate++; else toCreate++;
+    });
+    setStats({ valid, invalid, toCreate, toUpdate, total: rows.length });
+  }, [rows, existingMap]);
 
   const handleEdit = (index, field, value) => {
     const updated = [...rows];
@@ -35,6 +69,18 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
         </div>
       </CardHeader>
       <CardContent>
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+          <p className="text-sm text-orange-800">
+            <strong>⚠️ Revisa los datos:</strong> Validación en tiempo real y detección de duplicados Local-Visitante.
+          </p>
+          <div className="flex flex-wrap gap-2 mt-2 text-xs">
+            <Badge variant="outline">Total: {stats.total}</Badge>
+            <Badge className="bg-green-600">Válidas: {stats.valid}</Badge>
+            <Badge className="bg-red-600">Con errores: {stats.invalid}</Badge>
+            <Badge className="bg-slate-600">Actualizar: {stats.toUpdate}</Badge>
+            <Badge className="bg-blue-600">Crear: {stats.toCreate}</Badge>
+          </div>
+        </div>
         <div className="overflow-x-auto bg-white rounded-lg border">
           <table className="w-full text-sm">
             <thead className="bg-slate-50">
@@ -44,6 +90,7 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
                 <th className="text-center p-3 border-b">-</th>
                 <th className="text-center p-3 border-b">Goles V</th>
                 <th className="text-left p-3 border-b">Visitante</th>
+                <th className="text-center p-3 border-b">Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -62,6 +109,20 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
                   <td className="p-2 border-b">
                     <Input value={r.visitante || ''} onChange={(e) => handleEdit(i, 'visitante', e.target.value)} className="h-8" />
                   </td>
+                  <td className="p-2 border-b text-center">
+                    {(() => {
+                      const key = `${norm(r.local)}|${norm(r.visitante)}`;
+                      const gl = r.goles_local, gv = r.goles_visitante;
+                      const bothEmpty = gl === undefined && gv === undefined;
+                      const bothNumbers = Number.isFinite(Number(gl)) && Number.isFinite(Number(gv)) && Number(gl) >= 0 && Number(gv) >= 0;
+                      const okTeams = String(r.local || '').trim() && String(r.visitante || '').trim();
+                      const isValid = okTeams && (bothEmpty || bothNumbers);
+                      const exists = existingMap[key];
+                      const color = isValid ? (exists ? 'bg-slate-600' : 'bg-blue-600') : 'bg-red-600';
+                      const label = isValid ? (exists ? 'Actualizar' : 'Crear') : 'Corregir';
+                      return <Badge className={`${color}`}>{label}</Badge>;
+                    })()}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -70,7 +131,7 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
 
         <div className="flex gap-3 mt-6">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>Atrás</Button>
-          <Button onClick={handleConfirm} disabled={isSubmitting || rows.length === 0} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={handleConfirm} disabled={isSubmitting || rows.length === 0 || stats.invalid > 0} className="bg-green-600 hover:bg-green-700">
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent inline-block" />

@@ -2,11 +2,47 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { base44 } from "@/api/base44Client";
 import { CheckCircle2, Edit2, Trash2, Plus } from "lucide-react";
 
 export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubmitting }) {
   const [standings, setStandings] = useState(data.standings);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [existingMap, setExistingMap] = useState({});
+  const [stats, setStats] = useState({ valid: 0, invalid: 0, toCreate: 0, toUpdate: 0, total: data.standings?.length || 0 });
+
+  const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const existing = await base44.entities.Clasificacion.filter({ categoria: data.categoria, temporada: data.temporada, jornada: data.jornada }, '-updated_date', 100);
+        const map = {};
+        existing.forEach(r => { map[norm(r.nombre_equipo)] = r; });
+        setExistingMap(map);
+      } catch (e) { /* ignore */ }
+    })();
+  }, [data.categoria, data.temporada, data.jornada]);
+
+  React.useEffect(() => {
+    let valid = 0, invalid = 0, toCreate = 0, toUpdate = 0;
+    standings.forEach(r => {
+      const issues = [];
+      if (!r || !String(r.nombre_equipo || '').trim()) issues.push('Equipo vacío');
+      if (!Number.isFinite(Number(r.puntos)) || Number(r.puntos) < 0) issues.push('Pts inválidos');
+      const pj = r.partidos_jugados, g = r.ganados, e = r.empatados, p = r.perdidos;
+      if ([pj,g,e,p].some(v => v !== undefined)) {
+        if (![pj,g,e,p].every(v => Number.isFinite(Number(v)) && Number(v) >= 0)) issues.push('PJ/G/E/P inválidos');
+        else if (Number(g)+Number(e)+Number(p) !== Number(pj)) issues.push('PJ ≠ G+E+P');
+      }
+      if (r.goles_favor !== undefined && (!Number.isFinite(Number(r.goles_favor)) || Number(r.goles_favor) < 0)) issues.push('GF inválido');
+      if (r.goles_contra !== undefined && (!Number.isFinite(Number(r.goles_contra)) || Number(r.goles_contra) < 0)) issues.push('GC inválido');
+      if (issues.length === 0) valid++; else invalid++;
+      if (existingMap[norm(r.nombre_equipo)]) toUpdate++; else toCreate++;
+    });
+    setStats({ valid, invalid, toCreate, toUpdate, total: standings.length });
+  }, [standings, existingMap]);
 
   const handleEdit = (index, field, value) => {
     const updated = [...standings];
@@ -51,9 +87,15 @@ export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubm
       <CardContent>
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
           <p className="text-sm text-orange-800">
-            <strong>⚠️ Revisa los datos:</strong> Corrige cualquier error de lectura antes de confirmar.
-            Puedes editar los campos haciendo clic en ellos.
+            <strong>⚠️ Revisa los datos:</strong> Validación en tiempo real. Solo se podrá guardar si todas las filas son válidas.
           </p>
+          <div className="flex flex-wrap gap-2 mt-2 text-xs">
+            <Badge variant="outline">Total: {stats.total}</Badge>
+            <Badge className="bg-green-600">Válidas: {stats.valid}</Badge>
+            <Badge className="bg-red-600">Con errores: {stats.invalid}</Badge>
+            <Badge className="bg-slate-600">Actualizar: {stats.toUpdate}</Badge>
+            <Badge className="bg-blue-600">Crear: {stats.toCreate}</Badge>
+          </div>
         </div>
 
         <div className="overflow-x-auto bg-white rounded-lg border">
@@ -69,6 +111,7 @@ export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubm
                 <th className="text-center p-3 border-b">P</th>
                 <th className="text-center p-3 border-b">GF</th>
                 <th className="text-center p-3 border-b">GC</th>
+                <th className="text-center p-3 border-b">Estado</th>
                 <th className="text-center p-3 border-b w-16"></th>
               </tr>
             </thead>
@@ -184,7 +227,7 @@ export default function ReviewStandingsTable({ data, onConfirm, onCancel, isSubm
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={isSubmitting || standings.length === 0}
+            disabled={isSubmitting || standings.length === 0 || stats.invalid > 0}
             className="bg-green-600 hover:bg-green-700"
           >
             {isSubmitting ? (
