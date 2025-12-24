@@ -123,36 +123,34 @@ export default function CentroCompeticion() {
     setSavingStandings(true);
     try {
       const { temporada, categoria, jornada, standings } = payload;
-      for (const row of standings) {
-        const existing = await base44.entities.Clasificacion.filter({ categoria, temporada, jornada, nombre_equipo: row.nombre_equipo });
-        if (existing.length) {
-          await base44.entities.Clasificacion.update(existing[0].id, {
-            posicion: row.posicion,
-            puntos: row.puntos,
-            partidos_jugados: row.partidos_jugados,
-            ganados: row.ganados,
-            empatados: row.empatados,
-            perdidos: row.perdidos,
-            goles_favor: row.goles_favor,
-            goles_contra: row.goles_contra,
-          });
-        } else {
-          await base44.entities.Clasificacion.create({
-            categoria,
-            temporada,
-            jornada,
-            nombre_equipo: row.nombre_equipo,
-            posicion: row.posicion,
-            puntos: row.puntos,
-            partidos_jugados: row.partidos_jugados,
-            ganados: row.ganados,
-            empatados: row.empatados,
-            perdidos: row.perdidos,
-            goles_favor: row.goles_favor,
-            goles_contra: row.goles_contra,
-          });
-        }
+
+      // 1) Borrar todo lo existente para esta categoría/temporada/jornada (evita duplicados)
+      const prev = await base44.entities.Clasificacion.filter({ categoria, temporada, jornada }, '-updated_date', 400);
+      for (const rec of prev) {
+        await base44.entities.Clasificacion.delete(rec.id);
       }
+
+      // 2) Insertar todo de nuevo ya normalizado (vacíos -> 0)
+      const toNum = (v) => (v === undefined || v === '' ? 0 : Number(v));
+      const payloadRows = (standings || []).map((row) => ({
+        categoria,
+        temporada,
+        jornada,
+        nombre_equipo: String(row.nombre_equipo || '').trim(),
+        posicion: toNum(row.posicion),
+        puntos: toNum(row.puntos),
+        partidos_jugados: toNum(row.partidos_jugados),
+        ganados: toNum(row.ganados),
+        empatados: toNum(row.empatados),
+        perdidos: toNum(row.perdidos),
+        goles_favor: toNum(row.goles_favor),
+        goles_contra: toNum(row.goles_contra),
+      }));
+
+      if (payloadRows.length) {
+        await base44.entities.Clasificacion.bulkCreate(payloadRows);
+      }
+
       setStandingsDraft(null);
       queryClient.invalidateQueries({ queryKey: ['centro-standings', category] });
       alert('Clasificación guardada');
