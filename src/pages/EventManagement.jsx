@@ -197,11 +197,11 @@ export default function EventManagement() {
         ubicacion_url: template.ubicacion_url,
         importante: template.importante,
         color: template.color,
-        requiere_confirmacion: template.requiere_confirmacion,
+        requiere_confirmacion: template.requiere_confirmacion || false,
         capacidad_maxima: template.capacidad_maxima,
         precio: template.precio,
         publicado: true,
-        es_automatico: false,
+        es_automatico: template.es_plantilla_anual === true,
         notificado: false,
         confirmaciones: []
       };

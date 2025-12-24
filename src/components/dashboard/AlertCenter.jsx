@@ -326,11 +326,13 @@ export default function AlertCenter({
     refetchInterval: 60000, // Refresh every minute
   });
 
-  // Eventos nuevos publicados en últimas 48h
+  // Eventos nuevos publicados en últimas 48h QUE REQUIEREN CONFIRMACIÓN (no automáticos de gestión)
   const twoDaysAgo = new Date();
   twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
   const newEvents = events.filter(e => {
     if (!e.publicado) return false;
+    if (e.es_automatico === true) return false; // Excluir eventos automáticos de plantillas anuales
+    if (e.requiere_confirmacion === false) return false; // Solo mostrar eventos que requieren confirmación
     const createdDate = new Date(e.created_date);
     return createdDate > twoDaysAgo;
   });
@@ -340,7 +342,7 @@ export default function AlertCenter({
       id: "new-events",
       icon: Calendar,
       title: "🎉 Eventos Nuevos Publicados",
-      description: `${newEvents.length} evento${newEvents.length > 1 ? 's' : ''} nuevo${newEvents.length > 1 ? 's' : ''}`,
+      description: `${newEvents.length} evento${newEvents.length > 1 ? 's' : ''} nuevo${newEvents.length > 1 ? 's' : ''} requiere${newEvents.length > 1 ? 'n' : ''} confirmación`,
       url: createPageUrl("ParentEventRSVP"),
       color: "bg-indigo-500",
       priority: 5
