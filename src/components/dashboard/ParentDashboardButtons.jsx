@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, Calendar, Bell, CreditCard, Image, Megaphone, ShoppingBag, FileText, Heart, FileSignature, BarChart3, Clover } from "lucide-react";
+import { Users, Calendar, Bell, CreditCard, Image, Megaphone, ShoppingBag, FileText, Heart, FileSignature, BarChart3, Clover, Trophy } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 // DEFINICIÓN COMPLETA DE TODOS LOS BOTONES DISPONIBLES PARA PADRES

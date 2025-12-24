@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, CheckCircle2, Users, Star, Calendar, Megaphone, Image, FileText, BarChart3, FileSignature, UserCircle, Settings, Clover, Heart, ShoppingBag, CreditCard, ClipboardCheck, Award } from "lucide-react";
+import { Bell, CheckCircle2, Users, Star, Calendar, Megaphone, Image, FileText, BarChart3, FileSignature, UserCircle, Settings, Clover, Heart, ShoppingBag, CreditCard, ClipboardCheck, Award, Trophy } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 export const ALL_COORDINATOR_BUTTONS = [

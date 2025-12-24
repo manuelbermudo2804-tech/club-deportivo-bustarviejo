@@ -1,5 +1,5 @@
 import React from "react";
-import { CreditCard, Bell, Archive, ShoppingBag, Clover, Users, BarChart3, Euro, Calendar, Image, Megaphone, FileText, Award, TrendingUp } from "lucide-react";
+import { CreditCard, Bell, Archive, ShoppingBag, Clover, Users, BarChart3, Euro, Calendar, Image, Megaphone, FileText, Award, TrendingUp, Trophy } from "lucide-react";
 
 // Todos los botones disponibles para tesoreros
 export const ALL_TREASURER_BUTTONS = [
