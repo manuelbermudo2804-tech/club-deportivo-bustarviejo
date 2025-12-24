@@ -99,6 +99,7 @@ export default function Clasificaciones() {
       const result = await base44.entities.Clasificacion.filter({ categoria: activeCategory.fullName }, '-updated_date', 50);
       const endTime = Date.now();
       console.log(`✅ [Query] Clasificaciones cargadas en ${endTime - startTime}ms:`, result.length, 'registros');
+      console.log('📊 [Query] Datos recibidos:', result);
       return result;
     },
     enabled: !!activeCategory,
@@ -109,7 +110,14 @@ export default function Clasificaciones() {
     refetchOnMount: true,
   });
 
-  console.log('📊 [Query] Estado standings:', { isLoading: standingsLoading, isFetching, dataCount: standings?.length });
+  console.log('📊 [Query] Estado standings:', { 
+    isLoading: standingsLoading, 
+    isFetching, 
+    dataCount: standings?.length,
+    activeTab,
+    activeCategoryFullName: activeCategory?.fullName,
+    standingsData: standings
+  });
 
   const { data: standingsConfigs = [] } = useQuery({
     queryKey: ['standings_config'],
