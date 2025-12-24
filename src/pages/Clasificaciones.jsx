@@ -137,6 +137,22 @@ export default function Clasificaciones() {
           console.log('⚠️ [Debug] No se pudo listar muestra de clasificaciones:', e?.message || e);
         }
       }
+
+      // Fallback 3: como admin, probar con privilegios de servicio
+      if ((!result || result.length === 0) && isAdmin) {
+        try {
+          console.log('🛡️ [Query] Probando asServiceRole para', catFull);
+          result = await base44.asServiceRole.entities.Clasificacion.filter({ categoria: catFull }, '-updated_date', 50);
+          if (!result || result.length === 0) {
+            const alt = catFull.replace(' (Mixto)', '');
+            if (alt !== catFull) {
+              result = await base44.asServiceRole.entities.Clasificacion.filter({ categoria: alt }, '-updated_date', 50);
+            }
+          }
+        } catch (e) {
+          console.log('⚠️ [Query] Error asServiceRole:', e?.message || e);
+        }
+      }
       
       console.log('📊 [Query] Datos recibidos:', result);
       return result || [];
