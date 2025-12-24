@@ -101,7 +101,7 @@ export default function Clasificaciones() {
       const endTime = Date.now();
       console.log(`✅ [Query] Clasificaciones cargadas en ${endTime - startTime}ms:`, result.length, 'registros para', catFull);
       
-      // Fallback: probar sin " (Mixto)"
+      // Fallback 1: probar sin " (Mixto)"
       if (!result || result.length === 0) {
         const alt = catFull.replace(' (Mixto)', '');
         if (alt !== catFull) {
@@ -114,12 +114,25 @@ export default function Clasificaciones() {
         }
       }
       
-      // Debug: listar una muestra para ver categorías existentes
+      // Fallback 2: normalizar acentos y paréntesis comparando en cliente
       if (!result || result.length === 0) {
         try {
-          const sample = await base44.entities.Clasificacion.list('-updated_date', 20);
-          const cats = Array.from(new Set(sample.map(s => s.categoria))).slice(0, 10);
-          console.log('🧭 [Debug] Categorías encontradas en BD (muestra):', cats);
+          const norm = (s) => String(s || '')
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos
+            .replace(/\(.*?\)/g, '') // quitar paréntesis y contenido
+            .replace(/\s+/g, ' ') // espacios extras
+            .trim();
+          const target = norm(catFull);
+          const sample = await base44.entities.Clasificacion.list('-updated_date', 200);
+          const filtered = sample.filter(s => norm(s.categoria) === target);
+          if (filtered.length > 0) {
+            console.log(`🧭 [Debug] Usando coincidencia normalizada: ${filtered.length} registros para`, catFull);
+            result = filtered;
+          } else {
+            const cats = Array.from(new Set(sample.map(s => s.categoria))).slice(0, 15);
+            console.log('🧭 [Debug] Categorías encontradas en BD (muestra):', cats);
+          }
         } catch (e) {
           console.log('⚠️ [Debug] No se pudo listar muestra de clasificaciones:', e?.message || e);
         }
