@@ -74,16 +74,19 @@ export default function Clasificaciones() {
 
   const activeCategory = CATEGORIES.find(c => c.id === activeTab);
   
-  const { data: standings } = useQuery({
+  const { data: standings, isLoading: standingsLoading } = useQuery({
     queryKey: ['clasificaciones', activeCategory?.fullName],
-    queryFn: () => {
+    queryFn: async () => {
       if (!activeCategory) return [];
-      return base44.entities.Clasificacion.filter({ categoria: activeCategory.fullName }, '-updated_date', 100);
+      console.log('🔄 Cargando clasificaciones para:', activeCategory.fullName);
+      const result = await base44.entities.Clasificacion.filter({ categoria: activeCategory.fullName }, '-updated_date', 50);
+      console.log('✅ Clasificaciones cargadas:', result.length);
+      return result;
     },
     enabled: !!activeCategory,
     initialData: [],
-    staleTime: 10 * 60_000, // 10 minutos
-    gcTime: 30 * 60_000, // 30 minutos en caché
+    staleTime: 15 * 60_000,
+    gcTime: 60 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -723,7 +726,14 @@ export default function Clasificaciones() {
                   </CardContent>
                 </Card>
 
-              {cat.id === activeTab && currentCategoryStandings?.length > 0 ? (
+              {standingsLoading ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
+                    <p className="text-slate-600 text-sm">Cargando clasificaciones...</p>
+                  </CardContent>
+                </Card>
+              ) : cat.id === activeTab && currentCategoryStandings?.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {currentCategoryStandings.map((group, index) => (
                     <Card key={index} className="hover:shadow-lg transition-shadow">

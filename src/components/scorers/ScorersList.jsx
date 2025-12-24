@@ -7,16 +7,32 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
 
 export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
-  const { data: scorers = [] } = useQuery({
+  const { data: scorers = [], isLoading } = useQuery({
     queryKey: ['goleadores', categoryFullName],
-    queryFn: () => base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 100),
+    queryFn: async () => {
+      console.log('🔄 Cargando goleadores para:', categoryFullName);
+      const result = await base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 50);
+      console.log('✅ Goleadores cargados:', result.length);
+      return result;
+    },
     initialData: [],
-    staleTime: 10 * 60_000, // 10 minutos
-    gcTime: 30 * 60_000, // 30 minutos
+    staleTime: 15 * 60_000,
+    gcTime: 60 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
+          <p className="text-slate-600 text-sm">Cargando goleadores...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Agrupar por temporada
   const groupedByTemporada = scorers.reduce((acc, scorer) => {

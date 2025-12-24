@@ -7,16 +7,32 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
 export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
-  const { data: results = [] } = useQuery({
+  const { data: results = [], isLoading } = useQuery({
     queryKey: ['resultados', categoryFullName],
-    queryFn: () => base44.entities.Resultado.filter({ categoria: categoryFullName }, '-updated_date', 100),
+    queryFn: async () => {
+      console.log('🔄 Cargando resultados para:', categoryFullName);
+      const result = await base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 50);
+      console.log('✅ Resultados cargados:', result.length);
+      return result;
+    },
     initialData: [],
-    staleTime: 10 * 60_000, // 10 minutos
-    gcTime: 30 * 60_000, // 30 minutos
+    staleTime: 15 * 60_000,
+    gcTime: 60 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
+          <p className="text-slate-600 text-sm">Cargando resultados...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const grouped = results.reduce((acc, r) => {
     const key = `${r.temporada}|${r.jornada}`;
