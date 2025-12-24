@@ -3,8 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
-export default function ResultsList({ categoryFullName }) {
+export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
   const { data: results = [] } = useQuery({
     queryKey: ['resultados', categoryFullName],
     queryFn: () => base44.entities.Resultado.filter({ categoria: categoryFullName }, '-updated_date', 500),
@@ -37,8 +39,24 @@ export default function ResultsList({ categoryFullName }) {
         <Card key={idx} className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Jornada {g.jornada ?? '-'}</span>
-              <Badge className="bg-green-500 text-white">{g.temporada}</Badge>
+              <div className="flex items-center gap-2">
+                <span>Jornada {g.jornada ?? '-'}</span>
+                <Badge className="bg-green-500 text-white">{g.temporada}</Badge>
+              </div>
+              {isAdmin && onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (confirm(`¿Eliminar resultados de Jornada ${g.jornada}?`)) {
+                      onDelete({ temporada: g.temporada, jornada: g.jornada });
+                    }
+                  }}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">

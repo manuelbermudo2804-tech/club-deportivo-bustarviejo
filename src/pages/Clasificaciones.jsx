@@ -423,7 +423,20 @@ export default function Clasificaciones() {
 
             {visibleCategories.map((cat) => (
               <TabsContent key={cat.id} value={cat.id} className="space-y-6">
-                <ResultsList categoryFullName={cat.fullName} />
+                <ResultsList 
+                  categoryFullName={cat.fullName} 
+                  isAdmin={isAdmin}
+                  onDelete={async ({ temporada, jornada }) => {
+                    const toDelete = await base44.entities.Resultado.filter({ 
+                      temporada, 
+                      categoria: cat.fullName, 
+                      jornada 
+                    });
+                    await Promise.all(toDelete.map(r => base44.entities.Resultado.delete(r.id)));
+                    await queryClient.invalidateQueries({ queryKey: ['resultados', cat.fullName] });
+                    toast.success("Resultados eliminados");
+                  }}
+                />
               </TabsContent>
             ))}
           </Tabs>
@@ -560,7 +573,19 @@ export default function Clasificaciones() {
 
             {visibleCategories.map((cat) => (
               <TabsContent key={cat.id} value={cat.id} className="space-y-6">
-                <ScorersList categoryFullName={cat.fullName} />
+                <ScorersList 
+                  categoryFullName={cat.fullName}
+                  isAdmin={isAdmin}
+                  onDelete={async ({ temporada }) => {
+                    const toDelete = await base44.entities.Goleador.filter({ 
+                      temporada, 
+                      categoria: cat.fullName 
+                    });
+                    await Promise.all(toDelete.map(r => base44.entities.Goleador.delete(r.id)));
+                    await queryClient.invalidateQueries({ queryKey: ['goleadores', cat.fullName] });
+                    toast.success("Goleadores eliminados");
+                  }}
+                />
               </TabsContent>
             ))}
           </Tabs>
