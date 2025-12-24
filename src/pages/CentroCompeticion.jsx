@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
-import { Trophy, List, Users, Star, StarOff, Share2, Search } from "lucide-react";
+import { Trophy, List, Users, Star, StarOff, Share2, Search, Upload } from "lucide-react";
 
 const CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -36,14 +38,22 @@ export default function CentroCompeticion() {
   const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores'
   const [search, setSearch] = React.useState('');
   const [fav, setFav] = React.useState(() => storedFav === defaultCat);
+const [isAdmin, setIsAdmin] = React.useState(false);
 
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    params.set('cat', category);
-    params.set('vista', view);
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.replaceState({}, '', newUrl);
-  }, [category, view]);
+            const params = new URLSearchParams(window.location.search);
+            params.set('cat', category);
+            params.set('vista', view);
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+          }, [category, view]);
+
+          React.useEffect(() => {
+            (async () => {
+              const u = await base44.auth.me();
+              setIsAdmin(u?.role === 'admin');
+            })();
+          }, []);
 
   const toggleFav = () => {
     if (fav) {
@@ -110,9 +120,16 @@ export default function CentroCompeticion() {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <ViewToggle />
-          <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3"><Share2 className="w-4 h-4"/></Button>
-        </div>
+                        <ViewToggle />
+                        <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3"><Share2 className="w-4 h-4"/></Button>
+                        {isAdmin && (
+                          <Link to={createPageUrl('Clasificaciones')}>
+                            <Button variant="ghost" className="h-9 px-3 gap-1" title="Administrar datos">
+                              <Upload className="w-4 h-4" /> Administrar
+                            </Button>
+                          </Link>
+                        )}
+                      </div>
       </div>
 
       {/* Categorías */}
