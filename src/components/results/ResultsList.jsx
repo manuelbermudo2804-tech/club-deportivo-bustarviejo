@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
 export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
+  const queryClient = useQueryClient();
   const { data: results = [], isLoading } = useQuery({
     queryKey: ['resultados', categoryFullName],
     queryFn: async () => {
@@ -15,7 +16,8 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
       console.log('✅ Resultados cargados:', result.length, result);
       return result;
     },
-    initialData: [],
+    initialData: () => queryClient.getQueryData(['resultados', categoryFullName]) || [],
+    placeholderData: () => queryClient.getQueryData(['resultados', categoryFullName]) || [],
     staleTime: 1 * 60_000,
     gcTime: 60 * 60_000,
     refetchOnWindowFocus: true,

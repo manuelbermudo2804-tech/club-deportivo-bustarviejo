@@ -74,12 +74,26 @@ export default function CentroCompeticion() {
   React.useEffect(() => { if (isAdmin) setAdminTab(view); }, [view, isAdmin]);
 
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    params.set('cat', category);
-    params.set('vista', view);
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.replaceState({}, '', newUrl);
-  }, [category, view]);
+            const params = new URLSearchParams(window.location.search);
+            params.set('cat', category);
+            params.set('vista', view);
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+          }, [category, view]);
+
+          // Prefetch resultados y goleadores para carga instantánea al cambiar de categoría/vista
+          React.useEffect(() => {
+            queryClient.prefetchQuery({
+              queryKey: ['resultados', category],
+              queryFn: async () => base44.entities.Resultado.filter({ categoria: category }, '-jornada', 500),
+              staleTime: 60_000,
+            });
+            queryClient.prefetchQuery({
+              queryKey: ['goleadores', category],
+              queryFn: async () => base44.entities.Goleador.filter({ categoria: category }, '-goles', 500),
+              staleTime: 60_000,
+            });
+          }, [category, queryClient]);
 
   const toggleFav = () => {
     if (fav) {
