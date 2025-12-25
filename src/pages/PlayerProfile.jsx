@@ -118,7 +118,7 @@ export default function PlayerProfile() {
   if (isLoading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-600"></div>
+        <div className="spinner-elegant"></div>
       </div>
     );
   }
