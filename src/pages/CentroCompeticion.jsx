@@ -292,14 +292,14 @@ export default function CentroCompeticion() {
                 <Button
                   variant={adminTab === 'resultados' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('resultados'); setView('resultados'); }}
-                  className={`${adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`
+                  className={`${adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}
                 >
                   Resultados
                 </Button>
                 <Button
                   variant={adminTab === 'goleadores' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('goleadores'); setView('goleadores'); }}
-                  className={`${adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`
+                  className={`${adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}
                 >
                   Goleadores
                 </Button>
