@@ -147,7 +147,7 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
           <div className="grid grid-cols-2 divide-x divide-slate-300">
             {/* IZQUIERDA: CLASIFICACIONES */}
             <button
-              onClick={() => additionalCategories > 0 ? setShowAllStandings(true) : window.location.href = createPageUrl("CentroCompeticion")}
+              onClick={() => additionalCategories > 0 ? setShowAllStandings(true) : window.location.href = createPageUrl("CentroCompeticionTecnico")}
               className="hover:bg-orange-50/50 transition-colors text-left"
             >
               <div className="p-4 bg-gradient-to-br from-orange-50 to-white h-full">
@@ -270,7 +270,7 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
               }
 
               return (
-                <Link key={idx} to={createPageUrl("CentroCompeticion")} onClick={() => setShowAllStandings(false)}>
+                <Link key={idx} to={createPageUrl("CentroCompeticionTecnico")} onClick={() => setShowAllStandings(false)}>
                   <Card className="border-2 border-slate-200 hover:border-orange-400 transition-colors cursor-pointer hover:shadow-lg">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">

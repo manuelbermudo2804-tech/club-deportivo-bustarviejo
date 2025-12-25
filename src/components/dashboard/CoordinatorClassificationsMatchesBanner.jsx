@@ -133,7 +133,7 @@ export default function CoordinatorClassificationsMatchesBanner() {
           <div className="grid grid-cols-2 divide-x divide-slate-300">
             {/* IZQUIERDA: CLASIFICACIONES */}
             <button
-              onClick={() => window.location.href = createPageUrl("CentroCompeticion")}
+              onClick={() => window.location.href = createPageUrl("CentroCompeticionTecnico")}
               className="hover:bg-orange-50/50 transition-colors text-left"
             >
               <div className="p-4 bg-gradient-to-br from-orange-50 to-white h-full">

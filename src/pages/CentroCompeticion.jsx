@@ -15,6 +15,7 @@ import ReviewResultsTable from "../components/results/ReviewResultsTable";
 import UploadScorersForm from "../components/scorers/UploadScorersForm";
 import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
 import { Trophy, List, Users, Star, StarOff, Share2, Search } from "lucide-react";
+import { createPageUrl } from "@/utils";
 
 const CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -45,6 +46,11 @@ export default function CentroCompeticion() {
   const queryClient = useQueryClient();
   const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
   const isAdmin = me?.role === 'admin';
+  React.useEffect(() => {
+    if (me && !isAdmin && (me.es_entrenador || me.es_coordinador)) {
+      window.location.href = createPageUrl('CentroCompeticionTecnico');
+    }
+  }, [me, isAdmin]);
   const [adminTab, setAdminTab] = React.useState('clasificacion');
   const [standingsDraft, setStandingsDraft] = React.useState(null);
   const [savingStandings, setSavingStandings] = React.useState(false);

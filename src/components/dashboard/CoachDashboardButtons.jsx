@@ -6,7 +6,7 @@ export const ALL_COACH_BUTTONS = [
   { id: "convocatorias", title: "🎓 Convocatorias", icon: Bell, url: createPageUrl("CoachCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 1 },
   { id: "asistencia", title: "📋 Asistencia y Evaluación", icon: CheckCircle2, url: createPageUrl("TeamAttendanceEvaluation"), gradient: "from-green-600 to-green-700", priority: 2 },
   { id: "plantillas", title: "🎓 Plantillas", icon: Users, url: createPageUrl("TeamRosters"), gradient: "from-blue-600 to-blue-700", priority: 3 },
-  { id: "clasificaciones", title: "📊 Análisis Clasificaciones", icon: BarChart3, url: createPageUrl("CentroCompeticion"), gradient: "from-blue-600 to-cyan-700", priority: 4 },
+  { id: "clasificaciones", title: "📊 Competición (Técnicos)", icon: BarChart3, url: createPageUrl("CentroCompeticionTecnico"), gradient: "from-blue-600 to-cyan-700", priority: 4 },
   { id: "ejercicios", title: "📚 Biblioteca Ejercicios", icon: FileText, url: createPageUrl("ExerciseLibrary"), gradient: "from-cyan-600 to-cyan-700", priority: 5 },
   { id: "tactica", title: "🎯 Pizarra Táctica", icon: BarChart3, url: createPageUrl("TacticsBoard"), gradient: "from-slate-600 to-slate-700", priority: 6 },
   { id: "calendario", title: "📅 Calendario", icon: Calendar, url: createPageUrl("CalendarAndSchedules"), gradient: "from-purple-600 to-purple-700", priority: 7 },
