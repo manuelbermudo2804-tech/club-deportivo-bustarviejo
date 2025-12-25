@@ -69,6 +69,7 @@ import Payments from './pages/Payments';
 import PaymentsDashboard from './pages/PaymentsDashboard';
 import PlayerDashboard from './pages/PlayerDashboard';
 import PlayerEvaluations from './pages/PlayerEvaluations';
+import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import Players from './pages/Players';
 import PublicClubMembership from './pages/PublicClubMembership';
@@ -88,7 +89,6 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import PlayerProfile from './pages/PlayerProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -164,6 +164,7 @@ export const PAGES = {
     "PaymentsDashboard": PaymentsDashboard,
     "PlayerDashboard": PlayerDashboard,
     "PlayerEvaluations": PlayerEvaluations,
+    "PlayerProfile": PlayerProfile,
     "PlayerRenewal": PlayerRenewal,
     "Players": Players,
     "PublicClubMembership": PublicClubMembership,
@@ -183,7 +184,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "PlayerProfile": PlayerProfile,
 }
 
 export const pagesConfig = {

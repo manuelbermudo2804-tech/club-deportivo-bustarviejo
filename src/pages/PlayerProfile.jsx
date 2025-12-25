@@ -145,17 +145,17 @@ export default function PlayerProfile() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="max-w-2xl mx-auto p-4 md:p-6">
+      <div className="mb-4 text-center space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold">Mi Perfil</h1>
-        <Button onClick={handleSave} className="bg-orange-600 hover:bg-orange-700">
+        <Button onClick={handleSave} className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto">
           <Save className="w-4 h-4 mr-2" /> Guardar cambios
         </Button>
       </div>
 
       <Card className="mb-4">
         <CardContent className="p-4 md:p-6">
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col items-center text-center gap-3">
             <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
               {form.foto_url ? (
                 <img src={form.foto_url} alt="Foto" className="w-full h-full object-cover" />
@@ -163,34 +163,32 @@ export default function PlayerProfile() {
                 <UserCircle className="w-12 h-12 text-slate-400" />
               )}
             </div>
-            <div className="space-y-2">
-              <div className="flex gap-2 items-center">
-                <Input
-                  value={form.nombre}
-                  onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
-                  placeholder="Nombre completo"
-                  className="w-[280px]"
+            <div className="w-full grid gap-2 sm:grid-cols-[1fr_auto] items-center">
+              <Input
+                value={form.nombre}
+                onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
+                placeholder="Nombre completo"
+                className="w-full"
+              />
+              <div className="justify-self-center sm:justify-self-end">
+                <input
+                  id="foto"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleUpload(e.target.files?.[0])}
                 />
-                <div>
-                  <input
-                    id="foto"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleUpload(e.target.files?.[0])}
-                  />
-                  <label htmlFor="foto">
-                    <Button variant="outline" type="button" className="gap-2">
-                      <Camera className="w-4 h-4" /> Cambiar foto
-                    </Button>
-                  </label>
-                </div>
+                <label htmlFor="foto">
+                  <Button variant="outline" type="button" className="gap-2 w-full sm:w-auto">
+                    <Camera className="w-4 h-4" /> Cambiar foto
+                  </Button>
+                </label>
               </div>
-              <div className="text-sm text-slate-600 flex items-center gap-2">
-                <span className="font-medium">Deporte/Categoría:</span>
-                <Badge variant="outline">{player.deporte || "—"}</Badge>
-                <span className="text-xs text-slate-500">(solo lectura)</span>
-              </div>
+            </div>
+            <div className="text-sm text-slate-600 flex items-center justify-center gap-2">
+              <span className="font-medium">Deporte/Categoría:</span>
+              <Badge variant="outline">{player.deporte || "—"}</Badge>
+              <span className="text-xs text-slate-500">(solo lectura)</span>
             </div>
           </div>
         </CardContent>
