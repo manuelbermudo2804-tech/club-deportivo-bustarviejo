@@ -14,6 +14,7 @@ export default function PlayerProfile() {
   const { data: user } = useQuery({
     queryKey: ["me"],
     queryFn: () => base44.auth.me(),
+    staleTime: 60_000,
   });
 
   const { data: player, isLoading } = useQuery({
