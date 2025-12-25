@@ -20,20 +20,15 @@ export default function PlayerProfile() {
     queryKey: ["player", user?.email],
     enabled: !!user,
     queryFn: async () => {
-      // 1) Por player_id del usuario si existe
-      if (user?.player_id) {
-        const byId = await base44.entities.Player.filter({ id: user.player_id });
-        if (byId?.length) return byId[0];
-      }
-      // 2) Por email_jugador (jugador adulto)
-      const arr1 = await base44.entities.Player.filter({ email_jugador: user.email }, "-updated_date", 1);
-      if (arr1?.length) return arr1[0];
-      // 3) Por created_by (se registró él mismo)
-      const arr2 = await base44.entities.Player.filter({ created_by: user.email }, "-updated_date", 1);
-      if (arr2?.length) return arr2[0];
-      // 4) Fallback: por email_padre (por si hay registros antiguos)
-      const arr3 = await base44.entities.Player.filter({ email_padre: user.email }, "-updated_date", 1);
-      return arr3?.[0] || null;
+      if (!user) return null;
+      const conditions = [
+        { email_jugador: user.email },
+        { created_by: user.email },
+        { email_padre: user.email },
+      ];
+      if (user.player_id) conditions.unshift({ id: user.player_id });
+      const candidates = await base44.entities.Player.filter({ $or: conditions }, "-updated_date", 1);
+      return candidates?.[0] || null;
     },
     initialData: null,
     staleTime: 60_000,
