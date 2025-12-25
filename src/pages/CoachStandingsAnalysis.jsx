@@ -55,7 +55,7 @@ export default function CoachStandingsAnalysis() {
 
   const { data: standings = [] } = useQuery({
     queryKey: ['clasificaciones'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada', 200),
+    queryFn: () => base44.entities.Clasificacion.list('-jornada', 400),
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
@@ -65,7 +65,12 @@ export default function CoachStandingsAnalysis() {
   // Selección por defecto de pestaña cuando no hay categorías asignadas al entrenador
   React.useEffect(() => {
     if (!activeTab) {
-      const catWithData = CATEGORIES.find(c => standings.some(s => s.categoria === c.fullName));
+      const catWithData = CATEGORIES.find(c =>
+        standings.some(s => {
+          const sc = (s.categoria || '').toLowerCase();
+          return sc === c.fullName.toLowerCase() || sc.includes(c.name.toLowerCase());
+        })
+      );
       if (catWithData) setActiveTab(catWithData.id);
       else setActiveTab(CATEGORIES[0].id);
     }
@@ -119,7 +124,10 @@ export default function CoachStandingsAnalysis() {
 
   // Agrupar clasificaciones por categoría
   const standingsByCategory = CATEGORIES.reduce((acc, cat) => {
-    const categoryStandings = standings.filter(s => s.categoria === cat.fullName);
+    const categoryStandings = standings.filter(s => {
+      const sc = (s.categoria || '').toLowerCase();
+      return sc === cat.fullName.toLowerCase() || sc.includes(cat.name.toLowerCase());
+    });
     
     const grouped = categoryStandings.reduce((groupAcc, standing) => {
       const key = `${standing.temporada}|${standing.jornada}`;
@@ -427,9 +435,14 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
     }
   };
 
-  const visibleCategories = user?.categorias_entrena?.length > 0
-    ? CATEGORIES.filter(c => user.categorias_entrena.includes(c.fullName))
-    : CATEGORIES;
+  const coached = Array.isArray(user?.categorias_entrena) ? user.categorias_entrena : [];
+  const matchedCats = CATEGORIES.filter(c =>
+    coached.some(x => {
+      const xc = (x || '').toLowerCase();
+      return xc === c.fullName.toLowerCase() || xc.includes(c.name.toLowerCase());
+    })
+  );
+  const visibleCategories = matchedCats.length > 0 ? matchedCats : CATEGORIES;
 
   if (!user) {
     return (
