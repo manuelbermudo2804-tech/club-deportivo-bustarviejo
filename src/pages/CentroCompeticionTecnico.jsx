@@ -92,8 +92,34 @@ export default function CentroCompeticionTecnico() {
       .sort((a, b) => a.fecha_partido.localeCompare(b.fecha_partido) || (a.hora_partido || "").localeCompare(b.hora_partido || ""))[0]
   , [callups, today]);
 
+  const lastPlayed = React.useMemo(() =>
+    (callups || [])
+      .filter((c) => c.publicada && !c.cerrada && c.fecha_partido < today)
+      .sort((a, b) => b.fecha_partido.localeCompare(a.fecha_partido) || (b.hora_partido || "").localeCompare(a.hora_partido || ""))[0]
+  , [callups, today]);
+
+  const matchForForm = nextCallup || lastPlayed;
+
   // Registro rápido post-partido
   const [showObservationForm, setShowObservationForm] = React.useState(false);
+  const autoAnalysisDoneRef = React.useRef(false);
+  const autoObservationDoneRef = React.useRef(false);
+
+  // Auto: analizar próximo rival al entrar
+  React.useEffect(() => {
+    if (nextCallup && !autoAnalysisDoneRef.current) {
+      autoAnalysisDoneRef.current = true;
+      analyzeRival();
+    }
+  }, [nextCallup]);
+
+  // Auto: abrir registro rápido tras el partido
+  React.useEffect(() => {
+    if (!nextCallup && lastPlayed && !autoObservationDoneRef.current) {
+      autoObservationDoneRef.current = true;
+      setShowObservationForm(true);
+    }
+  }, [nextCallup, lastPlayed]);
 
   // Análisis de rival (usa el mismo patrón de CoachStandingsAnalysis)
   const [isAnalyzingRival, setIsAnalyzingRival] = React.useState(false);
@@ -215,12 +241,12 @@ export default function CentroCompeticionTecnico() {
             </div>
           </CardTitle>
         </CardHeader>
-        {showObservationForm && nextCallup && (
+        {showObservationForm && matchForForm && (
           <CardContent>
             <QuickMatchObservationForm
-              categoria={nextCallup.categoria}
-              rival={nextCallup.rival}
-              fechaPartido={nextCallup.fecha_partido}
+              categoria={matchForForm.categoria}
+              rival={matchForForm.rival}
+              fechaPartido={matchForForm.fecha_partido}
               jornada={standingsPack?.jornada}
               onSave={async (data) => {
                 await base44.entities.MatchObservation.create(data);
@@ -232,9 +258,9 @@ export default function CentroCompeticionTecnico() {
             />
           </CardContent>
         )}
-        {showObservationForm && !nextCallup && (
+        {showObservationForm && !matchForForm && (
           <CardContent>
-            <p className="text-sm text-slate-600">No hay partido próximo programado para {category}.</p>
+            <p className="text-sm text-slate-600">No hay partidos recientes o próximos para {category}.</p>
           </CardContent>
         )}
       </Card>
