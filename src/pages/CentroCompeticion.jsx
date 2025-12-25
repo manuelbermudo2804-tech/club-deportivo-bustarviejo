@@ -281,25 +281,25 @@ export default function CentroCompeticion() {
           <CardContent className="p-4 space-y-3">
             <div className="grid gap-2 md:grid-cols-[1fr_auto] items-start">
               <div className="font-semibold">Herramientas de Administración</div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full md:w-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
                 <Button
                   variant={adminTab === 'clasificacion' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('clasificacion'); setView('clasificacion'); }}
-                  className={`${adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}}}
+                  className={`${adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}}
                 >
                   Clasificación
                 </Button>
                 <Button
                   variant={adminTab === 'resultados' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('resultados'); setView('resultados'); }}
-                  className={`${adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}}}
+                  className={`${adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`
                 >
                   Resultados
                 </Button>
                 <Button
                   variant={adminTab === 'goleadores' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('goleadores'); setView('goleadores'); }}
-                  className={`${adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}}}
+                  className={`${adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`
                 >
                   Goleadores
                 </Button>
