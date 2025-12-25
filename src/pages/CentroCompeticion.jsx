@@ -302,6 +302,7 @@ export default function CentroCompeticion() {
                   variant={adminTab === 'goleadores' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('goleadores'); setView('goleadores'); }}
                   className={`${adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}
+
                 >
                   Goleadores
                 </Button>
