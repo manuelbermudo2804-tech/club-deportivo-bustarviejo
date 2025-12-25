@@ -11,16 +11,16 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
     queryKey: ['goleadores', categoryFullName],
     queryFn: async () => {
       console.log('🔄 Cargando goleadores para:', categoryFullName);
-      const result = await base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 50);
-      console.log('✅ Goleadores cargados:', result.length);
+      const result = await base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 500);
+      console.log('✅ Goleadores cargados:', result.length, result);
       return result;
     },
     initialData: [],
-    staleTime: 15 * 60_000,
+    staleTime: 1 * 60_000,
     gcTime: 60 * 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
   });
 
   if (isLoading) {
