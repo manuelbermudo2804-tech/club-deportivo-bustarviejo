@@ -201,7 +201,7 @@ export default function PlayerProfile() {
 
       <div className="grid md:grid-cols-2 gap-4 items-start">
         <Card>
-          <CardHeader>
+          <CardHeader className="text-center">
             <CardTitle className="text-base">Datos personales</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
