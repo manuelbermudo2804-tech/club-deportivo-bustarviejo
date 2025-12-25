@@ -18,14 +18,15 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
     },
     initialData: () => queryClient.getQueryData(['goleadores', categoryFullName]) || [],
     placeholderData: () => queryClient.getQueryData(['goleadores', categoryFullName]) || [],
-    staleTime: 1 * 60_000,
+    staleTime: 60_000,
+    keepPreviousData: true,
     gcTime: 60 * 60_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
   });
 
-  if (isLoading) {
+  if (isLoading && scorers.length === 0) {
     return (
       <Card>
         <CardContent className="p-12 text-center">

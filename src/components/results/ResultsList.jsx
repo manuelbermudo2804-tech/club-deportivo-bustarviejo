@@ -18,14 +18,15 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
     },
     initialData: () => queryClient.getQueryData(['resultados', categoryFullName]) || [],
     placeholderData: () => queryClient.getQueryData(['resultados', categoryFullName]) || [],
-    staleTime: 1 * 60_000,
+    staleTime: 60_000,
+    keepPreviousData: true,
     gcTime: 60 * 60_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
   });
 
-  if (isLoading) {
+  if (isLoading && results.length === 0) {
     return (
       <Card>
         <CardContent className="p-12 text-center">
