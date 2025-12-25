@@ -9,7 +9,7 @@ import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
 import QuickMatchObservationForm from "../components/coach/QuickMatchObservationForm";
-import { Trophy, List, Users, Target, Zap, Search } from "lucide-react";
+import { Trophy, List, Users, Target, Zap, Search, Star, StarOff } from "lucide-react";
 
 const CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -40,11 +40,42 @@ export default function CentroCompeticionTecnico() {
     return normalized.length ? normalized : CATEGORIES; // fallback si no tiene asignadas
   }, [me, isCoordinator]);
 
-  const [category, setCategory] = React.useState(() => myCats[0] || CATEGORIES[0]);
-  React.useEffect(() => { if (!myCats.includes(category)) setCategory(myCats[0] || CATEGORIES[0]); }, [myCats]);
+  const getUrlParam = (key, fallback) => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(key) || fallback;
+  };
+  const storedFav = typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') : null;
 
-  const [view, setView] = React.useState("clasificacion"); // 'clasificacion' | 'resultados' | 'goleadores'
+  const initialCatGuess = getUrlParam('cat', storedFav || (myCats[0] || CATEGORIES[0]));
+  const [category, setCategory] = React.useState(initialCatGuess);
+  React.useEffect(() => {
+    if (!myCats.includes(category)) {
+      setCategory(myCats.includes(initialCatGuess) ? initialCatGuess : (myCats[0] || CATEGORIES[0]));
+    }
+  }, [myCats]);
+
+  const [view, setView] = React.useState(getUrlParam('vista', 'clasificacion')); // 'clasificacion' | 'resultados' | 'goleadores'
   const [search, setSearch] = React.useState("");
+  const [fav, setFav] = React.useState(() => (typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') === initialCatGuess : false));
+  React.useEffect(() => { setFav((typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') : '') === category); }, [category]);
+
+  const toggleFav = () => {
+    if (fav) {
+      localStorage.removeItem('fav_comp_cat');
+      setFav(false);
+    } else {
+      localStorage.setItem('fav_comp_cat', category);
+      setFav(true);
+    }
+  };
+
+  // Sync URL params
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('cat', category);
+    params.set('vista', view);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+  }, [category, view]);
 
   // Prefetch resultados/goleadores para carga rápida
   React.useEffect(() => {
@@ -78,6 +109,13 @@ export default function CentroCompeticionTecnico() {
     staleTime: 5 * 60_000,
     gcTime: 60 * 60_000,
   });
+
+  // Filtro rápido por buscador (como en el centro familia)
+  const filteredStandingsPack = React.useMemo(() => {
+    if (!standingsPack || !search.trim()) return standingsPack;
+    const q = search.toLowerCase();
+    return { ...standingsPack, data: (standingsPack.data || []).filter(r => (r.nombre_equipo || '').toLowerCase().includes(q)) };
+  }, [standingsPack, search]);
 
   // Próximo partido de la categoría actual para análisis/registro
   const { data: callups = [] } = useQuery({
@@ -197,6 +235,11 @@ export default function CentroCompeticionTecnico() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 w-full">
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl md:text-3xl font-bold">Centro de Competición (Técnicos)</h1>
+          {fav ? (
+            <Button variant="ghost" size="icon" onClick={toggleFav} title="Quitar favorito"><Star className="w-5 h-5 text-yellow-500"/></Button>
+          ) : (
+            <Button variant="ghost" size="icon" onClick={toggleFav} title="Marcar favorito"><StarOff className="w-5 h-5 text-slate-500"/></Button>
+          )}
           <Badge variant="outline">{isCoordinator ? 'Coordinación' : 'Entrenador'}</Badge>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -270,7 +313,7 @@ export default function CentroCompeticionTecnico() {
         isLoading ? (
           <Card><CardContent className="p-8 text-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div><p className="text-slate-600 text-sm">Cargando clasificación…</p></CardContent></Card>
         ) : standingsPack ? (
-          <StandingsDisplay data={standingsPack} fullPage={true} />
+          <StandingsDisplay data={filteredStandingsPack} fullPage={true} />
         ) : (
           <Card className="border-2 border-dashed"><CardContent className="p-8 text-center text-slate-500">Sin datos de clasificación para {category}</CardContent></Card>
         )
