@@ -163,7 +163,7 @@ export default function PlayerProfile() {
                 <UserCircle className="w-12 h-12 text-slate-400" />
               )}
             </div>
-            <div className="w-full grid gap-2 sm:grid-cols-[1fr_auto] items-center">
+            <div className="w-full grid gap-2 sm:grid-cols-1 md:grid-cols-[1fr_auto] items-center">
               <Input
                 value={form.nombre}
                 onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
