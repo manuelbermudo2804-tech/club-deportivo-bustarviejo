@@ -33,37 +33,51 @@ export default function PositionEvolution({ categoryFullName }) {
     staleTime: 60_000,
   });
 
-  // Agrupar por jornada
+  // Agrupar por jornada (normalizando valores no numéricos)
   const jornadas = React.useMemo(() => {
+    const norm = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
     const byJ = rows.reduce((acc, r) => {
-      const j = r.jornada ?? 0;
+      const j = norm(r.jornada);
       if (!acc[j]) acc[j] = [];
       acc[j].push(r);
       return acc;
     }, {});
-    return Object.keys(byJ)
-      .map((j) => parseInt(j))
-      .sort((a, b) => a - b)
-      .map((j) => ({ jornada: j, data: rows.filter((r) => (r.jornada ?? 0) === j) }));
+    const keys = Object.keys(byJ)
+      .map((k) => Number(k))
+      .filter((k) => Number.isFinite(k))
+      .sort((a, b) => a - b);
+    return keys.map((j) => ({ jornada: j, data: byJ[j] || [] }));
   }, [rows]);
 
-  // Lista de equipos (del último corte)
+  // Lista de equipos (del último corte no vacío)
   const teamOptions = React.useMemo(() => {
     if (jornadas.length === 0) return [];
-    const last = jornadas[jornadas.length - 1].data;
-    const names = [...new Set(last.map((r) => r.nombre_equipo).filter(Boolean))];
+    let lastNonEmpty = [];
+    for (let i = jornadas.length - 1; i >= 0; i--) {
+      const data = jornadas[i].data || [];
+      if (data.length) { lastNonEmpty = data; break; }
+    }
+    const source = lastNonEmpty.length ? lastNonEmpty : (jornadas[0]?.data || []);
+    const names = [...new Set(source.map((r) => r.nombre_equipo).filter(Boolean))];
     return names.sort((a, b) => a.localeCompare(b));
   }, [jornadas]);
 
-  // Selección por defecto robusta: cuando hay equipos, fijamos club y primer rival distinto
+  // Selección por defecto robusta sin pisar elecciones del usuario
   React.useEffect(() => {
     if (teamOptions.length > 0) {
       const club = teamOptions.find(inferClubTeamName) || teamOptions[0];
-      const other = teamOptions.find((n) => n !== club) || club;
-      setMyTeam(club);
-      setRivalTeam(other);
+      if (!myTeam || !teamOptions.includes(myTeam)) {
+        setMyTeam(club);
+      }
+      const fallbackRival = teamOptions.find((n) => n !== (myTeam || club)) || club;
+      if (!rivalTeam || !teamOptions.includes(rivalTeam) || rivalTeam === myTeam) {
+        setRivalTeam(fallbackRival);
+      }
     }
-  }, [teamOptions]);
+  }, [teamOptions, myTeam, rivalTeam]);
 
   // Construir series por equipo
   const buildSeries = React.useCallback(
@@ -83,6 +97,14 @@ export default function PositionEvolution({ categoryFullName }) {
 
   const mySeries = buildSeries(myTeam);
   const rivalSeries = buildSeries(rivalTeam);
+
+  // Evitar que ambos sean iguales tras cambios
+  React.useEffect(() => {
+    if (myTeam && rivalTeam && myTeam === rivalTeam) {
+      const alt = teamOptions.find((t) => t !== myTeam);
+      if (alt) setRivalTeam(alt);
+    }
+  }, [myTeam, rivalTeam, teamOptions]);
 
   // Preparar datos combinados para recharts (por x=jornada)
   const chartData = React.useMemo(() => {
@@ -131,7 +153,7 @@ export default function PositionEvolution({ categoryFullName }) {
               <TabsTrigger value="puntos">Puntos</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Select value={myTeam} onValueChange={setMyTeam} disabled={disabledSelects}>
+          <Select value={myTeam} onValueChange={(v) => setMyTeam(v)} disabled={disabledSelects}>
             <SelectTrigger className="w-[180px]"><SelectValue placeholder="Mi equipo" /></SelectTrigger>
             <SelectContent className="z-[1000]">
               {teamOptions.map((t) => (
@@ -140,7 +162,7 @@ export default function PositionEvolution({ categoryFullName }) {
             </SelectContent>
           </Select>
           <span className="text-slate-400">vs</span>
-          <Select value={rivalTeam} onValueChange={setRivalTeam} disabled={disabledSelects || teamOptions.length < 2}>
+          <Select value={rivalTeam} onValueChange={(v) => setRivalTeam(v)} disabled={disabledSelects || teamOptions.length < 2}>
             <SelectTrigger className="w-[180px]"><SelectValue placeholder="Rival" /></SelectTrigger>
             <SelectContent className="z-[1000]">
               {teamOptions.filter((t) => t !== myTeam).map((t) => (
