@@ -294,6 +294,7 @@ export default function CentroCompeticion() {
                   variant={adminTab === 'resultados' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('resultados'); setView('resultados'); }}
                   className={`${adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}
+
                 >
                   Resultados
                 </Button>
