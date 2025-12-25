@@ -628,6 +628,9 @@ Sé directo, práctico y enfocado en acciones concretas que el entrenador pueda 
                       </CardHeader>
                     </Card>
 
+                    {/* Mostrar la tabla de clasificación directamente para que Coordinadores/Entrenadores la vean sin tener que abrirla */}
+                    <StandingsDisplay data={latestStanding} />
+
                     {matchObservations.filter(o => o.categoria === cat.fullName).length > 0 && !showObservationForm && pendingCallups.length === 0 && (
                       <Card className="bg-green-50 border-2 border-green-300">
                         <CardContent className="p-3 text-center">
