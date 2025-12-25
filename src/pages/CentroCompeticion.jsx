@@ -285,7 +285,7 @@ export default function CentroCompeticion() {
                 <Button
                   variant={adminTab === 'clasificacion' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('clasificacion'); setView('clasificacion'); }}
-                  className={`${adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''} h-9 text-xs w-full`}
+                  className={`${adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''} w-full px-2 py-2 text-xs whitespace-normal leading-tight`}
                 >
                   Clasificación
                 </Button>
