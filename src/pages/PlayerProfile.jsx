@@ -112,7 +112,7 @@ export default function PlayerProfile() {
         contacto_emergencia_telefono: form.ficha_medica.contacto_emergencia_telefono,
       },
     };
-    updateMutation.mutate(payload);
+    await updateMutation.mutateAsync(payload);
   };
 
   if (isLoading) {
