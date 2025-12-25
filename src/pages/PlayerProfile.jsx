@@ -193,6 +193,11 @@ export default function PlayerProfile() {
           </div>
         </CardContent>
       </Card>
+      <div className="mt-4 flex justify-center">
+        <Button onClick={handleSave} className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto">
+          <Save className="w-4 h-4 mr-2" /> Guardar cambios
+        </Button>
+      </div>
 
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
