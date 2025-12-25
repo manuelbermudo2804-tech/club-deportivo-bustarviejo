@@ -806,6 +806,8 @@ export default function Layout({ children, currentPageName }) {
         }
 
         setIsPlayer(playerDetected);
+        // Fast path: render UI immediately while background data loads
+        setIsLoading(false);
 
         console.log('🔍 ROLES DETECTADOS:', {
           email: currentUser.email,

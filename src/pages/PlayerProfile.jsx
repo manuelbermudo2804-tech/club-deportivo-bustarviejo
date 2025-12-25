@@ -33,6 +33,8 @@ export default function PlayerProfile() {
     },
     initialData: null,
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    gcTime: 300_000,
   });
 
   const [form, setForm] = React.useState({
@@ -154,7 +156,7 @@ export default function PlayerProfile() {
           <div className="flex flex-col items-center text-center gap-3">
             <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
               {form.foto_url ? (
-                <img src={form.foto_url} alt="Foto" className="w-full h-full object-cover" />
+                <img src={form.foto_url} alt="Foto" loading="lazy" decoding="async" className="w-full h-full object-cover" />
               ) : (
                 <UserCircle className="w-12 h-12 text-slate-400" />
               )}
