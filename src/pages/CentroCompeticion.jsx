@@ -279,12 +279,30 @@ export default function CentroCompeticion() {
       {isAdmin && (
         <Card className="mb-4 border-2 border-orange-500">
           <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="grid gap-2 md:grid-cols-[1fr_auto] items-start">
               <div className="font-semibold">Herramientas de Administración</div>
-              <div className="flex gap-1">
-                <Button variant={adminTab === 'clasificacion' ? 'default' : 'outline'} onClick={() => { setAdminTab('clasificacion'); setView('clasificacion'); }} className={adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Clasificación</Button>
-                <Button variant={adminTab === 'resultados' ? 'default' : 'outline'} onClick={() => { setAdminTab('resultados'); setView('resultados'); }} className={adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Resultados</Button>
-                <Button variant={adminTab === 'goleadores' ? 'default' : 'outline'} onClick={() => { setAdminTab('goleadores'); setView('goleadores'); }} className={adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Goleadores</Button>
+              <div className="grid grid-cols-3 gap-2 w-full md:w-auto">
+                <Button
+                  variant={adminTab === 'clasificacion' ? 'default' : 'outline'}
+                  onClick={() => { setAdminTab('clasificacion'); setView('clasificacion'); }}
+                  className={`${adminTab === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700' : ''} h-9 text-xs w-full`}
+                >
+                  Clasificación
+                </Button>
+                <Button
+                  variant={adminTab === 'resultados' ? 'default' : 'outline'}
+                  onClick={() => { setAdminTab('resultados'); setView('resultados'); }}
+                  className={`${adminTab === 'resultados' ? 'bg-orange-600 hover:bg-orange-700' : ''} h-9 text-xs w-full`}
+                >
+                  Resultados
+                </Button>
+                <Button
+                  variant={adminTab === 'goleadores' ? 'default' : 'outline'}
+                  onClick={() => { setAdminTab('goleadores'); setView('goleadores'); }}
+                  className={`${adminTab === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700' : ''} h-9 text-xs w-full`}
+                >
+                  Goleadores
+                </Button>
               </div>
             </div>
             <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
