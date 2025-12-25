@@ -264,7 +264,7 @@ export default function PlayerProfile() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="text-center">
             <CardTitle className="text-base">Salud (privado)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
