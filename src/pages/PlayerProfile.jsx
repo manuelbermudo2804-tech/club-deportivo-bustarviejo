@@ -294,7 +294,7 @@ export default function PlayerProfile() {
             </div>
             <div className="grid gap-2">
               <span className="text-xs text-slate-500">Contacto de emergencia</span>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Input
                   value={form.ficha_medica.contacto_emergencia_nombre}
                   onChange={(e) => setForm((p) => ({ ...p, ficha_medica: { ...p.ficha_medica, contacto_emergencia_nombre: e.target.value } }))}
