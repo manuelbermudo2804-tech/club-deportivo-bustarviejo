@@ -55,17 +55,15 @@ export default function PositionEvolution({ categoryFullName }) {
     return names.sort((a, b) => a.localeCompare(b));
   }, [jornadas]);
 
-  // Selección por defecto: nuestro equipo y un rival cualquiera
+  // Selección por defecto robusta: cuando hay equipos, fijamos club y primer rival distinto
   React.useEffect(() => {
-    if (!myTeam && teamOptions.length > 0) {
+    if (teamOptions.length > 0) {
       const club = teamOptions.find(inferClubTeamName) || teamOptions[0];
+      const other = teamOptions.find((n) => n !== club) || club;
       setMyTeam(club);
+      setRivalTeam(other);
     }
-    if (!rivalTeam && teamOptions.length > 1) {
-      const firstOther = teamOptions.find((n) => n !== myTeam) || teamOptions[1] || teamOptions[0];
-      setRivalTeam(firstOther);
-    }
-  }, [teamOptions, myTeam, rivalTeam]);
+  }, [teamOptions]);
 
   // Construir series por equipo
   const buildSeries = React.useCallback(
@@ -116,6 +114,7 @@ export default function PositionEvolution({ categoryFullName }) {
   };
 
   const isEmpty = jornadas.length === 0 || teamOptions.length === 0;
+  const disabledSelects = teamOptions.length === 0;
 
   return (
     <Card className="bg-white/90">
@@ -132,18 +131,18 @@ export default function PositionEvolution({ categoryFullName }) {
               <TabsTrigger value="puntos">Puntos</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Select value={myTeam} onValueChange={setMyTeam}>
+          <Select value={myTeam} onValueChange={setMyTeam} disabled={disabledSelects}>
             <SelectTrigger className="w-[180px]"><SelectValue placeholder="Mi equipo" /></SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[1000]">
               {teamOptions.map((t) => (
                 <SelectItem key={t} value={t}>{t}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <span className="text-slate-400">vs</span>
-          <Select value={rivalTeam} onValueChange={setRivalTeam}>
+          <Select value={rivalTeam} onValueChange={setRivalTeam} disabled={disabledSelects || teamOptions.length < 2}>
             <SelectTrigger className="w-[180px]"><SelectValue placeholder="Rival" /></SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[1000]">
               {teamOptions.filter((t) => t !== myTeam).map((t) => (
                 <SelectItem key={t} value={t}>{t}</SelectItem>
               ))}
@@ -169,7 +168,7 @@ export default function PositionEvolution({ categoryFullName }) {
                     <XAxis dataKey="jornada" tick={{ fontSize: 12 }} />
                     <YAxis domain={invertDomain()} tick={{ fontSize: 12 }} allowDecimals={false} />
                     <Tooltip formatter={(v, n) => [v, n === "mi_pos" ? myTeam : rivalTeam]} labelFormatter={(l) => `Jornada ${l}`} />
-                    <Legend formatter={(v) => (v === "mi_pos" ? myTeam : rivalTeam)} />
+                    <Legend formatter={(v) => (v === "mi_pos" ? myTeam : rivalTeam)} wrapperStyle={{ fontSize: 12 }} />
                     <Line type="monotone" dataKey="mi_pos" stroke="#f97316" strokeWidth={3} dot={false} />
                     <Line type="monotone" dataKey="rv_pos" stroke="#10b981" strokeWidth={3} dot={false} />
                   </LineChart>
@@ -182,7 +181,7 @@ export default function PositionEvolution({ categoryFullName }) {
                     <XAxis dataKey="jornada" tick={{ fontSize: 12 }} />
                     <YAxis domain={pointsDomain()} tick={{ fontSize: 12 }} allowDecimals={false} />
                     <Tooltip formatter={(v, n) => [v, n === "mi_pts" ? myTeam : rivalTeam]} labelFormatter={(l) => `Jornada ${l}`} />
-                    <Legend formatter={(v) => (v === "mi_pts" ? myTeam : rivalTeam)} />
+                    <Legend formatter={(v) => (v === "mi_pts" ? myTeam : rivalTeam)} wrapperStyle={{ fontSize: 12 }} />
                     <Line type="monotone" dataKey="mi_pts" stroke="#f97316" strokeWidth={3} dot={false} />
                     <Line type="monotone" dataKey="rv_pts" stroke="#10b981" strokeWidth={3} dot={false} />
                   </LineChart>
