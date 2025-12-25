@@ -11,16 +11,16 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
     queryKey: ['resultados', categoryFullName],
     queryFn: async () => {
       console.log('🔄 Cargando resultados para:', categoryFullName);
-      const result = await base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 50);
-      console.log('✅ Resultados cargados:', result.length);
+      const result = await base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 500);
+      console.log('✅ Resultados cargados:', result.length, result);
       return result;
     },
     initialData: [],
-    staleTime: 15 * 60_000,
+    staleTime: 1 * 60_000,
     gcTime: 60 * 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
   });
 
   if (isLoading) {
