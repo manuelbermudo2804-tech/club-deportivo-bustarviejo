@@ -92,18 +92,18 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
               .map((m) => {
                 const hasScore = Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante);
                 return (
-                  <div key={m.id} className="grid grid-cols-[1fr_auto_1fr] items-center py-3 gap-3">
-                    <div className="pr-2 text-slate-800 whitespace-normal break-words font-medium">
+                  <div key={m.id} className="grid grid-cols-[1fr_auto_1fr] items-center py-3 gap-2">
+                    <div className="pr-2 text-slate-800 text-sm whitespace-normal break-words font-medium text-left">
                       {m.local}
                     </div>
 
-                    <div className="px-2 text-center">
-                      <div className={`text-lg font-extrabold ${hasScore ? 'text-slate-900' : 'text-slate-400'}`}>
+                    <div className="px-3 text-center flex-shrink-0 min-w-[60px]">
+                      <div className={`text-lg font-extrabold whitespace-nowrap ${hasScore ? 'text-slate-900' : 'text-slate-400'}`}>
                         {hasScore ? `${m.goles_local} - ${m.goles_visitante}` : ' - '}
                       </div>
                     </div>
 
-                    <div className="pl-2 text-right text-slate-800 whitespace-normal break-words font-medium">
+                    <div className="pl-2 text-slate-800 text-sm whitespace-normal break-words font-medium text-right">
                       {m.visitante}
                     </div>
                   </div>

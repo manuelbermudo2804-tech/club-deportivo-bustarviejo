@@ -197,12 +197,13 @@ export default function CentroCompeticion() {
       for (const p of players) {
         const existing = await base44.entities.Goleador.filter({ categoria, temporada, jugador_nombre: p.jugador_nombre, equipo: p.equipo });
         if (existing.length) {
-          await base44.entities.Goleador.update(existing[0].id, { goles: p.goles });
+          await base44.entities.Goleador.update(existing[0].id, { goles: Number(p.goles) });
         } else {
-          await base44.entities.Goleador.create({ categoria, temporada, jugador_nombre: p.jugador_nombre, equipo: p.equipo, goles: p.goles });
+          await base44.entities.Goleador.create({ categoria, temporada, jugador_nombre: p.jugador_nombre, equipo: p.equipo, goles: Number(p.goles) });
         }
       }
       setScorersDraft(null);
+      queryClient.invalidateQueries({ queryKey: ['goleadores', categoria] });
       alert('Goleadores guardados');
     } finally {
       setSavingScorers(false);
