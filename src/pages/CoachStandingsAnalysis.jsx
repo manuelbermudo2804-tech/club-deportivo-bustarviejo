@@ -62,6 +62,15 @@ export default function CoachStandingsAnalysis() {
     refetchOnWindowFocus: false,
   });
 
+  // Selección por defecto de pestaña cuando no hay categorías asignadas al entrenador
+  React.useEffect(() => {
+    if (!activeTab) {
+      const catWithData = CATEGORIES.find(c => standings.some(s => s.categoria === c.fullName));
+      if (catWithData) setActiveTab(catWithData.id);
+      else setActiveTab(CATEGORIES[0].id);
+    }
+  }, [standings, activeTab]);
+
   const { data: attendances = [] } = useQuery({
     queryKey: ['attendances'],
     queryFn: () => base44.entities.Attendance.list(),
@@ -127,9 +136,12 @@ export default function CoachStandingsAnalysis() {
       return groupAcc;
     }, {});
 
-    acc[cat.id] = Object.values(grouped).sort((a, b) => 
-      new Date(b.fecha_actualizacion) - new Date(a.fecha_actualizacion)
-    );
+    acc[cat.id] = Object.values(grouped).sort((a, b) => {
+      const ad = a.fecha_actualizacion ? new Date(a.fecha_actualizacion).getTime() : 0;
+      const bd = b.fecha_actualizacion ? new Date(b.fecha_actualizacion).getTime() : 0;
+      if (ad !== bd) return bd - ad;
+      return (b.jornada ?? 0) - (a.jornada ?? 0);
+    });
     
     return acc;
   }, {});
