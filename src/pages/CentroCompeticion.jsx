@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
+import PositionEvolution from "../components/standings/PositionEvolution";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
 import UploadStandingsForm from "../components/standings/UploadStandingsForm";
@@ -393,7 +394,10 @@ export default function CentroCompeticion() {
         loadingStandings ? (
           <Card><CardContent className="p-8 text-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div><p className="text-slate-600 text-sm">Cargando clasificación...</p></CardContent></Card>
         ) : filteredStandingsPack ? (
-          <StandingsDisplay data={filteredStandingsPack} fullPage={true} />
+          <div className="space-y-4">
+            <StandingsDisplay data={filteredStandingsPack} fullPage={true} />
+            <PositionEvolution categoryFullName={category} />
+          </div>
         ) : (
           <Card className="border-2 border-dashed"><CardContent className="p-8 text-center text-slate-500">Sin datos de clasificación para {category}</CardContent></Card>
         )
