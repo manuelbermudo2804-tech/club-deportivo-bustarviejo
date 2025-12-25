@@ -90,7 +90,7 @@ export default function PlayerProfile() {
     setForm((prev) => ({ ...prev, foto_url: file_url }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!player) return;
     const payload = {
       // Nota: NO modificamos 'deporte' (categoría) – solo lectura
