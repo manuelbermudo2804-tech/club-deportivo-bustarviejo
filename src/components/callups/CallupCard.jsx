@@ -3,11 +3,11 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MapPin, Clock, Users, Check, X, HelpCircle, Calendar, ExternalLink } from "lucide-react";
+import { Edit, Trash2, MapPin, Clock, Users, Check, X, HelpCircle, Calendar, ExternalLink, Lock, Unlock } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
+export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseNow, onReopen }) {
   const jugadores = callup.jugadores_convocados || [];
   console.log('Jugadores en CallupCard:', jugadores);
   const confirmed = jugadores.filter(j => j.confirmacion === "asistire").length;
@@ -231,21 +231,44 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach }) {
 
           {/* Actions */}
           {isCoach && (
-            <div className="flex gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 pt-2">
               {!canDelete && (
-                <Button
-                  onClick={() => onEdit(callup)}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar
-                </Button>
+                <>
+                  <Button
+                    onClick={() => onEdit?.(callup)}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 min-w-[140px]"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Editar
+                  </Button>
+                  {!callup.cerrada ? (
+                    <Button
+                      onClick={() => onCloseNow?.(callup)}
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1 min-w-[160px]"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      Cerrar ahora
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => onReopen?.(callup)}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 min-w-[140px]"
+                    >
+                      <Unlock className="w-4 h-4 mr-2" />
+                      Reabrir
+                    </Button>
+                  )}
+                </>
               )}
               {canDelete && (
                 <Button
-                  onClick={() => onDelete(callup)}
+                  onClick={() => onDelete?.(callup)}
                   variant="destructive"
                   size="sm"
                   className="flex-1 bg-red-600 hover:bg-red-700"

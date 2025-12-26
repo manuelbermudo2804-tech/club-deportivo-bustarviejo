@@ -276,6 +276,14 @@ Email: cdbustarviejo@gmail.com
     }
   };
 
+  // Cierre/Reapertura manual
+  const handleCloseNow = (callup) => {
+    updateCallupMutation.mutate({ id: callup.id, callupData: { ...callup, cerrada: true } });
+  };
+  const handleReopen = (callup) => {
+    updateCallupMutation.mutate({ id: callup.id, callupData: { ...callup, cerrada: false } });
+  };
+
   const handleCancel = () => {
     setShowForm(false);
     setEditingCallup(null);
@@ -317,6 +325,44 @@ Email: cdbustarviejo@gmail.com
   const filteredByStatus = statusFilter === "all" 
     ? upcomingCallups 
     : upcomingCallups.filter(c => c.publicada === (statusFilter === "published"));
+
+  // AUTO-CIERRE: 2h15 tras hora_partido o 00:30 del día siguiente si no hay hora
+  const autoCloseRanRef = React.useRef(false);
+  useEffect(() => {
+    if (!callups || autoCloseRanRef.current) return;
+    autoCloseRanRef.current = true;
+
+    const now = new Date();
+    const toClose = (callups || []).filter(c => {
+      if (c.cerrada) return false;
+      const baseDate = new Date(c.fecha_partido);
+      if (isNaN(baseDate.getTime())) return false;
+      let cutoff;
+      if (c.hora_partido) {
+        const [hh, mm] = String(c.hora_partido).split(':').map(n => parseInt(n, 10));
+        const start = new Date(baseDate);
+        start.setHours(hh || 0, mm || 0, 0, 0);
+        cutoff = new Date(start.getTime() + 135 * 60 * 1000); // 2h15m
+      } else {
+        cutoff = new Date(baseDate);
+        cutoff.setDate(cutoff.getDate() + 1);
+        cutoff.setHours(0, 30, 0, 0); // 00:30 del día siguiente
+      }
+      return now > cutoff;
+    });
+
+    if (toClose.length === 0) {
+      autoCloseRanRef.current = false; // permitir reintentos cuando cambie callups
+      return;
+    }
+
+    Promise.all(toClose.map(c => base44.entities.Convocatoria.update(c.id, { ...c, cerrada: true })))
+      .then(() => {
+        autoCloseRanRef.current = false;
+        queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+      })
+      .catch(() => { autoCloseRanRef.current = false; });
+  }, [callups, queryClient]);
 
   const prepareExportData = () => {
     return filteredByStatus.map(c => ({
@@ -512,6 +558,8 @@ Email: cdbustarviejo@gmail.com
                   callup={callup}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onCloseNow={handleCloseNow}
+                  onReopen={handleReopen}
                   isCoach={user?.es_entrenador || user?.role === "admin"}
                 />
               ))}
