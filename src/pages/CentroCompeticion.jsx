@@ -61,9 +61,8 @@ export default function CentroCompeticion() {
   const { data: config } = useQuery({
     queryKey: ['standings-config', category],
     queryFn: async () => {
-      // Asegurar que se devuelve SOLO la configuración de la categoría actual
       const list = await base44.entities.StandingsConfig.filter({ categoria: category });
-      return list?.[0] || null;
+      return list[0] || null;
     }
   });
   const [resultsUrl, setResultsUrl] = React.useState('');
@@ -383,7 +382,7 @@ export default function CentroCompeticion() {
             {adminTab === 'resultados' && (
               <>
                 <div className="grid md:grid-cols-6 gap-2">
-                  <Input className="md:col-span-4" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL RFFM/RFEF de resultados (solo esta categoría)" />
+                  <Input className="md:col-span-4" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL RFFM/RFEF de resultados" />
                   <div className="flex gap-2 md:col-span-2">
                     <Button variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
                     <Button variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
@@ -401,7 +400,7 @@ export default function CentroCompeticion() {
             {adminTab === 'goleadores' && (
               <>
                 <div className="grid md:grid-cols-6 gap-2">
-                  <Input className="md:col-span-4" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL RFFM/RFEF de goleadores (solo esta categoría)" />
+                  <Input className="md:col-span-4" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL RFFM/RFEF de goleadores" />
                   <div className="flex gap-2 md:col-span-2">
                     <Button variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
                     <Button variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>

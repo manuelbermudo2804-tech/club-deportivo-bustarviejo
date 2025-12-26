@@ -27,20 +27,14 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
     if (!categoria) return;
     (async () => {
       try {
-        const cfgs = await base44.entities.StandingsConfig.filter({ categoria });
-        const cfg = cfgs?.[0];
+        const configs = await base44.entities.StandingsConfig.list();
+        const cfg = configs.find(c => c.categoria === categoria);
         if (cfg) {
           setRfefUrlState(cfg.rfef_url || "");
           setGrupoText(cfg.grupo || "");
           setConfigId(cfg.id);
-        } else {
-          setRfefUrlState("");
-          setGrupoText("");
-          setConfigId(null);
         }
-      } catch (e) {
-        setConfigId(null);
-      }
+      } catch (e) {}
     })();
   }, [categoria]);
 
@@ -324,8 +318,7 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
                 onClick={async () => {
                   try {
                     if (configId) {
-                      // No cambiar 'categoria' al actualizar para no mover el registro de otra categoría
-                      await base44.entities.StandingsConfig.update(configId, { grupo: grupoText, rfef_url: rfefUrlState });
+                      await base44.entities.StandingsConfig.update(configId, { categoria, grupo: grupoText, rfef_url: rfefUrlState });
                     } else {
                       const created = await base44.entities.StandingsConfig.create({ categoria, grupo: grupoText, rfef_url: rfefUrlState });
                       setConfigId(created.id);
