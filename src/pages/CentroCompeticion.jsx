@@ -260,12 +260,16 @@ export default function CentroCompeticion() {
   const openUrl = (url) => url && window.open(url, '_blank');
 
   const saveConfigUrls = async (updates) => {
-    if (config) {
-      // No tocar la categoría al actualizar para no "mover" el registro entre categorías
-      await base44.entities.StandingsConfig.update(config.id, { ...updates });
+    // Refrescar por categoría para evitar actualizar registros de otras categorías
+    const currentList = await base44.entities.StandingsConfig.filter({ categoria: category });
+    const currentCfg = currentList?.[0];
+
+    if (currentCfg) {
+      await base44.entities.StandingsConfig.update(currentCfg.id, { ...updates });
     } else {
       await base44.entities.StandingsConfig.create({ categoria: category, ...updates });
     }
+
     queryClient.invalidateQueries({ queryKey: ['standings-config', category] });
     alert('URL guardada');
   };
