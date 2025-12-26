@@ -61,8 +61,9 @@ export default function CentroCompeticion() {
   const { data: config } = useQuery({
     queryKey: ['standings-config', category],
     queryFn: async () => {
+      // Asegurar que se devuelve SOLO la configuración de la categoría actual
       const list = await base44.entities.StandingsConfig.filter({ categoria: category });
-      return list[0] || null;
+      return list?.[0] || null;
     }
   });
   const [resultsUrl, setResultsUrl] = React.useState('');
