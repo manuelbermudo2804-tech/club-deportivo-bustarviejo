@@ -38,6 +38,7 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
   }
 
   // Agrupar por temporada
+  // Deduplicar visualmente por jugador+equipo dentro de cada temporada (por si hay restos)
   const groupedByTemporada = scorers.reduce((acc, scorer) => {
     if (!acc[scorer.temporada]) {
       acc[scorer.temporada] = [];
