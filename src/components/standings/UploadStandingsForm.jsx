@@ -27,14 +27,23 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
     if (!categoria) return;
     (async () => {
       try {
-        const configs = await base44.entities.StandingsConfig.list();
-        const cfg = configs.find(c => c.categoria === categoria);
+        const list = await base44.entities.StandingsConfig.filter({ categoria });
+        const cfg = list?.[0];
         if (cfg) {
           setRfefUrlState(cfg.rfef_url || "");
           setGrupoText(cfg.grupo || "");
           setConfigId(cfg.id);
+        } else {
+          // Si no hay config para esta categoría, limpiar estados para NO reutilizar de otra categoría
+          setRfefUrlState("");
+          setGrupoText("");
+          setConfigId(null);
         }
-      } catch (e) {}
+      } catch (e) {
+        setRfefUrlState("");
+        setGrupoText("");
+        setConfigId(null);
+      }
     })();
   }, [categoria]);
 
