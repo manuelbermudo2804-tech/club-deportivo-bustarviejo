@@ -228,7 +228,7 @@ export default function AlertCenter({
         priority: 2
       });
     }
-    if (pendingSurveys > 0) {
+    if (pendingSurveys > 0 && !isCoordinator) {
       alerts.push({
         id: "surveys",
         icon: Star,
