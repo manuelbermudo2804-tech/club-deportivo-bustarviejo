@@ -327,7 +327,8 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
                 onClick={async () => {
                   try {
                     if (configId) {
-                      await base44.entities.StandingsConfig.update(configId, { categoria, grupo: grupoText, rfef_url: rfefUrlState });
+                      // Mantener fija la categoría del registro existente
+                      await base44.entities.StandingsConfig.update(configId, { grupo: grupoText, rfef_url: rfefUrlState });
                     } else {
                       const created = await base44.entities.StandingsConfig.create({ categoria, grupo: grupoText, rfef_url: rfefUrlState });
                       setConfigId(created.id);
