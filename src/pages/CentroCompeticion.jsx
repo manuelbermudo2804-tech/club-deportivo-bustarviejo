@@ -261,7 +261,8 @@ export default function CentroCompeticion() {
 
   const saveConfigUrls = async (updates) => {
     if (config) {
-      await base44.entities.StandingsConfig.update(config.id, { categoria: category, ...updates });
+      // No tocar la categoría al actualizar para no "mover" el registro entre categorías
+      await base44.entities.StandingsConfig.update(config.id, { ...updates });
     } else {
       await base44.entities.StandingsConfig.create({ categoria: category, ...updates });
     }
