@@ -50,7 +50,6 @@ export default function CoordinatorAlertCenter({
               isAdmin={false}
               isCoach={false}
               isParent={true}
-              isCoordinator={true}
               userEmail={userEmail}
               userSports={myPlayersSports}
             />

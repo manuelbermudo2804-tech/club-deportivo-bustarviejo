@@ -104,7 +104,7 @@ export default function QuickMatchObservationForm({
     </div>
   );
 
-  return (
+  return (<>
     <Card className="border-2 border-orange-500">
       <CardHeader className="pb-4 bg-gradient-to-r from-orange-50 to-orange-100">
         <div className="flex items-center justify-between">
@@ -215,5 +215,5 @@ export default function QuickMatchObservationForm({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
+    </>);
+    }
