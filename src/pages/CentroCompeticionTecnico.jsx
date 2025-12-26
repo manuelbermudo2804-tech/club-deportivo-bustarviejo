@@ -293,7 +293,6 @@ export default function CentroCompeticionTecnico() {
               jornada={standingsPack?.jornada}
               onSave={async (data) => {
                 await base44.entities.MatchObservation.create(data);
-                alert('Observación guardada');
               }}
               onCancel={() => setShowObservationForm(false)}
               entrenadorEmail={me?.email}
