@@ -70,14 +70,15 @@ export default function CentroCompeticion() {
   const [resultsUrl, setResultsUrl] = React.useState('');
   const [scorersUrl, setScorersUrl] = React.useState('');
   React.useEffect(() => {
-    if (config) {
+    // Al cambiar de categoría, NO heredar URLs de otras categorías
+    if (config?.categoria === category) {
       setResultsUrl(config.rfef_results_url || '');
       setScorersUrl(config.rfef_scorers_url || '');
     } else {
       setResultsUrl('');
       setScorersUrl('');
     }
-  }, [config]);
+  }, [config, category]);
   React.useEffect(() => { if (isAdmin) setAdminTab(view); }, [view, isAdmin]);
 
   React.useEffect(() => {
