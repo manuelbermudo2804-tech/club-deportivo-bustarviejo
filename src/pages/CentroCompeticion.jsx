@@ -187,8 +187,15 @@ export default function CentroCompeticion() {
     try {
       const { temporada, categoria, jornada, matches } = payload;
 
-      // 1) Borrar todos los resultados previos de esa jornada para evitar duplicados
-      const prev = await base44.entities.Resultado.filter({ categoria, temporada, jornada }, '-updated_date', 400);
+      // Determinar jornada objetivo: siempre sobrescribir la ÚLTIMA existente para esta temporada/categoría
+      const existingAll = await base44.entities.Resultado.filter({ categoria, temporada }, '-jornada', 1000);
+      const jornadasNums = existingAll
+        .map(r => Number(r.jornada))
+        .filter(n => Number.isFinite(n));
+      const targetJornada = jornadasNums.length ? Math.max(...jornadasNums) : (Number(jornada) || 1);
+
+      // 1) Borrar todos los resultados previos de la jornada objetivo para evitar duplicados
+      const prev = await base44.entities.Resultado.filter({ categoria, temporada, jornada: targetJornada }, '-updated_date', 400);
       for (const rec of prev) await base44.entities.Resultado.delete(rec.id);
 
       // 2) Insertar todo normalizado (partidos pendientes sin marcador)
@@ -196,7 +203,7 @@ export default function CentroCompeticion() {
       const rows = (matches || []).map(m => ({
         categoria,
         temporada,
-        jornada,
+        jornada: targetJornada,
         local: String(m.local || '').trim(),
         visitante: String(m.visitante || '').trim(),
         goles_local: isNum(m.goles_local) && isNum(m.goles_visitante) ? Number(m.goles_local) : undefined,
