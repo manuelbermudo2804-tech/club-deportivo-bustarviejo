@@ -383,7 +383,7 @@ export default function CentroCompeticion() {
             {adminTab === 'resultados' && (
               <>
                 <div className="grid md:grid-cols-6 gap-2">
-                  <Input className="md:col-span-4" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL RFFM/RFEF de resultados" />
+                  <Input className="md:col-span-4" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL RFFM/RFEF de resultados (solo esta categoría)" />
                   <div className="flex gap-2 md:col-span-2">
                     <Button variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
                     <Button variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
