@@ -35,41 +35,9 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
     refetchOnWindowFocus: false,
   });
 
-  // Resultados recientes por categoría de mis jugadores (para widget)
-  const { data: latestResults = [] } = useQuery({
-    queryKey: ['results-widget', playerCategories.join(',')],
-    queryFn: async () => {
-      if (playerCategories.length === 0) return [];
-      const all = await Promise.all(
-        playerCategories.map(cat => base44.entities.Resultado.filter({ categoria: cat }, '-jornada', 100))
-      );
-      const flat = all.flat();
-      const packs = playerCategories.map(cat => {
-        const rows = flat.filter(r => r.categoria === cat);
-        if (rows.length === 0) return null;
-        const jornadas = rows.map(r => r.jornada || 0);
-        const maxJ = jornadas.length ? Math.max(...jornadas) : 0;
-        return { categoria: cat, jornada: maxJ, data: rows.filter(r => (r.jornada || 0) === maxJ) };
-      }).filter(Boolean);
-      return packs;
-    },
-    enabled: playerCategories.length > 0,
-    staleTime: 60_000,
-  });
+  // Resumen de resultados desactivado para vista Familia (consulta eliminada)
 
-  // Top goleadores (mix de mis categorías)
-  const { data: topScorers = [] } = useQuery({
-    queryKey: ['scorers-widget', playerCategories.join(',')],
-    queryFn: async () => {
-      if (playerCategories.length === 0) return [];
-      const all = await Promise.all(
-        playerCategories.map(cat => base44.entities.Goleador.filter({ categoria: cat }, '-goles', 20))
-      );
-      return all.flat().sort((a,b) => (b.goles ?? 0) - (a.goles ?? 0)).slice(0, 5);
-    },
-    enabled: playerCategories.length > 0,
-    staleTime: 60_000,
-  });
+  // Resumen de goleadores desactivado para vista Familia (consulta eliminada)
 
   // Fetch callups for next matches
   const { data: allCallups = [] } = useQuery({
