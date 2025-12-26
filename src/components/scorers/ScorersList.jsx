@@ -49,6 +49,8 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
 
   const temporadas = Object.keys(groupedByTemporada).sort((a, b) => b.localeCompare(a));
 
+  const normalize = (s) => String(s || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').toUpperCase();
+
   if (scorers.length === 0) {
     return (
       <Card className="border-2 border-dashed border-slate-300">
