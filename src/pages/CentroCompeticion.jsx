@@ -14,9 +14,8 @@ import UploadResultsForm from "../components/results/UploadResultsForm";
 import ReviewResultsTable from "../components/results/ReviewResultsTable";
 import UploadScorersForm from "../components/scorers/UploadScorersForm";
 import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
-import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Trophy, List, Users, Star, StarOff, Share2, Search } from "lucide-react";
 import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
 
 const CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -113,66 +112,6 @@ export default function CentroCompeticion() {
       setFav(true);
     }
   };
-
-  // Checklist Lunes (integrado)
-  const weekKey = () => {
-    try { return format(new Date(), "RRRR-'W'II"); } catch { return new Date().toISOString().slice(0,10); }
-  };
-
-  const tipoForView = React.useMemo(() => {
-    if (view === 'clasificacion') return 'clasificacion';
-    if (view === 'resultados') return 'resultados';
-    if (view === 'goleadores') return 'goleadores';
-    return 'otro';
-  }, [view]);
-
-  const { data: compAssets = [], isLoading: loadingAssets } = useQuery({
-    queryKey: ['comp-assets', category, tipoForView],
-    queryFn: () => base44.entities.CompetitionAsset.filter({ categoria: category, tipo: tipoForView }, '-updated_date', 200),
-    initialData: [],
-    enabled: isAdmin
-  });
-
-  const assetsForSection = React.useMemo(() => compAssets, [compAssets]);
-
-  const checkAssetsMutation = useMutation({
-    mutationFn: async () => {
-      const { data } = await base44.functions.invoke('checkCompetitionAssets', { onlyActive: true, categoria: category, tipo: tipoForView });
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comp-assets', category, tipoForView] });
-    }
-  });
-
-  const autoRanRef = React.useRef(false);
-  React.useEffect(() => {
-    const isMonday = new Date().getDay() === 1; // 1 = lunes
-    if (isAdmin && isMonday && !autoRanRef.current) {
-      autoRanRef.current = true;
-      checkAssetsMutation.mutate();
-    }
-  }, [isAdmin, category, tipoForView]);
-
-  const markReviewed = async (asset) => {
-    const wk = weekKey();
-    const reviewed = Array.isArray(asset.reviewed_weeks) ? asset.reviewed_weeks : [];
-    if (!reviewed.includes(wk)) {
-      await base44.entities.CompetitionAsset.update(asset.id, { reviewed_weeks: [...reviewed, wk] });
-      queryClient.invalidateQueries({ queryKey: ['comp-assets', category, tipoForView] });
-    }
-  };
-
-  const statusCounts = React.useMemo(() => {
-    const c = { cambiado: 0, igual: 0, error: 0, nuevo: 0 };
-    for (const a of assetsForSection) c[a.status || 'nuevo'] = (c[a.status || 'nuevo'] || 0) + 1;
-    return c;
-  }, [assetsForSection]);
-
-  const pendingThisWeek = React.useMemo(() => {
-    const wk = weekKey();
-    return assetsForSection.filter(a => !(Array.isArray(a.reviewed_weeks) && a.reviewed_weeks.includes(wk))).length;
-  }, [assetsForSection]);
 
   const { data: standingsPack, isLoading: loadingStandings } = useQuery({
     queryKey: ['centro-standings', category],
@@ -430,51 +369,6 @@ export default function CentroCompeticion() {
               </div>
             </div>
             <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
-
-            {/* Checklist Lunes (integrado) */}
-            <div className="bg-slate-50 rounded-xl p-3 border">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <ClipboardCheck className="w-4 h-4 text-orange-600" />
-                  <span className="font-semibold">Checklist Lunes — {view}</span>
-                  <Badge variant="outline">{weekKey()}</Badge>
-                  {loadingAssets && <span className="text-xs text-slate-500">cargando…</span>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-red-100 text-red-700">Cambiadas: {statusCounts.cambiado}</Badge>
-                  <Badge className="bg-green-100 text-green-700">Igual: {statusCounts.igual}</Badge>
-                  {statusCounts.error > 0 && (
-                    <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> {statusCounts.error}</Badge>
-                  )}
-                  <Badge variant="outline">Por revisar: {pendingThisWeek}</Badge>
-                  <Button onClick={() => checkAssetsMutation.mutate()} disabled={checkAssetsMutation.isPending} className="gap-2 bg-orange-600 hover:bg-orange-700">
-                    <RefreshCw className={`w-4 h-4 ${checkAssetsMutation.isPending ? 'animate-spin' : ''}`} /> Comprobar
-                  </Button>
-                </div>
-              </div>
-              <div className="mt-2 grid gap-2">
-                {assetsForSection.map(a => (
-                  <div key={a.id} className="flex items-center justify-between gap-2 bg-white rounded-lg border p-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="truncate text-sm max-w-[56ch]" title={a.url}>{a.url}</span>
-                      <Badge className="capitalize">{a.tipo || 'otro'}</Badge>
-                      <Badge className={`capitalize ${a.status === 'cambiado' ? 'bg-red-100 text-red-700' : a.status === 'igual' ? 'bg-green-100 text-green-700' : a.status === 'error' ? 'bg-yellow-100 text-yellow-800' : 'bg-slate-100 text-slate-700'}`}>
-                        {a.status || 'nuevo'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">{a.last_checked_at ? new Date(a.last_checked_at).toLocaleString() : '—'}</span>
-                      <Button variant="outline" size="sm" onClick={() => markReviewed(a)}>
-                        <CheckCircle2 className="w-4 h-4 mr-1" /> Revisado
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {assetsForSection.length === 0 && (
-                  <div className="text-xs text-slate-500">Sin URLs registradas para esta vista/categoría.</div>
-                )}
-              </div>
-            </div>
 
             {adminTab === 'clasificacion' && (
               <>
