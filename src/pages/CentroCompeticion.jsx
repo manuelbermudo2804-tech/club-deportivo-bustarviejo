@@ -214,14 +214,41 @@ export default function CentroCompeticion() {
     setSavingScorers(true);
     try {
       const { temporada, categoria, players } = payload;
-      for (const p of players) {
-        const existing = await base44.entities.Goleador.filter({ categoria, temporada, jugador_nombre: p.jugador_nombre, equipo: p.equipo });
-        if (existing.length) {
-          await base44.entities.Goleador.update(existing[0].id, { goles: Number(p.goles) });
-        } else {
-          await base44.entities.Goleador.create({ categoria, temporada, jugador_nombre: p.jugador_nombre, equipo: p.equipo, goles: Number(p.goles) });
+
+      // 1) Borrar todos los registros previos de esa categoría + temporada (evita duplicados)
+      const prev = await base44.entities.Goleador.filter({ categoria, temporada }, '-updated_date', 5000);
+      for (const rec of prev) await base44.entities.Goleador.delete(rec.id);
+
+      // 2) Normalizar y deduplicar por slug (jugador + equipo). Guardar el mayor nº de goles
+      const norm = (s) =>
+        String(s || '')
+          .trim()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/\s+/g, ' ')
+          .toUpperCase();
+
+      const dedupMap = new Map();
+      for (const p of (players || [])) {
+        const jugador = String(p.jugador_nombre || '').trim();
+        const equipo = String(p.equipo || '').trim();
+        const goles = Number(p.goles) || 0;
+        if (!jugador || !equipo) continue;
+        const slug = `${norm(jugador)}|${norm(equipo)}`;
+        const existing = dedupMap.get(slug);
+        if (!existing || goles > existing.goles) {
+          dedupMap.set(slug, {
+            categoria,
+            temporada,
+            jugador_nombre: jugador,
+            equipo: equipo,
+            goles,
+          });
         }
       }
+
+      const rows = Array.from(dedupMap.values());
+      if (rows.length) await base44.entities.Goleador.bulkCreate(rows);
+
       setScorersDraft(null);
       queryClient.invalidateQueries({ queryKey: ['goleadores', categoria] });
       alert('Goleadores guardados');
