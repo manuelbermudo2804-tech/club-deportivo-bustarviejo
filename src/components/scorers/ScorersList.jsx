@@ -99,16 +99,24 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {groupedByTemporada[temporada]
-                    .sort((a, b) => (b.goles ?? 0) - (a.goles ?? 0))
-                    .map((s, i) => (
-                    <tr key={s.id || i} className="border-b last:border-0">
-                      <td className="py-2 pr-3">{i + 1}</td>
-                      <td className="py-2 pr-3">{s.jugador_nombre}</td>
-                      <td className="py-2 pr-3">{s.equipo}</td>
-                      <td className="py-2 pr-3 font-semibold">{s.goles}</td>
-                    </tr>
-                  ))}
+                  {(() => {
+                    const list = groupedByTemporada[temporada];
+                    const map = new Map();
+                    for (const s of list) {
+                      const key = `${normalize(s.jugador_nombre)}|${normalize(s.equipo)}`;
+                      const cur = map.get(key);
+                      if (!cur || (s.goles ?? 0) > (cur.goles ?? 0)) map.set(key, s);
+                    }
+                    const deduped = Array.from(map.values()).sort((a, b) => (b.goles ?? 0) - (a.goles ?? 0));
+                    return deduped.map((s, i) => (
+                      <tr key={s.id || `${i}-${s.jugador_nombre}`} className="border-b last:border-0">
+                        <td className="py-2 pr-3">{i + 1}</td>
+                        <td className="py-2 pr-3">{s.jugador_nombre}</td>
+                        <td className="py-2 pr-3">{s.equipo}</td>
+                        <td className="py-2 pr-3 font-semibold">{s.goles}</td>
+                      </tr>
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>
