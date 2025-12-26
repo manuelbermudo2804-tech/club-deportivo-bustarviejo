@@ -401,7 +401,7 @@ export default function CentroCompeticion() {
             {adminTab === 'goleadores' && (
               <>
                 <div className="grid md:grid-cols-6 gap-2">
-                  <Input className="md:col-span-4" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL RFFM/RFEF de goleadores" />
+                  <Input className="md:col-span-4" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL RFFM/RFEF de goleadores (solo esta categoría)" />
                   <div className="flex gap-2 md:col-span-2">
                     <Button variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
                     <Button variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>
