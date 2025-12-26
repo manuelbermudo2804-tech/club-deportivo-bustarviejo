@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -9,32 +9,32 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-import NotificationBadge from "./components/NotificationBadge";
-import SessionManager from "./components/SessionManager";
-import GlobalSearch from "./components/GlobalSearch";
+const NotificationBadge = React.lazy(() => import("./components/NotificationBadge"));
+const SessionManager = React.lazy(() => import("./components/SessionManager"));
+const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
-import NotificationCenter from "./components/NotificationCenter";
-import LanguageSelector from "./components/LanguageSelector";
-import AppNotificationListener from "./components/push/AppNotificationListener";
-import RegistrationTypeSelector from "./components/players/RegistrationTypeSelector";
-import WelcomeScreen from "./components/WelcomeScreen";
+const NotificationCenter = React.lazy(() => import("./components/NotificationCenter"));
+const LanguageSelector = React.lazy(() => import("./components/LanguageSelector"));
+const AppNotificationListener = React.lazy(() => import("./components/push/AppNotificationListener"));
+const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
+const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import NotificationManager from "./components/notifications/NotificationManager";
-import AutomaticNotificationEngine from "./components/notifications/AutomaticNotificationEngine";
-import EmailNotificationTrigger from "./components/notifications/EmailNotificationTrigger";
-import AutomaticPaymentReminders from "./components/reminders/AutomaticPaymentReminders";
-import PlanPaymentReminders from "./components/reminders/PlanPaymentReminders";
+const NotificationManager = React.lazy(() => import("./components/notifications/NotificationManager"));
+const AutomaticNotificationEngine = React.lazy(() => import("./components/notifications/AutomaticNotificationEngine"));
+const EmailNotificationTrigger = React.lazy(() => import("./components/notifications/EmailNotificationTrigger"));
+const AutomaticPaymentReminders = React.lazy(() => import("./components/reminders/AutomaticPaymentReminders"));
+const PlanPaymentReminders = React.lazy(() => import("./components/reminders/PlanPaymentReminders"));
 import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
-import AutomaticRenewalClosure from "./components/renewals/AutomaticRenewalClosure";
-import RenewalNotificationEngine from "./components/renewals/RenewalNotificationEngine";
-import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPaymentReminder";
-import PaymentApprovalNotifier from "./components/payments/PaymentApprovalNotifier";
+const AutomaticRenewalClosure = React.lazy(() => import("./components/renewals/AutomaticRenewalClosure"));
+const RenewalNotificationEngine = React.lazy(() => import("./components/renewals/RenewalNotificationEngine"));
+const PostRenewalPaymentReminder = React.lazy(() => import("./components/renewals/PostRenewalPaymentReminder"));
+const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
 
 // ToastContainer eliminado - causaba spam de notificaciones
-import EventReminderEngine from "./components/events/EventReminderEngine";
-import DocumentReminderEngine from "./components/documents/DocumentReminderEngine";
-import SponsorBanner from "./components/sponsors/SponsorBanner";
-import PWAInstallPrompt from "./components/pwa/PWAInstallPrompt";
+const EventReminderEngine = React.lazy(() => import("./components/events/EventReminderEngine"));
+const DocumentReminderEngine = React.lazy(() => import("./components/documents/DocumentReminderEngine"));
+const SponsorBanner = React.lazy(() => import("./components/sponsors/SponsorBanner"));
+const PWAInstallPrompt = React.lazy(() => import("./components/pwa/PWAInstallPrompt"));
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
@@ -958,53 +958,49 @@ export default function Layout({ children, currentPageName }) {
         }
 
         // Cargar badges de notificación para admin
-        if (currentUser.role === "admin") {
-          try {
-            // Conversaciones críticas sin resolver
-            const adminChats = await base44.entities.AdminConversation.filter({ resuelta: false }, '-updated_date', 200);
-            setUnresolvedAdminChats(adminChats.length);
+            if (currentUser.role === "admin") {
+              try {
+                const [
+                  adminChats,
+                  payments,
+                  players,
+                  allPlayers,
+                  invitations,
+                  clothingOrders,
+                  lotteryOrders,
+                  members
+                ] = await Promise.all([
+                  base44.entities.AdminConversation.filter({ resuelta: false }, '-updated_date', 200),
+                  base44.entities.Payment.filter({ estado: "En revisión" }),
+                  base44.entities.Player.filter({ categoria_requiere_revision: true }),
+                  base44.entities.Player.list(),
+                  base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
+                  base44.entities.ClothingOrder.list(),
+                  base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }),
+                  base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })
+                ]);
 
-            // Pagos en revisión
-            const payments = await base44.entities.Payment.filter({ estado: "En revisión" });
-            setPaymentsInReview(payments.length);
+                setUnresolvedAdminChats(adminChats.length);
+                setPaymentsInReview(payments.length);
+                setPlayersNeedingReview(players.length);
 
-            // Jugadores requiriendo revisión de categoría
-            const players = await base44.entities.Player.filter({ categoria_requiere_revision: true });
-            setPlayersNeedingReview(players.length);
+                const needSignatures = allPlayers.filter(p => 
+                  (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
+                  (p.enlace_firma_tutor && !p.firma_tutor_completada)
+                );
+                setPendingSignaturesAdmin(needSignatures.length);
 
-            // Firmas pendientes (jugadores con enlaces pero sin completar)
-            const allPlayers = await base44.entities.Player.list();
-            const needSignatures = allPlayers.filter(p => 
-              (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
-              (p.enlace_firma_tutor && !p.firma_tutor_completada)
-            );
-            setPendingSignaturesAdmin(needSignatures.length);
+                const pendingClothing = clothingOrders.filter(o => 
+                  o.estado === "Pendiente" || o.estado === "En revisión"
+                );
+                setPendingClothingOrders(pendingClothing.length);
 
-            // Solicitudes de invitación pendientes
-            const invitations = await base44.entities.InvitationRequest.filter({ estado: "Pendiente" });
-            setPendingInvitations(invitations.length);
-
-            // Pedidos de ropa pendientes (Pendiente o En revisión)
-            const clothingOrders = await base44.entities.ClothingOrder.list();
-            const pendingClothing = clothingOrders.filter(o => 
-              o.estado === "Pendiente" || o.estado === "En revisión"
-            );
-            setPendingClothingOrders(pendingClothing.length);
-
-            // Pedidos de lotería pendientes
-            const lotteryOrders = await base44.entities.LotteryOrder.filter({ 
-              estado: "Solicitado",
-              pagado: false
-            });
-            setPendingLotteryOrders(lotteryOrders.length);
-
-            // Solicitudes de socio pendientes
-            const members = await base44.entities.ClubMember.filter({ estado_pago: "Pendiente" });
-            setPendingMemberRequests(members.length);
-          } catch (error) {
-            console.log('Error loading admin badges:', error);
-          }
-        }
+                setPendingLotteryOrders(lotteryOrders.length);
+                setPendingMemberRequests(members.length);
+              } catch (error) {
+                console.log('Error loading admin badges:', error);
+              }
+            }
 
           if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
           setShowSpecialScreen("restricted");
@@ -1376,6 +1372,7 @@ export default function Layout({ children, currentPageName }) {
       if (showTypeSelector && user) {
         return (
           <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+            <Suspense fallback={null}>
             <RegistrationTypeSelector
               onSelectFamily={async () => {
                 console.log('👨‍👩‍👧 [LAYOUT] Seleccionado panel FAMILIA');
@@ -1390,6 +1387,7 @@ export default function Layout({ children, currentPageName }) {
                 window.location.href = createPageUrl('PlayerDashboard');
               }}
             />
+            </Suspense>
           </div>
         );
       }
@@ -1463,12 +1461,14 @@ export default function Layout({ children, currentPageName }) {
     // Mostrar WelcomeScreen si es primera vez
     if (showWelcome) {
       return (
-        <WelcomeScreen 
-          onEnter={() => {
-            setShowWelcome(false);
-            localStorage.setItem('hasSeenWelcome', 'true');
-          }} 
-        />
+        <Suspense fallback={null}>
+          <WelcomeScreen 
+            onEnter={() => {
+              setShowWelcome(false);
+              localStorage.setItem('hasSeenWelcome', 'true');
+            }} 
+          />
+        </Suspense>
       );
     }
 
@@ -1669,14 +1669,16 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               )}
 
-              <SessionManager />
-              <NotificationBadge />
-              <PaymentApprovalNotifier isAdmin={isAdmin} />
+              <Suspense fallback={null}>
+                                  <SessionManager />
+                                  <NotificationBadge />
+                                  <PaymentApprovalNotifier isAdmin={isAdmin} />
                                   <PlanPaymentReminders user={user} />
                                   <AutomaticRenewalReminders />
-              <AutomaticRenewalClosure />
-              <RenewalNotificationEngine />
-              <PostRenewalPaymentReminder />
+                                  <AutomaticRenewalClosure />
+                                  <RenewalNotificationEngine />
+                                  <PostRenewalPaymentReminder />
+                                  </Suspense>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
@@ -1701,7 +1703,7 @@ export default function Layout({ children, currentPageName }) {
                                       <Smartphone className="w-5 h-5" />
                                     </button>
                                   )}
-              {!isAdmin && !isCoach && <NotificationCenter />}
+              {!isAdmin && !isCoach && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
               <ThemeToggle />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -1716,7 +1718,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Mobile Search Bar */}
         <div className="lg:hidden fixed top-[52px] left-0 right-0 z-40 bg-white border-b shadow-sm p-2">
-          <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
+          <Suspense fallback={null}><GlobalSearch isAdmin={isAdmin} isCoach={isCoach} /></Suspense>
         </div>
 
         {mobileMenuOpen && (
@@ -1810,13 +1812,13 @@ export default function Layout({ children, currentPageName }) {
             <div className="space-y-2">
             {user && (
               <div className="w-full">
-                <GlobalSearch isAdmin={isAdmin} isCoach={isCoach} />
+                <Suspense fallback={null}><GlobalSearch isAdmin={isAdmin} isCoach={isCoach} /></Suspense>
               </div>
             )}
             <div className="flex items-center gap-1">
-              {!isCoach && <NotificationCenter />}
+              {!isCoach && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
               <ThemeToggle />
-              <LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} />
+              <Suspense fallback={null}><Suspense fallback={null}><LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} /></Suspense></Suspense>
             </div>
             </div>
           </div>
@@ -1912,7 +1914,7 @@ export default function Layout({ children, currentPageName }) {
         {/* Banner de Patrocinadores - Footer fijo */}
         {sponsorBannerVisible && (
           <div className="lg:ml-72 fixed bottom-0 left-0 right-0 z-40">
-            <SponsorBanner />
+            <Suspense fallback={null}><SponsorBanner /></Suspense>
           </div>
         )}
         </div>
