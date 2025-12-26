@@ -187,38 +187,7 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
                   <p className="text-sm text-slate-500">Sin clasificaciones</p>
                 )}
 
-                {/* Vista rápida de Resultados y Goleadores */}
-                {latestResults && latestResults.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-slate-200">
-                    <p className="text-xs text-slate-500 mb-1">Resultados últimos</p>
-                    {(latestResults[0]?.data || []).slice(0,3).map((m, idx) => {
-                      const hasScore = Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante);
-                      return (
-                        <div key={m.id || idx} className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center text-xs text-slate-700 py-1">
-                          <span className="truncate">{m.local}</span>
-                          <span className={`font-bold ${hasScore ? 'text-slate-900' : 'text-slate-400'}`}>
-                            {hasScore ? `${m.goles_local} - ${m.goles_visitante}` : '-'}
-                          </span>
-                          <span className="truncate text-right">{m.visitante}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {topScorers && topScorers.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs text-slate-500 mb-1">Top goleadores</p>
-                    <div className="space-y-1">
-                      {topScorers.slice(0,3).map((s, i) => (
-                        <div key={s.id || i} className="flex items-center justify-between text-xs text-slate-700">
-                          <span className="truncate">{s.jugador_nombre}</span>
-                          <Badge className="bg-orange-500 text-white">{s.goles}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Vista compacta en Familia: sin resúmenes de resultados ni goleadores */}
               </div>
             </Link>
 
