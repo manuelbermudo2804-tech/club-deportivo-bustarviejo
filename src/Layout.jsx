@@ -1100,7 +1100,8 @@ export default function Layout({ children, currentPageName }) {
 
                 // 🎉 CONTENIDO
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
-        { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+                      { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+                      { title: "✅ Checklist Lunes (Comp.)", url: createPageUrl("CompetitionChecklist"), icon: ClipboardCheck },
 
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
