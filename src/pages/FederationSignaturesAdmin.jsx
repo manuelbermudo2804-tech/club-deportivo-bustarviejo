@@ -69,27 +69,32 @@ export default function FederationSignaturesAdmin() {
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="background: linear-gradient(135deg, #f59e0b, #ea580c); padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-                  <h1 style="color: white; margin: 0;">🖊️ Firma Digital Requerida</h1>
+                  <h1 style="color: white; margin: 0;">🖊️ Firma disponible en la App</h1>
                 </div>
                 <div style="background: #fff; padding: 30px; border: 1px solid #e5e7eb;">
                   <p style="font-size: 16px;">Estimado/a padre/madre/tutor,</p>
-                  <p>Los <strong>enlaces de firma de federación</strong> para <strong>${playerData.nombre}</strong> ya están disponibles.</p>
+                  <p>Los <strong>enlaces de firma de federación</strong> para <strong>${playerData.nombre}</strong> ya están <strong>disponibles dentro de la aplicación del club</strong>.</p>
                   
                   <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 20px; margin: 20px 0;">
                     <h3 style="color: #92400e; margin-top: 0;">📋 Firmas pendientes:</h3>
                     <ul style="margin: 0; padding-left: 20px;">
-                      ${newEnlaceJugador ? `<li style="margin: 10px 0;"><strong>Firma del Jugador</strong><br/><a href="${data.enlace_firma_jugador}" style="color: #ea580c;">Pulsa aquí para firmar →</a></li>` : ''}
-                      ${newEnlaceTutor ? `<li style="margin: 10px 0;"><strong>Firma del Padre/Tutor Legal</strong><br/><a href="${data.enlace_firma_tutor}" style="color: #ea580c;">Pulsa aquí para firmar →</a></li>` : ''}
+                      ${newEnlaceJugador ? `<li style="margin: 10px 0;"><strong>Firma del Jugador</strong></li>` : ''}
+                      ${newEnlaceTutor ? `<li style="margin: 10px 0;"><strong>Firma del Padre/Tutor Legal</strong></li>` : ''}
                     </ul>
                   </div>
                   
                   <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0;">
                     <p style="margin: 0; font-size: 14px;"><strong>¿Cómo firmar?</strong></p>
                     <ol style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px;">
-                      <li>Pulsa en el enlace correspondiente</li>
-                      <li>Sigue las instrucciones de la federación</li>
-                      <li>Una vez firmado, entra en la app del club en "Firmas Federación" y marca "Ya he firmado"</li>
+                      <li>Abra la <strong>app del club</strong> en su móvil o navegador</li>
+                      <li>Vaya al menú <strong>“🖊️ Firmas Federación”</strong></li>
+                      <li>Seleccione a <strong>${playerData.nombre}</strong> y pulse <strong>“Firmar”</strong></li>
                     </ol>
+                  </div>
+                  <div style="text-align: center; margin: 24px 0;">
+                    <a href="https://app.cdbustarviejo.com" style="background:#ea580c;color:#fff;padding:12px 20px;text-decoration:none;border-radius:10px;font-weight:bold;display:inline-block;">
+                      Abrir la app del club →
+                    </a>
                   </div>
                 </div>
                 <div style="background: #1e293b; color: white; padding: 15px; text-align: center; border-radius: 0 0 10px 10px;">
