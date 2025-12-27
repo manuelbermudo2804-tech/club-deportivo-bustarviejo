@@ -27,7 +27,7 @@ const PlanPaymentReminders = React.lazy(() => import("./components/reminders/Pla
 import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
 const AutomaticRenewalClosure = React.lazy(() => import("./components/renewals/AutomaticRenewalClosure.js"));
 const RenewalNotificationEngine = React.lazy(() => import("./components/renewals/RenewalNotificationEngine.jsx"));
-const PostRenewalPaymentReminder = React.lazy(() => import("./components/renewals/PostRenewalPaymentReminder"));
+const PostRenewalPaymentReminder = React.lazy(() => import("./components/renewals/PostRenewalPaymentReminder.js"));
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
 
 // ToastContainer eliminado - causaba spam de notificaciones
