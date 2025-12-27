@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
@@ -14,7 +15,7 @@ import UploadResultsForm from "../components/results/UploadResultsForm";
 import ReviewResultsTable from "../components/results/ReviewResultsTable";
 import UploadScorersForm from "../components/scorers/UploadScorersForm";
 import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
-import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle, Plus } from "lucide-react";
+import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle, Plus, Settings } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -113,6 +114,32 @@ export default function CentroCompeticion() {
       localStorage.setItem('fav_comp_cat', category);
       setFav(true);
     }
+  };
+
+  // Config categorías (familias)
+  const [showConfig, setShowConfig] = React.useState(false);
+  const [visibleCats, setVisibleCats] = React.useState(() => {
+    try {
+      const stored = localStorage.getItem('comp_visible_categories_family');
+      const arr = stored ? JSON.parse(stored) : CATEGORIES;
+      return Array.isArray(arr) && arr.length ? arr : CATEGORIES;
+    } catch { return CATEGORIES; }
+  });
+
+  React.useEffect(() => {
+    if (!visibleCats.includes(category)) {
+      setCategory(visibleCats[0] || CATEGORIES[0]);
+    }
+  }, [visibleCats]);
+
+  const toggleCatVisibility = (cat) => {
+    setVisibleCats((prev) => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+  };
+  const selectAllCats = () => setVisibleCats(CATEGORIES);
+  const resetCats = () => setVisibleCats(CATEGORIES);
+  const saveCats = () => {
+    try { localStorage.setItem('comp_visible_categories_family', JSON.stringify(visibleCats)); } catch {}
+    setShowConfig(false);
   };
 
   // Checklist Lunes (integrado)
@@ -422,6 +449,9 @@ export default function CentroCompeticion() {
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {!isAdmin && <ViewToggle />}
+          <Button variant="outline" onClick={() => setShowConfig(true)} title="Configurar categorías visibles" className="h-9 px-3 gap-1">
+            <Settings className="w-4 h-4" />
+          </Button>
           <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3"><Share2 className="w-4 h-4"/></Button>
         </div>
       </div>
@@ -581,7 +611,7 @@ export default function CentroCompeticion() {
 
       {/* Categorías */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-        {CATEGORIES.map(cat => (
+        {(visibleCats && visibleCats.length ? visibleCats : CATEGORIES).map(cat => (
           <button
             key={cat}
             onClick={() => { setCategory(cat); setFav(localStorage.getItem('fav_comp_cat') === cat); }}
@@ -624,6 +654,37 @@ export default function CentroCompeticion() {
       <div className="mt-6 text-xs text-slate-500 text-center">
         Datos mostrados según la última actualización disponible. La comparativa de equipos sigue disponible en Clasificación.
       </div>
+
+      {/* Configuración de categorías */}
+      <Dialog open={showConfig} onOpenChange={setShowConfig}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Configurar categorías visibles</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600">Marca qué categorías quieres ver en el Centro de Competición. Por defecto están todas activas.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {CATEGORIES.map((cat) => (
+                <label key={cat} className="flex items-center gap-2 p-2 rounded-lg border bg-white">
+                  <Checkbox checked={visibleCats.includes(cat)} onCheckedChange={() => toggleCatVisibility(cat)} />
+                  <span className="text-sm">{cat}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-between">
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={resetCats}>Restablecer</Button>
+                <Button variant="outline" onClick={selectAllCats}>Marcar todas</Button>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowConfig(false)}>Cancelar</Button>
+                <Button className="bg-orange-600 hover:bg-orange-700" onClick={saveCats}>Guardar</Button>
+              </div>
+            </div>
+            <div className="text-xs text-slate-500">Consejo: usa la rueda para elegir las categorías que no quieres ver.</div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
