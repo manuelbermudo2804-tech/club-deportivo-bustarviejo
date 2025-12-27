@@ -43,6 +43,13 @@ export default function SurveyResponseForm({ survey, onClose }) {
         ultima_respuesta_fecha: new Date().toISOString()
       });
 
+      // Si la encuesta es anónima, marcar localmente que este usuario ya respondió
+      try {
+        if (survey.anonima) {
+          localStorage.setItem(`survey_${survey.id}_responded_${user.email}`, 'true');
+        }
+      } catch {}
+
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
       queryClient.invalidateQueries({ queryKey: ['surveyResponses', survey.id] });
       setSubmitted(true);

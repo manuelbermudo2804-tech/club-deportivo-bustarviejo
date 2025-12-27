@@ -24,11 +24,16 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
 
   useEffect(() => {
     if (!isAdmin && userEmail && responses) {
-      const userResponse = responses.find(r => 
-        r.survey_id === survey.id && 
-        (r.respondente_email === userEmail || survey.anonima)
+      const userResponse = (responses || []).find(r => 
+        r.survey_id === survey.id && r.respondente_email === userEmail
       );
-      setHasResponded(!!userResponse);
+      let anonResponded = false;
+      try {
+        if (survey.anonima) {
+          anonResponded = localStorage.getItem(`survey_${survey.id}_responded_${userEmail}`) === 'true';
+        }
+      } catch {}
+      setHasResponded(!!userResponse || anonResponded);
     }
   }, [responses, userEmail, survey.id, survey.anonima, isAdmin]);
 
