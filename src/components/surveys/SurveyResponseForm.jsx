@@ -45,9 +45,8 @@ export default function SurveyResponseForm({ survey, onClose }) {
 
       // Si la encuesta es anónima, marcar localmente que este usuario ya respondió
       try {
-        if (survey.anonima) {
-          localStorage.setItem(`survey_${survey.id}_responded_${user.email}`, 'true');
-        }
+        localStorage.setItem(`survey_${survey.id}_responded_${user.email}`, 'true');
+        window.dispatchEvent(new CustomEvent('survey-responded', { detail: { surveyId: survey.id } }));
       } catch {}
 
       queryClient.invalidateQueries({ queryKey: ['surveys'] });

@@ -251,9 +251,24 @@ export default function CentroCompeticion() {
     return { ...standingsPack, data: standingsPack.data.filter(r => (r.nombre_equipo || '').toLowerCase().includes(q)) };
   }, [standingsPack, search]);
 
-  const copyLink = () => {
+  const copyLink = async () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url);
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('Enlace copiado');
+    } catch (e) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('Enlace copiado');
+      } catch {
+        prompt('Copia el enlace:', url);
+      }
+    }
   };
 
   const saveStandingsToDB = async (payload) => {

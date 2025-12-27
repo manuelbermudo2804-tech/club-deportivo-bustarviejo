@@ -37,6 +37,16 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
     }
   }, [responses, userEmail, survey.id, survey.anonima, isAdmin]);
 
+  useEffect(() => {
+    const handler = (e) => {
+      if (e?.detail?.surveyId === survey.id) {
+        setHasResponded(true);
+      }
+    };
+    window.addEventListener('survey-responded', handler);
+    return () => window.removeEventListener('survey-responded', handler);
+  }, [survey.id]);
+
   if (showResponse) {
     return <SurveyResponseForm survey={survey} onClose={() => setShowResponse(false)} />;
   }
