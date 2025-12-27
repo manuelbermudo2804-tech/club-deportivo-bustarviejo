@@ -4,12 +4,13 @@ import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
 import QuickMatchObservationForm from "../components/coach/QuickMatchObservationForm";
-import { Trophy, List, Users, Target, Zap, Search, Star, StarOff } from "lucide-react";
+import { Trophy, List, Users, Target, Zap, Search, Star, StarOff, Settings } from "lucide-react";
 
 const CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -67,6 +68,41 @@ export default function CentroCompeticionTecnico() {
       localStorage.setItem('fav_comp_cat', category);
       setFav(true);
     }
+  };
+
+  // Config categorías (técnicos)
+  const [showConfig, setShowConfig] = React.useState(false);
+  const [visibleCats, setVisibleCats] = React.useState(() => {
+    try {
+      const key = isCoordinator ? 'comp_visible_categories_coord' : 'comp_visible_categories_coach';
+      const stored = localStorage.getItem(key);
+      const arr = stored ? JSON.parse(stored) : myCats;
+      return Array.isArray(arr) && arr.length ? arr : myCats;
+    } catch { return myCats; }
+  });
+  React.useEffect(() => {
+    // Si cambian mis categorías (por rol), actualizar visibles conservando selección válida
+    setVisibleCats((prev) => {
+      const valid = (prev || []).filter(c => myCats.includes(c));
+      return valid.length ? valid : myCats;
+    });
+  }, [myCats]);
+
+  React.useEffect(() => {
+    if (!visibleCats.includes(category)) {
+      setCategory(visibleCats[0] || (myCats[0] || CATEGORIES[0]));
+    }
+  }, [visibleCats, myCats]);
+
+  const toggleCatVisibility = (cat) => setVisibleCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+  const selectAllCats = () => setVisibleCats(myCats);
+  const resetCats = () => setVisibleCats(myCats);
+  const saveCats = () => {
+    try {
+      const key = isCoordinator ? 'comp_visible_categories_coord' : 'comp_visible_categories_coach';
+      localStorage.setItem(key, JSON.stringify(visibleCats));
+    } catch {}
+    setShowConfig(false);
   };
 
   // Sync URL params
@@ -244,12 +280,15 @@ export default function CentroCompeticionTecnico() {
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <ViewToggle />
+          <Button variant="outline" onClick={() => setShowConfig(true)} title="Configurar categorías visibles" className="h-9 px-3 gap-1">
+            <Settings className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
       {/* Categorías del técnico */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-        {myCats.map((cat) => (
+        {(visibleCats && visibleCats.length ? visibleCats : myCats).map((cat) => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
@@ -325,6 +364,36 @@ export default function CentroCompeticionTecnico() {
       {view === 'goleadores' && (
         <ScorersList categoryFullName={category} isAdmin={false} />
       )}
-    </div>
+    {/* Configuración de categorías */}
+    <Dialog open={showConfig} onOpenChange={setShowConfig}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Configurar categorías visibles</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <p className="text-sm text-slate-600">Marca qué categorías quieres ver. Por defecto están todas activas.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {myCats.map((cat) => (
+              <label key={cat} className="flex items-center gap-2 p-2 rounded-lg border bg-white">
+                <input type="checkbox" checked={visibleCats.includes(cat)} onChange={() => toggleCatVisibility(cat)} />
+                <span className="text-sm">{cat}</span>
+              </label>
+            ))}
+          </div>
+          <div className="flex justify-between">
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={resetCats}>Restablecer</Button>
+              <Button variant="outline" onClick={selectAllCats}>Marcar todas</Button>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowConfig(false)}>Cancelar</Button>
+              <Button className="bg-orange-600 hover:bg-orange-700" onClick={saveCats}>Guardar</Button>
+            </div>
+          </div>
+          <div className="text-xs text-slate-500">Usa la rueda para elegir las categorías que no quieres ver.</div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </div>
   );
 }
