@@ -1065,7 +1065,7 @@ export default function Layout({ children, currentPageName }) {
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "📋 Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
-    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle }
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0 },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
@@ -1287,7 +1287,7 @@ export default function Layout({ children, currentPageName }) {
   const treasurerNavigationItems = [
     { title: "🏠 Inicio", url: createPageUrl("TreasurerDashboard"), icon: Home },
     { title: "📋 Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
-    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle }
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💳 Pagos Club", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
