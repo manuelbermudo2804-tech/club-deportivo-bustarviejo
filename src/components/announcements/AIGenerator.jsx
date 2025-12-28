@@ -178,7 +178,7 @@ Parte de esta base (puedes reescribir para coherencia y fluidez):\n\nTÍTULO BAS
       const families = Object.values(familiesMap);
 
       // 2) Asegurar conversación privada "Mensajes del Club" por familia
-      const allConvs = await base44.entities.PrivateConversation.list();
+      const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 5000);
       const text = `📢 BOLETÍN MENSUAL\n\n${titulo || `Boletín — ${monthName} ${yearNum}`}\n\n${cuerpo}`;
 
       await Promise.all(families.map(async (family) => {
