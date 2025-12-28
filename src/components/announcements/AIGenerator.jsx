@@ -159,18 +159,69 @@ Parte de esta base (puedes reescribir para coherencia y fluidez):\n\nTÍTULO BAS
       });
     }
 
-    if (publicarChat && user) {
-      const conversations = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 5000);
-      const targets = conversations.filter(c => c.participante_staff_email === 'sistema@cdbustarviejo.com' || c.participante_staff_rol === 'admin');
-      const text = `${titulo || `Boletín — ${monthName} ${yearNum}`}\n\n${cuerpo}`;
-      await Promise.all(targets.map((c) => sendSystemMessage.mutateAsync({
-        conversacion_id: c.id,
-        remitente_tipo: 'staff',
-        remitente_email: user.email,
-        remitente_nombre: user.full_name || 'Admin',
-        mensaje: text,
-      })));
+    if (publicarChat) {
+      // 1) Obtener familias activas a partir de jugadores
+      const allPlayers = await base44.entities.Player.list();
+      const familiesMap = {};
+      allPlayers.forEach(p => {
+        if (p.activo === true && p.email_padre) {
+          if (!familiesMap[p.email_padre]) {
+            familiesMap[p.email_padre] = {
+              email: p.email_padre,
+              nombre_tutor: p.nombre_tutor_legal || 'Familia',
+              jugadores: []
+            };
+          }
+          familiesMap[p.email_padre].jugadores.push({ id: p.id, nombre: p.nombre });
+        }
+      });
+      const families = Object.values(familiesMap);
+
+      // 2) Asegurar conversación privada "Mensajes del Club" por familia
+      const allConvs = await base44.entities.PrivateConversation.list();
+      const text = `📢 BOLETÍN MENSUAL\n\n${titulo || `Boletín — ${monthName} ${yearNum}`}\n\n${cuerpo}`;
+
+      await Promise.all(families.map(async (family) => {
+        let conv = allConvs.find(c => 
+          c.participante_familia_email === family.email &&
+          c.participante_staff_email === 'sistema@cdbustarviejo.com'
+        );
+        if (!conv) {
+          conv = await base44.entities.PrivateConversation.create({
+            participante_familia_email: family.email,
+            participante_familia_nombre: family.nombre_tutor,
+            participante_staff_email: 'sistema@cdbustarviejo.com',
+            participante_staff_nombre: '🤖 Sistema de Recordatorios - Administración',
+            participante_staff_rol: 'admin',
+            categoria: 'Todos',
+            jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
+            ultimo_mensaje: text.slice(0, 100),
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_de: 'staff',
+            no_leidos_familia: 1,
+            archivada: false,
+          });
+        }
+
+        // 3) Enviar mensaje del boletín en la conversación
+        await base44.entities.PrivateMessage.create({
+          conversacion_id: conv.id,
+          remitente_email: 'sistema@cdbustarviejo.com',
+          remitente_nombre: '📢 Boletín del Club',
+          remitente_tipo: 'staff',
+          mensaje: text,
+          leido: false,
+        });
+
+        await base44.entities.PrivateConversation.update(conv.id, {
+          ultimo_mensaje: text.slice(0, 100),
+          ultimo_mensaje_fecha: new Date().toISOString(),
+          ultimo_mensaje_de: 'staff',
+          no_leidos_familia: (conv.no_leidos_familia || 0) + 1,
+        });
+      }));
     }
+
     alert(`Boletín ${publicarAnuncios ? 'publicado en Anuncios' : ''}${publicarAnuncios && publicarChat ? ' y ' : ''}${publicarChat ? 'en Mensajes del Club' : ''}.`);
     setTitulo("");
     setCuerpo("");
