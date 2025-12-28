@@ -66,7 +66,8 @@ export default function AIGenerator() {
   const [titulo, setTitulo] = useState("");
   const [cuerpo, setCuerpo] = useState("");
   const [destacado, setDestacado] = useState(false);
-  const [publicarChat, setPublicarChat] = useState(true);
+          const [publicarAnuncios, setPublicarAnuncios] = useState(true);
+          const [publicarChat, setPublicarChat] = useState(true);
 
   const createAnnouncement = useMutation({
     mutationFn: (data) => base44.entities.Announcement.create(data),
@@ -75,9 +76,9 @@ export default function AIGenerator() {
     },
   });
 
-  const createChatMessage = useMutation({
-    mutationFn: (data) => base44.entities.ChatMessage.create(data),
-  });
+  const sendSystemMessage = useMutation({
+            mutationFn: (data) => base44.entities.PrivateMessage.create(data),
+          });
 
   const monthName = format(range.start, "LLLL");
   const yearNum = range.start.getFullYear();
@@ -138,34 +139,39 @@ Parte de esta base (puedes reescribir para coherencia y fluidez):\n\nTÍTULO BAS
       const out = resp;
       setTitulo(out.titulo || `Boletín — ${resumen.mes} ${resumen.anio}`);
       setCuerpo(out.cuerpo || "");
+      setPublicarAnuncios(true);
+      setPublicarChat(true);
     } finally {
       setGenerating(false);
     }
   };
 
   const handleCreate = async () => {
-    const an = await createAnnouncement.mutateAsync({
-      titulo: titulo || `Boletín — ${monthName} ${yearNum}`,
-      contenido: cuerpo,
-      prioridad: "Normal",
-      destinatarios_tipo: "Todos",
-      publicado: true,
-      destacado: !!destacado,
-      fecha_publicacion: new Date().toISOString(),
-    });
-
-    if (publicarChat && user) {
-      await createChatMessage.mutateAsync({
-        remitente_email: user.email,
-        remitente_nombre: user.full_name || "Admin",
-        destinatario_nombre: "Mensajes del Club",
-        mensaje: cuerpo,
-        prioridad: destacado ? "Importante" : "Normal",
-        tipo: "admin_a_grupo",
-        grupo_id: "club_general",
+    if (publicarAnuncios) {
+      await createAnnouncement.mutateAsync({
+        titulo: titulo || `Boletín — ${monthName} ${yearNum}`,
+        contenido: cuerpo,
+        prioridad: "Normal",
+        destinatarios_tipo: "Todos",
+        publicado: true,
+        destacado: !!destacado,
+        fecha_publicacion: new Date().toISOString(),
       });
     }
-    alert("Boletín creado y publicado.\nPuedes editarlo en Anuncios.");
+
+    if (publicarChat && user) {
+      const conversations = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 5000);
+      const targets = conversations.filter(c => c.participante_staff_email === 'sistema@cdbustarviejo.com' || c.participante_staff_rol === 'admin');
+      const text = `${titulo || `Boletín — ${monthName} ${yearNum}`}\n\n${cuerpo}`;
+      await Promise.all(targets.map((c) => sendSystemMessage.mutateAsync({
+        conversacion_id: c.id,
+        remitente_tipo: 'staff',
+        remitente_email: user.email,
+        remitente_nombre: user.full_name || 'Admin',
+        mensaje: text,
+      })));
+    }
+    alert(`Boletín ${publicarAnuncios ? 'publicado en Anuncios' : ''}${publicarAnuncios && publicarChat ? ' y ' : ''}${publicarChat ? 'en Mensajes del Club' : ''}.`);
     setTitulo("");
     setCuerpo("");
     setDestacado(false);
@@ -208,14 +214,18 @@ Parte de esta base (puedes reescribir para coherencia y fluidez):\n\nTÍTULO BAS
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <Switch checked={destacado} onCheckedChange={setDestacado} />
             <Label>Destacado (pin)</Label>
           </div>
           <div className="flex items-center gap-2">
+            <Switch checked={publicarAnuncios} onCheckedChange={setPublicarAnuncios} />
+            <Label>Publicar en Anuncios</Label>
+          </div>
+          <div className="flex items-center gap-2">
             <Switch checked={publicarChat} onCheckedChange={setPublicarChat} />
-            <Label>Publicar también en Mensajes del Club</Label>
+            <Label>Publicar en Mensajes del Club</Label>
           </div>
         </div>
 
