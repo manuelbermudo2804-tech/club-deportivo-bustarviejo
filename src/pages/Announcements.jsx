@@ -9,6 +9,8 @@ import { toast } from "sonner";
 
 import AnnouncementForm from "../components/announcements/AnnouncementForm";
 import AnnouncementCard from "../components/announcements/AnnouncementCard";
+import AIGenerator from "../components/announcements/AIGenerator";
+import TemplateManager from "../components/announcements/TemplateManager";
 
 export default function Announcements() {
   const [showForm, setShowForm] = useState(false);
@@ -389,6 +391,13 @@ Ubicación: Bustarviejo, Madrid
           </Button>
         )}
       </div>
+
+      {isAdmin && (
+        <div className="grid gap-4">
+          <AIGenerator />
+          <TemplateManager />
+        </div>
+      )}
 
       <AnimatePresence>
         {showForm && (isAdmin || isCoach) && (
