@@ -22,6 +22,7 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     duracion_horas: 72,
     fecha_expiracion: "",
     enviar_email: false,
+    enviar_chat: false,
     email_enviado: false,
     fecha_publicacion: new Date().toISOString(),
     leido_por: []
@@ -250,6 +251,24 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                   checked={currentAnnouncement.enviar_email}
                   onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, enviar_email: checked })}
                   className="data-[state=checked]:bg-blue-600"
+                />
+              </div>
+
+              {/* Enviar a Mensajes del Club */}
+              <div className="flex items-center justify-between p-4 rounded-lg bg-orange-50 border-2 border-orange-200">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-orange-700" />
+                  <div>
+                    <Label className="text-base font-medium text-orange-900">Enviar a "Mensajes del Club"</Label>
+                    <p className="text-sm text-orange-700">
+                      Publica este anuncio como mensaje privado del club para cada familia
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={currentAnnouncement.enviar_chat === true}
+                  onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, enviar_chat: checked })}
+                  className="data-[state=checked]:bg-orange-600"
                 />
               </div>
             </div>

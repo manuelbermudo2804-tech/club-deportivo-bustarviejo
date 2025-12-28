@@ -138,23 +138,27 @@ export default function Announcements() {
   });
 
   const createAnnouncementMutation = useMutation({
-    mutationFn: async (announcementData) => {
-      // Calcular fecha de caducidad si es por horas
-      let dataToSave = { ...announcementData };
-      if (announcementData.tipo_caducidad === "horas" && announcementData.duracion_horas) {
-        const publicacionDate = new Date(announcementData.fecha_publicacion);
-        const caducidadDate = new Date(publicacionDate.getTime() + (announcementData.duracion_horas * 60 * 60 * 1000));
-        dataToSave.fecha_caducidad_calculada = caducidadDate.toISOString();
-      }
-      
-      const announcement = await base44.entities.Announcement.create(dataToSave);
-      
-      if (announcementData.enviar_email && !announcementData.email_enviado) {
-        await sendAnnouncementEmails(announcement, announcementData);
-      }
-      
-      return announcement;
-    },
+      mutationFn: async (announcementData) => {
+          const { enviar_chat, ...rest } = announcementData || {};
+          // Calcular fecha de caducidad si es por horas
+          let dataToSave = { ...rest };
+          if (rest.tipo_caducidad === "horas" && rest.duracion_horas) {
+            const publicacionDate = new Date(rest.fecha_publicacion);
+            const caducidadDate = new Date(publicacionDate.getTime() + (rest.duracion_horas * 60 * 60 * 1000));
+            dataToSave.fecha_caducidad_calculada = caducidadDate.toISOString();
+          }
+
+          const announcement = await base44.entities.Announcement.create(dataToSave);
+
+          if (rest.enviar_email && !rest.email_enviado) {
+            await sendAnnouncementEmails(announcement, rest);
+          }
+          if (enviar_chat) {
+            await sendAnnouncementToSystemChat(announcement, rest);
+          }
+
+          return announcement;
+      },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       setShowForm(false);
@@ -294,6 +298,75 @@ Ubicación: Bustarviejo, Madrid
     } catch (error) {
       console.error("Error sending emails:", error);
       toast.error("Error al enviar los emails");
+    }
+  };
+
+  const sendAnnouncementToSystemChat = async (announcement, data) => {
+    try {
+      const scopePlayers = data.destinatarios_tipo === "Todos"
+        ? players
+        : players.filter(p => p.deporte === data.destinatarios_tipo);
+      const familiesMap = {};
+      scopePlayers.forEach(p => {
+        if (p.email_padre) {
+          if (!familiesMap[p.email_padre]) {
+            familiesMap[p.email_padre] = {
+              email: p.email_padre,
+              nombre_tutor: p.nombre_tutor_legal || "Familia",
+              jugadores: []
+            };
+          }
+          familiesMap[p.email_padre].jugadores.push({ id: p.id, nombre: p.nombre });
+        }
+      });
+      const families = Object.values(familiesMap);
+      if (families.length === 0) return;
+
+      const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 5000);
+      const text = `📢 ${announcement.titulo}\n\n${announcement.contenido}`;
+
+      for (const family of families) {
+        let conv = allConvs.find(c =>
+          c.participante_familia_email === family.email &&
+          c.participante_staff_email === 'sistema@cdbustarviejo.com'
+        );
+        if (!conv) {
+          conv = await base44.entities.PrivateConversation.create({
+            participante_familia_email: family.email,
+            participante_familia_nombre: family.nombre_tutor,
+            participante_staff_email: 'sistema@cdbustarviejo.com',
+            participante_staff_nombre: '🤖 Sistema de Recordatorios - Administración',
+            participante_staff_rol: 'admin',
+            categoria: data.destinatarios_tipo || 'Todos',
+            jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
+            ultimo_mensaje: text.slice(0, 100),
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_de: 'staff',
+            no_leidos_familia: 1,
+            archivada: false
+          });
+        }
+
+        await base44.entities.PrivateMessage.create({
+          conversacion_id: conv.id,
+          remitente_email: 'sistema@cdbustarviejo.com',
+          remitente_nombre: '📢 Anuncios del Club',
+          remitente_tipo: 'staff',
+          mensaje: text,
+          leido: false
+        });
+
+        await base44.entities.PrivateConversation.update(conv.id, {
+          ultimo_mensaje: text.slice(0, 100),
+          ultimo_mensaje_fecha: new Date().toISOString(),
+          ultimo_mensaje_de: 'staff',
+          no_leidos_familia: (conv.no_leidos_familia || 0) + 1
+        });
+        await new Promise(r => setTimeout(r, 150));
+      }
+    } catch (err) {
+      console.error("Error enviando al chat del club:", err);
+      toast.error("Error al publicar en Mensajes del Club");
     }
   };
 
