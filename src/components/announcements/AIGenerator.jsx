@@ -164,7 +164,7 @@ Parte de esta base (puedes reescribir para coherencia y fluidez):\n\nTÍTULO BAS
       const allPlayers = await base44.entities.Player.list();
       const familiesMap = {};
       allPlayers.forEach(p => {
-        if (p.activo === true && p.email_padre) {
+        if (p.email_padre) {
           if (!familiesMap[p.email_padre]) {
             familiesMap[p.email_padre] = {
               email: p.email_padre,
