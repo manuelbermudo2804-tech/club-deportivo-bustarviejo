@@ -1167,7 +1167,7 @@ export default function Layout({ children, currentPageName }) {
   const coordinatorNavigationItems = [
           // 🏠 INICIO
           { title: "🏠 Inicio", url: createPageUrl("CoordinatorDashboard"), icon: Home },
-        { title: "📋 Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
+,
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
