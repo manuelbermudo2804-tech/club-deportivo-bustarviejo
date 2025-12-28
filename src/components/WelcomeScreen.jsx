@@ -107,11 +107,11 @@ export default function WelcomeScreen({ onEnter }) {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.8 + index * 0.1, duration: 0.5 }}
-                    className="bg-white/10 backdrop-blur-md rounded-2xl p-4 lg:p-6 border border-white/20"
+                    className="bg-white/10 backdrop-blur-md rounded-2xl p-3 lg:p-5 border border-white/20 flex flex-col items-center justify-center text-center h-28 lg:h-32"
                   >
-                    <stat.icon className="w-8 h-8 lg:w-10 lg:h-10 text-orange-400 mx-auto mb-2" />
-                    <p className="text-xl lg:text-2xl font-bold text-white">{stat.label}</p>
-                    <p className="text-sm lg:text-base text-white/80">{stat.sublabel}</p>
+                    <stat.icon className="w-8 h-8 lg:w-10 lg:h-10 text-orange-400 mx-auto mb-1 lg:mb-2" />
+                    <p className="text-lg lg:text-2xl font-bold text-white leading-tight whitespace-nowrap">{stat.label}</p>
+                    <p className="text-xs lg:text-sm text-white/80 leading-snug">{stat.sublabel}</p>
                   </motion.div>
                 ))}
               </motion.div>
