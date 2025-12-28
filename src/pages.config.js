@@ -21,6 +21,7 @@ import CoachParentChat from './pages/CoachParentChat';
 import CoachProfile from './pages/CoachProfile';
 import CoachProfiles from './pages/CoachProfiles';
 import CoachStandingsAnalysis from './pages/CoachStandingsAnalysis';
+import CompetitionChecklist from './pages/CompetitionChecklist';
 import CoordinatorChat from './pages/CoordinatorChat';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
 import CoordinatorSettings from './pages/CoordinatorSettings';
@@ -89,7 +90,7 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import CompetitionChecklist from './pages/CompetitionChecklist';
+import BoardTasks from './pages/BoardTasks';
 import __Layout from './Layout.jsx';
 
 
@@ -117,6 +118,7 @@ export const PAGES = {
     "CoachProfile": CoachProfile,
     "CoachProfiles": CoachProfiles,
     "CoachStandingsAnalysis": CoachStandingsAnalysis,
+    "CompetitionChecklist": CompetitionChecklist,
     "CoordinatorChat": CoordinatorChat,
     "CoordinatorDashboard": CoordinatorDashboard,
     "CoordinatorSettings": CoordinatorSettings,
@@ -185,7 +187,7 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "CompetitionChecklist": CompetitionChecklist,
+    "BoardTasks": BoardTasks,
 }
 
 export const pagesConfig = {
