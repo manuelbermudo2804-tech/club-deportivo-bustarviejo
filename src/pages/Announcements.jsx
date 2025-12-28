@@ -11,6 +11,10 @@ import AnnouncementForm from "../components/announcements/AnnouncementForm";
 import AnnouncementCard from "../components/announcements/AnnouncementCard";
 import AIGenerator from "../components/announcements/AIGenerator";
 import TemplateManager from "../components/announcements/TemplateManager";
+import AIGenerator from "../components/announcements/AIGenerator";
+import TemplateManager from "../components/announcements/TemplateManager";
+import AIGenerator from "../components/announcements/AIGenerator";
+import TemplateManager from "../components/announcements/TemplateManager";
 
 export default function Announcements() {
   const [showForm, setShowForm] = useState(false);
