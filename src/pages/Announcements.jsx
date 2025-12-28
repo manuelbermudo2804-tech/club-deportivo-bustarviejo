@@ -18,8 +18,11 @@ export default function Announcements() {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoach, setIsCoach] = useState(false);
+  const [isCoordinator, setIsCoordinator] = useState(false);
+  const [isTreasurer, setIsTreasurer] = useState(false);
   const [user, setUser] = useState(null);
   const [userSports, setUserSports] = useState([]);
+  const canManage = isAdmin || isCoach || isCoordinator || isTreasurer;
   
   const queryClient = useQueryClient();
 
@@ -30,6 +33,8 @@ export default function Announcements() {
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
         setIsCoach(currentUser.es_entrenador === true);
+        setIsCoordinator(currentUser.es_coordinador === true);
+        setIsTreasurer(currentUser.es_tesorero === true);
         
         if (currentUser.role !== "admin") {
           const allPlayers = await base44.entities.Player.list();
@@ -43,9 +48,11 @@ export default function Announcements() {
           }
         }
       } catch (error) {
-        setIsAdmin(false);
-        setIsCoach(false);
-      }
+          setIsAdmin(false);
+          setIsCoach(false);
+          setIsCoordinator(false);
+          setIsTreasurer(false);
+        }
     };
     checkUser();
     
@@ -127,7 +134,7 @@ export default function Announcements() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    enabled: isAdmin || isCoach,
+    enabled: canManage,
   });
 
   const createAnnouncementMutation = useMutation({
@@ -378,7 +385,7 @@ Ubicación: Bustarviejo, Madrid
           </h1>
           <p className="text-slate-600 mt-1 text-sm">Comunicados del club</p>
         </div>
-        {(isAdmin || isCoach) && (
+        {canManage && (
           <Button
             onClick={() => {
               setEditingAnnouncement(null);
@@ -400,7 +407,7 @@ Ubicación: Bustarviejo, Madrid
       )}
 
       <AnimatePresence>
-        {showForm && (isAdmin || isCoach) && (
+        {showForm && canManage && (
           <AnnouncementForm
             announcement={editingAnnouncement}
             onSubmit={handleSubmit}
@@ -447,8 +454,8 @@ Ubicación: Bustarviejo, Madrid
                   <AnnouncementCard
                     announcement={announcement}
                     onEdit={handleEdit}
-                    onDelete={(isAdmin || isCoach) ? handleDelete : null}
-                    isAdmin={isAdmin || isCoach}
+                    onDelete={canManage ? handleDelete : null}
+                    isAdmin={canManage}
                     userEmail={user?.email}
                     onMarkAsRead={markAsReadMutation.mutate}
                   />
