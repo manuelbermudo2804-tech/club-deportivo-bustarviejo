@@ -66,7 +66,20 @@ export default function AlertCenter({
   userEmail = null,
   userSports = []
 }) {
-  const alerts = [];
+  const [dismissedAlerts, setDismissedAlerts] = useState(() => {
+  try {
+    return new Set(JSON.parse(localStorage.getItem('dismissedAlerts') || '[]'));
+  } catch {
+    return new Set();
+  }
+});
+useEffect(() => {
+  try {
+    localStorage.setItem('dismissedAlerts', JSON.stringify(Array.from(dismissedAlerts)));
+  } catch {}
+}, [dismissedAlerts]);
+
+const alerts = [];
 
   // Fetch announcements
   const { data: announcements = [] } = useQuery({
@@ -578,6 +591,26 @@ export default function AlertCenter({
 
   // Ordenar por prioridad
   alerts.sort((a, b) => a.priority - b.priority);
+  const visibleAlerts = alerts.filter((a) => !dismissedAlerts.has(a.id));
+
+  const handleAlertClick = (alert) => {
+    setDismissedAlerts((prev) => {
+      const next = new Set(prev);
+      next.add(alert.id);
+      return next;
+    });
+
+    // Marcar anuncios como leídos al acceder
+    if (alert.id === "announcements-unread" && unreadAnnouncements.length > 0 && userEmail) {
+      const entry = { email: userEmail, nombre: userEmail?.split('@')[0] || userEmail, fecha: new Date().toISOString() };
+      Promise.all(
+        unreadAnnouncements.map((a) => {
+          const current = Array.isArray(a.leido_por) ? a.leido_por : [];
+          return base44.entities.Announcement.update(a.id, { leido_por: [...current, entry] });
+        })
+      ).catch(() => {});
+    }
+  };
 
   if (alerts.length === 0) {
     return (
@@ -600,15 +633,16 @@ export default function AlertCenter({
       <CardContent className="p-3">
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-orange-200">
           <Bell className="w-5 h-5 text-orange-600" />
-          <p className="text-base font-bold text-orange-600">🔔 Tareas Pendientes ({alerts.length})</p>
+          <p className="text-base font-bold text-orange-600">🔔 Tareas Pendientes ({visibleAlerts.length})</p>
         </div>
         <div className="space-y-2">
-          {alerts.map((alert) => (
+          {visibleAlerts.map((alert) => ()
             <Link
-              key={alert.id}
-              to={alert.url}
-              className="flex items-center gap-3 p-2 hover:bg-slate-50 transition-colors group rounded-lg"
-            >
+                           key={alert.id}
+                           to={alert.url}
+                           onClick={() => handleAlertClick(alert)}
+                           className="flex items-center gap-3 p-2 hover:bg-slate-50 transition-colors group rounded-lg"
+                         >
               <div className={`w-9 h-9 rounded-full ${alert.color} flex items-center justify-center flex-shrink-0`}>
                 <alert.icon className="w-5 h-5 text-white" />
               </div>
