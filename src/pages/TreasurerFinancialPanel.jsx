@@ -461,7 +461,7 @@ export default function TreasurerFinancialPanel() {
             <p className="text-slate-600 mt-1">Control total de ingresos, gastos y presupuestos</p>
             <div className="flex gap-2 mt-3">
               {activeSeason && (
-                <Badge className="bg-green-600 text-white">
+                <Badge className="bg-green-100 text-green-700 border border-green-200">
                   📅 {activeSeason.temporada}
                 </Badge>
               )}
