@@ -613,7 +613,7 @@ const alerts = [];
     }
   };
 
-  if (alerts.length === 0) {
+  if (visibleAlerts.length === 0) {
     return (
       <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
         <CardContent className="p-4 flex items-center gap-3">

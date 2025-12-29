@@ -521,7 +521,7 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 bg-white border border-slate-200 rounded-xl">>
+        <TabsList className="grid w-full grid-cols-4 bg-white border border-slate-200 rounded-xl">
           <TabsTrigger value="resumen" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden md:inline">Resumen</span>
