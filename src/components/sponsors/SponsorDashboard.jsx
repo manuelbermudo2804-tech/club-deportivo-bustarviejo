@@ -1,10 +1,14 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Euro, TrendingUp, Users, AlertTriangle, Building2 } from "lucide-react";
+import { Euro, TrendingUp, Users, AlertTriangle, Building2, Eye, MousePointer } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import SponsorMetricsCard from "./SponsorMetricsCard";
+import PackageConfigurator from "./PackageConfigurator";
 
 const COLORS = {
   "Principal": "#f59e0b",
@@ -15,24 +19,28 @@ const COLORS = {
 };
 
 export default function SponsorDashboard({ sponsors }) {
-  const activeSponsors = sponsors.filter(s => s.estado === "Activo");
-  const pendingSponsors = sponsors.filter(s => s.estado === "Pendiente");
+  // Fetch impressions data
+  const { data: impressions = [] } = useQuery({
+    queryKey: ['sponsorImpressions'],
+    queryFn: () => base44.entities.SponsorImpression.list('-created_date', 5000),
+    initialData: [],
+  });
+
+  const activeSponsors = sponsors.filter(s => s.activo === true);
+  const pendingSponsors = sponsors.filter(s => s.estado_pago === "Pendiente");
 
   // Ingresos totales activos
-  const totalActiveIncome = activeSponsors.reduce((sum, s) => {
-    let annual = s.monto || 0;
-    if (s.frecuencia_pago === "Mensual") annual *= 12;
-    else if (s.frecuencia_pago === "Trimestral") annual *= 4;
-    return sum + annual;
-  }, 0);
+  const totalActiveIncome = activeSponsors.reduce((sum, s) => sum + (s.precio_anual || 0), 0);
+  
+  // Métricas globales
+  const totalImpressions = impressions.filter(i => i.tipo === "impresion").length;
+  const totalClicks = impressions.filter(i => i.tipo === "click").length;
+  const globalCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : 0;
 
-  // Ingresos por nivel
+  // Ingresos por nivel (usando paquete)
   const incomeByLevel = Object.entries(
     activeSponsors.reduce((acc, s) => {
-      let annual = s.monto || 0;
-      if (s.frecuencia_pago === "Mensual") annual *= 12;
-      else if (s.frecuencia_pago === "Trimestral") annual *= 4;
-      acc[s.nivel_patrocinio] = (acc[s.nivel_patrocinio] || 0) + annual;
+      acc[s.paquete] = (acc[s.paquete] || 0) + (s.precio_anual || 0);
       return acc;
     }, {})
   ).map(([name, value]) => ({ name, value }));
@@ -44,18 +52,21 @@ export default function SponsorDashboard({ sponsors }) {
     return daysUntilExpiry > 0 && daysUntilExpiry <= 30;
   });
 
-  // Distribución por nivel
+  // Distribución por nivel (usando paquete)
   const distributionByLevel = Object.entries(
     activeSponsors.reduce((acc, s) => {
-      acc[s.nivel_patrocinio] = (acc[s.nivel_patrocinio] || 0) + 1;
+      acc[s.paquete] = (acc[s.paquete] || 0) + 1;
       return acc;
     }, {})
-  ).map(([name, value]) => ({ name, value, color: COLORS[name] }));
+  ).map(([name, value]) => ({ name, value, color: COLORS[name] || COLORS["Bronce"] }));
 
   return (
     <div className="space-y-6">
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Configurador de paquetes */}
+      <PackageConfigurator />
+
+      {/* KPIs mejorados */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -117,6 +128,51 @@ export default function SponsorDashboard({ sponsors }) {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-purple-600 rounded-xl">
+                <Eye className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-purple-700 font-medium">Impresiones</p>
+                <p className="text-2xl font-bold text-purple-800">{totalImpressions.toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-600 rounded-xl">
+                <MousePointer className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-blue-700 font-medium">CTR Global</p>
+                <p className="text-2xl font-bold text-blue-800">{globalCTR}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Métricas por patrocinador */}
+      <div>
+        <h2 className="text-xl font-bold text-slate-900 mb-4">📊 Rendimiento por Patrocinador</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          {activeSponsors.map(sponsor => {
+            const sponsorImpressions = impressions.filter(i => i.sponsor_id === sponsor.id);
+            return (
+              <SponsorMetricsCard
+                key={sponsor.id}
+                sponsor={sponsor}
+                impressions={sponsorImpressions}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {/* Gráficos */}
@@ -210,7 +266,7 @@ export default function SponsorDashboard({ sponsors }) {
                     )}
                     <div>
                       <p className="font-semibold text-slate-900">{s.nombre}</p>
-                      <p className="text-xs text-slate-600">{s.nivel_patrocinio} • {s.monto?.toLocaleString('es-ES')}€</p>
+                      <p className="text-xs text-slate-600">{s.paquete} • {s.precio_anual?.toLocaleString('es-ES')}€</p>
                     </div>
                   </div>
                   <div className="text-right">
