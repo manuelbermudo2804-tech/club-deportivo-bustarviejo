@@ -465,7 +465,7 @@ export default function TreasurerFinancialPanel() {
                   📅 {activeSeason.temporada}
                 </Badge>
               )}
-              <Badge className="bg-orange-600 text-white">
+              <Badge className="bg-orange-100 text-orange-700 border border-orange-200">
                 {players.filter(p => p.activo).length} jugadores activos
               </Badge>
             </div>
