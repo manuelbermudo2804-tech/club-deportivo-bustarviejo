@@ -454,11 +454,11 @@ export default function TreasurerFinancialPanel() {
         totalEsperado={totalEsperado}
       />
 
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-700">
+      <div className="bg-gradient-to-r from-white to-slate-50 rounded-2xl p-6 shadow-xl border border-slate-200">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white">💰 Panel Financiero</h1>
-            <p className="text-slate-300 mt-1">Control total de ingresos, gastos y presupuestos</p>
+            <h1 className="text-3xl font-bold text-slate-900">💰 Panel Financiero</h1>
+            <p className="text-slate-600 mt-1">Control total de ingresos, gastos y presupuestos</p>
             <div className="flex gap-2 mt-3">
               {activeSeason && (
                 <Badge className="bg-green-600 text-white">
