@@ -591,12 +591,13 @@ const alerts = [];
 
   // Ordenar por prioridad
   alerts.sort((a, b) => a.priority - b.priority);
-  const visibleAlerts = alerts.filter((a) => !dismissedAlerts.has(a.id));
+  const alertsWithKeys = alerts.map((a) => ({ ...a, _key: `${a.id}:${a.description}` }));
+  const visibleAlerts = alertsWithKeys.filter((a) => !dismissedAlerts.has(a._key));
 
   const handleAlertClick = (alert) => {
     setDismissedAlerts((prev) => {
       const next = new Set(prev);
-      next.add(alert.id);
+      next.add(alert._key);
       return next;
     });
 
@@ -636,9 +637,9 @@ const alerts = [];
           <p className="text-base font-bold text-orange-600">🔔 Tareas Pendientes ({visibleAlerts.length})</p>
         </div>
         <div className="space-y-2">
-          {visibleAlerts.map((alert) => ()
+          {visibleAlerts.map((alert) => (
             <Link
-                           key={alert.id}
+                           key={alert._key}
                            to={alert.url}
                            onClick={() => handleAlertClick(alert)}
                            className="flex items-center gap-3 p-2 hover:bg-slate-50 transition-colors group rounded-lg"
