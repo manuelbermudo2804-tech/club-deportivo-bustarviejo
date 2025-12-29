@@ -1296,12 +1296,27 @@ export default function TreasurerFinancialPanel() {
         {/* TAB ANÁLISIS AVANZADOS */}
         <TabsContent value="analisis" className="space-y-6 mt-6">
           <Tabs value={activeAnalysisTab} onValueChange={setActiveAnalysisTab}>
-            <TabsList className="grid grid-cols-5 w-full">
-              <TabsTrigger value="rentabilidad">💰 Rentabilidad</TabsTrigger>
-              <TabsTrigger value="retencion">🔄 Retención</TabsTrigger>
-              <TabsTrigger value="flujo">📊 Flujo Caja</TabsTrigger>
-              <TabsTrigger value="ratios">📈 Ratios</TabsTrigger>
-              <TabsTrigger value="estacionalidad">📅 Estacionalidad</TabsTrigger>
+            <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full gap-1">
+              <TabsTrigger value="rentabilidad" className="text-xs md:text-sm">
+                <span className="hidden md:inline">💰 Rentabilidad</span>
+                <span className="md:hidden">💰</span>
+              </TabsTrigger>
+              <TabsTrigger value="retencion" className="text-xs md:text-sm">
+                <span className="hidden md:inline">🔄 Retención</span>
+                <span className="md:hidden">🔄</span>
+              </TabsTrigger>
+              <TabsTrigger value="flujo" className="text-xs md:text-sm">
+                <span className="hidden md:inline">📊 Flujo Caja</span>
+                <span className="md:hidden">📊</span>
+              </TabsTrigger>
+              <TabsTrigger value="ratios" className="text-xs md:text-sm">
+                <span className="hidden md:inline">📈 Ratios</span>
+                <span className="md:hidden">📈</span>
+              </TabsTrigger>
+              <TabsTrigger value="estacionalidad" className="text-xs md:text-sm">
+                <span className="hidden md:inline">📅 Estacionalidad</span>
+                <span className="md:hidden">📅</span>
+              </TabsTrigger>
             </TabsList>
 
             {activeAnalysisTab === "rentabilidad" && (
