@@ -1115,25 +1115,47 @@ export default function TreasurerFinancialPanel() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RePieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
-                  </RePieChart>
-                </ResponsiveContainer>
+                <div className="flex flex-col items-center">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <RePieChart>
+                      <Pie
+                        data={pieData.filter(d => d.value > 0)}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {pieData.filter(d => d.value > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value) => `${value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}€`}
+                        contentStyle={{ fontSize: 12 }}
+                      />
+                    </RePieChart>
+                  </ResponsiveContainer>
+                  
+                  {/* Leyenda personalizada compacta */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full mt-4">
+                    {pieData.filter(d => d.value > 0).map((item, index) => {
+                      const total = pieData.reduce((sum, d) => sum + d.value, 0);
+                      const percent = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+                      return (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-slate-700 truncate">{item.name}</p>
+                            <p className="text-xs text-slate-500">{percent}%</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
