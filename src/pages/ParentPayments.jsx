@@ -668,7 +668,7 @@ export default function ParentPayments() {
                     {/* Alerta de plan personalizado */}
                     {playerCustomPlan && (
                       <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-lg">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full md:w-auto justify-start md:justify-end">
                           <DollarSign className="w-5 h-5 text-purple-600" />
                           <p className="text-sm font-bold text-purple-900">💰 Plan de Pago Personalizado</p>
                         </div>
@@ -689,7 +689,7 @@ export default function ParentPayments() {
                     {/* Alerta de descuento por hermano */}
                     {player.tiene_descuento_hermano && player.descuento_aplicado > 0 && !playerCustomPlan && (
                       <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full md:w-auto justify-start md:justify-end">
                           <Gift className="w-5 h-5 text-purple-600" />
                           <p className="text-sm font-bold text-purple-900">🎉 Descuento Familiar Aplicado</p>
                         </div>
@@ -789,7 +789,7 @@ export default function ParentPayments() {
                                     )}
                                   </p>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 w-full md:w-auto justify-start md:justify-end">
                                   {mostrarBotonPagar && !payment.isVirtual && (
                                     <Button
                                       size="sm"
