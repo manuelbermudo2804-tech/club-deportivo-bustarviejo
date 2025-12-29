@@ -60,6 +60,13 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
   const totalGastos = monthlyData.reduce((sum, m) => sum + m.gastos, 0);
   const flujoNeto = totalIngresos - totalGastos;
 
+  const formatCurrency = (value) => {
+    const num = Math.abs(value);
+    if (num >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(value / 1000).toFixed(1)}k`;
+    return num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
+  };
+
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
@@ -70,23 +77,27 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Resumen */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-green-50 rounded-xl p-4 text-center border-2 border-green-200">
-            <p className="text-xs text-green-600 font-medium">Total Ingresos</p>
-            <p className="text-2xl font-bold text-green-700">+{totalIngresos.toFixed(2)}€</p>
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
+          <div className="bg-green-50 rounded-xl p-3 md:p-4 text-center border-2 border-green-200">
+            <p className="text-[10px] md:text-xs text-green-600 font-medium mb-1">Total Ingresos</p>
+            <p className="text-lg md:text-2xl font-bold text-green-700">
+              +{formatCurrency(totalIngresos)}€
+            </p>
           </div>
-          <div className="bg-red-50 rounded-xl p-4 text-center border-2 border-red-200">
-            <p className="text-xs text-red-600 font-medium">Total Gastos</p>
-            <p className="text-2xl font-bold text-red-700">-{totalGastos.toFixed(2)}€</p>
+          <div className="bg-red-50 rounded-xl p-3 md:p-4 text-center border-2 border-red-200">
+            <p className="text-[10px] md:text-xs text-red-600 font-medium mb-1">Total Gastos</p>
+            <p className="text-lg md:text-2xl font-bold text-red-700">
+              -{formatCurrency(totalGastos)}€
+            </p>
           </div>
-          <div className={`rounded-xl p-4 text-center border-2 ${
+          <div className={`rounded-xl p-3 md:p-4 text-center border-2 ${
             flujoNeto >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'
           }`}>
-            <p className={`text-xs font-medium ${flujoNeto >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+            <p className={`text-[10px] md:text-xs font-medium mb-1 ${flujoNeto >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
               Flujo Neto
             </p>
-            <p className={`text-2xl font-bold ${flujoNeto >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-              {flujoNeto >= 0 ? '+' : ''}{flujoNeto.toFixed(2)}€
+            <p className={`text-lg md:text-2xl font-bold ${flujoNeto >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+              {flujoNeto >= 0 ? '+' : ''}{formatCurrency(flujoNeto)}€
             </p>
           </div>
         </div>
@@ -95,10 +106,22 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="mes" angle={-45} textAnchor="end" height={80} />
-            <YAxis />
-            <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
-            <Legend />
+            <XAxis 
+              dataKey="mes" 
+              angle={-45} 
+              textAnchor="end" 
+              height={80}
+              tick={{ fontSize: 11 }}
+            />
+            <YAxis 
+              tickFormatter={(value) => `${formatCurrency(value)}€`}
+              tick={{ fontSize: 11 }}
+            />
+            <Tooltip 
+              formatter={(value) => `${value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}€`}
+              contentStyle={{ fontSize: 12 }}
+            />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
             <Bar dataKey="ingresos" fill="#22c55e" name="Ingresos" />
             <Bar dataKey="gastos" fill="#ef4444" name="Gastos" />
             <Line type="monotone" dataKey="flujo" stroke="#3b82f6" strokeWidth={3} name="Flujo Neto" />
@@ -111,10 +134,22 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="mes" angle={-45} textAnchor="end" height={80} />
-              <YAxis />
-              <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
-              <Legend />
+              <XAxis 
+                dataKey="mes" 
+                angle={-45} 
+                textAnchor="end" 
+                height={80}
+                tick={{ fontSize: 11 }}
+              />
+              <YAxis 
+                tickFormatter={(value) => `${formatCurrency(value)}€`}
+                tick={{ fontSize: 11 }}
+              />
+              <Tooltip 
+                formatter={(value) => `${value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}€`}
+                contentStyle={{ fontSize: 12 }}
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey="cuotas" stackId="a" fill="#3b82f6" name="Cuotas" />
               <Bar dataKey="ropa" stackId="a" fill="#f97316" name="Ropa" />
               <Bar dataKey="loteria" stackId="a" fill="#22c55e" name="Lotería" />
