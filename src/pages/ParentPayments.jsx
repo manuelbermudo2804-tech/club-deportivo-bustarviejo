@@ -643,7 +643,7 @@ export default function ParentPayments() {
               return (
                 <Card key={player.id} className="border-none shadow-lg bg-white overflow-hidden">
                   <CardHeader className="bg-slate-50 border-b">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-start md:items-center justify-start md:justify-between gap-3">
                       <div className="flex items-center gap-3">
                         {player.foto_url ? (
                           <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
@@ -757,7 +757,7 @@ export default function ParentPayments() {
                               payment.estado === "En revisión" ? "border-orange-500 bg-orange-50" :
                               "border-red-500 bg-red-50"
                             }`}>
-                              <div className="flex items-center justify-between gap-3">
+                              <div className="flex flex-wrap items-start md:items-center justify-start md:justify-between gap-3">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
                                     <span className="font-bold text-slate-900">{payment.mes}</span>
