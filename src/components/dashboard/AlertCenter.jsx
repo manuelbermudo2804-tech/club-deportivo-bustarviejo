@@ -598,6 +598,9 @@ const alerts = [];
     setDismissedAlerts((prev) => {
       const next = new Set(prev);
       next.add(alert._key);
+      try {
+        localStorage.setItem('dismissedAlerts', JSON.stringify(Array.from(next)));
+      } catch {}
       return next;
     });
 
@@ -642,6 +645,7 @@ const alerts = [];
                            key={alert._key}
                            to={alert.url}
                            onClick={() => handleAlertClick(alert)}
+                           onAuxClick={() => handleAlertClick(alert)}
                            className="flex items-center gap-3 p-2 hover:bg-slate-50 transition-colors group rounded-lg"
                          >
               <div className={`w-9 h-9 rounded-full ${alert.color} flex items-center justify-center flex-shrink-0`}>
