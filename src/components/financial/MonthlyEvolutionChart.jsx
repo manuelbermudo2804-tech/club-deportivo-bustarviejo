@@ -72,23 +72,30 @@ export default function MonthlyEvolutionChart({ payments, clothingOrders, lotter
   const totalIngresos = monthlyData.reduce((sum, m) => sum + m.Total, 0);
   const promedioMensual = totalIngresos / 12;
 
+  const formatCurrency = (value) => {
+    const num = Math.abs(value);
+    if (num >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(value / 1000).toFixed(1)}k`;
+    return num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
+  };
+
   return (
     <Card className="border-none shadow-xl">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-xl">Evolución Mensual de Ingresos</CardTitle>
-              <p className="text-sm text-slate-600 mt-1">
-                Promedio mensual: <span className="font-bold text-blue-700">{promedioMensual.toFixed(2)}€</span>
+              <CardTitle className="text-lg md:text-xl">Evolución Mensual de Ingresos</CardTitle>
+              <p className="text-xs md:text-sm text-slate-600 mt-1">
+                Promedio: <span className="font-bold text-blue-700">{formatCurrency(promedioMensual)}€/mes</span>
               </p>
             </div>
           </div>
-          <Badge className="bg-blue-600 text-white">
-            Total: {totalIngresos.toFixed(2)}€
+          <Badge className="bg-blue-600 text-white w-fit">
+            Total: {formatCurrency(totalIngresos)}€
           </Badge>
         </div>
       </CardHeader>
@@ -102,13 +109,21 @@ export default function MonthlyEvolutionChart({ payments, clothingOrders, lotter
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="mes" stroke="#64748b" />
-            <YAxis stroke="#64748b" />
-            <Tooltip 
-              formatter={(value) => `${value.toFixed(2)}€`}
-              contentStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+            <XAxis 
+              dataKey="mes" 
+              stroke="#64748b"
+              tick={{ fontSize: 11 }}
             />
-            <Legend />
+            <YAxis 
+              stroke="#64748b"
+              tickFormatter={(value) => `${formatCurrency(value)}€`}
+              tick={{ fontSize: 11 }}
+            />
+            <Tooltip 
+              formatter={(value) => `${value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}€`}
+              contentStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: 12 }}
+            />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
             <Area type="monotone" dataKey="Total" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
             <Line type="monotone" dataKey="Cuotas" stroke="#22c55e" strokeWidth={2} dot={{ r: 4 }} />
             <Line type="monotone" dataKey="Ropa" stroke="#f97316" strokeWidth={2} dot={{ r: 4 }} />

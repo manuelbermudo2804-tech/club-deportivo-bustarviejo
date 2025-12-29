@@ -7,6 +7,13 @@ import { Users, TrendingUp, BarChart } from "lucide-react";
 
 const COLORS = ['#3b82f6', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6'];
 
+const formatCurrency = (value) => {
+  const num = Math.abs(value);
+  if (num >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(value / 1000).toFixed(1)}k`;
+  return num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
+};
+
 export default function CategoryBreakdown({ players, payments, activeSeason, getImportePorMes }) {
   const categoryStats = useMemo(() => {
     if (!activeSeason || !players.length) return [];
@@ -93,10 +100,22 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
           <ResponsiveContainer width="100%" height={300}>
             <ReBarChart data={chartData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis dataKey="name" type="category" width={120} />
-              <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
-              <Legend />
+              <XAxis 
+                type="number"
+                tickFormatter={(value) => `${formatCurrency(value)}€`}
+                tick={{ fontSize: 11 }}
+              />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                width={100}
+                tick={{ fontSize: 11 }}
+              />
+              <Tooltip 
+                formatter={(value) => `${value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}€`}
+                contentStyle={{ fontSize: 12 }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="Cobrado" fill="#22c55e" stackId="a" />
               <Bar dataKey="EnRevision" fill="#f59e0b" stackId="a" />
               <Bar dataKey="Pendiente" fill="#ef4444" stackId="a" />
@@ -147,16 +166,16 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
                   {/* Desglose */}
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="bg-green-50 rounded-lg p-2">
-                      <p className="text-xs text-slate-600">Cobrado</p>
-                      <p className="font-bold text-green-700">{cat.cobrado.toFixed(0)}€</p>
+                      <p className="text-[10px] md:text-xs text-slate-600">Cobrado</p>
+                      <p className="font-bold text-green-700 text-sm md:text-base">{formatCurrency(cat.cobrado)}€</p>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-2">
-                      <p className="text-xs text-slate-600">En Revisión</p>
-                      <p className="font-bold text-orange-700">{cat.enRevision.toFixed(0)}€</p>
+                      <p className="text-[10px] md:text-xs text-slate-600">En Revisión</p>
+                      <p className="font-bold text-orange-700 text-sm md:text-base">{formatCurrency(cat.enRevision)}€</p>
                     </div>
                     <div className="bg-red-50 rounded-lg p-2">
-                      <p className="text-xs text-slate-600">Pendiente</p>
-                      <p className="font-bold text-red-700">{cat.pendiente.toFixed(0)}€</p>
+                      <p className="text-[10px] md:text-xs text-slate-600">Pendiente</p>
+                      <p className="font-bold text-red-700 text-sm md:text-base">{formatCurrency(cat.pendiente)}€</p>
                     </div>
                   </div>
                 </div>

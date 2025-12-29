@@ -14,6 +14,13 @@ export default function IncomeDistributionPie({ stats }) {
 
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
+  const formatCurrency = (value) => {
+    const num = Math.abs(value);
+    if (num >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(value / 1000).toFixed(1)}k`;
+    return num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
+  };
+
   return (
     <Card className="border-none shadow-lg">
       <CardHeader>
@@ -31,7 +38,7 @@ export default function IncomeDistributionPie({ stats }) {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                label={false}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
@@ -40,23 +47,30 @@ export default function IncomeDistributionPie({ stats }) {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
+              <Tooltip 
+                formatter={(value) => `${value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}€`}
+                contentStyle={{ fontSize: 12 }}
+              />
             </PieChart>
           </ResponsiveContainer>
 
           <div className="space-y-3">
             <div className="bg-slate-50 rounded-lg p-3 mb-4">
               <p className="text-sm text-slate-600">Total Cobrado</p>
-              <p className="text-3xl font-bold text-slate-900">{total.toFixed(2)}€</p>
+              <p className="text-2xl md:text-3xl font-bold text-slate-900">
+                {formatCurrency(total)}€
+              </p>
             </div>
             {data.map(item => (
               <div key={item.name} className="flex items-center justify-between p-3 rounded-lg border">
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="font-medium text-slate-700">{item.name}</span>
+                  <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="font-medium text-slate-700 text-sm">{item.name}</span>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-slate-900">{item.value.toFixed(2)}€</p>
+                  <p className="font-bold text-slate-900 text-sm">
+                    {formatCurrency(item.value)}€
+                  </p>
                   <p className="text-xs text-slate-500">
                     {((item.value / total) * 100).toFixed(1)}%
                   </p>
