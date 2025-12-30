@@ -178,6 +178,7 @@ export default function QuickMatchObservationForm({
 
           {step === 3 && (
             <>
+              {/* Bloque de resumen editable para que no se pierda edición en el último paso */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs">Goles 1ª Parte</Label>
