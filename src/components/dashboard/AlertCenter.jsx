@@ -81,6 +81,47 @@ useEffect(() => {
 
 const alerts = [];
 
+  // Cálculo automático de partidos sin registrar (coach)
+  const { data: coachPendingObs = 0 } = useQuery({
+    queryKey: ['coach-pending-match-obs', isCoach ? userEmail : null],
+    enabled: isCoach && !!userEmail,
+    refetchInterval: 30000,
+    queryFn: async () => {
+      try {
+        const allCallups = await base44.entities.Convocatoria.filter({ entrenador_email: userEmail, publicada: true }, '-fecha_partido', 200);
+        const allObservations = await base44.entities.MatchObservation.list('-updated_date', 500);
+        const now = new Date();
+        const count = (allCallups || []).filter(c => {
+          const matchDate = new Date(c.fecha_partido);
+          if (matchDate > now) return false;
+          if (c.hora_partido) {
+            const [h, m] = (c.hora_partido || '00:00').split(':').map(Number);
+            const start = new Date(matchDate);
+            start.setHours(h || 0, m || 0, 0, 0);
+            const end = new Date(start.getTime() + 135 * 60000);
+            if (now < end) return false;
+          } else {
+            const nextDay = new Date(matchDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            if (now < nextDay) return false;
+          }
+          const hasObservation = (allObservations || []).some(obs =>
+            obs.categoria === c.categoria &&
+            obs.rival === c.rival &&
+            obs.fecha_partido === c.fecha_partido &&
+            obs.entrenador_email === userEmail
+          );
+          return !hasObservation;
+        }).length;
+        return count;
+      } catch {
+        return 0;
+      }
+    }
+  });
+
+  const pendingObs = Math.max(pendingMatchObservations || 0, coachPendingObs || 0);
+
   // Fetch announcements
   const { data: announcements = [] } = useQuery({
     queryKey: ['announcements'],
@@ -293,15 +334,16 @@ const alerts = [];
         priority: 1
       });
     }
-    if (pendingMatchObservations > 0) {
+    if (pendingObs > 0) {
       alerts.push({
         id: "match-observations",
         icon: BarChart3,
         title: "📊 Partidos sin registrar",
-        description: `${pendingMatchObservations} partido${pendingMatchObservations > 1 ? 's' : ''} pendiente${pendingMatchObservations > 1 ? 's' : ''} de observación`,
+        description: `${pendingObs} partido${pendingObs > 1 ? 's' : ''} pendiente${pendingObs > 1 ? 's' : ''} de observación`,
         url: createPageUrl("CoachStandingsAnalysis"),
         color: "bg-red-600",
-        priority: 1
+        priority: 1,
+        sticky: true
       });
     }
     if (pendingAttendance > 0) {
@@ -592,9 +634,13 @@ const alerts = [];
   // Ordenar por prioridad
   alerts.sort((a, b) => a.priority - b.priority);
   const alertsWithKeys = alerts.map((a) => ({ ...a, _key: `${a.id}:${a.description}` }));
-  const visibleAlerts = alertsWithKeys.filter((a) => !dismissedAlerts.has(a._key));
+  const visibleAlerts = alertsWithKeys.filter((a) => a.sticky || !dismissedAlerts.has(a._key));
 
   const handleAlertClick = (alert) => {
+    // No permitir descartar alertas "sticky" (persisten hasta resolverse)
+    if (alert.sticky) {
+      return;
+    }
     setDismissedAlerts((prev) => {
       const next = new Set(prev);
       next.add(alert._key);
