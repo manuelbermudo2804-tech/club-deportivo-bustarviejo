@@ -29,6 +29,7 @@ export default function IncidenciasPage() {
   const isAdmin = me?.role === 'admin';
   const canCreate = isAdmin || me?.es_entrenador || me?.es_coordinador;
   const isJunta = me?.es_junta === true;
+  const canAssignToJunta = isAdmin || me?.es_entrenador || me?.es_coordinador;
   const canAssign = isAdmin || me?.es_entrenador || me?.es_coordinador;
 
   const filtered = useMemo(() => {
