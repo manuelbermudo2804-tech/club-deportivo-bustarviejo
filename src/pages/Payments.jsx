@@ -763,7 +763,7 @@ export default function Payments() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-white">
+        <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setShowOverdueOnly(false); setEstadoFilter('En revisión'); }} className="border-none shadow-lg bg-white cursor-pointer hover:ring-2 hover:ring-orange-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -776,7 +776,7 @@ export default function Payments() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-white">
+        <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setShowOverdueOnly(false); setEstadoFilter('Pagado'); }} className="border-none shadow-lg bg-white cursor-pointer hover:ring-2 hover:ring-orange-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -791,7 +791,7 @@ export default function Payments() {
 
         {isAdmin && (
           <>
-            <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+            <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setEstadoFilter('all'); setShowOverdueOnly(true); }} className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100 border-red-200 cursor-pointer hover:ring-2 hover:ring-red-300">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
