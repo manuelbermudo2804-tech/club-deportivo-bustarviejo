@@ -750,7 +750,7 @@ export default function Payments() {
 
       {/* Stats mejoradas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="border-none shadow-lg bg-white">
+        <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setShowOverdueOnly(false); setEstadoFilter('Pendiente'); }} className="border-none shadow-lg bg-white cursor-pointer hover:ring-2 hover:ring-orange-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
