@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 
 
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert, UserX, RotateCw, CheckCircle2, Trophy } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert, UserX, RotateCw, CheckCircle2, Trophy, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -521,6 +521,8 @@ export default function Layout({ children, currentPageName }) {
   const [unreadAnnouncementsCount, setUnreadAnnouncementsCount] = useState(0);
   const [hasActiveAdminConversation, setHasActiveAdminConversation] = useState(false);
   const [pendingMatchObservations, setPendingMatchObservations] = useState(0);
+  const [isJunta, setIsJunta] = useState(false);
+  const [openIncidenciasCount, setOpenIncidenciasCount] = useState(0);
   
   // Badges para admin
   const [unresolvedAdminChats, setUnresolvedAdminChats] = useState(0);
@@ -732,6 +734,7 @@ export default function Layout({ children, currentPageName }) {
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
+        setIsJunta(currentUser.es_junta === true);
 
         // DETECCIÓN DE JUGADOR +18
         // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
@@ -958,7 +961,15 @@ export default function Layout({ children, currentPageName }) {
         }
 
         // Cargar badges de notificación para admin
-            if (currentUser.role === "admin") {
+        if (currentUser.es_junta === true) {
+          try {
+            const incAbiertas = await base44.entities.Incidencia.filter({ estado: "Abierta" });
+            setOpenIncidenciasCount(incAbiertas.length);
+          } catch (error) {
+            console.log('Error loading incidencias abiertas:', error);
+          }
+        }
+        if (currentUser.role === "admin") {
               try {
                 const [
                   adminChats,
@@ -1328,6 +1339,13 @@ export default function Layout({ children, currentPageName }) {
     } else {
       // Usuario normal de familia (padre/madre sin roles especiales)
       navigationItems = parentNavigationItems;
+    }
+
+    if (isJunta) {
+      navigationItems = [
+        ...navigationItems,
+        { title: "🛠️ Incidencias", url: createPageUrl("Incidencias"), icon: AlertTriangle, badge: openIncidenciasCount > 0 ? openIncidenciasCount : null, urgentBadge: openIncidenciasCount > 0 }
+      ];
     }
 
   const handleLogout = () => {
