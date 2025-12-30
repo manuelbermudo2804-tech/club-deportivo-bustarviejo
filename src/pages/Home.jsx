@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
-import AdminWidgetDashboard from "../components/adminDashboard/AdminWidgetDashboard";
+
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_ADMIN_BUTTONS, DEFAULT_ADMIN_BUTTONS } from "../components/dashboard/AdminDashboardButtons";
 
@@ -1227,11 +1227,6 @@ export default function Home() {
       <PaymentApprovalNotifier isAdmin={isAdmin} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
-
-        {/* Panel personalizable para Administrador */}
-        {isAdmin && (
-          <AdminWidgetDashboard />
-        )}
 
         {/* Accesos rápidos a chats - Para Coordinadores y Entrenadores */}
         {(isCoordinator || (isCoach && user?.es_entrenador)) && (
