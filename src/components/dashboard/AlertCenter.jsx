@@ -81,6 +81,9 @@ useEffect(() => {
 
 const alerts = [];
 
+  const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
+  const isJuntaUser = meUser?.es_junta === true;
+
   // Cálculo automático de partidos sin registrar (coach)
   const { data: coachPendingObs = 0 } = useQuery({
     queryKey: ['coach-pending-match-obs', isCoach ? userEmail : null],
@@ -325,12 +328,12 @@ const alerts = [];
   const { data: incidenciasForAlerts = [] } = useQuery({
     queryKey: ['incidencias-alerts'],
     queryFn: () => base44.entities.Incidencia.list('-created_date', 200),
-    enabled: isAdmin || isCoordinator,
+    enabled: isAdmin || isCoordinator || isJuntaUser,
     refetchInterval: 30000,
   });
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const newIncidencias = (incidenciasForAlerts || []).filter(i => i.estado !== 'Resuelta' && new Date(i.created_date) > twentyFourHoursAgo);
-  if ((isAdmin || isCoordinator) && newIncidencias.length > 0) {
+  if ((isAdmin || isCoordinator || isJuntaUser) && newIncidencias.length > 0) {
     alerts.push({
       id: 'incidencias-new',
       icon: AlertTriangle,
