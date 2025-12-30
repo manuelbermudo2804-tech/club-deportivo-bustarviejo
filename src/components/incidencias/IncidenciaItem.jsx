@@ -169,7 +169,7 @@ export default function IncidenciaItem({ item, isAdmin, canAssign, onUpdated }) 
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {isAdmin && (
+          {(isAdmin || canAssign) && (
             <>
               <Select value={status} onValueChange={v => changeStatus(v)}>
                 <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
