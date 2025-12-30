@@ -311,7 +311,18 @@ export default function UserManagement() {
     });
   };
 
-  const handleChatBlock = (user) => {
+  const handleToggleJunta = async (user) => {
+  const newValue = !user.es_junta;
+  const update = { es_junta: newValue };
+  if (!newValue) update.cargo_junta = null;
+  updateUserMutation.mutate({ userId: user.id, userData: update });
+};
+
+const handleSetCargoJunta = async (user, cargo) => {
+  updateUserMutation.mutate({ userId: user.id, userData: { cargo_junta: cargo } });
+};
+
+const handleChatBlock = (user) => {
     setSelectedUser(user);
     setChatBlockData({ motivo_bloqueo_chat: user.motivo_bloqueo_chat || "" });
     setShowChatBlockDialog(true);
@@ -844,6 +855,28 @@ export default function UserManagement() {
                           {linkedPlayer && (
                             <span className="text-xs text-purple-700 font-medium">⚽ {linkedPlayer.nombre}</span>
                           )}
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div className="flex items-center justify-between bg-white rounded-lg p-2 border-2 border-slate-200">
+                            <span className="text-xs font-semibold text-slate-700">Junta Directiva</span>
+                            <Switch checked={user.es_junta === true} onCheckedChange={() => handleToggleJunta(user)} className="data-[state=checked]:bg-orange-600" />
+                          </div>
+                          <div className="flex items-center justify-between bg-white rounded-lg p-2 border-2 border-slate-200">
+                            <span className="text-xs text-slate-600">Cargo</span>
+                            <Select value={user.cargo_junta || ''} onValueChange={(v) => handleSetCargoJunta(user, v)} disabled={!user.es_junta}>
+                              <SelectTrigger className="h-8 w-40"><SelectValue placeholder="Selecciona" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Presidente">Presidente</SelectItem>
+                                <SelectItem value="Vicepresidente">Vicepresidente</SelectItem>
+                                <SelectItem value="Secretario">Secretario</SelectItem>
+                                <SelectItem value="Tesorero">Tesorero</SelectItem>
+                                <SelectItem value="Vocal 1">Vocal 1</SelectItem>
+                                <SelectItem value="Vocal 2">Vocal 2</SelectItem>
+                                <SelectItem value="Vocal 3">Vocal 3</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                         
                         {/* Alerta jugador +18 */}
