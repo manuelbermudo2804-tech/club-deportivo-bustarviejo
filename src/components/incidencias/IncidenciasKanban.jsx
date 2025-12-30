@@ -40,11 +40,12 @@ export default function IncidenciasKanban({ incidencias = [], onUpdated }) {
 
     // Persistir cambio
     const me = await base44.auth.me();
-    await base44.entities.Incidencia.update(draggableId, (old) => ({
-      ...old,
+    const current = items.find((i) => i.id === draggableId) || {};
+    await base44.entities.Incidencia.update(draggableId, {
+      ...current,
       estado: destEstado,
       comentarios: [
-        ...(old?.comentarios || []),
+        ...(current?.comentarios || []),
         {
           usuario_email: me.email,
           usuario_nombre: me.full_name || me.email,
@@ -56,8 +57,8 @@ export default function IncidenciasKanban({ incidencias = [], onUpdated }) {
       fecha_resolucion:
         destEstado === "Resuelta"
           ? new Date().toISOString()
-          : old?.fecha_resolucion || null,
-    }));
+          : current?.fecha_resolucion || null,
+    });
 
     onUpdated?.();
   };
