@@ -5,14 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, List, Columns } from "lucide-react";
 import IncidenciaForm from "../components/incidencias/IncidenciaForm";
 import IncidenciaItem from "../components/incidencias/IncidenciaItem";
 import JuntaKPIDashboard from "../components/junta/JuntaKPIDashboard";
+import IncidenciasKanban from "../components/incidencias/IncidenciasKanban";
 
 export default function IncidenciasPage() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+        const [view, setView] = useState("list");
   const [tipo, setTipo] = useState("all");
   const [estado, setEstado] = useState("all");
   const [prioridad, setPrioridad] = useState("all");
@@ -45,9 +47,19 @@ export default function IncidenciasPage() {
     <div className="p-4 lg:p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Incidencias</h1>
-        {canCreate && (
-          <Button onClick={() => setShowForm(v => !v)} className="bg-orange-600 hover:bg-orange-700"><Plus className="w-4 h-4 mr-2" />Nueva</Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex bg-slate-100 rounded-lg p-1">
+            <Button size="sm" variant={view === 'list' ? 'default' : 'ghost'} onClick={() => setView('list')} className={view==='list' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''}>
+              <List className="w-4 h-4 mr-1" /> Lista
+            </Button>
+            <Button size="sm" variant={view === 'kanban' ? 'default' : 'ghost'} onClick={() => setView('kanban')} className={view==='kanban' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''}>
+              <Columns className="w-4 h-4 mr-1" /> Kanban
+            </Button>
+          </div>
+          {canCreate && (
+            <Button onClick={() => setShowForm(v => !v)} className="bg-orange-600 hover:bg-orange-700"><Plus className="w-4 h-4 mr-2" />Nueva</Button>
+          )}
+        </div>
       </div>
 
       {showForm && (
@@ -93,14 +105,18 @@ export default function IncidenciasPage() {
         </div>
       </Card>
 
-      <div className="grid gap-3">
-        {filtered.map(i => (
-          <IncidenciaItem key={i.id} item={i} isAdmin={isAdmin} canAssign={canAssign} onUpdated={() => qc.invalidateQueries({ queryKey: ['incidencias'] })} />
-        ))}
-        {!isLoading && filtered.length === 0 && (
-          <div className="text-sm text-slate-500 text-center py-8">No hay incidencias con los filtros actuales</div>
-        )}
-      </div>
+      {view === 'kanban' ? (
+        <IncidenciasKanban incidencias={filtered} onUpdated={() => qc.invalidateQueries({ queryKey: ['incidencias'] })} />
+      ) : (
+        <div className="grid gap-3">
+          {filtered.map(i => (
+            <IncidenciaItem key={i.id} item={i} isAdmin={isAdmin} canAssign={canAssign} onUpdated={() => qc.invalidateQueries({ queryKey: ['incidencias'] })} />
+          ))}
+          {!isLoading && filtered.length === 0 && (
+            <div className="text-sm text-slate-500 text-center py-8">No hay incidencias con los filtros actuales</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
