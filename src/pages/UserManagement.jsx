@@ -838,6 +838,23 @@ const handleChatBlock = (user) => {
                         
                         {/* Info adicional */}
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {/* Junta Directiva controls */}
+                          <div className="flex items-center gap-2 bg-white rounded-lg px-2 py-1 border border-slate-200">
+                            <span className="text-[11px] text-slate-600">Junta</span>
+                            <Switch checked={user.es_junta === true} onCheckedChange={() => handleToggleJunta(user)} className="scale-90 data-[state=checked]:bg-orange-600" />
+                            <Select value={user.cargo_junta || ''} onValueChange={(v) => handleSetCargoJunta(user, v)} disabled={!user.es_junta}>
+                              <SelectTrigger className="h-7 w-36"><SelectValue placeholder="Cargo" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Presidente">Presidente</SelectItem>
+                                <SelectItem value="Vicepresidente">Vicepresidente</SelectItem>
+                                <SelectItem value="Secretario">Secretario</SelectItem>
+                                <SelectItem value="Tesorero">Tesorero</SelectItem>
+                                <SelectItem value="Vocal 1">Vocal 1</SelectItem>
+                                <SelectItem value="Vocal 2">Vocal 2</SelectItem>
+                                <SelectItem value="Vocal 3">Vocal 3</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                           {user.app_instalada === true && (
                             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">📲 App instalada</span>
                           )}
