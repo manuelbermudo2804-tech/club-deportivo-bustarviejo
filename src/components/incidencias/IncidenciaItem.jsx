@@ -195,7 +195,7 @@ function AssigneePicker({ current, onChange }) {
     (async () => {
       try {
         const all = await base44.entities.User.list();
-        setAdmins(all.filter(u => u.role === 'admin'));
+        setAdmins(all.filter(u => u.role === 'admin' || u.es_junta === true));
       } catch (e) {
         setAdmins([]);
       }
