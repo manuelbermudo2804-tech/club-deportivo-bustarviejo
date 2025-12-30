@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Filter } from "lucide-react";
 import IncidenciaForm from "../components/incidencias/IncidenciaForm";
 import IncidenciaItem from "../components/incidencias/IncidenciaItem";
+import JuntaKPIDashboard from "../components/junta/JuntaKPIDashboard";
 
 export default function IncidenciasPage() {
   const qc = useQueryClient();
@@ -27,6 +28,7 @@ export default function IncidenciasPage() {
 
   const isAdmin = me?.role === 'admin';
   const canCreate = isAdmin || me?.es_entrenador || me?.es_coordinador;
+  const isJunta = me?.es_junta === true;
 
   const filtered = useMemo(() => {
     return incidencias.filter(i =>
@@ -48,6 +50,10 @@ export default function IncidenciasPage() {
 
       {showForm && (
         <IncidenciaForm onCreated={() => { setShowForm(false); qc.invalidateQueries({ queryKey: ['incidencias'] }); }} />
+      )}
+
+      {isJunta && (
+        <JuntaKPIDashboard incidencias={incidencias} />
       )}
 
       <Card className="p-3 border bg-white">

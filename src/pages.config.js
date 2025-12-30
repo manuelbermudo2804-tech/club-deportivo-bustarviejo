@@ -40,6 +40,7 @@ import FederationSignaturesAdmin from './pages/FederationSignaturesAdmin';
 import FemeninoInterests from './pages/FemeninoInterests';
 import Gallery from './pages/Gallery';
 import Home from './pages/Home';
+import Incidencias from './pages/Incidencias';
 import InvitationRequests from './pages/InvitationRequests';
 import JoinFemenino from './pages/JoinFemenino';
 import LotteryManagement from './pages/LotteryManagement';
@@ -89,10 +90,9 @@ import TacticsBoard from './pages/TacticsBoard';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
 import TeamRosters from './pages/TeamRosters';
 import TrainingSchedules from './pages/TrainingSchedules';
+import UserManagement from './pages/UserManagement';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
-import UserManagement from './pages/UserManagement';
-import Incidencias from './pages/Incidencias';
 import __Layout from './Layout.jsx';
 
 
@@ -139,6 +139,7 @@ export const PAGES = {
     "FemeninoInterests": FemeninoInterests,
     "Gallery": Gallery,
     "Home": Home,
+    "Incidencias": Incidencias,
     "InvitationRequests": InvitationRequests,
     "JoinFemenino": JoinFemenino,
     "LotteryManagement": LotteryManagement,
@@ -188,10 +189,9 @@ export const PAGES = {
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
     "TeamRosters": TeamRosters,
     "TrainingSchedules": TrainingSchedules,
+    "UserManagement": UserManagement,
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
-    "UserManagement": UserManagement,
-    "Incidencias": Incidencias,
 }
 
 export const pagesConfig = {
