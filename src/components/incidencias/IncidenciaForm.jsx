@@ -44,9 +44,9 @@ export default function IncidenciaForm({ onCreated }) {
       // Notificar a todos los admins
       if (me.role !== 'admin') {
         try {
-          const admins = await base44.entities.User.list(); // solo admins pueden listar; si falla, omitir silenciosamente
-          const adminEmails = admins.filter(u => u.role === 'admin').map(u => u.email);
-          await Promise.all(adminEmails.map(email => base44.entities.AppNotification.create({
+          const allUsers = await base44.entities.User.list(); // solo admins pueden listar; si falla, omitir silenciosamente
+          const recipients = allUsers.filter(u => u.role === 'admin' || u.es_junta === true).map(u => u.email);
+          await Promise.all(recipients.map(email => base44.entities.AppNotification.create({
             usuario_email: email,
             tipo: 'incidencia_nueva',
             titulo: 'Nueva incidencia reportada',
