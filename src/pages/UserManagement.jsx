@@ -824,6 +824,7 @@ const handleChatBlock = (user) => {
                           {/* Badges */}
                           <div className="flex gap-1 flex-wrap">
                             {user.role === "admin" && <Badge className="bg-orange-600 text-xs px-2 py-0.5">👑 Admin</Badge>}
+{user.es_junta && <Badge className="bg-orange-500 text-xs px-2 py-0.5">🏛️ Junta • {user.cargo_junta || 'Cargo'}</Badge>}
                             {isPlayerUser && <Badge className="bg-purple-600 text-xs px-2 py-0.5">⚽ Jugador+18</Badge>}
                             {isCoordinator && <Badge className="bg-cyan-600 text-xs px-2 py-0.5">🎓 Coordinador</Badge>}
                             {isTreasurer && <Badge className="bg-green-600 text-xs px-2 py-0.5">💰 Tesorero</Badge>}
