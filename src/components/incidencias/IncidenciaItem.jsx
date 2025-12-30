@@ -13,7 +13,7 @@ const prioridadColor = {
   Baja: "bg-green-100 text-green-700"
 };
 
-export default function IncidenciaItem({ item, isAdmin, onUpdated }) {
+export default function IncidenciaItem({ item, isAdmin, canAssign, onUpdated }) {
   const [status, setStatus] = useState(item.estado);
   const [assignee, setAssignee] = useState(item.asignado_email || "");
   const [comment, setComment] = useState("");
@@ -80,6 +80,27 @@ export default function IncidenciaItem({ item, isAdmin, onUpdated }) {
         });
       }
       setAssignee(email);
+      onUpdated?.(updated);
+    } finally { setUpdating(false); }
+  };
+
+  const sendToJunta = async () => {
+    setUpdating(true);
+    try {
+      const me = await base44.auth.me();
+      const updated = await base44.entities.Incidencia.update(item.id, {
+        ...item,
+        asignado_email: item.asignado_email || null,
+        asignado_nombre: 'Junta',
+        etiquetas: Array.from(new Set([...(item.etiquetas || []), 'Junta'])),
+        comentarios: [...(item.comentarios||[]), {
+          usuario_email: me.email,
+          usuario_nombre: me.full_name || me.email,
+          mensaje: 'Derivada a Junta',
+          fecha: new Date().toISOString(),
+          tipo: 'asignacion'
+        }]
+      });
       onUpdated?.(updated);
     } finally { setUpdating(false); }
   };
@@ -163,8 +184,8 @@ export default function IncidenciaItem({ item, isAdmin, onUpdated }) {
         </div>
 
         <div className="grid md:grid-cols-3 gap-2 items-start">
-          {isAdmin ? (
-            <AssigneePicker current={assignee} onChange={changeAssignee} />
+          {canAssign ? (
+            <AssigneePicker current={assignee} onChange={changeAssignee} onSendToJunta={sendToJunta} />
           ) : (
             <div className="text-xs text-slate-600">Asignado: {item.asignado_nombre || '—'}</div>
           )}
@@ -189,7 +210,7 @@ export default function IncidenciaItem({ item, isAdmin, onUpdated }) {
   );
 }
 
-function AssigneePicker({ current, onChange }) {
+function AssigneePicker({ current, onChange, onSendToJunta }) {
   const [admins, setAdmins] = React.useState([]);
   React.useEffect(() => {
     (async () => {
@@ -202,6 +223,13 @@ function AssigneePicker({ current, onChange }) {
     })();
   }, []);
 
+  if (admins.length === 0) {
+    return (
+      <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={onSendToJunta} className="h-9">Enviar a Junta</Button>
+      </div>
+    );
+  }
   return (
     <div className="flex items-center gap-2">
       <Select value={current || ''} onValueChange={v => {
@@ -213,7 +241,6 @@ function AssigneePicker({ current, onChange }) {
           {admins.map(a => (
             <SelectItem key={a.email} value={a.email}>{a.full_name || a.email}</SelectItem>
           ))}
-          {admins.length === 0 && <SelectItem value={null} disabled>No disponible</SelectItem>}
         </SelectContent>
       </Select>
     </div>

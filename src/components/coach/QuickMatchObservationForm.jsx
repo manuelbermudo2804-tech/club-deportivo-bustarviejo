@@ -178,7 +178,22 @@ export default function QuickMatchObservationForm({
 
           {step === 3 && (
             <>
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Goles 1ª Parte</Label>
+                  <Input type="number" min="0" value={formData.goles_primera_parte} onChange={(e) => setFormData({ ...formData, goles_primera_parte: e.target.value })} placeholder="0" className="h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs">Goles 2ª Parte</Label>
+                  <Input type="number" min="0" value={formData.goles_segunda_parte} onChange={(e) => setFormData({ ...formData, goles_segunda_parte: e.target.value })} placeholder="0" className="h-9" />
+                </div>
+              </div>
+              <div className="mt-2">
+                <Label className="text-xs">Ocasiones Claras de Gol</Label>
+                <Input type="number" min="0" value={formData.ocasiones_claras} onChange={(e) => setFormData({ ...formData, ocasiones_claras: e.target.value })} placeholder="3-4" className="h-9" />
+              </div>
+
+              <div className="space-y-2 mt-4">
                 <RatingSelector label="💪 Estado Físico del Equipo" value={formData.estado_fisico} onChange={(val) => setFormData({ ...formData, estado_fisico: val })} />
                 <RatingSelector label="🛡️ Solidez Defensiva" value={formData.solidez_defensiva} onChange={(val) => setFormData({ ...formData, solidez_defensiva: val })} />
                 <RatingSelector label="⚽ Control del Partido" value={formData.control_partido} onChange={(val) => setFormData({ ...formData, control_partido: val })} />

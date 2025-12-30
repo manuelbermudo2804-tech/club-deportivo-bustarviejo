@@ -29,6 +29,7 @@ export default function IncidenciasPage() {
   const isAdmin = me?.role === 'admin';
   const canCreate = isAdmin || me?.es_entrenador || me?.es_coordinador;
   const isJunta = me?.es_junta === true;
+  const canAssign = isAdmin || me?.es_entrenador || me?.es_coordinador;
 
   const filtered = useMemo(() => {
     return incidencias.filter(i =>
@@ -93,7 +94,7 @@ export default function IncidenciasPage() {
 
       <div className="grid gap-3">
         {filtered.map(i => (
-          <IncidenciaItem key={i.id} item={i} isAdmin={isAdmin} onUpdated={() => qc.invalidateQueries({ queryKey: ['incidencias'] })} />
+          <IncidenciaItem key={i.id} item={i} isAdmin={isAdmin} canAssign={canAssign} onUpdated={() => qc.invalidateQueries({ queryKey: ['incidencias'] })} />
         ))}
         {!isLoading && filtered.length === 0 && (
           <div className="text-sm text-slate-500 text-center py-8">No hay incidencias con los filtros actuales</div>
