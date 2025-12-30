@@ -126,7 +126,7 @@ export default function QuickMatchObservationForm({
         </div>
       </CardHeader>
       <CardContent className="pt-4">
-        <form onSubmit={handleSubmit} onKeyDown={(e) => { if (e.key === 'Enter' && step !== 3) { e.preventDefault(); } }} className="space-y-4">
+        <form onSubmit={handleSubmit} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); } }} className="space-y-4">
           {step === 1 && (
             <>
               <div className="grid grid-cols-2 gap-2">
