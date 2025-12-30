@@ -211,7 +211,7 @@ export default function QuickMatchObservationForm({
             {step > 1 && (
               <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="flex-1">Atrás</Button>
             )}
-            <Button type={step === 3 ? 'submit' : 'button'} onClick={step === 3 ? undefined : () => setStep(step + 1)} disabled={step === 1 && (!formData.rival || !formData.resultado) || saving} className="flex-1 bg-orange-600 hover:bg-orange-700">
+            <Button type={step === 3 ? 'submit' : 'button'} onClick={step === 3 ? undefined : () => setStep(step + 1)} disabled={(step === 1 && (!formData.rival || !formData.resultado)) || saving} className="flex-1 bg-orange-600 hover:bg-orange-700">
               {step === 3 ? (saving ? 'Guardando…' : (<><Zap className="w-4 h-4 mr-2" /> Guardar</>)) : 'Siguiente'}
             </Button>
           </div>
