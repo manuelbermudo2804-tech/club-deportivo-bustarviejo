@@ -318,7 +318,6 @@ export default function PlayerProfile() {
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm bg-white font-medium"
                   >
-                    <option value={player.deporte}>{player.deporte} (actual)</option>
                     {[
                       "Fútbol Pre-Benjamín (Mixto)",
                       "Fútbol Benjamín (Mixto)",
@@ -330,9 +329,9 @@ export default function PlayerProfile() {
                       "Fútbol Femenino",
                       "Baloncesto (Mixto)"
                     ].map(cat => (
-                      !cat.includes(player.deporte) && (
-                        <option key={cat} value={cat}>{cat}</option>
-                      )
+                      <option key={cat} value={cat}>
+                        {cat} {cat === player.deporte ? "(actual)" : ""}
+                      </option>
                     ))}
                   </select>
                 </div>
