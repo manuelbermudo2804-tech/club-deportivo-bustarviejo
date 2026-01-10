@@ -167,15 +167,7 @@ export default function PlayerProfile() {
 
   const edad = calcularEdad(form.fecha_nacimiento);
 
-  const handleRenewalClick = () => {
-    const suggested = getSuggestedCategory(edad, player.deporte);
-    if (suggested && suggested !== player.deporte) {
-      setSuggestedCategory(suggested);
-      setShowCategoryModal(true);
-    } else {
-      setShowRenewalModal(true);
-    }
-  };
+
 
   // Grid de documentos (solo jugador mayor de edad)
   const documentos = [
