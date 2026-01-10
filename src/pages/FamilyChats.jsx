@@ -23,13 +23,7 @@ export default function FamilyChats() {
     fetchUser();
   }, []);
 
-  if (!user) {
-    return (
-      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-      </div>
-    );
-  }
+  // Carga sin retorno temprano: mostramos loader dentro del contenido
 
 
   
