@@ -1,0 +1,383 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock } from "lucide-react";
+import { toast } from "sonner";
+
+// 9 categorías BASE que NUNCA pueden ser eliminadas
+const BASE_CATEGORIES = [
+  "Fútbol Pre-Benjamín (Mixto)",
+  "Fútbol Benjamín (Mixto)",
+  "Fútbol Alevín (Mixto)",
+  "Fútbol Infantil (Mixto)",
+  "Fútbol Cadete",
+  "Fútbol Juvenil",
+  "Fútbol Aficionado",
+  "Fútbol Femenino",
+  "Baloncesto (Mixto)"
+];
+
+export default function CategoryConfigAdmin() {
+  const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [activeSeason, setActiveSeason] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [formData, setFormData] = useState({
+    nombre: "",
+    cuota_inscripcion: 0,
+    cuota_segunda: 0,
+    cuota_tercera: 0
+  });
+
+  // Fetch user
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        setIsAdmin(currentUser.role === "admin");
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Fetch active season
+  const { data: seasons = [] } = useQuery({
+    queryKey: ['seasons'],
+    queryFn: () => base44.entities.SeasonConfig.list('-created_date'),
+  });
+
+  useEffect(() => {
+    const active = seasons.find(s => s.activa === true);
+    setActiveSeason(active);
+  }, [seasons]);
+
+  // Fetch categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categoryConfig', activeSeason?.id],
+    queryFn: () => activeSeason 
+      ? base44.entities.CategoryConfig.filter({ temporada: activeSeason.temporada })
+      : Promise.resolve([]),
+    enabled: !!activeSeason
+  });
+
+  // Mutations
+  const updateCategoryMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.CategoryConfig.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
+      toast.success("✅ Categoría actualizada");
+      setShowDialog(false);
+      setEditingId(null);
+    },
+    onError: (error) => {
+      toast.error("Error: " + error.message);
+    }
+  });
+
+  const createCategoryMutation = useMutation({
+    mutationFn: (data) => base44.entities.CategoryConfig.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
+      toast.success("✅ Categoría creada");
+      setShowDialog(false);
+      setFormData({ nombre: "", cuota_inscripcion: 0, cuota_segunda: 0, cuota_tercera: 0 });
+    },
+    onError: (error) => {
+      toast.error("Error: " + error.message);
+    }
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: (id) => base44.entities.CategoryConfig.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
+      toast.success("✅ Categoría eliminada");
+    },
+    onError: (error) => {
+      toast.error("Error: " + error.message);
+    }
+  });
+
+  // Handlers
+  const handleEdit = (category) => {
+    setEditingId(category.id);
+    setFormData({
+      nombre: category.nombre,
+      cuota_inscripcion: category.cuota_inscripcion,
+      cuota_segunda: category.cuota_segunda,
+      cuota_tercera: category.cuota_tercera
+    });
+    setShowDialog(true);
+  };
+
+  const handleSave = () => {
+    if (!formData.nombre) {
+      toast.error("El nombre es requerido");
+      return;
+    }
+
+    const dataToSave = {
+      ...formData,
+      cuota_total: formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera,
+      deporte: formData.nombre.includes("Baloncesto") ? "Baloncesto" : "Fútbol"
+    };
+
+    if (editingId) {
+      updateCategoryMutation.mutate({ id: editingId, data: dataToSave });
+    } else {
+      createCategoryMutation.mutate({
+        ...dataToSave,
+        temporada: activeSeason.temporada,
+        es_base: BASE_CATEGORIES.includes(formData.nombre),
+        activa: true
+      });
+    }
+  };
+
+  const handleDelete = (category) => {
+    if (BASE_CATEGORIES.includes(category.nombre)) {
+      toast.error("❌ No puedes eliminar una categoría BASE");
+      return;
+    }
+
+    if (confirm(`¿Eliminar categoría "${category.nombre}"?`)) {
+      deleteCategoryMutation.mutate(category.id);
+    }
+  };
+
+  const baseCategories = categories.filter(c => BASE_CATEGORIES.includes(c.nombre));
+  const extraCategories = categories.filter(c => !BASE_CATEGORIES.includes(c.nombre));
+
+  if (!isAdmin) {
+    return (
+      <div className="p-6">
+        <Alert className="bg-red-50 border-red-200">
+          <AlertTriangle className="w-4 h-4 text-red-600" />
+          <AlertDescription className="text-red-800 ml-2">
+            No tienes permisos para acceder a esta sección.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!activeSeason) {
+    return (
+      <div className="p-6">
+        <Alert className="bg-yellow-50 border-yellow-200">
+          <AlertTriangle className="w-4 h-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800 ml-2">
+            No hay temporada activa. Crea una antes de gestionar categorías.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900">💰 Gestión de Categorías y Cuotas</h1>
+        <p className="text-slate-600 mt-1">Temporada: <strong>{activeSeason.temporada}</strong></p>
+      </div>
+
+      {/* Tabla: 9 CATEGORÍAS BASE */}
+      <Card className="border-2 border-green-300">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <CardTitle className="text-green-900">✅ 9 Categorías BASE (INMUTABLES)</CardTitle>
+            </div>
+            <Badge className="bg-green-600">Siempre {BASE_CATEGORIES.length}</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-green-50 border-b-2 border-green-300">
+                <tr>
+                  <th className="px-4 py-2 text-left font-bold text-slate-900">Categoría</th>
+                  <th className="px-4 py-2 text-right font-bold text-slate-900">Inscripción</th>
+                  <th className="px-4 py-2 text-right font-bold text-slate-900">2ª Cuota</th>
+                  <th className="px-4 py-2 text-right font-bold text-slate-900">3ª Cuota</th>
+                  <th className="px-4 py-2 text-right font-bold text-slate-900">Total</th>
+                  <th className="px-4 py-2 text-center font-bold text-slate-900">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {baseCategories.sort((a, b) => a.nombre.localeCompare(b.nombre)).map((cat) => (
+                  <tr key={cat.id} className="border-b hover:bg-green-50 transition">
+                    <td className="px-4 py-3 font-medium text-slate-900">{cat.nombre}</td>
+                    <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
+                    <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
+                    <td className="px-4 py-3 text-right">{cat.cuota_tercera}€</td>
+                    <td className="px-4 py-3 text-right font-bold text-green-700">{cat.cuota_total}€</td>
+                    <td className="px-4 py-3 text-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(cat)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-green-700 mt-3">
+            🔒 Las 9 categorías BASE nunca pueden ser eliminadas. Solo puedes editar sus precios. 
+            Al resetear la temporada, estos precios se copian automáticamente a la nueva temporada.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Tabla: CATEGORÍAS EXTRA (opcional) */}
+      {extraCategories.length > 0 && (
+        <Card className="border-2 border-orange-300">
+          <CardHeader className="bg-gradient-to-r from-orange-50 to-yellow-50">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-orange-900">📌 Categorías Extra (Opcional)</CardTitle>
+              <Badge className="bg-orange-600">{extraCategories.length}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-orange-50 border-b-2 border-orange-300">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-bold text-slate-900">Categoría</th>
+                    <th className="px-4 py-2 text-right font-bold text-slate-900">Inscripción</th>
+                    <th className="px-4 py-2 text-right font-bold text-slate-900">2ª Cuota</th>
+                    <th className="px-4 py-2 text-right font-bold text-slate-900">3ª Cuota</th>
+                    <th className="px-4 py-2 text-right font-bold text-slate-900">Total</th>
+                    <th className="px-4 py-2 text-center font-bold text-slate-900">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {extraCategories.map((cat) => (
+                    <tr key={cat.id} className="border-b hover:bg-orange-50 transition">
+                      <td className="px-4 py-3 font-medium text-slate-900">{cat.nombre}</td>
+                      <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
+                      <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
+                      <td className="px-4 py-3 text-right">{cat.cuota_tercera}€</td>
+                      <td className="px-4 py-3 text-right font-bold text-orange-700">{cat.cuota_total}€</td>
+                      <td className="px-4 py-3 text-center space-x-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(cat)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDelete(cat)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Botón para añadir categoría extra */}
+      <Button
+        onClick={() => {
+          setEditingId(null);
+          setFormData({ nombre: "", cuota_inscripcion: 0, cuota_segunda: 0, cuota_tercera: 0 });
+          setShowDialog(true);
+        }}
+        className="bg-blue-600 hover:bg-blue-700"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Añadir Nueva Categoría Extra
+      </Button>
+
+      {/* Dialog: Editar/Crear Categoría */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editingId ? "✏️ Editar Categoría" : "➕ Crear Categoría Extra"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium">Nombre</label>
+              <Input
+                value={formData.nombre}
+                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                placeholder="Ej: Fútbol Pre-Benjamín (Mixto)"
+                disabled={editingId && BASE_CATEGORIES.includes(formData.nombre)}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Cuota Inscripción (€)</label>
+              <Input
+                type="number"
+                value={formData.cuota_inscripcion}
+                onChange={(e) => setFormData({ ...formData, cuota_inscripcion: Number(e.target.value) })}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">2ª Cuota (€)</label>
+              <Input
+                type="number"
+                value={formData.cuota_segunda}
+                onChange={(e) => setFormData({ ...formData, cuota_segunda: Number(e.target.value) })}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">3ª Cuota (€)</label>
+              <Input
+                type="number"
+                value={formData.cuota_tercera}
+                onChange={(e) => setFormData({ ...formData, cuota_tercera: Number(e.target.value) })}
+              />
+            </div>
+
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm font-bold text-blue-900">Total: {formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera}€</p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
