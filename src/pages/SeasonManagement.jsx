@@ -1421,6 +1421,9 @@ export default function SeasonManagement() {
         />
       )}
 
+      {/* Sección: Limpieza de Categorías */}
+      <CategoryCleanupTool />
+
       {/* Sección: Backup y Restauración */}
       <Card>
         <CardHeader 
