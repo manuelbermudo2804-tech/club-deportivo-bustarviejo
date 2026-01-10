@@ -17,10 +17,7 @@ import { calcularEdad, getSuggestedCategory } from "../components/utils/calcular
 export default function PlayerProfile() {
   const queryClient = useQueryClient();
   const [editMode, setEditMode] = useState(false);
-  const [showRenewalModal, setShowRenewalModal] = useState(false);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [suggestedCategory, setSuggestedCategory] = useState(null);
-  const [documentUpload, setDocumentUpload] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ["me"],
