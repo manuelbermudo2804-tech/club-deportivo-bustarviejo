@@ -328,8 +328,8 @@ export default function PlayerProfile() {
         </CardContent>
       </Card>
 
-      {/* Panel de Renovación Pendiente - estilo inline como ParentPlayers */}
-      {player?.estado_renovacion === "pendiente" && (
+      {/* Panel de Renovación Pendiente */}
+      {player?.estado_renovacion === "pendiente" && !showPaymentFlow && (
         <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-400 rounded-lg p-4 space-y-3">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-orange-700 mt-0.5 flex-shrink-0" />
@@ -371,15 +371,54 @@ export default function PlayerProfile() {
                   </div>
                 )}
                 <Button
-                  onClick={() => renewalMutation.mutate(selectedCategory || player.deporte)}
+                  onClick={() => setShowPaymentFlow(true)}
                   className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold"
                 >
-                  🔄 Confirmar Renovación
+                  🔄 Continuar con Renovación
                 </Button>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Payment Flow Dialog */}
+      <Dialog open={showPaymentFlow} onOpenChange={setShowPaymentFlow}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {seasonConfig && categoryConfigs && (
+            <RenewalPaymentFlow
+              player={{ ...player, deporte: selectedCategory || player.deporte }}
+              newCategory={selectedCategory || player.deporte}
+              seasonConfig={seasonConfig}
+              categoryConfigs={categoryConfigs}
+              onComplete={async (data) => {
+                try {
+                  await paymentMutation.mutateAsync(data.payments);
+                  await renewalMutation.mutateAsync(data.newCategory);
+                  setRenewalData(data);
+                } catch (error) {
+                  console.error("Error:", error);
+                  toast.error("Error procesando la renovación");
+                }
+              }}
+              onCancel={() => setShowPaymentFlow(false)}
+              allPlayers={[]}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Screen */}
+      {renewalSuccess && renewalData && (
+        <RenewalSuccessScreen
+          player={player}
+          renewalData={renewalData}
+          onClose={() => {
+            setRenewalSuccess(false);
+            setRenewalData(null);
+            setSelectedCategory(null);
+          }}
+        />
       )}
 
       {/* Tabs de contenido */}
