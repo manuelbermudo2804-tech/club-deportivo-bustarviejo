@@ -208,6 +208,39 @@ export default function SeasonManagement() {
     }));
   };
 
+  // Crear temporada activa rápidamente (fallback si el reset no llegó a crearla)
+  const createActiveSeasonQuickly = async () => {
+    try {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const seasonName = `${currentYear}-${currentYear + 1}`;
+      const existing = await base44.entities.SeasonConfig.filter({ temporada: seasonName });
+      if (existing.length > 0 && existing[0].activa) {
+        toast.success(`La temporada ${seasonName} ya está activa`);
+        return;
+      }
+      if (existing.length > 0) {
+        await base44.entities.SeasonConfig.update(existing[0].id, { activa: true });
+      } else {
+        await base44.entities.SeasonConfig.create({
+          temporada: seasonName,
+          activa: true,
+          cuota_unica: resetConfig.cuotaUnica || 200,
+          cuota_tres_meses: resetConfig.cuotaTresMeses || 75,
+          fecha_inicio: now.toISOString().split('T')[0],
+          permitir_renovaciones: false,
+          tienda_ropa_abierta: false,
+          loteria_navidad_abierta: false
+        });
+      }
+      await queryClient.invalidateQueries({ queryKey: ['seasons'] });
+      toast.success(`Temporada ${seasonName} creada/activada`);
+    } catch (e) {
+      console.error('Error creando temporada activa:', e);
+      toast.error('No se pudo crear la temporada');
+    }
+  };
+
   // Función para descargar backup completo
   const downloadFullBackup = async () => {
     try {
@@ -942,6 +975,21 @@ export default function SeasonManagement() {
     } catch (error) {
       console.error("Error in season reset:", error);
       toast.error("Error durante el reset de temporada");
+      // Registrar intento de reset aunque falle, para trazabilidad
+      try {
+        await base44.entities.ResetHistory.create({
+          fecha_reset: new Date().toISOString(),
+          temporada_anterior: activeSeason?.temporada || "Desconocida",
+          temporada_nueva: resetConfig?.newSeasonName || "",
+          realizado_por: user?.email,
+          acciones: JSON.stringify({ ...resetConfig, error: String(error?.message || error) }),
+          pagos_archivados: payments?.length || 0,
+          recordatorios_eliminados: reminders?.length || 0,
+          jugadores_actualizados: players?.filter?.(p => p.activo)?.length || 0
+        });
+      } catch (e) {
+        console.error('No se pudo registrar ResetHistory tras error:', e);
+      }
     } finally {
       setIsProcessing(false);
       setProcessingStep("");
@@ -1083,6 +1131,22 @@ export default function SeasonManagement() {
           <p className="text-slate-600 mt-1">Configuración de temporadas y características del club</p>
         </div>
       </div>
+
+      {/* Aviso si no hay temporada activa */}
+      {!activeSeason && (
+        <Card className="border-2 border-amber-300 bg-amber-50">
+          <CardContent className="py-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold text-amber-900">No hay temporada activa</p>
+              <p className="text-sm text-amber-800">Crea una temporada activa para poder activar renovaciones y configurar cuotas.</p>
+            </div>
+            <Button onClick={createActiveSeasonQuickly} className="bg-amber-600 hover:bg-amber-700">
+              Crear temporada activa
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Temporada Activa */}
       {activeSeason && (
         <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
