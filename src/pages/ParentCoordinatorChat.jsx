@@ -31,6 +31,7 @@ export default function ParentCoordinatorChat() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showReactions, setShowReactions] = useState(null);
   const messagesEndRef = useRef(null);
+  const markAsReadRef = useRef(false);
 
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
@@ -137,16 +138,19 @@ export default function ParentCoordinatorChat() {
     }
   }, [messages, coordinatorTyping]);
 
-  // Marcar como leído INMEDIATAMENTE cuando abre el chat
+  // Marcar como leído INMEDIATAMENTE cuando abre el chat - SIN CAUSAR BUCLE
   useEffect(() => {
     if (!conversation || !messages || messages.length === 0) return;
+    if (markAsReadRef.current) return; // Evitar ejecución múltiple
 
     const markAsRead = async () => {
       const unreadMessages = messages.filter(m => m.autor === "coordinador" && !m.leido_padre);
       
       if (unreadMessages.length === 0 && conversation.no_leidos_padre === 0) return;
 
-      // Marcar mensajes INMEDIATAMENTE
+      markAsReadRef.current = true; // Marcar como ejecutado
+
+      // Marcar mensajes
       for (const msg of unreadMessages) {
         await base44.entities.CoordinatorMessage.update(msg.id, {
           leido_padre: true,
@@ -154,25 +158,21 @@ export default function ParentCoordinatorChat() {
         });
       }
 
-      // Actualizar conversación INMEDIATAMENTE
+      // Actualizar conversación
       if ((conversation.no_leidos_padre || 0) > 0) {
         await base44.entities.CoordinatorConversation.update(conversation.id, {
           no_leidos_padre: 0
         });
-        // Sincronizar estado local para evitar bucle de renders
-        setConversation((prev) => (prev && prev.id === conversation.id ? { ...prev, no_leidos_padre: 0 } : prev));
       }
 
-      // Refetch INMEDIATO de todas las queries relacionadas
+      // Refetch queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] }),
         queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
-        queryClient.refetchQueries({ queryKey: ['parentCoordinatorMessages'] }),
-        queryClient.refetchQueries({ queryKey: ['coordinatorConversations'] })
       ]);
     };
     markAsRead();
-  }, [conversation?.id, messages.length, queryClient]);
+  }, [conversation?.id]);
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
