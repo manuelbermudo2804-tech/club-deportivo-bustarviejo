@@ -194,24 +194,13 @@ export default function PlayerProfile() {
       {/* Header con acciones */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h1 className="text-3xl md:text-4xl font-bold">Mi Ficha</h1>
-        <div className="flex gap-2">
-          {player?.estado_renovacion === "pendiente" && !editMode && (
-            <Button
-              onClick={handleRenewalClick}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Renovar Inscripción
-            </Button>
-          )}
-          <Button
-            onClick={() => (editMode ? handleSave() : setEditMode(true))}
-            className={`${editMode ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}`}
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {editMode ? "Guardar" : "Editar"}
-          </Button>
-        </div>
+        <Button
+          onClick={() => (editMode ? handleSave() : setEditMode(true))}
+          className={`${editMode ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}`}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {editMode ? "Guardar" : "Editar"}
+        </Button>
       </div>
 
       {/* Tarjeta de perfil IMPACTANTE */}
