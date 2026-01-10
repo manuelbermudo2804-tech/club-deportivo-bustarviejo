@@ -13,6 +13,8 @@ import { UserCircle, Camera, Save, Calendar as CalendarIcon, Phone, MapPin, File
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { calcularEdad, getSuggestedCategory } from "../components/utils/calcularEdad";
+import RenewalPaymentFlow from "../components/renewals/RenewalPaymentFlow";
+import RenewalSuccessScreen from "../components/renewals/RenewalSuccessScreen";
 
 export default function PlayerProfile() {
   const queryClient = useQueryClient();
