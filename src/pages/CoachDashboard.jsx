@@ -323,7 +323,7 @@ export default function CoachDashboard() {
               </div>
             </div>
             
-            <div className={`grid ${showCoordinatorTile ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-3'} gap-2`}>
+            <div className={`grid ${showCoordinatorTile ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-3'} gap-2 auto-rows-fr items-stretch`}>
               <Link to={createPageUrl("Chatbot")}>
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
@@ -334,7 +334,7 @@ export default function CoachDashboard() {
                 </div>
               </Link>
 
-              <Link to={createPageUrl("CoachParentChat")}>
+              <Link to={createPageUrl("CoachParentChat")} className="">
                 <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                   <p className="text-sm font-bold text-center">💬 Familias</p>
                   <p className="text-xs text-green-100 text-center">Mi equipo</p>
@@ -350,7 +350,7 @@ export default function CoachDashboard() {
               </Link>
               )}
 
-               <Link to={createPageUrl("StaffChat")}>
+               <Link to={createPageUrl("StaffChat")} className={`${showCoordinatorTile ? '' : 'col-span-2 lg:col-span-1'}`}>
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                   <p className="text-sm font-bold text-center">💼 Staff</p>
                   <p className="text-xs text-slate-100 text-center">Interno</p>
