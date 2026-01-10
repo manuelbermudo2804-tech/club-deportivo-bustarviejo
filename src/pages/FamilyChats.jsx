@@ -33,7 +33,6 @@ export default function FamilyChats() {
 
 
   
-  // Nueva estructura de Tabs fija según rol
   return (
     <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
       <Tabs defaultValue={isCoordinator ? "coordinador" : "entrenador"} className="h-full flex flex-col">
