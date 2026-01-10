@@ -387,6 +387,31 @@ CD Bustarviejo`
         {/* TAB: ACCIONES RÁPIDAS */}
         <TabsContent value="actions" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Preparar Renovaciones (admin) */}
+            <Card className="border-2 border-emerald-300 hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
+                    <RefreshCw className="w-8 h-8 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Preparar renovaciones</h3>
+                    <p className="text-sm text-slate-600">Marca a los jugadores como pendientes y avisa a las familias</p>
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      const res = await base44.functions.invoke('prepareRenewals', {});
+                      const data = res?.data || {};
+                      setSuccessMessage(`Listo: ${data.updatedPlayers || 0} jugadores preparados, ${data.familiesNotified || 0} familias avisadas`);
+                      setShowSuccess(true);
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    Ejecutar ahora
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
             <Card className="border-2 border-blue-300 hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="pt-6">
                 <div className="text-center space-y-3">

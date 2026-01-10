@@ -110,6 +110,15 @@ export default function ParentDashboard() {
   const players = allPlayers.filter(p => 
     (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
   );
+
+  // Jugadores inactivos pendientes de renovar (para mostrar CTA)
+  const activeSeason = seasonConfigs?.find?.(s => s.activa) || null;
+  const pendingInactivePlayers = allPlayers.filter(p => 
+    (p.email_padre === user?.email || p.email_tutor_2 === user?.email) &&
+    p.activo === false &&
+    p.estado_renovacion === 'pendiente' &&
+    (!activeSeason || p.temporada_renovacion === activeSeason.temporada)
+  );
   
   console.log('👥 [ParentDashboard] Mis jugadores filtrados:', players.length, players.map(p => p.nombre));
   console.log('🔐 [SEGURIDAD] Filtrando jugadores para email:', user?.email);
@@ -494,7 +503,29 @@ export default function ParentDashboard() {
           </Card>
         )}
 
-        {/* Widget de estado de renovaciones REMOVIDO - solo mostrar si hay jugadores pendientes */}
+        {/* Aviso renovaciones (aunque estén inactivos) */}
+        {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (
+          <Card className="border-2 border-emerald-300 bg-emerald-50 shadow-lg">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-200 rounded-full flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-emerald-700" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-emerald-900">Es hora de renovar tu plaza</p>
+                    <p className="text-xs text-emerald-800">Tienes {pendingInactivePlayers.length} jugador(es) pendientes de renovar</p>
+                  </div>
+                </div>
+                <Link to={createPageUrl('ParentPlayers')}>
+                  <Button className="bg-emerald-600 hover:bg-emerald-700">Renovar ahora</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Widget de estado de renovaciones REMOVIDO - solo mostrar si hay jugadores pendientes activos */}
         {!playersLoading && activeSeason?.permitir_renovaciones && myPlayers.length > 0 && myPlayers.some(p => p.estado_renovacion === "pendiente" && p.temporada_renovacion === activeSeason?.temporada) && (
           <RenewalStatusWidget 
             players={myPlayers} 
