@@ -191,7 +191,7 @@ export default function StaffChat() {
     }
   }, [conversation, messages, user]);
 
-  const allSharedFiles = messages.flatMap(m => m.adjuntos || []);
+  const allSharedFiles = messages.flatMap(m => m.adjuntos || m.archivos_adjuntos || []);
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
