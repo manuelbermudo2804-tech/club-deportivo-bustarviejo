@@ -9,7 +9,8 @@ export default function NotificationBadge() {
   });
 
   const isAdmin = user?.role === 'admin';
-        const { data: messages = [] } = useQuery({
+  const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
+      const { data: messages = [] } = useQuery({
           queryKey: ['chatMessages', isAdmin],
           queryFn: () => base44.entities.ChatMessage.list('-updated_date', 200),
           initialData: [],
