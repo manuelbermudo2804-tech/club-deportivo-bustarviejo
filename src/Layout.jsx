@@ -566,14 +566,13 @@ export default function Layout({ children, currentPageName }) {
     // Recuperación automática ante errores de carga de chunks (404/ChunkLoadError)
     const chunkErrorHandler = (e) => {
       const msg = (e?.reason?.message || e?.message || '').toString();
-      if (/Loading chunk|chunk|Failed to fetch dynamically imported module/i.test(msg)) {
+      if (/(Loading chunk|ChunkLoadError|Failed to fetch dynamically imported module)/i.test(msg)) {
         try { if (window.caches) { caches.keys().then(keys => keys.forEach(k => caches.delete(k))); } } catch {}
         try { if (navigator.serviceWorker) { navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())); } } catch {}
         window.location.reload();
       }
     };
     window.addEventListener('unhandledrejection', chunkErrorHandler);
-    window.addEventListener('error', chunkErrorHandler);
 
     const savedLang = localStorage.getItem('appLanguage');
     if (savedLang) setCurrentLang(savedLang);
@@ -581,7 +580,6 @@ export default function Layout({ children, currentPageName }) {
       // Quitar manejadores de recuperación de chunks
       try {
         window.removeEventListener('unhandledrejection', chunkErrorHandler);
-        window.removeEventListener('error', chunkErrorHandler);
       } catch {}
     };
     }, []);
