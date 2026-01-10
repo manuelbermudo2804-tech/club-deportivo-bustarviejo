@@ -120,14 +120,23 @@ export default function PlayerProfile() {
         deporte: newCategory || player.deporte,
         estado_renovacion: "renovado",
         fecha_renovacion: new Date().toISOString(),
-        temporada_renovacion: new Date().getFullYear() + "-" + (new Date().getFullYear() + 1)
+        temporada_renovacion: seasonConfig?.temporada || new Date().getFullYear() + "-" + (new Date().getFullYear() + 1)
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player", user?.email] });
-      setShowRenewalModal(false);
-      setShowCategoryModal(false);
+      setShowPaymentFlow(false);
+      setRenewalSuccess(true);
       toast.success("✅ Renovación completada");
+    },
+  });
+
+  const paymentMutation = useMutation({
+    mutationFn: async (payments) => {
+      return base44.entities.Payment.bulkCreate(payments);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
     },
   });
 
