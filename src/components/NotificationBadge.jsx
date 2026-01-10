@@ -58,12 +58,65 @@ export default function NotificationBadge() {
     refetchInterval: 30000,
   });
 
+  const { data: coachMessages = [] } = useQuery({
+    queryKey: ['coachMessages'],
+    queryFn: () => base44.entities.CoachMessage.list('-created_date', 500),
+    initialData: [],
+    refetchInterval: 10000,
+    enabled: !!user,
+  });
+
+  const { data: staffMessages = [] } = useQuery({
+    queryKey: ['staffMessages'],
+    queryFn: () => base44.entities.StaffMessage.list('-created_date', 500),
+    initialData: [],
+    refetchInterval: 10000,
+    enabled: !!user && (user.role === 'admin' || user.es_entrenador || user.es_coordinador),
+  });
+
+  const { data: coordConversations = [] } = useQuery({
+    queryKey: ['coordConversations'],
+    queryFn: () => base44.entities.CoordinatorConversation.list('-updated_date', 200),
+    initialData: [],
+    refetchInterval: 10000,
+    enabled: !!user,
+  });
+
+  const { data: privateConversations = [] } = useQuery({
+    queryKey: ['privateConversations'],
+    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 200),
+    initialData: [],
+    refetchInterval: 10000,
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (!user) return;
 
     let unreadCount = 0;
     const isAdmin = user.role === 'admin';
     const isPlayer = user.role === 'jugador';
+
+    // Chat counts
+    if (isAdmin) {
+      unreadCount += staffMessages.filter(m => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
+    } else if (user.es_coordinador) {
+      const staffUnread = staffMessages.filter(m => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
+      const convUnread = coordConversations.reduce((s, c) => s + (c.no_leidos_coordinador || 0), 0);
+      unreadCount += staffUnread + convUnread;
+    } else if (user.es_entrenador) {
+      const staffUnread = staffMessages.filter(m => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
+      const fromParents = coachMessages.filter(m => m.autor === 'padre' && !m.leido_entrenador).length;
+      unreadCount += staffUnread + fromParents;
+    } else {
+      // Padre/Jugador
+      const myPlayers = players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email);
+      const groupIds = myPlayers.map(p => p.deporte);
+      const coachMsgs = messages.filter(m => m.tipo === 'entrenador_a_grupo' && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email)) && groupIds.includes(m.grupo_id || m.deporte)).length;
+      const coordUnread = coordConversations.filter(c => c.padre_email === user.email).reduce((s, c) => s + (c.no_leidos_padre || 0), 0);
+      const privateUnread = privateConversations.filter(c => c.participante_familia_email === user.email).reduce((s, c) => s + (c.no_leidos_familia || 0), 0);
+      unreadCount += coachMsgs + coordUnread + privateUnread;
+    }
 
     // Count new events (published in the last 24 hours and not notified yet)
     const oneDayAgo = new Date();
@@ -151,7 +204,7 @@ export default function NotificationBadge() {
         navigator.clearAppBadge().catch(() => {});
       }
     };
-  }, [user, messages, players, events, announcements, appNotifications, callups]);
+  }, [user, messages, players, events, announcements, appNotifications, callups, coachMessages, staffMessages, coordConversations, privateConversations]);
 
   return null;
 }
