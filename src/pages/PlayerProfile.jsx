@@ -200,15 +200,7 @@ export default function PlayerProfile() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
-      {/* Alerta de renovación pendiente */}
-      {player?.estado_renovacion === "pendiente" && (
-        <Alert className="border-orange-200 bg-orange-50">
-          <Zap className="h-4 w-4 text-orange-600" />
-          <AlertDescription className="ml-2 text-orange-900">
-            <strong>Renovación Pendiente:</strong> Tu inscripción necesita renovarse para la nueva temporada.
-          </AlertDescription>
-        </Alert>
-      )}
+
 
       {/* Header con acciones */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
