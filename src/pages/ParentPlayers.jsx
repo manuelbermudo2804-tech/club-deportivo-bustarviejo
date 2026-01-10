@@ -828,6 +828,8 @@ Email: cdbustarviejo@gmail.com
     const currentYear = new Date().getFullYear();
     const defaultSeason = `${currentYear}/${currentYear + 1}`;
     
+    // Si newCategory es null, el jugador eligió mantener su categoría actual
+    // Si es string, es la categoría seleccionada del dropdown
     const playerDataForRenewal = {
       ...player,
       deporte: newCategory || player.deporte,
