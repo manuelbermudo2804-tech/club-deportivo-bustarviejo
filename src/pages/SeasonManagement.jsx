@@ -1207,10 +1207,10 @@ export default function SeasonManagement() {
                   <Euro className="w-8 h-8 text-orange-600" />
                   <div>
                     <h3 className="font-bold text-lg text-slate-900">💰 Cuotas por Categoría</h3>
-                    <p className="text-sm text-slate-600">Gestiona las cuotas de inscripción, segunda y tercera cuota para cada categoría</p>
+                    <p className="text-sm text-slate-600">Edita los 9 precios de cuotas, o añade categorías extras si necesitas</p>
                   </div>
                 </div>
-                <Link to={createPageUrl("CategoryManagement")}>
+                <Link to={createPageUrl("CategoryConfigAdmin")}>
                   <Button className="bg-orange-600 hover:bg-orange-700">
                     <Edit className="w-4 h-4 mr-2" />
                     Gestionar Cuotas
