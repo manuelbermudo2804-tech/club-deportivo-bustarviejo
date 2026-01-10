@@ -53,14 +53,17 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     if (!messages || !user) return;
 
+    const coachCats = user?.categorias_entrena || [];
     const unreadCounts = {};
-    
+
     messages.forEach(msg => {
-      if (msg.autor === "padre" && !msg.leido_entrenador) {
-        const cat = msg.grupo_categoria || msg.categoria;
-        if (cat) {
-          unreadCounts[cat] = (unreadCounts[cat] || 0) + 1;
-        }
+      const catKey = msg.deporte || msg.grupo_id;
+      if (!catKey) return;
+
+      // 1) Padres -> Entrenador: badge para entrenador (sin leído por el entrenador)
+      if (msg.tipo === 'padre_a_grupo' && coachCats.includes(catKey)) {
+        const isRead = msg.leido_por?.some(lp => lp.email === user.email);
+        if (!isRead) unreadCounts[catKey] = (unreadCounts[catKey] || 0) + 1;
       }
     });
 
