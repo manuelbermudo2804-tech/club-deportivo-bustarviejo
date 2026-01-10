@@ -16,15 +16,11 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
   const [showAllMatches, setShowAllMatches] = useState(false);
 
   const { data: standings = [] } = useQuery({
-    queryKey: ['clasificaciones-coach', myCategories.join(',')],
+    queryKey: ['clasificaciones-coach', 'all'],
     queryFn: async () => {
-      if (myCategories.length === 0) return [];
-      const allStandings = await Promise.all(
-        myCategories.map(cat => 
-          base44.entities.Clasificacion.filter({ categoria: cat }, '-jornada', 100)
-        )
-      );
-      return allStandings.flat();
+      // Una sola llamada para evitar rate limit; filtramos en memoria
+      const all = await base44.entities.Clasificacion.list('-jornada', 200);
+      return all;
     },
     enabled: myCategories.length > 0,
     staleTime: 5 * 60_000,

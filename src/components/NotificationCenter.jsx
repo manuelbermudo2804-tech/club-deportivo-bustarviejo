@@ -33,9 +33,9 @@ export default function NotificationCenter() {
     queryKey: ['messages', user?.email],
     queryFn: () => base44.entities.ChatMessage.list('-created_date', 500),
     initialData: [],
-    enabled: !!user,
-    staleTime: 15000,
-    refetchInterval: 15000,
+    enabled: !!user && isOpen,
+    staleTime: 30000,
+    refetchInterval: isOpen ? 30000 : false,
     refetchOnWindowFocus: false,
   });
 
@@ -45,15 +45,16 @@ export default function NotificationCenter() {
       const all = await base44.entities.AppNotification.list('-created_date');
       return all.filter(n => n.usuario_email === user?.email);
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email && isOpen,
     initialData: [],
-    refetchInterval: 10000,
+    refetchInterval: isOpen ? 30000 : false,
   });
 
   const { data: callups } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date'),
     initialData: [],
+    enabled: isOpen,
     refetchInterval: isOpen ? 30000 : false,
   });
 
@@ -61,6 +62,7 @@ export default function NotificationCenter() {
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list('-fecha_publicacion'),
     initialData: [],
+    enabled: isOpen,
     refetchInterval: isOpen ? 30000 : false,
   });
 
@@ -68,6 +70,7 @@ export default function NotificationCenter() {
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
+    enabled: isOpen,
     refetchInterval: isOpen ? 30000 : false,
   });
 
@@ -82,6 +85,7 @@ export default function NotificationCenter() {
     queryKey: ['reminders'],
     queryFn: () => base44.entities.Reminder.list('-fecha_envio'),
     initialData: [],
+    enabled: isOpen,
     refetchInterval: isOpen ? 30000 : false,
   });
 
@@ -89,15 +93,17 @@ export default function NotificationCenter() {
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list(),
     initialData: [],
+    enabled: isOpen,
     refetchInterval: isOpen ? 30000 : false,
   });
 
   // Mensajes privados
   const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversationsNotif'],
+    queryKey: ['privateConversationsNotif', user?.email],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
     initialData: [],
-    refetchInterval: 15000,
+    enabled: isOpen && !!user,
+    refetchInterval: isOpen ? 30000 : false,
   });
 
 

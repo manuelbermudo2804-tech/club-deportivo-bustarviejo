@@ -19,15 +19,10 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
   
   // Fetch standings SOLO de categorías relevantes
   const { data: standings = [] } = useQuery({
-    queryKey: ['clasificaciones-widget', playerCategories.join(',')],
+    queryKey: ['clasificaciones-widget', 'all'],
     queryFn: async () => {
-      if (playerCategories.length === 0) return [];
-      const allStandings = await Promise.all(
-        playerCategories.map(cat => 
-          base44.entities.Clasificacion.filter({ categoria: cat }, '-jornada', 100)
-        )
-      );
-      return allStandings.flat();
+      // Una única petición y filtramos en memoria para reducir 429
+      return await base44.entities.Clasificacion.list('-jornada', 200);
     },
     enabled: !!userEmail && myPlayers.length > 0 && playerCategories.length > 0,
     staleTime: 5 * 60_000,
