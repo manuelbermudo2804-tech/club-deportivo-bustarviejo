@@ -84,6 +84,16 @@ const alerts = [];
   const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
   const isJuntaUser = meUser?.es_junta === true;
 
+  // Contadores de chat
+  const { data: coachMessagesForCount = [] } = useQuery({
+    queryKey: ['ac-coachmessages-count'],
+    queryFn: () => base44.entities.CoachMessage.list('-created_date', 500),
+    enabled: isCoach && !!userEmail,
+    refetchInterval: 15000,
+  });
+
+  const unreadFromParentsForCoach = isCoach && userEmail ? coachMessagesForCount.filter(m => m.autor === 'padre' && !m.leido_entrenador).length : 0;
+
   // Cálculo automático de partidos sin registrar (coach)
   const { data: coachPendingObs = 0 } = useQuery({
     queryKey: ['coach-pending-match-obs', isCoach ? userEmail : null],
@@ -347,6 +357,17 @@ const alerts = [];
 
   // Alertas para entrenadores/coordinadores (NO admin)
   if (isCoach && !isAdmin) {
+    if (unreadFromParentsForCoach > 0) {
+      alerts.push({
+        id: "coach-families",
+        icon: MessageCircle,
+        title: "💬 Mensajes de Familias",
+        description: `${unreadFromParentsForCoach} mensaje${unreadFromParentsForCoach > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl("CoachParentChat"),
+        color: "bg-blue-600",
+        priority: 1
+      });
+    }
     if (pendingCallupResponses > 0) {
       alerts.push({
         id: "callup-responses",
