@@ -106,33 +106,40 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }, [messages, otherPersonTyping]);
 
   // Marcar como leído cuando abre la conversación
+  const markedAsReadRef = useRef(false);
   useEffect(() => {
-    if (!conversation?.id) return;
+    if (!conversation?.id || markedAsReadRef.current) return;
     
+    markedAsReadRef.current = true;
     const markAsRead = async () => {
-      const field = isCoordinator ? 'no_leidos_coordinador' : 'no_leidos_padre';
-      const msgField = isCoordinator ? 'leido_coordinador' : 'leido_padre';
-      const dateField = isCoordinator ? 'fecha_leido_coordinador' : 'fecha_leido_padre';
-      
-      if (conversation[field] > 0) {
-        await base44.entities.CoordinatorConversation.update(conversation.id, {
-          [field]: 0
-        });
-
-        const unreadMessages = messages.filter(m => m.autor !== (isCoordinator ? "coordinador" : "padre") && !m[msgField]);
-        for (const msg of unreadMessages) {
-          await base44.entities.CoordinatorMessage.update(msg.id, {
-            [msgField]: true,
-            [dateField]: new Date().toISOString()
+      try {
+        const field = isCoordinator ? 'no_leidos_coordinador' : 'no_leidos_padre';
+        const msgField = isCoordinator ? 'leido_coordinador' : 'leido_padre';
+        const dateField = isCoordinator ? 'fecha_leido_coordinador' : 'fecha_leido_padre';
+        
+        if (conversation[field] > 0) {
+          await base44.entities.CoordinatorConversation.update(conversation.id, {
+            [field]: 0
           });
-        }
 
-        queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
-        queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
+          const unreadMessages = messages.filter(m => m.autor !== (isCoordinator ? "coordinador" : "padre") && !m[msgField]);
+          for (const msg of unreadMessages) {
+            await base44.entities.CoordinatorMessage.update(msg.id, {
+              [msgField]: true,
+              [dateField]: new Date().toISOString()
+            });
+          }
+
+          queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
+          queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
+        }
+      } catch (error) {
+        console.log("Error marking as read:", error);
+        markedAsReadRef.current = false;
       }
     };
     markAsRead();
-  }, [conversation?.id, messages]);
+  }, [conversation?.id]);
 
   // Indicador "escribiendo..."
   const handleTyping = async () => {
