@@ -13,8 +13,8 @@ const NotificationBadge = React.lazy(() => import("./components/NotificationBadg
 const SessionManager = React.lazy(() => import("./components/SessionManager"));
 const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
-const NotificationCenter = React.lazy(() => import("./components/NotificationCenter"));
-const LanguageSelector = React.lazy(() => import("./components/LanguageSelector"));
+import NotificationCenter from "./components/NotificationCenter";
+import LanguageSelector from "./components/LanguageSelector";
 const AppNotificationListener = React.lazy(() => import("./components/push/AppNotificationListener"));
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
