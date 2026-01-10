@@ -51,10 +51,9 @@ const DIAS_ORDEN = {
 export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [] }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showRenewalSuggestion, setShowRenewalSuggestion] = useState(false);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [confirmingNotRenew, setConfirmingNotRenew] = useState(false);
   const [confirmingRenew, setConfirmingRenew] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   
   // Filtrar horarios del jugador según su categoría/deporte
   const playerSchedules = schedules
