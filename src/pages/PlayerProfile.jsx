@@ -214,16 +214,37 @@ export default function PlayerProfile() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+      {/* Alerta de renovación pendiente */}
+      {player?.estado_renovacion === "pendiente" && (
+        <Alert className="border-orange-200 bg-orange-50">
+          <Zap className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="ml-2 text-orange-900">
+            <strong>Renovación Pendiente:</strong> Tu inscripción necesita renovarse para la nueva temporada.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header con acciones */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h1 className="text-3xl md:text-4xl font-bold">Mi Ficha</h1>
-        <Button
-          onClick={() => (editMode ? handleSave() : setEditMode(true))}
-          className={`${editMode ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}`}
-        >
-          <Save className="w-4 h-4 mr-2" />
-          {editMode ? "Guardar" : "Editar"}
-        </Button>
+        <div className="flex gap-2">
+          {player?.estado_renovacion === "pendiente" && !editMode && (
+            <Button
+              onClick={handleRenewalClick}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Renovar Inscripción
+            </Button>
+          )}
+          <Button
+            onClick={() => (editMode ? handleSave() : setEditMode(true))}
+            className={`${editMode ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}`}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {editMode ? "Guardar" : "Editar"}
+          </Button>
+        </div>
       </div>
 
       {/* Tarjeta de perfil IMPACTANTE */}
