@@ -166,6 +166,9 @@ export default function PlayerProfile() {
       municipio: form.municipio,
       autorizacion_fotografia: form.autorizacion_fotografia,
       observaciones: form.observaciones,
+      tipo_documento: form.tipo_documento,
+      dni_jugador: form.dni_jugador,
+      dni_jugador_url: form.dni_jugador_url,
       ficha_medica: {
         ...(player.ficha_medica || {}),
         alergias: form.ficha_medica.alergias,
@@ -173,6 +176,7 @@ export default function PlayerProfile() {
         condiciones_medicas: form.ficha_medica.condiciones_medicas,
         contacto_emergencia_nombre: form.ficha_medica.contacto_emergencia_nombre,
         contacto_emergencia_telefono: form.ficha_medica.contacto_emergencia_telefono,
+        grupo_sanguineo: form.ficha_medica.grupo_sanguineo,
       },
     };
     await updateMutation.mutateAsync(payload);
