@@ -563,9 +563,25 @@ export default function Layout({ children, currentPageName }) {
 
   // Cargar idioma desde localStorage después del montaje
   useEffect(() => {
+    // Recuperación automática ante errores de carga de chunks (404/ChunkLoadError)
+    const chunkErrorHandler = (e) => {
+      const msg = (e?.reason?.message || e?.message || '').toString();
+      if (/Loading chunk|chunk|Failed to fetch dynamically imported module/i.test(msg)) {
+        try { if (window.caches) { caches.keys().then(keys => keys.forEach(k => caches.delete(k))); } } catch {}
+        try { if (navigator.serviceWorker) { navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())); } } catch {}
+        window.location.reload();
+      }
+    };
+    window.addEventListener('unhandledrejection', chunkErrorHandler);
+    window.addEventListener('error', chunkErrorHandler);
+
     const savedLang = localStorage.getItem('appLanguage');
     if (savedLang) setCurrentLang(savedLang);
-  }, []);
+    return () => {
+      window.removeEventListener('unhandledrejection', () => {});
+      window.removeEventListener('error', () => {});
+    };
+    }, []);
 
   // Cargar configuración de temporada solo una vez al montar
   const [seasonConfigLoaded, setSeasonConfigLoaded] = useState(false);

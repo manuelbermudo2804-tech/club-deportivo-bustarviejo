@@ -18,11 +18,14 @@ import {
   Image,
   FileText,
   Calendar,
-  Megaphone
+  Megaphone,
+  Clock
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ContactCard from "../components/ContactCard";
+import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import CoachAlertCenter from "../components/dashboard/CoachAlertCenter";
 import SocialLinks from "../components/SocialLinks";
@@ -78,6 +81,14 @@ export default function CoachDashboard() {
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
+    enabled: hasPlayers,
+  });
+
+  // Season config para mostrar banner de renovaciones cuando el entrenador tambin es padre
+  const { data: seasonConfigs = [] } = useQuery({
+    queryKey: ['seasonConfigs'],
+    queryFn: () => base44.entities.SeasonConfig.list(),
+    staleTime: 600000,
     enabled: hasPlayers,
   });
 
@@ -210,6 +221,18 @@ export default function CoachDashboard() {
     [hasPlayers, allPlayers, user?.email]
   );
 
+  // Temporada activa y jugadores inactivos pendientes de renovar (como en ParentDashboard)
+  const activeSeason = seasonConfigs.find?.(s => s.activa) || null;
+  const pendingInactivePlayers = useMemo(() => {
+    if (!hasPlayers) return [];
+    return allPlayers.filter(p =>
+      (p.email_padre === user?.email || p.email_tutor_2 === user?.email) &&
+      p.activo === false &&
+      p.estado_renovacion === 'pendiente' &&
+      (!activeSeason || p.temporada_renovacion === activeSeason.temporada)
+    );
+  }, [hasPlayers, allPlayers, user?.email, activeSeason]);
+
   const myPlayersSports = useMemo(() => 
     [...new Set(myParentPlayers.map(p => p.deporte))],
     [myParentPlayers]
@@ -316,14 +339,16 @@ export default function CoachDashboard() {
                 </div>
               </Link>
 
-              <Link to={createPageUrl("CoordinatorChat")}>
+              {(user?.es_coordinador || user?.role === "admin") && (
+                <Link to={createPageUrl("CoordinatorChat")}>
                 <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
                   <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
                   <p className="text-xs text-cyan-100 text-center">Consultas</p>
                 </div>
               </Link>
+              )}
 
-              <Link to={createPageUrl("StaffChat")}>
+               <Link to={createPageUrl("StaffChat")}>
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
                   <p className="text-sm font-bold text-center">💼 Staff</p>
                   <p className="text-xs text-slate-100 text-center">Interno</p>
@@ -332,6 +357,37 @@ export default function CoachDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Aviso renovaciones (entrenador que tambin es padre) */}
+        {hasPlayers && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (
+          <Card className="border-2 border-emerald-300 bg-emerald-50 shadow-lg">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-200 rounded-full flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-emerald-700" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-emerald-900">Es hora de renovar tu plaza</p>
+                    <p className="text-xs text-emerald-800">Tienes {pendingInactivePlayers.length} jugador(es) pendientes de renovar</p>
+                  </div>
+                </div>
+                <Link to={createPageUrl('ParentPlayers')}>
+                  <Button className="bg-emerald-600 hover:bg-emerald-700">Renovar ahora</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Estado de renovaciones (progreso) */}
+        {hasPlayers && activeSeason?.permitir_renovaciones && myParentPlayers.length > 0 && myParentPlayers.some(p => p.estado_renovacion === "pendiente" && p.temporada_renovacion === activeSeason?.temporada) && (
+          <RenewalStatusWidget 
+            players={myParentPlayers} 
+            payments={allPayments}
+            seasonConfig={activeSeason}
+          />
+        )}
 
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
         <CoachClassificationsMatchesBanner myCategories={myCategories} />
