@@ -13,14 +13,14 @@ export default function NotificationBadge() {
   const { total: chatUnread } = useUnreadChats();
   const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
       const { data: messages = [] } = useQuery({
-          queryKey: ['chatMessages', isAdmin],
-          queryFn: () => base44.entities.ChatMessage.list('-updated_date', 200),
-          initialData: [],
-          enabled: !!user && !isAdmin,
-          staleTime: 60000,
-          refetchInterval: 60000,
-          refetchOnWindowFocus: false,
-        });
+              queryKey: ['chatMessages', user?.email],
+              queryFn: () => base44.entities.ChatMessage.list('-updated_date', 500),
+              initialData: [],
+              enabled: !!user,
+              staleTime: 30000,
+              refetchInterval: 30000,
+              refetchOnWindowFocus: false,
+            });
 
   const { data: players } = useQuery({
     queryKey: ['players'],
