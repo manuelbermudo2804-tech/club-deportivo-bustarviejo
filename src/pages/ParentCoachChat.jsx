@@ -40,7 +40,7 @@ export default function ParentCoachChat() {
 
         const allPlayers = await base44.entities.Player.list();
         const players = allPlayers.filter(p => 
-          (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo
+          (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email || p.email_jugador === currentUser.email) && p.activo
         );
         setMyPlayers(players);
         
