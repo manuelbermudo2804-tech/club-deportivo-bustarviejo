@@ -31,7 +31,6 @@ export default function ParentCoordinatorChat() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showReactions, setShowReactions] = useState(null);
   const messagesEndRef = useRef(null);
-  const markedAsReadRef = useRef(new Set());
 
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
@@ -81,26 +80,39 @@ export default function ParentCoordinatorChat() {
         setTermsAccepted(true);
       }
 
-      // Marcar notificaciones de ambos enlaces como vistas
+      // Marcar notificaciones de coordinador como vistas
       const notifications = await base44.entities.AppNotification.filter({ 
         usuario_email: currentUser.email,
+        enlace: "ParentCoordinatorChat",
         vista: false
       });
       
-      // Filtrar las que son de coordinador
-      const coordNotifs = notifications.filter(n => 
-        n.enlace === "ParentCoordinatorChat" || n.enlace === "FamilyChats"
-      );
-      
-      for (const notif of coordNotifs) {
+      for (const notif of notifications) {
         await base44.entities.AppNotification.update(notif.id, {
           vista: true,
           fecha_vista: new Date().toISOString()
         });
       }
       
-      if (coordNotifs.length > 0) {
+      if (notifications.length > 0) {
         queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
+      }
+      
+      // Marcar mensajes del coordinador como leídos
+      const allMessages = await base44.entities.CoordinatorMessage.filter({ conversacion_id: newConv.id || conversations[0]?.id });
+      const unreadCoordMessages = allMessages.filter(m => m.autor === "coordinador" && !m.leido_padre);
+      
+      for (const msg of unreadCoordMessages) {
+        await base44.entities.CoordinatorMessage.update(msg.id, {
+          leido_padre: true,
+          fecha_leido_padre: new Date().toISOString()
+        });
+      }
+      
+      if ((newConv || conversations[0])?.no_leidos_padre > 0) {
+        await base44.entities.CoordinatorConversation.update(newConv?.id || conversations[0]?.id, {
+          no_leidos_padre: 0
+        });
       }
     };
     fetchUser();
@@ -138,32 +150,7 @@ export default function ParentCoordinatorChat() {
     }
   }, [messages, coordinatorTyping]);
 
-  // Marcar como leído UNA SOLA VEZ cuando abre chat - sin bucles
-  useEffect(() => {
-    if (!conversation?.id) return;
-    if (markedAsReadRef.current.has(conversation.id)) return; // Ya marcado
 
-    markedAsReadRef.current.add(conversation.id);
-
-    const markAsRead = async () => {
-      const unreadMessages = messages.filter(m => m.autor === "coordinador" && !m.leido_padre);
-      if (unreadMessages.length === 0) return;
-
-      for (const msg of unreadMessages) {
-        await base44.entities.CoordinatorMessage.update(msg.id, {
-          leido_padre: true,
-          fecha_leido_padre: new Date().toISOString()
-        });
-      }
-
-      await base44.entities.CoordinatorConversation.update(conversation.id, {
-        no_leidos_padre: 0
-      });
-
-      await queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] });
-    };
-    markAsRead();
-  }, [conversation?.id]);
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
