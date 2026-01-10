@@ -8,12 +8,16 @@ export default function NotificationBadge() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: messages } = useQuery({
-    queryKey: ['chatMessages'],
-    queryFn: () => base44.entities.ChatMessage.list(),
-    initialData: [],
-    refetchInterval: 5000,
-  });
+  const isAdmin = user?.role === 'admin';
+        const { data: messages = [] } = useQuery({
+          queryKey: ['chatMessages', isAdmin],
+          queryFn: () => base44.entities.ChatMessage.list('-updated_date', 200),
+          initialData: [],
+          enabled: !!user && !isAdmin,
+          staleTime: 60000,
+          refetchInterval: 60000,
+          refetchOnWindowFocus: false,
+        });
 
   const { data: players } = useQuery({
     queryKey: ['players'],
@@ -26,69 +30,85 @@ export default function NotificationBadge() {
     enabled: !!user,
   });
 
-  const { data: events } = useQuery({
-    queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list(),
-    initialData: [],
-    refetchInterval: 30000,
-  });
+  const { data: events = [] } = useQuery({
+          queryKey: ['events'],
+          queryFn: () => base44.entities.Event.list(),
+          initialData: [],
+          staleTime: 120000,
+          refetchInterval: 120000,
+          refetchOnWindowFocus: false,
+        });
 
-  const { data: announcements } = useQuery({
-    queryKey: ['announcements'],
-    queryFn: () => base44.entities.Announcement.list(),
-    initialData: [],
-    refetchInterval: 30000,
-  });
+  const { data: announcements = [] } = useQuery({
+          queryKey: ['announcements'],
+          queryFn: () => base44.entities.Announcement.list(),
+          initialData: [],
+          staleTime: 120000,
+          refetchInterval: 120000,
+          refetchOnWindowFocus: false,
+        });
 
-  const { data: appNotifications } = useQuery({
-    queryKey: ['appNotifications', user?.email],
-    queryFn: async () => {
-      const all = await base44.entities.AppNotification.list();
-      return all.filter(n => n.usuario_email === user?.email && !n.vista);
-    },
-    initialData: [],
-    refetchInterval: 10000,
-    enabled: !!user?.email,
-  });
+  const { data: appNotifications = [] } = useQuery({
+          queryKey: ['appNotifications', user?.email],
+          queryFn: async () => {
+            const all = await base44.entities.AppNotification.list();
+            return all.filter(n => n.usuario_email === user?.email && !n.vista);
+          },
+          initialData: [],
+          staleTime: 30000,
+          refetchInterval: 30000,
+          refetchOnWindowFocus: false,
+          enabled: !!user?.email,
+        });
 
-  const { data: callups } = useQuery({
-    queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list(),
-    initialData: [],
-    refetchInterval: 30000,
-  });
+  const { data: callups = [] } = useQuery({
+          queryKey: ['callups'],
+          queryFn: () => base44.entities.Convocatoria.list(),
+          initialData: [],
+          staleTime: 60000,
+          refetchInterval: 60000,
+          refetchOnWindowFocus: false,
+        });
 
   const { data: coachMessages = [] } = useQuery({
-    queryKey: ['coachMessages'],
-    queryFn: () => base44.entities.CoachMessage.list('-created_date', 500),
-    initialData: [],
-    refetchInterval: 10000,
-    enabled: !!user,
-  });
+          queryKey: ['coachMessages'],
+          queryFn: () => base44.entities.CoachMessage.list('-created_date', 500),
+          initialData: [],
+          staleTime: 60000,
+          refetchInterval: 60000,
+          refetchOnWindowFocus: false,
+          enabled: !!user && (user.es_entrenador || user.es_coordinador),
+        });
 
   const { data: staffMessages = [] } = useQuery({
-    queryKey: ['staffMessages'],
-    queryFn: () => base44.entities.StaffMessage.list('-created_date', 500),
-    initialData: [],
-    refetchInterval: 10000,
-    enabled: !!user && (user.role === 'admin' || user.es_entrenador || user.es_coordinador),
-  });
+          queryKey: ['staffMessages'],
+          queryFn: () => base44.entities.StaffMessage.list('-created_date', 500),
+          initialData: [],
+          staleTime: 60000,
+          refetchInterval: 60000,
+          refetchOnWindowFocus: false,
+          enabled: !!user && (user.role === 'admin' || user.es_entrenador || user.es_coordinador),
+        });
 
   const { data: coordConversations = [] } = useQuery({
-    queryKey: ['coordConversations'],
-    queryFn: () => base44.entities.CoordinatorConversation.list('-updated_date', 200),
-    initialData: [],
-    refetchInterval: 10000,
-    enabled: !!user,
-  });
+          queryKey: ['coordConversations'],
+          queryFn: () => base44.entities.CoordinatorConversation.list('-updated_date', 200),
+          initialData: [],
+          staleTime: 60000,
+          refetchInterval: 60000,
+          refetchOnWindowFocus: false,
+          enabled: !!user,
+        });
 
   const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversations'],
-    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 200),
-    initialData: [],
-    refetchInterval: 10000,
-    enabled: !!user,
-  });
+          queryKey: ['privateConversations'],
+          queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 200),
+          initialData: [],
+          staleTime: 60000,
+          refetchInterval: 60000,
+          refetchOnWindowFocus: false,
+          enabled: !!user,
+        });
 
   useEffect(() => {
     if (!user) return;
