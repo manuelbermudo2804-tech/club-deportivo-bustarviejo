@@ -25,6 +25,9 @@ Deno.serve(async (req) => {
 
     const temporada = activeConfig.temporada;
 
+    // NOTA: No tocar historial de staff ni conversaciones de chat
+    // (blindado para evitar pérdidas en reset de temporada)
+
     // Obtener todos los jugadores
     const allPlayers = await base44.entities.Player.list('-updated_date', 20000);
 
