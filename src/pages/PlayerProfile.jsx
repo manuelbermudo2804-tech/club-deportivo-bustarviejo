@@ -352,6 +352,52 @@ export default function PlayerProfile() {
           <TabsTrigger value="contacto">📞 Contacto</TabsTrigger>
         </TabsList>
 
+        {/* Tab: Documentos */}
+        <TabsContent value="docs" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-blue-500" /> Documentación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* DNI */}
+                <div className="border-2 border-dashed rounded-lg p-4 space-y-2">
+                  <div className="text-3xl">🆔</div>
+                  <h4 className="font-semibold text-slate-900">DNI/Pasaporte</h4>
+                  {player.dni_jugador_url ? (
+                    <div className="space-y-2">
+                      <Badge className="bg-green-100 text-green-800">Subido ✅</Badge>
+                      <p className="text-xs text-slate-600">{player.dni_jugador}</p>
+                      <a href={player.dni_jugador_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs hover:underline flex items-center gap-1">
+                        <Eye className="w-3 h-3" /> Ver documento
+                      </a>
+                    </div>
+                  ) : (
+                    <Badge className="bg-red-100 text-red-800">Pendiente ❌</Badge>
+                  )}
+                </div>
+
+                {/* Firma */}
+                <div className="border-2 border-dashed rounded-lg p-4 space-y-2">
+                  <div className="text-3xl">✍️</div>
+                  <h4 className="font-semibold text-slate-900">Firma Jugador</h4>
+                  {player.firma_jugador_completada ? (
+                    <Badge className="bg-green-100 text-green-800">Completada ✅</Badge>
+                  ) : player.enlace_firma_jugador ? (
+                    <a href={player.enlace_firma_jugador} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs hover:underline flex items-center gap-1">
+                      <FileCheck className="w-3 h-3" /> Firmar documento
+                    </a>
+                  ) : (
+                    <Badge className="bg-red-100 text-red-800">Pendiente ❌</Badge>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Tab: Datos personales */}
         <TabsContent value="datos" className="space-y-4">
           <Card>
