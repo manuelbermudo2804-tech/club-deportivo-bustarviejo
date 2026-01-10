@@ -95,6 +95,53 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     }
   }, [messages, anyoneTyping]);
 
+  // Marcar como leídos los mensajes de familias al abrir la categoría (simétrico a familias viendo mensajes del entrenador)
+  useEffect(() => {
+    if (!user || !selectedCategory || messages.length === 0) return;
+    const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+
+    const unreadFromParents = messages.filter((m) =>
+      m.tipo === 'padre_a_grupo' &&
+      (m.grupo_id === grupo_id || m.deporte === selectedCategory) &&
+      (!m.leido_por || !m.leido_por.some((lp) => lp.email === user.email))
+    );
+
+    const markReads = async () => {
+      try {
+        for (const msg of unreadFromParents) {
+          const leido_por = msg.leido_por || [];
+          leido_por.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
+          await base44.entities.ChatMessage.update(msg.id, { leido_por });
+        }
+
+        if (unreadFromParents.length > 0) {
+          // Marcar AppNotifications del entrenador como vistas
+          const notifs = await base44.entities.AppNotification.filter({
+            usuario_email: user.email,
+            enlace: 'CoachParentChat',
+            vista: false,
+          });
+          for (const n of notifs) {
+            await base44.entities.AppNotification.update(n.id, {
+              vista: true,
+              fecha_vista: new Date().toISOString(),
+            });
+          }
+
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
+            queryClient.invalidateQueries({ queryKey: ['coachGroupMessagesAll'] }),
+            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
+          ]);
+        }
+      } catch (e) {
+        console.log('Error marcando como leídos mensajes de familias:', e);
+      }
+    };
+
+    markReads();
+  }, [user, selectedCategory, messages.length]);
+
   const handleTyping = async () => {
     if (!selectedCategory) return;
     
