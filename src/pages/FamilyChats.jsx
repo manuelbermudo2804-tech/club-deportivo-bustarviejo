@@ -31,32 +31,7 @@ export default function FamilyChats() {
     );
   }
 
-  // Estructura unificada para evitar hooks condicionales
-  return (
-      <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
-        <Tabs defaultValue="coordinador" className="h-full flex flex-col">
-          <div className="flex-shrink-0 bg-white border-b px-2 py-2">
-            <TabsList className="w-full">
-              <TabsTrigger value="coordinador" className="flex-1">
-                🏟️ Coordinador
-              </TabsTrigger>
-              <TabsTrigger value="entrenador" className="flex-1">
-                ⚽ Entrenador
-              </TabsTrigger>
-            </TabsList>
-          </div>
-          
-          <TabsContent value="coordinador" className="flex-1 mt-0 overflow-hidden">
-            <CoordinatorChat embedded={true} />
-          </TabsContent>
-          
-          <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden">
-            <CoachParentChat embedded={true} />
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  }
+
   
   // Nueva estructura de Tabs fija según rol
   return (
