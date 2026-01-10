@@ -48,6 +48,21 @@ export default function PlayerProfile() {
     staleTime: 60_000,
   });
 
+  const { data: seasonConfig } = useQuery({
+    queryKey: ["seasonConfigActive"],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+      return configs?.[0] || null;
+    },
+    staleTime: 60_000,
+  });
+
+  const { data: categoryConfigs } = useQuery({
+    queryKey: ["categoryConfigs"],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+    staleTime: 60_000,
+  });
+
   const [form, setForm] = useState({
     nombre: "",
     foto_url: "",
