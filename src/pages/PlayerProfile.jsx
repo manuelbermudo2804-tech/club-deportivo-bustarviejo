@@ -673,6 +673,94 @@ export default function PlayerProfile() {
           </CardContent>
         </Card>
       )}
+
+      {/* Modal: Sugerencia de categoría */}
+      <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Zap className="w-5 h-5 text-orange-600" />
+              Cambio de Categoría Sugerido
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert className="border-orange-200 bg-orange-50">
+              <AlertDescription className="text-sm text-orange-900">
+                Según tu edad ({edad} años), se recomienda cambiar de categoría para que continúes en la categoría apropiada para tu edad.
+              </AlertDescription>
+            </Alert>
+            <div className="space-y-3">
+              <div className="bg-slate-50 rounded-lg p-4">
+                <p className="text-xs text-slate-600 mb-1">Categoría actual</p>
+                <p className="text-lg font-bold text-slate-900">{player.deporte}</p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4 border-2 border-green-300">
+                <p className="text-xs text-green-700 font-semibold mb-1">Categoría sugerida</p>
+                <p className="text-lg font-bold text-green-800">{suggestedCategory}</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCategoryModal(false);
+                  renewalMutation.mutate(player.deporte);
+                }}
+                className="flex-1"
+              >
+                Mantener actual
+              </Button>
+              <Button
+                onClick={() => renewalMutation.mutate(suggestedCategory)}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Aceptar cambio
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Confirmación de renovación */}
+      <Dialog open={showRenewalModal} onOpenChange={setShowRenewalModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <RefreshCw className="w-5 h-5 text-green-600" />
+              Renovar Inscripción
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="ml-2 text-green-900">
+                ¿Confirmas la renovación de tu inscripción para la próxima temporada?
+              </AlertDescription>
+            </Alert>
+            <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+              <p className="text-sm"><strong>Jugador:</strong> {player.nombre}</p>
+              <p className="text-sm"><strong>Categoría:</strong> {player.deporte}</p>
+              <p className="text-sm"><strong>Temporada:</strong> {new Date().getFullYear()}-{new Date().getFullYear() + 1}</p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowRenewalModal(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => renewalMutation.mutate(null)}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                Confirmar renovación
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
