@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserCircle, Camera, Save, Calendar as CalendarIcon, Phone, MapPin, FileCheck, AlertCircle, Heart, MapPinCheck, Upload, File, Download, X, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
