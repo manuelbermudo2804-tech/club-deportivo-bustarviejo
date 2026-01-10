@@ -155,10 +155,12 @@ export default function ParentCoordinatorChat() {
       }
 
       // Actualizar conversación INMEDIATAMENTE
-      if (conversation.no_leidos_padre > 0) {
+      if ((conversation.no_leidos_padre || 0) > 0) {
         await base44.entities.CoordinatorConversation.update(conversation.id, {
           no_leidos_padre: 0
         });
+        // Sincronizar estado local para evitar bucle de renders
+        setConversation((prev) => (prev && prev.id === conversation.id ? { ...prev, no_leidos_padre: 0 } : prev));
       }
 
       // Refetch INMEDIATO de todas las queries relacionadas
