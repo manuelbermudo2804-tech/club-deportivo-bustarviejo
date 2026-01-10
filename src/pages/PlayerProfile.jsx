@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { UserCircle, Camera, Save, Calendar as CalendarIcon, Phone, MapPin, FileCheck, AlertCircle, Heart, MapPinCheck, Upload, File, Download, X, Eye } from "lucide-react";
+import { UserCircle, Camera, Save, Calendar as CalendarIcon, Phone, MapPin, FileCheck, AlertCircle, Heart, MapPinCheck, Upload, File, Download, X, Eye, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { calcularEdad } from "../components/utils/calcularEdad";
 
 export default function PlayerProfile() {
   const queryClient = useQueryClient();
