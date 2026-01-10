@@ -113,43 +113,11 @@ export default function NotificationBadge() {
   useEffect(() => {
     if (!user) return;
 
-    let unreadCount = 0;
+    let unreadCount = computedChatUnread;
     const isAdmin = user.role === 'admin';
     const isPlayer = user.role === 'jugador';
 
-    // Count unread messages
-    if (isAdmin) {
-      messages.forEach(msg => {
-        if (!msg.leido && (msg.tipo === 'padre_a_grupo' || msg.tipo === 'jugador_a_equipo')) {
-          unreadCount++;
-        }
-      });
-    } else if (isPlayer) {
-      const myPlayer = players.find(p => p.id === user.jugador_id);
-      if (myPlayer) {
-        messages.forEach(msg => {
-          if (!msg.leido && 
-              msg.tipo === 'admin_a_grupo' && 
-              (msg.grupo_id === myPlayer.deporte || msg.deporte === myPlayer.deporte)) {
-            unreadCount++;
-          }
-        });
-      }
-    } else {
-      // Parent
-      const myPlayers = players.filter(p => 
-        p.email_padre === user.email || p.email_tutor_2 === user.email
-      );
-      const myGroupIds = myPlayers.map(p => p.deporte);
-      
-      messages.forEach(msg => {
-        if (!msg.leido && 
-            msg.tipo === 'admin_a_grupo' && 
-            myGroupIds.includes(msg.grupo_id || msg.deporte)) {
-          unreadCount++;
-        }
-      });
-    }
+    // Chat counts consolidados por computedChatUnread
 
     // Count new events (published in the last 24 hours and not notified yet)
     const oneDayAgo = new Date();
