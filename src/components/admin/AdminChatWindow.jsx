@@ -45,26 +45,33 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   }, [messages]);
 
   // Marcar como leído
+  const markedAsReadRef = useRef(false);
   useEffect(() => {
-    if (!conversation?.id || conversation.no_leidos_admin === 0) return;
+    if (!conversation?.id || conversation.no_leidos_admin === 0 || markedAsReadRef.current) return;
     
+    markedAsReadRef.current = true;
     const markAsRead = async () => {
-      await base44.entities.AdminConversation.update(conversation.id, {
-        no_leidos_admin: 0
-      });
-
-      const unreadMessages = messages.filter(m => m.autor === "padre" && !m.leido_admin);
-      for (const msg of unreadMessages) {
-        await base44.entities.AdminMessage.update(msg.id, {
-          leido_admin: true,
-          fecha_leido_admin: new Date().toISOString()
+      try {
+        await base44.entities.AdminConversation.update(conversation.id, {
+          no_leidos_admin: 0
         });
-      }
 
-      queryClient.invalidateQueries({ queryKey: ['adminConversations'] });
+        const unreadMessages = messages.filter(m => m.autor === "padre" && !m.leido_admin);
+        for (const msg of unreadMessages) {
+          await base44.entities.AdminMessage.update(msg.id, {
+            leido_admin: true,
+            fecha_leido_admin: new Date().toISOString()
+          });
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['adminConversations'] });
+      } catch (error) {
+        console.log("Error marking as read:", error);
+        markedAsReadRef.current = false;
+      }
     };
     markAsRead();
-  }, [conversation?.id, messages]);
+  }, [conversation?.id]);
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
