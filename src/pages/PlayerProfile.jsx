@@ -98,12 +98,16 @@ export default function PlayerProfile() {
         municipio: player.municipio || "",
         autorizacion_fotografia: player.autorizacion_fotografia,
         observaciones: player.observaciones || "",
+        tipo_documento: player.tipo_documento || "DNI",
+        dni_jugador: player.dni_jugador || "",
+        dni_jugador_url: player.dni_jugador_url || "",
         ficha_medica: {
           alergias: player.ficha_medica?.alergias || "",
           medicacion_habitual: player.ficha_medica?.medicacion_habitual || "",
           condiciones_medicas: player.ficha_medica?.condiciones_medicas || "",
           contacto_emergencia_nombre: player.ficha_medica?.contacto_emergencia_nombre || "",
           contacto_emergencia_telefono: player.ficha_medica?.contacto_emergencia_telefono || "",
+          grupo_sanguineo: player.ficha_medica?.grupo_sanguineo || "",
         },
       });
     }
