@@ -486,25 +486,39 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         isOutsideWorkingHours = !isWorkingDay || !isWithinHours;
       }
 
-      const newMessage = await base44.entities.CoordinatorMessage.create({
+      // Validar campos obligatorios
+      if (!conversation?.id || !user?.email || !data.mensaje?.trim()) {
+        throw new Error("Faltan datos obligatorios para enviar el mensaje");
+      }
+
+      const messagePayload = {
         conversacion_id: conversation.id,
         autor: isCoordinator ? "coordinador" : "padre",
         autor_email: user.email,
         autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
-        mensaje: data.mensaje,
-        audio_url: data.audio_url,
-        audio_duracion: data.audio_duracion,
-        archivos_adjuntos: data.archivos_adjuntos || [],
-        adjuntos: data.archivos_adjuntos || [],
-        encuesta: data.encuesta,
-        ubicacion: data.ubicacion,
-        respuesta_a: data.respuesta_a,
-        mensaje_citado: data.mensaje_citado,
+        mensaje: data.mensaje.trim(),
         leido_coordinador: isCoordinator,
         leido_padre: !isCoordinator,
-        fecha_leido_coordinador: isCoordinator ? new Date().toISOString() : null,
-        fecha_leido_padre: !isCoordinator ? new Date().toISOString() : null
-      });
+        archivos_adjuntos: data.archivos_adjuntos || []
+      };
+
+      // Solo agregar campos opcionales si tienen valor
+      if (data.audio_url) {
+        messagePayload.audio_url = data.audio_url;
+        messagePayload.audio_duracion = data.audio_duracion || 0;
+      }
+      if (data.encuesta) {
+        messagePayload.encuesta = data.encuesta;
+      }
+      if (data.ubicacion) {
+        messagePayload.ubicacion = data.ubicacion;
+      }
+      if (data.respuesta_a) {
+        messagePayload.respuesta_a = data.respuesta_a;
+        messagePayload.mensaje_citado = data.mensaje_citado;
+      }
+
+      const newMessage = await base44.entities.CoordinatorMessage.create(messagePayload);
 
       const fieldNoLeidos = isCoordinator ? 'no_leidos_padre' : 'no_leidos_coordinador';
       const fieldEscribiendo = isCoordinator ? 'coordinador_escribiendo' : 'padre_escribiendo';
