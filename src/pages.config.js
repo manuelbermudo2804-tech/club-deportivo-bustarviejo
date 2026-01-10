@@ -89,9 +89,9 @@ import TacticsBoard from './pages/TacticsBoard';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
 import TeamRosters from './pages/TeamRosters';
 import TrainingSchedules from './pages/TrainingSchedules';
-import UserManagement from './pages/UserManagement';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
+import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -187,9 +187,9 @@ export const PAGES = {
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
     "TeamRosters": TeamRosters,
     "TrainingSchedules": TrainingSchedules,
-    "UserManagement": UserManagement,
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
+    "UserManagement": UserManagement,
 }
 
 export const pagesConfig = {
