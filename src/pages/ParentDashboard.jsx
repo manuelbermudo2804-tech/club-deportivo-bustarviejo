@@ -114,14 +114,6 @@ export default function ParentDashboard() {
     enabled: !!user,
   });
 
-  // Cargar SeasonConfig antes de usarla
-  const { data: seasonConfigs = [] } = useQuery({
-    queryKey: ['seasonConfigs', user?.email],
-    queryFn: () => base44.entities.SeasonConfig.list(),
-    staleTime: 600000, // 10 minutos
-    enabled: !!user,
-  });
-
   // Filtrar MIS jugadores en memoria (rápido)
   const players = allPlayers.filter(p => 
     (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
