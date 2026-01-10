@@ -40,7 +40,6 @@ import FederationSignaturesAdmin from './pages/FederationSignaturesAdmin';
 import FemeninoInterests from './pages/FemeninoInterests';
 import Gallery from './pages/Gallery';
 import Home from './pages/Home';
-import Incidencias from './pages/Incidencias';
 import InvitationRequests from './pages/InvitationRequests';
 import JoinFemenino from './pages/JoinFemenino';
 import LotteryManagement from './pages/LotteryManagement';
@@ -139,7 +138,6 @@ export const PAGES = {
     "FemeninoInterests": FemeninoInterests,
     "Gallery": Gallery,
     "Home": Home,
-    "Incidencias": Incidencias,
     "InvitationRequests": InvitationRequests,
     "JoinFemenino": JoinFemenino,
     "LotteryManagement": LotteryManagement,

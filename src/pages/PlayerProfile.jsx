@@ -1,12 +1,14 @@
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { UserCircle, Camera, Save, Calendar as CalendarIcon, Phone, MapPin } from "lucide-react";
+import { UserCircle, Camera, Save, Calendar as CalendarIcon, Phone, MapPin, CreditCard, Bell, MessageCircle } from "lucide-react";
 
 export default function PlayerProfile() {
   const queryClient = useQueryClient();
@@ -128,7 +130,7 @@ export default function PlayerProfile() {
       <div className="max-w-3xl mx-auto p-4 md:p-6">
         <Card>
           <CardHeader>
-            <CardTitle>Mi Perfil</CardTitle>
+            <CardTitle>Mi Ficha</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-slate-700">
             <p>No hemos encontrado tu ficha de jugador vinculada a esta cuenta.</p>
@@ -142,7 +144,7 @@ export default function PlayerProfile() {
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6">
       <div className="mb-4 text-center space-y-2">
-        <h1 className="text-2xl md:text-3xl font-bold text-balance">Mi Perfil</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-balance">Mi Ficha</h1>
         <Button onClick={handleSave} className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto">
           <Save className="w-4 h-4 mr-2" /> Guardar cambios
         </Button>
@@ -188,6 +190,23 @@ export default function PlayerProfile() {
           </div>
         </CardContent>
       </Card>
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <Link to={createPageUrl("ParentPayments")} className="block">
+          <Button className="w-full bg-green-600 hover:bg-green-700 gap-2">
+            <CreditCard className="w-4 h-4" /> Pagos
+          </Button>
+        </Link>
+        <Link to={createPageUrl("ParentCallups")} className="block">
+          <Button className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
+            <Bell className="w-4 h-4" /> Convocatorias
+          </Button>
+        </Link>
+        <Link to={createPageUrl("ParentCoordinatorChat")} className="block">
+          <Button className="w-full bg-cyan-600 hover:bg-cyan-700 gap-2">
+            <MessageCircle className="w-4 h-4" /> Chats
+          </Button>
+        </Link>
+      </div>
       <div className="mt-4 flex justify-center">
         <Button onClick={handleSave} className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto">
           <Save className="w-4 h-4 mr-2" /> Guardar cambios

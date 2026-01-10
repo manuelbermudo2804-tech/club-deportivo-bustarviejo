@@ -181,11 +181,7 @@ export default function ParentCoordinatorChat() {
     try {
       const uploaded = [];
       for (const file of files) {
-        // BLOQUEAR IMÁGENES Y VIDEOS - solo permitir documentos
-        if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-          toast.error("❌ No puedes enviar fotos ni videos. Solo documentos (PDF, Word, Excel, etc.)");
-          continue;
-        }
+
         
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         uploaded.push({
@@ -693,7 +689,7 @@ export default function ParentCoordinatorChat() {
                 ref={fileInputRef}
                 type="file" 
                 multiple 
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" 
+                accept="*/*" 
                 className="hidden" 
                 onChange={handleFileUpload} 
                 disabled={uploading} 
@@ -708,7 +704,7 @@ export default function ParentCoordinatorChat() {
                   className="h-8 px-3 text-xs"
                 >
                   <Paperclip className="w-3 h-3 mr-1" />
-                  Adjuntar documento
+                  Adjuntar archivo
                 </Button>
               </div>
 
