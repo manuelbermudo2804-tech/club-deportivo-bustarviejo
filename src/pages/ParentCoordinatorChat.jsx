@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Paperclip, X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, Image as ImageIcon, Camera, AlertTriangle, Smile } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -44,7 +45,7 @@ export default function ParentCoordinatorChat() {
 
       const allPlayers = await base44.entities.Player.list();
       const players = allPlayers.filter(p => 
-        (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email) && p.activo
+        (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email || p.email_jugador === currentUser.email) && p.activo
       );
       setMyPlayers(players);
 
@@ -222,7 +223,7 @@ export default function ParentCoordinatorChat() {
   };
 
   // Filtrar todos los archivos compartidos
-  const allSharedFiles = messages.flatMap(m => m.adjuntos || []);
+  const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || []);
 
   const sendMessageMutation = useMutation({
     onMutate: async (data) => {
@@ -590,16 +591,16 @@ export default function ParentCoordinatorChat() {
                     ) : (
                       messages.map((msg) => {
                 const isPadre = msg.autor === "padre";
-                const isImage = msg.adjuntos?.some(f => f.tipo?.startsWith('image/'));
+                const isImage = msg.archivos_adjuntos?.some(f => f.tipo?.startsWith('image/'));
                 
                 return (
                   <div key={msg.id} className={`flex ${isPadre ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] sm:max-w-[70%] ${isPadre ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 border'} rounded-2xl p-2 sm:p-3 shadow-sm`}>
                       <p className="text-[10px] sm:text-xs font-semibold mb-1 opacity-70">{msg.autor_nombre}</p>
                       <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                      {msg.adjuntos?.length > 0 && (
+                      {msg.archivos_adjuntos?.length > 0 && (
                         <div className="mt-2 space-y-1">
-                          {msg.adjuntos.map((file, idx) => (
+                          {msg.archivos_adjuntos.map((file, idx) => (
                             file.tipo?.startsWith('image/') ? (
                               <img 
                                 key={idx}
