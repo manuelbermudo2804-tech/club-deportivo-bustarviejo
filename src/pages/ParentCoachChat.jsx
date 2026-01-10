@@ -440,6 +440,19 @@ export default function ParentCoachChat() {
         </CardHeader>
 
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
+          {categories.some(cat => getUnreadCountByCategory(cat) > 0) && (
+            <div className="px-2 py-1 bg-blue-50 border-b border-blue-200 text-blue-800 text-xs flex gap-2 overflow-x-auto">
+              <span className="font-semibold">Nuevos:</span>
+              {categories.filter(cat => getUnreadCountByCategory(cat) > 0).map(cat => (
+                <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-white border border-blue-300 rounded-full px-2 py-0.5 hover:bg-blue-100">
+                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                  <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 align-middle">
+                    {getUnreadCountByCategory(cat)}
+                  </Badge>
+                </button>
+              ))}
+            </div>
+          )}
           {categories.length > 1 && (
             <div className="flex gap-1.5 p-1.5 bg-slate-50 border-b overflow-x-auto flex-shrink-0">
               {categories.map(cat => {
@@ -472,6 +485,11 @@ export default function ParentCoachChat() {
           )}
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 min-h-0">
+            {selectedCategory && getUnreadCountByCategory(selectedCategory) > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs px-3 py-2 rounded-lg">
+                Tienes {getUnreadCountByCategory(selectedCategory)} mensajes nuevos en {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
+              </div>
+            )}
             {filteredMessages.length === 0 ? (
               <div className="text-center py-8">
                 <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />

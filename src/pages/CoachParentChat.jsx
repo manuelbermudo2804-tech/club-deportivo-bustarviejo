@@ -64,6 +64,15 @@ export default function CoachParentChat({ embedded = false }) {
     setUnreadByCategory(unreadCounts);
   }, [messages, user]);
 
+  // Marcar no leídos de la categoría abierta como leídos automáticamente
+  useEffect(() => {
+    if (!selectedCategory || !messages?.length) return;
+    const toRead = messages.filter(m => m.autor === "padre" && !m.leido_entrenador && (m.grupo_categoria === selectedCategory || m.categoria === selectedCategory));
+    toRead.forEach(msg => {
+      base44.entities.CoachMessage.update(msg.id, { leido_entrenador: true });
+    });
+  }, [selectedCategory, messages]);
+
   if (!user) {
     return (
       <div className="h-full flex items-center justify-center">

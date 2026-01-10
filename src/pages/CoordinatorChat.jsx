@@ -100,7 +100,14 @@ export default function CoordinatorChat({ embedded = false }) {
 
   const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
 
-  return (
+  // Al abrir una conversación, poner a cero sus no leídos
+  useEffect(() => {
+    if (selectedConversation?.id && (selectedConversation.no_leidos_coordinador || 0) > 0) {
+      base44.entities.CoordinatorConversation.update(selectedConversation.id, { no_leidos_coordinador: 0 });
+    }
+  }, [selectedConversation?.id]);
+
+   return (
     <div className="h-full flex flex-col lg:flex-row overflow-hidden">
       {/* Modal de configuración */}
       {showSettings && (
@@ -188,7 +195,21 @@ export default function CoordinatorChat({ embedded = false }) {
             </Select>
           </div>
 
-          <TabsContent value="active" className="flex-1 overflow-y-auto px-2">
+          {activeConversations.some(c => (c.no_leidos_coordinador || 0) > 0) && (
+            <div className="px-4">
+              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-2 text-xs flex flex-wrap gap-2">
+                <span className="text-cyan-800 font-semibold mr-1">Nuevos:</span>
+                {activeConversations.filter(c => (c.no_leidos_coordinador || 0) > 0).map(c => (
+                  <button key={c.id} onClick={() => setSelectedConversation(c)} className="bg-white border border-cyan-300 rounded px-2 py-1 hover:bg-cyan-100">
+                    {c.padre_nombre}
+                    <Badge className="ml-1 bg-red-500">{c.no_leidos_coordinador}</Badge>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+           <TabsContent value="active" className="flex-1 overflow-y-auto px-2">
             {filteredActive.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-slate-300 mx-auto mb-2" />
