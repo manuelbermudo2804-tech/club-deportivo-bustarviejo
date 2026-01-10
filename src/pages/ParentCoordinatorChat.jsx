@@ -31,7 +31,7 @@ export default function ParentCoordinatorChat() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showReactions, setShowReactions] = useState(null);
   const messagesEndRef = useRef(null);
-  const markAsReadRef = useRef(false);
+  const markedAsReadRef = useRef(new Set());
 
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
@@ -138,19 +138,17 @@ export default function ParentCoordinatorChat() {
     }
   }, [messages, coordinatorTyping]);
 
-  // Marcar como leído INMEDIATAMENTE cuando abre el chat - SIN CAUSAR BUCLE
+  // Marcar como leído UNA SOLA VEZ cuando abre chat - sin bucles
   useEffect(() => {
-    if (!conversation || !messages || messages.length === 0) return;
-    if (markAsReadRef.current) return; // Evitar ejecución múltiple
+    if (!conversation?.id) return;
+    if (markedAsReadRef.current.has(conversation.id)) return; // Ya marcado
+
+    markedAsReadRef.current.add(conversation.id);
 
     const markAsRead = async () => {
       const unreadMessages = messages.filter(m => m.autor === "coordinador" && !m.leido_padre);
-      
-      if (unreadMessages.length === 0 && conversation.no_leidos_padre === 0) return;
+      if (unreadMessages.length === 0) return;
 
-      markAsReadRef.current = true; // Marcar como ejecutado
-
-      // Marcar mensajes
       for (const msg of unreadMessages) {
         await base44.entities.CoordinatorMessage.update(msg.id, {
           leido_padre: true,
@@ -158,18 +156,11 @@ export default function ParentCoordinatorChat() {
         });
       }
 
-      // Actualizar conversación
-      if ((conversation.no_leidos_padre || 0) > 0) {
-        await base44.entities.CoordinatorConversation.update(conversation.id, {
-          no_leidos_padre: 0
-        });
-      }
+      await base44.entities.CoordinatorConversation.update(conversation.id, {
+        no_leidos_padre: 0
+      });
 
-      // Refetch queries
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] }),
-        queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
-      ]);
+      await queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] });
     };
     markAsRead();
   }, [conversation?.id]);
