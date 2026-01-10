@@ -51,10 +51,9 @@ const DIAS_ORDEN = {
 export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [] }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showRenewalSuggestion, setShowRenewalSuggestion] = useState(false);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [confirmingNotRenew, setConfirmingNotRenew] = useState(false);
   const [confirmingRenew, setConfirmingRenew] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   
   // Filtrar horarios del jugador según su categoría/deporte
   const playerSchedules = schedules
@@ -385,74 +384,128 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 text-purple-700 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-purple-900 mb-1">🎉 Sugerencia de Cambio de Categoría</p>
-                  <p className="text-xs text-purple-800 leading-relaxed mb-2">
-                    {player.nombre} tiene {edadActual} años. Recomendamos <strong>{categorySuggested}</strong>, pero puedes elegir otra categoría.
+                  <p className="text-sm font-bold text-purple-900 mb-1">🎉 Renovación de Categoría</p>
+                  <p className="text-xs text-purple-800 leading-relaxed mb-3">
+                    {player.nombre} tiene {edadActual} años. Elige la categoría para la próxima temporada:
                   </p>
-                  <div className="space-y-2">
-                    {onRenew && (
+
+                  {!confirmingRenew ? (
+                    <div className="space-y-2">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-purple-900 block">Selecciona categoría:</label>
+                        <select
+                          value={selectedCategory || player.deporte}
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          className="w-full px-3 py-2 border-2 border-purple-300 rounded-lg text-sm bg-white"
+                        >
+                          <option value={player.deporte}>{player.deporte} (actual)</option>
+                          {[
+                            "Fútbol Pre-Benjamín (Mixto)",
+                            "Fútbol Benjamín (Mixto)",
+                            "Fútbol Alevín (Mixto)",
+                            "Fútbol Infantil (Mixto)",
+                            "Fútbol Cadete",
+                            "Fútbol Juvenil",
+                            "Fútbol Aficionado",
+                            "Fútbol Femenino",
+                            "Baloncesto (Mixto)"
+                          ].map(cat => (
+                            !cat.includes(player.deporte) && (
+                              <option key={cat} value={cat}>{cat}</option>
+                            )
+                          ))}
+                        </select>
+                      </div>
+                      <div className="bg-purple-100 rounded-lg p-2 text-xs text-purple-900">
+                        <p className="font-bold mb-1">Sugerencia:</p>
+                        <p>{categorySuggested || player.deporte}</p>
+                      </div>
                       <Button
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setShowCategoryModal(true);
+                          setConfirmingRenew(true);
                         }}
                         className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg"
                       >
-                        ✨ Renovar y ACTIVAR
+                        ✨ Continuar Renovación
                       </Button>
-                    )}
-                    {onMarkNotRenewing && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onMarkNotRenewing(player);
-                        }}
-                        className="w-full border-slate-400 text-slate-700 hover:bg-slate-100"
-                      >
-                        ❌ No voy a renovar
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {showCategoryModal && (
-                <div className="bg-white border-2 border-purple-300 rounded-lg p-3 space-y-2 mt-2">
-                  <label className="text-xs font-semibold text-slate-900">Elige categoría:</label>
-                  <select 
-                    value={selectedCategory || categorySuggested}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded text-sm font-medium text-slate-900"
-                  >
-                    <option value="Fútbol Pre-Benjamín (Mixto)">Fútbol Pre-Benjamín (Mixto)</option>
-                    <option value="Fútbol Benjamín (Mixto)">Fútbol Benjamín (Mixto)</option>
-                    <option value="Fútbol Alevín (Mixto)">Fútbol Alevín (Mixto)</option>
-                    <option value="Fútbol Infantil (Mixto)">Fútbol Infantil (Mixto)</option>
-                    <option value="Fútbol Cadete">Fútbol Cadete</option>
-                    <option value="Fútbol Juvenil">Fútbol Juvenil</option>
-                    <option value="Fútbol Aficionado">Fútbol Aficionado</option>
-                    <option value="Fútbol Femenino">Fútbol Femenino</option>
-                    <option value="Baloncesto (Mixto)">Baloncesto (Mixto)</option>
-                  </select>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setShowCategoryModal(false)} className="flex-1 text-xs">Cancelar</Button>
-                    <Button 
-                      size="sm" 
+                    </div>
+                  ) : (
+                    <div className="bg-purple-100 border-2 border-purple-400 rounded-lg p-2 space-y-2">
+                      <p className="text-xs text-purple-900 font-bold">✅ Confirmar renovación:</p>
+                      <p className="text-xs text-purple-800">{player.deporte} → <strong>{selectedCategory || player.deporte}</strong></p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRenew(player, selectedCategory || player.deporte);
+                            setConfirmingRenew(false);
+                          }}
+                          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          ✅ Confirmar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmingRenew(false);
+                          }}
+                          className="flex-1"
+                        >
+                          Atrás
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {onMarkNotRenewing && !confirmingNotRenew && (
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onRenew(player, selectedCategory || categorySuggested);
-                        setShowCategoryModal(false);
-                        setSelectedCategory(null);
+                        setConfirmingNotRenew(true);
                       }}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs"
+                      className="w-full mt-2 border-slate-400 text-slate-700 hover:bg-slate-100"
                     >
-                      Confirmar
+                      ❌ No voy a renovar
                     </Button>
-                  </div>
+                  )}
+                  {confirmingNotRenew && (
+                    <div className="bg-red-50 border-2 border-red-300 rounded-lg p-2 mt-2">
+                      <p className="text-xs text-red-800 mb-2 font-bold">⚠️ ¿Seguro que NO quieres renovar?</p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMarkNotRenewing(player);
+                            setConfirmingNotRenew(false);
+                          }}
+                          className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Confirmar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmingNotRenew(false);
+                          }}
+                          className="flex-1"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           )}
 
