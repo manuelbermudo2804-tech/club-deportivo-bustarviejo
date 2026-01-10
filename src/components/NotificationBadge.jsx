@@ -11,6 +11,7 @@ export default function NotificationBadge() {
 
   const isAdmin = user?.role === 'admin';
   const { total: chatUnread } = useUnreadChats();
+  const { total: chatUnread } = useUnreadChats();
   const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
       const { data: messages = [] } = useQuery({
           queryKey: ['chatMessages', isAdmin],
@@ -116,7 +117,7 @@ export default function NotificationBadge() {
   useEffect(() => {
     if (!user) return;
 
-    let unreadCount = 0;
+    let unreadCount = chatUnread;
     const isAdmin = user.role === 'admin';
     const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
 
