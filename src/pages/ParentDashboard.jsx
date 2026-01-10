@@ -112,12 +112,12 @@ export default function ParentDashboard() {
   );
 
   // Jugadores inactivos pendientes de renovar (para mostrar CTA)
-  const activeSeason = seasonConfigs?.find?.(s => s.activa) || null;
+  const activeSeasonLocal = seasonConfigs?.find?.(s => s.activa) || null;
   const pendingInactivePlayers = allPlayers.filter(p => 
     (p.email_padre === user?.email || p.email_tutor_2 === user?.email) &&
     p.activo === false &&
     p.estado_renovacion === 'pendiente' &&
-    (!activeSeason || p.temporada_renovacion === activeSeason.temporada)
+    (!activeSeasonLocal || p.temporada_renovacion === activeSeasonLocal.temporada)
   );
   
   console.log('👥 [ParentDashboard] Mis jugadores filtrados:', players.length, players.map(p => p.nombre));
