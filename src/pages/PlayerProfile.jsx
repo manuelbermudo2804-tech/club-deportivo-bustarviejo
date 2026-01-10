@@ -674,48 +674,64 @@ export default function PlayerProfile() {
         </Card>
       )}
 
-      {/* Modal: Sugerencia de categoría */}
+      {/* Modal: Seleccionar categoría para renovación */}
       <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <Zap className="w-5 h-5 text-orange-600" />
-              Cambio de Categoría Sugerido
+              Seleccionar Categoría para Renovación
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Alert className="border-orange-200 bg-orange-50">
-              <AlertDescription className="text-sm text-orange-900">
-                Según tu edad ({edad} años), se recomienda cambiar de categoría para que continúes en la categoría apropiada para tu edad.
-              </AlertDescription>
-            </Alert>
+            {suggestedCategory !== player.deporte && (
+              <Alert className="border-orange-200 bg-orange-50">
+                <AlertDescription className="text-sm text-orange-900">
+                  Según tu edad ({edad} años), recomendamos <strong>{suggestedCategory}</strong>, pero puedes elegir cualquier categoría.
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="space-y-3">
-              <div className="bg-slate-50 rounded-lg p-4">
-                <p className="text-xs text-slate-600 mb-1">Categoría actual</p>
-                <p className="text-lg font-bold text-slate-900">{player.deporte}</p>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4 border-2 border-green-300">
-                <p className="text-xs text-green-700 font-semibold mb-1">Categoría sugerida</p>
-                <p className="text-lg font-bold text-green-800">{suggestedCategory}</p>
-              </div>
+              <label className="text-sm font-semibold text-slate-900">Elige tu categoría:</label>
+              <select 
+                value={selectedCategory || player.deporte}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-slate-300 rounded-lg font-medium text-slate-900 focus:border-orange-500 focus:outline-none"
+              >
+                <option value="Fútbol Pre-Benjamín (Mixto)">Fútbol Pre-Benjamín (Mixto)</option>
+                <option value="Fútbol Benjamín (Mixto)">Fútbol Benjamín (Mixto)</option>
+                <option value="Fútbol Alevín (Mixto)">Fútbol Alevín (Mixto)</option>
+                <option value="Fútbol Infantil (Mixto)">Fútbol Infantil (Mixto)</option>
+                <option value="Fútbol Cadete">Fútbol Cadete</option>
+                <option value="Fútbol Juvenil">Fútbol Juvenil</option>
+                <option value="Fútbol Aficionado">Fútbol Aficionado</option>
+                <option value="Fútbol Femenino">Fútbol Femenino</option>
+                <option value="Baloncesto (Mixto)">Baloncesto (Mixto)</option>
+              </select>
+              {suggestedCategory !== player.deporte && selectedCategory === suggestedCategory && (
+                <p className="text-xs text-green-700 font-semibold">✅ Siguiendo la sugerencia</p>
+              )}
+              {selectedCategory && selectedCategory !== player.deporte && selectedCategory !== suggestedCategory && (
+                <p className="text-xs text-blue-700 font-semibold">ℹ️ Categoría personalizada seleccionada</p>
+              )}
             </div>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => {
                   setShowCategoryModal(false);
-                  renewalMutation.mutate(player.deporte);
+                  setSelectedCategory(null);
                 }}
                 className="flex-1"
               >
-                Mantener actual
+                Cancelar
               </Button>
               <Button
-                onClick={() => renewalMutation.mutate(suggestedCategory)}
+                onClick={() => renewalMutation.mutate(selectedCategory || player.deporte)}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                Aceptar cambio
+                Confirmar renovación
               </Button>
             </div>
           </div>
