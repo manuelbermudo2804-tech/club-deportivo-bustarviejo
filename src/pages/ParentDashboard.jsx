@@ -158,13 +158,6 @@ export default function ParentDashboard() {
   const today = new Date().toISOString().split('T')[0];
   const callups = allCallups.filter(c => c.publicada && c.fecha_partido >= today && !c.cerrada);
 
-  const { data: seasonConfigs = [] } = useQuery({
-    queryKey: ['seasonConfigs', user?.email],
-    queryFn: () => base44.entities.SeasonConfig.list(),
-    staleTime: 600000, // 10 minutos
-    enabled: !!user,
-  });
-
   const { data: privateConversations = [] } = useQuery({
     queryKey: ['privateConversationsParent', user?.email],
     queryFn: async () => {
