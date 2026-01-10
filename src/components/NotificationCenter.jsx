@@ -122,7 +122,7 @@ export default function NotificationCenter() {
   });
 
   const myPlayers = user ? players.filter(p => 
-    p.email_padre === user.email || p.email_tutor_2 === user.email
+    p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email
   ) : [];
 
   const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
