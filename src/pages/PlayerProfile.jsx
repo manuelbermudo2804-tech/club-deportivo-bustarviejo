@@ -522,6 +522,72 @@ export default function PlayerProfile() {
                   </Badge>
                 )}
               </div>
+
+              {/* Documentación - DNI/Pasaporte */}
+              <div className="border-t pt-4">
+                <h4 className="font-semibold text-slate-900 mb-3 text-sm">📄 Documentación</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <span className="text-xs font-semibold text-slate-700">Tipo de documento</span>
+                    {editMode ? (
+                      <select
+                        value={form.tipo_documento}
+                        onChange={(e) => setForm((p) => ({ ...p, tipo_documento: e.target.value }))}
+                        className="border rounded-lg px-3 py-2 bg-white text-slate-900"
+                      >
+                        <option>DNI</option>
+                        <option>Pasaporte</option>
+                      </select>
+                    ) : (
+                      <p className="text-slate-900 font-semibold">{form.tipo_documento}</p>
+                    )}
+                  </div>
+
+                  <div className="grid gap-2">
+                    <span className="text-xs font-semibold text-slate-700">Número de documento</span>
+                    {editMode ? (
+                      <Input
+                        value={form.dni_jugador}
+                        onChange={(e) => setForm((p) => ({ ...p, dni_jugador: e.target.value }))}
+                        placeholder="DNI o Pasaporte"
+                      />
+                    ) : (
+                      <p className="text-slate-900 font-semibold">{form.dni_jugador || "—"}</p>
+                    )}
+                  </div>
+                </div>
+
+                {editMode && (
+                  <div className="grid gap-2 mt-3">
+                    <span className="text-xs font-semibold text-slate-700">Escanear documento</span>
+                    <input
+                      id="dni_upload"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          handleUploadDocument(e.target.files[0], 'dni');
+                        }
+                      }}
+                    />
+                    <label htmlFor="dni_upload">
+                      <Button type="button" variant="outline" className="w-full cursor-pointer">
+                        <Upload className="w-4 h-4 mr-2" />
+                        {form.dni_jugador_url ? "Cambiar documento" : "Subir documento"}
+                      </Button>
+                    </label>
+                    {form.dni_jugador_url && (
+                      <div className="bg-green-50 border border-green-200 rounded p-2 flex items-center justify-between">
+                        <span className="text-xs text-green-800">✅ Documento cargado</span>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => setForm((p) => ({ ...p, dni_jugador_url: "" }))}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
