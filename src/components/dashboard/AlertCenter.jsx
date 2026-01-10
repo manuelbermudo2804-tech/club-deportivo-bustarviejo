@@ -84,45 +84,6 @@ const alerts = [];
   const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
   const isJuntaUser = meUser?.es_junta === true;
 
-  // Contadores de chat no leídos
-  const myEmail = userEmail || meUser?.email || null;
-  const { data: acChatMessages = [] } = useQuery({
-    queryKey: ['ac-chatmessages'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date', 500),
-    enabled: !!myEmail,
-    refetchInterval: 15000,
-  });
-  const { data: acCoordConvs = [] } = useQuery({
-    queryKey: ['ac-coord-conv', myEmail],
-    queryFn: () => base44.entities.CoordinatorConversation.list('-updated_date', 200),
-    enabled: !!myEmail,
-    refetchInterval: 15000,
-  });
-  const { data: acPrivateConvs = [] } = useQuery({
-    queryKey: ['ac-private-conv', myEmail],
-    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 200),
-    enabled: !!myEmail,
-    refetchInterval: 15000,
-  });
-  const { data: acCoachMessagesAll = [] } = useQuery({
-    queryKey: ['ac-coachmessages'],
-    queryFn: () => base44.entities.CoachMessage.list('-created_date', 500),
-    enabled: isCoach,
-    refetchInterval: 15000,
-  });
-  const { data: acStaffMessages = [] } = useQuery({
-    queryKey: ['ac-staffmessages'],
-    queryFn: () => base44.entities.StaffMessage.list('-created_date', 500),
-    enabled: isCoach || isCoordinator || isAdmin,
-    refetchInterval: 15000,
-  });
-
-  const unreadCoachForParent = isParent && myEmail ? acChatMessages.filter(m => m.tipo === 'entrenador_a_grupo' && (!m.leido_por || !m.leido_por.some(lp => lp.email === myEmail)) && (userSports || []).includes(m.grupo_id || m.deporte)).length : 0;
-  const unreadCoordForParent = isParent && myEmail ? acCoordConvs.filter(c => c.padre_email === myEmail).reduce((s,c) => s + (c.no_leidos_padre || 0), 0) : 0;
-  const unreadPrivateForParent = isParent && myEmail ? acPrivateConvs.filter(c => c.participante_familia_email === myEmail).reduce((s,c) => s + (c.no_leidos_familia || 0), 0) : 0;
-  const unreadFromParentsForCoach = isCoach ? acCoachMessagesAll.filter(m => m.autor === 'padre' && !m.leido_entrenador).length : 0;
-  const unreadStaffForUser = (isCoach || isCoordinator || isAdmin) && myEmail ? acStaffMessages.filter(m => m.autor_email !== myEmail && (!m.leido_por || !m.leido_por.some(lp => lp.email === myEmail))).length : 0;
-
   // Cálculo automático de partidos sin registrar (coach)
   const { data: coachPendingObs = 0 } = useQuery({
     queryKey: ['coach-pending-match-obs', isCoach ? userEmail : null],
@@ -269,34 +230,34 @@ const alerts = [];
       });
     }
     
-    if (unreadPrivateForParent > 0) {
+    if (unreadPrivateMessages > 0) {
       alerts.push({
         id: "private-messages",
         icon: Bell,
         title: "🔔 Mensajes del Club",
-        description: `${unreadPrivateForParent} mensaje${unreadPrivateForParent > 1 ? 's' : ''} sin leer`,
+        description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
         url: createPageUrl("ParentSystemMessages"),
         color: "bg-purple-500",
         priority: 1
       });
     }
-    if (unreadCoordForParent > 0) {
+    if (unreadCoordinatorMessages > 0) {
       alerts.push({
         id: "coordinator-chat",
         icon: MessageCircle,
         title: "💬 Mensajes del Coordinador",
-        description: `${unreadCoordForParent} mensaje${unreadCoordForParent > 1 ? 's' : ''} sin leer`,
+        description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
         url: createPageUrl("ParentCoordinatorChat"),
         color: "bg-cyan-500",
         priority: 1
       });
     }
-    if (unreadCoachForParent > 0) {
+    if (unreadCoachMessages > 0) {
       alerts.push({
         id: "coach-chat",
         icon: MessageCircle,
         title: "⚽ Mensajes del Entrenador",
-        description: `${unreadCoachForParent} mensaje${unreadCoachForParent > 1 ? 's' : ''} sin leer`,
+        description: `${unreadCoachMessages} mensaje${unreadCoachMessages > 1 ? 's' : ''} sin leer`,
         url: createPageUrl("ParentCoachChat"),
         color: "bg-blue-500",
         priority: 1
@@ -363,19 +324,6 @@ const alerts = [];
     }
   }
 
-  // Chat Staff (staff)
-  if ((isCoach || isCoordinator || isAdmin) && unreadStaffForUser > 0) {
-    alerts.push({
-      id: "staff-chat",
-      icon: MessageCircle,
-      title: "👥 Mensajes del Staff",
-      description: `${unreadStaffForUser} mensaje${unreadStaffForUser > 1 ? 's' : ''} sin leer`,
-      url: createPageUrl("StaffChat"),
-      color: "bg-purple-600",
-      priority: 1
-    });
-  }
-
   // Incidencias nuevas (últimas 24h) - admin y coordinador
   const { data: incidenciasForAlerts = [] } = useQuery({
     queryKey: ['incidencias-alerts'],
@@ -399,17 +347,6 @@ const alerts = [];
 
   // Alertas para entrenadores/coordinadores (NO admin)
   if (isCoach && !isAdmin) {
-    if (unreadFromParentsForCoach > 0) {
-      alerts.push({
-        id: "coach-families",
-        icon: MessageCircle,
-        title: "💬 Mensajes de Familias",
-        description: `${unreadFromParentsForCoach} mensaje${unreadFromParentsForCoach > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl("CoachParentChat"),
-        color: "bg-blue-600",
-        priority: 1
-      });
-    }
     if (pendingCallupResponses > 0) {
       alerts.push({
         id: "callup-responses",

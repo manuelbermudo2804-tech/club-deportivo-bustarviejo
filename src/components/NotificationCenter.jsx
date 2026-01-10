@@ -97,32 +97,7 @@ export default function NotificationCenter() {
     refetchInterval: isOpen ? 15000 : false,
   });
 
-  // Chats adicionales para contadores
-  const { data: ncCoachMessagesAll = [] } = useQuery({
-    queryKey: ['nc-coachmessages'],
-    queryFn: () => base44.entities.CoachMessage.list('-created_date'),
-    initialData: [],
-    refetchInterval: isOpen ? 15000 : false,
-  });
-  const { data: ncStaffMessages = [] } = useQuery({
-    queryKey: ['nc-staffmessages'],
-    queryFn: () => base44.entities.StaffMessage.list('-created_date'),
-    initialData: [],
-    enabled: !!user,
-    refetchInterval: isOpen ? 15000 : false,
-  });
-  const { data: ncCoordConvsAll = [] } = useQuery({
-    queryKey: ['nc-coordConvsAll'],
-    queryFn: () => base44.entities.CoordinatorConversation.list('-updated_date'),
-    initialData: [],
-    refetchInterval: isOpen ? 15000 : false,
-  });
 
-  // Cálculo de no leídos por chat
-  const unreadCoachForParent = user ? messages.filter(m => m.tipo === 'entrenador_a_grupo' && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email)) && myGroupSports.includes(m.grupo_id || m.deporte)).length : 0;
-  const unreadCoordForParent = user ? ncCoordConvsAll.filter(c => c.padre_email === user.email).reduce((s,c) => s + (c.no_leidos_padre || 0), 0) : 0;
-  const unreadFromParentsForCoach = (user?.es_entrenador || user?.role === 'admin') ? ncCoachMessagesAll.filter(m => m.autor === 'padre' && !m.leido_entrenador).length : 0;
-  const unreadStaffForUser = (user?.es_entrenador || user?.es_coordinador || user?.role === 'admin') ? ncStaffMessages.filter(m => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length : 0;
 
   const markMessageAsReadMutation = useMutation({
     mutationFn: ({ id, message }) => base44.entities.ChatMessage.update(id, { ...message, leido: true }),
@@ -286,7 +261,7 @@ export default function NotificationCenter() {
   }, 0);
 
   const criticalNotifications = urgentAnnouncements.length + pendingPayments.length;
-  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + totalUnreadPrivate + unreadCoachForParent + unreadCoordForParent + unreadFromParentsForCoach + unreadStaffForUser;
+  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + totalUnreadPrivate;
 
   const getNotificationIcon = (type) => {
     switch(type) {
@@ -487,56 +462,6 @@ export default function NotificationCenter() {
             )}
 
 
-
-            {/* Chats con no leídos */}
-            {unreadCoachForParent > 0 && (
-              <Link to={createPageUrl("ParentCoachChat")} onClick={() => setIsOpen(false)}>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 hover:opacity-80 transition-all border-2 border-blue-200">
-                  <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900">⚽ Mensajes del Entrenador</p>
-                    <p className="text-sm text-slate-700">{unreadCoachForParent} sin leer</p>
-                  </div>
-                  <Badge className="bg-blue-500 text-white">{unreadCoachForParent}</Badge>
-                </div>
-              </Link>
-            )}
-            {unreadCoordForParent > 0 && (
-              <Link to={createPageUrl("ParentCoordinatorChat")} onClick={() => setIsOpen(false)}>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-cyan-50 hover:opacity-80 transition-all border-2 border-cyan-200">
-                  <MessageCircle className="w-5 h-5 text-cyan-600 mt-1" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900">💬 Mensajes del Coordinador</p>
-                    <p className="text-sm text-slate-700">{unreadCoordForParent} sin leer</p>
-                  </div>
-                  <Badge className="bg-cyan-500 text-white">{unreadCoordForParent}</Badge>
-                </div>
-              </Link>
-            )}
-            {unreadFromParentsForCoach > 0 && (
-              <Link to={createPageUrl("CoachParentChat")} onClick={() => setIsOpen(false)}>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 hover:opacity-80 transition-all border-2 border-green-200">
-                  <MessageCircle className="w-5 h-5 text-green-600 mt-1" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900">👪 Mensajes de Familias</p>
-                    <p className="text-sm text-slate-700">{unreadFromParentsForCoach} sin leer</p>
-                  </div>
-                  <Badge className="bg-green-600 text-white">{unreadFromParentsForCoach}</Badge>
-                </div>
-              </Link>
-            )}
-            {(unreadStaffForUser > 0) && (
-              <Link to={createPageUrl("StaffChat")} onClick={() => setIsOpen(false)}>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50 hover:opacity-80 transition-all border-2 border-purple-200">
-                  <MessageCircle className="w-5 h-5 text-purple-600 mt-1" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900">👥 Mensajes del Staff</p>
-                    <p className="text-sm text-slate-700">{unreadStaffForUser} sin leer</p>
-                  </div>
-                  <Badge className="bg-purple-600 text-white">{unreadStaffForUser}</Badge>
-                </div>
-              </Link>
-            )}
 
             {/* Conversaciones Privadas No Leídas */}
             {unreadPrivateConversations.map(conv => (
