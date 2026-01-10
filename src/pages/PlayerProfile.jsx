@@ -180,7 +180,7 @@ export default function PlayerProfile() {
     }
   };
 
-  // Grid de documentos
+  // Grid de documentos (solo jugador mayor de edad)
   const documentos = [
     {
       id: "dni",
@@ -190,25 +190,11 @@ export default function PlayerProfile() {
       icono: "🆔",
     },
     {
-      id: "libro_familia",
-      titulo: "Libro Familia",
-      estado: player.libro_familia_url ? "✅" : "❌",
-      valor: player.libro_familia_url ? "Guardado" : "No subido",
-      icono: "📖",
-    },
-    {
       id: "firma_jugador",
-      titulo: "Firma Jugador",
+      titulo: "Firma",
       estado: player.firma_jugador_completada ? "✅" : "❌",
       valor: player.firma_jugador_completada ? "Completada" : "Pendiente",
       icono: "✍️",
-    },
-    {
-      id: "firma_tutor",
-      titulo: "Firma Tutor",
-      estado: player.firma_tutor_completada ? "✅" : "❌",
-      valor: player.firma_tutor_completada ? "Completada" : "Pendiente",
-      icono: "📝",
     },
   ];
 
