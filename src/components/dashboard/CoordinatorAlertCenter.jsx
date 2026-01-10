@@ -1,6 +1,8 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import AlertCenter from "./AlertCenter";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CoordinatorAlertCenter({
   // Stats de PADRE
@@ -21,6 +23,20 @@ export default function CoordinatorAlertCenter({
   pendingMatchObservations,
   unreadFamilyMessages,
 }) {
+  // Usuario actual (para saber si también es entrenador)
+  const { data: meUser } = useQuery({ queryKey: ['me-coordinator-alertcenter'], queryFn: () => base44.auth.me() });
+
+  // Contar mensajes de familias no leídos (para coordinador/entrenador)
+  const { data: chatMessages = [] } = useQuery({
+    queryKey: ['coordinator-chatmessages-count'],
+    queryFn: () => base44.entities.ChatMessage.list('-created_date', 500),
+    enabled: !!userEmail,
+    refetchInterval: 15000,
+  });
+  const unreadForCoordinatorCount = chatMessages.filter(m => 
+    m.tipo === 'padre_a_grupo' && (!m.leido_por || !m.leido_por.some(lp => lp.email === userEmail))
+  ).length;
+
   return (
     <Card className="border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-cyan-50 shadow-lg overflow-hidden">
       <CardContent className="p-0">
@@ -70,9 +86,9 @@ export default function CoordinatorAlertCenter({
             <AlertCenter 
               pendingCallupResponses={pendingCallupResponsesCoordinator}
               pendingMatchObservations={pendingMatchObservations}
-              unreadCoordinatorMessages={unreadFamilyMessages}
+              unreadCoordinatorMessages={unreadForCoordinatorCount}
               isAdmin={false}
-              isCoach={false}
+              isCoach={meUser?.es_entrenador === true}
               isCoordinator={true}
               isParent={false}
               userEmail={userEmail}

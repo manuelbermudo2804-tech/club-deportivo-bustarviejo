@@ -33,7 +33,7 @@ export default function NotificationCenter() {
     queryKey: ['messages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: isOpen ? 15000 : false,
+    refetchInterval: 15000,
   });
 
   const { data: allNotifications } = useQuery({
@@ -44,7 +44,7 @@ export default function NotificationCenter() {
     },
     enabled: !!user?.email,
     initialData: [],
-    refetchInterval: isOpen ? 10000 : false,
+    refetchInterval: 10000,
   });
 
   const { data: callups } = useQuery({
@@ -94,7 +94,7 @@ export default function NotificationCenter() {
     queryKey: ['privateConversationsNotif'],
     queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
     initialData: [],
-    refetchInterval: isOpen ? 15000 : false,
+    refetchInterval: 15000,
   });
 
 
