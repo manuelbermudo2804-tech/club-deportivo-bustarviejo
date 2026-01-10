@@ -19,6 +19,7 @@ import {
   ChevronDown, ChevronUp, Info, Smartphone, Mail, Image, Edit, Gift
 } from "lucide-react";
 import ReferralConfigCard from "../components/referrals/ReferralConfigCard";
+import CategoryCleanupTool from "../components/financial/CategoryCleanupTool";
 import { Euro } from "lucide-react";
 
 import { Link } from "react-router-dom";
