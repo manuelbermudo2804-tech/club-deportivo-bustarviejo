@@ -7,25 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CheckCircle2, CreditCard, Gift, Info, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const CATEGORY_NAME_MAPPING = {
-  "Fútbol Aficionado": "AFICIONADO",
-  "Fútbol Juvenil": "JUVENIL",
-  "Fútbol Cadete": "CADETE",
-  "Fútbol Infantil (Mixto)": "INFANTIL",
-  "Fútbol Alevín (Mixto)": "ALEVIN",
-  "Fútbol Benjamín (Mixto)": "BENJAMIN",
-  "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
-  "Fútbol Femenino": "FEMENINO",
-  "Baloncesto (Mixto)": "BALONCESTO"
-};
-
 const getCuotasFromConfig = (categoria, categoryConfigs) => {
   if (!categoryConfigs || categoryConfigs.length === 0) return null;
   
-  const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
-  const categoryConfig = categoryConfigs.find(c => 
-    (c.nombre === categoria || c.nombre === mappedName) && c.activa
-  );
+  const categoryConfig = categoryConfigs.find(c => c.nombre === categoria && c.activa);
   
   if (categoryConfig) {
     return {
