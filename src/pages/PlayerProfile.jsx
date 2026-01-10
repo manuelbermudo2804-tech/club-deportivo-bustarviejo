@@ -345,8 +345,9 @@ export default function PlayerProfile() {
 
       {/* Tabs de contenido */}
       <Tabs defaultValue="datos" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="datos">📋 Datos</TabsTrigger>
+          <TabsTrigger value="docs">📄 Documentos</TabsTrigger>
           <TabsTrigger value="salud">❤️ Salud</TabsTrigger>
           <TabsTrigger value="contacto">📞 Contacto</TabsTrigger>
         </TabsList>
