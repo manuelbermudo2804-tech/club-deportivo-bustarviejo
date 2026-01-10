@@ -66,16 +66,12 @@ export default function ParentPlayers() {
     queryKey: ['myPlayers', user?.email, seasonConfig?.permitir_renovaciones],
     queryFn: async () => {
       if (!user?.email) return [];
-      const allPlayers = await base44.entities.Player.list();
-      console.log('🔍 [ParentPlayers] Total jugadores:', allPlayers.length);
-      console.log('🔍 [ParentPlayers] Usuario email:', user?.email);
-      
-      // Filtrar jugadores del padre/tutor (comparación case-insensitive)
-      const userEmailLower = user.email.toLowerCase();
-      const myPlayers = allPlayers.filter(p => 
-        p.email_padre?.toLowerCase() === userEmailLower || 
-        p.email_tutor_2?.toLowerCase() === userEmailLower
-      );
+      const myPlayers = await base44.entities.Player.filter({
+        $or: [
+          { email_padre: user.email },
+          { email_tutor_2: user.email }
+        ]
+      });
       
       console.log('🔍 [ParentPlayers] Mis jugadores encontrados:', myPlayers.length, myPlayers.map(p => p.nombre));
       
@@ -96,16 +92,7 @@ export default function ParentPlayers() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: allPlayers } = useQuery({
-    queryKey: ['allPlayersForRenewal'],
-    queryFn: async () => {
-      return await base44.entities.Player.list();
-    },
-    initialData: [],
-    staleTime: 60000, // 1 minuto
-    gcTime: 300000,
-    refetchOnWindowFocus: false,
-  });
+  // This query was removed to prevent permission issues for non-admin users.
 
   const { data: schedules } = useQuery({
     queryKey: ['trainingSchedules'],
@@ -688,13 +675,16 @@ Email: cdbustarviejo@gmail.com
     } else {
       // REFETCH FORZADO para obtener jugadores más actuales (evitar cache)
       console.log('🔄 [ParentPlayers] Refrescando lista de jugadores antes de calcular descuentos...');
-      const todosJugadoresBD = await base44.entities.Player.list();
+      const todosJugadoresBD = await base44.entities.Player.filter({
+        '$or': [
+          { email_padre: user.email },
+          { email_tutor_2: user.email }
+        ]
+      });
       
       // Calcular descuento por hermano ANTES de mostrar el flujo
       // INCLUIR TODOS LOS JUGADORES DE LA FAMILIA (activos o no, porque pueden estar en proceso de renovación)
       const hermanos = todosJugadoresBD.filter(p => 
-        (p.email_padre?.toLowerCase() === user?.email?.toLowerCase() || 
-         p.email_tutor_2?.toLowerCase() === user?.email?.toLowerCase()) &&
         p.fecha_nacimiento &&
         p.id !== playerData.id // Excluir al jugador actual si es edición
       );
