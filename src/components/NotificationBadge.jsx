@@ -120,31 +120,8 @@ export default function NotificationBadge() {
     const isAdmin = user.role === 'admin';
     const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
 
-    // Chat counts
-    if (isAdmin) {
-      unreadCount += staffMessages.filter(m => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
-    } else if (user.es_coordinador) {
-      const staffUnread = staffMessages.filter(m => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
-      const convUnread = coordConversations.reduce((s, c) => s + (c.no_leidos_coordinador || 0), 0);
-      unreadCount += staffUnread + convUnread;
-    } else if (user.es_entrenador) {
-      const staffUnread = staffMessages.filter(m => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
-      const coachCategories = user.categorias_entrena || [];
-      const fromParents = messages.filter(m => 
-        m.tipo === 'padre_a_grupo' &&
-        (coachCategories.includes(m.deporte) || coachCategories.includes(m.grupo_id)) &&
-        (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
-      ).length;
-      unreadCount += staffUnread + fromParents;
-    } else {
-      // Padre/Jugador
-      const myPlayers = players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email);
-      const groupIds = myPlayers.map(p => p.deporte);
-      const coachMsgs = messages.filter(m => m.tipo === 'entrenador_a_grupo' && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email)) && groupIds.includes(m.grupo_id || m.deporte)).length;
-      const coordUnread = coordConversations.filter(c => c.padre_email === user.email).reduce((s, c) => s + (c.no_leidos_padre || 0), 0);
-      const privateUnread = privateConversations.filter(c => c.participante_familia_email === user.email).reduce((s, c) => s + (c.no_leidos_familia || 0), 0);
-      unreadCount += coachMsgs + coordUnread + privateUnread;
-    }
+    // Chats unificados
+    unreadCount += chatUnread;
 
     // Count new events (published in the last 24 hours and not notified yet)
     const oneDayAgo = new Date();
