@@ -93,6 +93,24 @@ export default function PlayerProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player", user?.email] });
       setEditMode(false);
+      toast.success("Perfil actualizado");
+    },
+  });
+
+  const renewalMutation = useMutation({
+    mutationFn: async (newCategory) => {
+      return base44.entities.Player.update(player.id, {
+        deporte: newCategory || player.deporte,
+        estado_renovacion: "renovado",
+        fecha_renovacion: new Date().toISOString(),
+        temporada_renovacion: new Date().getFullYear() + "-" + (new Date().getFullYear() + 1)
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player", user?.email] });
+      setShowRenewalModal(false);
+      setShowCategoryModal(false);
+      toast.success("✅ Renovación completada");
     },
   });
 
