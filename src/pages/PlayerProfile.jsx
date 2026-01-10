@@ -321,11 +321,65 @@ export default function PlayerProfile() {
         </CardContent>
       </Card>
 
+      {/* Panel de Renovación Pendiente - estilo inline como ParentPlayers */}
+      {player?.estado_renovacion === "pendiente" && (
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-400 rounded-lg p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-orange-700 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-bold text-orange-900 mb-2">⏰ Renovación Pendiente</p>
+              <p className="text-sm text-orange-800 mb-3">
+                Es momento de renovar tu inscripción para la próxima temporada. Elige tu categoría:
+              </p>
+              
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-orange-900 block">Categoría:</label>
+                  <select
+                    value={selectedCategory || player.deporte}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm bg-white font-medium"
+                  >
+                    <option value={player.deporte}>{player.deporte} (actual)</option>
+                    {[
+                      "Fútbol Pre-Benjamín (Mixto)",
+                      "Fútbol Benjamín (Mixto)",
+                      "Fútbol Alevín (Mixto)",
+                      "Fútbol Infantil (Mixto)",
+                      "Fútbol Cadete",
+                      "Fútbol Juvenil",
+                      "Fútbol Aficionado",
+                      "Fútbol Femenino",
+                      "Baloncesto (Mixto)"
+                    ].map(cat => (
+                      !cat.includes(player.deporte) && (
+                        <option key={cat} value={cat}>{cat}</option>
+                      )
+                    ))}
+                  </select>
+                </div>
+                {getSuggestedCategory(edad, player.deporte) && (
+                  <div className="bg-orange-100 rounded-lg p-2 text-xs text-orange-900">
+                    <p className="font-bold mb-1">Sugerencia por edad ({edad} años):</p>
+                    <p>{getSuggestedCategory(edad, player.deporte)}</p>
+                  </div>
+                )}
+                <Button
+                  onClick={() => renewalMutation.mutate(selectedCategory || player.deporte)}
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold"
+                >
+                  🔄 Confirmar Renovación
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tabs de contenido */}
       <Tabs defaultValue="datos" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="datos">📋 Datos</TabsTrigger>
-          <TabsTrigger value="docs">📄 Documentos</TabsTrigger>
           <TabsTrigger value="salud">❤️ Salud</TabsTrigger>
           <TabsTrigger value="contacto">📞 Contacto</TabsTrigger>
         </TabsList>
