@@ -281,6 +281,14 @@ export default function NotificationCenter() {
     (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
   ).length : 0;
 
+  // Contador simétrico para familias: mensajes de entrenador sin leer (badge en Centro)
+  const myGroupSportsSet = new Set(myGroupSports);
+  const unreadFromCoachForFamily = (!user || user.role === 'admin' || user.es_entrenador || user.es_coordinador) ? 0 : messages.filter(m =>
+    m.tipo === 'entrenador_a_grupo' &&
+    (myGroupSportsSet.has(m.deporte) || myGroupSportsSet.has(m.grupo_id)) &&
+    (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
+  ).length;
+
   const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + chatUnread;
 
   const getNotificationIcon = (type) => {
