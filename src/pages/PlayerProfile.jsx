@@ -368,28 +368,27 @@ export default function PlayerProfile() {
               <div className="space-y-2">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-orange-900 block">Categoría:</label>
-                  <select
-                    value={selectedCategory || player.deporte || ""}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm bg-white font-medium"
-                  >
-                    <option value={player.deporte}>{player.deporte} (actual)</option>
-                    {[
-                      "Fútbol Pre-Benjamín (Mixto)",
-                      "Fútbol Benjamín (Mixto)",
-                      "Fútbol Alevín (Mixto)",
-                      "Fútbol Infantil (Mixto)",
-                      "Fútbol Cadete",
-                      "Fútbol Juvenil",
-                      "Fútbol Aficionado",
-                      "Fútbol Femenino",
-                      "Baloncesto (Mixto)"
-                    ].filter(cat => cat !== player.deporte).map(cat => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={selectedCategory || player.deporte || ""} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-full border-2 border-orange-300 bg-white text-orange-900 font-medium">
+                      <SelectValue placeholder="Selecciona categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={player.deporte}>{player.deporte} (actual)</SelectItem>
+                      {[
+                        "Fútbol Pre-Benjamín (Mixto)",
+                        "Fútbol Benjamín (Mixto)",
+                        "Fútbol Alevín (Mixto)",
+                        "Fútbol Infantil (Mixto)",
+                        "Fútbol Cadete",
+                        "Fútbol Juvenil",
+                        "Fútbol Aficionado",
+                        "Fútbol Femenino",
+                        "Baloncesto (Mixto)"
+                      ].filter(cat => cat !== player.deporte).map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 {getSuggestedCategory(edad, player.deporte) && (
                   <div className="bg-orange-100 rounded-lg p-2 text-xs text-orange-900">
