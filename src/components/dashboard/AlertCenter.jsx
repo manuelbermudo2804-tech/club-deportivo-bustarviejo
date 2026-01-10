@@ -84,15 +84,20 @@ const alerts = [];
   const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
   const isJuntaUser = meUser?.es_junta === true;
 
-  // Contadores de chat
-  const { data: coachMessagesForCount = [] } = useQuery({
-    queryKey: ['ac-coachmessages-count'],
-    queryFn: () => base44.entities.CoachMessage.list('-created_date', 500),
+  // Contadores de chat (familias -> entrenador) desde ChatMessage
+  const { data: chatMessagesForCount = [] } = useQuery({
+    queryKey: ['ac-chatmessages-count'],
+    queryFn: () => base44.entities.ChatMessage.list('-created_date', 500),
     enabled: isCoach && !!userEmail,
     refetchInterval: 15000,
   });
 
-  const unreadFromParentsForCoach = isCoach && userEmail ? coachMessagesForCount.filter(m => m.autor === 'padre' && !m.leido_entrenador).length : 0;
+  const coachCategories = meUser?.categorias_entrena || [];
+  const unreadFromParentsForCoach = (isCoach && userEmail) ? chatMessagesForCount.filter(m => 
+    m.tipo === 'padre_a_grupo' &&
+    (coachCategories.includes(m.deporte) || coachCategories.includes(m.grupo_id)) &&
+    (!m.leido_por || !m.leido_por.some(lp => lp.email === userEmail))
+  ).length : 0;
 
   // Cálculo automático de partidos sin registrar (coach)
   const { data: coachPendingObs = 0 } = useQuery({

@@ -261,7 +261,14 @@ export default function NotificationCenter() {
   }, 0);
 
   const criticalNotifications = urgentAnnouncements.length + pendingPayments.length;
-  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + totalUnreadPrivate;
+  const coachCategories = user ? (user.categorias_entrena || []) : [];
+  const unreadFromParentsForCoach = (user && (user.es_entrenador || user.role === 'admin')) ? messages.filter(m => 
+    m.tipo === 'padre_a_grupo' &&
+    (coachCategories.includes(m.deporte) || coachCategories.includes(m.grupo_id)) &&
+    (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
+  ).length : 0;
+
+  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + totalUnreadPrivate + unreadFromParentsForCoach;
 
   const getNotificationIcon = (type) => {
     switch(type) {
@@ -479,6 +486,20 @@ export default function NotificationCenter() {
                 </div>
               </Link>
             ))}
+
+            {/* Mensajes de Familias para Entrenador */}
+            {unreadFromParentsForCoach > 0 && (
+              <Link to={createPageUrl("CoachParentChat")} onClick={() => setIsOpen(false)}>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 hover:opacity-80 transition-all border-2 border-blue-200">
+                  <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-900">👪 Mensajes de Familias</p>
+                    <p className="text-sm text-slate-700">{unreadFromParentsForCoach} sin leer</p>
+                  </div>
+                  <Badge className="bg-blue-600 text-white">{unreadFromParentsForCoach}</Badge>
+                </div>
+              </Link>
+            )}
 
             {/* App Notifications */}
             {unviewedAppNotifications.map(notif => {

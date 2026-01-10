@@ -106,7 +106,12 @@ export default function NotificationBadge() {
       unreadCount += staffUnread + convUnread;
     } else if (user.es_entrenador) {
       const staffUnread = staffMessages.filter(m => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
-      const fromParents = coachMessages.filter(m => m.autor === 'padre' && !m.leido_entrenador).length;
+      const coachCategories = user.categorias_entrena || [];
+      const fromParents = messages.filter(m => 
+        m.tipo === 'padre_a_grupo' &&
+        (coachCategories.includes(m.deporte) || coachCategories.includes(m.grupo_id)) &&
+        (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
+      ).length;
       unreadCount += staffUnread + fromParents;
     } else {
       // Padre/Jugador
