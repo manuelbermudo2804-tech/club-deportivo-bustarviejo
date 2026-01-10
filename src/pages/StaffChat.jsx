@@ -172,6 +172,18 @@ export default function StaffChat() {
         
         await base44.entities.StaffMessage.update(msg.id, { leido_por });
       }
+
+      // Marcar notificaciones del Staff como vistas
+      try {
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: user.email,
+          enlace: "StaffChat",
+          vista: false
+        });
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+        }
+      } catch {}
     };
     
     if (messages.some(m => m.autor_email !== user.email && !m.leido_por?.some(l => l.email === user.email))) {
@@ -305,6 +317,21 @@ export default function StaffChat() {
         ultimo_mensaje_fecha: new Date().toISOString(),
         ultimo_mensaje_autor: user.full_name
       });
+
+      // Crear notificaciones para todo el staff (excepto el autor)
+      try {
+        const all = await base44.entities.User.list();
+        const recipients = all.filter(u => (u.es_coordinador || u.es_entrenador || u.role === "admin") && u.email !== user.email);
+        await Promise.all(recipients.map(u => base44.entities.AppNotification.create({
+          usuario_email: u.email,
+          titulo: "Nuevo mensaje en Staff",
+          mensaje: (data.mensaje || "Archivo/acción en el chat").slice(0, 120),
+          tipo: "mensaje",
+          prioridad: "importante",
+          enlace: "StaffChat",
+          vista: false
+        })));
+      } catch (_) {}
 
       return newMessage;
     },

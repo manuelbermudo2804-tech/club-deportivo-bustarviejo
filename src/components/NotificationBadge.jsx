@@ -33,6 +33,58 @@ export default function NotificationBadge() {
     refetchInterval: 30000,
   });
 
+  // NUEVOS: datos de chats para contadores
+  const { data: nbChatMessages = [] } = useQuery({
+    queryKey: ['nb-chatmessages'],
+    queryFn: () => base44.entities.ChatMessage.list(),
+    refetchInterval: 5000,
+  });
+  const { data: nbCoachMessages = [] } = useQuery({
+    queryKey: ['nb-coachmessages'],
+    queryFn: () => base44.entities.CoachMessage.list(),
+    refetchInterval: 5000,
+  });
+  const { data: nbStaffMessages = [] } = useQuery({
+    queryKey: ['nb-staffmessages'],
+    queryFn: () => base44.entities.StaffMessage.list(),
+    refetchInterval: 5000,
+  });
+  const { data: nbCoordConvs = [] } = useQuery({
+    queryKey: ['nb-coordConvs'],
+    queryFn: () => base44.entities.CoordinatorConversation.list(),
+    refetchInterval: 5000,
+  });
+  const { data: nbPrivateConvs = [] } = useQuery({
+    queryKey: ['nb-privateConvs'],
+    queryFn: () => base44.entities.PrivateConversation.list(),
+    refetchInterval: 5000,
+  });
+
+  const computedChatUnread = (() => {
+    if (!user) return 0;
+    const myEmail = user.email;
+    if (user.role === 'admin') {
+      return nbStaffMessages.filter(m => m.autor_email !== myEmail && (!m.leido_por || !m.leido_por.some(lp => lp.email === myEmail))).length;
+    }
+    if (user.es_coordinador) {
+      const staffUnread = nbStaffMessages.filter(m => m.autor_email !== myEmail && (!m.leido_por || !m.leido_por.some(lp => lp.email === myEmail))).length;
+      const convUnread = nbCoordConvs.reduce((s,c) => s + (c.no_leidos_coordinador || 0), 0);
+      return staffUnread + convUnread;
+    }
+    if (user.es_entrenador) {
+      const staffUnread = nbStaffMessages.filter(m => m.autor_email !== myEmail && (!m.leido_por || !m.leido_por.some(lp => lp.email === myEmail))).length;
+      const fromParents = nbCoachMessages.filter(m => m.autor === 'padre' && !m.leido_entrenador).length;
+      return staffUnread + fromParents;
+    }
+    // Padre / jugador
+    const myPlayersLocal = players.filter(p => p.email_padre === myEmail || p.email_tutor_2 === myEmail || p.email_jugador === myEmail);
+    const groupIds = myPlayersLocal.map(p => p.deporte);
+    const coachMsgs = nbChatMessages.filter(m => m.tipo === 'entrenador_a_grupo' && (!m.leido_por || !m.leido_por.some(lp => lp.email === myEmail)) && groupIds.includes(m.grupo_id || m.deporte)).length;
+    const coordUnread = nbCoordConvs.filter(c => c.padre_email === myEmail).reduce((s,c)=> s + (c.no_leidos_padre || 0), 0);
+    const privateUnread = nbPrivateConvs.filter(c => c.participante_familia_email === myEmail).reduce((s,c)=> s + (c.no_leidos_familia || 0), 0);
+    return coachMsgs + coordUnread + privateUnread;
+  })();
+
   const { data: announcements } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list(),

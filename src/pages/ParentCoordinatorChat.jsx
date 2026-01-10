@@ -339,7 +339,24 @@ export default function ParentCoordinatorChat() {
         temporada: currentSeason
       });
 
-      // VERIFICAR CONFIGURACIÓN DEL COORDINADOR Y ENVIAR RESPUESTAS AUTOMÁTICAS
+      // Notificar a coordinadores
+      try {
+        const allSettings = await base44.entities.CoordinatorSettings.list();
+        const coordinatorEmails = Array.from(new Set(allSettings.map(s => s.coordinador_email).filter(Boolean)));
+        await Promise.all(coordinatorEmails
+          .filter(email => email !== user.email)
+          .map(email => base44.entities.AppNotification.create({
+            usuario_email: email,
+            titulo: "Nuevo mensaje de familia",
+            mensaje: `${user.full_name}: ${data.mensaje?.slice(0, 100) || "Mensaje"}`,
+            tipo: "mensaje",
+            prioridad: palabraUrgente ? "urgente" : "importante",
+            enlace: "FamilyChats",
+            vista: false
+          })));
+      } catch (_) {}
+
+       // VERIFICAR CONFIGURACIÓN DEL COORDINADOR Y ENVIAR RESPUESTAS AUTOMÁTICAS
       console.log('🔍 [PADRE COORDINADOR] Buscando settings del coordinador...');
       const allSettings = await base44.entities.CoordinatorSettings.list();
       console.log('📋 [PADRE COORDINADOR] Todos los settings:', allSettings);
