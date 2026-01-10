@@ -181,6 +181,13 @@ export default function NotificationBadge() {
       }
     }
 
+    // Symmetric chat badges in title: Entrenador->Familia y Familia->Entrenador
+    const myGroupSports = new Set(players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email).map(p => p.deporte));
+    const fromCoach = messages.filter(m => m.tipo === 'entrenador_a_grupo' && (myGroupSports.has(m.deporte) || myGroupSports.has(m.grupo_id)) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
+    const coachCats = user?.categorias_entrena || [];
+    const fromParents = messages.filter(m => m.tipo === 'padre_a_grupo' && (coachCats.includes(m.deporte) || coachCats.includes(m.grupo_id)) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))).length;
+    unreadCount += fromCoach + fromParents;
+
     // Update document title
     if (unreadCount > 0) {
       document.title = `(${unreadCount}) CD Bustarviejo`;
