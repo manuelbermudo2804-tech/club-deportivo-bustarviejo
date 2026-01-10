@@ -356,7 +356,7 @@ export default function PlayerProfile() {
 
       {/* Panel de Renovación Pendiente */}
       {player?.estado_renovacion === "pendiente" && !showPaymentFlow && (
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-400 rounded-lg p-4 space-y-3">
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-400 rounded-lg p-4 space-y-3 relative z-10">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-orange-700 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
@@ -366,13 +366,13 @@ export default function PlayerProfile() {
               </p>
               
               <div className="space-y-2">
-                <div className="space-y-1">
+                <div className="space-y-1 relative z-50">
                   <label className="text-xs font-bold text-orange-900 block">Categoría:</label>
                   <Select value={selectedCategory || player.deporte || ""} onValueChange={setSelectedCategory}>
                     <SelectTrigger className="w-full border-2 border-orange-300 bg-white text-orange-900 font-medium">
                       <SelectValue placeholder="Selecciona categoría" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent side="bottom">
                       <SelectItem value={player.deporte}>{player.deporte} (actual)</SelectItem>
                       {[
                         "Fútbol Pre-Benjamín (Mixto)",
