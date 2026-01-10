@@ -578,8 +578,11 @@ export default function Layout({ children, currentPageName }) {
     const savedLang = localStorage.getItem('appLanguage');
     if (savedLang) setCurrentLang(savedLang);
     return () => {
-      window.removeEventListener('unhandledrejection', () => {});
-      window.removeEventListener('error', () => {});
+      // Quitar manejadores de recuperación de chunks
+      try {
+        window.removeEventListener('unhandledrejection', chunkErrorHandler);
+        window.removeEventListener('error', chunkErrorHandler);
+      } catch {}
     };
     }, []);
 
