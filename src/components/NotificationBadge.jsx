@@ -116,7 +116,7 @@ export default function NotificationBadge() {
 
     let unreadCount = 0;
     const isAdmin = user.role === 'admin';
-    const isPlayer = user.role === 'jugador';
+    const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
 
     // Chat counts
     if (isAdmin) {
