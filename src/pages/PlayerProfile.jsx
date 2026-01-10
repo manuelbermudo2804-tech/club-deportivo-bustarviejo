@@ -154,6 +154,19 @@ export default function PlayerProfile() {
     setForm((prev) => ({ ...prev, foto_url: file_url }));
   };
 
+  const handleUploadDocument = async (file, type) => {
+    if (!file) return;
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      if (type === 'dni') {
+        setForm((prev) => ({ ...prev, dni_jugador_url: file_url }));
+      }
+    } catch (error) {
+      console.error("Error subiendo documento:", error);
+      toast.error("Error al subir el documento");
+    }
+  };
+
   const handleSave = async () => {
     if (!player) return;
     const payload = {
