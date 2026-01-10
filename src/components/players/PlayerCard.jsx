@@ -244,8 +244,8 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
       <Card 
         className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-400"
         onClick={(e) => {
-          // Solo abrir el modal si no se hizo click en un botón o link
-          if (!e.target.closest('button') && !e.target.closest('a')) {
+          // Solo abrir el modal si no se hizo click en un botón, link o select
+          if (!e.target.closest('button') && !e.target.closest('a') && !e.target.closest('select')) {
             setShowDetail(true);
           }
         }}
