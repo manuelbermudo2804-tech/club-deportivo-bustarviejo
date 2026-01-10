@@ -616,6 +616,36 @@ export default function PlayerProfile() {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
+                  <span className="text-xs font-semibold text-slate-700">Grupo sanguíneo</span>
+                  {editMode ? (
+                    <select
+                      value={form.ficha_medica.grupo_sanguineo || ""}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          ficha_medica: { ...p.ficha_medica, grupo_sanguineo: e.target.value },
+                        }))
+                      }
+                      className="border rounded-lg px-3 py-2 bg-white text-slate-900"
+                    >
+                      <option value="">— Sin definir</option>
+                      <option>O+</option>
+                      <option>O-</option>
+                      <option>A+</option>
+                      <option>A-</option>
+                      <option>B+</option>
+                      <option>B-</option>
+                      <option>AB+</option>
+                      <option>AB-</option>
+                    </select>
+                  ) : (
+                    <p className="text-slate-900 font-semibold">{form.ficha_medica.grupo_sanguineo || "—"}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
                   <span className="text-xs font-semibold text-slate-700">Alergias</span>
                   {editMode ? (
                     <Textarea
