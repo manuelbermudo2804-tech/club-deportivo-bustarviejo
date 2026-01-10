@@ -265,7 +265,7 @@ export default function NotificationCenter() {
 
   const criticalNotifications = urgentAnnouncements.length + pendingPayments.length;
   const coachCategories = user ? (user.categorias_entrena || []) : [];
-  const unreadFromParentsForCoach = (user && (user.es_entrenador || user.role === 'admin')) ? messages.filter(m => 
+  const unreadFromParentsForCoach = (user && (user.es_entrenador || user.es_coordinador || user.role === 'admin')) ? messages.filter(m => 
     m.tipo === 'padre_a_grupo' &&
     (coachCategories.includes(m.deporte) || coachCategories.includes(m.grupo_id)) &&
     (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
