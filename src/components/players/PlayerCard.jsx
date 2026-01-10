@@ -396,7 +396,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                         <select
                           value={selectedCategory || player.deporte}
                           onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full px-3 py-2 border-2 border-purple-300 rounded-lg text-sm bg-white"
+                          className="w-full px-3 py-2 border-2 border-purple-300 rounded-lg text-sm bg-white relative z-50"
                         >
                           <option value={player.deporte}>{player.deporte} (actual)</option>
                           {[
@@ -527,7 +527,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                         <select
                           value={selectedCategory || player.deporte}
                           onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm bg-white"
+                          className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm bg-white relative z-50"
                         >
                           <option value={player.deporte}>{player.deporte} (actual)</option>
                           {[
