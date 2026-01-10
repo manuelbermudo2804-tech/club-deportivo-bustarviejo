@@ -143,6 +143,46 @@ export default function CoachParentChat({ embedded = false }) {
               </Button>
             </div>
           
+          {Object.entries(unreadByCategory).filter(([, c]) => c > 0).length > 0 && (
+            <div className="px-2 py-1 bg-white/10 border-b border-white/20 text-xs flex gap-2 overflow-x-auto">
+              <span className="opacity-90 mr-1">Nuevos:</span>
+              {Object.entries(unreadByCategory)
+                .filter(([, c]) => c > 0)
+                .map(([cat, count]) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className="bg-white/20 hover:bg-white/30 rounded-full px-2 py-0.5"
+                  >
+                    {cat === "Todas las categorías" ? "Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                    <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 align-middle">
+                      {count}
+                    </Badge>
+                  </button>
+                ))}
+            </div>
+          )}
+
+          {Object.entries(unreadByCategory).filter(([, c]) => c > 0).length > 0 && (
+            <div className="px-2 py-1 bg-white/10 border-b border-white/20 text-xs flex gap-2 overflow-x-auto">
+              <span className="opacity-90 mr-1">Nuevos:</span>
+              {Object.entries(unreadByCategory)
+                .filter(([, c]) => c > 0)
+                .map(([cat, count]) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className="bg-white/20 hover:bg-white/30 rounded-full px-2 py-0.5"
+                  >
+                    {cat === "Todas las categorías" ? "Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                    <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 align-middle">
+                      {count}
+                    </Badge>
+                  </button>
+                ))}
+            </div>
+          )}
+
           {/* Pestañas de categorías - más compactas */}
           <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
             {categories.map(cat => {
@@ -183,6 +223,11 @@ export default function CoachParentChat({ embedded = false }) {
 
         {/* Ventana de chat */}
         <div className="flex-1 overflow-hidden min-h-0">
+          {selectedCategory && (unreadByCategory[selectedCategory] > 0) && (
+            <div className="bg-yellow-50 border-b border-yellow-200 text-yellow-800 text-xs px-3 py-2">
+              Tienes {unreadByCategory[selectedCategory]} mensajes nuevos en {selectedCategory}
+            </div>
+          )}
           {selectedCategory ? (
             <CoachChatWindow
               selectedCategory={selectedCategory}
@@ -282,6 +327,11 @@ export default function CoachParentChat({ embedded = false }) {
 
       {/* Ventana de chat */}
       <div className="flex-1 overflow-hidden min-h-0">
+        {selectedCategory && (unreadByCategory[selectedCategory] > 0) && (
+          <div className="bg-yellow-50 border-b border-yellow-200 text-yellow-800 text-xs px-3 py-2">
+            Tienes {unreadByCategory[selectedCategory]} mensajes nuevos en {selectedCategory}
+          </div>
+        )}
         {selectedCategory ? (
           <CoachChatWindow
             selectedCategory={selectedCategory}
