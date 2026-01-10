@@ -61,11 +61,9 @@ export default function NotificationBadge() {
   useEffect(() => {
     if (!user) return;
 
-    let unreadCount = computedChatUnread;
+    let unreadCount = 0;
     const isAdmin = user.role === 'admin';
     const isPlayer = user.role === 'jugador';
-
-    // Chat counts consolidados por computedChatUnread
 
     // Count new events (published in the last 24 hours and not notified yet)
     const oneDayAgo = new Date();
