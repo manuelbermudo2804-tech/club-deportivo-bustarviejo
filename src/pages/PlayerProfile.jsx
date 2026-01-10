@@ -168,18 +168,17 @@ export default function PlayerProfile() {
     );
   }
 
-  // Calcular edad
-  const calcularEdad = (fecha) => {
-    if (!fecha) return null;
-    const hoy = new Date();
-    const nac = new Date(fecha);
-    let edad = hoy.getFullYear() - nac.getFullYear();
-    const m = hoy.getMonth() - nac.getMonth();
-    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
-    return edad;
-  };
-
   const edad = calcularEdad(form.fecha_nacimiento);
+
+  const handleRenewalClick = () => {
+    const suggested = getSuggestedCategory(edad, player.deporte);
+    if (suggested && suggested !== player.deporte) {
+      setSuggestedCategory(suggested);
+      setShowCategoryModal(true);
+    } else {
+      setShowRenewalModal(true);
+    }
+  };
 
   // Grid de documentos
   const documentos = [
