@@ -223,7 +223,7 @@ export default function ParentCoordinatorChat() {
   };
 
   // Filtrar todos los archivos compartidos
-  const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || []);
+  const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || m.adjuntos || []);
 
   const sendMessageMutation = useMutation({
     onMutate: async (data) => {
@@ -591,16 +591,16 @@ export default function ParentCoordinatorChat() {
                     ) : (
                       messages.map((msg) => {
                 const isPadre = msg.autor === "padre";
-                const isImage = msg.archivos_adjuntos?.some(f => f.tipo?.startsWith('image/'));
+                const isImage = (msg.archivos_adjuntos || msg.adjuntos)?.some(f => f.tipo?.startsWith('image/'));
                 
                 return (
                   <div key={msg.id} className={`flex ${isPadre ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] sm:max-w-[70%] ${isPadre ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 border'} rounded-2xl p-2 sm:p-3 shadow-sm`}>
                       <p className="text-[10px] sm:text-xs font-semibold mb-1 opacity-70">{msg.autor_nombre}</p>
                       <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
-                      {msg.archivos_adjuntos?.length > 0 && (
+                      {(msg.archivos_adjuntos || msg.adjuntos)?.length > 0 && (
                         <div className="mt-2 space-y-1">
-                          {msg.archivos_adjuntos.map((file, idx) => (
+                          {(msg.archivos_adjuntos || msg.adjuntos).map((file, idx) => (
                             file.tipo?.startsWith('image/') ? (
                               <img 
                                 key={idx}
