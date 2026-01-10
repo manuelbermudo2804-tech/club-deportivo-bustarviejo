@@ -884,13 +884,9 @@ export default function SeasonManagement() {
       currentStep++;
       setProcessingProgress((currentStep / totalSteps) * 100);
 
-      // 7.1 IMPORTANTE: Crear CategoryConfig para la nueva temporada copiando las cuotas actuales
-      // SEGURIDAD: Verificar y limpiar categorías duplicadas primero
-      setProcessingStep("Verificando y limpiando categorías duplicadas...");
-      const allExistingCategories = await base44.entities.CategoryConfig.list();
-      
-      // Categorías correctas (nombres completos desde Player.deporte)
-      const CORRECT_CATEGORY_NAMES = [
+      // 7.1 IMPORTANTE: Crear CategoryConfig para la nueva temporada copiando con precios actuales
+      setProcessingStep("Preparando las 9 categorías BASE para nueva temporada...");
+      const BASE_CATEGORIES = [
         "Fútbol Pre-Benjamín (Mixto)",
         "Fútbol Benjamín (Mixto)",
         "Fútbol Alevín (Mixto)",
@@ -902,75 +898,66 @@ export default function SeasonManagement() {
         "Baloncesto (Mixto)"
       ];
       
-      // Eliminar categorías duplicadas/incorrectas ANTES de crear nuevas
-      const categoriesToDelete = allExistingCategories.filter(c => !CORRECT_CATEGORY_NAMES.includes(c.nombre));
-      for (const cat of categoriesToDelete) {
-        await base44.entities.CategoryConfig.delete(cat.id);
-        console.log(`🗑️ Eliminada categoría duplicada: ${cat.nombre}`);
-      }
-      
-      // Obtener categorías válidas de la temporada ACTUAL
-      const currentCategories = allExistingCategories.filter(c => CORRECT_CATEGORY_NAMES.includes(c.nombre) && c.activa);
-      
-      // VERIFICAR si la nueva temporada YA tiene categorías (evitar duplicación)
+      const allExistingCategories = await base44.entities.CategoryConfig.list();
       const newSeasonCategories = allExistingCategories.filter(c => c.temporada === resetConfig.newSeasonName);
       
+      // Si la nueva temporada YA tiene categorías, solo verificar que estén las 9 BASE
       if (newSeasonCategories.length > 0) {
-        // ⚠️ Temporada ya existe - No crear, solo verificar que estén todas
-        console.log(`⚠️ La temporada ${resetConfig.newSeasonName} ya tiene ${newSeasonCategories.length} categorías. Verificando integridad...`);
-        for (const expectedName of CORRECT_CATEGORY_NAMES) {
-          const exists = newSeasonCategories.some(c => c.nombre === expectedName);
+        for (const baseName of BASE_CATEGORIES) {
+          const exists = newSeasonCategories.some(c => c.nombre === baseName);
           if (!exists) {
-            const sourceCategory = currentCategories.find(c => c.nombre === expectedName);
+            const sourceCategory = allExistingCategories.find(c => c.nombre === baseName && c.es_base === true);
             if (sourceCategory) {
-              const { id, created_date, updated_date, ...categoryData } = sourceCategory;
+              const { id, created_date, updated_date, ...catData } = sourceCategory;
               await base44.entities.CategoryConfig.create({
-                ...categoryData,
+                ...catData,
                 temporada: resetConfig.newSeasonName,
                 activa: true
               });
-              console.log(`✅ Añadida categoría faltante: ${expectedName}`);
+              console.log(`✅ Categoría faltante añadida: ${baseName}`);
             }
           }
         }
-      } else if (currentCategories.length > 0) {
-        // Copiar cada categoría CORRECTA para la nueva temporada
-        for (const category of currentCategories) {
-          const { id, created_date, updated_date, ...categoryData } = category;
-          await base44.entities.CategoryConfig.create({
-            ...categoryData,
-            temporada: resetConfig.newSeasonName,
-            activa: true
-          });
-        }
-        console.log(`✅ ${currentCategories.length} categorías copiadas a nueva temporada`);
       } else {
-        // Fallback: Si NO hay categorías válidas, crear las por defecto (NUNCA nombres duplicados)
-        const DEFAULT_QUOTAS = {
-          "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75 },
-          "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75 },
-          "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83 },
-          "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83 },
-          "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95 },
-          "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95 },
-          "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95 },
-          "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95 },
-          "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50 }
-        };
-
-        for (const [nombre, cuotas] of Object.entries(DEFAULT_QUOTAS)) {
-          await base44.entities.CategoryConfig.create({
-            nombre,
-            deporte: nombre.includes("Baloncesto") ? "Baloncesto" : "Fútbol",
-            cuota_inscripcion: cuotas.inscripcion,
-            cuota_segunda: cuotas.segunda,
-            cuota_tercera: cuotas.tercera,
-            cuota_total: cuotas.inscripcion + cuotas.segunda + cuotas.tercera,
-            temporada: resetConfig.newSeasonName,
-            activa: true
-          });
+        // Copiar las 9 categorías BASE de la temporada actual
+        for (const baseName of BASE_CATEGORIES) {
+          const sourceCategory = allExistingCategories.find(c => c.nombre === baseName && c.es_base === true);
+          if (sourceCategory) {
+            const { id, created_date, updated_date, ...catData } = sourceCategory;
+            await base44.entities.CategoryConfig.create({
+              ...catData,
+              temporada: resetConfig.newSeasonName,
+              es_base: true,
+              activa: true
+            });
+          } else {
+            // Fallback: crear con precios por defecto si no existe
+            const DEFAULT_QUOTAS = {
+              "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75 },
+              "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75 },
+              "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83 },
+              "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83 },
+              "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95 },
+              "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95 },
+              "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95 },
+              "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95 },
+              "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50 }
+            };
+            const cuotas = DEFAULT_QUOTAS[baseName];
+            await base44.entities.CategoryConfig.create({
+              nombre: baseName,
+              deporte: baseName.includes("Baloncesto") ? "Baloncesto" : "Fútbol",
+              cuota_inscripcion: cuotas.inscripcion,
+              cuota_segunda: cuotas.segunda,
+              cuota_tercera: cuotas.tercera,
+              cuota_total: cuotas.inscripcion + cuotas.segunda + cuotas.tercera,
+              temporada: resetConfig.newSeasonName,
+              es_base: true,
+              activa: true
+            });
+          }
         }
-        console.log('✅ Categorías por defecto creadas (nombres correctos)');
+        console.log('✅ 9 categorías BASE creadas para nueva temporada con sus precios actuales');
       }
 
       // 8. Registrar en historial
