@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import useUnreadChats from "./notifications/useUnreadChats";
 
 export default function NotificationBadge() {
   const { data: user } = useQuery({

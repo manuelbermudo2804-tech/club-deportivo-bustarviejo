@@ -1740,7 +1740,7 @@ export default function Layout({ children, currentPageName }) {
                                       <Smartphone className="w-5 h-5" />
                                     </button>
                                   )}
-              {!isAdmin && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
+              <Suspense fallback={null}><NotificationCenter /></Suspense>
               <ThemeToggle />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
