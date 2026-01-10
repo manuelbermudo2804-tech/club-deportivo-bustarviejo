@@ -29,11 +29,14 @@ export default function NotificationCenter() {
     fetchUser();
   }, []);
 
-  const { data: messages } = useQuery({
-    queryKey: ['messages'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date'),
+  const { data: messages = [] } = useQuery({
+    queryKey: ['messages', user?.email],
+    queryFn: () => base44.entities.ChatMessage.list('-created_date', 500),
     initialData: [],
+    enabled: !!user,
+    staleTime: 15000,
     refetchInterval: 15000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allNotifications } = useQuery({
