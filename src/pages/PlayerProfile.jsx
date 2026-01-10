@@ -1,17 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { UserCircle, Camera, Save, Calendar as CalendarIcon, Phone, MapPin, CreditCard, Bell, MessageCircle } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { UserCircle, Camera, Save, Calendar as CalendarIcon, Phone, MapPin, FileCheck, AlertCircle, Heart, MapPinCheck } from "lucide-react";
+import { format } from "date-fns";
 
 export default function PlayerProfile() {
   const queryClient = useQueryClient();
+  const [editMode, setEditMode] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["me"],
@@ -37,7 +38,7 @@ export default function PlayerProfile() {
     staleTime: 60_000,
   });
 
-  const [form, setForm] = React.useState({
+  const [form, setForm] = useState({
     nombre: "",
     foto_url: "",
     posicion: "Sin asignar",
@@ -83,6 +84,7 @@ export default function PlayerProfile() {
     mutationFn: async (payload) => base44.entities.Player.update(player.id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player", user?.email] });
+      setEditMode(false);
     },
   });
 
@@ -95,7 +97,6 @@ export default function PlayerProfile() {
   const handleSave = async () => {
     if (!player) return;
     const payload = {
-      // Nota: NO modificamos 'deporte' (categoría) – solo lectura
       nombre: form.nombre,
       foto_url: form.foto_url,
       posicion: form.posicion,
@@ -127,7 +128,7 @@ export default function PlayerProfile() {
 
   if (!player) {
     return (
-      <div className="max-w-3xl mx-auto p-4 md:p-6">
+      <div className="max-w-4xl mx-auto p-4 md:p-6">
         <Card>
           <CardHeader>
             <CardTitle>Mi Ficha</CardTitle>
@@ -141,33 +142,82 @@ export default function PlayerProfile() {
     );
   }
 
+  // Calcular edad
+  const calcularEdad = (fecha) => {
+    if (!fecha) return null;
+    const hoy = new Date();
+    const nac = new Date(fecha);
+    let edad = hoy.getFullYear() - nac.getFullYear();
+    const m = hoy.getMonth() - nac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+    return edad;
+  };
+
+  const edad = calcularEdad(form.fecha_nacimiento);
+
+  // Grid de documentos
+  const documentos = [
+    {
+      id: "dni",
+      titulo: "DNI/Pasaporte",
+      estado: player.dni_jugador_url ? "✅" : "❌",
+      valor: player.dni_jugador || "No registrado",
+      icono: "🆔",
+    },
+    {
+      id: "libro_familia",
+      titulo: "Libro Familia",
+      estado: player.libro_familia_url ? "✅" : "❌",
+      valor: player.libro_familia_url ? "Guardado" : "No subido",
+      icono: "📖",
+    },
+    {
+      id: "firma_jugador",
+      titulo: "Firma Jugador",
+      estado: player.firma_jugador_completada ? "✅" : "❌",
+      valor: player.firma_jugador_completada ? "Completada" : "Pendiente",
+      icono: "✍️",
+    },
+    {
+      id: "firma_tutor",
+      titulo: "Firma Tutor",
+      estado: player.firma_tutor_completada ? "✅" : "❌",
+      valor: player.firma_tutor_completada ? "Completada" : "Pendiente",
+      icono: "📝",
+    },
+  ];
+
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-6">
-      <div className="mb-4 text-center space-y-2">
-        <h1 className="text-2xl md:text-3xl font-bold text-balance">Mi Ficha</h1>
-        <Button onClick={handleSave} className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto">
-          <Save className="w-4 h-4 mr-2" /> Guardar cambios
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+      {/* Header con acciones */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl md:text-4xl font-bold">Mi Ficha</h1>
+        <Button
+          onClick={() => (editMode ? handleSave() : setEditMode(true))}
+          className={`${editMode ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}`}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {editMode ? "Guardar" : "Editar"}
         </Button>
       </div>
 
-      <Card className="mb-4">
-        <CardContent className="p-4 md:p-6">
-          <div className="flex flex-col items-center text-center gap-3">
-            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
-              {form.foto_url ? (
-                <img src={form.foto_url} alt="Foto" className="w-full h-full object-cover" />
-              ) : (
-                <UserCircle className="w-12 h-12 text-slate-400" />
-              )}
-            </div>
-            <div className="w-full grid gap-2 sm:grid-cols-1 md:grid-cols-[1fr_auto] items-center">
-              <Input
-                value={form.nombre}
-                onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
-                placeholder="Nombre completo"
-                className="w-full"
-              />
-              <div className="justify-self-center sm:justify-self-end">
+      {/* Tarjeta de perfil IMPACTANTE */}
+      <Card className="border-0 shadow-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-8 md:py-12 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full -ml-20 -mb-20"></div>
+
+          <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6">
+            {/* Foto grande */}
+            <div className="relative">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden bg-white shadow-xl flex items-center justify-center border-4 border-white">
+                {form.foto_url ? (
+                  <img src={form.foto_url} alt="Foto" className="w-full h-full object-cover" />
+                ) : (
+                  <UserCircle className="w-20 h-20 text-slate-300" />
+                )}
+              </div>
+              {editMode && (
                 <input
                   id="foto"
                   type="file"
@@ -175,169 +225,361 @@ export default function PlayerProfile() {
                   className="hidden"
                   onChange={(e) => handleUpload(e.target.files?.[0])}
                 />
+              )}
+              {editMode && (
                 <label htmlFor="foto">
-                  <Button variant="outline" type="button" className="gap-2 w-full sm:w-auto">
-                    <Camera className="w-4 h-4" /> Cambiar foto
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 shadow-lg bg-white"
+                    title="Cambiar foto"
+                  >
+                    <Camera className="w-5 h-5 text-orange-600" />
                   </Button>
                 </label>
+              )}
+            </div>
+
+            {/* Datos principales */}
+            <div className="flex-1 text-white text-center md:text-left">
+              {editMode ? (
+                <Input
+                  value={form.nombre}
+                  onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
+                  placeholder="Nombre completo"
+                  className="text-2xl md:text-3xl font-bold mb-2 bg-white/20 border-white/30 text-white placeholder:text-white/60"
+                />
+              ) : (
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">{form.nombre}</h2>
+              )}
+
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                <Badge className="bg-white/20 text-white border-white/30 text-sm">
+                  ⚽ {player.deporte}
+                </Badge>
+                {form.posicion !== "Sin asignar" && (
+                  <Badge className="bg-white/20 text-white border-white/30 text-sm">
+                    📍 {form.posicion}
+                  </Badge>
+                )}
+                {edad && (
+                  <Badge className="bg-white/20 text-white border-white/30 text-sm">
+                    🎂 {edad} años
+                  </Badge>
+                )}
               </div>
             </div>
-            <div className="text-sm text-slate-600 flex items-center justify-center gap-2">
-              <span className="font-medium">Deporte/Categoría:</span>
-              <Badge variant="outline">{player.deporte || "—"}</Badge>
-              <span className="text-xs text-slate-500">(solo lectura)</span>
-            </div>
+          </div>
+        </div>
+
+        {/* Documentos Grid */}
+        <CardContent className="p-6 bg-slate-50">
+          <h3 className="font-bold text-slate-900 mb-4 text-sm">Documentación</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {documentos.map((doc) => (
+              <div
+                key={doc.id}
+                className={`p-3 rounded-lg border-2 text-center transition-all ${
+                  doc.estado === "✅"
+                    ? "bg-green-50 border-green-300"
+                    : "bg-red-50 border-red-300"
+                }`}
+              >
+                <div className="text-2xl mb-1">{doc.icono}</div>
+                <p className="text-xs font-semibold text-slate-900">{doc.titulo}</p>
+                <p className={`text-sm font-bold ${doc.estado === "✅" ? "text-green-700" : "text-red-700"}`}>
+                  {doc.estado}
+                </p>
+                <p className="text-xs text-slate-600 mt-1 truncate">{doc.valor}</p>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <Link to={createPageUrl("ParentPayments")} className="block">
-          <Button className="w-full bg-green-600 hover:bg-green-700 gap-2">
-            <CreditCard className="w-4 h-4" /> Pagos
-          </Button>
-        </Link>
-        <Link to={createPageUrl("ParentCallups")} className="block">
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
-            <Bell className="w-4 h-4" /> Convocatorias
-          </Button>
-        </Link>
-        <Link to={createPageUrl("ParentCoordinatorChat")} className="block">
-          <Button className="w-full bg-cyan-600 hover:bg-cyan-700 gap-2">
-            <MessageCircle className="w-4 h-4" /> Chats
-          </Button>
-        </Link>
-      </div>
-      <div className="mt-4 flex justify-center">
-        <Button onClick={handleSave} className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto">
-          <Save className="w-4 h-4 mr-2" /> Guardar cambios
-        </Button>
-      </div>
 
-      <div className="grid md:grid-cols-2 gap-4 items-start">
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-base">Datos personales</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500">Posición</span>
-              <select
-                value={form.posicion}
-                onChange={(e) => setForm((p) => ({ ...p, posicion: e.target.value }))}
-                className="border rounded-md px-3 py-2 bg-white"
-              >
-                <option>Portero</option>
-                <option>Defensa</option>
-                <option>Medio</option>
-                <option>Delantero</option>
-                <option>Sin asignar</option>
-              </select>
-            </div>
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500 flex items-center gap-1"><CalendarIcon className="w-3 h-3"/> Fecha de nacimiento</span>
-              <Input
-                type="date"
-                value={form.fecha_nacimiento || ""}
-                onChange={(e) => setForm((p) => ({ ...p, fecha_nacimiento: e.target.value }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500 flex items-center gap-1"><Phone className="w-3 h-3"/> Teléfono</span>
-              <Input
-                value={form.telefono}
-                onChange={(e) => setForm((p) => ({ ...p, telefono: e.target.value }))}
-                placeholder="Teléfono de contacto"
-              />
-            </div>
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500 flex items-center gap-1"><MapPin className="w-3 h-3"/> Dirección</span>
-              <Input
-                value={form.direccion}
-                onChange={(e) => setForm((p) => ({ ...p, direccion: e.target.value }))}
-                placeholder="Dirección"
-              />
-              <Input
-                value={form.municipio}
-                onChange={(e) => setForm((p) => ({ ...p, municipio: e.target.value }))}
-                placeholder="Municipio"
-              />
-            </div>
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500">Autorización de fotografía</span>
-              <select
-                value={form.autorizacion_fotografia || ""}
-                onChange={(e) => setForm((p) => ({ ...p, autorizacion_fotografia: e.target.value || undefined }))}
-                className="border rounded-md px-3 py-2 bg-white"
-              >
-                <option value="">—</option>
-                <option>SI AUTORIZO</option>
-                <option>NO AUTORIZO</option>
-              </select>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Tabs de contenido */}
+      <Tabs defaultValue="datos" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="datos">📋 Datos</TabsTrigger>
+          <TabsTrigger value="salud">❤️ Salud</TabsTrigger>
+          <TabsTrigger value="contacto">📞 Contacto</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-base">Salud (privado)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500">Alergias</span>
-              <Textarea
-                value={form.ficha_medica.alergias}
-                onChange={(e) => setForm((p) => ({ ...p, ficha_medica: { ...p.ficha_medica, alergias: e.target.value } }))}
-                placeholder="Alergias conocidas"
-              />
-            </div>
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500">Medicación habitual</span>
-              <Textarea
-                value={form.ficha_medica.medicacion_habitual}
-                onChange={(e) => setForm((p) => ({ ...p, ficha_medica: { ...p.ficha_medica, medicacion_habitual: e.target.value } }))}
-                placeholder="Medicaciones"
-              />
-            </div>
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500">Condiciones médicas</span>
-              <Textarea
-                value={form.ficha_medica.condiciones_medicas}
-                onChange={(e) => setForm((p) => ({ ...p, ficha_medica: { ...p.ficha_medica, condiciones_medicas: e.target.value } }))}
-                placeholder="Asma, diabetes, etc."
-              />
-            </div>
-            <div className="grid gap-2">
-              <span className="text-xs text-slate-500">Contacto de emergencia</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Input
-                  value={form.ficha_medica.contacto_emergencia_nombre}
-                  onChange={(e) => setForm((p) => ({ ...p, ficha_medica: { ...p.ficha_medica, contacto_emergencia_nombre: e.target.value } }))}
-                  placeholder="Nombre"
-                />
-                <Input
-                  value={form.ficha_medica.contacto_emergencia_telefono}
-                  onChange={(e) => setForm((p) => ({ ...p, ficha_medica: { ...p.ficha_medica, contacto_emergencia_telefono: e.target.value } }))}
-                  placeholder="Teléfono"
-                />
+        {/* Tab: Datos personales */}
+        <TabsContent value="datos" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Información Personal</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <span className="text-xs font-semibold text-slate-700">Posición</span>
+                  {editMode ? (
+                    <select
+                      value={form.posicion}
+                      onChange={(e) => setForm((p) => ({ ...p, posicion: e.target.value }))}
+                      className="border rounded-lg px-3 py-2 bg-white text-slate-900"
+                    >
+                      <option>Portero</option>
+                      <option>Defensa</option>
+                      <option>Medio</option>
+                      <option>Delantero</option>
+                      <option>Sin asignar</option>
+                    </select>
+                  ) : (
+                    <p className="text-slate-900 font-semibold">{form.posicion}</p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <span className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                    <CalendarIcon className="w-3 h-3" /> Fecha de nacimiento
+                  </span>
+                  {editMode ? (
+                    <Input
+                      type="date"
+                      value={form.fecha_nacimiento || ""}
+                      onChange={(e) => setForm((p) => ({ ...p, fecha_nacimiento: e.target.value }))}
+                    />
+                  ) : (
+                    <p className="text-slate-900 font-semibold">
+                      {form.fecha_nacimiento
+                        ? format(new Date(form.fecha_nacimiento), "dd/MM/yyyy")
+                        : "—"}
+                      {edad && <span className="text-slate-600"> ({edad} años)</span>}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
+
+              <div className="grid gap-2">
+                <span className="text-xs font-semibold text-slate-700">Autorización de fotografía</span>
+                {editMode ? (
+                  <select
+                    value={form.autorizacion_fotografia || ""}
+                    onChange={(e) =>
+                      setForm((p) => ({
+                        ...p,
+                        autorizacion_fotografia: e.target.value || undefined,
+                      }))
+                    }
+                    className="border rounded-lg px-3 py-2 bg-white text-slate-900"
+                  >
+                    <option value="">— Sin definir</option>
+                    <option>SI AUTORIZO</option>
+                    <option>NO AUTORIZO</option>
+                  </select>
+                ) : (
+                  <Badge
+                    className={
+                      form.autorizacion_fotografia === "SI AUTORIZO"
+                        ? "bg-green-100 text-green-800 w-fit"
+                        : form.autorizacion_fotografia === "NO AUTORIZO"
+                          ? "bg-red-100 text-red-800 w-fit"
+                          : "bg-slate-100 text-slate-800 w-fit"
+                    }
+                  >
+                    {form.autorizacion_fotografia || "Sin definir"}
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Salud */}
+        <TabsContent value="salud" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Heart className="w-5 h-5 text-red-500" /> Información Médica (Privada)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <span className="text-xs font-semibold text-slate-700">Alergias</span>
+                  {editMode ? (
+                    <Textarea
+                      value={form.ficha_medica.alergias}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          ficha_medica: { ...p.ficha_medica, alergias: e.target.value },
+                        }))
+                      }
+                      placeholder="Alergias conocidas..."
+                      className="min-h-[80px]"
+                    />
+                  ) : (
+                    <p className="text-slate-700">{form.ficha_medica.alergias || "—"}</p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <span className="text-xs font-semibold text-slate-700">Medicación habitual</span>
+                  {editMode ? (
+                    <Textarea
+                      value={form.ficha_medica.medicacion_habitual}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          ficha_medica: { ...p.ficha_medica, medicacion_habitual: e.target.value },
+                        }))
+                      }
+                      placeholder="Medicaciones..."
+                      className="min-h-[80px]"
+                    />
+                  ) : (
+                    <p className="text-slate-700">{form.ficha_medica.medicacion_habitual || "—"}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <span className="text-xs font-semibold text-slate-700">Condiciones médicas</span>
+                {editMode ? (
+                  <Textarea
+                    value={form.ficha_medica.condiciones_medicas}
+                    onChange={(e) =>
+                      setForm((p) => ({
+                        ...p,
+                        ficha_medica: { ...p.ficha_medica, condiciones_medicas: e.target.value },
+                      }))
+                    }
+                    placeholder="Asma, diabetes, etc..."
+                    className="min-h-[100px]"
+                  />
+                ) : (
+                  <p className="text-slate-700">{form.ficha_medica.condiciones_medicas || "—"}</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Contacto */}
+        <TabsContent value="contacto" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Phone className="w-5 h-5 text-blue-500" /> Información de Contacto
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <span className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <Phone className="w-3 h-3" /> Teléfono
+                </span>
+                {editMode ? (
+                  <Input
+                    value={form.telefono}
+                    onChange={(e) => setForm((p) => ({ ...p, telefono: e.target.value }))}
+                    placeholder="Teléfono de contacto"
+                  />
+                ) : (
+                  <p className="text-slate-900 font-semibold">{form.telefono || "—"}</p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <span className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> Dirección
+                </span>
+                {editMode ? (
+                  <>
+                    <Input
+                      value={form.direccion}
+                      onChange={(e) => setForm((p) => ({ ...p, direccion: e.target.value }))}
+                      placeholder="Dirección completa"
+                    />
+                    <Input
+                      value={form.municipio}
+                      onChange={(e) => setForm((p) => ({ ...p, municipio: e.target.value }))}
+                      placeholder="Municipio"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-slate-900 font-semibold">{form.direccion || "—"}</p>
+                    <p className="text-slate-700 text-sm">{form.municipio || "—"}</p>
+                  </>
+                )}
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-xs font-semibold text-slate-900 mb-3">Contacto de Emergencia</p>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-xs text-slate-600">Nombre</span>
+                    {editMode ? (
+                      <Input
+                        value={form.ficha_medica.contacto_emergencia_nombre}
+                        onChange={(e) =>
+                          setForm((p) => ({
+                            ...p,
+                            ficha_medica: {
+                              ...p.ficha_medica,
+                              contacto_emergencia_nombre: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Nombre"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-slate-900 font-semibold">
+                        {form.ficha_medica.contacto_emergencia_nombre || "—"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-xs text-slate-600">Teléfono</span>
+                    {editMode ? (
+                      <Input
+                        value={form.ficha_medica.contacto_emergencia_telefono}
+                        onChange={(e) =>
+                          setForm((p) => ({
+                            ...p,
+                            ficha_medica: {
+                              ...p.ficha_medica,
+                              contacto_emergencia_telefono: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Teléfono"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-slate-900 font-semibold">
+                        {form.ficha_medica.contacto_emergencia_telefono || "—"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Notas */}
+      {editMode && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Notas Personales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              value={form.observaciones}
+              onChange={(e) => setForm((p) => ({ ...p, observaciones: e.target.value }))}
+              placeholder="Notas privadas..."
+              className="min-h-[100px]"
+            />
           </CardContent>
         </Card>
-      </div>
-
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="text-base">Observaciones</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={form.observaciones}
-            onChange={(e) => setForm((p) => ({ ...p, observaciones: e.target.value }))}
-            placeholder="Notas personales (entrenadores pueden verlas)"
-            className="min-h-[100px]"
-          />
-        </CardContent>
-      </Card>
+      )}
     </div>
   );
 }
