@@ -73,12 +73,16 @@ export default function PlayerProfile() {
     municipio: "",
     autorizacion_fotografia: undefined,
     observaciones: "",
+    tipo_documento: "DNI",
+    dni_jugador: "",
+    dni_jugador_url: "",
     ficha_medica: {
       alergias: "",
       medicacion_habitual: "",
       condiciones_medicas: "",
       contacto_emergencia_nombre: "",
       contacto_emergencia_telefono: "",
+      grupo_sanguineo: "",
     },
   });
 
