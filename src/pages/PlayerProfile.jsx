@@ -20,6 +20,9 @@ export default function PlayerProfile() {
   const queryClient = useQueryClient();
   const [editMode, setEditMode] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showPaymentFlow, setShowPaymentFlow] = useState(false);
+  const [renewalSuccess, setRenewalSuccess] = useState(false);
+  const [renewalData, setRenewalData] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ["me"],
