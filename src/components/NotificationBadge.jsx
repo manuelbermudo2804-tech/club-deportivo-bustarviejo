@@ -121,8 +121,7 @@ export default function NotificationBadge() {
     const isAdmin = user.role === 'admin';
     const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
 
-    // Chats unificados
-    unreadCount += chatUnread;
+    // Chats unificados (ya incluido en chatUnread)
 
     // Count new events (published in the last 24 hours and not notified yet)
     const oneDayAgo = new Date();

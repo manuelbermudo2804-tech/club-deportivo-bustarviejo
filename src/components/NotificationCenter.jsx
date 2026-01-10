@@ -278,7 +278,7 @@ export default function NotificationCenter() {
     (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
   ).length : 0;
 
-  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + totalUnreadPrivate + unreadFromParentsForCoach;
+  const totalNotifications = pendingCallups.length + pendingPayments.length + recentAnnouncements.length + unviewedAppNotifications.length + chatUnread;
 
   const getNotificationIcon = (type) => {
     switch(type) {
