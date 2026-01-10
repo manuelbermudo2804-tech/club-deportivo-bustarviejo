@@ -71,11 +71,8 @@ export default function ParentCoachChat() {
       if (!selectedCategory || !user) return [];
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       const allMessages = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
-      
-      return allMessages.filter(msg => 
-        !msg.destinatario_email || 
-        msg.destinatario_email === user.email
-      );
+      // Filtrar privados solo si hay destinatario explícito
+      return allMessages.filter(msg => !msg.destinatario_email || msg.destinatario_email === user.email);
     },
     refetchInterval: 1000,
     refetchOnWindowFocus: true,
