@@ -546,6 +546,8 @@ export default function Layout({ children, currentPageName }) {
   const [showMandatoryPWA, setShowMandatoryPWA] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   // isIOS/isAndroid definidos arriba para evitar TDZ
+  const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
 
       // Detectar si la app está instalada - solo por localStorage (marcado manual)
                   useEffect(() => {
@@ -1490,8 +1492,6 @@ export default function Layout({ children, currentPageName }) {
         );
       }
 
-  const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
 
     console.log('✅ [LAYOUT] Renderizando contenido principal con children');
 
