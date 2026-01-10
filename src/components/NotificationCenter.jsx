@@ -504,6 +504,34 @@ export default function NotificationCenter() {
               </Link>
             ))}
 
+            {/* Badge para familias -> entrenador */}
+            {unreadFromParentsForCoach > 0 && (
+              <Link to={createPageUrl("CoachParentChat")} onClick={() => setIsOpen(false)}>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 hover:opacity-80 transition-all border-2 border-blue-200">
+                  <MessageCircle className="w-5 h-5 text-blue-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-900">👪 Mensajes de Familias</p>
+                    <p className="text-sm text-slate-700">{unreadFromParentsForCoach} sin leer</p>
+                  </div>
+                  <Badge className="bg-blue-600 text-white">{unreadFromParentsForCoach}</Badge>
+                </div>
+              </Link>
+            )}
+
+            {/* Badge simétrico: entrenador -> familias */}
+            {unreadFromCoachForFamily > 0 && (
+              <Link to={createPageUrl("ParentCoachChat")} onClick={() => setIsOpen(false)}>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 hover:opacity-80 transition-all border-2 border-green-200">
+                  <MessageCircle className="w-5 h-5 text-green-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-900">🏃 Mensajes del Entrenador</p>
+                    <p className="text-sm text-slate-700">{unreadFromCoachForFamily} sin leer</p>
+                  </div>
+                  <Badge className="bg-green-600 text-white">{unreadFromCoachForFamily}</Badge>
+                </div>
+              </Link>
+            )}
+
             {/* Conversaciones Privadas No Leídas */}
             {unreadPrivateConversations.map(conv => (
               <Link key={conv.id} to={createPageUrl("ParentSystemMessages")} onClick={() => setIsOpen(false)}>
