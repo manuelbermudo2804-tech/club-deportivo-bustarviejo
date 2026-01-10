@@ -511,17 +511,31 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         archivada: false
       });
 
-      // Crear notificación SOLO si el padre escribe (NO si el coordinador escribe)
+      // Crear notificación para el destinatario
       if (!isCoordinator) {
+        // Padre escribe -> notificar al coordinador
         const recipientEmail = conversation.coordinador_email;
         if (recipientEmail) {
           await base44.entities.AppNotification.create({
             usuario_email: recipientEmail,
             titulo: `💬 Mensaje de ${user.full_name}`,
-            mensaje: data.mensaje.substring(0, 100) + (data.mensaje.length > 100 ? '...' : ''),
+            mensaje: (data.mensaje || "Mensaje").substring(0, 100) + ((data.mensaje || "").length > 100 ? '...' : ''),
             tipo: "importante",
             icono: "💬",
             enlace: "FamilyChats",
+            vista: false
+          });
+        }
+      } else {
+        // Coordinador escribe -> notificar al padre
+        if (conversation.padre_email) {
+          await base44.entities.AppNotification.create({
+            usuario_email: conversation.padre_email,
+            titulo: `🎓 Mensaje del Coordinador`,
+            mensaje: (data.mensaje || "Mensaje").substring(0, 100) + ((data.mensaje || "").length > 100 ? '...' : ''),
+            tipo: "importante",
+            icono: "🎓",
+            enlace: "ParentCoordinatorChat",
             vista: false
           });
         }

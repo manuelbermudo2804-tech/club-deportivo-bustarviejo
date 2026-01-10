@@ -117,14 +117,16 @@ export default function useUnreadChats(enabled = true) {
 
     // 3) Admin
     if (isAdmin) {
-      const unresolved = adminConvs.filter((c) => c.resuelta === false).length;
-      if (unresolved > 0) {
-        results.push({ source: "admin", label: "Administrador", count: unresolved, link: "AdminChat" });
+      const unreadAdmin = adminConvs.reduce((sum, c) => sum + (c.no_leidos_admin || 0), 0);
+      if (unreadAdmin > 0) {
+        results.push({ source: "admin", label: "Administrador", count: unreadAdmin, link: "AdminChat" });
       }
     } else if (isFamily || isPlayer) {
-      const parentAdminConvs = adminConvs.filter((c) => c.padre_email === user.email && c.resuelta === false).length;
-      if (parentAdminConvs > 0) {
-        results.push({ source: "admin", label: "Administrador", count: parentAdminConvs, link: "ParentAdminChat" });
+      const unreadParentAdmin = adminConvs
+        .filter((c) => c.padre_email === user.email)
+        .reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
+      if (unreadParentAdmin > 0) {
+        results.push({ source: "admin", label: "Administrador", count: unreadParentAdmin, link: "ParentAdminChat" });
       }
     }
 
