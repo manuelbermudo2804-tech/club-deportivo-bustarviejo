@@ -545,6 +545,7 @@ export default function Layout({ children, currentPageName }) {
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [showMandatoryPWA, setShowMandatoryPWA] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  // isIOS/isAndroid definidos arriba para evitar TDZ
 
       // Detectar si la app está instalada - solo por localStorage (marcado manual)
                   useEffect(() => {
