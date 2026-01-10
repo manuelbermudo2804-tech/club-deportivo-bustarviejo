@@ -495,19 +495,6 @@ export default function NotificationCenter() {
               </Link>
             ))}
 
-            {/* Chats unificados por fuente */}
-            {chatItems?.length > 0 && chatItems.map((item) => (
-              <Link key={item.source} to={createPageUrl(item.link)} onClick={() => setIsOpen(false)}>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 hover:opacity-80 transition-all border">
-                  <MessageCircle className="w-5 h-5 text-slate-600 mt-1" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                  </div>
-                  <Badge className="bg-slate-800 text-white">{item.count}</Badge>
-                </div>
-              </Link>
-            ))}
-
             {/* Conversaciones Privadas No Leídas */}
             {unreadPrivateConversations.map(conv => (
               <Link key={conv.id} to={createPageUrl("ParentSystemMessages")} onClick={() => setIsOpen(false)}>
