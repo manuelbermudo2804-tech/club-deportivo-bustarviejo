@@ -102,10 +102,14 @@ export default function CoordinatorChat({ embedded = false }) {
 
   // Al abrir una conversación, poner a cero sus no leídos
   useEffect(() => {
-    if (selectedConversation?.id && (selectedConversation.no_leidos_coordinador || 0) > 0) {
-      base44.entities.CoordinatorConversation.update(selectedConversation.id, { no_leidos_coordinador: 0 });
-    }
-  }, [selectedConversation?.id]);
+    if (!selectedConversation?.id || (selectedConversation.no_leidos_coordinador || 0) === 0) return;
+    
+    const markAsRead = async () => {
+      await base44.entities.CoordinatorConversation.update(selectedConversation.id, { no_leidos_coordinador: 0 });
+      queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
+    };
+    markAsRead();
+  }, [selectedConversation?.id, queryClient]);
 
    return (
     <div className="h-full flex flex-col lg:flex-row overflow-hidden">
