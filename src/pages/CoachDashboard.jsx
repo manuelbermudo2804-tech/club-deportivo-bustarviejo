@@ -293,6 +293,8 @@ export default function CoachDashboard() {
 
 
 
+  const showCoordinatorTile = user?.es_coordinador || user?.role === "admin";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
@@ -321,9 +323,9 @@ export default function CoachDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className={`grid ${showCoordinatorTile ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-3'} gap-2`}>
               <Link to={createPageUrl("Chatbot")}>
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative">
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
                     <Sparkles className="w-3 h-3 text-white" />
                   </div>
@@ -333,7 +335,7 @@ export default function CoachDashboard() {
               </Link>
 
               <Link to={createPageUrl("CoachParentChat")}>
-                <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
+                <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                   <p className="text-sm font-bold text-center">💬 Familias</p>
                   <p className="text-xs text-green-100 text-center">Mi equipo</p>
                 </div>
@@ -341,7 +343,7 @@ export default function CoachDashboard() {
 
               {(user?.es_coordinador || user?.role === "admin") && (
                 <Link to={createPageUrl("CoordinatorChat")}>
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
+                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                   <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
                   <p className="text-xs text-cyan-100 text-center">Consultas</p>
                 </div>
@@ -349,7 +351,7 @@ export default function CoachDashboard() {
               )}
 
                <Link to={createPageUrl("StaffChat")}>
-                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg">
+                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                   <p className="text-sm font-bold text-center">💼 Staff</p>
                   <p className="text-xs text-slate-100 text-center">Interno</p>
                 </div>
