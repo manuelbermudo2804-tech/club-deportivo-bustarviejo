@@ -1624,9 +1624,6 @@ export default function SeasonManagement() {
       {/* Sección: Limpieza de Categorías DUPLICADAS */}
       <CategoryCleanupTool />
 
-      {/* Sección: Limpieza de Categorías DUPLICADAS */}
-      <CategoryCleanupTool />
-
       {/* Sección: Programa de Referidos */}
       {activeSeason && (
         <ReferralConfigCard
