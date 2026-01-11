@@ -819,10 +819,20 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
   ).length;
 
   // Estadísticas de la temporada actual - SOLO SOCIOS ACTIVOS
-  const currentSeasonMembers = members.filter(m => 
-    m.temporada === seasonConfig?.temporada && 
-    m.activo !== false
-  );
+  const currentSeasonMembers = members.filter(m => {
+    // Si no hay temporada activa, usar la temporada más reciente
+    const targetSeason = seasonConfig?.temporada || availableSeasons[0];
+    return m.temporada === targetSeason && m.activo !== false;
+  });
+  
+  console.log('[ClubMembersManagement] Stats Debug:', {
+    seasonConfigTemporada: seasonConfig?.temporada,
+    availableSeasons: availableSeasons,
+    totalMembers: members.length,
+    currentSeasonMembers: currentSeasonMembers.length,
+    sampleMember: currentSeasonMembers[0]
+  });
+  
   const stats = {
     total: currentSeasonMembers.length,
     pagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").length,
