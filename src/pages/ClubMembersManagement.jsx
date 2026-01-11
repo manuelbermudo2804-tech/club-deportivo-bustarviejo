@@ -811,26 +811,18 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     memberTypeFilter !== "all"
   ].filter(Boolean).length;
 
-  // Stats de externos - SOLO ACTIVOS
+  // Stats de externos
   const currentSeasonExternos = members.filter(m => 
     m.temporada === seasonConfig?.temporada && 
-    m.activo !== false && 
     isExternalMember(m)
   ).length;
 
-  // Estadísticas de la temporada actual - SOLO SOCIOS ACTIVOS
+  // Estadísticas de la temporada actual - incluir TODOS los socios de la temporada
   const currentSeasonMembers = members.filter(m => {
     // Si no hay temporada activa, usar la temporada más reciente
     const targetSeason = seasonConfig?.temporada || availableSeasons[0];
-    return m.temporada === targetSeason && m.activo !== false;
-  });
-  
-  console.log('[ClubMembersManagement] Stats Debug:', {
-    seasonConfigTemporada: seasonConfig?.temporada,
-    availableSeasons: availableSeasons,
-    totalMembers: members.length,
-    currentSeasonMembers: currentSeasonMembers.length,
-    sampleMember: currentSeasonMembers[0]
+    return m.temporada === targetSeason;
+    // NO filtrar por activo - el campo activo puede estar en false pero siguen siendo socios válidos
   });
   
   const stats = {
@@ -842,7 +834,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     renovaciones: currentSeasonMembers.filter(m => m.tipo_inscripcion === "Renovación").length,
   };
 
-  // Detectar nuevos socios recientes (últimos 7 días) para alertas - SOLO ACTIVOS
+  // Detectar nuevos socios recientes (últimos 7 días) para alertas
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const recentMembers = currentSeasonMembers.filter(m => {
@@ -850,7 +842,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     return createdDate >= sevenDaysAgo;
   });
   
-  // Socios pendientes de revisar justificante (En revisión) - SOLO ACTIVOS
+  // Socios pendientes de revisar justificante (En revisión)
   const pendingReviewMembers = currentSeasonMembers.filter(m => 
     m.estado_pago === "En revisión" && (m.justificante_url || m.justificante_base64)
   );
