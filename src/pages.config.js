@@ -47,6 +47,7 @@ import LotteryManagement from './pages/LotteryManagement';
 import MatchApp from './pages/MatchApp';
 import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
+import MemberCardDisplay from './pages/MemberCardDisplay';
 import MemberManagement from './pages/MemberManagement';
 import NotificationPreferences from './pages/NotificationPreferences';
 import OrderManagement from './pages/OrderManagement';
@@ -93,7 +94,6 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import MemberCardDisplay from './pages/MemberCardDisplay';
 import __Layout from './Layout.jsx';
 
 
@@ -147,6 +147,7 @@ export const PAGES = {
     "MatchApp": MatchApp,
     "MatchResults": MatchResults,
     "MedicalRecords": MedicalRecords,
+    "MemberCardDisplay": MemberCardDisplay,
     "MemberManagement": MemberManagement,
     "NotificationPreferences": NotificationPreferences,
     "OrderManagement": OrderManagement,
@@ -193,7 +194,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "MemberCardDisplay": MemberCardDisplay,
 }
 
 export const pagesConfig = {

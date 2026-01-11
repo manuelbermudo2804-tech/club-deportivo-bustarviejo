@@ -158,6 +158,36 @@ export default function ParentPlayers() {
         }
       }
 
+      // AUTO-CREAR SOCIO: Al inscribir un jugador, el padre automáticamente se convierte en socio pagado
+      // (la cuota de socio está incluida en la inscripción del jugador)
+      try {
+        const existingMember = await base44.entities.ClubMember.filter({
+          email: dataWithParentEmail.email_padre,
+          temporada: seasonConfig?.temporada
+        });
+
+        if (existingMember.length === 0) {
+          console.log('🎫 [ParentPlayers] Creando socio automáticamente para:', dataWithParentEmail.email_padre);
+          await base44.entities.ClubMember.create({
+            email: dataWithParentEmail.email_padre,
+            nombre_completo: dataWithParentEmail.nombre_tutor_legal || user?.full_name || "",
+            telefono: dataWithParentEmail.telefono || "",
+            direccion: dataWithParentEmail.direccion || "",
+            temporada: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1),
+            estado_pago: "Pagado",
+            fecha_pago: new Date().toISOString(),
+            metodo_pago: "Incluido en inscripción jugador",
+            notas: `Cuota de socio incluida automáticamente en inscripción de ${newPlayer.nombre}`,
+            referido_por: null
+          });
+          console.log('✅ [ParentPlayers] Socio creado automáticamente');
+        } else {
+          console.log('ℹ️ [ParentPlayers] Socio ya existe, no se crea duplicado');
+        }
+      } catch (memberError) {
+        console.error('[ParentPlayers] Error creando socio automático:', memberError);
+      }
+
       // DETECCIÓN AUTOMÁTICA DE JUGADOR +18
       // Si el jugador es mayor de 18 años y el email coincide con el usuario actual
       const calcularEdadJugador = (fechaNac) => {
