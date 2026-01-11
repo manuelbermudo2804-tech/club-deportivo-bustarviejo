@@ -22,21 +22,26 @@ export default function CoordinatorChat({ embedded = false }) {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [labelFilter, setLabelFilter] = useState("all");
   const [showSettings, setShowSettings] = useState(false);
+  const [userLoaded, setUserLoaded] = useState(false);
   
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (userLoaded) return;
+    
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsCoordinator(currentUser.es_coordinador === true || currentUser.role === "admin");
+        setUserLoaded(true);
       } catch (error) {
         console.error("Error loading user:", error);
+        setUserLoaded(true);
       }
     };
     fetchUser();
-  }, []);
+  }, [userLoaded]);
 
   const { data: conversations = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
