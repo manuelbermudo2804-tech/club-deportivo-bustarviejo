@@ -18,8 +18,11 @@ Deno.serve(async (req) => {
 
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     if (!RESEND_API_KEY) {
+      console.error('[sendEmail] ❌ RESEND_API_KEY no configurada');
       return Response.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
     }
+
+    console.log('[sendEmail] 📧 Enviando email a:', to, '| Subject:', subject);
 
     // Enviar email usando Resend
     const response = await fetch('https://api.resend.com/emails', {
@@ -38,13 +41,28 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
 
+    console.log('[sendEmail] Respuesta Resend:', {
+      ok: response.ok,
+      status: response.status,
+      data: data
+    });
+
     if (!response.ok) {
-      console.error('Resend error response:', {
+      console.error('[sendEmail] ❌ Error Resend:', {
         status: response.status,
         statusText: response.statusText,
         data: data,
         headers: Object.fromEntries(response.headers.entries())
       });
+      
+      // Si es rate limit, devolver mensaje específico
+      if (response.status === 429) {
+        return Response.json({ 
+          error: 'Rate limit excedido. Resend permite máximo 2 emails/día en plan gratuito. Espera unos minutos e intenta de nuevo.',
+          resendError: data.message || 'Too many requests'
+        }, { status: 429 });
+      }
+      
       return Response.json({ 
         error: 'Failed to send email', 
         details: data,
@@ -53,6 +71,7 @@ Deno.serve(async (req) => {
       }, { status: response.status });
     }
 
+    console.log('[sendEmail] ✅ Email enviado correctamente, ID:', data.id);
     return Response.json({ success: true, id: data.id });
   } catch (error) {
     console.error('Error sending email:', error);
