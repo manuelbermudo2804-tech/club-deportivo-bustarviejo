@@ -936,25 +936,27 @@ export default function Layout({ children, currentPageName }) {
                   }
                   }
 
-                  // Verificar si el usuario es socio pagado (para mostrar carnet)
-                  if (programaSociosActivo) {
-                  try {
-                  const members = await base44.entities.ClubMember.filter({ 
-                  email: currentUser.email,
-                  estado_pago: "Pagado"
-                  });
-                  const isPaid = members.length > 0;
-                  console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
-                    email: currentUser.email,
-                    socios_encontrados: members.length,
-                    isPaid,
-                    programaSociosActivo
-                  });
-                  setIsMemberPaid(isPaid);
-                  } catch (error) {
-                  console.log('Error checking member status:', error);
-                  }
-                  }
+                  
+
+        // Verificar si el usuario es socio pagado (para TODOS los usuarios - mostrar carnet)
+        if (programaSociosActivo) {
+          try {
+            const members = await base44.entities.ClubMember.filter({ 
+              email: currentUser.email,
+              estado_pago: "Pagado"
+            });
+            const isPaid = members.length > 0;
+            console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
+              email: currentUser.email,
+              socios_encontrados: members.length,
+              isPaid,
+              programaSociosActivo
+            });
+            setIsMemberPaid(isPaid);
+          } catch (error) {
+            console.log('Error checking member status:', error);
+          }
+        }
 
         // Verificar partidos pendientes de observación (para entrenadores/coordinadores)
         if (currentUser.es_entrenador || currentUser.es_coordinador) {
