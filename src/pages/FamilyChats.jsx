@@ -26,9 +26,12 @@ export default function FamilyChats() {
   // Carga sin retorno temprano: mostramos loader dentro del contenido
   const loading = !user;
 
+  // Determinar tab por defecto solo una vez
+  const [defaultTab] = useState(() => isCoordinator ? "coordinador" : "entrenador");
+
   return (
     <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
-      <Tabs defaultValue={isCoordinator ? "coordinador" : "entrenador"} className="h-full flex flex-col">
+      <Tabs defaultValue={defaultTab} className="h-full flex flex-col">
         <div className="flex-shrink-0 bg-white border-b px-2 py-2">
           <TabsList className="w-full">
             <TabsTrigger value="coordinador" className="flex-1">🏟️ Coordinador</TabsTrigger>
