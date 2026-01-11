@@ -133,12 +133,25 @@ export default function useUnreadChats(enabled = true) {
     // 4) Entrenador↔Familia (grupos)
     if (isCoach || isCoordinator || isAdmin) {
       const coachCategories = user?.categorias_entrena || [];
-      const fromParents = groupMessages.filter(
-        (m) =>
-          m.tipo === "padre_a_grupo" &&
-          (!m.leido_por || !m.leido_por.some((lp) => lp.email === user.email)) &&
-          (coachCategories.includes(m.deporte) || coachCategories.includes(m.grupo_id))
-      ).length;
+      const fromParents = groupMessages.filter((m) => {
+        if (m.tipo !== "padre_a_grupo") return false;
+        
+        // Verificar si el mensaje ya fue leído por este usuario
+        const isRead = m.leido_por?.some((lp) => lp.email === user.email);
+        if (isRead) return false;
+        
+        // Admin ve todos los mensajes
+        if (isAdmin) return true;
+        
+        // Entrenador/Coordinador: verificar si pertenece a su categoría
+        const msgCategory = m.deporte || m.grupo_id;
+        return coachCategories.some(cat => 
+          cat === msgCategory || 
+          msgCategory?.toLowerCase().includes(cat?.toLowerCase()) ||
+          cat?.toLowerCase().includes(msgCategory?.toLowerCase())
+        );
+      }).length;
+      
       if (fromParents > 0) {
         results.push({ source: "families", label: "Familias", count: fromParents, link: "CoachParentChat" });
       }
