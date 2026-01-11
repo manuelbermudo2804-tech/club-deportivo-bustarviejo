@@ -339,26 +339,7 @@ const alerts = [];
     }
   }
 
-  // Incidencias nuevas (últimas 24h) - admin y coordinador
-  const { data: incidenciasForAlerts = [] } = useQuery({
-    queryKey: ['incidencias-alerts'],
-    queryFn: () => base44.entities.Incidencia.list('-created_date', 200),
-    enabled: isAdmin || isCoordinator || isJuntaUser,
-    refetchInterval: 30000,
-  });
-  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const newIncidencias = (incidenciasForAlerts || []).filter(i => i.estado !== 'Resuelta' && new Date(i.created_date) > twentyFourHoursAgo);
-  if ((isAdmin || isCoordinator || isJuntaUser) && newIncidencias.length > 0) {
-    alerts.push({
-      id: 'incidencias-new',
-      icon: AlertTriangle,
-      title: newIncidencias.length === 1 ? '🛠️ Nueva incidencia registrada' : '🛠️ Incidencias nuevas registradas',
-      description: `${newIncidencias.length} pendiente${newIncidencias.length > 1 ? 's' : ''} por atender`,
-      url: createPageUrl('Incidencias'),
-      color: 'bg-red-600',
-      priority: 1
-    });
-  }
+  // Incidencias eliminadas - la entidad no existe
 
   // Alertas para entrenadores/coordinadores (NO admin)
   if (isCoach && !isAdmin) {
