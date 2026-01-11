@@ -937,13 +937,20 @@ export default function Layout({ children, currentPageName }) {
                   }
 
                   // Verificar si el usuario es socio pagado (para mostrar carnet)
-                  if (programaSociosActivo && currentUser.role !== "admin") {
+                  if (programaSociosActivo) {
                   try {
                   const members = await base44.entities.ClubMember.filter({ 
                   email: currentUser.email,
                   estado_pago: "Pagado"
                   });
-                  setIsMemberPaid(members.length > 0);
+                  const isPaid = members.length > 0;
+                  console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
+                    email: currentUser.email,
+                    socios_encontrados: members.length,
+                    isPaid,
+                    programaSociosActivo
+                  });
+                  setIsMemberPaid(isPaid);
                   } catch (error) {
                   console.log('Error checking member status:', error);
                   }
@@ -1153,8 +1160,8 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const coachNavigationItems = [
-                  // 🎫 CARNET DE SOCIO (si tiene hijos Y es socio pagado)
-                  ...(programaSociosActivo && isMemberPaid && hasPlayers ? [{ 
+                  // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
+                  ...(programaSociosActivo && isMemberPaid ? [{ 
                     title: "🎫 MI CARNET DE SOCIO", 
                     url: createPageUrl("MemberCardDisplay"), 
                     icon: Users,
@@ -1213,8 +1220,8 @@ export default function Layout({ children, currentPageName }) {
 
 
   const coordinatorNavigationItems = [
-                // 🎫 CARNET DE SOCIO (si tiene hijos Y es socio pagado)
-                ...(programaSociosActivo && isMemberPaid && hasPlayers ? [{ 
+                // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
+                ...(programaSociosActivo && isMemberPaid ? [{ 
                   title: "🎫 MI CARNET DE SOCIO", 
                   url: createPageUrl("MemberCardDisplay"), 
                   icon: Users,
@@ -1271,7 +1278,7 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const parentNavigationItems = [
-        // 🎫 CARNET DE SOCIO (primera posición si es socio pagado)
+        // 🎫 CARNET DE SOCIO (primera posición si es socio pagado - con o sin hijos)
         ...(programaSociosActivo && isMemberPaid ? [{ 
           title: "🎫 MI CARNET DE SOCIO", 
           url: createPageUrl("MemberCardDisplay"), 
@@ -1356,8 +1363,8 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const treasurerNavigationItems = [
-    // 🎫 CARNET DE SOCIO (si tiene hijos Y es socio pagado)
-    ...(programaSociosActivo && isMemberPaid && hasPlayers ? [{ 
+    // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
+    ...(programaSociosActivo && isMemberPaid ? [{ 
       title: "🎫 MI CARNET DE SOCIO", 
       url: createPageUrl("MemberCardDisplay"), 
       icon: Users,
