@@ -313,13 +313,46 @@ export default function MemberCardDisplay() {
           </Card>
         )}
 
-        {/* Instrucciones de uso */}
+        {/* ¿Qué es el carnet de socio? */}
         <Card className="border-2 border-white shadow-xl bg-white/95">
-          <CardContent className="p-6 text-center">
-            <p className="text-sm text-slate-700 leading-relaxed">
-              <strong className="text-slate-900">📱 Muestra este carnet</strong> al comercio para aplicar tu descuento. 
-              El reloj en tiempo real garantiza que el carnet es auténtico y no una captura de pantalla.
-            </p>
+          <CardContent className="p-6 space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">🎫 ¿Qué es el Carnet de Socio?</h3>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                El carnet digital te identifica como <strong>socio oficial del CD Bustarviejo</strong> y te permite acceder a descuentos exclusivos en comercios colaboradores de la zona.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-lg p-4 space-y-3">
+              <h4 className="font-bold text-slate-900 text-sm">📱 Cómo usar tu carnet:</h4>
+              <div className="space-y-2 text-sm text-slate-700">
+                <div className="flex items-start gap-2">
+                  <span className="font-bold text-green-600 mt-0.5">1.</span>
+                  <p>Muestra tu carnet digital en el comercio adherido</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="font-bold text-green-600 mt-0.5">2.</span>
+                  <p>El comercio verificará que el carnet está <strong>ACTIVO</strong> (verde)</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="font-bold text-green-600 mt-0.5">3.</span>
+                  <p>El reloj en tiempo real garantiza que no es una captura de pantalla</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="font-bold text-green-600 mt-0.5">4.</span>
+                  <p>¡Disfruta de tu descuento inmediatamente!</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
+              <h4 className="font-bold text-orange-900 text-sm mb-2">⚠️ Importante:</h4>
+              <ul className="text-sm text-orange-800 space-y-1">
+                <li>• Solo válido si aparece <strong>ACTIVO</strong> (verde)</li>
+                <li>• Asegúrate de tener cuotas al día para mantenerlo activo</li>
+                <li>• No válido si está <strong>EXPIRADO</strong> (rojo)</li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
       </div>
