@@ -39,53 +39,67 @@ export default function MemberCardDisplay() {
           activo: true
         });
 
+        console.log('🎫 [MemberCard] Jugadores encontrados:', allPlayers.length);
+
         if (allPlayers.length === 0) {
+          console.log('❌ [MemberCard] Sin jugadores - no hay carnet');
           setLoading(false);
           return;
         }
 
         // Cargar todos los pagos
         const allPayments = await base44.entities.Payment.list();
+        console.log('💰 [MemberCard] Pagos totales cargados:', allPayments.length);
         
         // VERIFICAR: Todas las primeras cuotas (Junio o pago único) de TODOS los hijos deben estar pagadas
         let todasPrimerasCuotasPagadas = true;
 
         for (const player of allPlayers) {
-          const playerPayments = allPayments.filter(p => p.jugador_id === player.id && p.temporada === activeConfig.temporada);
+          const playerPayments = allPayments.filter(p => p.jugador_id === player.id);
+          console.log(`🔍 [MemberCard] Pagos de ${player.nombre}:`, playerPayments.length);
           
           // Si tiene pago único, verificar que esté pagado
           const uniquePayment = playerPayments.find(p => p.tipo_pago === "Único");
           if (uniquePayment) {
+            console.log(`💳 [MemberCard] ${player.nombre} - Pago único estado: ${uniquePayment.estado}`);
             if (uniquePayment.estado !== "Pagado") {
               todasPrimerasCuotasPagadas = false;
+              console.log(`❌ [MemberCard] ${player.nombre} - Pago único NO pagado`);
               break;
             }
-            continue; // Este hijo ya cumple (pago único pagado)
+            continue;
           }
 
           // Si tiene pago fraccionado, verificar que Junio esté pagado
           const junioPago = playerPayments.find(p => p.tipo_pago === "Tres meses" && p.mes === "Junio");
+          console.log(`📅 [MemberCard] ${player.nombre} - Pago Junio:`, junioPago ? `${junioPago.estado}` : 'No encontrado');
           if (!junioPago || junioPago.estado !== "Pagado") {
             todasPrimerasCuotasPagadas = false;
+            console.log(`❌ [MemberCard] ${player.nombre} - Primera cuota NO pagada`);
             break;
           }
         }
 
-        // Si no todas las primeras cuotas están pagadas, carnet no disponible
+        console.log('✅ [MemberCard] Todas primeras cuotas pagadas:', todasPrimerasCuotasPagadas);
+
+        // Si no todas las primeras cuotas están pagadas, NO mostrar carnet
         if (!todasPrimerasCuotasPagadas) {
+          console.log('❌ [MemberCard] Carnet NO disponible - primeras cuotas pendientes');
+          setMemberData(null);
+          setIsActive(false);
           setLoading(false);
           return;
         }
 
-        // Si llegamos aquí, las primeras cuotas están pagadas
-        // Crear datos de socio fake (el padre ES socio por tener hijos con primera cuota pagada)
+        // Si llegamos aquí, el padre ES SOCIO (tiene todas las primeras cuotas pagadas)
+        console.log('✅ [MemberCard] Padre ES SOCIO - creando datos de carnet');
         setMemberData({
           id: currentUser.id,
           nombre_completo: currentUser.full_name,
           email: currentUser.email
         });
 
-        // Ahora verificar si las cuotas actuales están pagadas (con periodo de gracia)
+        // Ahora verificar si las cuotas ACTUALES están pagadas (con periodo de gracia)
         const now = new Date();
         const currentMonth = now.getMonth() + 1;
         let currentPaymentMonth;
@@ -98,15 +112,20 @@ export default function MemberCardDisplay() {
           currentPaymentMonth = "Junio";
         }
 
+        console.log(`📅 [MemberCard] Cuota actual a verificar: ${currentPaymentMonth}`);
+
         // Para cada hijo, verificar si su cuota actual está pagada o en periodo de gracia
         let todasCuotasActualesOK = true;
 
         for (const player of allPlayers) {
-          const playerPayments = allPayments.filter(p => p.jugador_id === player.id && p.temporada === activeConfig.temporada);
+          const playerPayments = allPayments.filter(p => p.jugador_id === player.id);
           
           // Si tiene pago único ya pagado, OK
           const uniquePayment = playerPayments.find(p => p.tipo_pago === "Único" && p.estado === "Pagado");
-          if (uniquePayment) continue;
+          if (uniquePayment) {
+            console.log(`✅ [MemberCard] ${player.nombre} - Pago único OK`);
+            continue;
+          }
 
           // Si tiene pago fraccionado, verificar cuota actual
           const currentPayment = playerPayments.find(p => 
@@ -115,11 +134,15 @@ export default function MemberCardDisplay() {
           );
 
           if (!currentPayment) {
+            console.log(`❌ [MemberCard] ${player.nombre} - Cuota ${currentPaymentMonth} no encontrada`);
             todasCuotasActualesOK = false;
             break;
           }
 
-          if (currentPayment.estado === "Pagado") continue; // OK
+          if (currentPayment.estado === "Pagado") {
+            console.log(`✅ [MemberCard] ${player.nombre} - Cuota ${currentPaymentMonth} pagada`);
+            continue;
+          }
 
           // Si está pendiente, verificar periodo de gracia
           if (currentPayment.estado === "Pendiente") {
@@ -134,17 +157,23 @@ export default function MemberCardDisplay() {
             const fechaLimiteConGracia = new Date(fechaLimite);
             fechaLimiteConGracia.setDate(fechaLimiteConGracia.getDate() + diasGracia);
 
+            console.log(`⏰ [MemberCard] ${player.nombre} - Periodo gracia hasta: ${fechaLimiteConGracia.toLocaleDateString()}`);
+
             if (now > fechaLimiteConGracia) {
+              console.log(`❌ [MemberCard] ${player.nombre} - Periodo de gracia expirado`);
               todasCuotasActualesOK = false;
               break;
+            } else {
+              console.log(`✅ [MemberCard] ${player.nombre} - Dentro del periodo de gracia`);
             }
           } else {
-            // Estado no es ni Pagado ni Pendiente
+            console.log(`❌ [MemberCard] ${player.nombre} - Estado cuota: ${currentPayment.estado}`);
             todasCuotasActualesOK = false;
             break;
           }
         }
 
+        console.log('🎫 [MemberCard] Estado final carnet:', todasCuotasActualesOK ? 'ACTIVO ✅' : 'EXPIRADO ❌');
         setIsActive(todasCuotasActualesOK);
         setLoading(false);
       } catch (error) {
