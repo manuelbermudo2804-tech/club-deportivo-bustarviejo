@@ -538,6 +538,10 @@ export default function Layout({ children, currentPageName }) {
   const [currentLang, setCurrentLang] = useState('es');
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
+  const [showMemberCard, setShowMemberCard] = useState(false);
+  const [memberCardActive, setMemberCardActive] = useState(false);
+  const [isMemberPaid, setIsMemberPaid] = useState(false);
+  const [programaSociosActivo, setProgramaSociosActivo] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
@@ -597,6 +601,7 @@ export default function Layout({ children, currentPageName }) {
         const activeConfig = configs[0];
         setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
         setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
+        setProgramaSociosActivo(activeConfig?.programa_socios_activo === true);
         setSeasonConfigLoaded(true);
       } catch (error) {
         console.error("Error fetching season config:", error);
@@ -919,17 +924,30 @@ export default function Layout({ children, currentPageName }) {
                   }
 
                   // Verificar si tiene conversación activa con admin (para TODOS los usuarios excepto admins)
-        if (currentUser.role !== "admin") {
-          try {
-            const adminConvs = await base44.entities.AdminConversation.filter({ 
-              padre_email: currentUser.email,
-              resuelta: false
-            });
-            setHasActiveAdminConversation(adminConvs.length > 0);
-          } catch (error) {
-            console.log('Error checking admin conversation:', error);
-          }
-        }
+                  if (currentUser.role !== "admin") {
+                  try {
+                  const adminConvs = await base44.entities.AdminConversation.filter({ 
+                  padre_email: currentUser.email,
+                  resuelta: false
+                  });
+                  setHasActiveAdminConversation(adminConvs.length > 0);
+                  } catch (error) {
+                  console.log('Error checking admin conversation:', error);
+                  }
+                  }
+
+                  // Verificar si el usuario es socio pagado (para mostrar carnet)
+                  if (programaSociosActivo && currentUser.role !== "admin") {
+                  try {
+                  const members = await base44.entities.ClubMember.filter({ 
+                  email: currentUser.email,
+                  estado_pago: "Pagado"
+                  });
+                  setIsMemberPaid(members.length > 0);
+                  } catch (error) {
+                  console.log('Error checking member status:', error);
+                  }
+                  }
 
         // Verificar partidos pendientes de observación (para entrenadores/coordinadores)
         if (currentUser.es_entrenador || currentUser.es_coordinador) {
@@ -1135,8 +1153,16 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const coachNavigationItems = [
-            // 🏠 INICIO
-            { title: "🏠 Inicio", url: createPageUrl("CoachDashboard"), icon: Home },
+                  // 🎫 CARNET DE SOCIO (si tiene hijos Y es socio pagado)
+                  ...(programaSociosActivo && isMemberPaid && hasPlayers ? [{ 
+                    title: "🎫 MI CARNET DE SOCIO", 
+                    url: createPageUrl("MemberCardDisplay"), 
+                    icon: Users,
+                    highlight: true
+                  }] : []),
+
+                  // 🏠 INICIO
+                  { title: "🏠 Inicio", url: createPageUrl("CoachDashboard"), icon: Home },
 
       // 💬 COMUNICACIÓN (uso diario)
       { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
@@ -1187,8 +1213,16 @@ export default function Layout({ children, currentPageName }) {
 
 
   const coordinatorNavigationItems = [
-          // 🏠 INICIO
-          { title: "🏠 Inicio", url: createPageUrl("CoordinatorDashboard"), icon: Home },
+                // 🎫 CARNET DE SOCIO (si tiene hijos Y es socio pagado)
+                ...(programaSociosActivo && isMemberPaid && hasPlayers ? [{ 
+                  title: "🎫 MI CARNET DE SOCIO", 
+                  url: createPageUrl("MemberCardDisplay"), 
+                  icon: Users,
+                  highlight: true
+                }] : []),
+
+                // 🏠 INICIO
+                { title: "🏠 Inicio", url: createPageUrl("CoordinatorDashboard"), icon: Home },
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
@@ -1237,8 +1271,16 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const parentNavigationItems = [
-          // 🏠 INICIO
-          { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
+        // 🎫 CARNET DE SOCIO (primera posición si es socio pagado)
+        ...(programaSociosActivo && isMemberPaid ? [{ 
+          title: "🎫 MI CARNET DE SOCIO", 
+          url: createPageUrl("MemberCardDisplay"), 
+          icon: Users,
+          highlight: true
+        }] : []),
+
+        // 🏠 INICIO
+        { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
@@ -1278,6 +1320,14 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const playerNavigationItems = [
+          // 🎫 CARNET DE SOCIO (primera posición si es socio pagado)
+          ...(programaSociosActivo && isMemberPaid ? [{ 
+            title: "🎫 MI CARNET DE SOCIO", 
+            url: createPageUrl("MemberCardDisplay"), 
+            icon: Users,
+            highlight: true
+          }] : []),
+
           // 🏠 INICIO
           { title: "🏠 Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
 
@@ -1306,6 +1356,14 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const treasurerNavigationItems = [
+    // 🎫 CARNET DE SOCIO (si tiene hijos Y es socio pagado)
+    ...(programaSociosActivo && isMemberPaid && hasPlayers ? [{ 
+      title: "🎫 MI CARNET DE SOCIO", 
+      url: createPageUrl("MemberCardDisplay"), 
+      icon: Users,
+      highlight: true
+    }] : []),
+
     { title: "🏠 Inicio", url: createPageUrl("TreasurerDashboard"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💳 Pagos Club", url: createPageUrl("Payments"), icon: CreditCard },
@@ -1781,7 +1839,9 @@ export default function Layout({ children, currentPageName }) {
                     to={item.url}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                      location.pathname === item.url
+                      item.highlight
+                        ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg ring-2 ring-green-400 animate-pulse'
+                        : location.pathname === item.url
                         ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg'
                         : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
@@ -1853,7 +1913,9 @@ export default function Layout({ children, currentPageName }) {
                 key={item.title}
                 to={item.url}
                 className={`flex items-center justify-center gap-4 p-4 rounded-2xl transition-all group ${
-                  location.pathname === item.url
+                  item.highlight
+                    ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-600/50 ring-2 ring-green-400 animate-pulse'
+                    : location.pathname === item.url
                     ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50'
                     : 'text-slate-300 hover:bg-white/10 hover:text-white'
                 }`}

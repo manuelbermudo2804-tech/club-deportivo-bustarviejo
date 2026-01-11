@@ -1436,6 +1436,187 @@ export default function SeasonManagement() {
                 onCheckedChange={(checked) => toggleFeature('notificaciones_admin_email', checked)}
               />
             </div>
+
+            {/* Programa de Socios */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-green-600" />
+                <div>
+                  <p className="font-medium">Programa de Socios</p>
+                  <p className="text-xs text-slate-600">Carnets digitales con descuentos en comercios</p>
+                </div>
+              </div>
+              <Switch
+                checked={activeSeason?.programa_socios_activo || false}
+                onCheckedChange={(checked) => toggleFeature('programa_socios_activo', checked)}
+              />
+            </div>
+
+            {/* Configuración del Programa de Socios */}
+            {activeSeason?.programa_socios_activo && (
+              <div className="ml-8 space-y-4 bg-green-50 rounded-xl p-4 border-2 border-green-200">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium">💰 Precio anual socio (€):</Label>
+                  <Input
+                    type="number"
+                    value={activeSeason?.precio_socio || 25}
+                    onChange={(e) => {
+                      if (activeSeason) {
+                        updateSeasonMutation.mutate({
+                          id: activeSeason.id,
+                          data: { precio_socio: Number(e.target.value) }
+                        });
+                      }
+                    }}
+                    className="w-24"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium">⏰ Días de gracia:</Label>
+                  <Input
+                    type="number"
+                    value={activeSeason?.dias_gracia_carnet || 15}
+                    onChange={(e) => {
+                      if (activeSeason) {
+                        updateSeasonMutation.mutate({
+                          id: activeSeason.id,
+                          data: { dias_gracia_carnet: Number(e.target.value) }
+                        });
+                      }
+                    }}
+                    className="w-24"
+                  />
+                  <Info className="w-4 h-4 text-slate-400" title="Días después de fecha límite antes de carnet rojo" />
+                </div>
+
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="text-base font-bold text-green-900">🏪 Comercios con Descuentos</Label>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        const newCommerce = {
+                          nombre: "",
+                          descuento: "",
+                          direccion: "",
+                          telefono: "",
+                          categoria: "Restaurantes"
+                        };
+                        const updated = [...(activeSeason?.comercios_descuento || []), newCommerce];
+                        updateSeasonMutation.mutate({
+                          id: activeSeason.id,
+                          data: { comercios_descuento: updated }
+                        });
+                      }}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      + Añadir Comercio
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                    {(activeSeason?.comercios_descuento || []).map((comercio, index) => (
+                      <div key={index} className="bg-white rounded-lg p-3 border shadow-sm space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            placeholder="Nombre comercio"
+                            value={comercio.nombre}
+                            onChange={(e) => {
+                              const updated = [...activeSeason.comercios_descuento];
+                              updated[index].nombre = e.target.value;
+                              updateSeasonMutation.mutate({
+                                id: activeSeason.id,
+                                data: { comercios_descuento: updated }
+                              });
+                            }}
+                            className="flex-1"
+                          />
+                          <Input
+                            placeholder="10%"
+                            value={comercio.descuento}
+                            onChange={(e) => {
+                              const updated = [...activeSeason.comercios_descuento];
+                              updated[index].descuento = e.target.value;
+                              updateSeasonMutation.mutate({
+                                id: activeSeason.id,
+                                data: { comercios_descuento: updated }
+                              });
+                            }}
+                            className="w-24"
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              const updated = activeSeason.comercios_descuento.filter((_, i) => i !== index);
+                              updateSeasonMutation.mutate({
+                                id: activeSeason.id,
+                                data: { comercios_descuento: updated }
+                              });
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <select
+                          value={comercio.categoria || "Restaurantes"}
+                          onChange={(e) => {
+                            const updated = [...activeSeason.comercios_descuento];
+                            updated[index].categoria = e.target.value;
+                            updateSeasonMutation.mutate({
+                              id: activeSeason.id,
+                              data: { comercios_descuento: updated }
+                            });
+                          }}
+                          className="w-full text-sm border rounded px-2 py-1"
+                        >
+                          <option value="Restaurantes">Restaurantes</option>
+                          <option value="Tiendas">Tiendas</option>
+                          <option value="Servicios">Servicios</option>
+                          <option value="Ocio">Ocio</option>
+                          <option value="Salud">Salud</option>
+                          <option value="Otro">Otro</option>
+                        </select>
+                        <Input
+                          placeholder="Dirección (opcional)"
+                          value={comercio.direccion || ""}
+                          onChange={(e) => {
+                            const updated = [...activeSeason.comercios_descuento];
+                            updated[index].direccion = e.target.value;
+                            updateSeasonMutation.mutate({
+                              id: activeSeason.id,
+                              data: { comercios_descuento: updated }
+                            });
+                          }}
+                          className="text-sm"
+                        />
+                        <Input
+                          placeholder="Teléfono (opcional)"
+                          value={comercio.telefono || ""}
+                          onChange={(e) => {
+                            const updated = [...activeSeason.comercios_descuento];
+                            updated[index].telefono = e.target.value;
+                            updateSeasonMutation.mutate({
+                              id: activeSeason.id,
+                              data: { comercios_descuento: updated }
+                            });
+                          }}
+                          className="text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {(activeSeason?.comercios_descuento || []).length === 0 && (
+                    <p className="text-center text-sm text-slate-500 py-4">
+                      No hay comercios añadidos. Pulsa "+ Añadir Comercio"
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         )}
       </Card>
