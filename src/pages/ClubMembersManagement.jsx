@@ -481,7 +481,7 @@ CD Bustarviejo`;
     }
     setSendingEmailTo(member.id);
     try {
-      await base44.functions.invoke('sendEmail', {
+      const response = await base44.functions.invoke('sendEmail', {
         to: member.email,
         subject: `💚 ¡Renueva tu carnet de socio! - CD Bustarviejo`,
         html: `Estimado/a ${member.nombre_completo},
@@ -497,9 +497,17 @@ Por solo 25€ al año, seguirás apoyando a más de 200 jóvenes deportistas de
 CD Bustarviejo
 cdbustarviejo@gmail.com`
       });
-      toast.success(`✅ Email enviado a ${member.nombre_completo}`);
+      
+      console.log('[sendEmailToMember] Respuesta:', response);
+      
+      if (response.data?.error) {
+        toast.error(`Error enviando email: ${response.data.error}`);
+      } else {
+        toast.success(`✅ Email enviado a ${member.nombre_completo}`);
+      }
     } catch (error) {
-      toast.error("Error: " + error.message);
+      console.error('[sendEmailToMember] Error:', error);
+      toast.error("Error enviando email: " + (error.response?.data?.error || error.message));
     } finally {
       setSendingEmailTo(null);
     }
@@ -519,7 +527,7 @@ cdbustarviejo@gmail.com`
 
     for (const member of membersWithEmail) {
       try {
-        await base44.functions.invoke('sendEmail', {
+        const response = await base44.functions.invoke('sendEmail', {
           to: member.email,
           subject: `💚 ¡Renueva tu carnet de socio! - CD Bustarviejo`,
           html: `Estimado/a ${member.nombre_completo},
@@ -533,9 +541,18 @@ Por solo 25€/año seguirás apoyando a nuestros jóvenes deportistas.
 ¡Gracias!
 CD Bustarviejo`
         });
-        sent++;
-      } catch (e) { errors++; }
-      await new Promise(r => setTimeout(r, 150));
+        
+        if (response.data?.error) {
+          console.error('[sendBulkEmails] Error enviando a:', member.email, response.data.error);
+          errors++;
+        } else {
+          sent++;
+        }
+      } catch (e) { 
+        console.error('[sendBulkEmails] Excepción:', e);
+        errors++; 
+      }
+      await new Promise(r => setTimeout(r, 500));
     }
 
     setSendingBulkEmails(false);
