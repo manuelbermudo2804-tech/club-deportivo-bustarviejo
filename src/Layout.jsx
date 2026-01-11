@@ -844,6 +844,35 @@ export default function Layout({ children, currentPageName }) {
           role_RAW: currentUser.role
         });
 
+        // Cargar configuración de temporada AQUÍ (dentro del fetchUser)
+        try {
+          const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+          const activeConfig = configs[0];
+          setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
+          setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
+          const sociosActivo = activeConfig?.programa_socios_activo === true;
+          setProgramaSociosActivo(sociosActivo);
+          console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
+
+          // Verificar si el usuario es socio pagado (para TODOS los usuarios)
+          if (sociosActivo) {
+            const members = await base44.entities.ClubMember.filter({ 
+              email: currentUser.email,
+              estado_pago: "Pagado"
+            });
+            const isPaid = members.length > 0;
+            console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
+              email: currentUser.email,
+              socios_encontrados: members.length,
+              isPaid,
+              programa_socios_activo: sociosActivo
+            });
+            setIsMemberPaid(isPaid);
+          }
+        } catch (error) {
+          console.error("Error fetching season config:", error);
+        }
+
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
                 if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
                   const tienehijos = currentUser.tiene_hijos_jugando === true;
@@ -937,26 +966,6 @@ export default function Layout({ children, currentPageName }) {
                   }
 
                   
-
-        // Verificar si el usuario es socio pagado (para TODOS los usuarios - mostrar carnet)
-        if (programaSociosActivo) {
-          try {
-            const members = await base44.entities.ClubMember.filter({ 
-              email: currentUser.email,
-              estado_pago: "Pagado"
-            });
-            const isPaid = members.length > 0;
-            console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
-              email: currentUser.email,
-              socios_encontrados: members.length,
-              isPaid,
-              programaSociosActivo
-            });
-            setIsMemberPaid(isPaid);
-          } catch (error) {
-            console.log('Error checking member status:', error);
-          }
-        }
 
         // Verificar partidos pendientes de observación (para entrenadores/coordinadores)
         if (currentUser.es_entrenador || currentUser.es_coordinador) {
