@@ -38,25 +38,12 @@ export default function CoordinatorChat({ embedded = false }) {
     fetchUser();
   }, []);
 
-  const { data: allPlayers = [] } = useQuery({
-    queryKey: ['playersForChat'],
-    queryFn: () => base44.entities.Player.list(),
-    enabled: isCoordinator,
-  });
-
   const { data: conversations = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
     queryFn: async () => {
-      const allConvs = await base44.entities.CoordinatorConversation.list('-ultimo_mensaje_fecha');
-      // Filtrar solo conversaciones con jugadores activos
-      return allConvs.filter(conv => 
-        conv.jugadores_asociados?.some(j => {
-          const player = allPlayers.find(p => p.id === j.jugador_id);
-          return player?.activo === true;
-        })
-      );
+      return await base44.entities.CoordinatorConversation.list('-ultimo_mensaje_fecha');
     },
-    enabled: isCoordinator && allPlayers.length > 0,
+    enabled: isCoordinator,
     refetchInterval: 5000,
   });
 

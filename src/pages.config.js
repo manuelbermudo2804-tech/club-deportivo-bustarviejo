@@ -5,6 +5,7 @@ import Announcements from './pages/Announcements';
 import Anuncios from './pages/Anuncios';
 import BoardTasks from './pages/BoardTasks';
 import CalendarAndSchedules from './pages/CalendarAndSchedules';
+import CategoryConfigAdmin from './pages/CategoryConfigAdmin';
 import CategoryManagement from './pages/CategoryManagement';
 import CentroCompeticion from './pages/CentroCompeticion';
 import CentroCompeticionTecnico from './pages/CentroCompeticionTecnico';
@@ -92,7 +93,6 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import CategoryConfigAdmin from './pages/CategoryConfigAdmin';
 import __Layout from './Layout.jsx';
 
 
@@ -104,6 +104,7 @@ export const PAGES = {
     "Anuncios": Anuncios,
     "BoardTasks": BoardTasks,
     "CalendarAndSchedules": CalendarAndSchedules,
+    "CategoryConfigAdmin": CategoryConfigAdmin,
     "CategoryManagement": CategoryManagement,
     "CentroCompeticion": CentroCompeticion,
     "CentroCompeticionTecnico": CentroCompeticionTecnico,
@@ -191,7 +192,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "CategoryConfigAdmin": CategoryConfigAdmin,
 }
 
 export const pagesConfig = {
