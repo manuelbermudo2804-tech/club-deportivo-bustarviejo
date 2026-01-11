@@ -30,7 +30,26 @@ export default function MemberCardDisplay() {
           return;
         }
 
-        // Buscar jugadores de este padre
+        // 1. Verificar si el usuario ES SOCIO (existe en ClubMember con estado_pago = "Pagado")
+        const members = await base44.entities.ClubMember.filter({ 
+          email: currentUser.email,
+          estado_pago: "Pagado"
+        });
+
+        console.log('🎫 [MemberCard] ClubMember encontrado:', members.length > 0 ? 'SÍ' : 'NO');
+
+        if (members.length === 0) {
+          console.log('❌ [MemberCard] Usuario NO es socio pagado');
+          setLoading(false);
+          return;
+        }
+
+        // Usuario ES SOCIO → Mostrar carnet
+        const member = members[0];
+        setMemberData(member);
+        console.log('✅ [MemberCard] Usuario ES SOCIO:', member.nombre_completo);
+
+        // 2. Verificar COLOR del carnet (verde/rojo): todas las cuotas actuales de TODOS los hijos al día
         const allPlayers = await base44.entities.Player.filter({ 
           $or: [
             { email_padre: currentUser.email },
@@ -39,67 +58,17 @@ export default function MemberCardDisplay() {
           activo: true
         });
 
-        console.log('🎫 [MemberCard] Jugadores encontrados:', allPlayers.length);
+        console.log('👨‍👩‍👧 [MemberCard] Hijos encontrados:', allPlayers.length);
 
+        // Si no tiene hijos, carnet siempre verde (socio sin hijos o socio externo)
         if (allPlayers.length === 0) {
-          console.log('❌ [MemberCard] Sin jugadores - no hay carnet');
+          console.log('✅ [MemberCard] Sin hijos - carnet VERDE por defecto');
+          setIsActive(true);
           setLoading(false);
           return;
         }
 
-        // Cargar todos los pagos
-        const allPayments = await base44.entities.Payment.list();
-        console.log('💰 [MemberCard] Pagos totales cargados:', allPayments.length);
-        
-        // VERIFICAR: Todas las primeras cuotas (Junio o pago único) de TODOS los hijos deben estar pagadas
-        let todasPrimerasCuotasPagadas = true;
-
-        for (const player of allPlayers) {
-          const playerPayments = allPayments.filter(p => p.jugador_id === player.id);
-          console.log(`🔍 [MemberCard] Pagos de ${player.nombre}:`, playerPayments.length);
-          
-          // Si tiene pago único, verificar que esté pagado
-          const uniquePayment = playerPayments.find(p => p.tipo_pago === "Único");
-          if (uniquePayment) {
-            console.log(`💳 [MemberCard] ${player.nombre} - Pago único estado: ${uniquePayment.estado}`);
-            if (uniquePayment.estado !== "Pagado") {
-              todasPrimerasCuotasPagadas = false;
-              console.log(`❌ [MemberCard] ${player.nombre} - Pago único NO pagado`);
-              break;
-            }
-            continue;
-          }
-
-          // Si tiene pago fraccionado, verificar que Junio esté pagado
-          const junioPago = playerPayments.find(p => p.tipo_pago === "Tres meses" && p.mes === "Junio");
-          console.log(`📅 [MemberCard] ${player.nombre} - Pago Junio:`, junioPago ? `${junioPago.estado}` : 'No encontrado');
-          if (!junioPago || junioPago.estado !== "Pagado") {
-            todasPrimerasCuotasPagadas = false;
-            console.log(`❌ [MemberCard] ${player.nombre} - Primera cuota NO pagada`);
-            break;
-          }
-        }
-
-        console.log('✅ [MemberCard] Todas primeras cuotas pagadas:', todasPrimerasCuotasPagadas);
-
-        // Si no todas las primeras cuotas están pagadas, NO mostrar carnet
-        if (!todasPrimerasCuotasPagadas) {
-          console.log('❌ [MemberCard] Carnet NO disponible - primeras cuotas pendientes');
-          setMemberData(null);
-          setIsActive(false);
-          setLoading(false);
-          return;
-        }
-
-        // Si llegamos aquí, el padre ES SOCIO (tiene todas las primeras cuotas pagadas)
-        console.log('✅ [MemberCard] Padre ES SOCIO - creando datos de carnet');
-        setMemberData({
-          id: currentUser.id,
-          nombre_completo: currentUser.full_name,
-          email: currentUser.email
-        });
-
-        // Ahora verificar si las cuotas ACTUALES están pagadas (con periodo de gracia)
+        // Determinar cuota actual según la fecha
         const now = new Date();
         const currentMonth = now.getMonth() + 1;
         let currentPaymentMonth;
@@ -114,13 +83,16 @@ export default function MemberCardDisplay() {
 
         console.log(`📅 [MemberCard] Cuota actual a verificar: ${currentPaymentMonth}`);
 
-        // Para cada hijo, verificar si su cuota actual está pagada o en periodo de gracia
-        let todasCuotasActualesOK = true;
+        // Cargar todos los pagos
+        const allPayments = await base44.entities.Payment.list();
+
+        // Verificar cuotas actuales de TODOS los hijos
+        let todasCuotasAlDia = true;
 
         for (const player of allPlayers) {
           const playerPayments = allPayments.filter(p => p.jugador_id === player.id);
           
-          // Si tiene pago único ya pagado, OK
+          // Si tiene pago único pagado, OK
           const uniquePayment = playerPayments.find(p => p.tipo_pago === "Único" && p.estado === "Pagado");
           if (uniquePayment) {
             console.log(`✅ [MemberCard] ${player.nombre} - Pago único OK`);
@@ -134,8 +106,8 @@ export default function MemberCardDisplay() {
           );
 
           if (!currentPayment) {
-            console.log(`❌ [MemberCard] ${player.nombre} - Cuota ${currentPaymentMonth} no encontrada`);
-            todasCuotasActualesOK = false;
+            console.log(`❌ [MemberCard] ${player.nombre} - Cuota ${currentPaymentMonth} no existe`);
+            todasCuotasAlDia = false;
             break;
           }
 
@@ -144,7 +116,7 @@ export default function MemberCardDisplay() {
             continue;
           }
 
-          // Si está pendiente, verificar periodo de gracia
+          // Si está pendiente, verificar periodo de gracia (15 días después de fecha límite)
           if (currentPayment.estado === "Pendiente") {
             const FECHAS_LIMITE = {
               "Junio": new Date(now.getFullYear(), 5, 30),
@@ -157,24 +129,23 @@ export default function MemberCardDisplay() {
             const fechaLimiteConGracia = new Date(fechaLimite);
             fechaLimiteConGracia.setDate(fechaLimiteConGracia.getDate() + diasGracia);
 
-            console.log(`⏰ [MemberCard] ${player.nombre} - Periodo gracia hasta: ${fechaLimiteConGracia.toLocaleDateString()}`);
-
-            if (now > fechaLimiteConGracia) {
-              console.log(`❌ [MemberCard] ${player.nombre} - Periodo de gracia expirado`);
-              todasCuotasActualesOK = false;
-              break;
-            } else {
+            if (now <= fechaLimiteConGracia) {
               console.log(`✅ [MemberCard] ${player.nombre} - Dentro del periodo de gracia`);
+              continue;
+            } else {
+              console.log(`❌ [MemberCard] ${player.nombre} - Periodo de gracia expirado`);
+              todasCuotasAlDia = false;
+              break;
             }
           } else {
             console.log(`❌ [MemberCard] ${player.nombre} - Estado cuota: ${currentPayment.estado}`);
-            todasCuotasActualesOK = false;
+            todasCuotasAlDia = false;
             break;
           }
         }
 
-        console.log('🎫 [MemberCard] Estado final carnet:', todasCuotasActualesOK ? 'ACTIVO ✅' : 'EXPIRADO ❌');
-        setIsActive(todasCuotasActualesOK);
+        console.log('🎫 [MemberCard] Estado final carnet:', todasCuotasAlDia ? 'VERDE ✅' : 'ROJO ❌');
+        setIsActive(todasCuotasAlDia);
         setLoading(false);
       } catch (error) {
         console.error("Error loading member card:", error);
