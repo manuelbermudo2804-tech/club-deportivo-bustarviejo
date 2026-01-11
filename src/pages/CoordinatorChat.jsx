@@ -87,17 +87,6 @@ export default function CoordinatorChat({ embedded = false }) {
 
   const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
 
-  // Al abrir una conversación, poner a cero sus no leídos
-  useEffect(() => {
-    if (!selectedConversation?.id || (selectedConversation.no_leidos_coordinador || 0) === 0) return;
-    
-    const markAsRead = async () => {
-      await base44.entities.CoordinatorConversation.update(selectedConversation.id, { no_leidos_coordinador: 0 });
-      queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
-    };
-    markAsRead();
-  }, [selectedConversation?.id, queryClient]);
-
    return (
     <div className="h-full flex flex-col lg:flex-row overflow-hidden">
       {/* Modal de configuración */}
