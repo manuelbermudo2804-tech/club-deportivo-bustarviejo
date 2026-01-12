@@ -47,10 +47,21 @@ export default function InscriptionPaymentFlow({
   const [tipoPago, setTipoPago] = useState("Único");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const cuotas = getCuotasFromConfig(playerData.deporte, categoryConfigs);
+  // Calcular cuotas por cada categoría seleccionada
+  const categoriasSeleccionadas = playerData.categorias || [playerData.deporte];
+  const cuotasPorCategoria = categoriasSeleccionadas.map(cat => ({
+    categoria: cat,
+    cuotas: getCuotasFromConfig(cat, categoryConfigs)
+  })).filter(c => c.cuotas !== null);
 
-  const importeTotal = cuotas ? cuotas.total - descuentoHermano : 0;
-  const importeInscripcion = cuotas ? cuotas.inscripcion - descuentoHermano : 0;
+  // Calcular total sumando todas las categorías
+  const importeTotalSinDescuento = cuotasPorCategoria.reduce((sum, c) => sum + c.cuotas.total, 0);
+  const importeInscripcionSinDescuento = cuotasPorCategoria.reduce((sum, c) => sum + c.cuotas.inscripcion, 0);
+  const importeSegundaSinDescuento = cuotasPorCategoria.reduce((sum, c) => sum + c.cuotas.segunda, 0);
+  const importeTerceraSinDescuento = cuotasPorCategoria.reduce((sum, c) => sum + c.cuotas.tercera, 0);
+
+  const importeTotal = importeTotalSinDescuento - descuentoHermano;
+  const importeInscripcion = importeInscripcionSinDescuento - descuentoHermano;
 
   const handleContinue = () => {
     // Prevenir doble-click
@@ -74,7 +85,9 @@ export default function InscriptionPaymentFlow({
         cantidad: importeTotal,
         estado: "Pendiente",
         metodo_pago: "Transferencia",
-        notas: descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : ""
+        notas: descuentoHermano > 0 
+          ? `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}. Descuento hermano: -${descuentoHermano}€` 
+          : `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}`
       });
     } else {
       paymentsToCreate.push(
@@ -85,23 +98,27 @@ export default function InscriptionPaymentFlow({
           cantidad: importeInscripcion,
           estado: "Pendiente",
           metodo_pago: "Transferencia",
-          notas: descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : ""
+          notas: descuentoHermano > 0 
+            ? `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}. Descuento hermano: -${descuentoHermano}€` 
+            : `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}`
         },
         {
           tipo_pago: "Tres meses",
           mes: "Septiembre",
           temporada: seasonToUse,
-          cantidad: cuotas.segunda,
+          cantidad: importeSegundaSinDescuento,
           estado: "Pendiente",
-          metodo_pago: "Transferencia"
+          metodo_pago: "Transferencia",
+          notas: `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}`
         },
         {
           tipo_pago: "Tres meses",
           mes: "Diciembre",
           temporada: seasonToUse,
-          cantidad: cuotas.tercera,
+          cantidad: importeTerceraSinDescuento,
           estado: "Pendiente",
-          metodo_pago: "Transferencia"
+          metodo_pago: "Transferencia",
+          notas: `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}`
         }
       );
     }
@@ -109,11 +126,11 @@ export default function InscriptionPaymentFlow({
     onContinue({ tipoPago, payments: paymentsToCreate });
   };
 
-  if (!cuotas) {
+  if (cuotasPorCategoria.length === 0) {
     return (
       <Alert className="bg-red-50 border-red-300">
         <AlertDescription className="text-red-800">
-          No se encontró configuración de cuotas. Contacta con el administrador.
+          No se encontró configuración de cuotas para las categorías seleccionadas. Contacta con el administrador.
         </AlertDescription>
       </Alert>
     );
@@ -133,7 +150,14 @@ export default function InscriptionPaymentFlow({
           <p className="text-sm font-bold text-green-900 mb-2">✅ Jugador registrado correctamente</p>
           <div className="space-y-1 text-sm text-green-800">
             <p><strong>Nombre:</strong> {playerData.nombre}</p>
-            <p><strong>Categoría:</strong> {playerData.deporte}</p>
+            <p><strong>Categorías:</strong></p>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {categoriasSeleccionadas.map(cat => (
+                <Badge key={cat} className="bg-green-600 text-white">
+                  {cat}
+                </Badge>
+              ))}
+            </div>
             <p><strong>Temporada:</strong> {seasonConfig?.temporada || `${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}</p>
           </div>
         </div>
@@ -170,7 +194,7 @@ export default function InscriptionPaymentFlow({
                   </span>
                   <span className="text-xs text-slate-500">
                     Todo en junio - Más económico
-                    {descuentoHermano > 0 && <span className="ml-1 text-purple-600">(Precio original: {cuotas.total}€)</span>}
+                    {descuentoHermano > 0 && <span className="ml-1 text-purple-600">(Precio original: {importeTotalSinDescuento}€)</span>}
                   </span>
                 </div>
               </SelectItem>
@@ -181,8 +205,8 @@ export default function InscriptionPaymentFlow({
                     {descuentoHermano > 0 && <span className="ml-2 text-purple-600">💜 -{descuentoHermano}€</span>}
                   </span>
                   <span className="text-xs text-slate-500">
-                    {importeInscripcion}€ + {cuotas.segunda}€ + {cuotas.tercera}€ = {importeTotal}€
-                    {descuentoHermano > 0 && <span className="ml-1 text-purple-600">(Total original: {cuotas.total}€)</span>}
+                    {importeInscripcion}€ + {importeSegundaSinDescuento}€ + {importeTerceraSinDescuento}€ = {importeTotal}€
+                    {descuentoHermano > 0 && <span className="ml-1 text-purple-600">(Total original: {importeTotalSinDescuento}€)</span>}
                   </span>
                 </div>
               </SelectItem>
@@ -191,8 +215,30 @@ export default function InscriptionPaymentFlow({
         </div>
 
         <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
-          <p className="text-sm font-bold text-orange-900 mb-3">💰 Cuotas que se generarán:</p>
+          <p className="text-sm font-bold text-orange-900 mb-3">💰 Resumen de Cuotas - {categoriasSeleccionadas.length} Categoría{categoriasSeleccionadas.length > 1 ? 's' : ''}:</p>
           
+          {/* Desglose por categoría */}
+          <div className="bg-white rounded-lg p-3 mb-3 border">
+            <p className="text-xs font-bold text-slate-700 mb-2">📊 Desglose por categoría:</p>
+            {cuotasPorCategoria.map(({categoria, cuotas}) => (
+              <div key={categoria} className="text-xs text-slate-600 py-1">
+                <strong>{categoria}:</strong> {cuotas.total}€
+              </div>
+            ))}
+            <div className="border-t mt-2 pt-2">
+              <div className="flex justify-between text-sm">
+                <span className="font-bold">Subtotal:</span>
+                <span className="font-bold text-orange-700">{importeTotalSinDescuento}€</span>
+              </div>
+              {descuentoHermano > 0 && (
+                <div className="flex justify-between text-sm text-purple-700">
+                  <span>Descuento hermano:</span>
+                  <span className="font-bold">-{descuentoHermano}€</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {tipoPago === "Único" ? (
             <div className="space-y-2">
               <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-orange-200">
@@ -202,7 +248,7 @@ export default function InscriptionPaymentFlow({
                 </div>
                 <div className="text-right">
                   {descuentoHermano > 0 && (
-                    <p className="text-sm text-slate-500 line-through">{cuotas.total}€</p>
+                    <p className="text-sm text-slate-500 line-through">{importeTotalSinDescuento}€</p>
                   )}
                   <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
                 </div>
@@ -224,7 +270,7 @@ export default function InscriptionPaymentFlow({
                 </div>
                 <div className="text-right">
                   {descuentoHermano > 0 && (
-                    <p className="text-sm text-slate-500 line-through">{cuotas.inscripcion}€</p>
+                    <p className="text-sm text-slate-500 line-through">{importeInscripcionSinDescuento}€</p>
                   )}
                   <p className="text-lg font-bold text-orange-700">{importeInscripcion}€</p>
                 </div>
@@ -234,14 +280,14 @@ export default function InscriptionPaymentFlow({
                   <p className="font-bold text-slate-900">2ª Cuota (Septiembre)</p>
                   <p className="text-xs text-slate-600">Vence: 15 de septiembre</p>
                 </div>
-                <p className="text-lg font-bold text-slate-700">{cuotas.segunda}€</p>
+                <p className="text-lg font-bold text-slate-700">{importeSegundaSinDescuento}€</p>
               </div>
               <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-slate-200">
                 <div>
                   <p className="font-bold text-slate-900">3ª Cuota (Diciembre)</p>
                   <p className="text-xs text-slate-600">Vence: 15 de diciembre</p>
                 </div>
-                <p className="text-lg font-bold text-slate-700">{cuotas.tercera}€</p>
+                <p className="text-lg font-bold text-slate-700">{importeTerceraSinDescuento}€</p>
               </div>
               {descuentoHermano > 0 && (
                 <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
@@ -255,7 +301,7 @@ export default function InscriptionPaymentFlow({
                   <p className="font-bold text-slate-600">Total temporada:</p>
                   <div className="text-right">
                     {descuentoHermano > 0 && (
-                      <p className="text-sm text-slate-500 line-through">{cuotas.total}€</p>
+                      <p className="text-sm text-slate-500 line-through">{importeTotalSinDescuento}€</p>
                     )}
                     <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
                   </div>
