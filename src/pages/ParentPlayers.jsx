@@ -497,7 +497,7 @@ Hola <strong>${dataWithParentEmail.nombre_tutor_2 || "Estimado/a"}</strong>,
           
           // Buscar si este padre fue referido por alguien (tiene un registro en ClubMember con referido_por)
           const allMembers = await base44.entities.ClubMember.list();
-          const myMembership = allMembers.find(m => m.email?.toLowerCase() === user?.email?.toLowerCase() && m.temporada === seasonConfig?.temporada);
+          const myMembership = allMembers.find(m => m.email?.toLowerCase() === currentUser?.email?.toLowerCase() && m.temporada === seasonConfig?.temporada);
           
           if (myMembership?.referido_por) {
             console.log('🎯 [ParentPlayers] Padre fue referido por:', myMembership.referido_por);
