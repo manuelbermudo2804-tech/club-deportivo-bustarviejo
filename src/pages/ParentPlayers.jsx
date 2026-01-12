@@ -233,7 +233,8 @@ export default function ParentPlayers() {
       
       // Recalcular descuentos de TODOS los hermanos de la familia
       try {
-        const familyPlayers = allPlayers.filter(p => 
+        const allPlayersInDB = await base44.entities.Player.list();
+        const familyPlayers = allPlayersInDB.filter(p => 
           (p.email_padre === user?.email || p.email_padre === dataWithParentEmail.email_padre) &&
           p.activo &&
           p.id !== newPlayer.id
