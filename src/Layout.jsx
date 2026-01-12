@@ -1460,21 +1460,13 @@ export default function Layout({ children, currentPageName }) {
         if (!user) return;
     
         const checkOnboardingStatus = async () => {
+          // Paso 1: Elegir panel (familia o jugador)
           if (!user.tipo_panel) {
             setOnboardingView('selector');
             return;
           }
           
-          if (user.tipo_panel === 'familia' && !user.onboarding_parents_completed) {
-            setOnboardingView('parent_flow');
-            return;
-          }
-    
-          if (user.tipo_panel === 'jugador_adulto' && !user.onboarding_player_completed) {
-            setOnboardingView('player_flow');
-            return;
-          }
-
+          // Paso 2: Instalar app en móvil
           const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
           const appInstalled = isStandalone || localStorage.getItem('pwaInstalled') === 'true';
 
@@ -1483,12 +1475,14 @@ export default function Layout({ children, currentPageName }) {
             return;
           }
     
+          // Paso 3: App ya instalada, marcar como instalada en BD
           if (isStandalone && !user.app_instalada) {
             try {
               await base44.auth.updateMe({ app_instalada: true });
             } catch(e) { console.log('Failed to update user app installation status') }
           }
     
+          // Onboarding completado - ir a dashboard
           setOnboardingView('none');
         };
     
