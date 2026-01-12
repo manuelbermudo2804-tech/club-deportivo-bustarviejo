@@ -547,12 +547,12 @@ export default function Layout({ children, currentPageName }) {
   const [programaSociosActivo, setProgramaSociosActivo] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
-  const [showTypeSelector, setShowTypeSelector] = useState(false);
+  
   const [isAppInstalled, setIsAppInstalled] = useState(false);
-  const [showMandatoryPWA, setShowMandatoryPWA] = useState(false);
+  
   const [showWelcome, setShowWelcome] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingType, setOnboardingType] = useState(null); // "parent" o "player"
+  
+  const [installDismissed, setInstallDismissed] = useState(false);
   // isIOS/isAndroid definidos arriba para evitar TDZ
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
@@ -918,13 +918,7 @@ export default function Layout({ children, currentPageName }) {
                   console.log('👨‍👩‍👧 [LAYOUT] Padre normal - jugadores encontrados:', myPlayers.length);
                   setHasPlayers(myPlayers.length > 0);
 
-                  // Si es usuario nuevo sin tipo de panel definido, mostrar selector SIEMPRE
-                  if (!currentUser.tipo_panel && !currentUser.es_jugador) {
-                    console.log('❓ [LAYOUT] Usuario sin tipo_panel - mostrando selector');
-                    setShowTypeSelector(true);
-                    setIsLoading(false);
-                    return;
-                  }
+
 
                   setIsLoading(false);
 
@@ -1460,9 +1454,7 @@ export default function Layout({ children, currentPageName }) {
 
   
 
-      // Mostrar loading mientras se carga el usuario (spinner simple, sin logo)
       if (isLoading && !isPublicPage) {
-        console.log('⏳ [LAYOUT] Mostrando loading screen');
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
             <div className="text-center">
@@ -1475,135 +1467,113 @@ export default function Layout({ children, currentPageName }) {
 
       console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
 
-      // Selector de tipo de panel OBLIGATORIO (primera pantalla)
-      if (showTypeSelector && user) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-            <Suspense fallback={null}>
-            <RegistrationTypeSelector
-              onSelectFamily={async () => {
-                console.log('👨‍👩‍👧 [LAYOUT] Seleccionado panel FAMILIA');
-                await base44.auth.updateMe({ tipo_panel: 'familia' });
-                setShowTypeSelector(false);
-                setOnboardingType("parent");
-                setShowOnboarding(true);
-              }}
-              onSelectAdultPlayer={async () => {
-                console.log('⚽ [LAYOUT] Seleccionado panel JUGADOR +18');
-                await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
-                setShowTypeSelector(false);
-                setOnboardingType("player");
-                setShowOnboarding(true);
-              }}
-            />
-            </Suspense>
-          </div>
-        );
-      }
+      const [onboardingView, setOnboardingView] = useState('loading');
 
-      // Paso 2: INSTALAR APP (BLOQUEANTE)
-      if (showOnboarding && !isAppInstalled) {
-        return (
-          <Suspense fallback={null}>
-            <MandatoryPWAInstall 
-              onInstalled={() => {
-                setIsAppInstalled(true);
-                localStorage.setItem('pwaInstalled', 'true');
-                // El onboarding continúa automáticamente
-              }}
-            />
-          </Suspense>
-        );
-      }
+      useEffect(() => {
+        if (!user) return;
+    
+        const checkOnboardingStatus = async () => {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+          const appInstalled = isStandalone || localStorage.getItem('pwaInstalled') === 'true';
 
-      // Paso 3: ONBOARDING ESPECÍFICO (PADRE O JUGADOR)
-      if (showOnboarding && isAppInstalled && onboardingType) {
-        return (
-          <Suspense fallback={null}>
-            {onboardingType === "parent" ? (
-              <ParentOnboardingFlow 
-                user={user}
-                onComplete={async () => {
-                  console.log('✅ Onboarding padre completado');
-                  setShowOnboarding(false);
-                  sessionStorage.setItem('initialRedirectDone', 'true');
-                  window.location.href = createPageUrl('ParentDashboard');
-                }}
-              />
-            ) : (
-              <PlayerOnboardingFlow 
-                user={user}
-                onComplete={async () => {
-                  console.log('✅ Onboarding jugador completado');
-                  setShowOnboarding(false);
-                  sessionStorage.setItem('initialRedirectDone', 'true');
-                  window.location.href = createPageUrl('PlayerDashboard');
-                }}
-              />
-            )}
-          </Suspense>
-        );
-      }
+          if (!user.tipo_panel) {
+            setOnboardingView('selector');
+            return;
+          }
+    
+          if (!appInstalled) {
+            setOnboardingView('pwa');
+            return;
+          }
+    
+          if (isStandalone && !user.app_instalada) {
+            try {
+              await base44.auth.updateMe({ app_instalada: true });
+            } catch(e) { console.log('Failed to update user app installation status') }
+          }
+          
+          if (user.tipo_panel === 'familia' && !user.onboarding_parents_completed) {
+            setOnboardingView('parent_flow');
+            return;
+          }
+    
+          if (user.tipo_panel === 'jugador_adulto' && !user.onboarding_player_completed) {
+            setOnboardingView('player_flow');
+            return;
+          }
+    
+          setOnboardingView('none');
+        };
+    
+        checkOnboardingStatus();
+      }, [user]);
 
-      // Tutorial PWA obligatorio después del selector
-      if (showMandatoryPWA && !isAppInstalled) {
-        return (
-          <Dialog open={true} onOpenChange={() => {}}>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" hideClose={true}>
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Smartphone className="w-8 h-8 text-green-600" />
+      const renderOnboarding = () => {
+        switch (onboardingView) {
+          case 'loading':
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
+                  <p className="text-white mt-4 text-sm">Cargando...</p>
                 </div>
-                <h2 className="text-2xl font-bold text-green-700">📲 Instala la App del Club</h2>
-                <p className="text-slate-600 text-sm">Para continuar, necesitas instalar la aplicación en tu dispositivo</p>
-
-                {isIOS ? (
-                  <div className="bg-slate-50 rounded-2xl p-4 space-y-3 text-left">
-                    <div className="flex items-center gap-2 mb-2">
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" className="w-6 h-6" />
-                      <p className="font-bold text-slate-900">iPhone / iPad</p>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-slate-700"><span className="font-bold">1.</span> Abre esta web en Safari</p>
-                      <p className="text-sm text-slate-700"><span className="font-bold">2.</span> Pulsa el botón Compartir ↑</p>
-                      <p className="text-sm text-slate-700"><span className="font-bold">3.</span> Pulsa "Añadir a pantalla de inicio"</p>
-                      <p className="text-sm text-slate-700"><span className="font-bold">4.</span> Pulsa "Añadir"</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-slate-50 rounded-2xl p-4 space-y-3 text-left">
-                    <div className="flex items-center gap-2 mb-2">
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" alt="Android" className="w-6 h-6" />
-                      <p className="font-bold text-slate-900">Android</p>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-slate-700"><span className="font-bold">1.</span> Abre esta web en Chrome</p>
-                      <p className="text-sm text-slate-700"><span className="font-bold">2.</span> Pulsa el menú (⋮)</p>
-                      <p className="text-sm text-slate-700"><span className="font-bold">3.</span> Pulsa "Instalar aplicación"</p>
-                      <p className="text-sm text-slate-700"><span className="font-bold">4.</span> Confirma pulsando "Instalar"</p>
-                    </div>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={async () => {
-                    setIsAppInstalled(true);
-                    localStorage.setItem('pwaInstalled', 'true');
-                    await base44.auth.updateMe({
-                      app_instalada: true,
-                      fecha_instalacion_app: new Date().toISOString()
-                    });
-                    setShowMandatoryPWA(false);
-                    window.location.reload();
-                  }} 
-                  className="w-full bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
-                >
-                  ✅ Ya la tengo instalada
-                </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-        );
+            );
+          case 'selector':
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+                <Suspense fallback={null}>
+                  <RegistrationTypeSelector
+                    onSelectFamily={async () => {
+                      await base44.auth.updateMe({ tipo_panel: 'familia' });
+                      window.location.reload();
+                    }}
+                    onSelectAdultPlayer={async () => {
+                      await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
+                      window.location.reload();
+                    }}
+                  />
+                </Suspense>
+              </div>
+            );
+          case 'pwa':
+            return (
+              <Suspense fallback={null}>
+                <MandatoryPWAInstall onInstalled={() => window.location.reload()} />
+              </Suspense>
+            );
+          case 'parent_flow':
+            return (
+              <Suspense fallback={null}>
+                <ParentOnboardingFlow
+                  user={user}
+                  onComplete={() => {
+                    sessionStorage.setItem('initialRedirectDone', 'true');
+                    window.location.href = createPageUrl('ParentDashboard');
+                  }}
+                />
+              </Suspense>
+            );
+          case 'player_flow':
+            return (
+              <Suspense fallback={null}>
+                <PlayerOnboardingFlow
+                  user={user}
+                  onComplete={() => {
+                    sessionStorage.setItem('initialRedirectDone', 'true');
+                    window.location.href = createPageUrl('PlayerDashboard');
+                  }}
+                />
+              </Suspense>
+            );
+          default:
+            return null;
+        }
+      };
+
+      const onboardingComponent = renderOnboarding();
+      if (onboardingComponent) {
+        return onboardingComponent;
       }
 
 
