@@ -902,7 +902,7 @@ Email: cdbustarviejo@gmail.com
   const futbolFemeninoPlayers = players.filter(p => p.deporte === "Fútbol Femenino");
   const baloncestoPlayers = players.filter(p => p.deporte?.includes("Baloncesto"));
   const actividadesComplementarias = players.filter(p => 
-    p.deporte === "Multideporte" || p.deporte === "Preparación Física" || p.deporte?.includes("+40")
+    p.deporte === "Multideporte" || p.deporte === "Preparacion física" || p.deporte?.includes("+40")
   );
   
   // Detectar jugadores con renovación pendiente
