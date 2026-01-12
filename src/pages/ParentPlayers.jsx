@@ -365,8 +365,8 @@ export default function ParentPlayers() {
               nombre_destino: dataWithParentEmail.nombre_tutor_2 || "",
               jugador_id: newPlayer.id,
               jugador_nombre: dataWithParentEmail.nombre,
-              invitado_por_email: user?.email,
-              invitado_por_nombre: user?.full_name,
+              invitado_por_email: currentUser?.email,
+              invitado_por_nombre: currentUser?.full_name,
               estado: "pendiente",
               fecha_envio: new Date().toISOString(),
               fecha_expiracion: expirationDate.toISOString()
