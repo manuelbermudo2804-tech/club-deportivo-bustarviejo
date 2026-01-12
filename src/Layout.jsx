@@ -546,9 +546,10 @@ export default function Layout({ children, currentPageName }) {
   const [programaSociosActivo, setProgramaSociosActivo] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
-  
+  const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
+
   const [isAppInstalled, setIsAppInstalled] = useState(false);
-  
+
   const [showWelcome, setShowWelcome] = useState(false);
   
   const [installDismissed, setInstallDismissed] = useState(false);
