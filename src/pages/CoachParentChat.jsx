@@ -155,46 +155,6 @@ export default function CoachParentChat({ embedded = false }) {
               </Button>
             </div>
           
-          {Object.entries(unreadByCategory).filter(([, c]) => c > 0).length > 0 && (
-            <div className="px-2 py-1 bg-white/10 border-b border-white/20 text-xs flex gap-2 overflow-x-auto">
-              <span className="opacity-90 mr-1">Nuevos:</span>
-              {Object.entries(unreadByCategory)
-                .filter(([, c]) => c > 0)
-                .map(([cat, count]) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className="bg-white/20 hover:bg-white/30 rounded-full px-2 py-0.5"
-                  >
-                    {cat === "Todas las categorías" ? "Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                    <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 align-middle">
-                      {count}
-                    </Badge>
-                  </button>
-                ))}
-            </div>
-          )}
-
-          {Object.entries(unreadByCategory).filter(([, c]) => c > 0).length > 0 && (
-            <div className="px-2 py-1 bg-white/10 border-b border-white/20 text-xs flex gap-2 overflow-x-auto">
-              <span className="opacity-90 mr-1">Nuevos:</span>
-              {Object.entries(unreadByCategory)
-                .filter(([, c]) => c > 0)
-                .map(([cat, count]) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className="bg-white/20 hover:bg-white/30 rounded-full px-2 py-0.5"
-                  >
-                    {cat === "Todas las categorías" ? "Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                    <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 align-middle">
-                      {count}
-                    </Badge>
-                  </button>
-                ))}
-            </div>
-          )}
-
           {/* Pestañas de categorías - más compactas */}
           <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
             {categories.map(cat => {
