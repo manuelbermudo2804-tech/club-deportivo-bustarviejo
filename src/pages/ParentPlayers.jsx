@@ -716,10 +716,11 @@ Email: cdbustarviejo@gmail.com
     } else {
       // REFETCH FORZADO para obtener jugadores más actuales (evitar cache)
       console.log('🔄 [ParentPlayers] Refrescando lista de jugadores antes de calcular descuentos...');
+      const currentUserForSubmit = await base44.auth.me();
       const todosJugadoresBD = await base44.entities.Player.filter({
         '$or': [
-          { email_padre: user.email },
-          { email_tutor_2: user.email }
+          { email_padre: currentUserForSubmit.email },
+          { email_tutor_2: currentUserForSubmit.email }
         ]
       });
       
