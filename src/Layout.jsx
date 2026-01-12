@@ -1538,11 +1538,15 @@ setShowFirstTimeRegistration(false);
                   <RegistrationTypeSelector
                     onSelectFamily={async () => {
                       await base44.auth.updateMe({ tipo_panel: 'familia' });
-                      window.location.reload();
+                      setUser(prev => prev ? { ...prev, tipo_panel: 'familia' } : prev);
+                      setOnboardingView('none');
+                      setShowInstallInstructions(true);
                     }}
                     onSelectAdultPlayer={async () => {
                       await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
-                      window.location.reload();
+                      setUser(prev => prev ? { ...prev, tipo_panel: 'jugador_adulto', es_jugador: true } : prev);
+                      setOnboardingView('none');
+                      setShowInstallInstructions(true);
                     }}
                   />
                 </Suspense>
