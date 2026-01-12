@@ -1488,10 +1488,10 @@ export default function Layout({ children, currentPageName }) {
 
   
 
-      useEffect(() => {
-        if (!user) return;
-    
-        const checkOnboardingStatus = async () => {
+    useEffect(() => {
+      if (!user) return;
+
+      const checkOnboardingStatus = async () => {
           setIsLoading(false);
           
           // Los admins, entrenadores, coordinadores y tesoreros NO pasan por onboarding
