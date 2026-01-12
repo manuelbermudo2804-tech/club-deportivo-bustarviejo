@@ -1488,9 +1488,6 @@ export default function Layout({ children, currentPageName }) {
 
   
 
-      // Mostrar diálogo de registro en primera apertura desde PWA
-      const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
-
       useEffect(() => {
         if (!user) return;
     
