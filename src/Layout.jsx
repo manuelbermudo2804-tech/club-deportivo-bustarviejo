@@ -1453,20 +1453,15 @@ export default function Layout({ children, currentPageName }) {
 
   
 
-      // useEffect para el onboarding - DEBE estar FUERA de renderizado condicional
+      // Mostrar diálogo de registro en primera apertura desde PWA
+      const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
+
       useEffect(() => {
         if (!user) return;
     
         const checkOnboardingStatus = async () => {
-          console.log('🎯 [ONBOARDING] Checking status:', {
-            tipo_panel: user.tipo_panel,
-            app_instalada: user.app_instalada,
-            isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
-          });
-
           // Los admins, entrenadores, coordinadores y tesoreros NO pasan por onboarding
           if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
-            console.log('👨‍💼 [ONBOARDING] Admin/Staff detected - skipping');
             setOnboardingView('none');
             return;
           }
@@ -1478,29 +1473,16 @@ export default function Layout({ children, currentPageName }) {
             return;
           }
           
-          // Paso 2: Instalar app en móvil
+          // Paso 2: Primera vez en standalone (PWA)
           const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-          const hasMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
-
-          // Si NO está instalada y NO ha marcado "ya la tengo", mostrar instrucciones
-          if (!isStandalone && !hasMarkedInstalled) {
-            console.log('📲 [ONBOARDING] Not standalone and not marked - showing PWA instructions');
-            setOnboardingView('pwa');
-            return;
-          }
-
-          // Paso 3: Si está en standalone (primera vez después de instalar)
+          
           if (isStandalone && !user.app_instalada) {
-            console.log('✅ [ONBOARDING] Detected standalone for first time - showing player registration invitation');
-            try {
-              await base44.auth.updateMe({ app_instalada: true });
-            } catch(e) { console.log('Error updating app_instalada:', e); }
-            setOnboardingView('player_registration');
+            console.log('✅ [ONBOARDING] Primera apertura desde PWA - mostrar diálogo simple');
+            setShowFirstTimeRegistration(true);
             return;
           }
     
           // Onboarding completado
-          console.log('🏠 [ONBOARDING] Completed - going to main view');
           setOnboardingView('none');
         };
     
