@@ -35,6 +35,7 @@ export default function StaffChat() {
   const [conversation, setConversation] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showPollDialog, setShowPollDialog] = useState(false);
@@ -96,6 +97,19 @@ export default function StaffChat() {
     refetchInterval: 3000,
     enabled: !!conversation?.id,
   });
+
+  // Calcular mensajes sin leer
+  useEffect(() => {
+    if (!messages || !user) {
+      setUnreadCount(0);
+      return;
+    }
+    const unread = messages.filter(m => 
+      m.autor_email !== user.email && 
+      !m.leido_por?.some(l => l.email === user.email)
+    ).length;
+    setUnreadCount(unread);
+  }, [messages, user]);
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsersStaff'],
@@ -484,6 +498,9 @@ export default function StaffChat() {
             <CardTitle className="flex items-center gap-2 text-sm">
               <MessageCircle className="w-4 h-4" />
               💼 Chat Interno Staff
+              {unreadCount > 0 && (
+                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{unreadCount}</Badge>
+              )}
             </CardTitle>
             <div className="flex gap-1">
               <Button
