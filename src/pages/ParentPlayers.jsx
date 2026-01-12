@@ -150,9 +150,10 @@ export default function ParentPlayers() {
 
   const createPlayerMutation = useMutation({
     mutationFn: async ({ playerData, paymentsData }) => {
+      const currentUser = await base44.auth.me();
       const dataWithParentEmail = {
         ...playerData,
-        email_padre: user?.email || playerData.email_padre
+        email_padre: currentUser?.email || playerData.email_padre
       };
       const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
 
