@@ -1497,6 +1497,7 @@ export default function Layout({ children, currentPageName }) {
           // Los admins, entrenadores, coordinadores y tesoreros NO pasan por onboarding
           if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
             setOnboardingView('none');
+            setIsLoading(false);
             return;
           }
 
@@ -1504,6 +1505,7 @@ export default function Layout({ children, currentPageName }) {
           if (!user.tipo_panel) {
             console.log('📱 [ONBOARDING] No tipo_panel - showing selector');
             setOnboardingView('selector');
+            setIsLoading(false);
             return;
           }
           
@@ -1513,11 +1515,13 @@ export default function Layout({ children, currentPageName }) {
           if (isStandalone && !user.app_instalada) {
             console.log('✅ [ONBOARDING] Primera apertura desde PWA - mostrar diálogo simple');
             setShowFirstTimeRegistration(true);
+            setIsLoading(false);
             return;
           }
     
           // Onboarding completado
           setOnboardingView('none');
+          setIsLoading(false);
         };
     
         checkOnboardingStatus();
