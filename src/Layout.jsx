@@ -1580,15 +1580,35 @@ setShowFirstTimeRegistration(false);
 
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
-                <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallInstructions(false)}>
-                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                    <div className="text-center mb-4">
-                                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                              <Smartphone className="w-8 h-8 text-green-600" />
-                                            </div>
-                                            <h2 className="text-2xl font-bold text-green-700">📲 Instala la App del Club</h2>
-                                            <p className="text-slate-600 mt-1 text-sm">¡Es muy sencillo! Solo 4 pasos y tardarás menos de 1 minuto</p>
-                                          </div>
+               <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallInstructions(false)}>
+                 <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                   <div className="text-center mb-4">
+                                           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                             <Smartphone className="w-8 h-8 text-green-600" />
+                                           </div>
+                                           <h2 className="text-2xl font-bold text-green-700">📲 Instala la App del Club</h2>
+                                           <p className="text-slate-600 mt-1 text-sm">¡Es muy sencillo! Solo 4 pasos y tardarás menos de 1 minuto</p>
+                                         </div>
+
+                                         {/* Botón para saltar y continuar registro inmediatamente (failsafe) */}
+                                         <Button
+                                           variant="outline"
+                                           className="w-full mb-3"
+                                           onClick={async () => {
+                                             setShowInstallInstructions(false);
+                                             setIsAppInstalled(true);
+                                             localStorage.setItem('pwaInstalled', 'true');
+                                             try {
+                                               await base44.auth.updateMe({ app_instalada: true });
+                                             } catch {}
+                                             // familia: mostrar diálogo de registro simple
+                                             if (user?.tipo_panel === 'familia') {
+                                               setShowFirstTimeRegistration(true);
+                                             }
+                                           }}
+                                         >
+                                           Saltar e ir al registro →
+                                         </Button>
 
                                           <div className="bg-green-50 border-2 border-green-300 rounded-xl p-3 mb-4">
                                             <p className="text-green-800 text-sm text-center font-medium">
