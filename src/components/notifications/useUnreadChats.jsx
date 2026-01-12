@@ -133,6 +133,8 @@ export default function useUnreadChats(enabled = true) {
     // 4) Entrenador↔Familia (grupos)
     if (isCoach || isCoordinator || isAdmin) {
       const coachCategories = user?.categorias_entrena || [];
+      
+      // Contar mensajes de padres hacia el entrenador (padre_a_grupo)
       const fromParents = groupMessages.filter((m) => {
         if (m.tipo !== "padre_a_grupo") return false;
         
@@ -151,6 +153,9 @@ export default function useUnreadChats(enabled = true) {
           cat?.toLowerCase().includes(msgCategory?.toLowerCase())
         );
       }).length;
+      
+      // También contar respuestas de familias a mensajes del entrenador (entrenador_a_grupo que tienen respuestas)
+      // Esto se hace contando los mensajes de tipo "padre_a_grupo" que son respuestas
       
       if (fromParents > 0) {
         results.push({ source: "families", label: "Familias", count: fromParents, link: "CoachParentChat" });
