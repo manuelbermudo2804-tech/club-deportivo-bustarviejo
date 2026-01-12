@@ -1521,31 +1521,6 @@ export default function Layout({ children, currentPageName }) {
                 </Suspense>
               </div>
             );
-          case 'pwa':
-            return (
-              <Suspense fallback={null}>
-                <MandatoryPWAInstall onInstalled={() => {
-                  localStorage.setItem('pwaInstalled', 'true');
-                  try {
-                    base44.auth.updateMe({ app_instalada: true });
-                  } catch(e) {}
-                  // Ir directo a player_registration
-                  setOnboardingView('player_registration');
-                }} />
-              </Suspense>
-            );
-          case 'player_registration':
-            return (
-              <Suspense fallback={null}>
-                <PlayerRegistrationInvitation 
-                  user={user}
-                  onClose={() => {
-                    console.log('✅ [Layout] Cerrando onboarding y abriendo ParentPlayers');
-                    setOnboardingView('none');
-                  }}
-                />
-              </Suspense>
-            );
           default:
             return null;
         }
