@@ -377,7 +377,7 @@ export default function ParentPlayers() {
             
             await base44.functions.invoke('sendEmail', {
               to: email2,
-              subject: `👨‍👩‍👧 ${user?.full_name || "Un familiar"} te ha añadido como segundo progenitor - CD Bustarviejo`,
+              subject: `👨‍👩‍👧 ${currentUser?.full_name || "Un familiar"} te ha añadido como segundo progenitor - CD Bustarviejo`,
               html: `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f1f5f9;">
