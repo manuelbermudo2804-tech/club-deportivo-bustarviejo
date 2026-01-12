@@ -218,13 +218,16 @@ export default function CategoryConfigAdmin() {
               </thead>
               <tbody>
                 {baseCategories.sort((a, b) => a.nombre.localeCompare(b.nombre)).map((cat) => (
-                  <tr key={cat.id} className="border-b hover:bg-green-50 transition">
-                    <td className="px-4 py-3 font-medium text-slate-900">{cat.nombre}</td>
+                  <tr key={cat.id} className={`border-b hover:bg-green-50 transition ${!cat.activa ? 'opacity-50 bg-slate-50' : ''}`}>
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {cat.nombre}
+                      {!cat.activa && <Badge className="ml-2 bg-slate-500 text-white text-xs">Oculta</Badge>}
+                    </td>
                     <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
                     <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
                     <td className="px-4 py-3 text-right">{cat.cuota_tercera}€</td>
                     <td className="px-4 py-3 text-right font-bold text-green-700">{cat.cuota_total}€</td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 py-3 text-center space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -232,6 +235,19 @@ export default function CategoryConfigAdmin() {
                         className="text-blue-600 hover:text-blue-700"
                       >
                         <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={cat.activa ? "outline" : "default"}
+                        onClick={() => {
+                          updateCategoryMutation.mutate({
+                            id: cat.id,
+                            data: { activa: !cat.activa }
+                          });
+                        }}
+                        className={cat.activa ? "text-orange-600 hover:text-orange-700" : "bg-green-600 hover:bg-green-700 text-white"}
+                      >
+                        {cat.activa ? "Ocultar" : "Activar"}
                       </Button>
                     </td>
                   </tr>
@@ -270,29 +286,45 @@ export default function CategoryConfigAdmin() {
                 </thead>
                 <tbody>
                   {extraCategories.map((cat) => (
-                    <tr key={cat.id} className="border-b hover:bg-orange-50 transition">
-                      <td className="px-4 py-3 font-medium text-slate-900">{cat.nombre}</td>
+                    <tr key={cat.id} className={`border-b hover:bg-orange-50 transition ${!cat.activa ? 'opacity-50 bg-slate-50' : ''}`}>
+                      <td className="px-4 py-3 font-medium text-slate-900">
+                        {cat.nombre}
+                        {!cat.activa && <Badge className="ml-2 bg-slate-500 text-white text-xs">Oculta</Badge>}
+                      </td>
                       <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
                       <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
                       <td className="px-4 py-3 text-right">{cat.cuota_tercera}€</td>
                       <td className="px-4 py-3 text-right font-bold text-orange-700">{cat.cuota_total}€</td>
                       <td className="px-4 py-3 text-center space-x-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(cat)}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(cat)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         onClick={() => handleEdit(cat)}
+                         className="text-blue-600 hover:text-blue-700"
+                       >
+                         <Edit2 className="w-4 h-4" />
+                       </Button>
+                       <Button
+                         size="sm"
+                         variant={cat.activa ? "outline" : "default"}
+                         onClick={() => {
+                           updateCategoryMutation.mutate({
+                             id: cat.id,
+                             data: { activa: !cat.activa }
+                           });
+                         }}
+                         className={cat.activa ? "text-orange-600 hover:text-orange-700" : "bg-green-600 hover:bg-green-700 text-white"}
+                       >
+                         {cat.activa ? "Ocultar" : "Activar"}
+                       </Button>
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         onClick={() => handleDelete(cat)}
+                         className="text-red-600 hover:text-red-700"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </Button>
                       </td>
                     </tr>
                   ))}
