@@ -349,9 +349,10 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                       size="sm"
                       onClick={async (e) => {
                         e.stopPropagation();
+                        const currentUser = await base44.auth.me();
                         await base44.entities.Player.update(player.id, {
                           categoria_requiere_revision: false,
-                          categoria_revisada_por: user?.email,
+                          categoria_revisada_por: currentUser?.email,
                           fecha_revision_categoria: new Date().toISOString(),
                           motivo_revision_categoria: ""
                         });
