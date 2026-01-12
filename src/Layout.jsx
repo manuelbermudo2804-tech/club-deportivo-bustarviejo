@@ -1538,15 +1538,11 @@ setShowFirstTimeRegistration(false);
                   <RegistrationTypeSelector
                     onSelectFamily={async () => {
                       await base44.auth.updateMe({ tipo_panel: 'familia' });
-                      setUser(prev => prev ? { ...prev, tipo_panel: 'familia' } : prev);
-                      setOnboardingView('none');
-                      setShowInstallInstructions(true);
+                      window.location.reload();
                     }}
                     onSelectAdultPlayer={async () => {
                       await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
-                      setUser(prev => prev ? { ...prev, tipo_panel: 'jugador_adulto', es_jugador: true } : prev);
-                      setOnboardingView('none');
-                      setShowInstallInstructions(true);
+                      window.location.reload();
                     }}
                   />
                 </Suspense>
@@ -1790,6 +1786,10 @@ setShowFirstTimeRegistration(false);
                                           setShowInstallInstructions(false);
                                           setInstallDismissed(true);
                                           localStorage.setItem('installPromptDismissed', 'true');
+                                          // Fallback: si es familia y aún no marcó instalada, continuar al registro igualmente
+                                          if (user?.tipo_panel === 'familia' && !isAppInstalled) {
+                                            setShowFirstTimeRegistration(true);
+                                          }
                                         }} 
                                         variant="outline"
                                         className="w-full mt-2 py-3"
