@@ -1459,6 +1459,12 @@ export default function Layout({ children, currentPageName }) {
         if (!user) return;
     
         const checkOnboardingStatus = async () => {
+          // Los admins, entrenadores, coordinadores y tesoreros NO pasan por onboarding
+          if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
+            setOnboardingView('none');
+            return;
+          }
+
           // Paso 1: Elegir panel (familia o jugador)
           if (!user.tipo_panel) {
             setOnboardingView('selector');
