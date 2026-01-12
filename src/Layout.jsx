@@ -1772,6 +1772,10 @@ setShowFirstTimeRegistration(false);
                                                                     } catch (err) {
                                                                       console.log('Error guardando estado:', err);
                                                                     }
+                                                                    // Si es familia, mostrar inmediatamente el diálogo para registrar jugador
+                                                                    if (user?.tipo_panel === 'familia') {
+                                                                      setShowFirstTimeRegistration(true);
+                                                                    }
                                                                   }} 
                                                                   className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
                                                                 >
