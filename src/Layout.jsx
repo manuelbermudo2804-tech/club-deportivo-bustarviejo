@@ -1503,15 +1503,6 @@ export default function Layout({ children, currentPageName }) {
       
       const renderOnboarding = () => {
         switch (onboardingView) {
-          case 'loading':
-            return (
-              <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
-                  <p className="text-white mt-4 text-sm">Cargando...</p>
-                </div>
-              </div>
-            );
           case 'selector':
             return (
               <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
@@ -1529,28 +1520,6 @@ export default function Layout({ children, currentPageName }) {
                 </Suspense>
               </div>
             );
-          case 'parent_flow':
-            return (
-              <Suspense fallback={null}>
-                <ParentOnboardingFlow
-                  user={user}
-                  onComplete={() => {
-                    setOnboardingView('pwa');
-                  }}
-                />
-              </Suspense>
-            );
-          case 'player_flow':
-            return (
-              <Suspense fallback={null}>
-                <PlayerOnboardingFlow
-                  user={user}
-                  onComplete={() => {
-                    setOnboardingView('pwa');
-                  }}
-                />
-              </Suspense>
-            );
           case 'pwa':
             return (
               <Suspense fallback={null}>
@@ -1559,8 +1528,17 @@ export default function Layout({ children, currentPageName }) {
                   try {
                     base44.auth.updateMe({ app_instalada: true });
                   } catch(e) {}
-                  window.location.reload();
+                  setOnboardingView('player_registration');
                 }} />
+              </Suspense>
+            );
+          case 'player_registration':
+            return (
+              <Suspense fallback={null}>
+                <PlayerRegistrationInvitation 
+                  user={user}
+                  onClose={() => setOnboardingView('none')}
+                />
               </Suspense>
             );
           default:
