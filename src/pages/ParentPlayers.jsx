@@ -213,7 +213,7 @@ export default function ParentPlayers() {
       const edadJugador = calcularEdadJugador(playerData.fecha_nacimiento);
       const esMayorDe18 = edadJugador >= 18 || playerData.es_mayor_edad === true;
 
-      if (esMayorDe18 && dataWithParentEmail.email_padre === user?.email) {
+      if (esMayorDe18 && dataWithParentEmail.email_padre === currentUser?.email) {
         // El usuario está registrando a sí mismo como jugador +18
         // Actualizar automáticamente su perfil de usuario
         try {
