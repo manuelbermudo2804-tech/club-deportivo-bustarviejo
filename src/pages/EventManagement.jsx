@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EventForm from "../components/calendar/EventForm";
 import CalendarSyncButton from "../components/calendar/CalendarSyncButton";
 import EventCapacityBar from "../components/events/EventCapacityBar";
+import CleanupTemplatesButton from "../components/admin/CleanupTemplatesButton";
 
 export default function EventManagement() {
   const [user, setUser] = useState(null);
@@ -66,53 +67,7 @@ export default function EventManagement() {
     initialData: [],
   });
 
-  // Crear plantillas fijas anuales si no existen
-  useEffect(() => {
-    const createDefaultTemplates = async () => {
-      if (!isAdmin || templates.length > 0) return;
-      
-      const defaultTemplates = [
-        { nombre: "INSCRIPCIONES Y PEDIDOS ROPA", titulo: "Apertura Inscripciones y Pedidos Ropa", tipo: "Inscripción", mes: 6, dia: 1, importante: true, color: "green" },
-        { nombre: "FIESTA CLUB", titulo: "Fiesta del Club", tipo: "Fiesta Club", mes: 6, dia: 15, importante: true, color: "purple" },
-        { nombre: "INSCRIPCION EQUIPOS FEDERACION", titulo: "Inscripción Equipos en Federación", tipo: "Gestión Club", mes: 6, dia: 20, importante: true, color: "blue" },
-        { nombre: "PAGO INSCRIPCION", titulo: "Fecha Límite Pago Inscripción", tipo: "Pago", mes: 6, dia: 30, importante: true, color: "red" },
-        { nombre: "PEDIDO DE ROPA", titulo: "Cierre Pedidos de Ropa", tipo: "Pedido Ropa", mes: 7, dia: 7, importante: true, color: "orange" },
-        { nombre: "TRAMITACION FICHAS FEDERATIVAS", titulo: "Tramitación Fichas Federativas", tipo: "Gestión Club", mes: 7, dia: 15, importante: true, color: "blue" },
-        { nombre: "INICIO ENTRENAMIENTOS AFICIONADO Y JUVENIL", titulo: "Inicio Entrenamientos Aficionado y Juvenil", tipo: "Inicio Temporada", mes: 8, dia: 1, importante: true, color: "green" },
-        { nombre: "CHEQUEO INSCRIPCIONES AGOSTO", titulo: "Chequeo Inscripciones y Pedidos Ropa", tipo: "Gestión Club", mes: 8, dia: 7, importante: false, color: "yellow" },
-        { nombre: "INICIO COMPETICION", titulo: "Inicio Competición Aficionados y Entrenamientos Resto", tipo: "Inicio Temporada", mes: 9, dia: 1, importante: true, color: "green" },
-        { nombre: "SEGUNDO PAGO", titulo: "Fecha Límite Segundo Pago", tipo: "Pago", mes: 9, dia: 15, importante: true, color: "red" },
-        { nombre: "CHEQUEO INSCRIPCIONES OCTUBRE", titulo: "Chequeo Inscripciones y Pedidos Ropa", tipo: "Gestión Club", mes: 10, dia: 7, importante: false, color: "yellow" },
-        { nombre: "TERCER PAGO", titulo: "Fecha Límite Tercer Pago", tipo: "Pago", mes: 12, dia: 15, importante: true, color: "red" },
-        { nombre: "FIN COMPETICION", titulo: "Fin de Competición", tipo: "Fin Temporada", mes: 5, dia: 30, importante: true, color: "purple" }
-      ];
-
-      for (const tmpl of defaultTemplates) {
-        await base44.entities.EventTemplate.create({
-          nombre_plantilla: tmpl.nombre,
-          titulo: tmpl.titulo,
-          descripcion: "",
-          tipo: tmpl.tipo,
-          deporte: "Todos",
-          categoria: "Todas",
-          mes_tipico: tmpl.mes,
-          hora: "",
-          ubicacion: "",
-          importante: tmpl.importante,
-          color: tmpl.color,
-          requiere_confirmacion: false,
-          activa: true,
-          es_plantilla_anual: true
-        });
-      }
-      
-      queryClient.invalidateQueries({ queryKey: ['eventTemplates'] });
-    };
-
-    if (isAdmin) {
-      createDefaultTemplates();
-    }
-  }, [isAdmin, templates.length]);
+  // NO crear plantillas automáticamente - causan duplicados masivos
 
   const createEventMutation = useMutation({
     mutationFn: async (eventData) => {
@@ -580,12 +535,13 @@ export default function EventManagement() {
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
                 <Bookmark className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" />
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-blue-900 mb-1">Plantillas de Eventos</h3>
                   <p className="text-sm text-blue-700">
                     Guarda eventos como plantillas para crearlos fácilmente cada año. Puedes ajustar las fechas según el calendario.
                   </p>
                 </div>
+                <CleanupTemplatesButton />
               </div>
             </CardContent>
           </Card>
