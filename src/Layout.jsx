@@ -923,8 +923,8 @@ export default function Layout({ children, currentPageName }) {
                   setIsLoading(false);
 
                   // REDIRECCIÓN AUTOMÁTICA AL DASHBOARD PRINCIPAL (primera carga)
-                  // Solo si ya tiene tipo_panel definido
-                  if (currentUser.tipo_panel === 'familia') {
+                  // Solo si ya tiene tipo_panel definido y app_instalada
+                  if (currentUser.tipo_panel === 'familia' && currentUser.app_instalada === true) {
                     const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
                     const currentPath = window.location.pathname.toLowerCase();
 
