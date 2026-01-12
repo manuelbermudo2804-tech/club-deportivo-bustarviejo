@@ -264,7 +264,6 @@ export default function InscriptionPaymentFlow({
             </div>
           )}
         </div>
-        </div>
 
         <Alert className="bg-blue-50 border-blue-300">
           <Info className="h-4 w-4 text-blue-600" />
