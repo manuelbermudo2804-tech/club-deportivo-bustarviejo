@@ -115,8 +115,6 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       nombre: "",
       foto_url: "",
       deporte: "Fútbol Pre-Benjamín (Mixto)",
-      categorias: [],
-      categoria_principal: "",
       tipo_inscripcion: "Nueva Inscripción",
       fecha_nacimiento: "",
       es_mayor_edad: false,
@@ -865,98 +863,55 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
               </div>
             </div>
 
-            {/* SELECCIÓN MÚLTIPLE DE CATEGORÍAS */}
-            <div className="space-y-4 border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
-              <div className="flex items-center gap-2">
-                <Users className="w-6 h-6 text-blue-600" />
-                <h3 className="text-lg font-bold text-blue-900">Categorías / Actividades *</h3>
+            {/* Checkbox Fútbol Femenino */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border-2 border-pink-200">
+                <Checkbox 
+                  id="es_femenino"
+                  checked={currentPlayer.deporte === "Fútbol Femenino"}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setCurrentPlayer({...currentPlayer, deporte: "Fútbol Femenino"});
+                    } else {
+                      // Si desmarca, volver a la sugerencia o Pre-Benjamín
+                      const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
+                      setCurrentPlayer({...currentPlayer, deporte: suggested || "Fútbol Pre-Benjamín (Mixto)"});
+                    }
+                  }}
+                  className="w-5 h-5"
+                />
+                <Label htmlFor="es_femenino" className="cursor-pointer flex-1">
+                  <span className="font-bold text-pink-900">⚽👧 ¿Es jugadora de Fútbol Femenino?</span>
+                  <p className="text-xs text-pink-700 mt-1">
+                    Marca esta casilla si la jugadora va a participar en el equipo femenino del club
+                  </p>
+                </Label>
               </div>
 
-              {playerAge !== null && (
-                <Alert className="bg-green-50 border-green-200">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800 text-sm">
-                    <strong>✅ Sugerencia por edad ({playerAge} años):</strong> {suggestCategoryByAge(currentPlayer.fecha_nacimiento)}
-                    <br/><span className="text-xs">Puedes seleccionar esta categoría + actividades complementarias</span>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="bg-white rounded-lg p-4 border space-y-3">
-                <p className="text-sm font-bold text-slate-900">
-                  ✅ Selecciona todas las categorías/actividades del jugador:
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {categories.map(cat => {
-                    const isSelected = currentPlayer.categorias?.includes(cat.value) || false;
-                    return (
-                      <div 
-                        key={cat.value}
-                        className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                          isSelected 
-                            ? 'bg-green-100 border-green-400 shadow-md' 
-                            : 'bg-slate-50 border-slate-200 hover:border-blue-300'
-                        }`}
-                        onClick={() => {
-                          const newCategorias = isSelected
-                            ? currentPlayer.categorias.filter(c => c !== cat.value)
-                            : [...(currentPlayer.categorias || []), cat.value];
-                          
-                          setCurrentPlayer({
-                            ...currentPlayer, 
-                            categorias: newCategorias,
-                            deporte: newCategorias[0] || "",
-                            categoria_principal: newCategorias[0] || ""
-                          });
-                        }}
-                      >
-                        <Checkbox 
-                          checked={isSelected}
-                          onCheckedChange={(checked) => {
-                            const newCategorias = checked
-                              ? [...(currentPlayer.categorias || []), cat.value]
-                              : currentPlayer.categorias.filter(c => c !== cat.value);
-                            
-                            setCurrentPlayer({
-                              ...currentPlayer, 
-                              categorias: newCategorias,
-                              deporte: newCategorias[0] || "",
-                              categoria_principal: newCategorias[0] || ""
-                            });
-                          }}
-                          className="mt-0.5"
-                        />
-                        <Label className="cursor-pointer flex-1">
-                          <span className="font-medium text-slate-900">{cat.label}</span>
-                        </Label>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {currentPlayer.categorias?.length > 0 && (
-                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3 mt-3">
-                    <p className="text-sm font-bold text-blue-900 mb-2">
-                      📋 Categorías seleccionadas ({currentPlayer.categorias.length}):
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {currentPlayer.categorias.map(cat => (
-                        <Badge key={cat} className="bg-blue-600 text-white">
-                          {cat}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {currentPlayer.categorias?.length === 0 && (
-                  <Alert className="bg-orange-50 border-orange-300">
-                    <AlertCircle className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-800 text-sm">
-                      ⚠️ Debes seleccionar al menos una categoría
+              <div className="space-y-2">
+                <Label htmlFor="deporte">Categoría y Deporte *</Label>
+                {playerAge !== null && currentPlayer.deporte !== "Fútbol Femenino" && (
+                  <Alert className="mb-2 bg-green-50 border-green-200">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800 text-sm">
+                      <strong>✅ Categoría seleccionada automáticamente:</strong> Según la edad ({playerAge} años) → <strong>{currentPlayer.deporte}</strong>
+                      <br/><span className="text-xs">Puedes cambiarla manualmente si no es correcta</span>
                     </AlertDescription>
                   </Alert>
                 )}
+                <Select 
+                  value={currentPlayer.deporte} 
+                  onValueChange={(value) => setCurrentPlayer({...currentPlayer, deporte: value})} 
+                  disabled={false}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">
+                  ℹ️ Categoría auto-seleccionada por edad - puedes cambiarla manualmente
+                </p>
               </div>
             </div>
 
@@ -1689,8 +1644,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                 disabled={
                   isSubmitting || 
                   (!player && (!currentPlayer.acepta_politica_privacidad || !currentPlayer.autorizacion_fotografia || !currentPlayer.foto_url)) ||
-                  (isMayorDeEdad && isParent && !isAdultPlayerSelfRegistration && currentPlayer.fecha_nacimiento?.length === 10) ||
-                  (!currentPlayer.categorias || currentPlayer.categorias.length === 0) // Bloquear si no hay categorías
+                  (isMayorDeEdad && isParent && !isAdultPlayerSelfRegistration && currentPlayer.fecha_nacimiento?.length === 10) // Bloquear solo si es padre normal
                 }
               >
                 {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Guardando...</> : (player ? "Actualizar" : isAdultPlayerSelfRegistration ? "Completar Mi Registro" : "Registrar")}
