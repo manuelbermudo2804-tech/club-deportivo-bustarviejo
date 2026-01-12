@@ -1548,6 +1548,7 @@ export default function Layout({ children, currentPageName }) {
                   try {
                     base44.auth.updateMe({ app_instalada: true });
                   } catch(e) {}
+                  // Ir directo a player_registration
                   setOnboardingView('player_registration');
                 }} />
               </Suspense>
@@ -1557,7 +1558,10 @@ export default function Layout({ children, currentPageName }) {
               <Suspense fallback={null}>
                 <PlayerRegistrationInvitation 
                   user={user}
-                  onClose={() => setOnboardingView('none')}
+                  onClose={() => {
+                    console.log('✅ [Layout] Cerrando onboarding y abriendo ParentPlayers');
+                    setOnboardingView('none');
+                  }}
                 />
               </Suspense>
             );
