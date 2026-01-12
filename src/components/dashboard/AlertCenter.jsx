@@ -30,6 +30,7 @@ import {
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import useUnreadChats from "../notifications/useUnreadChats";
 
 export default function AlertCenter({ 
   pendingCallups = 0,
@@ -66,6 +67,8 @@ export default function AlertCenter({
   userEmail = null,
   userSports = []
 }) {
+  // Obtener contadores de chats unificados (Staff, Coordinador, Entrenador, Admin, Privados)
+  const { items: chatItems } = useUnreadChats(true);
   const [dismissedAlerts, setDismissedAlerts] = useState(() => {
   try {
     return new Set(JSON.parse(localStorage.getItem('dismissedAlerts') || '[]'));
@@ -226,56 +229,83 @@ const alerts = [];
     }
   }
 
-  // Alertas para padres
-  if (isParent) {
-    // ALERTA CRÍTICA DE ADMIN (prioridad máxima) - MOSTRAR SIEMPRE si hay chat activo
-    if (hasActiveAdminChat) {
-      alerts.push({
-        id: "admin-chat",
-        icon: AlertTriangle,
-        title: unreadAdminMessages > 0 
-          ? "🛡️ El Administrador te ha contactado - Tienes mensajes sin leer en el Chat Administrador"
-          : "🛡️ Chat Administrador Activo - El administrador gestiona tu caso",
-        description: unreadAdminMessages > 0 
-          ? `${unreadAdminMessages} mensaje${unreadAdminMessages > 1 ? 's' : ''} nuevo${unreadAdminMessages > 1 ? 's' : ''} del administrador`
-          : "Conversación supervisada por la dirección del club",
-        url: createPageUrl("ParentAdminChat"),
-        color: "bg-red-600",
-        priority: 0
-      });
-    }
-    
-    if (unreadPrivateMessages > 0) {
-      alerts.push({
-        id: "private-messages",
-        icon: Bell,
-        title: "🔔 Mensajes del Club",
-        description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl("ParentSystemMessages"),
-        color: "bg-purple-500",
-        priority: 1
-      });
-    }
-    if (unreadCoordinatorMessages > 0) {
+  // ALERTAS DE CHATS DESDE useUnreadChats (Coordinador, Entrenador, Admin, Staff, Privados)
+  chatItems.forEach(item => {
+    if (item.source === "coordinator" && item.count > 0) {
       alerts.push({
         id: "coordinator-chat",
         icon: MessageCircle,
         title: "💬 Mensajes del Coordinador",
-        description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl("ParentCoordinatorChat"),
+        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl(item.link),
         color: "bg-cyan-500",
         priority: 1
       });
-    }
-    if (unreadCoachMessages > 0) {
+    } else if (item.source === "coach" && item.count > 0) {
       alerts.push({
         id: "coach-chat",
         icon: MessageCircle,
         title: "⚽ Mensajes del Entrenador",
-        description: `${unreadCoachMessages} mensaje${unreadCoachMessages > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl("ParentCoachChat"),
+        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl(item.link),
         color: "bg-blue-500",
         priority: 1
+      });
+    } else if (item.source === "admin" && item.count > 0) {
+      alerts.push({
+        id: "admin-chat",
+        icon: ShieldAlert,
+        title: "🛡️ Mensajes del Administrador",
+        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl(item.link),
+        color: "bg-red-600",
+        priority: 0
+      });
+    } else if (item.source === "staff" && item.count > 0) {
+      alerts.push({
+        id: "staff-chat",
+        icon: MessageCircle,
+        title: "💼 Chat Interno Staff",
+        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl(item.link),
+        color: "bg-purple-600",
+        priority: 1
+      });
+    } else if (item.source === "private" && item.count > 0) {
+      alerts.push({
+        id: "private-messages",
+        icon: Bell,
+        title: "🔔 Mensajes del Club",
+        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl(item.link),
+        color: "bg-purple-500",
+        priority: 1
+      });
+    } else if (item.source === "families" && item.count > 0) {
+      alerts.push({
+        id: "families-chat",
+        icon: MessageCircle,
+        title: "👨‍👩‍👧 Mensajes de Familias",
+        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl(item.link),
+        color: "bg-blue-600",
+        priority: 1
+      });
+    }
+  });
+
+  // Alertas para padres
+  if (isParent) {
+    // ALERTA CRÍTICA DE ADMIN (prioridad máxima) - MOSTRAR SIEMPRE si hay chat activo
+    if (hasActiveAdminChat && !chatItems.some(item => item.source === "admin")) {
+      alerts.push({
+        id: "admin-chat-active",
+        icon: AlertTriangle,
+        title: "🛡️ Chat Administrador Activo",
+        description: "Conversación supervisada por la dirección del club",
+        url: createPageUrl("ParentAdminChat"),
+        color: "bg-red-600",
+        priority: 0
       });
     }
     if (pendingCallups > 0) {
@@ -324,36 +354,15 @@ const alerts = [];
     }
   }
 
-  // Alertas para coordinadores
-  if (isCoordinator) {
-    if (unreadCoordinatorMessages > 0) {
-      alerts.push({
-        id: "coordinator-chat-admin",
-        icon: MessageCircle,
-        title: "💬 Mensajes de Familias",
-        description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl("CoordinatorChat"),
-        color: "bg-cyan-500",
-        priority: 1
-      });
-    }
-  }
+  // Alertas para coordinadores (ya incluidas desde chatItems)
+  // if (isCoordinator) { ... } - Ahora se gestiona desde useUnreadChats
 
   // Incidencias eliminadas - la entidad no existe
 
   // Alertas para entrenadores/coordinadores (NO admin)
   if (isCoach && !isAdmin) {
-    if (unreadFromParentsForCoach > 0) {
-      alerts.push({
-        id: "coach-families",
-        icon: MessageCircle,
-        title: "💬 Mensajes de Familias",
-        description: `${unreadFromParentsForCoach} mensaje${unreadFromParentsForCoach > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl("CoachParentChat"),
-        color: "bg-blue-600",
-        priority: 1
-      });
-    }
+    // Mensajes de familias ya incluidos desde chatItems (families)
+    // if (unreadFromParentsForCoach > 0) { ... } - Ahora se gestiona desde useUnreadChats
     if (pendingCallupResponses > 0) {
       alerts.push({
         id: "callup-responses",
