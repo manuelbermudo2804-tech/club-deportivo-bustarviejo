@@ -402,7 +402,7 @@ Hola <strong>${dataWithParentEmail.nombre_tutor_2 || "Estimado/a"}</strong>,
 </p>
 
 <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
-<strong style="color:#ea580c;">${user?.full_name || "Un familiar"}</strong> te ha registrado como <strong>segundo progenitor/tutor</strong> del jugador <strong style="color:#16a34a;">${dataWithParentEmail.nombre}</strong> en la aplicación del CD Bustarviejo.
+<strong style="color:#ea580c;">${currentUser?.full_name || "Un familiar"}</strong> te ha registrado como <strong>segundo progenitor/tutor</strong> del jugador <strong style="color:#16a34a;">${dataWithParentEmail.nombre}</strong> en la aplicación del CD Bustarviejo.
 </p>
 
 <!-- Aviso importante -->
