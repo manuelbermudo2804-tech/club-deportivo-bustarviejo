@@ -1494,34 +1494,30 @@ export default function Layout({ children, currentPageName }) {
         if (!user) return;
     
         const checkOnboardingStatus = async () => {
+          setIsLoading(false);
+          
           // Los admins, entrenadores, coordinadores y tesoreros NO pasan por onboarding
           if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
             setOnboardingView('none');
-            setIsLoading(false);
             return;
           }
 
           // Paso 1: Elegir panel (familia o jugador)
           if (!user.tipo_panel) {
-            console.log('📱 [ONBOARDING] No tipo_panel - showing selector');
+            console.log('📱 [ONBOARDING] Primera vez - mostrar selector');
             setOnboardingView('selector');
-            setIsLoading(false);
             return;
           }
           
-          // Paso 2: Primera vez en standalone (PWA)
-          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-          
-          if (isStandalone && !user.app_instalada) {
-            console.log('✅ [ONBOARDING] Primera apertura desde PWA - mostrar diálogo simple');
+          // Paso 2: Si es familia normal, mostrar diálogo de bienvenida una sola vez
+          if (user.tipo_panel === 'familia' && !user.app_instalada) {
+            console.log('✅ [ONBOARDING] Primera vez familia - mostrar diálogo bienvenida');
             setShowFirstTimeRegistration(true);
-            setIsLoading(false);
             return;
           }
     
-          // Onboarding completado
+          // Normal - sin onboarding
           setOnboardingView('none');
-          setIsLoading(false);
         };
     
         checkOnboardingStatus();
