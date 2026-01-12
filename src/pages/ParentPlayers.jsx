@@ -35,6 +35,28 @@ export default function ParentPlayers() {
   // Tutorial interactivo para primera visita
   usePageTutorial("parent_players");
 
+  // Detectar si debe abrir el formulario de registro automáticamente (onboarding)
+  useEffect(() => {
+    const checkAutoOpenForm = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        if (currentUser?.debe_mostrar_registro_jugador === true) {
+          console.log('📝 [ParentPlayers] Auto-abriendo formulario de registro (onboarding)');
+          setShowForm(true);
+          setEditingPlayer(null);
+          setSuggestedCategory(null);
+          
+          // Limpiar el flag
+          await base44.auth.updateMe({ debe_mostrar_registro_jugador: false });
+        }
+      } catch (error) {
+        console.error('Error checking auto-open form:', error);
+      }
+    };
+    
+    checkAutoOpenForm();
+  }, []);
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
