@@ -1,14 +1,9 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Euro, TrendingUp, Users, AlertTriangle, Building2, Eye, MousePointer } from "lucide-react";
+import { Euro, Users, AlertTriangle, Building2 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import SponsorMetricsCard from "./SponsorMetricsCard";
-import PackageConfigurator from "./PackageConfigurator";
 
 const COLORS = {
   "Principal": "#f59e0b",
@@ -19,54 +14,21 @@ const COLORS = {
 };
 
 export default function SponsorDashboard({ sponsors }) {
-  // Fetch impressions data
-  const { data: impressions = [] } = useQuery({
-    queryKey: ['sponsorImpressions'],
-    queryFn: () => base44.entities.SponsorImpression.list('-created_date', 5000),
-    initialData: [],
-  });
-
   const activeSponsors = sponsors.filter(s => s.activo === true);
   const inactiveSponsors = sponsors.filter(s => s.activo === false);
 
-  // Ingresos totales activos
   const totalActiveIncome = activeSponsors.reduce((sum, s) => sum + (s.precio_anual || 0), 0);
-  
-  // Métricas globales
-  const totalImpressions = impressions.filter(i => i.tipo === "impresion").length;
-  const totalClicks = impressions.filter(i => i.tipo === "click").length;
-  const globalCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : 0;
 
-  // Ingresos por nivel (usando paquete)
-  const incomeByLevel = Object.entries(
-    activeSponsors.reduce((acc, s) => {
-      acc[s.paquete] = (acc[s.paquete] || 0) + (s.precio_anual || 0);
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value }));
-
-  // Patrocinios próximos a vencer (30 días)
   const expiringSponsors = activeSponsors.filter(s => {
     if (!s.fecha_fin) return false;
     const daysUntilExpiry = differenceInDays(new Date(s.fecha_fin), new Date());
     return daysUntilExpiry > 0 && daysUntilExpiry <= 30;
   });
 
-  // Distribución por nivel (usando paquete)
-  const distributionByLevel = Object.entries(
-    activeSponsors.reduce((acc, s) => {
-      acc[s.paquete] = (acc[s.paquete] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value, color: COLORS[name] || COLORS["Bronce"] }));
-
   return (
     <div className="space-y-6">
-      {/* Configurador de paquetes */}
-      <PackageConfigurator />
-
-      {/* KPIs mejorados */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* KPIs simples */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -90,7 +52,7 @@ export default function SponsorDashboard({ sponsors }) {
                 <Building2 className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-xs text-amber-700 font-medium">Patrocinadores Activos</p>
+                <p className="text-xs text-amber-700 font-medium">Activos en Banner</p>
                 <p className="text-2xl font-bold text-amber-800">{activeSponsors.length}</p>
               </div>
             </div>
@@ -128,131 +90,13 @@ export default function SponsorDashboard({ sponsors }) {
             </div>
           </CardContent>
         </Card>
-
-        <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-600 rounded-xl">
-                <Eye className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-xs text-purple-700 font-medium">Impresiones</p>
-                <p className="text-2xl font-bold text-purple-800">{totalImpressions.toLocaleString()}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-600 rounded-xl">
-                <MousePointer className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-xs text-blue-700 font-medium">CTR Global</p>
-                <p className="text-2xl font-bold text-blue-800">{globalCTR}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Métricas por patrocinador */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-900 mb-4">📊 Rendimiento por Patrocinador</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-          {activeSponsors.map(sponsor => {
-            const sponsorImpressions = impressions.filter(i => i.sponsor_id === sponsor.id);
-            return (
-              <SponsorMetricsCard
-                key={sponsor.id}
-                sponsor={sponsor}
-                impressions={sponsorImpressions}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Ingresos por nivel */}
-        <Card className="border-none shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">💶 Ingresos por Nivel</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {incomeByLevel.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={incomeByLevel}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(value) => `${value.toLocaleString('es-ES')}€`} />
-                  <Bar dataKey="value" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[200px] flex items-center justify-center text-slate-400">
-                No hay datos
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Distribución por nivel */}
-        <Card className="border-none shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">📊 Distribución por Nivel</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {distributionByLevel.length > 0 ? (
-              <div className="flex items-center">
-                <ResponsiveContainer width="50%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={distributionByLevel}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {distributionByLevel.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {distributionByLevel.map(item => (
-                    <div key={item.name} className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-sm text-slate-600">{item.name}</span>
-                      <span className="text-sm font-bold">{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="h-[200px] flex items-center justify-center text-slate-400">
-                No hay datos
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Próximos a vencer */}
       {expiringSponsors.length > 0 && (
         <Card className="border-none shadow-lg border-l-4 border-l-red-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-red-700">⚠️ Patrocinios Próximos a Vencer</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
+            <h3 className="text-lg font-bold text-red-700 mb-3">⚠️ Próximos a Vencer</h3>
             <div className="space-y-2">
               {expiringSponsors.map(s => (
                 <div key={s.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
@@ -266,15 +110,15 @@ export default function SponsorDashboard({ sponsors }) {
                     )}
                     <div>
                       <p className="font-semibold text-slate-900">{s.nombre}</p>
-                      <p className="text-xs text-slate-600">{s.paquete} • {s.precio_anual?.toLocaleString('es-ES')}€</p>
+                      <p className="text-xs text-slate-600">{s.nivel_patrocinio} • {s.precio_anual?.toLocaleString('es-ES')}€/año</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <Badge className="bg-red-500 text-white">
-                      Vence: {format(new Date(s.fecha_fin), "d MMM yyyy", { locale: es })}
+                      {format(new Date(s.fecha_fin), "d MMM yyyy", { locale: es })}
                     </Badge>
                     <p className="text-xs text-red-600 mt-1">
-                      {differenceInDays(new Date(s.fecha_fin), new Date())} días restantes
+                      {differenceInDays(new Date(s.fecha_fin), new Date())} días
                     </p>
                   </div>
                 </div>
