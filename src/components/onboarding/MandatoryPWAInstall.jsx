@@ -4,23 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Smartphone, CheckCircle2 } from "lucide-react";
 
 export default function MandatoryPWAInstall({ onInstalled }) {
-  const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
-  const [step, setStep] = useState('instructions'); // 'instructions' -> 'waiting' -> success (onInstalled callback)
+        const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+        const [step, setStep] = useState('instructions'); // 'instructions' -> 'waiting' -> success
 
-  // Auto-detección cuando se abre desde la app instalada
-  useEffect(() => {
-    const checkInterval = setInterval(() => {
-      const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-      if (isStandalone && step === 'waiting') {
-        localStorage.setItem('pwaInstalled', 'true');
-        clearInterval(checkInterval);
-        setStep('success');
-        setTimeout(() => onInstalled(), 2000);
-      }
-    }, 500);
-    return () => clearInterval(checkInterval);
-  }, [step, onInstalled]);
+        // Auto-detección cuando se abre desde la app instalada
+        useEffect(() => {
+          if (step !== 'waiting') return;
+
+          const checkInterval = setInterval(() => {
+            const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+            if (isStandalone) {
+              localStorage.setItem('pwaInstalled', 'true');
+              clearInterval(checkInterval);
+              setStep('success');
+              // Llamar callback después de 1.5s
+              setTimeout(() => onInstalled(), 1500);
+            }
+          }, 300);
+          return () => clearInterval(checkInterval);
+        }, [step, onInstalled]);
 
   return (
     <div className="w-screen h-screen bg-slate-100">
