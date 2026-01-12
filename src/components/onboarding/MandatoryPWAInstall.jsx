@@ -1,36 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Smartphone, Download, Check } from "lucide-react";
 
 export default function MandatoryPWAInstall({ onInstalled }) {
-  const [step, setStep] = useState(1);
   const [installed, setInstalled] = useState(false);
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = /android/i.test(navigator.userAgent);
 
-  const checkInstallation = () => {
+  const checkInstallation = useCallback(() => {
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches || 
                         window.navigator.standalone === true;
+    console.log('📱 [PWA] Checking installation:', { isStandalone });
     if (isStandalone) {
+      console.log('✅ [PWA] App detectado como instalada');
       setInstalled(true);
       localStorage.setItem('pwaInstalled', 'true');
-      setTimeout(() => onInstalled(), 200); // Más rápido
+      setTimeout(() => onInstalled(), 50); // Ultra rápido
     }
-  };
+  }, [onInstalled]);
 
   useEffect(() => {
     checkInstallation();
-  }, []);
-
-  // Auto-check cada 1s para detección más rápida
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!installed) checkInstallation();
-    }, 1000);
+    const interval = setInterval(checkInstallation, 500);
     return () => clearInterval(interval);
-  }, [installed]);
+  }, [checkInstallation]);
 
   return (
     <Dialog open={!installed} onOpenChange={() => {}} modal={true}>
