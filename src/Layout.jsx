@@ -517,6 +517,7 @@ export default function Layout({ children, currentPageName }) {
   const [isPlayer, setIsPlayer] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [playerName, setPlayerName] = useState(null);
+  const [onboardingView, setOnboardingView] = useState('loading');
 
   const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
   const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
