@@ -236,7 +236,7 @@ export default function ParentPlayers() {
       try {
         const allPlayersInDB = await base44.entities.Player.list();
         const familyPlayers = allPlayersInDB.filter(p => 
-          (p.email_padre === user?.email || p.email_padre === dataWithParentEmail.email_padre) &&
+          (p.email_padre === currentUser?.email || p.email_padre === dataWithParentEmail.email_padre) &&
           p.activo &&
           p.id !== newPlayer.id
         );
