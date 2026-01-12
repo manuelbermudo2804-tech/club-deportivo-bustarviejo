@@ -19,9 +19,9 @@ import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 
-// Función para obtener las categorías con edades
-const getCategoriesWithYears = () => {
-  return [
+// Hook para cargar categorías dinámicas desde CategoryConfig
+const useCategoriesFromConfig = () => {
+  const [categories, setCategories] = React.useState([
     { value: "Fútbol Pre-Benjamín (Mixto)", label: `⚽ Fútbol Pre-Benjamín (Mixto) - 6-7 años` },
     { value: "Fútbol Benjamín (Mixto)", label: `⚽ Fútbol Benjamín (Mixto) - 8-9 años` },
     { value: "Fútbol Alevín (Mixto)", label: `⚽ Fútbol Alevín (Mixto) - 10-11 años` },
@@ -31,7 +31,33 @@ const getCategoriesWithYears = () => {
     { value: "Fútbol Aficionado", label: `⚽ Fútbol Aficionado - 19+ años` },
     { value: "Fútbol Femenino", label: "⚽ Fútbol Femenino" },
     { value: "Baloncesto (Mixto)", label: "🏀 Baloncesto (Mixto)" }
-  ];
+  ]);
+
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const configs = await base44.entities.CategoryConfig.filter({ activa: true });
+        const activeSeasons = await base44.entities.SeasonConfig.filter({ activa: true });
+        const currentSeason = activeSeasons[0]?.temporada;
+
+        // Filtrar solo las categorías de la temporada activa
+        const seasonCategories = configs.filter(c => c.temporada === currentSeason && c.activa);
+
+        if (seasonCategories.length > 0) {
+          const categoryList = seasonCategories.map(c => ({
+            value: c.nombre,
+            label: c.nombre
+          }));
+          setCategories(categoryList);
+        }
+      } catch (error) {
+        console.error("Error loading categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  return categories;
 };
 
 // Función para calcular edad - solo si la fecha es válida y completa
@@ -148,7 +174,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
   const [showCondiciones, setShowCondiciones] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
-  const categories = getCategoriesWithYears();
+  const categories = useCategoriesFromConfig();
 
   // Buscar jugadores existentes de la misma familia para reutilizar datos
   const existingFamilyPlayers = allPlayers.filter(p => 
