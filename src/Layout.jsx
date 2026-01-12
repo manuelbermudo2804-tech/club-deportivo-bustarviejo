@@ -1472,23 +1472,9 @@ export default function Layout({ children, currentPageName }) {
         if (!user) return;
     
         const checkOnboardingStatus = async () => {
-          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-          const appInstalled = isStandalone || localStorage.getItem('pwaInstalled') === 'true';
-
           if (!user.tipo_panel) {
             setOnboardingView('selector');
             return;
-          }
-    
-          if (!appInstalled) {
-            setOnboardingView('pwa');
-            return;
-          }
-    
-          if (isStandalone && !user.app_instalada) {
-            try {
-              await base44.auth.updateMe({ app_instalada: true });
-            } catch(e) { console.log('Failed to update user app installation status') }
           }
           
           if (user.tipo_panel === 'familia' && !user.onboarding_parents_completed) {
@@ -1499,6 +1485,20 @@ export default function Layout({ children, currentPageName }) {
           if (user.tipo_panel === 'jugador_adulto' && !user.onboarding_player_completed) {
             setOnboardingView('player_flow');
             return;
+          }
+
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+          const appInstalled = isStandalone || localStorage.getItem('pwaInstalled') === 'true';
+
+          if (!appInstalled) {
+            setOnboardingView('pwa');
+            return;
+          }
+    
+          if (isStandalone && !user.app_instalada) {
+            try {
+              await base44.auth.updateMe({ app_instalada: true });
+            } catch(e) { console.log('Failed to update user app installation status') }
           }
     
           setOnboardingView('none');
@@ -1535,20 +1535,13 @@ export default function Layout({ children, currentPageName }) {
                 </Suspense>
               </div>
             );
-          case 'pwa':
-            return (
-              <Suspense fallback={null}>
-                <MandatoryPWAInstall onInstalled={() => window.location.reload()} />
-              </Suspense>
-            );
           case 'parent_flow':
             return (
               <Suspense fallback={null}>
                 <ParentOnboardingFlow
                   user={user}
                   onComplete={() => {
-                    sessionStorage.setItem('initialRedirectDone', 'true');
-                    window.location.href = createPageUrl('ParentDashboard');
+                    setOnboardingView('pwa');
                   }}
                 />
               </Suspense>
@@ -1559,10 +1552,21 @@ export default function Layout({ children, currentPageName }) {
                 <PlayerOnboardingFlow
                   user={user}
                   onComplete={() => {
-                    sessionStorage.setItem('initialRedirectDone', 'true');
-                    window.location.href = createPageUrl('PlayerDashboard');
+                    setOnboardingView('pwa');
                   }}
                 />
+              </Suspense>
+            );
+          case 'pwa':
+            return (
+              <Suspense fallback={null}>
+                <MandatoryPWAInstall onInstalled={() => {
+                  localStorage.setItem('pwaInstalled', 'true');
+                  try {
+                    base44.auth.updateMe({ app_instalada: true });
+                  } catch(e) {}
+                  window.location.reload();
+                }} />
               </Suspense>
             );
           default:
