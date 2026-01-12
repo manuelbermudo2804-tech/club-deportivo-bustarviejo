@@ -21,14 +21,16 @@ export default function PlayerRegistrationInvitation({ user, onClose }) {
       console.log('Error marking invitation as shown:', e);
     }
 
-    // Redirigir al formulario de registro
+    // Redirigir al formulario de registro (usar createPageUrl si está disponible)
     setTimeout(() => {
       if (isPlayer) {
-        window.location.href = '/playerregistration';
+        // Redirigir a página de registro del jugador
+        window.location.href = window.location.pathname.replace(window.location.pathname, '/playerregistration');
       } else {
-        window.location.href = '/parentplayerregistration';
+        // Redirigir a página de registro de hijo
+        window.location.href = window.location.pathname.replace(window.location.pathname, '/parentplayerregistration');
       }
-    }, 800);
+    }, 1000);
   };
 
   return (
