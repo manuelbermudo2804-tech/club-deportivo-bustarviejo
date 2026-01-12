@@ -1466,9 +1466,8 @@ export default function Layout({ children, currentPageName }) {
       }
 
       console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
-
-      const [onboardingView, setOnboardingView] = useState('loading');
-
+      
+      // useEffect para el onboarding - DEBE estar FUERA de renderizado condicional
       useEffect(() => {
         if (!user) return;
     
@@ -1507,7 +1506,7 @@ export default function Layout({ children, currentPageName }) {
     
         checkOnboardingStatus();
       }, [user]);
-
+      
       const renderOnboarding = () => {
         switch (onboardingView) {
           case 'loading':
