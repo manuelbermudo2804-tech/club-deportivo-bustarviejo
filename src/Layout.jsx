@@ -1454,19 +1454,6 @@ export default function Layout({ children, currentPageName }) {
 
   
 
-      if (isLoading && !isPublicPage) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
-              <p className="text-white mt-4 text-sm">Cargando...</p>
-            </div>
-          </div>
-        );
-      }
-
-      console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
-      
       // useEffect para el onboarding - DEBE estar FUERA de renderizado condicional
       useEffect(() => {
         if (!user) return;
@@ -1506,6 +1493,19 @@ export default function Layout({ children, currentPageName }) {
     
         checkOnboardingStatus();
       }, [user]);
+
+      if (isLoading && !isPublicPage) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
+              <p className="text-white mt-4 text-sm">Cargando...</p>
+            </div>
+          </div>
+        );
+      }
+
+      console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
       
       const renderOnboarding = () => {
         switch (onboardingView) {
