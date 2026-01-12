@@ -29,6 +29,9 @@ const AutomaticRenewalClosure = React.lazy(() => import("./components/renewals/A
 const RenewalNotificationEngine = React.lazy(() => import("./components/renewals/RenewalNotificationEngine.jsx"));
 const PostRenewalPaymentReminder = React.lazy(() => import("./components/renewals/PostRenewalPaymentReminder.jsx"));
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
+const MandatoryPWAInstall = React.lazy(() => import("./components/onboarding/MandatoryPWAInstall"));
+const ParentOnboardingFlow = React.lazy(() => import("./components/onboarding/ParentOnboardingFlow"));
+const PlayerOnboardingFlow = React.lazy(() => import("./components/onboarding/PlayerOnboardingFlow"));
 
 // ToastContainer eliminado - causaba spam de notificaciones
 const EventReminderEngine = React.lazy(() => import("./components/events/EventReminderEngine"));
@@ -548,6 +551,8 @@ export default function Layout({ children, currentPageName }) {
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [showMandatoryPWA, setShowMandatoryPWA] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingType, setOnboardingType] = useState(null); // "parent" o "player"
   // isIOS/isAndroid definidos arriba para evitar TDZ
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
@@ -1479,18 +1484,64 @@ export default function Layout({ children, currentPageName }) {
               onSelectFamily={async () => {
                 console.log('👨‍👩‍👧 [LAYOUT] Seleccionado panel FAMILIA');
                 await base44.auth.updateMe({ tipo_panel: 'familia' });
-                sessionStorage.setItem('initialRedirectDone', 'true');
-                window.location.href = createPageUrl('ParentDashboard');
+                setShowTypeSelector(false);
+                setOnboardingType("parent");
+                setShowOnboarding(true);
               }}
               onSelectAdultPlayer={async () => {
                 console.log('⚽ [LAYOUT] Seleccionado panel JUGADOR +18');
                 await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
-                sessionStorage.setItem('initialRedirectDone', 'true');
-                window.location.href = createPageUrl('PlayerDashboard');
+                setShowTypeSelector(false);
+                setOnboardingType("player");
+                setShowOnboarding(true);
               }}
             />
             </Suspense>
           </div>
+        );
+      }
+
+      // Paso 2: INSTALAR APP (BLOQUEANTE)
+      if (showOnboarding && !isAppInstalled) {
+        return (
+          <Suspense fallback={null}>
+            <MandatoryPWAInstall 
+              onInstalled={() => {
+                setIsAppInstalled(true);
+                localStorage.setItem('pwaInstalled', 'true');
+                // El onboarding continúa automáticamente
+              }}
+            />
+          </Suspense>
+        );
+      }
+
+      // Paso 3: ONBOARDING ESPECÍFICO (PADRE O JUGADOR)
+      if (showOnboarding && isAppInstalled && onboardingType) {
+        return (
+          <Suspense fallback={null}>
+            {onboardingType === "parent" ? (
+              <ParentOnboardingFlow 
+                user={user}
+                onComplete={async () => {
+                  console.log('✅ Onboarding padre completado');
+                  setShowOnboarding(false);
+                  sessionStorage.setItem('initialRedirectDone', 'true');
+                  window.location.href = createPageUrl('ParentDashboard');
+                }}
+              />
+            ) : (
+              <PlayerOnboardingFlow 
+                user={user}
+                onComplete={async () => {
+                  console.log('✅ Onboarding jugador completado');
+                  setShowOnboarding(false);
+                  sessionStorage.setItem('initialRedirectDone', 'true');
+                  window.location.href = createPageUrl('PlayerDashboard');
+                }}
+              />
+            )}
+          </Suspense>
         );
       }
 
