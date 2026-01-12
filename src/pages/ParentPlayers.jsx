@@ -55,8 +55,17 @@ export default function ParentPlayers() {
   });
 
   const { data: categoryConfigs = [] } = useQuery({
-    queryKey: ['categoryConfigs'],
-    queryFn: () => base44.entities.CategoryConfig.list(),
+    queryKey: ['categoryConfigs', seasonConfig?.temporada],
+    queryFn: async () => {
+      if (!seasonConfig?.temporada) return [];
+      const configs = await base44.entities.CategoryConfig.filter({ 
+        temporada: seasonConfig.temporada,
+        activa: true 
+      });
+      console.log('📊 [ParentPlayers] CategoryConfigs cargadas:', configs.length, configs.map(c => c.nombre));
+      return configs;
+    },
+    enabled: !!seasonConfig?.temporada,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
