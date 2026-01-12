@@ -341,8 +341,8 @@ export default function ParentPlayers() {
           });
           
           // Comprobar si ya está como tutor_2 en otros jugadores del mismo padre
-          const allPlayers = await base44.entities.Player.list();
-          const alreadyRegistered = allPlayers.some(p => 
+          const allPlayersForCheck = await base44.entities.Player.list();
+          const alreadyRegistered = allPlayersForCheck.some(p => 
             p.email_tutor_2?.toLowerCase() === email2 && 
             p.id !== newPlayer.id &&
             (p.email_padre === user?.email || p.email_tutor_2 === user?.email)
