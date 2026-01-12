@@ -5,32 +5,23 @@ import { Users, ChevronRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function PlayerRegistrationInvitation({ user, onClose }) {
-  const [step, setStep] = useState('invitation'); // 'invitation' -> 'redirecting'
-  const isPlayer = user?.tipo_panel === 'jugador_adulto';
-
   const handleStartRegistration = async () => {
-    setStep('redirecting');
-    
-    // Marcar que el usuario ya vio la invitación
     try {
+      // Marcar que debe mostrar el formulario en ParentPlayers
       await base44.auth.updateMe({ 
-        mostro_invitacion_registro_jugador: true,
-        fecha_invitacion_registro: new Date().toISOString()
+        debe_mostrar_registro_jugador: true,
+        app_instalada: true
       });
+      console.log('✅ Flag debe_mostrar_registro_jugador activado');
     } catch(e) { 
-      console.log('Error marking invitation as shown:', e);
+      console.log('Error marking flag:', e);
     }
-
-    // Redirigir al formulario de registro (usar createPageUrl si está disponible)
+    
+    // Cerrar el onboarding y volver a recargar para que ParentPlayers abra el formulario
+    if (onClose) onClose();
     setTimeout(() => {
-      if (isPlayer) {
-        // Redirigir a página de registro del jugador
-        window.location.href = window.location.pathname.replace(window.location.pathname, '/playerregistration');
-      } else {
-        // Redirigir a página de registro de hijo
-        window.location.href = window.location.pathname.replace(window.location.pathname, '/parentplayerregistration');
-      }
-    }, 1000);
+      window.location.href = '/parentplayers';
+    }, 500);
   };
 
   return (
