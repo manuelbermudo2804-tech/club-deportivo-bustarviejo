@@ -54,16 +54,22 @@ export default function CoachParentChat({ embedded = false }) {
     if (!messages || !user) return;
 
     const coachCats = user?.categorias_entrena || [];
+    const isAdminUser = user?.role === "admin";
     const unreadCounts = {};
 
     messages.forEach(msg => {
       const catKey = msg.deporte || msg.grupo_id;
       if (!catKey) return;
 
-      // 1) Padres -> Entrenador: badge para entrenador (sin leído por el entrenador)
-      if (msg.tipo === 'padre_a_grupo' && coachCats.includes(catKey)) {
+      // Padres -> Entrenador: badge para entrenador (sin leído por el entrenador)
+      if (msg.tipo === 'padre_a_grupo') {
         const isRead = msg.leido_por?.some(lp => lp.email === user.email);
-        if (!isRead) unreadCounts[catKey] = (unreadCounts[catKey] || 0) + 1;
+        if (isRead) return;
+        
+        // Admin ve todos, entrenador solo sus categorías
+        if (isAdminUser || coachCats.includes(catKey)) {
+          unreadCounts[catKey] = (unreadCounts[catKey] || 0) + 1;
+        }
       }
     });
 
