@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import CoordinatorChat from "./CoordinatorChat";
 import CoachParentChat from "./CoachParentChat";
+import useUnreadChats from "../components/notifications/useUnreadChats";
 
 export default function FamilyChats() {
   const [user, setUser] = useState(null);
@@ -25,28 +26,15 @@ export default function FamilyChats() {
     fetchUser();
   }, []);
 
-  // Contar mensajes sin leer del coordinador
-  const { data: coordinatorConversations = [] } = useQuery({
-    queryKey: ['coordinatorConversationsCount', user?.email],
-    queryFn: () => base44.entities.CoordinatorConversation.list(),
-    enabled: !!user?.email,
-    refetchInterval: 3000,
-  });
+  // Obtener contadores unificados desde useUnreadChats
+  const { items: chatItems } = useUnreadChats(true);
 
-  // Contar mensajes sin leer del entrenador
-  const { data: allChatMessages = [] } = useQuery({
-    queryKey: ['chatMessagesCount', user?.email],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date', 500),
-    enabled: !!user?.email,
-    refetchInterval: 3000,
-  });
-
-  // Calcular badges
-  const coordUnreadCount = coordinatorConversations.reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
-  const coachUnreadCount = allChatMessages.filter(m => 
-    m.tipo === 'entrenador_a_grupo' && 
-    !m.leido_por?.some(lp => lp.email === user?.email)
-  ).length;
+  // Extraer contadores específicos
+  const coordUnreadCount = chatItems.find(item => item.source === "coordinator")?.count || 0;
+  const coachUnreadCount = chatItems.find(item => item.source === "coach")?.count || 0;
+  const adminUnreadCount = chatItems.find(item => item.source === "admin")?.count || 0;
+  const staffUnreadCount = chatItems.find(item => item.source === "staff")?.count || 0;
+  const privateUnreadCount = chatItems.find(item => item.source === "private")?.count || 0;
 
   // Carga sin retorno temprano: mostramos loader dentro del contenido
   const loading = !user;
@@ -58,19 +46,61 @@ export default function FamilyChats() {
     <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
       <Tabs defaultValue={defaultTab} className="h-full flex flex-col">
         <div className="flex-shrink-0 bg-white border-b px-2 py-2">
-          <TabsList className="w-full">
-            <TabsTrigger value="coordinador" className="flex-1 relative">
-              🏟️ Coordinador
+          <TabsList className="w-full flex-wrap justify-start gap-1">
+            {/* Tab Asistente (si hay futura integración) */}
+            <TabsTrigger value="asistente" className="flex-1 relative min-w-24">
+              🤖 Asistente
+            </TabsTrigger>
+
+            {/* Tab Familias/Coordinador */}
+            <TabsTrigger value="coordinador" className="flex-1 relative min-w-24">
+              👨‍👩‍👧 Familias
               {coordUnreadCount > 0 && (
                 <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{coordUnreadCount}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="entrenador" className="flex-1 relative">
+
+            {/* Tab Coordinador */}
+            {isCoordinator && (
+              <TabsTrigger value="coordinador-admin" className="flex-1 relative min-w-24">
+                🏟️ Coordinador
+                {coordUnreadCount > 0 && (
+                  <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{coordUnreadCount}</Badge>
+                )}
+              </TabsTrigger>
+            )}
+
+            {/* Tab Entrenador */}
+            <TabsTrigger value="entrenador" className="flex-1 relative min-w-24">
               ⚽ Entrenador
               {coachUnreadCount > 0 && (
                 <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{coachUnreadCount}</Badge>
               )}
             </TabsTrigger>
+
+            {/* Tab Admin */}
+            {adminUnreadCount > 0 && (
+              <TabsTrigger value="admin" className="flex-1 relative min-w-24">
+                🛡️ Admin
+                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{adminUnreadCount}</Badge>
+              </TabsTrigger>
+            )}
+
+            {/* Tab Staff */}
+            {staffUnreadCount > 0 && (
+              <TabsTrigger value="staff" className="flex-1 relative min-w-24">
+                💼 Staff
+                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{staffUnreadCount}</Badge>
+              </TabsTrigger>
+            )}
+
+            {/* Tab Privados */}
+            {privateUnreadCount > 0 && (
+              <TabsTrigger value="private" className="flex-1 relative min-w-24">
+                💬 Privados
+                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{privateUnreadCount}</Badge>
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
