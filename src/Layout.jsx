@@ -1459,35 +1459,49 @@ export default function Layout({ children, currentPageName }) {
         if (!user) return;
     
         const checkOnboardingStatus = async () => {
+          console.log('🎯 [ONBOARDING] Checking status:', {
+            tipo_panel: user.tipo_panel,
+            app_instalada: user.app_instalada,
+            isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+          });
+
           // Los admins, entrenadores, coordinadores y tesoreros NO pasan por onboarding
           if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
+            console.log('👨‍💼 [ONBOARDING] Admin/Staff detected - skipping');
             setOnboardingView('none');
             return;
           }
 
           // Paso 1: Elegir panel (familia o jugador)
           if (!user.tipo_panel) {
+            console.log('📱 [ONBOARDING] No tipo_panel - showing selector');
             setOnboardingView('selector');
             return;
           }
           
           // Paso 2: Instalar app en móvil
           const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-          const appInstalled = isStandalone || localStorage.getItem('pwaInstalled') === 'true';
+          const hasMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
 
-          if (!appInstalled) {
+          // Si NO está instalada y NO ha marcado "ya la tengo", mostrar instrucciones
+          if (!isStandalone && !hasMarkedInstalled) {
+            console.log('📲 [ONBOARDING] Not standalone and not marked - showing PWA instructions');
             setOnboardingView('pwa');
             return;
           }
-    
-          // Paso 3: App ya instalada, marcar como instalada en BD
+
+          // Paso 3: Si está en standalone (primera vez después de instalar)
           if (isStandalone && !user.app_instalada) {
+            console.log('✅ [ONBOARDING] Detected standalone for first time - showing player registration invitation');
             try {
               await base44.auth.updateMe({ app_instalada: true });
-            } catch(e) { console.log('Failed to update user app installation status') }
+            } catch(e) { console.log('Error updating app_instalada:', e); }
+            setOnboardingView('player_registration');
+            return;
           }
     
-          // Onboarding completado - ir a dashboard
+          // Onboarding completado
+          console.log('🏠 [ONBOARDING] Completed - going to main view');
           setOnboardingView('none');
         };
     
