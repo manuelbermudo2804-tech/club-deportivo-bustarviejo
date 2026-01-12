@@ -180,7 +180,7 @@ export default function ParentPlayers() {
           console.log('🎫 [ParentPlayers] Creando socio automáticamente para:', dataWithParentEmail.email_padre);
           await base44.entities.ClubMember.create({
             email: dataWithParentEmail.email_padre,
-            nombre_completo: dataWithParentEmail.nombre_tutor_legal || user?.full_name || "",
+            nombre_completo: dataWithParentEmail.nombre_tutor_legal || currentUser?.full_name || "",
             telefono: dataWithParentEmail.telefono || "",
             direccion: dataWithParentEmail.direccion || "",
             temporada: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1),
