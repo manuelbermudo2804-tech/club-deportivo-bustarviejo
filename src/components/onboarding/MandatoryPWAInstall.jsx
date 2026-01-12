@@ -16,13 +16,21 @@ export default function MandatoryPWAInstall({ onInstalled }) {
     if (isStandalone) {
       setInstalled(true);
       localStorage.setItem('pwaInstalled', 'true');
-      setTimeout(() => onInstalled(), 1000);
+      setTimeout(() => onInstalled(), 200); // Más rápido
     }
   };
 
   useEffect(() => {
     checkInstallation();
   }, []);
+
+  // Auto-check cada 1s para detección más rápida
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!installed) checkInstallation();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [installed]);
 
   return (
     <Dialog open={!installed} onOpenChange={() => {}} modal={true}>

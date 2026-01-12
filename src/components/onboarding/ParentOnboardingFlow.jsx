@@ -18,6 +18,8 @@ export default function ParentOnboardingFlow({ user, onComplete }) {
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: () => base44.entities.CategoryConfig.list(),
+    staleTime: 1000 * 60 * 5, // 5 min cache
+    gcTime: 1000 * 60 * 10, // 10 min garbage collection
   });
 
   const createPlayerMutation = useMutation({
