@@ -81,47 +81,22 @@ export default function Sponsorships() {
     }
   };
 
-  const handleActivate = (sponsor) => {
-    // Si el monto es 0, pedir confirmación del monto primero
-    if (!sponsor.monto || sponsor.monto === 0) {
-      const montoInput = prompt(`Introduce el monto pagado por ${sponsor.nombre} (en euros):`);
-      if (!montoInput) return;
-      
-      const monto = parseFloat(montoInput);
-      if (isNaN(monto) || monto <= 0) {
-        toast.error("Monto inválido");
-        return;
-      }
-      
-      updateMutation.mutate({ 
-        id: sponsor.id, 
-        data: { 
-          ...sponsor, 
-          estado: "Activo",
-          monto: monto,
-          fecha_pago: new Date().toISOString().split('T')[0]
-        } 
-      });
-      toast.success(`✅ ${sponsor.nombre} activado con ${monto}€ - aparecerá en banner`);
-    } else {
-      // Si ya tiene monto, solo activar
-      updateMutation.mutate({ 
-        id: sponsor.id, 
-        data: { 
-          ...sponsor, 
-          estado: "Activo",
-          fecha_pago: sponsor.fecha_pago || new Date().toISOString().split('T')[0]
-        } 
-      });
-      toast.success(`✅ ${sponsor.nombre} activado - ahora aparecerá en el banner`);
-    }
+  const handleToggleActive = (sponsor) => {
+    const newStatus = !sponsor.activo;
+    updateMutation.mutate({ 
+      id: sponsor.id, 
+      data: { activo: newStatus } 
+    });
+    toast.success(newStatus ? `✅ ${sponsor.nombre} activado - aparecerá en el banner` : `⏸️ ${sponsor.nombre} desactivado - no aparecerá en el banner`);
   };
 
   const filteredSponsors = sponsors.filter(s => {
     const matchesSearch = s.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.contacto_nombre?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = filterLevel === "all" || s.nivel_patrocinio === filterLevel;
-    const matchesStatus = filterStatus === "all" || s.estado === filterStatus;
+    const matchesStatus = filterStatus === "all" || 
+      (filterStatus === "Activo" && s.activo === true) ||
+      (filterStatus === "Inactivo" && s.activo === false);
     return matchesSearch && matchesLevel && matchesStatus;
   });
 
@@ -211,7 +186,7 @@ export default function Sponsorships() {
               ))}
             </div>
             <div className="flex gap-2">
-              {["all", "Activo", "Pendiente", "Finalizado"].map(status => (
+              {["all", "Activo", "Inactivo"].map(status => (
                 <Button
                   key={status}
                   size="sm"
@@ -240,7 +215,7 @@ export default function Sponsorships() {
                   sponsor={sponsor}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
-                  onActivate={handleActivate}
+                  onToggleActive={handleToggleActive}
                 />
               ))}
             </div>

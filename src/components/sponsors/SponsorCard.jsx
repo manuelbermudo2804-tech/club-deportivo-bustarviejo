@@ -2,7 +2,8 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, FileText, Calendar, Euro, Building2, Phone, Mail, CheckCircle2 } from "lucide-react";
+import { Pencil, Trash2, FileText, Calendar, Euro, Building2, Phone, Mail, Power } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -14,14 +15,7 @@ const nivelColors = {
   "Colaborador": "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
 };
 
-const estadoColors = {
-  "Activo": "bg-green-500",
-  "Pendiente": "bg-yellow-500",
-  "Finalizado": "bg-slate-500",
-  "Cancelado": "bg-red-500"
-};
-
-export default function SponsorCard({ sponsor, onEdit, onDelete, onActivate }) {
+export default function SponsorCard({ sponsor, onEdit, onDelete, onToggleActive }) {
   const isExpiringSoon = () => {
     if (!sponsor.fecha_fin) return false;
     const endDate = new Date(sponsor.fecha_fin);
@@ -37,7 +31,7 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onActivate }) {
 
   return (
     <Card className={`border-none shadow-lg overflow-hidden transition-all hover:shadow-xl ${
-      isExpired() ? 'opacity-60' : ''
+      !sponsor.activo ? 'opacity-60' : ''
     }`}>
       <div className={`h-2 ${nivelColors[sponsor.nivel_patrocinio] || 'bg-slate-400'}`} />
       <CardContent className="p-5">
@@ -60,9 +54,6 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onActivate }) {
                 <Badge className={nivelColors[sponsor.nivel_patrocinio]}>
                   {sponsor.nivel_patrocinio}
                 </Badge>
-                <Badge className={`${estadoColors[sponsor.estado]} text-white`}>
-                  {sponsor.estado}
-                </Badge>
                 {isExpiringSoon() && (
                   <Badge className="bg-orange-500 text-white animate-pulse">
                     ⚠️ Próximo a vencer
@@ -72,18 +63,6 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onActivate }) {
             </div>
           </div>
           <div className="flex gap-1">
-            {sponsor.estado === "Pendiente" && onActivate && (
-              <Button 
-                size="sm" 
-                variant="default" 
-                onClick={() => onActivate(sponsor)} 
-                className="bg-green-600 hover:bg-green-700 text-white text-xs"
-                title="Marcar como pagado y activar en banner"
-              >
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Confirmar Pago
-              </Button>
-            )}
             <Button size="icon" variant="ghost" onClick={() => onEdit(sponsor)}>
               <Pencil className="w-4 h-4 text-slate-600" />
             </Button>
@@ -93,17 +72,35 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onActivate }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center gap-2 text-slate-600">
-            <Euro className="w-4 h-4" />
-            <span className={`font-bold text-lg ${sponsor.monto > 0 ? 'text-green-600' : 'text-slate-400'}`}>
-              {sponsor.monto?.toLocaleString('es-ES') || 0}€
-            </span>
-            <span className="text-xs text-slate-400">/{sponsor.frecuencia_pago?.toLowerCase()}</span>
-            {sponsor.estado === "Pendiente" && sponsor.monto === 0 && (
-              <Badge className="bg-orange-100 text-orange-700 text-[10px]">Sin pagar</Badge>
-            )}
+        {/* Switch para activar/desactivar aparición en banner */}
+        <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Power className={`w-5 h-5 ${sponsor.activo ? 'text-green-600' : 'text-slate-400'}`} />
+              <div>
+                <p className="font-semibold text-slate-900">Mostrar en Banner</p>
+                <p className="text-xs text-slate-500">
+                  {sponsor.activo ? '✅ Aparece en el banner de la app' : '⏸️ No aparece en el banner'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={sponsor.activo}
+              onCheckedChange={() => onToggleActive(sponsor)}
+            />
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {sponsor.precio_anual && (
+            <div className="flex items-center gap-2 text-slate-600">
+              <Euro className="w-4 h-4" />
+              <span className="font-bold text-lg text-green-600">
+                {sponsor.precio_anual?.toLocaleString('es-ES')}€
+              </span>
+              <span className="text-xs text-slate-400">/año</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 text-slate-600">
             <Calendar className="w-4 h-4" />
             <span>

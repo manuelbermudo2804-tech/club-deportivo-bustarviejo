@@ -27,7 +27,7 @@ export default function SponsorDashboard({ sponsors }) {
   });
 
   const activeSponsors = sponsors.filter(s => s.activo === true);
-  const pendingSponsors = sponsors.filter(s => s.estado_pago === "Pendiente");
+  const inactiveSponsors = sponsors.filter(s => s.activo === false);
 
   // Ingresos totales activos
   const totalActiveIncome = activeSponsors.reduce((sum, s) => sum + (s.precio_anual || 0), 0);
@@ -97,15 +97,15 @@ export default function SponsorDashboard({ sponsors }) {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+        <Card className="border-none shadow-lg bg-gradient-to-br from-slate-50 to-slate-100">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-600 rounded-xl">
+              <div className="p-3 bg-slate-600 rounded-xl">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-xs text-blue-700 font-medium">Pendientes</p>
-                <p className="text-2xl font-bold text-blue-800">{pendingSponsors.length}</p>
+                <p className="text-xs text-slate-700 font-medium">Inactivos</p>
+                <p className="text-2xl font-bold text-slate-800">{inactiveSponsors.length}</p>
               </div>
             </div>
           </CardContent>

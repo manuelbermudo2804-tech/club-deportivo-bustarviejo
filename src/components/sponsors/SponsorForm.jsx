@@ -12,8 +12,6 @@ import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 const NIVELES = ["Principal", "Oro", "Plata", "Bronce", "Colaborador"];
-const ESTADOS = ["Activo", "Pendiente", "Finalizado", "Cancelado"];
-const FRECUENCIAS = ["Único", "Mensual", "Trimestral", "Anual"];
 const TIPOS_DOCUMENTO = ["Contrato", "Factura", "Recibo", "Otro"];
 
 const CATEGORIAS = [
@@ -40,9 +38,9 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
     nivel_patrocinio: "Colaborador",
     fecha_inicio: new Date().toISOString().split('T')[0],
     fecha_fin: "",
-    monto: "",
-    frecuencia_pago: "Anual",
-    estado: "Pendiente",
+    precio_anual: "",
+    activo: true,
+    paquete: "Bronce",
     documentos: [],
     equipos_patrocinados: [],
     jugadores_patrocinados: [],
@@ -58,7 +56,8 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
     if (sponsor) {
       setFormData({
         ...sponsor,
-        monto: sponsor.monto || "",
+        precio_anual: sponsor.precio_anual || "",
+        activo: sponsor.activo ?? true,
         documentos: sponsor.documentos || [],
         equipos_patrocinados: sponsor.equipos_patrocinados || [],
         jugadores_patrocinados: sponsor.jugadores_patrocinados || []
@@ -138,13 +137,13 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.nombre || !formData.monto) {
-      toast.error("Nombre y monto son obligatorios");
+    if (!formData.nombre) {
+      toast.error("El nombre es obligatorio");
       return;
     }
     onSubmit({
       ...formData,
-      monto: parseFloat(formData.monto) || 0
+      precio_anual: parseFloat(formData.precio_anual) || 0
     });
   };
 
@@ -263,27 +262,28 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
               <h3 className="font-semibold text-slate-700 mb-3">💶 Datos del Patrocinio</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <Label>Monto (€) *</Label>
+                  <Label>Precio Anual (€)</Label>
                   <Input
                     type="number"
-                    value={formData.monto}
-                    onChange={(e) => handleChange("monto", e.target.value)}
+                    value={formData.precio_anual}
+                    onChange={(e) => handleChange("precio_anual", e.target.value)}
                     placeholder="0"
                     min="0"
                     step="0.01"
-                    required
                   />
+                  <p className="text-xs text-slate-500 mt-1">Opcional - para contabilidad interna</p>
                 </div>
                 <div>
-                  <Label>Frecuencia de Pago</Label>
-                  <Select value={formData.frecuencia_pago} onValueChange={(v) => handleChange("frecuencia_pago", v)}>
+                  <Label>Paquete</Label>
+                  <Select value={formData.paquete} onValueChange={(v) => handleChange("paquete", v)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {FRECUENCIAS.map(f => (
-                        <SelectItem key={f} value={f}>{f}</SelectItem>
-                      ))}
+                      <SelectItem value="Oro">Oro</SelectItem>
+                      <SelectItem value="Plata">Plata</SelectItem>
+                      <SelectItem value="Bronce">Bronce</SelectItem>
+                      <SelectItem value="Personalizado">Personalizado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -303,19 +303,7 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
                     value={formData.fecha_fin}
                     onChange={(e) => handleChange("fecha_fin", e.target.value)}
                   />
-                </div>
-                <div>
-                  <Label>Estado</Label>
-                  <Select value={formData.estado} onValueChange={(v) => handleChange("estado", v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ESTADOS.map(e => (
-                        <SelectItem key={e} value={e}>{e}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <p className="text-xs text-slate-500 mt-1">Opcional - para alertas de renovación</p>
                 </div>
               </div>
             </div>
