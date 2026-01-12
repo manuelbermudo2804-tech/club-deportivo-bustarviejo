@@ -897,10 +897,13 @@ Email: cdbustarviejo@gmail.com
   };
 
   const futbolPlayers = players.filter(p => 
-    p.deporte?.includes("Fútbol") && !p.deporte?.includes("Femenino")
+    p.deporte?.includes("Fútbol") && !p.deporte?.includes("Femenino") && !p.deporte?.includes("+40")
   );
   const futbolFemeninoPlayers = players.filter(p => p.deporte === "Fútbol Femenino");
   const baloncestoPlayers = players.filter(p => p.deporte?.includes("Baloncesto"));
+  const actividadesComplementarias = players.filter(p => 
+    p.deporte === "Multideporte" || p.deporte === "Preparación Física" || p.deporte?.includes("+40")
+  );
   
   // Detectar jugadores con renovación pendiente
   const playersToRenew = players.filter(p => p.estado_renovacion === "pendiente");
@@ -1237,6 +1240,39 @@ Email: cdbustarviejo@gmail.com
               <div className="space-y-6">
                 <AnimatePresence>
                   {baloncestoPlayers.map((player) => (
+                    <div key={player.id} className="space-y-4">
+                      <PlayerCard 
+                        player={player} 
+                        onEdit={handleEdit}
+                        onRenew={handleRenew}
+                        onMarkNotRenewing={handleMarkNotRenewing}
+                        isParent={true}
+                        schedules={schedules}
+                        payments={payments}
+                        seasonConfig={seasonConfig}
+                        callups={callups}
+                      />
+                      <AchievementsBadges 
+                        player={player} 
+                        attendances={attendances}
+                        evaluations={evaluations}
+                      />
+                    </div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+
+          {/* Actividades Complementarias */}
+          {actividadesComplementarias.length > 0 && (
+            <div className="space-y-3 lg:space-y-4">
+              <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <span>💪</span> Actividades Complementarias
+              </h2>
+              <div className="space-y-6">
+                <AnimatePresence>
+                  {actividadesComplementarias.map((player) => (
                     <div key={player.id} className="space-y-4">
                       <PlayerCard 
                         player={player} 
