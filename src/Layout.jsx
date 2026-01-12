@@ -1504,16 +1504,16 @@ export default function Layout({ children, currentPageName }) {
         return;
       }
 
-      // Paso 2: Si es familia normal, mostrar diálogo de bienvenida una sola vez
-      if (user.tipo_panel === 'familia' && !user.app_instalada) {
-        console.log('✅ [ONBOARDING] Primera vez familia - mostrar diálogo bienvenida');
-        setShowFirstTimeRegistration(true);
-        return;
-      }
+// Paso 2: Mostrar instrucciones de instalación la primera vez (para familia o jugador)
+if (!user.app_instalada) {
+  console.log('✅ [ONBOARDING] Primera vez - mostrar instrucciones de instalación');
+  setShowInstallInstructions(true);
+  setShowFirstTimeRegistration(false);
+}
 
-      // Normal - sin onboarding
-      setOnboardingView('none');
-      setShowFirstTimeRegistration(false);
+// Normal - sin onboarding
+setOnboardingView('none');
+setShowFirstTimeRegistration(false);
     }, [user]);
 
       if (isLoading && !isPublicPage) {
