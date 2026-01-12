@@ -346,7 +346,7 @@ export default function ParentPlayers() {
           const alreadyRegistered = allPlayersForCheck.some(p => 
             p.email_tutor_2?.toLowerCase() === email2 && 
             p.id !== newPlayer.id &&
-            (p.email_padre === user?.email || p.email_tutor_2 === user?.email)
+            (p.email_padre === currentUser?.email || p.email_tutor_2 === currentUser?.email)
           );
           
           // Solo enviar invitación si NO está ya registrado
