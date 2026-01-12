@@ -1118,6 +1118,40 @@ export default function Layout({ children, currentPageName }) {
     return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
   }
 
+  // Diálogo SUPER SIMPLE primera apertura desde PWA
+  if (showFirstTimeRegistration && user && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <span className="text-4xl">📋</span>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">¡Bienvenido!</h2>
+            <p className="text-slate-600">Ahora vamos a registrar a tu jugador en el sistema del club</p>
+          </div>
+          <Button
+            onClick={async () => {
+              try {
+                await base44.auth.updateMe({ 
+                  app_instalada: true,
+                  debe_mostrar_registro_jugador: true
+                });
+                setShowFirstTimeRegistration(false);
+                setOnboardingView('none');
+              } catch(e) {
+                console.error('Error:', e);
+              }
+            }}
+            className="w-full bg-green-600 hover:bg-green-700 py-3 text-lg font-bold"
+          >
+            Comenzar Registro →
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   const adminNavigationItems = [
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
