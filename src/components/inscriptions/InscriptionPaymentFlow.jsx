@@ -77,51 +77,59 @@ export default function InscriptionPaymentFlow({
     const defaultSeason = `${currentYear}/${currentYear + 1}`;
     const seasonToUse = seasonConfig?.temporada || defaultSeason;
 
-    if (tipoPago === "Único") {
-      paymentsToCreate.push({
-        tipo_pago: "Único",
-        mes: "Junio",
-        temporada: seasonToUse,
-        cantidad: importeTotal,
-        estado: "Pendiente",
-        metodo_pago: "Transferencia",
-        notas: descuentoHermano > 0 
-          ? `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}. Descuento hermano: -${descuentoHermano}€` 
-          : `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}`
-      });
-    } else {
-      paymentsToCreate.push(
-        {
-          tipo_pago: "Tres meses",
+    // Generar pagos INDEPENDIENTES por cada categoría
+    cuotasPorCategoria.forEach((catData, index) => {
+      const esPrimeraCategoria = index === 0;
+      const descuentoAplicable = esPrimeraCategoria ? descuentoHermano : 0;
+
+      if (tipoPago === "Único") {
+        paymentsToCreate.push({
+          tipo_pago: "Único",
           mes: "Junio",
           temporada: seasonToUse,
-          cantidad: importeInscripcion,
+          cantidad: catData.cuotas.total - descuentoAplicable,
           estado: "Pendiente",
           metodo_pago: "Transferencia",
-          notas: descuentoHermano > 0 
-            ? `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}. Descuento hermano: -${descuentoHermano}€` 
-            : `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}`
-        },
-        {
-          tipo_pago: "Tres meses",
-          mes: "Septiembre",
-          temporada: seasonToUse,
-          cantidad: importeSegundaSinDescuento,
-          estado: "Pendiente",
-          metodo_pago: "Transferencia",
-          notas: `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}`
-        },
-        {
-          tipo_pago: "Tres meses",
-          mes: "Diciembre",
-          temporada: seasonToUse,
-          cantidad: importeTerceraSinDescuento,
-          estado: "Pendiente",
-          metodo_pago: "Transferencia",
-          notas: `Múltiples categorías: ${categoriasSeleccionadas.join(', ')}`
-        }
-      );
-    }
+          categoria: catData.categoria,
+          notas: descuentoAplicable > 0 
+            ? `Descuento hermano: -${descuentoAplicable}€` 
+            : ""
+        });
+      } else {
+        paymentsToCreate.push(
+          {
+            tipo_pago: "Tres meses",
+            mes: "Junio",
+            temporada: seasonToUse,
+            cantidad: catData.cuotas.inscripcion - descuentoAplicable,
+            estado: "Pendiente",
+            metodo_pago: "Transferencia",
+            categoria: catData.categoria,
+            notas: descuentoAplicable > 0 
+              ? `Descuento hermano: -${descuentoAplicable}€` 
+              : ""
+          },
+          {
+            tipo_pago: "Tres meses",
+            mes: "Septiembre",
+            temporada: seasonToUse,
+            cantidad: catData.cuotas.segunda,
+            estado: "Pendiente",
+            metodo_pago: "Transferencia",
+            categoria: catData.categoria
+          },
+          {
+            tipo_pago: "Tres meses",
+            mes: "Diciembre",
+            temporada: seasonToUse,
+            cantidad: catData.cuotas.tercera,
+            estado: "Pendiente",
+            metodo_pago: "Transferencia",
+            categoria: catData.categoria
+          }
+        );
+      }
+    });
 
     onContinue({ tipoPago, payments: paymentsToCreate });
   };
@@ -239,72 +247,112 @@ export default function InscriptionPaymentFlow({
             </div>
           </div>
 
+          <p className="text-xs font-bold text-orange-900 mb-2">
+            💳 Se generarán {cuotasPorCategoria.length * (tipoPago === "Único" ? 1 : 3)} pagos independientes:
+          </p>
+
           {tipoPago === "Único" ? (
             <div className="space-y-2">
-              <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-orange-200">
-                <div>
-                  <p className="font-bold text-slate-900">Pago Único (Junio)</p>
-                  <p className="text-xs text-slate-600">Vence: 30 de junio</p>
-                </div>
-                <div className="text-right">
-                  {descuentoHermano > 0 && (
-                    <p className="text-sm text-slate-500 line-through">{importeTotalSinDescuento}€</p>
-                  )}
-                  <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
-                </div>
-              </div>
+              {cuotasPorCategoria.map((catData, index) => {
+                const esPrimera = index === 0;
+                const descuentoAplicable = esPrimera ? descuentoHermano : 0;
+                return (
+                  <div key={catData.categoria} className="flex justify-between items-center bg-white rounded-lg p-3 border border-orange-200">
+                    <div>
+                      <p className="font-bold text-slate-900">{catData.categoria}</p>
+                      <p className="text-xs text-slate-600">Pago único - Vence: 30 jun</p>
+                    </div>
+                    <div className="text-right">
+                      {descuentoAplicable > 0 && (
+                        <p className="text-sm text-slate-500 line-through">{catData.cuotas.total}€</p>
+                      )}
+                      <p className="text-lg font-bold text-orange-700">{catData.cuotas.total - descuentoAplicable}€</p>
+                    </div>
+                  </div>
+                );
+              })}
               {descuentoHermano > 0 && (
                 <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
                   <p className="text-xs text-purple-900 text-center font-bold">
-                    💜 Descuento hermano aplicado: -{descuentoHermano}€
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-orange-200">
-                <div>
-                  <p className="font-bold text-slate-900">1ª Cuota - Inscripción (Junio)</p>
-                  <p className="text-xs text-slate-600">Vence: 30 de junio</p>
-                </div>
-                <div className="text-right">
-                  {descuentoHermano > 0 && (
-                    <p className="text-sm text-slate-500 line-through">{importeInscripcionSinDescuento}€</p>
-                  )}
-                  <p className="text-lg font-bold text-orange-700">{importeInscripcion}€</p>
-                </div>
-              </div>
-              <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-slate-200">
-                <div>
-                  <p className="font-bold text-slate-900">2ª Cuota (Septiembre)</p>
-                  <p className="text-xs text-slate-600">Vence: 15 de septiembre</p>
-                </div>
-                <p className="text-lg font-bold text-slate-700">{importeSegundaSinDescuento}€</p>
-              </div>
-              <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-slate-200">
-                <div>
-                  <p className="font-bold text-slate-900">3ª Cuota (Diciembre)</p>
-                  <p className="text-xs text-slate-600">Vence: 15 de diciembre</p>
-                </div>
-                <p className="text-lg font-bold text-slate-700">{importeTerceraSinDescuento}€</p>
-              </div>
-              {descuentoHermano > 0 && (
-                <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
-                  <p className="text-xs text-purple-900 text-center font-bold">
-                    💜 Descuento de {descuentoHermano}€ aplicado en la 1ª cuota
+                    💜 Descuento de -{descuentoHermano}€ aplicado en {cuotasPorCategoria[0].categoria}
                   </p>
                 </div>
               )}
               <div className="pt-2 border-t border-orange-200">
                 <div className="flex justify-between items-center">
-                  <p className="font-bold text-slate-600">Total temporada:</p>
-                  <div className="text-right">
-                    {descuentoHermano > 0 && (
-                      <p className="text-sm text-slate-500 line-through">{importeTotalSinDescuento}€</p>
-                    )}
-                    <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
+                  <p className="font-bold text-slate-600">Total a pagar:</p>
+                  <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Pagos de Junio */}
+              <div className="bg-slate-50 rounded-lg p-2">
+                <p className="text-xs font-bold text-slate-700 mb-2">📅 Junio (Vence: 30 jun)</p>
+                {cuotasPorCategoria.map((catData, index) => {
+                  const esPrimera = index === 0;
+                  const descuentoAplicable = esPrimera ? descuentoHermano : 0;
+                  return (
+                    <div key={catData.categoria} className="flex justify-between items-center bg-white rounded-lg p-2 mb-1 border">
+                      <p className="text-xs text-slate-700">{catData.categoria}</p>
+                      <div className="text-right">
+                        {descuentoAplicable > 0 && (
+                          <p className="text-xs text-slate-500 line-through">{catData.cuotas.inscripcion}€</p>
+                        )}
+                        <p className="text-sm font-bold text-orange-700">{catData.cuotas.inscripcion - descuentoAplicable}€</p>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="flex justify-between items-center pt-1 border-t">
+                  <p className="text-xs font-bold">Total Junio:</p>
+                  <p className="text-base font-bold text-orange-700">{importeInscripcion}€</p>
+                </div>
+              </div>
+
+              {/* Pagos de Septiembre */}
+              <div className="bg-slate-50 rounded-lg p-2">
+                <p className="text-xs font-bold text-slate-700 mb-2">📅 Septiembre (Vence: 15 sep)</p>
+                {cuotasPorCategoria.map((catData) => (
+                  <div key={catData.categoria} className="flex justify-between items-center bg-white rounded-lg p-2 mb-1 border">
+                    <p className="text-xs text-slate-700">{catData.categoria}</p>
+                    <p className="text-sm font-bold text-slate-700">{catData.cuotas.segunda}€</p>
                   </div>
+                ))}
+                <div className="flex justify-between items-center pt-1 border-t">
+                  <p className="text-xs font-bold">Total Septiembre:</p>
+                  <p className="text-base font-bold text-slate-700">{importeSegundaSinDescuento}€</p>
+                </div>
+              </div>
+
+              {/* Pagos de Diciembre */}
+              <div className="bg-slate-50 rounded-lg p-2">
+                <p className="text-xs font-bold text-slate-700 mb-2">📅 Diciembre (Vence: 15 dic)</p>
+                {cuotasPorCategoria.map((catData) => (
+                  <div key={catData.categoria} className="flex justify-between items-center bg-white rounded-lg p-2 mb-1 border">
+                    <p className="text-xs text-slate-700">{catData.categoria}</p>
+                    <p className="text-sm font-bold text-slate-700">{catData.cuotas.tercera}€</p>
+                  </div>
+                ))}
+                <div className="flex justify-between items-center pt-1 border-t">
+                  <p className="text-xs font-bold">Total Diciembre:</p>
+                  <p className="text-base font-bold text-slate-700">{importeTerceraSinDescuento}€</p>
+                </div>
+              </div>
+
+              {descuentoHermano > 0 && (
+                <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
+                  <p className="text-xs text-purple-900 text-center font-bold">
+                    💜 Descuento de -{descuentoHermano}€ aplicado solo en {cuotasPorCategoria[0].categoria} (Junio)
+                  </p>
+                </div>
+              )}
+
+              <div className="pt-2 border-t-2 border-orange-300 bg-orange-100 rounded-lg p-2">
+                <div className="flex justify-between items-center">
+                  <p className="font-bold text-slate-900">Total temporada:</p>
+                  <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
                 </div>
               </div>
             </div>
