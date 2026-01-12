@@ -10,6 +10,7 @@ import PlayerDocumentDownload from "./PlayerDocumentDownload";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { getActiveCustomPlan, getPendingPaymentsCount } from "../payments/paymentHelpers";
+import { base44 } from "@/api/base44Client";
 
 const categoryColors = {
   "Prebenjamín": "bg-purple-100 text-purple-700",
