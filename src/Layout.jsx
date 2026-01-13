@@ -683,6 +683,7 @@ export default function Layout({ children, currentPageName }) {
                                                                 }
                                                                 }
                                                                 }
+                                                                }
                                                                                                    } catch (err) {
                                                                 console.log('Error procesando token:', err);
                           }
