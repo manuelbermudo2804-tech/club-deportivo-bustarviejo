@@ -895,6 +895,12 @@ const handleChatBlock = (user) => {
                         </div>
                         
                         {/* Alerta jugador +18 */}
+                        {pairByEmail[user.email?.toLowerCase()] && (
+                          <div className="mt-2 text-xs text-slate-600">
+                            👶 Hijos en común: {pairByEmail[user.email.toLowerCase()].sharedPlayers.map(p => p.nombre).join(', ')}
+                          </div>
+                        )}
+
                         {pendingPlayerAccessUsers.some(u => u.id === user.id) && (
                           <p className="text-sm text-purple-700 bg-purple-100 rounded-lg px-3 py-1 mt-2 inline-block animate-pulse font-medium">
                             ⚠️ Jugador +18 pendiente de activar
