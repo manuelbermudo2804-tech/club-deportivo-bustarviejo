@@ -324,7 +324,8 @@ ${messagesForAnalysis}`,
       unansweredMessages: unansweredMessages.sort((a, b) => b.daysUnanswered - a.daysUnanswered),
       peakHour: peakHour ? `${peakHour[0]}:00` : 'N/A',
       avgResponseTime: avgResponseTimeGlobal,
-      participationTrend
+      participationTrend,
+      sentiment: sentimentAnalysis
     });
   } catch (error) {
     console.error('Error generating chat analytics:', error);
