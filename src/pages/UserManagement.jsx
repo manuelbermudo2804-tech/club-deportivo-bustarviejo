@@ -890,7 +890,18 @@ const handleChatBlock = (user) => {
                     } ${pairByEmail[user.email?.toLowerCase()] ? 'ring-2 ring-orange-300 ring-offset-1' : ''}`}
                   >
                     {/* Fila 1: Info del usuario */}
-                    <div className="flex items-center gap-3 mb-3">
+                    {pairByEmail[user.email?.toLowerCase()] && (
+  <div className="mb-3 -mt-1 -mx-1 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-600 via-orange-600 to-orange-700 text-white flex items-center justify-between shadow-glow-orange border-2 border-orange-700">
+    <div className="text-sm font-bold">
+      Pareja: {user.full_name} ⇄ {pairByEmail[user.email.toLowerCase()].partner?.full_name || pairByEmail[user.email.toLowerCase()].partner?.email}
+      <div className="text-xs opacity-90">Hijos en común: {pairByEmail[user.email.toLowerCase()].sharedPlayers.map(p => p.nombre).join(', ')}</div>
+    </div>
+    <Button size="sm" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white" onClick={() => openPairDialog(user)}>
+      Ajustar
+    </Button>
+  </div>
+)}
+<div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                         {user.full_name?.charAt(0)?.toUpperCase() || "U"}
                       </div>
