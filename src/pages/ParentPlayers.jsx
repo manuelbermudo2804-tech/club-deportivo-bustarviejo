@@ -680,6 +680,7 @@ Email: cdbustarviejo@gmail.com
       return { player: newPlayer, paymentsData };
     },
     onSuccess: (data) => {
+      setIsProcessing(false);
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['players'] });
       queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] });
@@ -812,6 +813,7 @@ Email: cdbustarviejo@gmail.com
       return { player: updatedPlayer, paymentsData };
     },
     onSuccess: (data) => {
+      setIsProcessing(false);
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['players'] });
       queryClient.invalidateQueries({ queryKey: ['payments'] });
@@ -838,6 +840,8 @@ Email: cdbustarviejo@gmail.com
 
   const handlePaymentFlowContinue = (paymentsData) => {
     const descuentoCalculado = pendingPlayerData._descuentoCalculado || 0;
+
+    setIsProcessing(true);
 
     console.log('✅ [handlePaymentFlowContinue] Continuando con pago:', {
       jugador: pendingPlayerData.nombre,
