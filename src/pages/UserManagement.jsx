@@ -474,6 +474,18 @@ const handleChatBlock = (user) => {
 
   const parentPairs = detectParentPairs();
 
+  // Mapa rápido: email -> { partner, sharedPlayers }
+  const pairByEmail = (() => {
+    const map = {};
+    parentPairs.forEach(pair => {
+      const p1 = pair.parent1?.email?.toLowerCase();
+      const p2 = pair.parent2?.email?.toLowerCase();
+      if (p1) map[p1] = { partner: pair.parent2, sharedPlayers: pair.sharedPlayers };
+      if (p2) map[p2] = { partner: pair.parent1, sharedPlayers: pair.sharedPlayers };
+    });
+    return map;
+  })();
+
   // Estadísticas (sin contar eliminados)
   const activeUsersWithoutDeleted = users.filter(u => u.eliminado !== true);
   const activeUsers = activeUsersWithoutDeleted.filter(u => u.acceso_activo !== false && u.role === "user");
