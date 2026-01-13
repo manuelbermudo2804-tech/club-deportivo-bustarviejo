@@ -647,45 +647,32 @@ export default function Layout({ children, currentPageName }) {
                           try {
                             const isAuth = await base44.auth.isAuthenticated();
                             if (!isAuth) {
-                              // Usuario NO logueado - guardar token y redirigir manualmente
                               console.log('🔐 Usuario no logueado - guardando token y redirigiendo a login');
-
-                              // Guardar token en localStorage para recuperarlo después del login
                               localStorage.setItem('pending_invitation_token', invitationToken);
                               localStorage.setItem('pending_invitation_type', invitationType);
-
-                              // Redirigir MANUALMENTE al login de Base44 con nextUrl explícito
                               const loginUrl = 'https://app.base44.com/login';
                               const returnUrl = encodeURIComponent('https://app.cdbustarviejo.com');
                               window.location.href = `${loginUrl}?nextUrl=${returnUrl}`;
                               return;
                             }
-
-                            // Usuario ya logueado, procesar token
                             console.log('✅ Procesando token de invitación...');
                             const entityName = invitationType === 'second_parent' ? 'SecondParentInvitation' : 'AdminInvitation';
                             const invitations = await base44.entities[entityName].filter({ token: invitationToken });
-
                             if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
                               await base44.entities[entityName].update(invitations[0].id, {
                                 estado: 'aceptada',
                                 fecha_aceptacion: new Date().toISOString()
                               });
                               console.log('✅ Invitación aceptada');
-                                                                if (invitationType === 'second_parent') {
-                                                                  await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
-                                                                }
-
-                                                                // Limpiar URL y localStorage
-                                                                window.history.replaceState({}, '', window.location.pathname);
-                                                                localStorage.removeItem('pending_invitation_token');
-                                                                localStorage.removeItem('pending_invitation_type');
-                                                                }
-                                                                }
-                                                                }
-                                                                }
-                                                                                                   } catch (err) {
-                                                                console.log('Error procesando token:', err);
+                              if (invitationType === 'second_parent') {
+                                await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
+                              }
+                              window.history.replaceState({}, '', window.location.pathname);
+                              localStorage.removeItem('pending_invitation_token');
+                              localStorage.removeItem('pending_invitation_type');
+                            }
+                          } catch (err) {
+                            console.log('Error procesando token:', err);
                           }
                         } else {
                           // Verificar si hay token guardado en localStorage (después de login)
@@ -696,17 +683,28 @@ export default function Layout({ children, currentPageName }) {
                             try {
                               console.log('🔄 Recuperando token de invitación desde localStorage...');
                               const isAuth = await base44.auth.isAuthenticated();
-
                               if (isAuth) {
-                                // Procesar token guardado
                                 const entityName = savedType === 'second_parent' ? 'SecondParentInvitation' : 'AdminInvitation';
                                 const invitations = await base44.entities[entityName].filter({ token: savedToken });
-
                                 if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
                                   await base44.entities[entityName].update(invitations[0].id, {
                                     estado: 'aceptada',
                                     fecha_aceptacion: new Date().toISOString()
                                   });
+                                  console.log('✅ Invitación aceptada desde localStorage');
+                                  if (savedType === 'second_parent') {
+                                    await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
+                                  }
+                                  localStorage.removeItem('pending_invitation_token');
+                                  localStorage.removeItem('pending_invitation_type');
+                                }
+                              }
+                            } catch (err) {
+                              console.log('Error procesando token guardado:', err);
+                              localStorage.removeItem('pending_invitation_token');
+                              localStorage.removeItem('pending_invitation_type');
+                            }
+                          });
                                   console.log('✅ Invitación aceptada desde localStorage');
                                                                         if (savedType === 'second_parent') {
                                                                           await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
