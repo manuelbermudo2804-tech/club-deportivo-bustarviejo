@@ -1108,16 +1108,16 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-  if (showSpecialScreen === "restricted") {
+  if (!showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "restricted") {
     return <RestrictedAccessScreen user={user} restriction={user} />;
   }
-  if (showSpecialScreen === "closed") {
+  if (!showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "closed") {
     return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
   }
-  if (showSpecialScreen === "inscriptions") {
+  if (!showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "inscriptions") {
     return <InscriptionPeriodScreen user={user} isAdmin={isAdmin} />;
   }
-  if (showSpecialScreen === "vacation") {
+  if (!showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "vacation") {
     return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
   }
 
@@ -1750,9 +1750,54 @@ export default function Layout({ children, currentPageName }) {
                                       </Button>
                   </div>
                 </div>
-              )}
+                )}
 
-              <Suspense fallback={null}>
+                {/* Modal de éxito tras pulsar "Ya la tengo instalada" */}
+                {showInstallSuccess && (
+                <div className="fixed inset-0 z-[210] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallSuccess(false)}>
+                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="text-center space-y-3">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 className="w-8 h-8 text-green-600" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900">¡Instalación lista!</h3>
+                      <p className="text-slate-600 text-sm">Cierra esta pestaña del navegador y abre la app desde el icono que ya tienes en tu móvil para continuar.</p>
+                      <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => setShowInstallSuccess(false)}>Entendido</Button>
+                    </div>
+                  </div>
+                </div>
+                )}
+
+                {/* Invitación primer arranque desde el icono PWA */}
+                {showFirstLaunchInvite && (
+                <div className="fixed inset-0 z-[210] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowFirstLaunchInvite(false)}>
+                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="text-center space-y-3">
+                      <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+                        <Smartphone className="w-8 h-8 text-orange-600" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-900">Bienvenido a la app</h3>
+                      <p className="text-slate-600 text-sm">
+                        Para empezar, {user?.tipo_panel === 'familia' ? 'da de alta a tus jugadores' : 'completa tu perfil de jugador'}.
+                      </p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" className="flex-1" onClick={() => { setShowFirstLaunchInvite(false); localStorage.setItem('firstLaunchDone', 'true'); }}>Ahora no</Button>
+                        <Button className="flex-1 bg-orange-600 hover:bg-orange-700" onClick={() => {
+                          localStorage.setItem('firstLaunchDone', 'true');
+                          setShowFirstLaunchInvite(false);
+                          if (user?.tipo_panel === 'familia') {
+                            navigate(createPageUrl('ParentPlayers'));
+                          } else {
+                            navigate(createPageUrl('PlayerProfile'));
+                          }
+                        }}>Ir ahora</Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                )}
+
+                <Suspense fallback={null}>
                                   <SessionManager />
                                   <NotificationBadge />
                                   <PaymentApprovalNotifier isAdmin={isAdmin} />
