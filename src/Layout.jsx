@@ -547,6 +547,8 @@ export default function Layout({ children, currentPageName }) {
   const [isLoading, setIsLoading] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
+  const [showInstallSuccess, setShowInstallSuccess] = useState(false);
+  const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
 
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
@@ -1119,39 +1121,7 @@ export default function Layout({ children, currentPageName }) {
     return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
   }
 
-  // Diálogo SUPER SIMPLE primera apertura desde PWA
-  if (showFirstTimeRegistration && user && !isAdmin) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-4xl">📋</span>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">¡Bienvenido!</h2>
-            <p className="text-slate-600">Ahora vamos a registrar a tu jugador en el sistema del club</p>
-          </div>
-          <Button
-            onClick={async () => {
-              try {
-                await base44.auth.updateMe({ 
-                  app_instalada: true,
-                  debe_mostrar_registro_jugador: true
-                });
-                setShowFirstTimeRegistration(false);
-                setOnboardingView('none');
-              } catch(e) {
-                console.error('Error:', e);
-              }
-            }}
-            className="w-full bg-green-600 hover:bg-green-700 py-3 text-lg font-bold"
-          >
-            Comenzar Registro →
-          </Button>
-        </div>
-      </div>
-    );
-  }
+
 
   const adminNavigationItems = [
     // 📊 INICIO Y FINANZAS
@@ -1489,32 +1459,28 @@ export default function Layout({ children, currentPageName }) {
   
 
     useEffect(() => {
-      if (!user) return;
+        if (!user) return;
 
-      // Los admins, entrenadores, coordinadores y tesoreros NO pasan por onboarding
-      if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
+        // Roles especiales NO pasan por onboarding
+        if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
+          setOnboardingView('none');
+          return;
+        }
+
+        // 1) Elegir panel (familia o jugador)
+        if (!user.tipo_panel) {
+          setOnboardingView('selector');
+          return;
+        }
+
+        // 2) Mostrar instrucciones de instalación (sin detección), una sola vez hasta que el usuario confirme
+        if (!localStorage.getItem('installCompleted')) {
+          setShowInstallInstructions(true);
+        }
+
+        // 3) Normal - sin onboarding
         setOnboardingView('none');
-        return;
-      }
-
-      // Paso 1: Elegir panel (familia o jugador)
-      if (!user.tipo_panel) {
-        console.log('📱 [ONBOARDING] Primera vez - mostrar selector');
-        setOnboardingView('selector');
-        return;
-      }
-
-// Paso 2: Mostrar instrucciones de instalación la primera vez (para familia o jugador)
-if (!user.app_instalada) {
-  console.log('✅ [ONBOARDING] Primera vez - mostrar instrucciones de instalación');
-  setShowInstallInstructions(true);
-  setShowFirstTimeRegistration(false);
-}
-
-// Normal - sin onboarding
-setOnboardingView('none');
-setShowFirstTimeRegistration(false);
-    }, [user]);
+      }, [user]);
 
       if (isLoading && !isPublicPage) {
         return (
@@ -1758,29 +1724,15 @@ setShowFirstTimeRegistration(false);
                                           </div>
 
                     <Button 
-                                                                  onClick={async () => {
-                                                                    setShowInstallInstructions(false);
-                                                                    setIsAppInstalled(true);
-                                                                    localStorage.setItem('pwaInstalled', 'true');
-                                                                    // Guardar en la base de datos también
-                                                                    try {
-                                                                      await base44.auth.updateMe({
-                                                                        app_instalada: true,
-                                                                        fecha_instalacion_app: new Date().toISOString()
-                                                                      });
-                                                                      console.log('✅ App marcada como instalada en BD');
-                                                                    } catch (err) {
-                                                                      console.log('Error guardando estado:', err);
-                                                                    }
-                                                                    // Si es familia, mostrar inmediatamente el diálogo para registrar jugador
-                                                                    if (user?.tipo_panel === 'familia') {
-                                                                      setShowFirstTimeRegistration(true);
-                                                                    }
-                                                                  }} 
-                                                                  className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
-                                                                >
-                                                                  ✅ Ya la tengo instalada
-                                                                </Button>
+                                                                                  onClick={() => {
+                                                                                    setShowInstallInstructions(false);
+                                                                                    setShowInstallSuccess(true);
+                                                                                    localStorage.setItem('installCompleted', 'true');
+                                                                                  }} 
+                                                                                  className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
+                                                                                >
+                                                                                  ✅ Ya la tengo instalada
+                                                                                </Button>
                                       <Button 
                                         onClick={() => {
                                           setShowInstallInstructions(false);
