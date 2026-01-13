@@ -61,6 +61,40 @@ export default function ChatAnalyticsDashboard() {
     mensajes: count
   }));
 
+  // Datos para comparativa semanal
+  const weeklyData = (analytics.weeklyTrend || []).map(item => ({
+    semana: `Sem ${item.week}`,
+    mensajes: item.messageCount,
+    usuarios: item.activeUsers
+  }));
+
+  // Datos de tiempo de respuesta
+  const responseTimeData = (analytics.responseTime || []).map(item => ({
+    categoria: item.categoria || 'Coordinador',
+    tiempoPromedio: Math.round(item.avgResponseTime || 0)
+  }));
+
+  // Actividad por equipo
+  const teamActivityData = (analytics.teamActivity || []).map(item => ({
+    equipo: item.team || item.categoria,
+    mensajes: item.messageCount,
+    usuarios: item.userCount
+  }));
+
+  // Contenido compartido
+  const sharedContentData = [
+    { name: 'Archivos', value: analytics.summary.filesShared || 0, color: '#f97316' },
+    { name: 'Ubicaciones', value: analytics.summary.locationsShared || 0, color: '#22c55e' },
+    { name: 'Encuestas', value: analytics.summary.pollsCreated || 0, color: '#3b82f6' }
+  ];
+
+  // Análisis por usuario
+  const userActivityData = (analytics.userActivity || []).slice(0, 10).map(item => ({
+    usuario: item.name?.split(' ')[0] || 'Unknown',
+    mensajes: item.messageCount,
+    tiempoRespuesta: item.avgResponseTime || 0
+  }));
+
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="mb-8">
