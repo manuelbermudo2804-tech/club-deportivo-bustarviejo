@@ -165,52 +165,161 @@ export default function ChatAnalyticsDashboard() {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Actividad por tipo de chat */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Mensajes por Tipo de Chat</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={chatActivityData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {chatActivityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+       {/* Actividad por tipo de chat */}
+       <Card>
+         <CardHeader>
+           <CardTitle>Mensajes por Tipo de Chat</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <ResponsiveContainer width="100%" height={300}>
+             <PieChart>
+               <Pie
+                 data={chatActivityData}
+                 cx="50%"
+                 cy="50%"
+                 labelLine={false}
+                 label={({ name, value }) => `${name}: ${value}`}
+                 outerRadius={100}
+                 fill="#8884d8"
+                 dataKey="value"
+               >
+                 {chatActivityData.map((entry, index) => (
+                   <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                 ))}
+               </Pie>
+               <Tooltip />
+             </PieChart>
+           </ResponsiveContainer>
+         </CardContent>
+       </Card>
 
-        {/* Horarios pico */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Actividad por Hora</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={hourlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hora" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="mensajes" fill="#f97316" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+       {/* Horarios pico */}
+       <Card>
+         <CardHeader>
+           <CardTitle>Actividad por Hora</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <ResponsiveContainer width="100%" height={300}>
+             <BarChart data={hourlyData}>
+               <CartesianGrid strokeDasharray="3 3" />
+               <XAxis dataKey="hora" />
+               <YAxis />
+               <Tooltip />
+               <Bar dataKey="mensajes" fill="#f97316" />
+             </BarChart>
+           </ResponsiveContainer>
+         </CardContent>
+       </Card>
+
+       {/* Comparativa semanal */}
+       {weeklyData.length > 0 && (
+         <Card>
+           <CardHeader>
+             <CardTitle>📈 Evolución Semanal</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <ResponsiveContainer width="100%" height={300}>
+               <LineChart data={weeklyData}>
+                 <CartesianGrid strokeDasharray="3 3" />
+                 <XAxis dataKey="semana" />
+                 <YAxis />
+                 <Tooltip />
+                 <Legend />
+                 <Line type="monotone" dataKey="mensajes" stroke="#f97316" strokeWidth={2} />
+                 <Line type="monotone" dataKey="usuarios" stroke="#22c55e" strokeWidth={2} />
+               </LineChart>
+             </ResponsiveContainer>
+           </CardContent>
+         </Card>
+       )}
+
+       {/* Tiempo de respuesta */}
+       {responseTimeData.length > 0 && (
+         <Card>
+           <CardHeader>
+             <CardTitle>⏱️ Tiempo Promedio de Respuesta</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <ResponsiveContainer width="100%" height={300}>
+               <BarChart data={responseTimeData}>
+                 <CartesianGrid strokeDasharray="3 3" />
+                 <XAxis dataKey="categoria" />
+                 <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
+                 <Tooltip formatter={(value) => `${value} min`} />
+                 <Bar dataKey="tiempoPromedio" fill="#3b82f6" />
+               </BarChart>
+             </ResponsiveContainer>
+           </CardContent>
+         </Card>
+       )}
+
+       {/* Actividad por equipo */}
+       {teamActivityData.length > 0 && (
+         <Card>
+           <CardHeader>
+             <CardTitle>🏆 Actividad por Equipo/Categoría</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <ResponsiveContainer width="100%" height={300}>
+               <BarChart data={teamActivityData} layout="vertical">
+                 <CartesianGrid strokeDasharray="3 3" />
+                 <XAxis type="number" />
+                 <YAxis dataKey="equipo" type="category" width={120} />
+                 <Tooltip />
+                 <Legend />
+                 <Bar dataKey="mensajes" fill="#f97316" />
+                 <Bar dataKey="usuarios" fill="#22c55e" />
+               </BarChart>
+             </ResponsiveContainer>
+           </CardContent>
+         </Card>
+       )}
+
+       {/* Contenido compartido */}
+       {sharedContentData.some(item => item.value > 0) && (
+         <Card>
+           <CardHeader>
+             <CardTitle>📎 Contenido Compartido</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <ResponsiveContainer width="100%" height={300}>
+               <BarChart data={sharedContentData}>
+                 <CartesianGrid strokeDasharray="3 3" />
+                 <XAxis dataKey="name" />
+                 <YAxis />
+                 <Tooltip />
+                 <Bar dataKey="value" fill="#8b5cf6" />
+               </BarChart>
+             </ResponsiveContainer>
+           </CardContent>
+         </Card>
+       )}
       </div>
+
+      {/* Análisis por usuario */}
+      {userActivityData.length > 0 && (
+       <Card>
+         <CardHeader>
+           <CardTitle>👥 Análisis Individual de Usuarios (Top 10)</CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="space-y-3">
+             {userActivityData.map((user, idx) => (
+               <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                 <div className="flex items-center gap-3">
+                   <span className="text-sm font-bold text-orange-600">#{idx + 1}</span>
+                   <div>
+                     <p className="font-medium text-slate-900">{user.usuario}</p>
+                     <p className="text-xs text-slate-500">{user.mensajes} mensajes</p>
+                   </div>
+                 </div>
+                 <Badge className="bg-blue-600">{Math.round(user.tiempoRespuesta)} min promedio</Badge>
+               </div>
+             ))}
+           </div>
+         </CardContent>
+       </Card>
+      )}
 
       {/* Ranking entrenadores */}
       <Card>
