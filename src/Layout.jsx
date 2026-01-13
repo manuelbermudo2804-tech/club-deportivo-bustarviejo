@@ -680,8 +680,7 @@ export default function Layout({ children, currentPageName }) {
                                                                 window.history.replaceState({}, '', window.location.pathname);
                                                                 localStorage.removeItem('pending_invitation_token');
                                                                 localStorage.removeItem('pending_invitation_type');
-                                                                }
-                                                                catch (err) {
+                                                                } catch (err) {
                             console.log('Error procesando token:', err);
                           }
                         } else {
