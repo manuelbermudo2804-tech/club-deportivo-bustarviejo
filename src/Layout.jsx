@@ -1745,13 +1745,7 @@ export default function Layout({ children, currentPageName }) {
                   <div className="absolute top-0 left-0 right-0 bg-gray-200 p-3 flex items-center gap-2 border-b-2 border-gray-300">
                     <div className="flex gap-1.5">
                       <button 
-                        onClick={() => {
-                          try {
-                            window.close();
-                          } catch {}
-                          // Si no se cierra, mostrar alerta visual
-                          alert('Por favor, cierra esta pestaña manualmente deslizando hacia arriba o pulsando el botón de cerrar de tu navegador');
-                        }}
+                        onClick={() => { forceCloseWindow(); }}
                         className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 cursor-pointer transition-all hover:scale-110"
                         title="Cerrar navegador"
                       ></button>
