@@ -714,6 +714,7 @@ export default function Layout({ children, currentPageName }) {
                                 localStorage.removeItem('pending_invitation_token');
                                 localStorage.removeItem('pending_invitation_type');
                               }
+                              }
                             } catch (err) {
                               console.log('Error procesando token guardado:', err);
                               // Limpiar localStorage en caso de error
