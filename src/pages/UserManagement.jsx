@@ -925,12 +925,7 @@ const handleChatBlock = (user) => {
                         
                         {/* Info adicional */}
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          {/* Pareja de progenitores (comparten jugador) */}
-                          {pairByEmail[user.email?.toLowerCase()] && (
-                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
-                              👨‍👩‍👧 Pareja: {pairByEmail[user.email.toLowerCase()].partner?.full_name || pairByEmail[user.email.toLowerCase()].partner?.email}
-                            </span>
-                          )}
+
                           <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white h-7" onClick={() => openPairDialog(user)}>
                             👨‍👩‍👧 Casar progenitores
                           </Button>
@@ -972,12 +967,7 @@ const handleChatBlock = (user) => {
                           )}
                         </div>
                         
-                        {/* Alerta jugador +18 */}
-                        {pairByEmail[user.email?.toLowerCase()] && (
-                          <div className="mt-2 text-xs text-slate-600">
-                            👶 Hijos en común: {pairByEmail[user.email.toLowerCase()].sharedPlayers.map(p => p.nombre).join(', ')}
-                          </div>
-                        )}
+                        {/* Pareja destacada mostrada arriba */}
 
                         {pendingPlayerAccessUsers.some(u => u.id === user.id) && (
                           <p className="text-sm text-purple-700 bg-purple-100 rounded-lg px-3 py-1 mt-2 inline-block animate-pulse font-medium">
