@@ -850,6 +850,12 @@ const handleChatBlock = (user) => {
                         
                         {/* Info adicional */}
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {/* Pareja de progenitores (comparten jugador) */}
+                          {pairByEmail[user.email?.toLowerCase()] && (
+                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                              👨‍👩‍👧 Pareja: {pairByEmail[user.email.toLowerCase()].partner?.full_name || pairByEmail[user.email.toLowerCase()].partner?.email}
+                            </span>
+                          )}
                           {/* Junta Directiva */}
                           <div className="flex items-center gap-2 bg-white rounded-lg px-2 py-1 border border-slate-200">
                             <span className="text-[11px] text-slate-600">Junta</span>
