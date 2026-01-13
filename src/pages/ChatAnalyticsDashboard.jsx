@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ScatterChart, Scatter, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-import { AlertCircle, TrendingUp, Users, MessageSquare, Download, AlertTriangle, Clock, FileText, Zap, Eye } from 'lucide-react';
+import { AlertCircle, TrendingUp, Users, MessageSquare, Download, AlertTriangle, Clock, FileText, Zap, Eye, Heart, Smile } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function ChatAnalyticsDashboard() {

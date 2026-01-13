@@ -9,6 +9,7 @@ import CategoryConfigAdmin from './pages/CategoryConfigAdmin';
 import CategoryManagement from './pages/CategoryManagement';
 import CentroCompeticion from './pages/CentroCompeticion';
 import CentroCompeticionTecnico from './pages/CentroCompeticionTecnico';
+import ChatAnalyticsDashboard from './pages/ChatAnalyticsDashboard';
 import Chatbot from './pages/Chatbot';
 import Clasificaciones from './pages/Clasificaciones';
 import ClothingOrders from './pages/ClothingOrders';
@@ -94,7 +95,6 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import ChatAnalyticsDashboard from './pages/ChatAnalyticsDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -110,6 +110,7 @@ export const PAGES = {
     "CategoryManagement": CategoryManagement,
     "CentroCompeticion": CentroCompeticion,
     "CentroCompeticionTecnico": CentroCompeticionTecnico,
+    "ChatAnalyticsDashboard": ChatAnalyticsDashboard,
     "Chatbot": Chatbot,
     "Clasificaciones": Clasificaciones,
     "ClothingOrders": ClothingOrders,
@@ -195,7 +196,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "ChatAnalyticsDashboard": ChatAnalyticsDashboard,
 }
 
 export const pagesConfig = {
