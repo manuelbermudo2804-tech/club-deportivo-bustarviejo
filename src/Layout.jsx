@@ -1738,73 +1738,76 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 )}
 
-                {/* Modal de éxito tras pulsar "Ya la tengo instalada" - Diseño super visual */}
+                {/* Pantalla de éxito - totalmente diferente a la app, parece otra web */}
                 {showInstallSuccess && (
-                <div className="fixed inset-0 z-[210] bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
-                  {/* Simulación de barra navegador arriba para que quede claro que es el navegador */}
-                  <div className="absolute top-4 left-4 right-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                <div className="fixed inset-0 z-[999999] bg-gradient-to-br from-purple-600 via-pink-600 to-red-600">
+                  {/* Barra navegador simulada arriba */}
+                  <div className="absolute top-0 left-0 right-0 bg-gray-200 p-3 flex items-center gap-2 border-b-2 border-gray-300">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
                     </div>
-                    <div className="flex-1 bg-white/20 rounded-lg px-3 py-1 text-white text-xs">
-                      🌐 Navegador - app.cdbustarviejo.com
+                    <div className="flex-1 bg-white rounded-md px-3 py-1.5 text-gray-700 text-xs flex items-center gap-2">
+                      <span>🔒</span>
+                      <span className="font-mono">app.cdbustarviejo.com</span>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl text-center relative">
-                    {/* Flecha grande apuntando hacia abajo (donde está el icono del móvil) */}
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-6xl animate-bounce">
-                      👇
-                    </div>
-
-                    <div className="space-y-4 mt-4">
-                      <div className="text-6xl">✅</div>
-                      <h3 className="text-2xl font-extrabold text-slate-900">¡App instalada!</h3>
+                  {/* Contenido principal - COMPLETAMENTE diferente a la app */}
+                  <div className="h-full flex items-center justify-center p-6 pt-20">
+                    <div className="text-center text-white max-w-lg space-y-6">
                       
-                      {/* Paso visual 1: Cerrar navegador */}
-                      <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4">
-                        <div className="flex items-center justify-center gap-3 mb-2">
-                          <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl">1</div>
-                          <X className="w-8 h-8 text-red-600" />
-                        </div>
-                        <p className="text-red-900 font-bold">Cierra esta pestaña del navegador</p>
-                        <p className="text-red-700 text-xs mt-1">Ya no la necesitas más</p>
+                      <div className="text-8xl animate-bounce mb-4">
+                        ✅
                       </div>
 
-                      {/* Paso visual 2: Abrir icono */}
-                      <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
-                        <div className="flex items-center justify-center gap-3 mb-2">
-                          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">2</div>
-                          <Smartphone className="w-8 h-8 text-green-600" />
+                      <h1 className="text-5xl font-black text-white drop-shadow-2xl">
+                        ¡PERFECTO!
+                      </h1>
+
+                      <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border-2 border-white/30 space-y-6">
+                        
+                        {/* PASO 1: Cerrar navegador */}
+                        <div className="bg-red-500 text-white rounded-2xl p-6 space-y-2">
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="w-14 h-14 bg-white text-red-500 rounded-full flex items-center justify-center font-black text-2xl shadow-lg">1</div>
+                            <X className="w-10 h-10" />
+                          </div>
+                          <p className="text-2xl font-black">CIERRA ESTE NAVEGADOR</p>
+                          <p className="text-sm">Desliza hacia arriba o pulsa X</p>
                         </div>
-                        <p className="text-green-900 font-bold">Abre el icono de la app en tu móvil</p>
-                        <p className="text-green-700 text-xs mt-1">Busca el icono del CD Bustarviejo</p>
+
+                        {/* PASO 2: Abrir icono */}
+                        <div className="bg-green-500 text-white rounded-2xl p-6 space-y-2">
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="w-14 h-14 bg-white text-green-500 rounded-full flex items-center justify-center font-black text-2xl shadow-lg">2</div>
+                            <Smartphone className="w-10 h-10" />
+                          </div>
+                          <p className="text-2xl font-black">ABRE EL ICONO</p>
+                          <p className="text-sm">Busca el icono del CD Bustarviejo en tu pantalla</p>
+                        </div>
+
+                        {/* PASO 3: Siguiente */}
+                        <div className="bg-orange-500 text-white rounded-2xl p-6 space-y-2">
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="w-14 h-14 bg-white text-orange-500 rounded-full flex items-center justify-center font-black text-2xl shadow-lg">3</div>
+                            <span className="text-4xl">📝</span>
+                          </div>
+                          <p className="text-2xl font-black">REGISTRA {user?.tipo_panel === 'familia' ? 'JUGADORES' : 'TU PERFIL'}</p>
+                          <p className="text-sm">Te lo pediremos al abrir la app desde el icono</p>
+                        </div>
+
                       </div>
 
-                      {/* Información siguiente paso */}
-                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-sm text-orange-900">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                          <span className="text-2xl">📝</span>
-                          <p className="font-bold">Siguiente paso:</p>
-                        </div>
-                        <p className="text-orange-800">
-                          {user?.tipo_panel === 'familia' ? 'Te pediremos dar de alta a tus jugadores' : 'Completarás tu perfil de jugador'}
-                        </p>
+                      <div className="text-6xl animate-pulse">
+                        👇
                       </div>
 
-                      <Button
-                        className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 text-lg"
-                        onClick={() => {
-                          try {
-                            window.close();
-                          } catch {}
-                        }}
-                      >
-                        ✖️ Cerrar navegador ahora
-                      </Button>
-                      <p className="text-xs text-slate-500">Si no se cierra solo, hazlo manualmente</p>
+                      <p className="text-2xl font-bold text-white drop-shadow-lg">
+                        CIERRA ESTA VENTANA YA
+                      </p>
+
                     </div>
                   </div>
                 </div>
@@ -1812,27 +1815,44 @@ export default function Layout({ children, currentPageName }) {
 
                 {/* Invitación primer arranque desde el icono PWA */}
                 {showFirstLaunchInvite && (
-                <div className="fixed inset-0 z-[210] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowFirstLaunchInvite(false)}>
-                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                    <div className="text-center space-y-3">
-                      <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
-                        <Smartphone className="w-8 h-8 text-orange-600" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-slate-900">Bienvenido a la app</h3>
-                      <p className="text-slate-600 text-sm">
-                        Para empezar, {user?.tipo_panel === 'familia' ? 'da de alta a tus jugadores' : 'completa tu perfil de jugador'}.
+                <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
+                    <div className="space-y-5">
+                      <div className="text-7xl mb-2">👋</div>
+                      <h2 className="text-3xl font-black text-slate-900">¡Bienvenido!</h2>
+                      <p className="text-lg text-slate-700">
+                        Para comenzar a usar la app, necesitas {user?.tipo_panel === 'familia' ? 'dar de alta a tus jugadores' : 'completar tu perfil de jugador'}.
                       </p>
-                      <div className="flex gap-2">
-                        <Button variant="outline" className="flex-1" onClick={() => { setShowFirstLaunchInvite(false); localStorage.setItem('firstLaunchDone', 'true'); }}>Ahora no</Button>
-                        <Button className="flex-1 bg-orange-600 hover:bg-orange-700" onClick={() => {
-                          localStorage.setItem('firstLaunchDone', 'true');
-                          setShowFirstLaunchInvite(false);
-                          if (user?.tipo_panel === 'familia') {
-                            navigate(createPageUrl('ParentPlayers'));
-                          } else {
-                            navigate(createPageUrl('PlayerProfile'));
-                          }
-                        }}>Ir ahora</Button>
+                      <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
+                        <p className="text-sm text-orange-900 font-bold">
+                          {user?.tipo_panel === 'familia' ? '👨‍👩‍👧 Registra a tus hijos ahora' : '⚽ Completa tu ficha de jugador'}
+                        </p>
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1 py-6 text-base" 
+                          onClick={() => { 
+                            setShowFirstLaunchInvite(false); 
+                            localStorage.setItem('firstLaunchDone', 'true'); 
+                          }}
+                        >
+                          Ahora no
+                        </Button>
+                        <Button 
+                          className="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white py-6 text-base font-bold" 
+                          onClick={() => {
+                            localStorage.setItem('firstLaunchDone', 'true');
+                            setShowFirstLaunchInvite(false);
+                            if (user?.tipo_panel === 'familia') {
+                              navigate(createPageUrl('ParentPlayers'));
+                            } else {
+                              navigate(createPageUrl('PlayerProfile'));
+                            }
+                          }}
+                        >
+                          {user?.tipo_panel === 'familia' ? 'Registrar jugadores' : 'Completar perfil'} →
+                        </Button>
                       </div>
                     </div>
                   </div>
