@@ -68,19 +68,19 @@ Te invitamos a usar la <strong style="color:#ea580c;">aplicación oficial</stron
 </tr>
 </table>
 
-<!-- Boton -->
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 20px auto;">
-<tr>
-<td bgcolor="#ea580c" style="border-radius:8px;">
-<a href="${finalLinkUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">ACCEDER A LA APP →</a>
-</td>
-</tr>
-</table>
+<!-- Aviso informativo: sin enlace de alta -->
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 auto 20px auto;background-color:#f1f5f9;border-radius:8px;">
+  <tr>
+  <td style="padding:14px 16px;text-align:center;color:#334155;font-size:14px;">
+  Pronto recibirás un <strong>correo de invitación</strong> con un <strong>enlace único</strong> para completar tu alta. Este mensaje es solo informativo; no necesitas hacer nada.
+  </td>
+  </tr>
+  </table>
 
-${invitationId ? `<!-- Pixel de tracking -->
+  ${invitationId ? `<!-- Pixel de tracking -->
 <img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />` : ''}
 
-<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Haz clic en el botón para empezar</p>
+<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">En breve recibirás un correo con el enlace de invitación para completar el alta; si no lo ves, revisa tu carpeta de spam.</p>
 </td>
 </tr>
 

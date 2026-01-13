@@ -672,9 +672,11 @@ export default function Layout({ children, currentPageName }) {
                                 fecha_aceptacion: new Date().toISOString()
                               });
                               console.log('✅ Invitación aceptada');
-                            }
+                                                                if (invitationType === 'second_parent') {
+                                                                  await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
+                                                                }
 
-                            // Limpiar URL y localStorage
+                                                                // Limpiar URL y localStorage
                             window.history.replaceState({}, '', window.location.pathname);
                             localStorage.removeItem('pending_invitation_token');
                             localStorage.removeItem('pending_invitation_type');
@@ -702,9 +704,11 @@ export default function Layout({ children, currentPageName }) {
                                     fecha_aceptacion: new Date().toISOString()
                                   });
                                   console.log('✅ Invitación aceptada desde localStorage');
-                                }
+                                                                        if (savedType === 'second_parent') {
+                                                                          await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
+                                                                        }
 
-                                // Limpiar localStorage
+                                                                        // Limpiar localStorage
                                 localStorage.removeItem('pending_invitation_token');
                                 localStorage.removeItem('pending_invitation_type');
                               }
@@ -1492,20 +1496,26 @@ export default function Layout({ children, currentPageName }) {
 
         // Roles especiales NO pasan por onboarding
         if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
-          setOnboardingView('none');
-          return;
-        }
+                        setOnboardingView('none');
+                        return;
+                      }
 
-        // 1) Elegir panel (familia o jugador)
+                      // Segundo progenitor: sin selector ni onboarding
+                      if (user.es_segundo_progenitor === true) {
+                        setOnboardingView('none');
+                        return;
+                      }
+
+                      // 1) Elegir panel (familia o jugador)
         if (!user.tipo_panel) {
           setOnboardingView('selector');
           return;
         }
 
         // 2) Mostrar instrucciones de instalación (sin detección), una sola vez hasta que el usuario confirme
-        if (!localStorage.getItem('installCompleted')) {
-          setShowInstallInstructions(true);
-        }
+        if (!localStorage.getItem('installCompleted') && user.es_segundo_progenitor !== true) {
+                        setShowInstallInstructions(true);
+                      }
 
         // 3) Normal - sin onboarding
         setOnboardingView('none');
@@ -1513,11 +1523,11 @@ export default function Layout({ children, currentPageName }) {
 
       // Invitar en el primer arranque desde el icono (PWA)
       useEffect(() => {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone')) {
-          setShowFirstLaunchInvite(true);
-        }
-      }, [user]);
+                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+                    if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true) {
+                      setShowFirstLaunchInvite(true);
+                    }
+                  }, [user]);
 
       if (isLoading && !isPublicPage) {
         return (
