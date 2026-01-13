@@ -932,6 +932,11 @@ Email: cdbustarviejo@gmail.com
   
   // Detectar jugadores con renovación pendiente
   const playersToRenew = players.filter(p => p.estado_renovacion === "pendiente");
+  
+  // Important banner conditions
+  const hasPlayers = players.length > 0;
+  const hasSecondParentLinked = players.some(p => p.email_tutor_2 && p.email_tutor_2.trim() !== "");
+  const showImportantBanner = !(hasPlayers && hasSecondParentLinked);
 
   return (
     <>
@@ -1001,18 +1006,20 @@ Email: cdbustarviejo@gmail.com
         </AlertDescription>
       </Alert>
 
-      <Alert className="bg-green-50 border-green-200">
-        <Info className="h-4 w-4 text-green-600" />
-        <AlertDescription className="text-green-800 ml-6 text-xs lg:text-sm">
-          <strong>💡 Consejo para familias con varios hijos:</strong> Si vas a inscribir a varios hermanos, 
-          te recomendamos <strong>inscribir primero al hermano MAYOR</strong> y después a los menores. 
-          De esta forma, el descuento de 25€ por hermano se aplicará automáticamente en la cuota de inscripción de los hermanos menores.
-          <br />
-          <span className="text-[10px] lg:text-xs text-green-600 mt-1 block">
-            ℹ️ Si ya inscribiste primero a un hermano menor, no te preocupes: el sistema recalculará los descuentos automáticamente cuando inscribas a los demás.
-          </span>
-        </AlertDescription>
-      </Alert>
+      {showImportantBanner && (
+        <div className="bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 border-2 border-orange-500 rounded-2xl p-4 lg:p-6 shadow-glow-orange">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold">!</div>
+            <div className="flex-1">
+              <h3 className="text-orange-900 font-extrabold text-base lg:text-lg">IMPORTANTE</h3>
+              <ul className="mt-2 space-y-2 text-sm lg:text-base text-slate-800">
+                <li>• Añade el email del segundo progenitor; le enviaremos una invitación y, al aceptarla, ambos veréis y gestionaréis la misma ficha del jugador.</li>
+                <li>• Familias con varios hijos: inscribe primero al hermano MAYOR; el descuento de 25€ se aplicará automáticamente a los menores. Si te equivocas, el sistema lo recalcula solo.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 lg:gap-6">
