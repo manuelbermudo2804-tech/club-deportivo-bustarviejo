@@ -94,6 +94,7 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
+import ChatAnalyticsDashboard from './pages/ChatAnalyticsDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -194,6 +195,7 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
+    "ChatAnalyticsDashboard": ChatAnalyticsDashboard,
 }
 
 export const pagesConfig = {
