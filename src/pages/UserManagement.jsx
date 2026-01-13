@@ -431,7 +431,11 @@ const handleChatBlock = (user) => {
 
   // Obtener jugadores por usuario
   const getUserPlayers = (userEmail) => {
-    return players.filter(p => p.email_padre === userEmail || p.email === userEmail);
+    const email = (userEmail || '').trim().toLowerCase();
+    return players.filter(p => 
+      (p.email_padre && p.email_padre.trim().toLowerCase() === email) ||
+      (p.email_tutor_2 && p.email_tutor_2.trim().toLowerCase() === email)
+    );
   };
 
   // Detectar parejas de progenitores (comparten al menos un jugador)
@@ -440,28 +444,28 @@ const handleChatBlock = (user) => {
     const processedPairs = new Set();
 
     players.forEach(player => {
-      if (!player.email_padre || !player.email_tutor_2) return;
-      
-      const parent1Email = player.email_padre.toLowerCase();
-      const parent2Email = player.email_tutor_2.toLowerCase();
-      const pairKey = [parent1Email, parent2Email].sort().join('|');
-      
+      const p1 = (player.email_padre || '').trim().toLowerCase();
+      const p2 = (player.email_tutor_2 || '').trim().toLowerCase();
+      if (!p1 || !p2) return;
+
+      const pairKey = [p1, p2].sort().join('|');
       if (processedPairs.has(pairKey)) return;
       processedPairs.add(pairKey);
 
-      const parent1 = users.find(u => u.email?.toLowerCase() === parent1Email);
-      const parent2 = users.find(u => u.email?.toLowerCase() === parent2Email);
-      
-      // Obtener todos los jugadores compartidos
-      const sharedPlayers = players.filter(p => 
-        (p.email_padre?.toLowerCase() === parent1Email && p.email_tutor_2?.toLowerCase() === parent2Email) ||
-        (p.email_padre?.toLowerCase() === parent2Email && p.email_tutor_2?.toLowerCase() === parent1Email)
-      );
+      const parent1 = users.find(u => u.email?.trim().toLowerCase() === p1);
+      const parent2 = users.find(u => u.email?.trim().toLowerCase() === p2);
+
+      // Obtener todos los jugadores compartidos (normalizando emails)
+      const sharedPlayers = players.filter(sp => {
+        const sp1 = (sp.email_padre || '').trim().toLowerCase();
+        const sp2 = (sp.email_tutor_2 || '').trim().toLowerCase();
+        return (sp1 === p1 && sp2 === p2) || (sp1 === p2 && sp2 === p1);
+      });
 
       if (sharedPlayers.length > 0) {
         pairs.push({
-          parent1: parent1 || { email: parent1Email, full_name: parent1Email },
-          parent2: parent2 || { email: parent2Email, full_name: parent2Email },
+          parent1: parent1 || { email: p1, full_name: p1 },
+          parent2: parent2 || { email: p2, full_name: p2 },
           sharedPlayers,
           parent1Registered: !!parent1,
           parent2Registered: !!parent2
