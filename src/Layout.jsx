@@ -1501,22 +1501,18 @@ export default function Layout({ children, currentPageName }) {
                         return;
                       }
 
-                      // Segundo progenitor: sin selector ni onboarding
-                      if (user.es_segundo_progenitor === true) {
-                        setOnboardingView('none');
+                      // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
+
+                      // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor
+                      if (!user.tipo_panel && user.es_segundo_progenitor !== true) {
+                        setOnboardingView('selector');
                         return;
                       }
 
-                      // 1) Elegir panel (familia o jugador)
-        if (!user.tipo_panel) {
-          setOnboardingView('selector');
-          return;
-        }
-
         // 2) Mostrar instrucciones de instalación (sin detección), una sola vez hasta que el usuario confirme
-        if (!localStorage.getItem('installCompleted') && user.es_segundo_progenitor !== true) {
-                        setShowInstallInstructions(true);
-                      }
+        if (!localStorage.getItem('installCompleted')) {
+          setShowInstallInstructions(true);
+        }
 
         // 3) Normal - sin onboarding
         setOnboardingView('none');
