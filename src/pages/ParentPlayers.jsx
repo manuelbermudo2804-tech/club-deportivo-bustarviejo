@@ -414,6 +414,31 @@ export default function ParentPlayers() {
         } catch (invError) {
           console.error('Error enviando aviso a segundo progenitor:', invError);
         }
+
+        // Crear solicitud para admin (SecondParentInvitation)
+        try {
+          const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
+          const existingInv = await base44.entities.SecondParentInvitation.filter({
+            email_destino: email2,
+            jugador_id: newPlayer.id,
+            estado: 'pendiente'
+          });
+          if (existingInv.length === 0) {
+            await base44.entities.SecondParentInvitation.create({
+              email_destino: email2,
+              nombre_destino: dataWithParentEmail.nombre_tutor_2 || '',
+              jugador_id: newPlayer.id,
+              jugador_nombre: newPlayer.nombre,
+              invitado_por_email: currentUser?.email,
+              invitado_por_nombre: currentUser?.full_name,
+              estado: 'pendiente',
+              fecha_envio: new Date().toISOString()
+            });
+            console.log('✅ Solicitud de invitación creada para admin:', email2);
+          }
+        } catch (e) {
+          console.error('Error creando solicitud de invitación de segundo progenitor:', e);
+        }
       }
       
       // ⚽👧 BONUS FÚTBOL FEMENINO - Detectar si el padre que inscribe fue referido y la jugadora es femenina
@@ -616,14 +641,60 @@ Email: cdbustarviejo@gmail.com
   });
 
   const updatePlayerMutation = useMutation({
-    mutationFn: ({ id, playerData }) => {
-      const safeData = {
-        ...playerData,
-        email_padre: editingPlayer?.email_padre || user?.email,
-      };
-      return base44.entities.Player.update(id, safeData);
-    },
-    onSuccess: () => {
+            mutationFn: async ({ id, playerData }) => {
+              const safeData = {
+                ...playerData,
+                email_padre: editingPlayer?.email_padre || user?.email,
+              };
+
+              const prevEmail2 = (editingPlayer?.email_tutor_2 || '').trim().toLowerCase();
+              const nextEmail2 = (safeData.email_tutor_2 || '').trim().toLowerCase();
+              const email2Changed = nextEmail2 && nextEmail2 !== prevEmail2;
+
+              const updated = await base44.entities.Player.update(id, safeData);
+
+              if (email2Changed) {
+                try {
+                  await base44.functions.invoke('sendEmail', {
+                    to: nextEmail2,
+                    subject: '👨‍👩‍👧 Has sido añadido como segundo progenitor - CD Bustarviejo',
+                    html: `<div style="font-family:Arial,sans-serif;line-height:1.5">
+                      <h2>Invitación como segundo progenitor</h2>
+                      <p>Te han añadido como segundo progenitor de <strong>${safeData.nombre || editingPlayer?.nombre || ''}</strong> en el CD Bustarviejo.</p>
+                      <p>Este correo es informativo. El club te enviará la invitación definitiva para acceder a la app.</p>
+                      <p style="color:#64748b;font-size:12px">Si no esperabas este mensaje, puedes ignorarlo.</p>
+                    </div>`
+                  });
+                } catch (e) {
+                  console.log('Error enviando email informativo segundo progenitor:', e);
+                }
+
+                try {
+                  const existingInv = await base44.entities.SecondParentInvitation.filter({
+                    email_destino: nextEmail2,
+                    jugador_id: id,
+                    estado: 'pendiente'
+                  });
+                  if (existingInv.length === 0) {
+                    await base44.entities.SecondParentInvitation.create({
+                      email_destino: nextEmail2,
+                      nombre_destino: safeData.nombre_tutor_2 || '',
+                      jugador_id: id,
+                      jugador_nombre: safeData.nombre || editingPlayer?.nombre || '',
+                      invitado_por_email: user?.email,
+                      invitado_por_nombre: user?.full_name,
+                      estado: 'pendiente',
+                      fecha_envio: new Date().toISOString()
+                    });
+                  }
+                } catch (e) {
+                  console.log('Error creando solicitud de invitación segundo progenitor:', e);
+                }
+              }
+
+              return updated;
+            },
+            onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['players'] });
       setShowForm(false);

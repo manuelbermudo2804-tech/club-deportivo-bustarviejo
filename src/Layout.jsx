@@ -1030,6 +1030,7 @@ export default function Layout({ children, currentPageName }) {
                   players,
                   allPlayers,
                   invitations,
+                  secondParentInvitations,
                   clothingOrders,
                   lotteryOrders,
                   members
@@ -1039,6 +1040,7 @@ export default function Layout({ children, currentPageName }) {
                   base44.entities.Player.filter({ categoria_requiere_revision: true }),
                   base44.entities.Player.list(),
                   base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
+                  base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
                   base44.entities.ClothingOrder.list(),
                   base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }),
                   base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })
@@ -1061,7 +1063,7 @@ export default function Layout({ children, currentPageName }) {
 
                 setPendingLotteryOrders(lotteryOrders.length);
                 setPendingMemberRequests(members.length);
-                setPendingInvitations(invitations?.length || 0);
+                setPendingInvitations((invitations?.length || 0) + (secondParentInvitations?.length || 0));
               } catch (error) {
                 console.log('Error loading admin badges:', error);
               }
