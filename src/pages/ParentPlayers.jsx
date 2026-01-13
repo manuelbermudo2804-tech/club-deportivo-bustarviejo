@@ -353,79 +353,66 @@ export default function ParentPlayers() {
         console.error("Error recalculando descuentos familiares:", error);
       }
       
-      // EMAIL INFORMATIVO AL SEGUNDO PROGENITOR (SIN TOKEN NI ENLACES)
+      // AVISO AL SEGUNDO PROGENITOR (email informativo, sin enlaces ni tokens)
       if (dataWithParentEmail.email_tutor_2 && dataWithParentEmail.email_tutor_2.trim()) {
         try {
           const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
-          const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
-          await base44.functions.invoke('sendEmail', {
-            to: email2,
-            subject: `👨‍👩‍👧 Has sido añadido como segundo progenitor - CD Bustarviejo`,
-            html: `<!DOCTYPE html>
-      <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-      <body style="margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f1f5f9;">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+          // Evitar avisos duplicados si ya figura como segundo progenitor en cualquier jugador
+          const allPlayersForCheck = await base44.entities.Player.list();
+          const alreadyRegistered = allPlayersForCheck.some(p =>
+            p.email_tutor_2?.toLowerCase() === email2
+          );
 
+          if (!alreadyRegistered) {
+            const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+
+            await base44.functions.invoke('sendEmail', {
+              to: email2,
+              subject: `👨‍👩‍👧 Has sido añadido como segundo progenitor - CD Bustarviejo`,
+              html: `<!DOCTYPE html>
+      <html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"></head>
+      <body style=\"margin:0;padding:24px;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;\">
+      <table role=\"presentation\" width=\"100%\" style=\"max-width:640px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;\">
       <tr>
-      <td bgcolor="#ea580c" style="padding:30px;text-align:center;">
-      <img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" width="80" height="80" style="width:80px;height:80px;border-radius:12px;border:3px solid #ffffff;display:block;margin:0 auto;">
-      <h1 style="color:#ffffff;margin:15px 0 5px 0;font-size:26px;">CD BUSTARVIEJO</h1>
-      <p style="color:#fed7aa;margin:0;font-size:14px;">Club Deportivo</p>
+      <td style=\"background:#ea580c;padding:24px;text-align:center;\">
+        <img src=\"${CLUB_LOGO_URL}\" alt=\"CD Bustarviejo\" width=\"72\" height=\"72\" style=\"border-radius:12px;border:3px solid #fff\" />
+        <h1 style=\"color:#fff;margin:12px 0 0;font-size:22px;\">CD Bustarviejo</h1>
       </td>
       </tr>
-
       <tr>
-      <td bgcolor="#ffffff" style="padding:30px;">
-      <h2 style="color:#1e293b;margin:0 0 15px 0;font-size:22px;text-align:center;">👨‍👩‍👧 Información para Segundo Progenitor</h2>
-
-      <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 15px 0;">
-      Hola <strong>${dataWithParentEmail.nombre_tutor_2 || "Estimado/a"}</strong>,
-      </p>
-
-      <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 15px 0;">
-      Te informamos de que has sido registrado como <strong>segundo progenitor/tutor</strong> del jugador
-      <strong style="color:#16a34a;">${dataWithParentEmail.nombre}</strong> en la aplicación del CD Bustarviejo.
-      </p>
-
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:15px 0;background-color:#f8fafc;border-radius:8px;">
-      <tr>
-      <td style="padding:16px;">
-      <p style="color:#0f172a;font-size:14px;margin:0 0 8px 0;"><strong>¿Qué sucede ahora?</strong></p>
-      <ul style="color:#334155;font-size:14px;line-height:1.6;margin:0;padding-left:18px;">
-        <li>En breve recibirás un <strong>correo para iniciar sesión</strong> en la app.</li>
-        <li>Al entrar, verás un <strong>onboarding especial</strong> para segundos progenitores.</li>
-        <li>Podrás acceder a convocatorias, pagos, calendario y chat del jugador.</li>
-      </ul>
+      <td style=\"padding:28px;\">
+        <h2 style=\"margin:0 0 12px 0;color:#0f172a;font-size:20px;\">Invitación como segundo progenitor</h2>
+        <p style=\"margin:0 0 12px 0;color:#334155;font-size:14px;\">
+          ${currentUser?.full_name || 'Un familiar'} te ha añadido como <strong>segundo progenitor/tutor</strong> del jugador <strong>${dataWithParentEmail.nombre}</strong>.
+        </p>
+        <p style=\"margin:0 0 16px 0;color:#334155;font-size:14px;\">
+          En breve recibirás un correo para iniciar sesión en la app. Cuando accedas con este email, se activará tu acceso y verás un breve onboarding específico para segundos progenitores.
+        </p>
+        <div style=\"background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:8px;\">
+          <ul style=\"margin:0;padding-left:18px;color:#475569;font-size:13px;line-height:1.6;\">
+            <li>Convocatorias y calendario</li>
+            <li>Pagos y documentos</li>
+            <li>Chat con entrenadores y coordinador</li>
+          </ul>
+        </div>
+        <p style=\"margin:16px 0 0 0;color:#64748b;font-size:12px;\">Si no esperabas este mensaje, simplemente ignóralo.</p>
       </td>
       </tr>
-      </table>
-
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
       <tr>
-      <td bgcolor="#f1f5f9" style="padding:12px;border-radius:8px;text-align:center;">
-      <p style="color:#64748b;font-size:12px;margin:0;">No necesitas realizar ninguna acción ahora. Este email es solo informativo.</p>
+      <td style=\"background:#1e293b;padding:16px;text-align:center;\">
+        <p style=\"color:#94a3b8;font-size:12px;margin:0;\">cdbustarviejo@gmail.com</p>
       </td>
       </tr>
-      </table>
-
-      <p style="color:#94a3b8;font-size:12px;text-align:center;margin:16px 0 0 0;">Si no reconoces este registro, puedes ignorar este mensaje.</p>
-      </td>
-      </tr>
-
-      <tr>
-      <td bgcolor="#1e293b" style="padding:20px;text-align:center;">
-      <p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p>
-      </td>
-      </tr>
-
       </table>
       </body></html>`
-          });
-
-          console.log('✅ Email informativo enviado al segundo progenitor:', email2);
+            });
+            console.log('✅ Email informativo enviado al segundo progenitor:', email2);
+          } else {
+            console.log('ℹ️ Segundo progenitor ya existente, no se reenvía aviso:', email2);
+          }
         } catch (invError) {
-          console.error('Error enviando email informativo a segundo progenitor:', invError);
+          console.error('Error enviando aviso a segundo progenitor:', invError);
         }
       }
       

@@ -617,9 +617,8 @@ export default function Layout({ children, currentPageName }) {
     fetchSeasonConfig();
   }, [seasonConfigLoaded]);
 
-  // Detectar si estamos en página pública (ClubMembership, ValidateSecondParent, ValidateAdminInvitation)
+  // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation)
   const isPublicPage = location.pathname.includes('ClubMembership') || 
-                       location.pathname.includes('ValidateSecondParent') ||
                        location.pathname.includes('ValidateAdminInvitation');
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -638,85 +637,59 @@ export default function Layout({ children, currentPageName }) {
                           setShowWelcome(true);
                         }
 
-                        // Procesar token de invitación si existe
+                        // Procesar invitación de ADMIN si existe (flujo de segundo progenitor eliminado)
                         const urlParams = new URLSearchParams(window.location.search);
                         const invitationToken = urlParams.get('invitation_token');
                         const invitationType = urlParams.get('type');
 
-                        if (invitationToken && invitationType) {
+                        if (invitationToken && invitationType && invitationType !== 'second_parent') {
                           try {
                             const isAuth = await base44.auth.isAuthenticated();
                             if (!isAuth) {
-                              // Usuario NO logueado - guardar token y redirigir manualmente
-                              console.log('🔐 Usuario no logueado - guardando token y redirigiendo a login');
-
-                              // Guardar token en localStorage para recuperarlo después del login
+                              // Guardar token y redirigir a login
                               localStorage.setItem('pending_invitation_token', invitationToken);
                               localStorage.setItem('pending_invitation_type', invitationType);
-
-                              // Redirigir MANUALMENTE al login de Base44 con nextUrl explícito
                               const loginUrl = 'https://app.base44.com/login';
                               const returnUrl = encodeURIComponent('https://app.cdbustarviejo.com');
                               window.location.href = `${loginUrl}?nextUrl=${returnUrl}`;
                               return;
                             }
 
-                            // Usuario ya logueado, procesar token
-                            console.log('✅ Procesando token de invitación...');
-                            const entityName = invitationType === 'second_parent' ? 'SecondParentInvitation' : 'AdminInvitation';
-                            const invitations = await base44.entities[entityName].filter({ token: invitationToken });
-
+                            // Procesar token de ADMIN
+                            const invitations = await base44.entities.AdminInvitation.filter({ token: invitationToken });
                             if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
-                              await base44.entities[entityName].update(invitations[0].id, {
+                              await base44.entities.AdminInvitation.update(invitations[0].id, {
                                 estado: 'aceptada',
                                 fecha_aceptacion: new Date().toISOString()
                               });
-                              console.log('✅ Invitación aceptada');
-                              if (invitationType === 'second_parent') {
-                                await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
-                              }
-
-                              // Limpiar URL y localStorage
                               window.history.replaceState({}, '', window.location.pathname);
                               localStorage.removeItem('pending_invitation_token');
                               localStorage.removeItem('pending_invitation_type');
                             }
                           } catch (err) {
-                            console.log('Error procesando token:', err);
+                            console.log('Error procesando invitación admin:', err);
                           }
                         } else {
-                          // Verificar si hay token guardado en localStorage (después de login)
+                          // Verificar si hay token guardado en localStorage (solo admin)
                           const savedToken = localStorage.getItem('pending_invitation_token');
                           const savedType = localStorage.getItem('pending_invitation_type');
 
-                          if (savedToken && savedType) {
+                          if (savedToken && savedType && savedType !== 'second_parent') {
                             try {
-                              console.log('🔄 Recuperando token de invitación desde localStorage...');
                               const isAuth = await base44.auth.isAuthenticated();
-
                               if (isAuth) {
-                                // Procesar token guardado
-                                const entityName = savedType === 'second_parent' ? 'SecondParentInvitation' : 'AdminInvitation';
-                                const invitations = await base44.entities[entityName].filter({ token: savedToken });
-
+                                const invitations = await base44.entities.AdminInvitation.filter({ token: savedToken });
                                 if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
-                                  await base44.entities[entityName].update(invitations[0].id, {
+                                  await base44.entities.AdminInvitation.update(invitations[0].id, {
                                     estado: 'aceptada',
                                     fecha_aceptacion: new Date().toISOString()
                                   });
-                                  console.log('✅ Invitación aceptada desde localStorage');
-                                  if (savedType === 'second_parent') {
-                                    await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
-                                  }
-
-                                  // Limpiar localStorage
                                   localStorage.removeItem('pending_invitation_token');
                                   localStorage.removeItem('pending_invitation_type');
                                 }
                               }
                             } catch (err) {
-                              console.log('Error procesando token guardado:', err);
-                              // Limpiar localStorage en caso de error
+                              console.log('Error procesando invitación admin guardada:', err);
                               localStorage.removeItem('pending_invitation_token');
                               localStorage.removeItem('pending_invitation_type');
                             }
@@ -772,6 +745,18 @@ export default function Layout({ children, currentPageName }) {
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
         setIsJunta(currentUser.es_junta === true);
+
+        // Auto-catalogar segundo progenitor por email (sin tokens)
+        try {
+          if (currentUser.es_segundo_progenitor !== true) {
+            const linkedAsSecond = await base44.entities.Player.filter({ email_tutor_2: currentUser.email });
+            if (linkedAsSecond.length > 0) {
+              await base44.auth.updateMe({ es_segundo_progenitor: true, tipo_panel: 'familia' });
+            }
+          }
+        } catch (e) {
+          console.log('Error auto-catalogando segundo progenitor:', e);
+        }
 
         // DETECCIÓN DE JUGADOR +18
         // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
@@ -1032,7 +1017,6 @@ export default function Layout({ children, currentPageName }) {
                   players,
                   allPlayers,
                   invitations,
-                  secondParentInvitations,
                   clothingOrders,
                   lotteryOrders,
                   members
@@ -1042,7 +1026,6 @@ export default function Layout({ children, currentPageName }) {
                   base44.entities.Player.filter({ categoria_requiere_revision: true }),
                   base44.entities.Player.list(),
                   base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
-                  base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
                   base44.entities.ClothingOrder.list(),
                   base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }),
                   base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })
@@ -1065,7 +1048,7 @@ export default function Layout({ children, currentPageName }) {
 
                 setPendingLotteryOrders(lotteryOrders.length);
                 setPendingMemberRequests(members.length);
-                setPendingInvitations((invitations?.length || 0) + (secondParentInvitations?.length || 0));
+                setPendingInvitations(invitations?.length || 0);
               } catch (error) {
                 console.log('Error loading admin badges:', error);
               }
