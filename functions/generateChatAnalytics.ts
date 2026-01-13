@@ -125,6 +125,96 @@ Deno.serve(async (req) => {
     const locationsShared = [...(coachMessages || []), ...(coordinatorMessages || [])].filter(m => m.ubicacion).length;
     const pollsCreated = [...(coachMessages || []), ...(coordinatorMessages || [])].filter(m => m.encuesta || m.poll).length;
 
+    // ANÁLISIS DE SENTIMIENTO con LLM
+    const allMessagesText = [...(coachMessages || []), ...(coordinatorMessages || [])].map(m => ({
+      id: m.id,
+      text: m.mensaje,
+      categoria: m.categoria,
+      sender: m.remitente_nombre,
+      date: m.created_date
+    }));
+
+    let sentimentAnalysis = {
+      positive: 0,
+      negative: 0,
+      neutral: 0,
+      byCategory: {},
+      negativePhrases: [],
+      positivePhrases: [],
+      healthScore: 100
+    };
+
+    if (allMessagesText.length > 0) {
+      try {
+        // Agrupar mensajes en lotes para análisis
+        const batchSize = 50;
+        const sentimentResults = {};
+        
+        for (let i = 0; i < allMessagesText.length; i += batchSize) {
+          const batch = allMessagesText.slice(i, i + batchSize);
+          const messagesForAnalysis = batch.map(m => `"${m.text}"`).join('\n');
+          
+          const llmResponse = await base44.integrations.Core.InvokeLLM({
+            prompt: `Clasifica el sentimiento de estos mensajes de chat entre equipos deportivos. Responde SOLO con JSON válido sin markdown, en este formato exacto:
+{
+  "sentiments": [
+    {"message": "PRIMER MENSAJE", "sentiment": "positive|negative|neutral", "score": 0-100, "reason": "breve razón"},
+    ...
+  ],
+  "keywords": {"positive": ["palabra1", "palabra2"], "negative": ["palabra3", "palabra4"]}
+}
+
+Mensajes:
+${messagesForAnalysis}`,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                sentiments: { type: "array" },
+                keywords: { type: "object" }
+              }
+            }
+          });
+
+          if (llmResponse?.sentiments) {
+            llmResponse.sentiments.forEach((item, idx) => {
+              const originalMsg = batch[idx];
+              sentimentResults[originalMsg.id] = {
+                sentiment: item.sentiment,
+                score: item.score,
+                categoria: originalMsg.categoria
+              };
+            });
+            
+            if (llmResponse.keywords) {
+              sentimentAnalysis.positivePhrases = [...new Set([...sentimentAnalysis.positivePhrases, ...(llmResponse.keywords.positive || [])])].slice(0, 10);
+              sentimentAnalysis.negativePhrases = [...new Set([...sentimentAnalysis.negativePhrases, ...(llmResponse.keywords.negative || [])])].slice(0, 10);
+            }
+          }
+        }
+
+        // Calcular métricas de sentimiento
+        Object.values(sentimentResults).forEach(result => {
+          if (result.sentiment === 'positive') sentimentAnalysis.positive++;
+          if (result.sentiment === 'negative') sentimentAnalysis.negative++;
+          if (result.sentiment === 'neutral') sentimentAnalysis.neutral++;
+
+          // Por categoría
+          const cat = result.categoria || 'General';
+          if (!sentimentAnalysis.byCategory[cat]) {
+            sentimentAnalysis.byCategory[cat] = { positive: 0, negative: 0, neutral: 0 };
+          }
+          sentimentAnalysis.byCategory[cat][result.sentiment]++;
+        });
+
+        // Calcular health score (basado en % de positivos)
+        const total = sentimentAnalysis.positive + sentimentAnalysis.negative + sentimentAnalysis.neutral;
+        const negativeRatio = total > 0 ? sentimentAnalysis.negative / total : 0;
+        sentimentAnalysis.healthScore = Math.max(0, 100 - (negativeRatio * 100));
+      } catch (error) {
+        console.log('Sentiment analysis skipped:', error.message);
+      }
+    }
+
     // Análisis por usuario (top 10)
     const userActivity = {};
     [...(coachMessages || []), ...(coordinatorMessages || [])].forEach(m => {
