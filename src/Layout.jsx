@@ -682,8 +682,9 @@ export default function Layout({ children, currentPageName }) {
                                                                 localStorage.removeItem('pending_invitation_type');
                                                                 }
                                                                 }
-                                                                } catch (err) {
-                            console.log('Error procesando token:', err);
+                                                                }
+                                                                                                   } catch (err) {
+                                                                console.log('Error procesando token:', err);
                           }
                         } else {
                           // Verificar si hay token guardado en localStorage (después de login)
@@ -715,6 +716,7 @@ export default function Layout({ children, currentPageName }) {
                                 localStorage.removeItem('pending_invitation_type');
                               }
                               }
+                            }
                             } catch (err) {
                               console.log('Error procesando token guardado:', err);
                               // Limpiar localStorage en caso de error
