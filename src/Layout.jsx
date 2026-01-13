@@ -1738,32 +1738,73 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 )}
 
-                {/* Modal de éxito tras pulsar "Ya la tengo instalada" */}
+                {/* Modal de éxito tras pulsar "Ya la tengo instalada" - Diseño super visual */}
                 {showInstallSuccess && (
-                <div className="fixed inset-0 z-[210] bg-black/90 flex items-center justify-center p-4">
-                  <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
-                    <div className="space-y-4">
-                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle2 className="w-10 h-10 text-green-600" />
+                <div className="fixed inset-0 z-[210] bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
+                  {/* Simulación de barra navegador arriba para que quede claro que es el navegador */}
+                  <div className="absolute top-4 left-4 right-4 bg-white/10 backdrop-blur-sm rounded-xl p-2 flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                    </div>
+                    <div className="flex-1 bg-white/20 rounded-lg px-3 py-1 text-white text-xs">
+                      🌐 Navegador - app.cdbustarviejo.com
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl text-center relative">
+                    {/* Flecha grande apuntando hacia abajo (donde está el icono del móvil) */}
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-6xl animate-bounce">
+                      👇
+                    </div>
+
+                    <div className="space-y-4 mt-4">
+                      <div className="text-6xl">✅</div>
+                      <h3 className="text-2xl font-extrabold text-slate-900">¡App instalada!</h3>
+                      
+                      {/* Paso visual 1: Cerrar navegador */}
+                      <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4">
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                          <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl">1</div>
+                          <X className="w-8 h-8 text-red-600" />
+                        </div>
+                        <p className="text-red-900 font-bold">Cierra esta pestaña del navegador</p>
+                        <p className="text-red-700 text-xs mt-1">Ya no la necesitas más</p>
                       </div>
-                      <h3 className="text-2xl font-extrabold text-slate-900">¡Perfecto! Ahora usa el icono</h3>
-                      <p className="text-slate-700 text-sm">
-                        Esta pestaña del navegador ya no se usará. Cierra esta pestaña y abre la app desde el <strong>icono instalado en tu móvil</strong> para continuar.
-                      </p>
-                      <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-800">
-                        Siguiente paso al abrir la app: <strong>{user?.tipo_panel === 'familia' ? 'dar de alta a tus jugadores' : 'completar tu perfil de jugador'}</strong>.
+
+                      {/* Paso visual 2: Abrir icono */}
+                      <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">2</div>
+                          <Smartphone className="w-8 h-8 text-green-600" />
+                        </div>
+                        <p className="text-green-900 font-bold">Abre el icono de la app en tu móvil</p>
+                        <p className="text-green-700 text-xs mt-1">Busca el icono del CD Bustarviejo</p>
                       </div>
+
+                      {/* Información siguiente paso */}
+                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-sm text-orange-900">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                          <span className="text-2xl">📝</span>
+                          <p className="font-bold">Siguiente paso:</p>
+                        </div>
+                        <p className="text-orange-800">
+                          {user?.tipo_panel === 'familia' ? 'Te pediremos dar de alta a tus jugadores' : 'Completarás tu perfil de jugador'}
+                        </p>
+                      </div>
+
                       <Button
-                        className="w-full bg-green-600 hover:bg-green-700"
+                        className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 text-lg"
                         onClick={() => {
                           try {
                             window.close();
                           } catch {}
                         }}
                       >
-                        Cerrar esta pestaña ahora
+                        ✖️ Cerrar navegador ahora
                       </Button>
-                      <p className="text-xs text-slate-500">Si no se cierra automáticamente, ciérrala manualmente y toca el icono de la app.</p>
+                      <p className="text-xs text-slate-500">Si no se cierra solo, hazlo manualmente</p>
                     </div>
                   </div>
                 </div>
