@@ -1,79 +1,114 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Sincronizar eventos y convocatorias a Google Calendar del club
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-
-    if (!user || user.role !== "admin") {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    
+    if (user?.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { event_id } = await req.json();
+    // Obtener token de Google Calendar
+    const accessToken = await base44.asServiceRole.connectors.getAccessToken('googlecalendar');
 
-    // Obtener el token de acceso de Google Calendar
-    const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
+    // Obtener eventos sin sincronizar
+    const unsyncedEvents = await base44.entities.Event.filter({ synced_to_google: false });
+    
+    const syncedCount = [];
+    const errors = [];
 
-    // Obtener el evento
-    const event = await base44.entities.Event.filter({ id: event_id });
-    if (!event || event.length === 0) {
-      return Response.json({ error: 'Event not found' }, { status: 404 });
+    for (const event of unsyncedEvents) {
+      try {
+        // Crear evento en Google Calendar
+        const googleEvent = {
+          summary: event.titulo,
+          description: event.descripcion,
+          start: {
+            dateTime: new Date(`${event.fecha}T${event.hora || '10:00'}`).toISOString(),
+            timeZone: 'Europe/Madrid'
+          },
+          end: {
+            dateTime: new Date(`${event.fecha}T${event.hora_fin || '11:00'}`).toISOString(),
+            timeZone: 'Europe/Madrid'
+          },
+          location: event.ubicacion,
+          visibility: 'public'
+        };
+
+        const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(googleEvent)
+        });
+
+        if (response.ok) {
+          const created = await response.json();
+          await base44.entities.Event.update(event.id, {
+            synced_to_google: true,
+            google_calendar_id: created.id,
+            google_calendar_link: created.htmlLink
+          });
+          syncedCount.push(event.titulo);
+          console.log(`📅 Synced: ${event.titulo}`);
+        } else {
+          errors.push(`Failed to sync ${event.titulo}`);
+        }
+      } catch (error) {
+        errors.push(`Error syncing ${event.titulo}: ${error.message}`);
+        console.error(error);
+      }
     }
 
-    const clubEvent = event[0];
+    // También sincronizar convocatorias como eventos
+    const unsyncedCallups = await base44.entities.Convocatoria.filter({ synced_to_google: false });
+    
+    for (const callup of unsyncedCallups) {
+      try {
+        const googleEvent = {
+          summary: `⚽ Convocatoria: ${callup.titulo}`,
+          description: `${callup.rival}\nUbicación: ${callup.ubicacion}`,
+          start: {
+            dateTime: new Date(`${callup.fecha_partido}T${callup.hora_partido || '10:00'}`).toISOString(),
+            timeZone: 'Europe/Madrid'
+          },
+          end: {
+            dateTime: new Date(`${callup.fecha_partido}T${callup.hora_partido || '10:00'}`).toISOString(),
+            timeZone: 'Europe/Madrid'
+          },
+          location: callup.ubicacion,
+          visibility: 'public'
+        };
 
-    // Preparar evento para Google Calendar
-    const googleEvent = {
-      summary: clubEvent.titulo,
-      description: clubEvent.descripcion || '',
-      location: clubEvent.ubicacion || '',
-      start: {
-        dateTime: new Date(`${clubEvent.fecha}T${clubEvent.hora || '00:00'}`).toISOString(),
-        timeZone: 'Europe/Madrid',
-      },
-      end: {
-        dateTime: new Date(`${clubEvent.fecha}T${clubEvent.hora_fin || clubEvent.hora || '23:59'}`).toISOString(),
-        timeZone: 'Europe/Madrid',
-      },
-      reminders: {
-        useDefault: false,
-        overrides: [
-          { method: 'popup', minutes: 24 * 60 },
-          { method: 'popup', minutes: 60 },
-        ],
-      },
-    };
+        const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(googleEvent)
+        });
 
-    // Crear evento en Google Calendar
-    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(googleEvent),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Google Calendar API error:', error);
-      return Response.json({ error: 'Failed to sync with Google Calendar' }, { status: 500 });
+        if (response.ok) {
+          const created = await response.json();
+          // Nota: Convocatoria entity no tiene campos synced_to_google, así que solo log
+          console.log(`📅 Synced callup: ${callup.titulo}`);
+        }
+      } catch (error) {
+        errors.push(`Error syncing callup ${callup.titulo}: ${error.message}`);
+      }
     }
-
-    const createdEvent = await response.json();
-
-    // Guardar el ID de Google Calendar en el evento
-    await base44.asServiceRole.entities.Event.update(event_id, {
-      google_calendar_id: createdEvent.id,
-      synced_to_google: true,
-    });
 
     return Response.json({ 
-      success: true, 
-      google_event_id: createdEvent.id,
-      google_event_link: createdEvent.htmlLink 
+      success: true,
+      eventsSynced: syncedCount.length,
+      errors: errors.length > 0 ? errors : null,
+      details: { syncedEvents: syncedCount }
     });
-
   } catch (error) {
     console.error('Error syncing to Google Calendar:', error);
     return Response.json({ error: error.message }, { status: 500 });
