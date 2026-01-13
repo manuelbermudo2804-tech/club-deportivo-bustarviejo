@@ -73,6 +73,8 @@ export default function UserManagement() {
   });
   const [showReminderDialog, setShowReminderDialog] = useState(null);
   const [reminderMessage, setReminderMessage] = useState("");
+  const [showPairDialog, setShowPairDialog] = useState(false);
+  const [pairingContext, setPairingContext] = useState({ user: null, playerId: "", partnerEmail: "" });
 
   const queryClient = useQueryClient();
 
@@ -603,8 +605,61 @@ const handleChatBlock = (user) => {
     },
   });
 
+  const pairParentsMutation = useMutation({
+    mutationFn: async ({ playerId, data }) => {
+      return await base44.entities.Player.update(playerId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      setShowPairDialog(false);
+      toast.success('Progenitores emparejados');
+    },
+  });
 
-  return (
+  const openPairDialog = (user) => {
+    const ups = getUserPlayers(user.email);
+    setPairingContext({ user, playerId: ups[0]?.id || "", partnerEmail: "" });
+    setShowPairDialog(true);
+  };
+
+  const handleConfirmPairing = () => {
+    const userEmail = pairingContext.user?.email?.trim().toLowerCase();
+    const partnerEmail = pairingContext.partnerEmail?.trim().toLowerCase();
+    const player = players.find(p => p.id === pairingContext.playerId);
+    if (!player || !userEmail || !partnerEmail) return;
+
+    const p1 = (player.email_padre || '').trim().toLowerCase();
+    const p2 = (player.email_tutor_2 || '').trim().toLowerCase();
+    let email_padre = p1;
+    let email_tutor_2 = p2;
+
+    if (p1 === userEmail) {
+      email_tutor_2 = partnerEmail;
+    } else if (p2 === userEmail) {
+      email_padre = partnerEmail || email_padre;
+    } else if (!p1 && !p2) {
+      email_padre = userEmail;
+      email_tutor_2 = partnerEmail;
+    } else if (!p1) {
+      email_padre = userEmail;
+    } else if (!p2) {
+      email_tutor_2 = partnerEmail;
+    } else {
+      email_tutor_2 = partnerEmail;
+    }
+
+    pairParentsMutation.mutate({ playerId: player.id, data: { email_padre, email_tutor_2 } });
+  };
+
+  const handleClearSecondParent = () => {
+    const player = players.find(p => p.id === pairingContext.playerId);
+    if (!player) return;
+    pairParentsMutation.mutate({ playerId: player.id, data: { email_tutor_2: null } });
+  };
+
+
+   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Gestión de Usuarios</h1>
@@ -827,7 +882,7 @@ const handleChatBlock = (user) => {
                         : isCoach
                         ? 'bg-blue-50 border-blue-300'
                         : 'bg-white border-slate-200 hover:border-orange-400'
-                    }`}
+                    } ${pairByEmail[user.email?.toLowerCase()] ? 'ring-2 ring-orange-300 ring-offset-1' : ''}`}
                   >
                     {/* Fila 1: Info del usuario */}
                     <div className="flex items-center gap-3 mb-3">
@@ -860,6 +915,9 @@ const handleChatBlock = (user) => {
                               👨‍👩‍👧 Pareja: {pairByEmail[user.email.toLowerCase()].partner?.full_name || pairByEmail[user.email.toLowerCase()].partner?.email}
                             </span>
                           )}
+                          <Button size="sm" variant="outline" className="text-orange-700 border-orange-300 hover:bg-orange-50 h-7" onClick={() => openPairDialog(user)}>
+                            👨‍👩‍👧 Casar progenitores
+                          </Button>
                           {/* Junta Directiva */}
                           <div className="flex items-center gap-2 bg-white rounded-lg px-2 py-1 border border-slate-200">
                             <span className="text-[11px] text-slate-600">Junta</span>
@@ -2019,6 +2077,52 @@ CD Bustarviejo`);
                   Confirmar Cambio de Rol
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo Casar Progenitores */}
+      <Dialog open={showPairDialog} onOpenChange={setShowPairDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl">👨‍👩‍👧 Casar progenitores</DialogTitle>
+            <DialogDescription>
+              Vincula manualmente a dos progenitores en la ficha de un jugador.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Jugador</Label>
+              <Select value={pairingContext.playerId} onValueChange={(v) => setPairingContext(prev => ({...prev, playerId: v}))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona jugador" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(pairingContext.user ? getUserPlayers(pairingContext.user.email) : players).map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Otro progenitor (email)</Label>
+              <Input
+                placeholder="email@ejemplo.com"
+                value={pairingContext.partnerEmail}
+                onChange={(e) => setPairingContext(prev => ({...prev, partnerEmail: e.target.value}))}
+              />
+              <p className="text-xs text-slate-500">Se mantendrá el email del usuario seleccionado y se establecerá el otro como segundo progenitor (o viceversa si procede).</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPairDialog(false)}>Cancelar</Button>
+            <Button variant="outline" className="text-red-700 border-red-300 hover:bg-red-50" onClick={handleClearSecondParent} disabled={!pairingContext.playerId || pairParentsMutation.isPending}>
+              Quitar 2º progenitor
+            </Button>
+            <Button onClick={handleConfirmPairing} disabled={!pairingContext.playerId || !pairingContext.partnerEmail || pairParentsMutation.isPending} className="bg-orange-600 hover:bg-orange-700">
+              <UserCheck className="w-4 h-4 mr-2" />
+              Confirmar emparejado
             </Button>
           </DialogFooter>
         </DialogContent>
