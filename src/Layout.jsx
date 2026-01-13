@@ -1874,11 +1874,10 @@ export default function Layout({ children, currentPageName }) {
                           onClick={() => {
                             localStorage.setItem('firstLaunchDone', 'true');
                             setShowFirstLaunchInvite(false);
-                            if (user?.tipo_panel === 'familia') {
-                              navigate(createPageUrl('ParentPlayers'));
-                            } else {
-                              navigate(createPageUrl('PlayerProfile'));
-                            }
+                            const target = user?.tipo_panel === 'familia' 
+                              ? createPageUrl('ParentPlayers') 
+                              : createPageUrl('PlayerProfile');
+                            window.location.href = target;
                           }}
                         >
                           {user?.tipo_panel === 'familia' ? 'Registrar jugadores' : 'Completar perfil'} →
