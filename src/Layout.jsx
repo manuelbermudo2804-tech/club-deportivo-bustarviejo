@@ -677,10 +677,11 @@ export default function Layout({ children, currentPageName }) {
                                                                 }
 
                                                                 // Limpiar URL y localStorage
-                            window.history.replaceState({}, '', window.location.pathname);
-                            localStorage.removeItem('pending_invitation_token');
-                            localStorage.removeItem('pending_invitation_type');
-                          } catch (err) {
+                                                                window.history.replaceState({}, '', window.location.pathname);
+                                                                localStorage.removeItem('pending_invitation_token');
+                                                                localStorage.removeItem('pending_invitation_type');
+                                                                }
+                                                                catch (err) {
                             console.log('Error procesando token:', err);
                           }
                         } else {
