@@ -1438,6 +1438,32 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
+  // Intento fuerte de cierre de ventana/pestaña (puede que el navegador no lo permita)
+  const forceCloseWindow = () => {
+    try { window.opener = null; } catch {}
+    try { window.open('', '_self'); } catch {}
+    try { window.top.close(); } catch {}
+    try { forceCloseWindow(); } catch {}
+
+    // Último recurso: limpiar la página y sugerir cierre manual, e intentar about:blank
+    setTimeout(() => {
+      try {
+        document.body.style.margin = '0';
+        document.body.style.background = 'linear-gradient(135deg,#111827,#0b1220)';
+        document.body.innerHTML = `
+          <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;text-align:center;padding:24px;font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif">
+            <div>
+              <div style="font-size:56px;line-height:1">✅</div>
+              <h1 style="font-size:28px;margin:12px 0 8px;font-weight:800">Ya puedes cerrar esta pestaña</h1>
+              <p style="opacity:.9;margin:0 0 16px">Si no se cierra automáticamente, ciérrala manualmente y abre la app desde su icono.</p>
+            </div>
+          </div>`;
+        document.title = 'Puedes cerrar esta pestaña';
+      } catch {}
+      try { window.location.replace('about:blank'); } catch {}
+    }, 250);
+  };
+
   // Si es página pública y ya se verificó la autenticación pero no hay usuario, mostrar contenido sin layout
   if (isPublicPage && authChecked && !user) {
     return (
