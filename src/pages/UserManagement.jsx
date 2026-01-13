@@ -664,6 +664,11 @@ const handleChatBlock = (user) => {
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Gestión de Usuarios</h1>
         <p className="text-slate-600 mt-1">Control de acceso, roles, permisos y entrenadores</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => { setPairingContext({ user: null, playerId: "", partnerEmail: "" }); setShowPairDialog(true); }}>
+            👨‍👩‍👧 Casar progenitores
+          </Button>
+        </div>
       </div>
 
       {/* Estadísticas compactas */}
@@ -915,7 +920,7 @@ const handleChatBlock = (user) => {
                               👨‍👩‍👧 Pareja: {pairByEmail[user.email.toLowerCase()].partner?.full_name || pairByEmail[user.email.toLowerCase()].partner?.email}
                             </span>
                           )}
-                          <Button size="sm" variant="outline" className="text-orange-700 border-orange-300 hover:bg-orange-50 h-7" onClick={() => openPairDialog(user)}>
+                          <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white h-7" onClick={() => openPairDialog(user)}>
                             👨‍👩‍👧 Casar progenitores
                           </Button>
                           {/* Junta Directiva */}
