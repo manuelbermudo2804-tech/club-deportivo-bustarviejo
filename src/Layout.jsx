@@ -655,6 +655,7 @@ export default function Layout({ children, currentPageName }) {
                               window.location.href = `${loginUrl}?nextUrl=${returnUrl}`;
                               return;
                             }
+
                             console.log('✅ Procesando token de invitación...');
                             const entityName = invitationType === 'second_parent' ? 'SecondParentInvitation' : 'AdminInvitation';
                             const invitations = await base44.entities[entityName].filter({ token: invitationToken });
@@ -691,6 +692,20 @@ export default function Layout({ children, currentPageName }) {
                                     estado: 'aceptada',
                                     fecha_aceptacion: new Date().toISOString()
                                   });
+                                  console.log('✅ Invitación aceptada desde localStorage');
+                                  if (savedType === 'second_parent') {
+                                    await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
+                                  }
+                                  localStorage.removeItem('pending_invitation_token');
+                                  localStorage.removeItem('pending_invitation_type');
+                                }
+                              }
+                            } catch (err) {
+                              console.log('Error procesando token guardado:', err);
+                              localStorage.removeItem('pending_invitation_token');
+                              localStorage.removeItem('pending_invitation_type');
+                            }
+                          });
                                   console.log('✅ Invitación aceptada desde localStorage');
                                   if (savedType === 'second_parent') {
                                     await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
