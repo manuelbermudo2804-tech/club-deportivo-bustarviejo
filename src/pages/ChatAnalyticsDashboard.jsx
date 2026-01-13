@@ -397,44 +397,201 @@ export default function ChatAnalyticsDashboard() {
        </Card>
       )}
 
-      {/* KPIs de Tendencias */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-       <Card>
-         <CardHeader className="pb-3">
-           <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-             <TrendingUp className="w-4 h-4" /> Tendencia Participación
-           </CardTitle>
-         </CardHeader>
-         <CardContent>
-           <div className="text-2xl font-bold text-green-600">{analytics.participationTrend || '↑'}</div>
-           <p className="text-xs text-slate-500 mt-2">vs semana anterior</p>
-         </CardContent>
-       </Card>
+      {/* ANÁLISIS DE SENTIMIENTO */}
+      {analytics.sentiment && (
+        <div className="space-y-6 border-t-2 border-orange-200 pt-6">
+          <h2 className="text-2xl font-bold text-slate-900">😊 Análisis de Sentimiento</h2>
 
-       <Card>
-         <CardHeader className="pb-3">
-           <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-             <Clock className="w-4 h-4" /> Horario Pico
-           </CardTitle>
-         </CardHeader>
-         <CardContent>
-           <div className="text-2xl font-bold text-orange-600">{analytics.peakHour || 'N/A'}</div>
-           <p className="text-xs text-slate-500 mt-2">Mayor actividad</p>
-         </CardContent>
-       </Card>
+          {/* KPIs Sentimiento */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className={analytics.sentiment.healthScore >= 70 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Heart className="w-4 h-4" /> Salud Comunicación
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-3xl font-bold ${analytics.sentiment.healthScore >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                  {Math.round(analytics.sentiment.healthScore)}%
+                </div>
+                <p className="text-xs text-slate-600 mt-2">{analytics.sentiment.healthScore >= 70 ? 'Muy buena' : 'Necesita mejora'}</p>
+              </CardContent>
+            </Card>
 
-       <Card>
-         <CardHeader className="pb-3">
-           <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-             <Zap className="w-4 h-4" /> Velocidad Respuesta
-           </CardTitle>
-         </CardHeader>
-         <CardContent>
-           <div className="text-2xl font-bold text-blue-600">{analytics.avgResponseTime || '--'} min</div>
-           <p className="text-xs text-slate-500 mt-2">Promedio global</p>
-         </CardContent>
-       </Card>
-      </div>
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-green-700">✅ Mensajes Positivos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">{analytics.sentiment.positive}</div>
+                <p className="text-xs text-slate-600 mt-2">{((analytics.sentiment.positive / (analytics.sentiment.positive + analytics.sentiment.negative + analytics.sentiment.neutral)) * 100).toFixed(1)}% del total</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-red-200 bg-red-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-red-700">❌ Mensajes Negativos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-red-600">{analytics.sentiment.negative}</div>
+                <p className="text-xs text-slate-600 mt-2">{((analytics.sentiment.negative / (analytics.sentiment.positive + analytics.sentiment.negative + analytics.sentiment.neutral)) * 100).toFixed(1)}% del total</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-slate-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-slate-700">➖ Mensajes Neutrales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-slate-600">{analytics.sentiment.neutral}</div>
+                <p className="text-xs text-slate-600 mt-2">{((analytics.sentiment.neutral / (analytics.sentiment.positive + analytics.sentiment.negative + analytics.sentiment.neutral)) * 100).toFixed(1)}% del total</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Gráfico de distribución de sentimiento */}
+          <Card>
+            <CardHeader>
+              <CardTitle>📊 Distribución de Sentimiento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Positivos', value: analytics.sentiment.positive, color: '#22c55e' },
+                      { name: 'Negativos', value: analytics.sentiment.negative, color: '#ef4444' },
+                      { name: 'Neutrales', value: analytics.sentiment.neutral, color: '#94a3b8' }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}`}
+                    outerRadius={100}
+                    dataKey="value"
+                  >
+                    <Cell fill="#22c55e" />
+                    <Cell fill="#ef4444" />
+                    <Cell fill="#94a3b8" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Palabras clave positivas y negativas */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {analytics.sentiment.positivePhrases && analytics.sentiment.positivePhrases.length > 0 && (
+              <Card className="border-green-200">
+                <CardHeader>
+                  <CardTitle className="text-green-700">✨ Palabras Positivas Frecuentes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {analytics.sentiment.positivePhrases.map((phrase, idx) => (
+                      <Badge key={idx} className="bg-green-100 text-green-800 border border-green-300">
+                        {phrase}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {analytics.sentiment.negativePhrases && analytics.sentiment.negativePhrases.length > 0 && (
+              <Card className="border-red-200">
+                <CardHeader>
+                  <CardTitle className="text-red-700">⚠️ Palabras Negativas Frecuentes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {analytics.sentiment.negativePhrases.map((phrase, idx) => (
+                      <Badge key={idx} className="bg-red-100 text-red-800 border border-red-300">
+                        {phrase}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sentimiento por categoría */}
+          {Object.keys(analytics.sentiment.byCategory).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>🎯 Sentimiento por Equipo/Categoría</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Object.entries(analytics.sentiment.byCategory).map(([category, sentiments]) => {
+                    const total = sentiments.positive + sentiments.negative + sentiments.neutral;
+                    const positiveRatio = ((sentiments.positive / total) * 100).toFixed(1);
+                    return (
+                      <div key={category} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-medium text-slate-900">{category}</p>
+                          <Badge className={parseFloat(positiveRatio) >= 60 ? 'bg-green-600' : 'bg-orange-600'}>
+                            {positiveRatio}% positivos
+                          </Badge>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2 flex overflow-hidden">
+                          <div className="bg-green-500" style={{ width: `${positiveRatio}%` }}></div>
+                          <div className="bg-red-500" style={{ width: `${((sentiments.negative / total) * 100).toFixed(1)}%` }}></div>
+                          <div className="bg-slate-400" style={{ width: `${((sentiments.neutral / total) * 100).toFixed(1)}%` }}></div>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-2">
+                          ✅ {sentiments.positive} | ❌ {sentiments.negative} | ➖ {sentiments.neutral}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+       {/* KPIs de Tendencias */}
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" /> Tendencia Participación
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{analytics.participationTrend || '↑'}</div>
+            <p className="text-xs text-slate-500 mt-2">vs semana anterior</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+              <Clock className="w-4 h-4" /> Horario Pico
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{analytics.peakHour || 'N/A'}</div>
+            <p className="text-xs text-slate-500 mt-2">Mayor actividad</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+              <Zap className="w-4 h-4" /> Velocidad Respuesta
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{analytics.avgResponseTime || '--'} min</div>
+            <p className="text-xs text-slate-500 mt-2">Promedio global</p>
+          </CardContent>
+        </Card>
+       </div>
 
       {/* Acciones */}
       <div className="flex gap-3 pt-4">
