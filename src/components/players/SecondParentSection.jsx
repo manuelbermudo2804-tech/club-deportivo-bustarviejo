@@ -299,7 +299,7 @@ Para completar tu registro, haz clic en el botón:
             <Alert className="bg-blue-50 border-blue-200">
               <Info className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 text-sm">
-                <strong>👥 Acceso compartido:</strong> Al solicitar la invitación, el administrador recibirá un email con los datos del segundo progenitor para enviarlo desde Base44.
+                <strong>👥 Acceso compartido:</strong> Al solicitar la invitación, el administrador recibirá un email con los datos del segundo progenitor para gestionarlo desde el panel del club.
                 <p className="mt-2 text-xs">
                   ✅ Una vez invitado, tendrá acceso completo: pagos, convocatorias, chat con entrenadores, calendario, documentos, etc.
                 </p>
