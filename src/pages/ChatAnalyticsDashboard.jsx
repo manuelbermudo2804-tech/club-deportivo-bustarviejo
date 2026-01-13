@@ -372,16 +372,80 @@ export default function ChatAnalyticsDashboard() {
         </Card>
       )}
 
+      {/* Mensajes sin respuesta */}
+      {analytics.unansweredMessages && analytics.unansweredMessages.length > 0 && (
+       <Card className="border-yellow-200 bg-yellow-50">
+         <CardHeader>
+           <CardTitle className="text-yellow-700 flex items-center gap-2">
+             <Eye className="w-5 h-5" /> Mensajes Sin Respuesta
+           </CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="space-y-2 max-h-80 overflow-y-auto">
+             {analytics.unansweredMessages.slice(0, 15).map((msg, idx) => (
+               <div key={idx} className="p-3 bg-white rounded border border-yellow-200">
+                 <p className="text-sm text-slate-900"><strong>{msg.sender}</strong> - {msg.category}</p>
+                 <p className="text-xs text-slate-600 mt-1 line-clamp-2">{msg.content}</p>
+                 <p className="text-xs text-yellow-700 mt-2">Sin respuesta hace {msg.daysUnanswered} días</p>
+               </div>
+             ))}
+           </div>
+           <p className="text-xs text-slate-600 mt-3 p-2 bg-slate-100 rounded">
+             ℹ️ Se muestran los últimos 15 mensajes sin respuesta. Recomendación: Contactar con los remitentes.
+           </p>
+         </CardContent>
+       </Card>
+      )}
+
+      {/* KPIs de Tendencias */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+       <Card>
+         <CardHeader className="pb-3">
+           <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+             <TrendingUp className="w-4 h-4" /> Tendencia Participación
+           </CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="text-2xl font-bold text-green-600">{analytics.participationTrend || '↑'}</div>
+           <p className="text-xs text-slate-500 mt-2">vs semana anterior</p>
+         </CardContent>
+       </Card>
+
+       <Card>
+         <CardHeader className="pb-3">
+           <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+             <Clock className="w-4 h-4" /> Horario Pico
+           </CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="text-2xl font-bold text-orange-600">{analytics.peakHour || 'N/A'}</div>
+           <p className="text-xs text-slate-500 mt-2">Mayor actividad</p>
+         </CardContent>
+       </Card>
+
+       <Card>
+         <CardHeader className="pb-3">
+           <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
+             <Zap className="w-4 h-4" /> Velocidad Respuesta
+           </CardTitle>
+         </CardHeader>
+         <CardContent>
+           <div className="text-2xl font-bold text-blue-600">{analytics.avgResponseTime || '--'} min</div>
+           <p className="text-xs text-slate-500 mt-2">Promedio global</p>
+         </CardContent>
+       </Card>
+      </div>
+
       {/* Acciones */}
       <div className="flex gap-3 pt-4">
-        <Button className="bg-orange-600 hover:bg-orange-700">
-          <Download className="w-4 h-4 mr-2" />
-          Descargar Reporte
-        </Button>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          Refrescar Datos
-        </Button>
+       <Button className="bg-orange-600 hover:bg-orange-700">
+         <Download className="w-4 h-4 mr-2" />
+         Descargar Reporte
+       </Button>
+       <Button variant="outline" onClick={() => window.location.reload()}>
+         Refrescar Datos
+       </Button>
       </div>
-    </div>
-  );
-}
+      </div>
+      );
+      }
