@@ -29,6 +29,7 @@ export default function ParentPlayers() {
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isAdultPlayerSelfRegistration, setIsAdultPlayerSelfRegistration] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const queryClient = useQueryClient();
   
@@ -704,6 +705,7 @@ Email: cdbustarviejo@gmail.com
       }
     },
     onError: (error) => {
+      setIsProcessing(false);
       console.error("Error creating player:", error);
       toast.error("Error al registrar el jugador");
     }
@@ -828,6 +830,7 @@ Email: cdbustarviejo@gmail.com
       }
     },
     onError: (error) => {
+      setIsProcessing(false);
       console.error("Error renewing player:", error);
       toast.error("Error al renovar el jugador");
     }
@@ -970,6 +973,16 @@ Email: cdbustarviejo@gmail.com
           descuentoHermano={inscriptionSuccessData.descuentoHermano}
           onClose={() => setShowInscriptionSuccess(false)}
         />
+      )}
+
+      {isProcessing && (
+        <div className="fixed inset-0 z-[160] bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 text-center shadow-xl">
+            <div className="spinner-elegant mx-auto mb-3" />
+            <p className="text-slate-800 font-semibold">Procesando la inscripción...</p>
+            <p className="text-slate-500 text-xs mt-1">Generando cuotas y preparando la confirmación</p>
+          </div>
+        </div>
       )}
 
       <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
