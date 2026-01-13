@@ -1482,6 +1482,14 @@ export default function Layout({ children, currentPageName }) {
         setOnboardingView('none');
       }, [user]);
 
+      // Invitar en el primer arranque desde el icono (PWA)
+      useEffect(() => {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone')) {
+          setShowFirstLaunchInvite(true);
+        }
+      }, [user]);
+
       if (isLoading && !isPublicPage) {
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
@@ -1556,25 +1564,7 @@ export default function Layout({ children, currentPageName }) {
                                            <p className="text-slate-600 mt-1 text-sm">¡Es muy sencillo! Solo 4 pasos y tardarás menos de 1 minuto</p>
                                          </div>
 
-                                         {/* Botón para saltar y continuar registro inmediatamente (failsafe) */}
-                                         <Button
-                                           variant="outline"
-                                           className="w-full mb-3"
-                                           onClick={async () => {
-                                             setShowInstallInstructions(false);
-                                             setIsAppInstalled(true);
-                                             localStorage.setItem('pwaInstalled', 'true');
-                                             try {
-                                               await base44.auth.updateMe({ app_instalada: true });
-                                             } catch {}
-                                             // familia: mostrar diálogo de registro simple
-                                             if (user?.tipo_panel === 'familia') {
-                                               setShowFirstTimeRegistration(true);
-                                             }
-                                           }}
-                                         >
-                                           Saltar e ir al registro →
-                                         </Button>
+
 
                                           <div className="bg-green-50 border-2 border-green-300 rounded-xl p-3 mb-4">
                                             <p className="text-green-800 text-sm text-center font-medium">
@@ -1738,10 +1728,6 @@ export default function Layout({ children, currentPageName }) {
                                           setShowInstallInstructions(false);
                                           setInstallDismissed(true);
                                           localStorage.setItem('installPromptDismissed', 'true');
-                                          // Fallback: si es familia y aún no marcó instalada, continuar al registro igualmente
-                                          if (user?.tipo_panel === 'familia' && !isAppInstalled) {
-                                            setShowFirstTimeRegistration(true);
-                                          }
                                         }} 
                                         variant="outline"
                                         className="w-full mt-2 py-3"
@@ -1754,15 +1740,30 @@ export default function Layout({ children, currentPageName }) {
 
                 {/* Modal de éxito tras pulsar "Ya la tengo instalada" */}
                 {showInstallSuccess && (
-                <div className="fixed inset-0 z-[210] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallSuccess(false)}>
-                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                    <div className="text-center space-y-3">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                        <CheckCircle2 className="w-8 h-8 text-green-600" />
+                <div className="fixed inset-0 z-[210] bg-black/90 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
+                    <div className="space-y-4">
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 className="w-10 h-10 text-green-600" />
                       </div>
-                      <h3 className="text-2xl font-bold text-slate-900">¡Instalación lista!</h3>
-                      <p className="text-slate-600 text-sm">Cierra esta pestaña del navegador y abre la app desde el icono que ya tienes en tu móvil para continuar.</p>
-                      <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => setShowInstallSuccess(false)}>Entendido</Button>
+                      <h3 className="text-2xl font-extrabold text-slate-900">¡Perfecto! Ahora usa el icono</h3>
+                      <p className="text-slate-700 text-sm">
+                        Esta pestaña del navegador ya no se usará. Cierra esta pestaña y abre la app desde el <strong>icono instalado en tu móvil</strong> para continuar.
+                      </p>
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-800">
+                        Siguiente paso al abrir la app: <strong>{user?.tipo_panel === 'familia' ? 'dar de alta a tus jugadores' : 'completar tu perfil de jugador'}</strong>.
+                      </div>
+                      <Button
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          try {
+                            window.close();
+                          } catch {}
+                        }}
+                      >
+                        Cerrar esta pestaña ahora
+                      </Button>
+                      <p className="text-xs text-slate-500">Si no se cierra automáticamente, ciérrala manualmente y toca el icono de la app.</p>
                     </div>
                   </div>
                 </div>
