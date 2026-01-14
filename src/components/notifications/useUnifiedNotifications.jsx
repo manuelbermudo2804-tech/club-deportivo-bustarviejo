@@ -1,0 +1,538 @@
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+
+/**
+ * Hook unificado para TODAS las notificaciones y badges
+ * - 100% real-time con subscriptions
+ * - Centralizado - una única fuente de verdad
+ * - Actualización instantánea
+ */
+export function useUnifiedNotifications(user) {
+  const [notifications, setNotifications] = useState({
+    // CHATS
+    unreadCoordinatorMessages: 0,
+    unreadCoachMessages: 0,
+    unreadStaffMessages: 0,
+    unreadAdminMessages: 0,
+    unreadPrivateMessages: 0,
+    unreadFamilyMessages: 0,
+    
+    // CONVOCATORIAS
+    pendingCallups: 0,
+    pendingCallupResponses: 0,
+    
+    // PAGOS
+    pendingPayments: 0,
+    paymentsInReview: 0,
+    overduePayments: 0,
+    
+    // FIRMAS
+    pendingSignatures: 0,
+    
+    // ANUNCIOS
+    unreadAnnouncements: 0,
+    
+    // ADMIN
+    unresolvedAdminChats: 0,
+    playersNeedingReview: 0,
+    pendingInvitations: 0,
+    pendingClothingOrders: 0,
+    pendingLotteryOrders: 0,
+    pendingMemberRequests: 0,
+    
+    // ENTRENADORES
+    pendingMatchObservations: 0,
+    
+    // OTROS
+    hasActiveAdminConversation: false,
+  });
+
+  const [rawData, setRawData] = useState({
+    coordinatorConversations: [],
+    chatMessages: [],
+    staffMessages: [],
+    adminConversations: [],
+    privateConversations: [],
+    convocatorias: [],
+    payments: [],
+    players: [],
+    announcements: [],
+    invitations: [],
+    secondParentInvitations: [],
+    clothingOrders: [],
+    lotteryOrders: [],
+    clubMembers: [],
+    matchObservations: [],
+  });
+
+  useEffect(() => {
+    if (!user) return;
+
+    const unsubscribers = [];
+
+    // ===== CHATS =====
+    
+    // Coordinator Conversations
+    const loadCoordConvs = async () => {
+      const convs = await base44.entities.CoordinatorConversation.list('-updated_date', 500);
+      setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
+    };
+    loadCoordConvs();
+    const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.coordinatorConversations];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+        return { ...prev, coordinatorConversations: updated };
+      });
+    });
+    unsubscribers.push(unsubCoordConv);
+
+    // Chat Messages
+    const loadChatMsgs = async () => {
+      const msgs = await base44.entities.ChatMessage.list('-created_date', 500);
+      setRawData(prev => ({ ...prev, chatMessages: msgs }));
+    };
+    loadChatMsgs();
+    const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.chatMessages];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
+        else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
+        return { ...prev, chatMessages: updated };
+      });
+    });
+    unsubscribers.push(unsubChatMsg);
+
+    // Staff Messages
+    const loadStaffMsgs = async () => {
+      const msgs = await base44.entities.StaffMessage.list('-created_date', 500);
+      setRawData(prev => ({ ...prev, staffMessages: msgs }));
+    };
+    loadStaffMsgs();
+    const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.staffMessages];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
+        else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
+        return { ...prev, staffMessages: updated };
+      });
+    });
+    unsubscribers.push(unsubStaffMsg);
+
+    // Admin Conversations
+    const loadAdminConvs = async () => {
+      const convs = await base44.entities.AdminConversation.list('-updated_date', 500);
+      setRawData(prev => ({ ...prev, adminConversations: convs }));
+    };
+    loadAdminConvs();
+    const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.adminConversations];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+        return { ...prev, adminConversations: updated };
+      });
+    });
+    unsubscribers.push(unsubAdminConv);
+
+    // Private Conversations
+    const loadPrivateConvs = async () => {
+      const convs = await base44.entities.PrivateConversation.list('-updated_date', 500);
+      setRawData(prev => ({ ...prev, privateConversations: convs }));
+    };
+    loadPrivateConvs();
+    const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.privateConversations];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+        return { ...prev, privateConversations: updated };
+      });
+    });
+    unsubscribers.push(unsubPrivateConv);
+
+    // ===== CONVOCATORIAS =====
+    const loadConvocatorias = async () => {
+      const convs = await base44.entities.Convocatoria.list('-created_date', 500);
+      setRawData(prev => ({ ...prev, convocatorias: convs }));
+    };
+    loadConvocatorias();
+    const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.convocatorias];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+        return { ...prev, convocatorias: updated };
+      });
+    });
+    unsubscribers.push(unsubConvocatorias);
+
+    // ===== PAGOS =====
+    const loadPayments = async () => {
+      const pays = await base44.entities.Payment.list('-created_date', 500);
+      setRawData(prev => ({ ...prev, payments: pays }));
+    };
+    loadPayments();
+    const unsubPayments = base44.entities.Payment.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.payments];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
+        else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
+        return { ...prev, payments: updated };
+      });
+    });
+    unsubscribers.push(unsubPayments);
+
+    // ===== JUGADORES =====
+    const loadPlayers = async () => {
+      const pls = await base44.entities.Player.list();
+      setRawData(prev => ({ ...prev, players: pls }));
+    };
+    loadPlayers();
+    const unsubPlayers = base44.entities.Player.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.players];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
+        else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
+        return { ...prev, players: updated };
+      });
+    });
+    unsubscribers.push(unsubPlayers);
+
+    // ===== ANUNCIOS =====
+    const loadAnnouncements = async () => {
+      const anns = await base44.entities.Announcement.list('-fecha_publicacion', 500);
+      setRawData(prev => ({ ...prev, announcements: anns }));
+    };
+    loadAnnouncements();
+    const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.announcements];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(a => a.id === event.id ? event.data : a);
+        else if (event.type === 'delete') updated = updated.filter(a => a.id !== event.id);
+        return { ...prev, announcements: updated };
+      });
+    });
+    unsubscribers.push(unsubAnnouncements);
+
+    // ===== ADMIN ONLY =====
+    if (user.role === 'admin') {
+      const loadInvitations = async () => {
+        const [inv, secInv, clothing, lottery, members] = await Promise.all([
+          base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
+          base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
+          base44.entities.ClothingOrder.list(),
+          base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }),
+          base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })
+        ]);
+        setRawData(prev => ({ 
+          ...prev, 
+          invitations: inv, 
+          secondParentInvitations: secInv,
+          clothingOrders: clothing,
+          lotteryOrders: lottery,
+          clubMembers: members
+        }));
+      };
+      loadInvitations();
+      
+      const unsubInv = base44.entities.InvitationRequest.subscribe(() => {
+        base44.entities.InvitationRequest.filter({ estado: "Pendiente" }).then(inv => {
+          setRawData(prev => ({ ...prev, invitations: inv }));
+        });
+      });
+      const unsubSecInv = base44.entities.SecondParentInvitation.subscribe(() => {
+        base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }).then(sec => {
+          setRawData(prev => ({ ...prev, secondParentInvitations: sec }));
+        });
+      });
+      const unsubClothing = base44.entities.ClothingOrder.subscribe((event) => {
+        setRawData(prev => {
+          let updated = [...prev.clothingOrders];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(o => o.id === event.id ? event.data : o);
+          else if (event.type === 'delete') updated = updated.filter(o => o.id !== event.id);
+          return { ...prev, clothingOrders: updated };
+        });
+      });
+      const unsubLottery = base44.entities.LotteryOrder.subscribe(() => {
+        base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }).then(orders => {
+          setRawData(prev => ({ ...prev, lotteryOrders: orders }));
+        });
+      });
+      const unsubMembers = base44.entities.ClubMember.subscribe(() => {
+        base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }).then(members => {
+          setRawData(prev => ({ ...prev, clubMembers: members }));
+        });
+      });
+      
+      unsubscribers.push(unsubInv, unsubSecInv, unsubClothing, unsubLottery, unsubMembers);
+    }
+
+    // ===== ENTRENADORES/COORDINADORES =====
+    if (user.es_entrenador || user.es_coordinador) {
+      const loadObservations = async () => {
+        const obs = await base44.entities.MatchObservation.list('-updated_date', 500);
+        setRawData(prev => ({ ...prev, matchObservations: obs }));
+      };
+      loadObservations();
+      const unsubObs = base44.entities.MatchObservation.subscribe((event) => {
+        setRawData(prev => {
+          let updated = [...prev.matchObservations];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(o => o.id === event.id ? event.data : o);
+          else if (event.type === 'delete') updated = updated.filter(o => o.id !== event.id);
+          return { ...prev, matchObservations: updated };
+        });
+      });
+      unsubscribers.push(unsubObs);
+    }
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [user]);
+
+  // CALCULAR NOTIFICACIONES a partir de rawData
+  useEffect(() => {
+    if (!user) return;
+
+    const myPlayerIds = rawData.players
+      .filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email)
+      .map(p => p.id);
+    
+    const myCategories = [...new Set(rawData.players
+      .filter(p => myPlayerIds.includes(p.id))
+      .map(p => p.categoria_principal || p.deporte))];
+
+    const coachCategories = user.categorias_entrena || [];
+
+    // CHATS
+    let unreadCoordinator = 0;
+    let unreadCoach = 0;
+    let unreadStaff = 0;
+    let unreadAdmin = 0;
+    let unreadPrivate = 0;
+    let unreadFamilies = 0;
+
+    // Coordinator
+    if (user.role !== 'admin') {
+      rawData.coordinatorConversations.forEach(conv => {
+        if (conv.participante_familia_email === user.email) {
+          unreadCoordinator += (conv.no_leidos_familia || 0);
+        }
+      });
+    }
+
+    // Coach (ChatMessage tipo entrenador_a_grupo)
+    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador) {
+      rawData.chatMessages.forEach(msg => {
+        if (msg.tipo === 'entrenador_a_grupo' && 
+            (myCategories.includes(msg.deporte) || myCategories.includes(msg.grupo_id)) &&
+            (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
+          unreadCoach++;
+        }
+      });
+    }
+
+    // Families (para coach/coordinator)
+    if (user.es_entrenador || user.es_coordinador) {
+      rawData.chatMessages.forEach(msg => {
+        if (msg.tipo === 'padre_a_grupo' &&
+            (coachCategories.includes(msg.deporte) || coachCategories.includes(msg.grupo_id)) &&
+            (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
+          unreadFamilies++;
+        }
+      });
+    }
+
+    // Staff
+    if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
+      rawData.staffMessages.forEach(msg => {
+        if (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email)) {
+          unreadStaff++;
+        }
+      });
+    }
+
+    // Admin
+    if (user.role !== 'admin') {
+      rawData.adminConversations.forEach(conv => {
+        if (conv.padre_email === user.email && conv.resuelta === false) {
+          const mensajes = conv.mensajes || [];
+          mensajes.forEach(msg => {
+            if (msg.remitente_tipo === 'admin' && (!msg.leido_familia || msg.leido_familia === false)) {
+              unreadAdmin++;
+            }
+          });
+        }
+      });
+    }
+
+    // Private
+    rawData.privateConversations.forEach(conv => {
+      if (conv.participante_familia_email === user.email) {
+        unreadPrivate += (conv.no_leidos_familia || 0);
+      } else if (conv.participante_staff_email === user.email) {
+        unreadPrivate += (conv.no_leidos_staff || 0);
+      }
+    });
+
+    // CONVOCATORIAS
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    let pendingCallups = 0;
+    let pendingCallupResponses = 0;
+
+    rawData.convocatorias.forEach(callup => {
+      if (!callup.publicada || callup.cerrada) return;
+      if (callup.fecha_partido < todayStr) return;
+
+      // Para padres
+      callup.jugadores_convocados?.forEach(j => {
+        if (myPlayerIds.includes(j.jugador_id) && j.confirmacion === 'pendiente') {
+          pendingCallups++;
+        }
+      });
+
+      // Para entrenadores (respuestas sin confirmar)
+      if ((user.es_entrenador || user.es_coordinador) && callup.entrenador_email === user.email) {
+        const pendingCount = callup.jugadores_convocados?.filter(j => j.confirmacion === 'pendiente').length || 0;
+        pendingCallupResponses += pendingCount;
+      }
+    });
+
+    // PAGOS
+    const myPayments = rawData.payments.filter(p => myPlayerIds.includes(p.jugador_id) && p.is_deleted !== true);
+    const pendingPayments = myPayments.filter(p => p.estado === 'Pendiente').length;
+    const paymentsInReview = myPayments.filter(p => p.estado === 'En revisión').length;
+    
+    // Vencidos (fecha límite superada)
+    let overduePayments = 0;
+    myPayments.forEach(p => {
+      if (p.estado !== 'Pendiente') return;
+      const limits = { 'Junio': '2026-06-30', 'Septiembre': '2026-09-30', 'Diciembre': '2026-12-31' };
+      const limit = limits[p.mes];
+      if (limit && new Date() > new Date(limit)) overduePayments++;
+    });
+
+    // FIRMAS
+    const myActivePlayers = rawData.players.filter(p => myPlayerIds.includes(p.id) && p.activo === true);
+    const pendingSignatures = myActivePlayers.filter(p => 
+      (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
+      (p.enlace_firma_tutor && !p.firma_tutor_completada)
+    ).length;
+
+    // ANUNCIOS
+    const now = new Date();
+    const unreadAnnouncements = rawData.announcements.filter(ann => {
+      if (!ann.publicado) return false;
+      if (ann.tipo_caducidad === "horas" && ann.fecha_caducidad_calculada) {
+        if (now > new Date(ann.fecha_caducidad_calculada)) return false;
+      } else if (ann.fecha_expiracion && now > new Date(ann.fecha_expiracion)) {
+        return false;
+      }
+      const alreadyRead = ann.leido_por?.some(l => l.email === user.email);
+      if (alreadyRead) return false;
+      if (ann.destinatarios_tipo === "Todos") return true;
+      return myCategories.includes(ann.destinatarios_tipo);
+    }).length;
+
+    // ADMIN
+    let unresolvedAdminChats = 0;
+    let playersNeedingReview = 0;
+    let pendingInvitations = 0;
+    let pendingClothingOrders = 0;
+    let pendingLotteryOrders = 0;
+    let pendingMemberRequests = 0;
+
+    if (user.role === 'admin') {
+      unresolvedAdminChats = rawData.adminConversations.filter(c => c.resuelta === false).length;
+      playersNeedingReview = rawData.players.filter(p => p.categoria_requiere_revision === true).length;
+      pendingInvitations = rawData.invitations.length + rawData.secondParentInvitations.length;
+      pendingClothingOrders = rawData.clothingOrders.filter(o => o.estado === 'Pendiente' || o.estado === 'En revisión').length;
+      pendingLotteryOrders = rawData.lotteryOrders.length;
+      pendingMemberRequests = rawData.clubMembers.length;
+    }
+
+    // OBSERVACIONES DE PARTIDOS
+    let pendingMatchObservations = 0;
+    if (user.es_entrenador || user.es_coordinador) {
+      const myCallups = rawData.convocatorias.filter(c => c.entrenador_email === user.email && c.publicada);
+      const now = new Date();
+      
+      myCallups.forEach(callup => {
+        const matchDate = new Date(callup.fecha_partido);
+        if (matchDate > now) return;
+        
+        let matchEnded = false;
+        if (callup.hora_partido) {
+          const [h, m] = callup.hora_partido.split(':').map(Number);
+          const start = new Date(matchDate);
+          start.setHours(h, m, 0, 0);
+          const end = new Date(start.getTime() + 135 * 60000);
+          matchEnded = now >= end;
+        } else {
+          const nextDay = new Date(matchDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+          matchEnded = now >= nextDay;
+        }
+
+        if (!matchEnded) return;
+
+        const hasObservation = rawData.matchObservations.some(obs =>
+          obs.categoria === callup.categoria &&
+          obs.rival === callup.rival &&
+          obs.fecha_partido === callup.fecha_partido &&
+          obs.entrenador_email === user.email
+        );
+        
+        if (!hasObservation) pendingMatchObservations++;
+      });
+    }
+
+    // CONVERSACIÓN ACTIVA CON ADMIN
+    const hasActiveAdminConversation = rawData.adminConversations.some(c => 
+      c.padre_email === user.email && c.resuelta === false
+    );
+
+    // ACTUALIZAR ESTADO
+    setNotifications({
+      unreadCoordinatorMessages: unreadCoordinator,
+      unreadCoachMessages: unreadCoach,
+      unreadStaffMessages: unreadStaff,
+      unreadAdminMessages: unreadAdmin,
+      unreadPrivateMessages: unreadPrivate,
+      unreadFamilyMessages: unreadFamilies,
+      pendingCallups,
+      pendingCallupResponses,
+      pendingPayments,
+      paymentsInReview,
+      overduePayments,
+      pendingSignatures,
+      unreadAnnouncements,
+      unresolvedAdminChats,
+      playersNeedingReview,
+      pendingInvitations,
+      pendingClothingOrders,
+      pendingLotteryOrders,
+      pendingMemberRequests,
+      pendingMatchObservations,
+      hasActiveAdminConversation,
+    });
+  }, [user, rawData]);
+
+  return { notifications, rawData };
+}
