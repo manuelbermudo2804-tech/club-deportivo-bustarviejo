@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ScatterChart, Scatter, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-import { AlertCircle, TrendingUp, Users, MessageSquare, Download, AlertTriangle, Clock, FileText, Zap, Eye, Heart, Smile } from 'lucide-react';
+import { AlertCircle, TrendingUp, Users, MessageSquare, Download, AlertTriangle, Clock, FileText, Zap, Eye, Heart, Smile, ArrowUpRight, CheckCircle2, Timer } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function ChatAnalyticsDashboard() {
@@ -80,6 +80,17 @@ export default function ChatAnalyticsDashboard() {
     mensajes: item.messageCount,
     usuarios: item.userCount
   }));
+
+  // Datos de primera respuesta por rol
+  const firstResponseData = analytics.firstResponseByRole ? [
+    { rol: 'Coordinador', tiempo: analytics.firstResponseByRole.coordinador },
+    { rol: 'Entrenador', tiempo: analytics.firstResponseByRole.entrenador },
+    { rol: 'Staff', tiempo: analytics.firstResponseByRole.staff }
+  ] : [];
+
+  // Datos de escalados
+  const escalationData = analytics.escalationHistory || [];
+  const escalationStats = analytics.escalationStats || {};
 
   // Contenido compartido
   const sharedContentData = [
@@ -161,6 +172,112 @@ export default function ChatAnalyticsDashboard() {
             <p className="text-sm mt-3">Acción recomendada: Contactar para reforzar uso de la app</p>
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* NUEVA SECCIÓN: Tiempo de Primera Respuesta */}
+      {firstResponseData.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-blue-700 flex items-center gap-2">
+              <Timer className="w-5 h-5" /> ⏱️ Tiempo de Primera Respuesta por Rol
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={firstResponseData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="rol" />
+                <YAxis label={{ value: 'Minutos', angle: -90, position: 'insideLeft' }} />
+                <Tooltip formatter={(value) => `${value} min`} />
+                <Bar dataKey="tiempo" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {firstResponseData.map(item => (
+                <div key={item.rol} className="bg-white rounded-lg p-3 text-center border border-blue-200">
+                  <p className="text-xs text-slate-600 mb-1">{item.rol}</p>
+                  <p className="text-2xl font-bold text-blue-600">{item.tiempo}</p>
+                  <p className="text-xs text-slate-500">minutos</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* NUEVA SECCIÓN: Historial de Escalados */}
+      {escalationData.length > 0 && (
+        <div className="space-y-4">
+          <Card className="border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="text-orange-700 flex items-center gap-2">
+                <ArrowUpRight className="w-5 h-5" /> 🔄 Historial de Escalados (últimos 20)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Resumen de escalados */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div className="bg-white rounded-lg p-3 text-center border border-orange-200">
+                  <p className="text-xs text-slate-600 mb-1">Total</p>
+                  <p className="text-2xl font-bold text-orange-600">{escalationStats.total}</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 text-center border border-blue-200">
+                  <p className="text-xs text-slate-600 mb-1">Entren. → Coord.</p>
+                  <p className="text-2xl font-bold text-blue-600">{escalationStats.entrenadorACoordinador}</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 text-center border border-purple-200">
+                  <p className="text-xs text-slate-600 mb-1">Coord. → Admin</p>
+                  <p className="text-2xl font-bold text-purple-600">{escalationStats.coordinadorAAdmin}</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 text-center border border-green-200">
+                  <p className="text-xs text-slate-600 mb-1">Resueltos</p>
+                  <p className="text-2xl font-bold text-green-600">{escalationStats.resueltos}</p>
+                </div>
+              </div>
+
+              {/* Tiempo promedio de resolución */}
+              {escalationStats.tiempoPromedioResolucion > 0 && (
+                <div className="bg-white rounded-lg p-4 mb-4 border border-orange-200">
+                  <p className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-600" />
+                    Tiempo Promedio de Resolución
+                  </p>
+                  <p className="text-3xl font-bold text-orange-600">{escalationStats.tiempoPromedioResolucion} min</p>
+                </div>
+              )}
+
+              {/* Lista de escalados */}
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {escalationData.map((escalation, idx) => (
+                  <div key={idx} className="p-3 bg-white rounded-lg border border-orange-200">
+                    <div className="flex items-start justify-between mb-2">
+                      <Badge className={escalation.tipo.includes('Admin') ? 'bg-purple-600' : 'bg-blue-600'}>
+                        {escalation.tipo}
+                      </Badge>
+                      {escalation.resuelto ? (
+                        <Badge className="bg-green-600 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Resuelto
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-red-600">Pendiente</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-slate-700 font-medium mb-1">{escalation.categoria}</p>
+                    <p className="text-xs text-slate-600 line-clamp-2 mb-2">{escalation.mensaje_original}</p>
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <span>{new Date(escalation.fecha_escalado).toLocaleDateString('es-ES')}</span>
+                      {escalation.tiempo_resolucion_minutos && (
+                        <span className="text-green-600 font-medium">
+                          Resuelto en {escalation.tiempo_resolucion_minutos} min
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Gráficos */}
@@ -517,36 +634,56 @@ export default function ChatAnalyticsDashboard() {
             )}
           </div>
 
-          {/* Sentimiento por categoría */}
+          {/* Sentimiento por categoría - MEJORADO */}
           {Object.keys(analytics.sentiment.byCategory).length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>🎯 Sentimiento por Equipo/Categoría</CardTitle>
+                <p className="text-sm text-slate-600 mt-1">Identifica áreas de mejora en la comunicación</p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {Object.entries(analytics.sentiment.byCategory).map(([category, sentiments]) => {
-                    const total = sentiments.positive + sentiments.negative + sentiments.neutral;
-                    const positiveRatio = ((sentiments.positive / total) * 100).toFixed(1);
-                    return (
-                      <div key={category} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="font-medium text-slate-900">{category}</p>
-                          <Badge className={parseFloat(positiveRatio) >= 60 ? 'bg-green-600' : 'bg-orange-600'}>
-                            {positiveRatio}% positivos
-                          </Badge>
+                  {Object.entries(analytics.sentiment.byCategory)
+                    .sort(([, a], [, b]) => {
+                      const totalA = a.positive + a.negative + a.neutral;
+                      const totalB = b.positive + b.negative + b.neutral;
+                      const ratioA = totalA > 0 ? a.negative / totalA : 0;
+                      const ratioB = totalB > 0 ? b.negative / totalB : 0;
+                      return ratioB - ratioA; // Ordenar por negatividad (peores primero)
+                    })
+                    .map(([category, sentiments], idx) => {
+                      const total = sentiments.positive + sentiments.negative + sentiments.neutral;
+                      const positiveRatio = ((sentiments.positive / total) * 100).toFixed(1);
+                      const negativeRatio = ((sentiments.negative / total) * 100).toFixed(1);
+                      const needsAttention = parseFloat(negativeRatio) > 30 || parseFloat(positiveRatio) < 50;
+
+                      return (
+                        <div key={category} className={`p-4 rounded-lg border-2 ${needsAttention ? 'bg-red-50 border-red-300' : 'bg-slate-50 border-slate-200'}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              {needsAttention && <AlertTriangle className="w-4 h-4 text-red-600" />}
+                              <p className="font-medium text-slate-900">{category}</p>
+                            </div>
+                            <Badge className={parseFloat(positiveRatio) >= 60 ? 'bg-green-600' : parseFloat(positiveRatio) >= 40 ? 'bg-orange-600' : 'bg-red-600'}>
+                              {positiveRatio}% positivos
+                            </Badge>
+                          </div>
+                          <div className="w-full bg-slate-200 rounded-full h-3 flex overflow-hidden shadow-inner">
+                            <div className="bg-green-500" style={{ width: `${positiveRatio}%` }}></div>
+                            <div className="bg-red-500" style={{ width: `${negativeRatio}%` }}></div>
+                            <div className="bg-slate-400" style={{ width: `${((sentiments.neutral / total) * 100).toFixed(1)}%` }}></div>
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-xs text-slate-600">
+                              ✅ {sentiments.positive} | ❌ {sentiments.negative} | ➖ {sentiments.neutral}
+                            </p>
+                            {needsAttention && (
+                              <p className="text-xs font-bold text-red-700">⚠️ Requiere atención</p>
+                            )}
+                          </div>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2 flex overflow-hidden">
-                          <div className="bg-green-500" style={{ width: `${positiveRatio}%` }}></div>
-                          <div className="bg-red-500" style={{ width: `${((sentiments.negative / total) * 100).toFixed(1)}%` }}></div>
-                          <div className="bg-slate-400" style={{ width: `${((sentiments.neutral / total) * 100).toFixed(1)}%` }}></div>
-                        </div>
-                        <p className="text-xs text-slate-600 mt-2">
-                          ✅ {sentiments.positive} | ❌ {sentiments.negative} | ➖ {sentiments.neutral}
-                        </p>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </CardContent>
             </Card>

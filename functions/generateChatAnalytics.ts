@@ -120,6 +120,52 @@ Deno.serve(async (req) => {
       avgResponseTime
     }));
 
+    // TIEMPO DE PRIMERA RESPUESTA POR ROL
+    const calculateFirstResponseTime = (messages, role) => {
+      const conversationFirstResponses = {};
+      
+      messages.forEach(m => {
+        const convId = m.conversacion_id || m.grupo_id || m.categoria;
+        if (!convId) return;
+        
+        if (!conversationFirstResponses[convId]) {
+          conversationFirstResponses[convId] = [];
+        }
+        conversationFirstResponses[convId].push(m);
+      });
+
+      const firstResponseTimes = [];
+      Object.values(conversationFirstResponses).forEach(convMsgs => {
+        convMsgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        
+        for (let i = 0; i < convMsgs.length - 1; i++) {
+          const msg = convMsgs[i];
+          const nextMsg = convMsgs[i + 1];
+          
+          // Detectar si es una primera respuesta (cambio de remitente)
+          const currentSender = msg.remitente_email || msg.autor_email;
+          const nextSender = nextMsg.remitente_email || nextMsg.autor_email;
+          
+          if (currentSender !== nextSender) {
+            const timeDiff = (new Date(nextMsg.created_date) - new Date(msg.created_date)) / 60000;
+            if (timeDiff > 0 && timeDiff < 1440) { // Menos de 24 horas
+              firstResponseTimes.push(timeDiff);
+            }
+          }
+        }
+      });
+
+      return firstResponseTimes.length > 0 
+        ? Math.round(firstResponseTimes.reduce((a, b) => a + b) / firstResponseTimes.length)
+        : 0;
+    };
+
+    const firstResponseByRole = {
+      coordinador: calculateFirstResponseTime(coordinatorMessagesFiltered, 'coordinador'),
+      entrenador: calculateFirstResponseTime(coachMessagesFiltered, 'entrenador'),
+      staff: calculateFirstResponseTime(staffMessagesFiltered, 'staff')
+    };
+
     // Actividad por equipo/categoría
     const teamActivity = {};
     (coachMessagesFiltered || []).forEach(m => {
@@ -276,9 +322,81 @@ ${messagesForAnalysis}`,
       });
     }
 
+    // HISTORIAL DE ESCALADOS (entrenador → coordinador, coordinador → admin)
+    const escalationHistory = [];
+    const now = new Date();
+
+    // 1. Escalados de Entrenador a Coordinador (CoachMessage marcado como escalado)
+    const coachMessagesEscalated = coachMessagesFiltered.filter(m => m.escalado_a_coordinador === true);
+    coachMessagesEscalated.forEach(msg => {
+      const escalationTime = msg.escalado_fecha ? new Date(msg.escalado_fecha) : new Date(msg.created_date);
+      
+      // Buscar si el coordinador respondió
+      const coordinatorResponse = coordinatorMessagesFiltered.find(cm => 
+        cm.grupo_id === msg.grupo_id && 
+        new Date(cm.created_date) > escalationTime
+      );
+      
+      const resolutionTime = coordinatorResponse 
+        ? Math.round((new Date(coordinatorResponse.created_date) - escalationTime) / 60000)
+        : null;
+
+      escalationHistory.push({
+        tipo: 'Entrenador → Coordinador',
+        categoria: msg.deporte || msg.grupo_id || 'General',
+        fecha_escalado: escalationTime.toISOString(),
+        resuelto: !!coordinatorResponse,
+        tiempo_resolucion_minutos: resolutionTime,
+        mensaje_original: msg.mensaje?.substring(0, 100)
+      });
+    });
+
+    // 2. Escalados de Coordinador a Admin (CoordinatorMessage marcado como escalado)
+    const coordinatorMessagesEscalated = coordinatorMessagesFiltered.filter(m => m.escalado_a_admin === true);
+    coordinatorMessagesEscalated.forEach(msg => {
+      const escalationTime = msg.escalado_admin_fecha ? new Date(msg.escalado_admin_fecha) : new Date(msg.created_date);
+      
+      // Buscar si el admin respondió en AdminConversation
+      const adminResponse = adminMessagesFiltered.find(am => 
+        new Date(am.created_date) > escalationTime
+      );
+      
+      const resolutionTime = adminResponse 
+        ? Math.round((new Date(adminResponse.created_date) - escalationTime) / 60000)
+        : null;
+
+      escalationHistory.push({
+        tipo: 'Coordinador → Admin',
+        categoria: msg.grupo_id || 'General',
+        fecha_escalado: escalationTime.toISOString(),
+        resuelto: !!adminResponse,
+        tiempo_resolucion_minutos: resolutionTime,
+        mensaje_original: msg.mensaje?.substring(0, 100)
+      });
+    });
+
+    // Ordenar por fecha más reciente
+    escalationHistory.sort((a, b) => new Date(b.fecha_escalado) - new Date(a.fecha_escalado));
+
+    // Estadísticas de escalados
+    const escalationStats = {
+      total: escalationHistory.length,
+      entrenadorACoordinador: escalationHistory.filter(e => e.tipo === 'Entrenador → Coordinador').length,
+      coordinadorAAdmin: escalationHistory.filter(e => e.tipo === 'Coordinador → Admin').length,
+      resueltos: escalationHistory.filter(e => e.resuelto).length,
+      pendientes: escalationHistory.filter(e => !e.resuelto).length,
+      tiempoPromedioResolucion: escalationHistory.filter(e => e.tiempo_resolucion_minutos).length > 0
+        ? Math.round(
+            escalationHistory
+              .filter(e => e.tiempo_resolucion_minutos)
+              .reduce((sum, e) => sum + e.tiempo_resolucion_minutos, 0) / 
+            escalationHistory.filter(e => e.tiempo_resolucion_minutos).length
+          )
+        : 0
+    };
+
     // Mensajes sin respuesta
     const unansweredMessages = [];
-    const now = new Date();
     allMessages.forEach(m => {
       const responses = allMessages.filter(r => 
         r.respuesta_a === m.id || 
@@ -289,8 +407,8 @@ ${messagesForAnalysis}`,
         if (daysUnanswered > 0) {
           unansweredMessages.push({
             id: m.id,
-            sender: m.remitente_nombre,
-            category: m.categoria,
+            sender: m.remitente_nombre || m.autor_nombre,
+            category: m.categoria || m.deporte || m.grupo_id,
             content: m.mensaje?.substring(0, 100),
             daysUnanswered
           });
@@ -345,7 +463,10 @@ ${messagesForAnalysis}`,
       peakHour: peakHour ? `${peakHour[0]}:00` : 'N/A',
       avgResponseTime: avgResponseTimeGlobal,
       participationTrend,
-      sentiment: sentimentAnalysis
+      sentiment: sentimentAnalysis,
+      firstResponseByRole,
+      escalationHistory: escalationHistory.slice(0, 20),
+      escalationStats
     });
   } catch (error) {
     console.error('Error generating chat analytics:', error);
