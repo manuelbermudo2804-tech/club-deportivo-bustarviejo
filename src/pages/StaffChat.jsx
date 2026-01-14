@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck, Smile } from "lucide-react";
+import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck, Smile, Pin, Reply, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import LocationMessage from "../components/chat/LocationMessage";
 import SearchFilters from "../components/chat/SearchFilters";
 import SocialLinks from "../components/SocialLinks";
 import { sendWithQueue } from "../components/utils/messageQueue";
+import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -468,6 +469,34 @@ export default function StaffChat() {
     },
   });
 
+  const unpinMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.StaffMessage.update(messageId, {
+        anclado: false,
+        anclado_por: null,
+        anclado_fecha: null
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
+      toast.success("Mensaje desanclado");
+    },
+  });
+
+  const pinMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.StaffMessage.update(messageId, {
+        anclado: true,
+        anclado_por: user.email,
+        anclado_fecha: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
+      toast.success("Mensaje anclado");
+    },
+  });
+
   const handleSend = () => {
     if (editingMessage) {
       const textToSend = messageText;
@@ -582,6 +611,13 @@ export default function StaffChat() {
             allParticipants={staffUsers.map(u => ({ email: u.email, nombre: u.full_name }))}
           />
 
+          {/* Mensajes Anclados */}
+          <PinnedMessagesBanner 
+            pinnedMessages={pinnedMessages}
+            onUnpin={(id) => unpinMessageMutation.mutate(id)}
+            canUnpin={true}
+          />
+
           {showGallery && (
             <div className="p-4 bg-white border-b max-h-[200px] overflow-y-auto flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
@@ -689,18 +725,31 @@ export default function StaffChat() {
                               <Badge className="text-[10px] bg-orange-600 px-1 py-0">Admin</Badge>
                             )}
                           </div>
-                          <ChatMessageActions
-                            message={msg}
-                            isMine={isMine}
-                            isStaff={true}
-                            onReply={(m) => setReplyingTo(m)}
-                            onEdit={(m) => {
-                              setEditingMessage(m);
-                              setMessageText(m.mensaje);
-                            }}
-                            onDelete={(m) => deleteMessageMutation.mutate(m.id)}
-                            onForward={(m) => {}}
-                          />
+                          <div className="flex gap-1">
+                            {isMine && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                                onClick={() => msg.anclado ? unpinMessageMutation.mutate(msg.id) : pinMessageMutation.mutate(msg.id)}
+                                title={msg.anclado ? "Desanclar" : "Anclar mensaje"}
+                              >
+                                <Pin className={`w-3 h-3 ${msg.anclado ? 'text-yellow-600 fill-yellow-600' : ''}`} />
+                              </Button>
+                            )}
+                            <ChatMessageActions
+                              message={msg}
+                              isMine={isMine}
+                              isStaff={true}
+                              onReply={(m) => setReplyingTo(m)}
+                              onEdit={(m) => {
+                                setEditingMessage(m);
+                                setMessageText(m.mensaje);
+                              }}
+                              onDelete={(m) => deleteMessageMutation.mutate(m.id)}
+                              onForward={(m) => {}}
+                            />
+                          </div>
                         </div>
 
                         <p className="text-xs sm:text-sm whitespace-pre-wrap mt-1">
@@ -765,26 +814,31 @@ export default function StaffChat() {
                         )}
 
                         <div className="flex items-center justify-between mt-1">
-                          <p className="text-[10px] sm:text-xs opacity-60">
-                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                          </p>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
-                              onClick={() => setShowReactions(msg.id)}
-                            >
-                              <Smile className="w-3 h-3" />
-                            </Button>
+                          <div className="flex items-center gap-2">
+                            <p className="text-[10px] sm:text-xs opacity-60">
+                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                            </p>
+                            
+                            {/* Doble check visual - solo en mensajes propios */}
                             {isMine && (
-                              msg.leido_por?.length > 1 ? (
-                                <CheckCheck className="w-4 h-4 text-purple-300" />
-                              ) : (
-                                <Check className="w-4 h-4 opacity-50" />
-                              )
+                              <div className="flex items-center">
+                                {msg.leido_por?.length > 1 ? (
+                                  <CheckCheck className="w-3 h-3 text-cyan-400" />
+                                ) : (
+                                  <Check className="w-3 h-3 opacity-50" />
+                                )}
+                              </div>
                             )}
                           </div>
+                          
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
+                            onClick={() => setShowReactions(msg.id)}
+                          >
+                            <Smile className="w-3 h-3" />
+                          </Button>
                         </div>
 
                         {showReactions === msg.id && (
