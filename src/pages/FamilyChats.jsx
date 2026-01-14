@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import CoordinatorChat from "./CoordinatorChat";
-import CoachParentChat from "./CoachParentChat";
+import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
+import CoachChatWindow from "../components/coach/CoachChatWindow";
 import useUnreadChats from "../components/notifications/useUnreadChats";
 
 export default function FamilyChats() {
@@ -56,28 +56,28 @@ export default function FamilyChats() {
         </div>
 
         <TabsContent value="coordinador" className="flex-1 mt-0 overflow-hidden">
-          {loading ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-            </div>
-          ) : isCoordinator ? (
-            <CoordinatorChat embedded={true} />
-          ) : (
-            <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
-          )}
-        </TabsContent>
+           {loading ? (
+             <div className="h-full flex items-center justify-center">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+             </div>
+           ) : isCoordinator ? (
+             <CoordinatorChatWindow />
+           ) : (
+             <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
+           )}
+         </TabsContent>
 
-        <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden">
-          {loading ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-            </div>
-          ) : isCoach ? (
-            <CoachParentChat embedded={true} />
-          ) : (
-            <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
-          )}
-        </TabsContent>
+         <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden">
+           {loading ? (
+             <div className="h-full flex items-center justify-center">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+             </div>
+           ) : isCoach ? (
+             <CoachChatWindow />
+           ) : (
+             <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
+           )}
+         </TabsContent>
       </Tabs>
     </div>
   );
