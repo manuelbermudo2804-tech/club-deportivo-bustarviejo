@@ -18,8 +18,9 @@ import LocationMessage from "../chat/LocationMessage";
 import SearchFilters from "../chat/SearchFilters";
 import ChatInputActions from "../chat/ChatInputActions";
 import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
-import EscalateToAdminButton from "./EscalateToAdminButton";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
+import dynamic from "next/dynamic";
+const EscalateToAdminButton = dynamic(() => import("./EscalateToAdminButton").catch(() => ({ default: () => null })), { ssr: false });
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
