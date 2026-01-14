@@ -35,7 +35,7 @@ const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/P
 const EventReminderEngine = React.lazy(() => import("./components/events/EventReminderEngine"));
 const DocumentReminderEngine = React.lazy(() => import("./components/documents/DocumentReminderEngine"));
 const SponsorBanner = React.lazy(() => import("./components/sponsors/SponsorBanner"));
-const PWAInstallPrompt = React.lazy(() => import("./components/pwa/PWAInstallPrompt"));
+
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
