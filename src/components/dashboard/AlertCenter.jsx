@@ -69,6 +69,32 @@ export default function AlertCenter({
 }) {
   // Obtener contadores de chats unificados (Staff, Coordinador, Entrenador, Admin, Privados)
   const { items: chatItems } = useUnreadChats(true);
+  
+  // Real-time subscriptions para recalcular alertas instantáneamente
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  useEffect(() => {
+    if (!userEmail) return;
+    
+    const unsubscribers = [];
+    
+    // Trigger refresh cuando cambian las entidades relevantes
+    const entities = [
+      'ChatMessage', 'CoordinatorConversation', 'AdminConversation', 'StaffMessage',
+      'Convocatoria', 'Payment', 'Player', 'Announcement', 'Event'
+    ];
+    
+    entities.forEach(entityName => {
+      const unsub = base44.entities[entityName].subscribe(() => {
+        setRefreshTrigger(prev => prev + 1);
+      });
+      unsubscribers.push(unsub);
+    });
+    
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [userEmail]);
   const [dismissedAlerts, setDismissedAlerts] = useState(() => {
   try {
     return new Set(JSON.parse(localStorage.getItem('dismissedAlerts') || '[]'));

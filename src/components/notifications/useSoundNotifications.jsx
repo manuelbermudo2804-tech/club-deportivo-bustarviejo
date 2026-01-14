@@ -4,12 +4,10 @@ import { useEffect, useRef } from 'react';
 const NOTIFICATION_SOUND = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBi+K0/LTgjMGHm7A7+OZSA0PVqzn77BfGwc+ltzy0H8pBSh+zPDajzsIGGS56+qbUhELTKXh8bllHQU2jdT0zoU1Bx1rwO7mnEsPEFis5O+zYBoGPZTX8tGAKgUpf8zv3I4+CBhls+njnlQSC06n4fK7aB8FN4/V88mCNAYfbL/u5aFNDRBYr+Txs2IaBz2V2PLRgCsEKH/N79yOPQgYZbLo45xUEwtOqOHyumccBTiP1fPJgzQGHmy/7uWhTQwQWK/k8bJiGwc9ldjy0YArBSh/ze/cjj0IGGWy6OOcVBMLTqjh8rtoHAU4j9Xzy';
 
 export function useSoundNotifications({ 
-  dataKey, 
   enabled = true,
-  pollInterval = 10000, // 10 segundos
   filter = () => true // función para filtrar qué items cuentan
 }) {
-  const previousCountRef = useRef(null);
+  const previousIdsRef = useRef(new Set());
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -18,7 +16,7 @@ export function useSoundNotifications({
     // Crear el audio una sola vez
     if (!audioRef.current) {
       audioRef.current = new Audio(NOTIFICATION_SOUND);
-      audioRef.current.volume = 0.3; // Volumen sutil
+      audioRef.current.volume = 0.5; // Volumen audible
     }
   }, [enabled]);
 
@@ -26,26 +24,30 @@ export function useSoundNotifications({
     if (!enabled || !items) return;
 
     const filteredItems = items.filter(filter);
-    const currentCount = filteredItems.length;
+    const currentIds = new Set(filteredItems.map(item => item.id));
 
     // Inicializar si es la primera vez
-    if (previousCountRef.current === null) {
-      previousCountRef.current = currentCount;
+    if (previousIdsRef.current.size === 0) {
+      previousIdsRef.current = currentIds;
       return;
     }
 
-    // Si hay nuevos items, reproducir sonido
-    if (currentCount > previousCountRef.current) {
+    // Detectar IDs nuevos que no estaban antes
+    const newItems = [...currentIds].filter(id => !previousIdsRef.current.has(id));
+
+    // Si hay items nuevos, reproducir sonido
+    if (newItems.length > 0) {
+      console.log('🔔 Nuevo mensaje detectado, reproduciendo sonido');
       try {
-        audioRef.current?.play().catch(() => {
-          // Silenciar errores de autoplay
+        audioRef.current?.play().catch((e) => {
+          console.log('Autoplay bloqueado:', e);
         });
       } catch (e) {
-        // Ignorar errores
+        console.error('Error reproduciendo sonido:', e);
       }
     }
 
-    previousCountRef.current = currentCount;
+    previousIdsRef.current = currentIds;
   };
 
   return { checkForNewItems };
