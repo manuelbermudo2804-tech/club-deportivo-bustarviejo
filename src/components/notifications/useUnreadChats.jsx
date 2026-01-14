@@ -154,9 +154,6 @@ export default function useUnreadChats(enabled = true) {
         );
       }).length;
       
-      // También contar respuestas de familias a mensajes del entrenador (entrenador_a_grupo que tienen respuestas)
-      // Esto se hace contando los mensajes de tipo "padre_a_grupo" que son respuestas
-      
       if (fromParents > 0) {
         results.push({ source: "families", label: "Familias", count: fromParents, link: "CoachParentChat" });
       }
@@ -164,12 +161,15 @@ export default function useUnreadChats(enabled = true) {
 
     if (isFamily || isPlayer) {
       const myGroupIds = new Set(players.map((p) => p.deporte));
+      
+      // Mensajes del entrenador hacia familias (entrenador_a_grupo)
       const fromCoach = groupMessages.filter(
         (m) =>
           m.tipo === "entrenador_a_grupo" &&
           (!m.leido_por || !m.leido_por.some((lp) => lp.email === user.email)) &&
           (myGroupIds.has(m.grupo_id) || myGroupIds.has(m.deporte))
       ).length;
+      
       if (fromCoach > 0) {
         results.push({ source: "coach", label: "Entrenador", count: fromCoach, link: "ParentCoachChat" });
       }
