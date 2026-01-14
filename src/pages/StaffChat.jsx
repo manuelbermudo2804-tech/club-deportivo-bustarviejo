@@ -17,6 +17,7 @@ import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import SearchFilters from "../components/chat/SearchFilters";
 import SocialLinks from "../components/SocialLinks";
+import { sendWithQueue } from "../components/utils/messageQueue";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -178,6 +179,25 @@ export default function StaffChat() {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [messages]);
+
+  // Robust subscriptions: refetch on regain focus/online
+  useEffect(() => {
+    const onOnline = () => {
+      if (!conversation?.id) return;
+      queryClient.invalidateQueries({ queryKey: ['staffMessages', conversation.id] });
+    };
+    const onVis = () => {
+      if (!document.hidden && conversation?.id) {
+        queryClient.invalidateQueries({ queryKey: ['staffMessages', conversation.id] });
+      }
+    };
+    window.addEventListener('online', onOnline);
+    window.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('visibilitychange', onVis);
+    };
+  }, [conversation?.id, queryClient]);
 
   // Marcar como leído
   useEffect(() => {
@@ -479,7 +499,16 @@ export default function StaffChat() {
         };
       }
       
-      sendMessageMutation.mutate(messageData);
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        // Cola offline
+        sendWithQueue('staff', sendStaffMessageCore, messageData, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['staffMessages', conversation.id] });
+          }
+        });
+      } else {
+        sendMessageMutation.mutate(messageData);
+      }
       setReplyingTo(null);
     }
   };

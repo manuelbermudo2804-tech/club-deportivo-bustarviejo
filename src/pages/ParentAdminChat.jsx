@@ -10,6 +10,8 @@ import { ShieldAlert, Send, FileText, Download, Paperclip, X, AlertTriangle, Che
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import { sendWithQueue } from "../components/utils/messageQueue";
+import { markAdminConversationAsRead } from "../components/utils/markAsRead";
 
 export default function ParentAdminChat() {
   const [user, setUser] = useState(null);
@@ -75,26 +77,32 @@ export default function ParentAdminChat() {
     }
   }, [messages]);
 
-  // Marcar como leído
+  // Robust subscriptions: refetch on regain focus/online
   useEffect(() => {
-    if (!conversation?.id || conversation.no_leidos_padre === 0) return;
-    
-    const markAsRead = async () => {
-      await base44.entities.AdminConversation.update(conversation.id, {
-        no_leidos_padre: 0
-      });
-
-      const unreadMessages = messages.filter(m => m.autor === "admin" && !m.leido_padre);
-      for (const msg of unreadMessages) {
-        await base44.entities.AdminMessage.update(msg.id, {
-          leido_padre: true,
-          fecha_leido_padre: new Date().toISOString()
-        });
-      }
-
+    const onOnline = () => {
+      if (!conversation?.id) return;
+      queryClient.invalidateQueries({ queryKey: ['parentAdminMessages', conversation.id] });
       queryClient.invalidateQueries({ queryKey: ['parentAdminConversation'] });
     };
-    markAsRead();
+    const onVis = () => {
+      if (!document.hidden && conversation?.id) {
+        queryClient.invalidateQueries({ queryKey: ['parentAdminMessages', conversation.id] });
+        queryClient.invalidateQueries({ queryKey: ['parentAdminConversation'] });
+      }
+    };
+    window.addEventListener('online', onOnline);
+    window.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('visibilitychange', onVis);
+    };
+  }, [conversation?.id, queryClient]);
+
+  // Marcar como leído (centralizado)
+  useEffect(() => {
+    if (!conversation?.id) return;
+    if ((conversation.no_leidos_padre || 0) === 0 && !messages.some(m => m.autor === 'admin' && !m.leido_padre)) return;
+    markAdminConversationAsRead(conversation.id, 'parent', queryClient);
   }, [conversation?.id, messages]);
 
   const sendMessageMutation = useMutation({
@@ -179,8 +187,17 @@ export default function ParentAdminChat() {
     setMessageText("");
     setAttachments([]);
     
-    // Enviar
-    sendMessageMutation.mutate(dataToSend);
+    // Enviar (robusto)
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      sendWithQueue('admin', sendAdminMessageCore, dataToSend, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['parentAdminMessages', conversation.id] });
+          queryClient.invalidateQueries({ queryKey: ['parentAdminConversation'] });
+        }
+      });
+    } else {
+      sendMessageMutation.mutate(dataToSend);
+    }
   };
 
   if (!user) {
