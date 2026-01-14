@@ -191,3 +191,43 @@ export async function markAllChatMessagesAsRead(categoria, userEmail, userName, 
     console.error('Error marking all chat messages as read:', error);
   }
 }
+
+/**
+ * Marcar conversación de admin (crítica) como leída para padre o admin
+ */
+export async function markAdminConversationAsRead(conversationId, who = 'parent', queryClient) {
+  try {
+    if (who === 'parent') {
+      await base44.entities.AdminConversation.update(conversationId, { no_leidos_padre: 0 });
+      const msgs = await base44.entities.AdminMessage.filter({ conversacion_id: conversationId });
+      const unread = msgs.filter(m => m.autor === 'admin' && !m.leido_padre);
+      for (const m of unread) {
+        await base44.entities.AdminMessage.update(m.id, {
+          leido_padre: true,
+          fecha_leido_padre: new Date().toISOString()
+        });
+      }
+    } else if (who === 'admin') {
+      await base44.entities.AdminConversation.update(conversationId, { no_leidos_admin: 0 });
+      const msgs = await base44.entities.AdminMessage.filter({ conversacion_id: conversationId });
+      const unread = msgs.filter(m => m.autor === 'padre' && !m.leido_admin);
+      for (const m of unread) {
+        await base44.entities.AdminMessage.update(m.id, {
+          leido_admin: true,
+          fecha_leido_admin: new Date().toISOString()
+        });
+      }
+    }
+
+    try {
+      const notifs = await base44.entities.AppNotification.filter({ enlace: 'AdminChat', vista: false });
+      for (const n of notifs) {
+        await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+      }
+    } catch {}
+
+    invalidateAll(queryClient);
+  } catch (error) {
+    console.error('Error marking admin conversation as read:', error);
+  }
+}
