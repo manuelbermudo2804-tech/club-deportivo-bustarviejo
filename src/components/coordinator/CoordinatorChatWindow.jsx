@@ -82,6 +82,19 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     enabled: !!conversation?.id,
   });
 
+  // REAL-TIME: Suscripción a mensajes
+  useEffect(() => {
+    if (!conversation?.id) return;
+    
+    const unsub = base44.entities.CoordinatorMessage.subscribe((event) => {
+      if (event.data?.conversacion_id === conversation.id) {
+        queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
+      }
+    });
+    
+    return unsub;
+  }, [conversation?.id, queryClient]);
+
   // Polling para estado "escribiendo"
   const { data: conversationState } = useQuery({
     queryKey: ['coordinatorConversationState', conversation?.id],

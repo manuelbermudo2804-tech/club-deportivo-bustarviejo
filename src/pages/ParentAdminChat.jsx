@@ -49,12 +49,25 @@ export default function ParentAdminChat() {
       const all = await base44.entities.AdminMessage.filter({ 
         conversacion_id: conversation.id 
       }, 'created_date');
-      // FILTRAR notas internas - el padre NO debe verlas
       return all.filter(m => !m.es_nota_interna);
     },
     refetchInterval: 3000,
     enabled: !!conversation?.id,
   });
+
+  // REAL-TIME: Suscripción a mensajes del admin
+  useEffect(() => {
+    if (!conversation?.id) return;
+    
+    const unsub = base44.entities.AdminMessage.subscribe((event) => {
+      if (event.data?.conversacion_id === conversation.id && !event.data?.es_nota_interna) {
+        queryClient.invalidateQueries({ queryKey: ['parentAdminMessages', conversation.id] });
+        queryClient.invalidateQueries({ queryKey: ['parentAdminConversation'] });
+      }
+    });
+    
+    return unsub;
+  }, [conversation?.id, queryClient]);
 
   useEffect(() => {
     if (messagesEndRef.current) {

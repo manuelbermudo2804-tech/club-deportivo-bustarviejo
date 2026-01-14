@@ -28,6 +28,33 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
+  // Helper para añadir reacciones
+  const addReaction = async (messageId, emoji) => {
+    const message = messages.find(m => m.id === messageId);
+    const existingReactions = message.reacciones || [];
+    
+    const alreadyReacted = existingReactions.find(r => r.email === user.email && r.emoji === emoji);
+    
+    let newReactions;
+    if (alreadyReacted) {
+      newReactions = existingReactions.filter(r => !(r.email === user.email && r.emoji === emoji));
+    } else {
+      newReactions = [...existingReactions, {
+        email: user.email,
+        nombre: user.full_name,
+        emoji: emoji,
+        fecha: new Date().toISOString()
+      }];
+    }
+
+    await base44.entities.AdminMessage.update(messageId, {
+      reacciones: newReactions
+    });
+
+    queryClient.invalidateQueries({ queryKey: ['adminMessages'] });
+    setShowReactions(null);
+  };
+
   const { data: messages = [] } = useQuery({
     queryKey: ['adminMessages', conversation?.id],
     queryFn: async () => {
@@ -37,6 +64,19 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
     refetchInterval: 3000,
     enabled: !!conversation?.id,
   });
+
+  // REAL-TIME: Suscripción a mensajes admin
+  useEffect(() => {
+    if (!conversation?.id) return;
+    
+    const unsub = base44.entities.AdminMessage.subscribe((event) => {
+      if (event.data?.conversacion_id === conversation.id) {
+        queryClient.invalidateQueries({ queryKey: ['adminMessages', conversation.id] });
+      }
+    });
+    
+    return unsub;
+  }, [conversation?.id, queryClient]);
 
   useEffect(() => {
     if (messagesEndRef.current) {

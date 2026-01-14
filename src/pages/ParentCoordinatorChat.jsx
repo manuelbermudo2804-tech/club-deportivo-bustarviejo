@@ -125,9 +125,22 @@ export default function ParentCoordinatorChat() {
       return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
     enabled: !!conversation?.id,
-    refetchInterval: 1000, // Más rápido: cada 1 segundo para instantaneidad
+    refetchInterval: 1000,
     refetchOnWindowFocus: true,
   });
+
+  // REAL-TIME: Suscripción a mensajes nuevos
+  useEffect(() => {
+    if (!conversation?.id) return;
+    
+    const unsub = base44.entities.CoordinatorMessage.subscribe((event) => {
+      if (event.data?.conversacion_id === conversation.id) {
+        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] });
+      }
+    });
+    
+    return unsub;
+  }, [conversation?.id, queryClient]);
 
   // Polling para estado "escribiendo"
   const { data: conversationState } = useQuery({

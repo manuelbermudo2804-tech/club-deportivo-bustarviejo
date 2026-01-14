@@ -70,10 +70,24 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       return await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
     },
-    refetchInterval: 1000, // Más rápido: cada 1 segundo para instantaneidad
+    refetchInterval: 1000,
     refetchOnWindowFocus: true,
     enabled: !!selectedCategory,
   });
+
+  // REAL-TIME: Suscripción a mensajes de entrenador
+  useEffect(() => {
+    if (!selectedCategory) return;
+    
+    const unsub = base44.entities.ChatMessage.subscribe((event) => {
+      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      if (event.data?.grupo_id === grupo_id || selectedCategory === "Todas las categorías") {
+        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
+      }
+    });
+    
+    return unsub;
+  }, [selectedCategory, queryClient]);
 
   const { data: chatState } = useQuery({
     queryKey: ['coachChatState', selectedCategory],

@@ -71,13 +71,27 @@ export default function ParentCoachChat() {
       if (!selectedCategory || !user) return [];
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       const allMessages = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
-      // Filtrar privados solo si hay destinatario explícito
       return allMessages.filter(msg => !msg.destinatario_email || msg.destinatario_email === user.email);
     },
     refetchInterval: 1000,
     refetchOnWindowFocus: true,
     enabled: !!selectedCategory && !!user,
   });
+
+  // REAL-TIME: Suscripción a mensajes del entrenador
+  useEffect(() => {
+    if (!selectedCategory || !user) return;
+    
+    const unsub = base44.entities.ChatMessage.subscribe((event) => {
+      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      if (event.data?.grupo_id === grupo_id) {
+        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory, user.email] });
+        queryClient.invalidateQueries({ queryKey: ['allCoachGroupMessages'] });
+      }
+    });
+    
+    return unsub;
+  }, [selectedCategory, user, queryClient]);
 
   // Obtener todos los mensajes para contar sin leer por categoría
   const { data: allChatMessages = [] } = useQuery({

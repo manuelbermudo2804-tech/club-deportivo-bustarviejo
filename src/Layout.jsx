@@ -15,6 +15,7 @@ const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
+import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
@@ -521,23 +522,26 @@ export default function Layout({ children, currentPageName }) {
   const [playerName, setPlayerName] = useState(null);
   const [onboardingView, setOnboardingView] = useState('loading');
 
-  const [pendingCallupsCount, setPendingCallupsCount] = useState(0);
-  const [pendingSignaturesCount, setPendingSignaturesCount] = useState(0);
-  const [pendingCallupResponses, setPendingCallupResponses] = useState(0);
-  const [unreadAnnouncementsCount, setUnreadAnnouncementsCount] = useState(0);
-  const [hasActiveAdminConversation, setHasActiveAdminConversation] = useState(false);
-  const [pendingMatchObservations, setPendingMatchObservations] = useState(0);
   const [isJunta, setIsJunta] = useState(false);
   
-  // Badges para admin
-  const [unresolvedAdminChats, setUnresolvedAdminChats] = useState(0);
-  const [paymentsInReview, setPaymentsInReview] = useState(0);
-  const [playersNeedingReview, setPlayersNeedingReview] = useState(0);
-  const [pendingSignaturesAdmin, setPendingSignaturesAdmin] = useState(0);
-  const [pendingInvitations, setPendingInvitations] = useState(0);
-  const [pendingClothingOrders, setPendingClothingOrders] = useState(0);
-  const [pendingLotteryOrders, setPendingLotteryOrders] = useState(0);
-  const [pendingMemberRequests, setPendingMemberRequests] = useState(0);
+  // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
+  const { notifications } = useUnifiedNotifications(user);
+  
+  // Mapear a variables legacy para compatibilidad
+  const pendingCallupsCount = notifications.pendingCallups || 0;
+  const pendingSignaturesCount = notifications.pendingSignatures || 0;
+  const pendingCallupResponses = notifications.pendingCallupResponses || 0;
+  const unreadAnnouncementsCount = notifications.unreadAnnouncements || 0;
+  const hasActiveAdminConversation = notifications.hasActiveAdminConversation || false;
+  const pendingMatchObservations = notifications.pendingMatchObservations || 0;
+  const unresolvedAdminChats = notifications.unresolvedAdminChats || 0;
+  const paymentsInReview = notifications.paymentsInReview || 0;
+  const playersNeedingReview = notifications.playersNeedingReview || 0;
+  const pendingSignaturesAdmin = notifications.pendingSignatures || 0;
+  const pendingInvitations = notifications.pendingInvitations || 0;
+  const pendingClothingOrders = notifications.pendingClothingOrders || 0;
+  const pendingLotteryOrders = notifications.pendingLotteryOrders || 0;
+  const pendingMemberRequests = notifications.pendingMemberRequests || 0;
 
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -961,202 +965,13 @@ export default function Layout({ children, currentPageName }) {
                   }
                   }
 
-                  // Verificar si tiene conversación activa con admin (para TODOS los usuarios excepto admins) - Real-time
-                  if (currentUser.role !== "admin") {
-                  try {
-                  const adminConvs = await base44.entities.AdminConversation.filter({ 
-                  padre_email: currentUser.email,
-                  resuelta: false
-                  });
-                  setHasActiveAdminConversation(adminConvs.length > 0);
-
-                  // Suscripción en tiempo real
-                  const unsubAdmin = base44.entities.AdminConversation.subscribe(() => {
-                    base44.entities.AdminConversation.filter({ 
-                      padre_email: currentUser.email,
-                      resuelta: false
-                    }).then(convs => setHasActiveAdminConversation(convs.length > 0));
-                  });
-
-                  return () => unsubAdmin();
-                  } catch (error) {
-                  console.log('Error checking admin conversation:', error);
-                  }
-                  }
+                  // Sistema unificado maneja esto ahora
 
                   
 
-        // Verificar partidos pendientes de observación (para entrenadores/coordinadores)
-        if (currentUser.es_entrenador || currentUser.es_coordinador) {
-          try {
-            const allCallups = await base44.entities.Convocatoria.filter({ entrenador_email: currentUser.email, publicada: true });
-            const allObservations = await base44.entities.MatchObservation.list('-updated_date', 500);
+        // Sistema unificado maneja observaciones ahora
 
-            const recalculate = () => {
-              const now = new Date();
-
-              const myCallups = allCallups.filter(c => {
-                if (c.entrenador_email !== currentUser.email || !c.publicada) return false;
-
-                const matchDate = new Date(c.fecha_partido);
-                if (matchDate > now) return false;
-
-                if (c.hora_partido) {
-                  const [hours, minutes] = c.hora_partido.split(':').map(Number);
-                  const matchStart = new Date(matchDate);
-                  matchStart.setHours(hours, minutes, 0, 0);
-                  const matchEnd = new Date(matchStart.getTime() + 135 * 60000);
-                  return now >= matchEnd;
-                }
-
-                const nextDay = new Date(matchDate);
-                nextDay.setDate(nextDay.getDate() + 1);
-                return now >= nextDay;
-              });
-
-              const pendingCount = myCallups.filter(callup => {
-                const hasObservation = allObservations.some(obs =>
-                  obs.categoria === callup.categoria &&
-                  obs.rival === callup.rival &&
-                  obs.fecha_partido === callup.fecha_partido
-                );
-                return !hasObservation;
-              }).length;
-
-              setPendingMatchObservations(pendingCount);
-            };
-
-            recalculate();
-
-            // Real-time subscriptions
-            const unsubObs = base44.entities.MatchObservation.subscribe(() => {
-              base44.entities.MatchObservation.list('-updated_date', 500).then(obs => {
-                allObservations.length = 0;
-                allObservations.push(...obs);
-                recalculate();
-              });
-            });
-
-            const unsubCallups = base44.entities.Convocatoria.subscribe(() => {
-              base44.entities.Convocatoria.filter({ entrenador_email: currentUser.email, publicada: true }).then(calls => {
-                allCallups.length = 0;
-                allCallups.push(...calls);
-                recalculate();
-              });
-            });
-
-            return () => {
-              unsubObs();
-              unsubCallups();
-            };
-          } catch (error) {
-            console.log('Error checking pending observations:', error);
-          }
-        }
-
-        // Cargar badges INICIAL para admin (luego se suscribe en tiempo real)
-        if (currentUser.role === "admin") {
-              try {
-                const [
-                  adminChats,
-                  payments,
-                  players,
-                  allPlayers,
-                  invitations,
-                  secondParentInvitations,
-                  clothingOrders,
-                  lotteryOrders,
-                  members
-                ] = await Promise.all([
-                  base44.entities.AdminConversation.filter({ resuelta: false }, '-updated_date', 200),
-                  base44.entities.Payment.filter({ estado: "En revisión" }),
-                  base44.entities.Player.filter({ categoria_requiere_revision: true }),
-                  base44.entities.Player.list(),
-                  base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
-                  base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
-                  base44.entities.ClothingOrder.list(),
-                  base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }),
-                  base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })
-                ]);
-
-                setUnresolvedAdminChats(adminChats.length);
-                setPaymentsInReview(payments.length);
-                setPlayersNeedingReview(players.length);
-
-                const needSignatures = allPlayers.filter(p => 
-                  (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
-                  (p.enlace_firma_tutor && !p.firma_tutor_completada)
-                );
-                setPendingSignaturesAdmin(needSignatures.length);
-
-                const pendingClothing = clothingOrders.filter(o => 
-                  o.estado === "Pendiente" || o.estado === "En revisión"
-                );
-                setPendingClothingOrders(pendingClothing.length);
-
-                setPendingLotteryOrders(lotteryOrders.length);
-                setPendingMemberRequests(members.length);
-                setPendingInvitations((invitations?.length || 0) + (secondParentInvitations?.length || 0));
-
-                // Suscripciones en tiempo real para admin badges
-                const unsubAdminConv = base44.entities.AdminConversation.subscribe(() => {
-                  base44.entities.AdminConversation.filter({ resuelta: false }).then(chats => setUnresolvedAdminChats(chats.length));
-                });
-
-                const unsubPayments = base44.entities.Payment.subscribe(() => {
-                  base44.entities.Payment.filter({ estado: "En revisión" }).then(p => setPaymentsInReview(p.length));
-                });
-
-                const unsubPlayers = base44.entities.Player.subscribe(() => {
-                  Promise.all([
-                    base44.entities.Player.filter({ categoria_requiere_revision: true }),
-                    base44.entities.Player.list()
-                  ]).then(([needReview, all]) => {
-                    setPlayersNeedingReview(needReview.length);
-                    const needSig = all.filter(p => 
-                      (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
-                      (p.enlace_firma_tutor && !p.firma_tutor_completada)
-                    );
-                    setPendingSignaturesAdmin(needSig.length);
-                  });
-                });
-
-                const unsubClothing = base44.entities.ClothingOrder.subscribe(() => {
-                  base44.entities.ClothingOrder.list().then(orders => {
-                    const pending = orders.filter(o => o.estado === "Pendiente" || o.estado === "En revisión");
-                    setPendingClothingOrders(pending.length);
-                  });
-                });
-
-                const unsubLottery = base44.entities.LotteryOrder.subscribe(() => {
-                  base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }).then(l => setPendingLotteryOrders(l.length));
-                });
-
-                const unsubMembers = base44.entities.ClubMember.subscribe(() => {
-                  base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }).then(m => setPendingMemberRequests(m.length));
-                });
-
-                const unsubInvitations = base44.entities.InvitationRequest.subscribe(() => {
-                  Promise.all([
-                    base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
-                    base44.entities.SecondParentInvitation.filter({ estado: "pendiente" })
-                  ]).then(([inv, secInv]) => setPendingInvitations(inv.length + secInv.length));
-                });
-
-                // Cleanup al desmontar
-                return () => {
-                  unsubAdminConv();
-                  unsubPayments();
-                  unsubPlayers();
-                  unsubClothing();
-                  unsubLottery();
-                  unsubMembers();
-                  unsubInvitations();
-                };
-              } catch (error) {
-                console.log('Error loading admin badges:', error);
-              }
-            }
+        // Sistema unificado maneja todos los badges ahora
 
           if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
           setShowSpecialScreen("restricted");

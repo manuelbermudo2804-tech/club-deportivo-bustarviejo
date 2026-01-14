@@ -98,6 +98,19 @@ export default function StaffChat() {
     enabled: !!conversation?.id,
   });
 
+  // REAL-TIME: Suscripción a mensajes de staff
+  useEffect(() => {
+    if (!conversation?.id) return;
+    
+    const unsub = base44.entities.StaffMessage.subscribe((event) => {
+      if (event.data?.conversacion_id === conversation.id) {
+        queryClient.invalidateQueries({ queryKey: ['staffMessages', conversation.id] });
+      }
+    });
+    
+    return unsub;
+  }, [conversation?.id, queryClient]);
+
   // Calcular mensajes sin leer
   useEffect(() => {
     if (!messages || !user) {

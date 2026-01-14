@@ -52,6 +52,17 @@ export default function CoordinatorChat({ embedded = false }) {
     refetchInterval: 5000,
   });
 
+  // REAL-TIME: Suscripción a conversaciones
+  useEffect(() => {
+    if (!isCoordinator) return;
+    
+    const unsub = base44.entities.CoordinatorConversation.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
+    });
+    
+    return unsub;
+  }, [isCoordinator, queryClient]);
+
   const archiveMutation = useMutation({
     mutationFn: ({ id, archivada }) => 
       base44.entities.CoordinatorConversation.update(id, { 

@@ -38,6 +38,17 @@ export default function AdminChat() {
     enabled: !!user,
   });
 
+  // REAL-TIME: Suscripción a conversaciones admin
+  useEffect(() => {
+    if (!user) return;
+    
+    const unsub = base44.entities.AdminConversation.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['adminConversations'] });
+    });
+    
+    return unsub;
+  }, [user, queryClient]);
+
   const archiveMutation = useMutation({
     mutationFn: async (conversationId) => {
       const conv = conversations.find(c => c.id === conversationId);
