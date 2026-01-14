@@ -15,7 +15,7 @@ const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
-const AppNotificationListener = React.lazy(() => import("./components/push/AppNotificationListener"));
+
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -1899,15 +1899,15 @@ export default function Layout({ children, currentPageName }) {
                 )}
 
                 <Suspense fallback={null}>
-                                  <SessionManager />
-                                  <NotificationBadge />
-                                  <PaymentApprovalNotifier isAdmin={isAdmin} />
-                                  <PlanPaymentReminders user={user} />
-                                  <AutomaticRenewalReminders />
-                                  <AutomaticRenewalClosure />
-                                  <RenewalNotificationEngine />
-                                  <PostRenewalPaymentReminder />
-                                  </Suspense>
+                  <SessionManager />
+                  <NotificationBadge />
+                  <PaymentApprovalNotifier isAdmin={isAdmin} />
+                  <PlanPaymentReminders user={user} />
+                  <AutomaticRenewalReminders />
+                  <AutomaticRenewalClosure />
+                  <RenewalNotificationEngine />
+                  <PostRenewalPaymentReminder />
+                  </Suspense>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
