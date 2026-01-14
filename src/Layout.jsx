@@ -566,6 +566,8 @@ export default function Layout({ children, currentPageName }) {
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
 
+  const [installContext, setInstallContext] = useState('manual');
+
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(false);
@@ -1425,9 +1427,11 @@ export default function Layout({ children, currentPageName }) {
         // 2) Mostrar instrucciones de instalación (tras onboarding o si no se ha completado)
         const triggerInstall = localStorage.getItem('installPromptAfterOnboarding') === 'true';
         if (triggerInstall) {
+          setInstallContext('onboarding');
           setShowInstallInstructions(true);
           localStorage.removeItem('installPromptAfterOnboarding');
         } else if (!localStorage.getItem('installCompleted')) {
+          setInstallContext('onboarding');
           setShowInstallInstructions(true);
         }
 
@@ -1678,8 +1682,11 @@ export default function Layout({ children, currentPageName }) {
 
                     <Button 
                       onClick={() => {
-                        setShowInstallInstructions(false);
                         localStorage.setItem('installCompleted', 'true');
+                        setShowInstallInstructions(false);
+                        if (installContext === 'onboarding') {
+                          setShowInstallSuccess(true);
+                        }
                       }} 
                       className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
                     >
@@ -1854,7 +1861,7 @@ export default function Layout({ children, currentPageName }) {
             </div>
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setShowInstallInstructions(true)}
+                onClick={() => { setInstallContext('manual'); setShowInstallInstructions(true); }}
                 className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
                 title="Ver cómo instalar"
               >
@@ -1899,6 +1906,7 @@ export default function Layout({ children, currentPageName }) {
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
+                      setInstallContext('manual');
                       setShowInstallInstructions(true);
                     }}
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg mb-4"
@@ -1933,11 +1941,12 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <div className="p-4 bg-slate-900 border-t border-white/10 space-y-2">
                                                   {!isAppInstalled && (
-                                                                                        <button
-                                                                                          onClick={() => {
-                                                                                            setMobileMenuOpen(false);
-                                                                                            setShowInstallInstructions(true);
-                                                                                          }}
+                                                    <button
+                                                      onClick={() => {
+                                                        setMobileMenuOpen(false);
+                                                        setInstallContext('manual');
+                                                        setShowInstallInstructions(true);
+                                                      }}
                                                                                           className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/20 text-white hover:bg-green-500/30 transition-all"
                                                                                         >
                                                                                           <Smartphone className="w-6 h-6" />
@@ -2052,13 +2061,13 @@ export default function Layout({ children, currentPageName }) {
                               </Button>
 
                               <Button 
-                                                                onClick={() => setShowInstallInstructions(true)} 
-                                                                variant="outline" 
-                                                                className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
-                                                              >
-                                                                <Smartphone className="w-4 h-4 mr-2" />
-                                                                {isAppInstalled ? "✅ App instalada" : "📲 Ver cómo instalar"}
-                                                              </Button>
+                onClick={() => { setInstallContext('manual'); setShowInstallInstructions(true); }} 
+                variant="outline" 
+                className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
+              >
+                <Smartphone className="w-4 h-4 mr-2" />
+                {isAppInstalled ? "✅ App instalada" : "📲 Ver cómo instalar"}
+              </Button>
 
                               <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
                 <p className="font-medium">Temporada {currentSeason}</p>
