@@ -18,8 +18,8 @@ import LocationMessage from "../chat/LocationMessage";
 import SearchFilters from "../chat/SearchFilters";
 import ChatInputActions from "../chat/ChatInputActions";
 import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
-import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EscalateToAdminButton from "./EscalateToAdminButton";
+import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
