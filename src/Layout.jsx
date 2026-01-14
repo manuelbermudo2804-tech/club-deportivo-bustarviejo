@@ -1225,7 +1225,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: unreadPrivateChat > 0 ? unreadPrivateChat : null },
+    { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: unreadPrivateChat > 0 ? unreadPrivateChat : null },,
     { title: "💬 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: unreadCoordinatorChat > 0 ? unreadCoordinatorChat : null },
     { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: unreadCoachChat > 0 ? unreadCoachChat : null },
     ...(hasActiveAdminConversation ? [{ title: "🛡️ Chat Administrador", url: createPageUrl("ParentAdminChat"), icon: ShieldAlert }] : []),
