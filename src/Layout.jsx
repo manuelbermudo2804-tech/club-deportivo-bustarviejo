@@ -1677,15 +1677,14 @@ export default function Layout({ children, currentPageName }) {
                                           </div>
 
                     <Button 
-                                                                                  onClick={() => {
-                                                                                    setShowInstallInstructions(false);
-                                                                                    setShowInstallSuccess(true);
-                                                                                    localStorage.setItem('installCompleted', 'true');
-                                                                                  }} 
-                                                                                  className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
-                                                                                >
-                                                                                  ✅ Ya la tengo instalada
-                                                                                </Button>
+                      onClick={() => {
+                        setShowInstallInstructions(false);
+                        localStorage.setItem('installCompleted', 'true');
+                      }} 
+                      className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
+                    >
+                      ✅ Ya la tengo instalada
+                    </Button>
                                       <Button 
                                         onClick={() => {
                                           setShowInstallInstructions(false);
@@ -1854,15 +1853,13 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              {!isAppInstalled && (
-                                    <button
-                                      onClick={() => setShowInstallInstructions(true)}
-                                      className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
-                                      title="Ver cómo instalar"
-                                    >
-                                      <Smartphone className="w-5 h-5" />
-                                    </button>
-                                  )}
+              <button
+                onClick={() => setShowInstallInstructions(true)}
+                className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
+                title="Ver cómo instalar"
+              >
+                <Smartphone className="w-5 h-5" />
+              </button>
               <Suspense fallback={null}><NotificationCenter /></Suspense>
               <ThemeToggle />
               <button
