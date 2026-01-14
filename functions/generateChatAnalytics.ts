@@ -15,20 +15,25 @@ Deno.serve(async (req) => {
 
     // Obtener todos los mensajes del chat en últimos 30 días
     const [
-      coordinatorMessages,
-      coachMessages,
+      coordinatorConvs,
+      chatMessages,
       staffMessages,
-      adminMessages,
+      adminConvs,
       allCoaches,
       allCoordinators
     ] = await Promise.all([
-      base44.entities.CoordinatorMessage.filter({ created_date: { $gte: thirtyDaysAgo } }),
-      base44.entities.CoachMessage.filter({ created_date: { $gte: thirtyDaysAgo } }),
-      base44.entities.StaffMessage.filter({ created_date: { $gte: thirtyDaysAgo } }),
-      base44.entities.AdminMessage.filter({ created_date: { $gte: thirtyDaysAgo } }),
-      base44.entities.User.filter({ es_entrenador: true }),
-      base44.entities.User.filter({ es_coordinador: true })
+      base44.asServiceRole.entities.CoordinatorConversation.list('-updated_date', 1000),
+      base44.asServiceRole.entities.ChatMessage.filter({ created_date: { $gte: thirtyDaysAgo } }),
+      base44.asServiceRole.entities.StaffMessage.filter({ created_date: { $gte: thirtyDaysAgo } }),
+      base44.asServiceRole.entities.AdminConversation.list('-updated_date', 1000),
+      base44.asServiceRole.entities.User.filter({ es_entrenador: true }),
+      base44.asServiceRole.entities.User.filter({ es_coordinador: true })
     ]);
+
+    // Extraer mensajes de conversaciones
+    const coordinatorMessages = coordinatorConvs.flatMap(c => c.mensajes || []);
+    const adminMessages = adminConvs.flatMap(c => c.mensajes || []);
+    const coachMessages = chatMessages;
 
     // Estadísticas generales
     const totalMessages = (coordinatorMessages?.length || 0) + (coachMessages?.length || 0) + (staffMessages?.length || 0) + (adminMessages?.length || 0);
