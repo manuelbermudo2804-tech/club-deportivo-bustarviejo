@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 const NotificationBadge = React.lazy(() => import("./components/NotificationBadge"));
-const AppBadgeManager = React.lazy(() => import("./components/AppBadgeManager"));
 const SessionManager = React.lazy(() => import("./components/SessionManager"));
 const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
@@ -1805,7 +1804,6 @@ export default function Layout({ children, currentPageName }) {
 
                 <Suspense fallback={null}>
                   <SessionManager />
-                  <AppBadgeManager user={user} />
                   <NotificationBadge />
                   <PaymentApprovalNotifier isAdmin={isAdmin} />
                   <PlanPaymentReminders user={user} />
