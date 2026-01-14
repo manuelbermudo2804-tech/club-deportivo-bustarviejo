@@ -1422,7 +1422,7 @@ export default function Layout({ children, currentPageName }) {
                         return;
                       }
 
-        // 2) Mostrar instrucciones de instalación
+        // 2) Mostrar instrucciones de instalación (tras onboarding o si no se ha completado)
         const triggerInstall = localStorage.getItem('installPromptAfterOnboarding') === 'true';
         if (triggerInstall) {
           setShowInstallInstructions(true);
