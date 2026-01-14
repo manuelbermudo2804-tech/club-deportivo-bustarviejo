@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 
 const CoordinatorChat = lazy(() => import("./CoordinatorChat"));
 const CoachParentChat = lazy(() => import("./CoachParentChat"));
-const useUnreadChats = lazy(() => import("../components/notifications/useUnreadChats"));
 
 export default function FamilyChats() {
   const [user, setUser] = useState(null);
