@@ -747,7 +747,16 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     },
   });
 
-  const pinnedMessages = filteredMessages.filter(m => m.anclado === true);
+  // Proteger acceso a filteredMessages que se define después
+  const getPinnedMessages = () => {
+    try {
+      return messages.filter(m => m.anclado === true);
+    } catch (e) {
+      return [];
+    }
+  };
+  
+  const pinnedMessages = getPinnedMessages();
 
   const sendLocationFromBrowser = () => {
     if ("geolocation" in navigator) {
