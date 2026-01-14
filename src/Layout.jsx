@@ -1458,15 +1458,17 @@ export default function Layout({ children, currentPageName }) {
               <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
                 <Suspense fallback={null}>
                   <RegistrationTypeSelector
-                    onSelectFamily={async () => {
-                      await base44.auth.updateMe({ tipo_panel: 'familia' });
-                      window.location.reload();
-                    }}
-                    onSelectAdultPlayer={async () => {
-                      await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
-                      window.location.reload();
-                    }}
-                  />
+                                            onSelectFamily={async () => {
+                                              await base44.auth.updateMe({ tipo_panel: 'familia' });
+                                              setOnboardingView('none');
+                                              navigate(createPageUrl('ParentPlayers'));
+                                            }}
+                                            onSelectAdultPlayer={async () => {
+                                              await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
+                                              setOnboardingView('none');
+                                              navigate(createPageUrl('PlayerProfile'));
+                                            }}
+                                          />
                 </Suspense>
               </div>
             );
