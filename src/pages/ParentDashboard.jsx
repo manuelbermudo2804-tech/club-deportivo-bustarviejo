@@ -317,9 +317,9 @@ export default function ParentDashboard() {
 
   // Calcular mensajes del chat entrenador-padres no leídos
   const unreadCoachMessages = messages.filter(m => {
-    if (m.tipo === "entrenador_a_grupo" && !m.leido) return true;
-    if (m.destinatario_email === user?.email && !m.leido) return true;
-    return false;
+    if (m.tipo !== "entrenador_a_grupo") return false;
+    const isRead = m.leido_por?.some(lp => lp.email === user?.email);
+    return !isRead;
   }).length;
 
   let pendingCallups = 0;
