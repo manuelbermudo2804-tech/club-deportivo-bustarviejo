@@ -330,6 +330,25 @@ export default function Home() {
 
   const userButtonConfig = buttonConfigs[0];
 
+  // Staff conversation (para badge de no leídos en "Staff")
+  const { data: staffConversationHome } = useQuery({
+    queryKey: ['staffConversationHome'],
+    queryFn: async () => {
+      const convs = await base44.entities.StaffConversation.filter({ categoria: 'General' });
+      return convs[0] || null;
+    },
+    enabled: !!user && (isCoordinator || isCoach || isAdmin),
+  });
+
+  const { data: staffMessagesHome = [] } = useQuery({
+    queryKey: ['staffMessagesHome', staffConversationHome?.id],
+    queryFn: async () => {
+      if (!staffConversationHome?.id) return [];
+      return await base44.entities.StaffMessage.filter({ conversacion_id: staffConversationHome.id }, 'created_date');
+    },
+    enabled: !!user && !!staffConversationHome?.id,
+  });
+
   const saveButtonConfigMutation = useMutation({
     mutationFn: async (selectedButtonIds) => {
       if (userButtonConfig) {
@@ -599,6 +618,15 @@ export default function Home() {
       });
     }
 
+    // Calcular mensajes de Staff no leídos (para badge en "Staff")
+    let unreadStaffMessages = 0;
+    if (user && staffMessagesHome) {
+      unreadStaffMessages = staffMessagesHome.filter(m =>
+        m.autor_email !== user.email &&
+        !(m.leido_por || []).some(l => l.email === user.email)
+      ).length;
+    }
+
     // Calcular respuestas pendientes de convocatorias (para entrenadores/admin)
     let pendingCallupResponses = 0;
     if ((isAdmin || isCoach || isCoordinator) && callups) {
@@ -694,13 +722,13 @@ export default function Home() {
     }
 
     return { 
-      activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages,
+      activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages, unreadStaffMessages,
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
       recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
       unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations, unresolvedAdminChats
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isCoach, coordinatorConversations, matchObservations]);
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isCoach, coordinatorConversations, matchObservations, staffMessagesHome]);
 
 
 
@@ -1307,6 +1335,11 @@ export default function Home() {
               {/* STAFF CHAT - Solo para coordinadores/entrenadores */}
               {(isCoordinator || isCoach) && (
                 <Link to={createPageUrl("StaffChat")} className="relative">
+                  {stats.unreadStaffMessages > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{stats.unreadStaffMessages}</span>
+                    </div>
+                  )}
                   <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                     <p className="text-sm font-bold text-center">💼 Staff</p>
                     <p className="text-xs text-slate-100 text-center mt-0.5">Comunicación interna</p>
