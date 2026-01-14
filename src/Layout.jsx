@@ -1466,10 +1466,16 @@ export default function Layout({ children, currentPageName }) {
                     onSelectFamily={async () => {
                       localStorage.setItem('installPromptAfterOnboarding', 'true');
                       localStorage.setItem('hasSeenWelcome', 'true');
+                      // Disparar ventana de instalación tras elegir panel
+                      localStorage.setItem('installPromptAfterOnboarding', 'true');
+                      localStorage.setItem('hasSeenWelcome', 'true');
                       await base44.auth.updateMe({ tipo_panel: 'familia' });
                       window.location.reload();
                     }}
                     onSelectAdultPlayer={async () => {
+                      localStorage.setItem('installPromptAfterOnboarding', 'true');
+                      localStorage.setItem('hasSeenWelcome', 'true');
+                      // Disparar ventana de instalación tras elegir panel
                       localStorage.setItem('installPromptAfterOnboarding', 'true');
                       localStorage.setItem('hasSeenWelcome', 'true');
                       await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
