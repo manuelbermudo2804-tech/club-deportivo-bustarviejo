@@ -361,8 +361,18 @@ const alerts = [];
 
   // Alertas para entrenadores/coordinadores (NO admin)
   if (isCoach && !isAdmin) {
-    // Mensajes de familias ya incluidos desde chatItems (families)
-    // if (unreadFromParentsForCoach > 0) { ... } - Ahora se gestiona desde useUnreadChats
+    // Agregar badge de mensajes de familias a tareas pendientes
+    if (unreadFromParentsForCoach > 0) {
+      alerts.push({
+        id: "families-chat-coach",
+        icon: MessageCircle,
+        title: "👨‍👩‍👧 Mensajes de Familias",
+        description: `${unreadFromParentsForCoach} mensaje${unreadFromParentsForCoach > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl("CoachParentChat"),
+        color: "bg-blue-600",
+        priority: 1
+      });
+    }
     if (pendingCallupResponses > 0) {
       alerts.push({
         id: "callup-responses",
