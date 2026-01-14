@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Smile, Check, CheckCheck, MapPin, Reply, Edit, Trash2, Users, Image as ImageIcon, Camera, Dumbbell } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Smile, Check, CheckCheck, MapPin, Reply, Edit, Trash2, Users, Image as ImageIcon, Camera, Dumbbell, Pin } from "lucide-react";
 import ChatInputActions from "../chat/ChatInputActions";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -15,6 +15,7 @@ import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
 import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
 import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
+import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -688,6 +689,36 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     },
   });
 
+  const unpinMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.ChatMessage.update(messageId, {
+        anclado: false,
+        anclado_por: null,
+        anclado_fecha: null
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      toast.success("Mensaje desanclado");
+    },
+  });
+
+  const pinMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.ChatMessage.update(messageId, {
+        anclado: true,
+        anclado_por: user.email,
+        anclado_fecha: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      toast.success("Mensaje anclado");
+    },
+  });
+
+  const pinnedMessages = messages.filter(m => m.anclado === true);
+
   const { data: allExercises = [] } = useQuery({
     queryKey: ['exercises'],
     queryFn: () => base44.entities.Exercise.list(),
@@ -743,6 +774,13 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         </div>
       </div>
 
+      {/* Mensajes Anclados */}
+      <PinnedMessagesBanner 
+        pinnedMessages={pinnedMessages}
+        onUnpin={(id) => unpinMessageMutation.mutate(id)}
+        canUnpin={true}
+      />
+
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 min-h-0">
         {replyingTo && (
@@ -781,6 +819,15 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   </p>
                   {isMine && (
                     <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                        onClick={() => msg.anclado ? unpinMessageMutation.mutate(msg.id) : pinMessageMutation.mutate(msg.id)}
+                        title={msg.anclado ? "Desanclar" : "Anclar mensaje"}
+                      >
+                        <Pin className={`w-3 h-3 ${msg.anclado ? 'text-yellow-600 fill-yellow-600' : ''}`} />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -890,9 +937,22 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 )}
 
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-xs opacity-60">
-                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs opacity-60">
+                      {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                    </p>
+                    
+                    {/* Doble check visual - solo en mensajes propios */}
+                    {isMine && (
+                      <div className="flex items-center">
+                        {msg.leido_por && msg.leido_por.length > 0 ? (
+                          <CheckCheck className="w-3 h-3 text-cyan-400" />
+                        ) : (
+                          <Check className="w-3 h-3 opacity-50" />
+                        )}
+                      </div>
+                    )}
+                  </div>
                   
                   <Button
                     size="sm"

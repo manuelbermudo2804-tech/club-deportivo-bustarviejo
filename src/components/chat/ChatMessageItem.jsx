@@ -1,10 +1,10 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, Check, CheckCheck } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true }) {
+export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true, showReadStatus = false }) {
   const isMine = message.remitente_email === currentUserEmail;
   const isCoach = message.tipo === "entrenador_a_grupo";
   const isBot = message.es_respuesta_bot === true;
@@ -64,9 +64,22 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
           </div>
         )}
         
-        <p className="text-[10px] sm:text-xs opacity-60 mt-1">
-          {format(new Date(message.created_date), "HH:mm", { locale: es })}
-        </p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-[10px] sm:text-xs opacity-60">
+            {format(new Date(message.created_date), "HH:mm", { locale: es })}
+          </p>
+          
+          {/* Doble check visual - solo en mensajes propios */}
+          {showReadStatus && isMine && (
+            <div className="flex items-center gap-1">
+              {message.leido_por && message.leido_por.length > 0 ? (
+                <CheckCheck className="w-3 h-3 text-cyan-400" />
+              ) : (
+                <Check className="w-3 h-3 opacity-50" />
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

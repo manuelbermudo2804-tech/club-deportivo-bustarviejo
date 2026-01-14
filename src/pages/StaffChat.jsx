@@ -134,6 +134,8 @@ export default function StaffChat() {
     u.es_coordinador || u.es_entrenador || u.role === "admin"
   );
 
+  const pinnedMessages = messages.filter(m => m.anclado === true && !m.eliminado);
+
   const filteredMessages = messages.filter(msg => {
     if (msg.eliminado) return false;
     

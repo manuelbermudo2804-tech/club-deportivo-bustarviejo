@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3, Check, CheckCheck, Folder, MapPin, Reply, Edit, Trash2, Forward, AlertTriangle } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Tag, Smile, ThumbsUp, Heart, CheckCircle, Image as ImageIcon, MessageCircle, Camera, BarChart3, Check, CheckCheck, Folder, MapPin, Reply, Edit, Trash2, Forward, AlertTriangle, Pin } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import SearchFilters from "../chat/SearchFilters";
 import ChatInputActions from "../chat/ChatInputActions";
 import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
 import EscalateToAdminButton from "./EscalateToAdminButton";
+import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
@@ -718,6 +719,36 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     },
   });
 
+  const unpinMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.CoordinatorMessage.update(messageId, {
+        anclado: false,
+        anclado_por: null,
+        anclado_fecha: null
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      toast.success("Mensaje desanclado");
+    },
+  });
+
+  const pinMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.CoordinatorMessage.update(messageId, {
+        anclado: true,
+        anclado_por: user.email,
+        anclado_fecha: new Date().toISOString()
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      toast.success("Mensaje anclado");
+    },
+  });
+
+  const pinnedMessages = filteredMessages.filter(m => m.anclado === true);
+
   const sendLocationFromBrowser = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -841,7 +872,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         </div>
       </div>
 
-
+      {/* Mensajes Anclados */}
+      <PinnedMessagesBanner 
+        pinnedMessages={pinnedMessages}
+        onUnpin={(id) => unpinMessageMutation.mutate(id)}
+        canUnpin={isCoordinator}
+      />
 
       {/* Mensajes */}
       <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
@@ -875,18 +911,31 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 <p className="text-[10px] sm:text-xs font-semibold opacity-70 flex-1">
                   {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
                 </p>
-                <ChatMessageActions
-                  message={msg}
-                  isMine={isMine}
-                  isStaff={isCoordinator}
-                  onReply={(m) => setReplyingTo(m)}
-                  onEdit={(m) => {
-                    setEditingMessage(m);
-                    setMessageText(m.mensaje);
-                  }}
-                  onDelete={(m) => deleteMessageMutation.mutate(m.id)}
-                  onForward={(m) => setForwardingMessage(m)}
-                />
+                <div className="flex gap-1">
+                  {isMine && isCoordinator && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                      onClick={() => msg.anclado ? unpinMessageMutation.mutate(msg.id) : pinMessageMutation.mutate(msg.id)}
+                      title={msg.anclado ? "Desanclar" : "Anclar mensaje"}
+                    >
+                      <Pin className={`w-3 h-3 ${msg.anclado ? 'text-yellow-600 fill-yellow-600' : ''}`} />
+                    </Button>
+                  )}
+                  <ChatMessageActions
+                    message={msg}
+                    isMine={isMine}
+                    isStaff={isCoordinator}
+                    onReply={(m) => setReplyingTo(m)}
+                    onEdit={(m) => {
+                      setEditingMessage(m);
+                      setMessageText(m.mensaje);
+                    }}
+                    onDelete={(m) => deleteMessageMutation.mutate(m.id)}
+                    onForward={(m) => setForwardingMessage(m)}
+                  />
+                </div>
                 </div>
                 
                 {msg.audio_url ? (
