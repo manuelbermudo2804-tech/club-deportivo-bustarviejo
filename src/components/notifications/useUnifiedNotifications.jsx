@@ -325,12 +325,19 @@ export function useUnifiedNotifications(user) {
     let unreadPrivate = 0;
     let unreadFamilies = 0;
 
-    // Coordinator
-    if (user.role !== 'admin') {
+    // Coordinator (para familias): usar counters de la conversación
+    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador) {
       rawData.coordinatorConversations.forEach(conv => {
-        if (conv.participante_familia_email === user.email) {
-          unreadCoordinator += (conv.no_leidos_familia || 0);
+        if (conv.padre_email === user.email && conv.resuelta !== true) {
+          unreadCoordinator += (conv.no_leidos_padre || 0);
         }
+      });
+    }
+
+    // Coordinator (para coordinadores): mensajes de familias pendientes
+    if (user.es_coordinador) {
+      rawData.coordinatorConversations.forEach(conv => {
+        unreadCoordinator += (conv.no_leidos_coordinador || 0);
       });
     }
 
@@ -365,16 +372,11 @@ export function useUnifiedNotifications(user) {
       });
     }
 
-    // Admin
+    // Admin (para familias): usar counter de conversación
     if (user.role !== 'admin') {
       rawData.adminConversations.forEach(conv => {
         if (conv.padre_email === user.email && conv.resuelta === false) {
-          const mensajes = conv.mensajes || [];
-          mensajes.forEach(msg => {
-            if (msg.remitente_tipo === 'admin' && (!msg.leido_familia || msg.leido_familia === false)) {
-              unreadAdmin++;
-            }
-          });
+          unreadAdmin += (conv.no_leidos_padre || 0);
         }
       });
     }

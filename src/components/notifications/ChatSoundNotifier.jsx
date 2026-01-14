@@ -7,6 +7,8 @@ export default function ChatSoundNotifier({ user, chatType = 'all' }) {
   const [chatMessages, setChatMessages] = useState([]);
   const [adminConvs, setAdminConvs] = useState([]);
   const [staffMessages, setStaffMessages] = useState([]);
+  const [coordMessages, setCoordMessages] = useState([]);
+  const [adminMessages, setAdminMessages] = useState([]);
 
   // Real-time subscriptions
   useEffect(() => {
@@ -14,20 +16,29 @@ export default function ChatSoundNotifier({ user, chatType = 'all' }) {
 
     const unsubscribers = [];
 
-    // Coordinator conversations
+    // Coordinator conversations + messages
     if (chatType === 'all' || chatType === 'coordinator') {
       const loadCoord = async () => {
         const convs = await base44.entities.CoordinatorConversation.list('-updated_date', 100);
         setCoordConvs(convs);
+        const msgs = await base44.entities.CoordinatorMessage.list('-created_date', 100);
+        setCoordMessages(msgs);
       };
       loadCoord();
 
-      const unsub = base44.entities.CoordinatorConversation.subscribe((event) => {
+      const unsubConv = base44.entities.CoordinatorConversation.subscribe((event) => {
         if (event.type === 'create') setCoordConvs(prev => [event.data, ...prev]);
         else if (event.type === 'update') setCoordConvs(prev => prev.map(c => c.id === event.id ? event.data : c));
         else if (event.type === 'delete') setCoordConvs(prev => prev.filter(c => c.id !== event.id));
       });
-      unsubscribers.push(unsub);
+      unsubscribers.push(unsubConv);
+
+      const unsubMsg = base44.entities.CoordinatorMessage.subscribe((event) => {
+        if (event.type === 'create') setCoordMessages(prev => [event.data, ...prev]);
+        else if (event.type === 'update') setCoordMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+        else if (event.type === 'delete') setCoordMessages(prev => prev.filter(m => m.id !== event.id));
+      });
+      unsubscribers.push(unsubMsg);
     }
 
     // Coach messages
@@ -46,20 +57,29 @@ export default function ChatSoundNotifier({ user, chatType = 'all' }) {
       unsubscribers.push(unsub);
     }
 
-    // Admin conversations
+    // Admin conversations + messages
     if (chatType === 'all' || chatType === 'admin') {
       const loadAdmin = async () => {
         const convs = await base44.entities.AdminConversation.list('-updated_date', 100);
         setAdminConvs(convs);
+        const msgs = await base44.entities.AdminMessage.list('-created_date', 100);
+        setAdminMessages(msgs);
       };
       loadAdmin();
 
-      const unsub = base44.entities.AdminConversation.subscribe((event) => {
+      const unsubConv = base44.entities.AdminConversation.subscribe((event) => {
         if (event.type === 'create') setAdminConvs(prev => [event.data, ...prev]);
         else if (event.type === 'update') setAdminConvs(prev => prev.map(c => c.id === event.id ? event.data : c));
         else if (event.type === 'delete') setAdminConvs(prev => prev.filter(c => c.id !== event.id));
       });
-      unsubscribers.push(unsub);
+      unsubscribers.push(unsubConv);
+
+      const unsubMsg = base44.entities.AdminMessage.subscribe((event) => {
+        if (event.type === 'create') setAdminMessages(prev => [event.data, ...prev]);
+        else if (event.type === 'update') setAdminMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+        else if (event.type === 'delete') setAdminMessages(prev => prev.filter(m => m.id !== event.id));
+      });
+      unsubscribers.push(unsubMsg);
     }
 
     // Staff messages
@@ -86,7 +106,13 @@ export default function ChatSoundNotifier({ user, chatType = 'all' }) {
   const { checkForNewItems: checkCoord } = useSoundNotifications({
     dataKey: 'chat-coordinator-rt',
     enabled: true,
-    filter: (item) => item.updated_date && new Date(item.updated_date) > new Date(Date.now() - 60000)
+    filter: (item) => true
+  });
+
+  const { checkForNewItems: checkCoordMsg } = useSoundNotifications({
+    dataKey: 'chat-coordinator-msg-rt',
+    enabled: true,
+    filter: () => true
   });
 
   const { checkForNewItems: checkChat } = useSoundNotifications({
@@ -98,7 +124,13 @@ export default function ChatSoundNotifier({ user, chatType = 'all' }) {
   const { checkForNewItems: checkAdmin } = useSoundNotifications({
     dataKey: 'chat-admin-rt',
     enabled: true,
-    filter: (item) => item.updated_date && new Date(item.updated_date) > new Date(Date.now() - 60000)
+    filter: () => true
+  });
+
+  const { checkForNewItems: checkAdminMsg } = useSoundNotifications({
+    dataKey: 'chat-admin-msg-rt',
+    enabled: true,
+    filter: () => true
   });
 
   const { checkForNewItems: checkStaff } = useSoundNotifications({
@@ -112,12 +144,20 @@ export default function ChatSoundNotifier({ user, chatType = 'all' }) {
   }, [coordConvs, checkCoord]);
 
   useEffect(() => {
+    if (coordMessages.length > 0) checkCoordMsg(coordMessages);
+  }, [coordMessages, checkCoordMsg]);
+
+  useEffect(() => {
     if (chatMessages.length > 0) checkChat(chatMessages);
   }, [chatMessages, checkChat]);
 
   useEffect(() => {
     if (adminConvs.length > 0) checkAdmin(adminConvs);
   }, [adminConvs, checkAdmin]);
+
+  useEffect(() => {
+    if (adminMessages.length > 0) checkAdminMsg(adminMessages);
+  }, [adminMessages, checkAdminMsg]);
 
   useEffect(() => {
     if (staffMessages.length > 0) checkStaff(staffMessages);
