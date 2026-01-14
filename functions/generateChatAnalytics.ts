@@ -15,51 +15,62 @@ Deno.serve(async (req) => {
 
     // Obtener todos los mensajes del chat en últimos 30 días
     const [
-      coordinatorConvs,
+      coordinatorMessages,
       chatMessages,
       staffMessages,
-      adminConvs,
+      adminMessages,
       allCoaches,
       allCoordinators
     ] = await Promise.all([
-      base44.asServiceRole.entities.CoordinatorConversation.list('-updated_date', 1000),
-      base44.asServiceRole.entities.ChatMessage.filter({ created_date: { $gte: thirtyDaysAgo } }),
-      base44.asServiceRole.entities.StaffMessage.filter({ created_date: { $gte: thirtyDaysAgo } }),
-      base44.asServiceRole.entities.AdminConversation.list('-updated_date', 1000),
+      base44.asServiceRole.entities.CoordinatorMessage.list('-created_date', 2000),
+      base44.asServiceRole.entities.ChatMessage.list('-created_date', 2000),
+      base44.asServiceRole.entities.StaffMessage.list('-created_date', 2000),
+      base44.asServiceRole.entities.AdminMessage.list('-created_date', 2000),
       base44.asServiceRole.entities.User.filter({ es_entrenador: true }),
       base44.asServiceRole.entities.User.filter({ es_coordinador: true })
     ]);
 
-    // Extraer mensajes de conversaciones
-    const coordinatorMessages = coordinatorConvs.flatMap(c => c.mensajes || []);
-    const adminMessages = adminConvs.flatMap(c => c.mensajes || []);
-    const coachMessages = chatMessages;
+    // Filtrar solo últimos 30 días
+    const filterLast30Days = (messages) => messages.filter(m => new Date(m.created_date) >= thirtyDaysAgo);
+    
+    const coordinatorMessagesFiltered = filterLast30Days(coordinatorMessages);
+    const coachMessagesFiltered = filterLast30Days(chatMessages);
+    const staffMessagesFiltered = filterLast30Days(staffMessages);
+    const adminMessagesFiltered = filterLast30Days(adminMessages);
+    
+    const coachMessages = coachMessagesFiltered;
 
     // Estadísticas generales
-    const totalMessages = (coordinatorMessages?.length || 0) + (coachMessages?.length || 0) + (staffMessages?.length || 0) + (adminMessages?.length || 0);
+    const totalMessages = (coordinatorMessagesFiltered?.length || 0) + (coachMessagesFiltered?.length || 0) + (staffMessagesFiltered?.length || 0) + (adminMessagesFiltered?.length || 0);
     
     // Actividad por tipo de chat
     const chatActivity = {
-      coordinador: coordinatorMessages?.length || 0,
-      entrenador: coachMessages?.length || 0,
-      staff: staffMessages?.length || 0,
-      admin: adminMessages?.length || 0
+      coordinador: coordinatorMessagesFiltered?.length || 0,
+      entrenador: coachMessagesFiltered?.length || 0,
+      staff: staffMessagesFiltered?.length || 0,
+      admin: adminMessagesFiltered?.length || 0
     };
 
     // Usuarios activos por tipo
     const coachesActive = new Set();
     const coordinatorsActive = new Set();
     
-    (coachMessages || []).forEach(m => coachesActive.add(m.remitente_email));
-    (coordinatorMessages || []).forEach(m => coordinatorsActive.add(m.remitente_email));
+    (coachMessagesFiltered || []).forEach(m => {
+      if (m.remitente_email) coachesActive.add(m.remitente_email);
+    });
+    (coordinatorMessagesFiltered || []).forEach(m => {
+      if (m.autor_email) coordinatorsActive.add(m.autor_email);
+    });
 
     // Entrenadores INACTIVOS (sin mensajes en 30 días)
     const inactiveCoaches = allCoaches.filter(c => !coachesActive.has(c.email));
 
     // Ranking de entrenadores más activos
     const coachActivity = {};
-    (coachMessages || []).forEach(m => {
-      coachActivity[m.remitente_email] = (coachActivity[m.remitente_email] || 0) + 1;
+    (coachMessagesFiltered || []).forEach(m => {
+      if (m.remitente_email && m.tipo === 'entrenador_a_grupo') {
+        coachActivity[m.remitente_email] = (coachActivity[m.remitente_email] || 0) + 1;
+      }
     });
 
     const coachRanking = Object.entries(coachActivity)
@@ -72,7 +83,7 @@ Deno.serve(async (req) => {
 
     // Horarios pico
     const hourlyActivity = {};
-    [...(coachMessages || []), ...(coordinatorMessages || [])].forEach(m => {
+    [...(coachMessagesFiltered || []), ...(coordinatorMessagesFiltered || [])].forEach(m => {
       const hour = new Date(m.created_date).getHours();
       hourlyActivity[hour] = (hourlyActivity[hour] || 0) + 1;
     });
@@ -103,7 +114,7 @@ Deno.serve(async (req) => {
       return times;
     };
 
-    const responseTimesByCategory = calculateResponseTimes([...(coachMessages || []), ...(coordinatorMessages || [])]);
+    const responseTimesByCategory = calculateResponseTimes([...(coachMessagesFiltered || []), ...(coordinatorMessagesFiltered || [])]);
     const responseTimeData = Object.entries(responseTimesByCategory).map(([categoria, avgResponseTime]) => ({
       categoria,
       avgResponseTime
@@ -111,11 +122,11 @@ Deno.serve(async (req) => {
 
     // Actividad por equipo/categoría
     const teamActivity = {};
-    (coachMessages || []).forEach(m => {
-      const team = m.categoria || 'Coordinador';
+    (coachMessagesFiltered || []).forEach(m => {
+      const team = m.deporte || m.grupo_id || 'General';
       if (!teamActivity[team]) teamActivity[team] = { messageCount: 0, userCount: new Set() };
       teamActivity[team].messageCount += 1;
-      teamActivity[team].userCount.add(m.remitente_email);
+      if (m.remitente_email) teamActivity[team].userCount.add(m.remitente_email);
     });
 
     const teamActivityData = Object.entries(teamActivity).map(([team, data]) => ({
@@ -126,16 +137,16 @@ Deno.serve(async (req) => {
     }));
 
     // Contenido compartido
-    const filesShared = [...(coachMessages || []), ...(coordinatorMessages || [])].filter(m => m.archivos_adjuntos?.length).length;
-    const locationsShared = [...(coachMessages || []), ...(coordinatorMessages || [])].filter(m => m.ubicacion).length;
-    const pollsCreated = [...(coachMessages || []), ...(coordinatorMessages || [])].filter(m => m.encuesta || m.poll).length;
+    const filesShared = [...(coachMessagesFiltered || []), ...(coordinatorMessagesFiltered || [])].filter(m => m.archivos_adjuntos?.length).length;
+    const locationsShared = [...(coachMessagesFiltered || []), ...(coordinatorMessagesFiltered || [])].filter(m => m.ubicacion).length;
+    const pollsCreated = [...(coachMessagesFiltered || []), ...(coordinatorMessagesFiltered || [])].filter(m => m.encuesta || m.poll).length;
 
     // ANÁLISIS DE SENTIMIENTO con LLM
-    const allMessagesText = [...(coachMessages || []), ...(coordinatorMessages || [])].map(m => ({
+    const allMessagesText = [...(coachMessagesFiltered || []), ...(coordinatorMessagesFiltered || [])].map(m => ({
       id: m.id,
       text: m.mensaje,
-      categoria: m.categoria,
-      sender: m.remitente_nombre,
+      categoria: m.deporte || m.grupo_id || m.categoria || 'General',
+      sender: m.remitente_nombre || m.autor_nombre,
       date: m.created_date
     }));
 
@@ -222,11 +233,15 @@ ${messagesForAnalysis}`,
 
     // Análisis por usuario (top 10)
     const userActivity = {};
-    [...(coachMessages || []), ...(coordinatorMessages || [])].forEach(m => {
-      if (!userActivity[m.remitente_email]) {
-        userActivity[m.remitente_email] = { messageCount: 0, times: [], name: m.remitente_nombre };
+    [...(coachMessagesFiltered || []), ...(coordinatorMessagesFiltered || [])].forEach(m => {
+      const email = m.remitente_email || m.autor_email;
+      const name = m.remitente_nombre || m.autor_nombre;
+      if (!email) return;
+      
+      if (!userActivity[email]) {
+        userActivity[email] = { messageCount: 0, times: [], name };
       }
-      userActivity[m.remitente_email].messageCount += 1;
+      userActivity[email].messageCount += 1;
     });
 
     const userActivityData = Object.entries(userActivity)
@@ -241,7 +256,7 @@ ${messagesForAnalysis}`,
 
     // Tendencias semanales
     const weeklyTrend = [];
-    const allMessages = [...(coachMessages || []), ...(coordinatorMessages || [])];
+    const allMessages = [...(coachMessagesFiltered || []), ...(coordinatorMessagesFiltered || [])];
     for (let week = 4; week >= 0; week--) {
       const weekStart = new Date();
       weekStart.setDate(weekStart.getDate() - (week * 7 + 7));
@@ -253,7 +268,7 @@ ${messagesForAnalysis}`,
         return msgDate >= weekStart && msgDate < weekEnd;
       });
 
-      const weekUsers = new Set(weekMessages.map(m => m.remitente_email));
+      const weekUsers = new Set(weekMessages.map(m => m.remitente_email || m.autor_email).filter(Boolean));
       weeklyTrend.push({
         week: 5 - week,
         messageCount: weekMessages.length,
@@ -290,7 +305,7 @@ ${messagesForAnalysis}`,
     const allActiveUsers = new Set([
       ...coachesActive,
       ...coordinatorsActive,
-      ...(adminMessages || []).map(m => m.remitente_email)
+      ...(adminMessagesFiltered || []).map(m => m.autor_email).filter(Boolean)
     ]);
 
     const totalInactiveUsers = usersWithRole.filter(u => !allActiveUsers.has(u.email));
