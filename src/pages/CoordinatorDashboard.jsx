@@ -150,11 +150,25 @@ export default function CoordinatorDashboard() {
     },
   });
 
-  // Mensajes no leídos de familias
-  const unreadFamilyMessages = useMemo(() => 
+  // Mensajes no leídos de familias (COORDINADOR)
+  const unreadCoordinatorMessages = useMemo(() => 
     coordinatorConversations.reduce((sum, conv) => sum + (conv.no_leidos_coordinador || 0), 0),
     [coordinatorConversations]
   );
+
+  // Mensajes no leídos de familias (ENTRENADOR)
+  const { data: coachConversations = [] } = useQuery({
+    queryKey: ['coachConversations'],
+    queryFn: () => base44.entities.CoachConversation.list(),
+  });
+
+  const unreadCoachMessages = useMemo(() => 
+    coachConversations.reduce((sum, conv) => sum + (conv.no_leidos_entrenador || 0), 0),
+    [coachConversations]
+  );
+
+  // Total mensajes de familias (coordinador + entrenador)
+  const unreadFamilyMessages = unreadCoordinatorMessages + unreadCoachMessages;
 
   // Convocatorias pendientes de respuesta
   const pendingCallupResponses = useMemo(() => {
