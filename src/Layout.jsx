@@ -649,7 +649,8 @@ export default function Layout({ children, currentPageName }) {
 
                         // Verificar si es primera vez del usuario (mostrar WelcomeScreen)
                         const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-                        if (!hasSeenWelcome && !isPublicPage) {
+                        const installTrigger = localStorage.getItem('installPromptAfterOnboarding') === 'true';
+                        if (!hasSeenWelcome && !isPublicPage && !installTrigger) {
                           setShowWelcome(true);
                         }
 
@@ -1421,8 +1422,12 @@ export default function Layout({ children, currentPageName }) {
                         return;
                       }
 
-        // 2) Mostrar instrucciones de instalación (sin detección), una sola vez hasta que el usuario confirme
-        if (!localStorage.getItem('installCompleted')) {
+        // 2) Mostrar instrucciones de instalación
+        const triggerInstall = localStorage.getItem('installPromptAfterOnboarding') === 'true';
+        if (triggerInstall) {
+          setShowInstallInstructions(true);
+          localStorage.removeItem('installPromptAfterOnboarding');
+        } else if (!localStorage.getItem('installCompleted')) {
           setShowInstallInstructions(true);
         }
 
@@ -1458,17 +1463,19 @@ export default function Layout({ children, currentPageName }) {
               <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
                 <Suspense fallback={null}>
                   <RegistrationTypeSelector
-                                            onSelectFamily={async () => {
-                                              await base44.auth.updateMe({ tipo_panel: 'familia' });
-                                              setOnboardingView('none');
-                                              navigate(createPageUrl('ParentPlayers'));
-                                            }}
-                                            onSelectAdultPlayer={async () => {
-                                              await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
-                                              setOnboardingView('none');
-                                              navigate(createPageUrl('PlayerProfile'));
-                                            }}
-                                          />
+                    onSelectFamily={async () => {
+                      localStorage.setItem('installPromptAfterOnboarding', 'true');
+                      localStorage.setItem('hasSeenWelcome', 'true');
+                      await base44.auth.updateMe({ tipo_panel: 'familia' });
+                      window.location.reload();
+                    }}
+                    onSelectAdultPlayer={async () => {
+                      localStorage.setItem('installPromptAfterOnboarding', 'true');
+                      localStorage.setItem('hasSeenWelcome', 'true');
+                      await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
+                      window.location.reload();
+                    }}
+                  />
                 </Suspense>
               </div>
             );
