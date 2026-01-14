@@ -29,6 +29,10 @@ const AutomaticRenewalClosure = React.lazy(() => import("./components/renewals/A
 const RenewalNotificationEngine = React.lazy(() => import("./components/renewals/RenewalNotificationEngine.jsx"));
 const PostRenewalPaymentReminder = React.lazy(() => import("./components/renewals/PostRenewalPaymentReminder.jsx"));
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
+const ChatSoundNotifier = React.lazy(() => import("./components/notifications/ChatSoundNotifier"));
+const CallupSoundNotifier = React.lazy(() => import("./components/notifications/CallupSoundNotifier"));
+const AnnouncementSoundNotifier = React.lazy(() => import("./components/notifications/AnnouncementSoundNotifier"));
+const PaymentSoundNotifier = React.lazy(() => import("./components/notifications/PaymentSoundNotifier"));
 
 
 // ToastContainer eliminado - causaba spam de notificaciones
@@ -1907,6 +1911,10 @@ export default function Layout({ children, currentPageName }) {
                   <AutomaticRenewalClosure />
                   <RenewalNotificationEngine />
                   <PostRenewalPaymentReminder />
+                  <ChatSoundNotifier user={user} chatType="all" />
+                  <CallupSoundNotifier user={user} />
+                  <AnnouncementSoundNotifier user={user} />
+                  <PaymentSoundNotifier user={user} />
                   </Suspense>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
