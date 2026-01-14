@@ -162,6 +162,31 @@ export default function CoordinatorDashboard() {
     queryFn: () => base44.entities.CoachConversation.list(),
   });
 
+  // Staff unread for badge
+  const { data: staffConversationCoord } = useQuery({
+    queryKey: ['staffConversationCoordinator'],
+    queryFn: async () => {
+      const convs = await base44.entities.StaffConversation.filter({ categoria: 'General' });
+      return convs[0] || null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: staffMessagesCoord = [] } = useQuery({
+    queryKey: ['staffMessagesCoordinator', staffConversationCoord?.id],
+    queryFn: async () => {
+      if (!staffConversationCoord?.id) return [];
+      return await base44.entities.StaffMessage.filter({ conversacion_id: staffConversationCoord.id }, 'created_date');
+    },
+    enabled: !!user && !!staffConversationCoord?.id,
+  });
+
+  const unreadStaffMessages = React.useMemo(() => {
+    return (staffMessagesCoord || []).filter(m =>
+      m.autor_email !== user?.email && !(m.leido_por || []).some(l => l.email === user?.email)
+    ).length;
+  }, [staffMessagesCoord, user?.email]);
+
   const unreadCoachMessages = useMemo(() => 
     coachConversations.reduce((sum, conv) => sum + (conv.no_leidos_entrenador || 0), 0),
     [coachConversations]

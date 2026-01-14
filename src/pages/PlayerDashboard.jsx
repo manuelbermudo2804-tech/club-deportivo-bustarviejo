@@ -183,6 +183,35 @@ export default function PlayerDashboard() {
     enabled: !!user?.email,
   });
 
+  // Unread counts for badges in Mensajes tiles
+  const { data: privateConversations = [] } = useQuery({
+    queryKey: ['playerPrivateConversations', user?.email],
+    queryFn: async () => {
+      const convs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30);
+      return convs.filter(c => c.participante_familia_email === user?.email);
+    },
+    enabled: !!user,
+  });
+  const unreadPrivateMessages = privateConversations.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+
+  const { data: coordinatorConversations = [] } = useQuery({
+    queryKey: ['playerCoordinatorConversations', user?.email],
+    queryFn: async () => {
+      const convs = await base44.entities.CoordinatorConversation.list();
+      return convs.filter(c => c.padre_email === user?.email);
+    },
+    enabled: !!user,
+  });
+  const unreadCoordinatorMessages = coordinatorConversations.reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
+
+  const { data: allChatMessages = [] } = useQuery({
+    queryKey: ['playerAllChatMessages', user?.email],
+    queryFn: () => base44.entities.ChatMessage.list('-created_date', 200),
+    staleTime: 10000,
+    enabled: !!user,
+  });
+  const unreadCoachMessages = allChatMessages.filter(m => m.tipo === 'entrenador_a_grupo' && !(m.leido_por || []).some(l => l.email === user?.email)).length;
+
   // Mensajes sin leer
   const { data: unreadMessages } = useQuery({
     queryKey: ['playerUnreadMessages', player?.deporte],
@@ -542,21 +571,36 @@ export default function PlayerDashboard() {
               </Link>
 
               <Link to={createPageUrl("ParentSystemMessages")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
+                  {unreadPrivateMessages > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadPrivateMessages}</span>
+                    </div>
+                  )}
                   <p className="text-sm font-bold mb-1 text-center">🔔 Mensajes</p>
                   <p className="text-xs text-purple-100 leading-tight text-center">Del Club</p>
                 </div>
               </Link>
 
               <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
+                  {unreadCoordinatorMessages > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadCoordinatorMessages}</span>
+                    </div>
+                  )}
                   <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
                   <p className="text-xs text-cyan-100 leading-tight text-center">Consultas deportivas</p>
                 </div>
               </Link>
               
               <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
+                  {unreadCoachMessages > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadCoachMessages}</span>
+                    </div>
+                  )}
                   <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
                   <p className="text-xs text-blue-100 leading-tight text-center">Chat del equipo</p>
                 </div>

@@ -95,13 +95,13 @@ export default function CoachDashboard() {
   const { data: allCoordinatorConvs = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
     queryFn: () => base44.entities.CoordinatorConversation.list(),
-    enabled: hasPlayers,
+    enabled: !!user,
   });
 
   const { data: allCoachConvs = [] } = useQuery({
     queryKey: ['coachConversations'],
     queryFn: () => base44.entities.CoachConversation.list(),
-    enabled: hasPlayers,
+    enabled: !!user,
   });
 
   const { data: allAdminConvs = [] } = useQuery({
@@ -125,7 +125,44 @@ export default function CoachDashboard() {
 
   const userButtonConfig = buttonConfigs[0];
 
-  const saveButtonConfigMutation = useMutation({
+  // Unread counters for badges in Mensajes tiles
+  const unreadFamiliesForCoach = useMemo(() => {
+    return (allCoachConvs || [])
+      .filter(c => c.entrenador_email === user?.email)
+      .reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
+  }, [allCoachConvs, user?.email]);
+
+  const unreadCoordinatorAsCoord = useMemo(() => {
+    return (allCoordinatorConvs || [])
+      .filter(c => c.participante_coordinador_email === user?.email)
+      .reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
+  }, [allCoordinatorConvs, user?.email]);
+
+  const { data: staffConversationCoach } = useQuery({
+    queryKey: ['staffConversationCoach'],
+    queryFn: async () => {
+      const convs = await base44.entities.StaffConversation.filter({ categoria: 'General' });
+      return convs[0] || null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: staffMessagesCoach = [] } = useQuery({
+    queryKey: ['staffMessagesCoach', staffConversationCoach?.id],
+    queryFn: async () => {
+      if (!staffConversationCoach?.id) return [];
+      return await base44.entities.StaffMessage.filter({ conversacion_id: staffConversationCoach.id }, 'created_date');
+    },
+    enabled: !!user && !!staffConversationCoach?.id,
+  });
+
+  const unreadStaffMessages = useMemo(() => {
+    return (staffMessagesCoach || []).filter(m =>
+      m.autor_email !== user?.email && !(m.leido_por || []).some(l => l.email === user?.email)
+    ).length;
+  }, [staffMessagesCoach, user?.email]);
+
+   const saveButtonConfigMutation = useMutation({
     mutationFn: async (selectedButtonIds) => {
       if (userButtonConfig) {
         return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
@@ -334,24 +371,39 @@ export default function CoachDashboard() {
                 </div>
               </Link>
 
-              <Link to={createPageUrl("CoachParentChat")} className="">
-                <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+              <Link to={createPageUrl("CoachParentChat")} className="relative">
+                <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
+                  {unreadFamiliesForCoach > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadFamiliesForCoach}</span>
+                    </div>
+                  )}
                   <p className="text-sm font-bold text-center">💬 Familias</p>
                   <p className="text-xs text-green-100 text-center">Mi equipo</p>
                 </div>
               </Link>
 
               {(user?.es_coordinador || user?.role === "admin") && (
-                <Link to={createPageUrl("CoordinatorChat")}>
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                <Link to={createPageUrl("CoordinatorChat")} className="relative">
+                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
+                  {unreadCoordinatorAsCoord > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadCoordinatorAsCoord}</span>
+                    </div>
+                  )}
                   <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
                   <p className="text-xs text-cyan-100 text-center">Consultas</p>
                 </div>
               </Link>
               )}
 
-               <Link to={createPageUrl("StaffChat")} className={`${showCoordinatorTile ? '' : 'col-span-2 lg:col-span-1'}`}>
-                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+               <Link to={createPageUrl("StaffChat")} className={`${showCoordinatorTile ? '' : 'col-span-2 lg:col-span-1'} relative`}>
+                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
+                  {unreadStaffMessages > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadStaffMessages}</span>
+                    </div>
+                  )}
                   <p className="text-sm font-bold text-center">💼 Staff</p>
                   <p className="text-xs text-slate-100 text-center">Interno</p>
                 </div>
