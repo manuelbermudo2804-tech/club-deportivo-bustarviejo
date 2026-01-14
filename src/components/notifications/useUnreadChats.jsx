@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -17,55 +17,110 @@ export default function useUnreadChats(enabled = true) {
   const isPlayer = user?.es_jugador === true || user?.tipo_panel === "jugador_adulto";
   const isFamily = !!user && !isAdmin && !isCoach && !isCoordinator && !isPlayer;
 
-  // Staff messages (rol staff/admin/coordinador/entrenador)
-  const { data: staffMessages = [] } = useQuery({
-    queryKey: ["staffMessages-unified"],
-    queryFn: () => base44.entities.StaffMessage.list("-created_date", 500),
-    initialData: [],
-    enabled: enabled && !!user && (isAdmin || isCoach || isCoordinator),
-    staleTime: 30000,
-    refetchInterval: enabled ? 30000 : false,
-  });
+  // Staff messages - Real-time
+  const [staffMessages, setStaffMessages] = useState([]);
 
-  // Conversaciones de Coordinador
-  const { data: coordConvs = [] } = useQuery({
-    queryKey: ["coordConversations-unified"],
-    queryFn: () => base44.entities.CoordinatorConversation.list("-updated_date", 200),
-    initialData: [],
-    enabled: enabled && !!user,
-    staleTime: 30000,
-    refetchInterval: enabled ? 30000 : false,
-  });
+  useEffect(() => {
+    if (!enabled || !user || (!isAdmin && !isCoach && !isCoordinator)) return;
 
-  // Conversaciones de Admin
-  const { data: adminConvs = [] } = useQuery({
-    queryKey: ["adminConversations-unified"],
-    queryFn: () => base44.entities.AdminConversation.list("-updated_date", 200),
-    initialData: [],
-    enabled: enabled && !!user,
-    staleTime: 30000,
-    refetchInterval: enabled ? 30000 : false,
-  });
+    const loadInitial = async () => {
+      const messages = await base44.entities.StaffMessage.list("-created_date", 500);
+      setStaffMessages(messages);
+    };
+    loadInitial();
 
-  // Mensajes de grupos entrenador↔familia
-  const { data: groupMessages = [] } = useQuery({
-    queryKey: ["groupMessages-unified"],
-    queryFn: () => base44.entities.ChatMessage.list("-created_date", 1000),
-    initialData: [],
-    enabled: enabled && !!user,
-    staleTime: 20000,
-    refetchInterval: enabled ? 20000 : false,
-  });
+    const unsubscribe = base44.entities.StaffMessage.subscribe((event) => {
+      if (event.type === 'create') setStaffMessages(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setStaffMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+      else if (event.type === 'delete') setStaffMessages(prev => prev.filter(m => m.id !== event.id));
+    });
 
-  // Conversaciones privadas
-  const { data: privateConvs = [] } = useQuery({
-    queryKey: ["privateConversations-unified"],
-    queryFn: () => base44.entities.PrivateConversation.list("-ultimo_mensaje_fecha", 300),
-    initialData: [],
-    enabled: enabled && !!user,
-    staleTime: 30000,
-    refetchInterval: enabled ? 30000 : false,
-  });
+    return unsubscribe;
+  }, [enabled, user, isAdmin, isCoach, isCoordinator]);
+
+  // Conversaciones de Coordinador - Real-time
+  const [coordConvs, setCoordConvs] = useState([]);
+
+  useEffect(() => {
+    if (!enabled || !user) return;
+
+    const loadInitial = async () => {
+      const convs = await base44.entities.CoordinatorConversation.list("-updated_date", 200);
+      setCoordConvs(convs);
+    };
+    loadInitial();
+
+    const unsubscribe = base44.entities.CoordinatorConversation.subscribe((event) => {
+      if (event.type === 'create') setCoordConvs(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setCoordConvs(prev => prev.map(c => c.id === event.id ? event.data : c));
+      else if (event.type === 'delete') setCoordConvs(prev => prev.filter(c => c.id !== event.id));
+    });
+
+    return unsubscribe;
+  }, [enabled, user]);
+
+  // Conversaciones de Admin - Real-time
+  const [adminConvs, setAdminConvs] = useState([]);
+
+  useEffect(() => {
+    if (!enabled || !user) return;
+
+    const loadInitial = async () => {
+      const convs = await base44.entities.AdminConversation.list("-updated_date", 200);
+      setAdminConvs(convs);
+    };
+    loadInitial();
+
+    const unsubscribe = base44.entities.AdminConversation.subscribe((event) => {
+      if (event.type === 'create') setAdminConvs(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setAdminConvs(prev => prev.map(c => c.id === event.id ? event.data : c));
+      else if (event.type === 'delete') setAdminConvs(prev => prev.filter(c => c.id !== event.id));
+    });
+
+    return unsubscribe;
+  }, [enabled, user]);
+
+  // Mensajes de grupos entrenador↔familia - Real-time
+  const [groupMessages, setGroupMessages] = useState([]);
+
+  useEffect(() => {
+    if (!enabled || !user) return;
+
+    const loadInitial = async () => {
+      const messages = await base44.entities.ChatMessage.list("-created_date", 1000);
+      setGroupMessages(messages);
+    };
+    loadInitial();
+
+    const unsubscribe = base44.entities.ChatMessage.subscribe((event) => {
+      if (event.type === 'create') setGroupMessages(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setGroupMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+      else if (event.type === 'delete') setGroupMessages(prev => prev.filter(m => m.id !== event.id));
+    });
+
+    return unsubscribe;
+  }, [enabled, user]);
+
+  // Conversaciones privadas - Real-time
+  const [privateConvs, setPrivateConvs] = useState([]);
+
+  useEffect(() => {
+    if (!enabled || !user) return;
+
+    const loadInitial = async () => {
+      const convs = await base44.entities.PrivateConversation.list("-ultimo_mensaje_fecha", 300);
+      setPrivateConvs(convs);
+    };
+    loadInitial();
+
+    const unsubscribe = base44.entities.PrivateConversation.subscribe((event) => {
+      if (event.type === 'create') setPrivateConvs(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setPrivateConvs(prev => prev.map(c => c.id === event.id ? event.data : c));
+      else if (event.type === 'delete') setPrivateConvs(prev => prev.filter(c => c.id !== event.id));
+    });
+
+    return unsubscribe;
+  }, [enabled, user]);
 
   // Jugadores del usuario (para familias/jugadores)
   const { data: players = [] } = useQuery({
