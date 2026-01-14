@@ -31,82 +31,139 @@ export default function NotificationCenter() {
     fetchUser();
   }, []);
 
-  const { data: messages = [] } = useQuery({
-    queryKey: ['messages', user?.email],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date', 500),
-    initialData: [],
-    enabled: !!user && isOpen,
-    staleTime: 30000,
-    refetchInterval: isOpen ? 30000 : false,
-    refetchOnWindowFocus: false,
-  });
+  const [messages, setMessages] = useState([]);
+  const [allNotifications, setAllNotifications] = useState([]);
+  const [callups, setCallups] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [reminders, setReminders] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [privateConversations, setPrivateConversations] = useState([]);
 
-  const { data: allNotifications } = useQuery({
-    queryKey: ['appNotifications', user?.email],
-    queryFn: async () => {
-      const all = await base44.entities.AppNotification.list('-created_date');
-      return all.filter(n => n.usuario_email === user?.email);
-    },
-    enabled: !!user?.email && isOpen,
-    initialData: [],
-    refetchInterval: isOpen ? 30000 : false,
-  });
-
-  const { data: callups } = useQuery({
-    queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list('-created_date'),
-    initialData: [],
-    enabled: isOpen,
-    refetchInterval: isOpen ? 30000 : false,
-  });
-
-  const { data: announcements } = useQuery({
-    queryKey: ['announcements'],
-    queryFn: () => base44.entities.Announcement.list('-fecha_publicacion'),
-    initialData: [],
-    enabled: isOpen,
-    refetchInterval: isOpen ? 30000 : false,
-  });
-
-  const { data: payments } = useQuery({
-    queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list('-created_date'),
-    initialData: [],
-    enabled: isOpen,
-    refetchInterval: isOpen ? 30000 : false,
-  });
-
-  const { data: players } = useQuery({
+  const { data: players = [] } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
-    refetchInterval: false,
   });
 
-  const { data: reminders } = useQuery({
-    queryKey: ['reminders'],
-    queryFn: () => base44.entities.Reminder.list('-fecha_envio'),
-    initialData: [],
-    enabled: isOpen,
-    refetchInterval: isOpen ? 30000 : false,
-  });
+  // Real-time subscriptions
+  useEffect(() => {
+    if (!isOpen || !user) return;
 
-  const { data: events } = useQuery({
-    queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list(),
-    initialData: [],
-    enabled: isOpen,
-    refetchInterval: isOpen ? 30000 : false,
-  });
+    const unsubscribers = [];
 
-  // Mensajes privados
-  const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversationsNotif', user?.email],
-    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha'),
-    initialData: [],
-    enabled: isOpen && !!user,
-    refetchInterval: isOpen ? 30000 : false,
-  });
+    // Messages
+    const loadMessages = async () => {
+      const msgs = await base44.entities.ChatMessage.list('-created_date', 500);
+      setMessages(msgs);
+    };
+    loadMessages();
+    const unsubMsg = base44.entities.ChatMessage.subscribe((event) => {
+      if (event.type === 'create') setMessages(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+      else if (event.type === 'delete') setMessages(prev => prev.filter(m => m.id !== event.id));
+    });
+    unsubscribers.push(unsubMsg);
+
+    // AppNotifications
+    const loadNotifs = async () => {
+      const all = await base44.entities.AppNotification.list('-created_date');
+      setAllNotifications(all.filter(n => n.usuario_email === user.email));
+    };
+    loadNotifs();
+    const unsubNotif = base44.entities.AppNotification.subscribe((event) => {
+      if (event.type === 'create' && event.data.usuario_email === user.email) {
+        setAllNotifications(prev => [event.data, ...prev]);
+      } else if (event.type === 'update' && event.data.usuario_email === user.email) {
+        setAllNotifications(prev => prev.map(n => n.id === event.id ? event.data : n));
+      } else if (event.type === 'delete') {
+        setAllNotifications(prev => prev.filter(n => n.id !== event.id));
+      }
+    });
+    unsubscribers.push(unsubNotif);
+
+    // Callups
+    const loadCallups = async () => {
+      const c = await base44.entities.Convocatoria.list('-created_date');
+      setCallups(c);
+    };
+    loadCallups();
+    const unsubCall = base44.entities.Convocatoria.subscribe((event) => {
+      if (event.type === 'create') setCallups(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setCallups(prev => prev.map(c => c.id === event.id ? event.data : c));
+      else if (event.type === 'delete') setCallups(prev => prev.filter(c => c.id !== event.id));
+    });
+    unsubscribers.push(unsubCall);
+
+    // Announcements
+    const loadAnn = async () => {
+      const a = await base44.entities.Announcement.list('-fecha_publicacion');
+      setAnnouncements(a);
+    };
+    loadAnn();
+    const unsubAnn = base44.entities.Announcement.subscribe((event) => {
+      if (event.type === 'create') setAnnouncements(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setAnnouncements(prev => prev.map(a => a.id === event.id ? event.data : a));
+      else if (event.type === 'delete') setAnnouncements(prev => prev.filter(a => a.id !== event.id));
+    });
+    unsubscribers.push(unsubAnn);
+
+    // Payments
+    const loadPay = async () => {
+      const p = await base44.entities.Payment.list('-created_date');
+      setPayments(p);
+    };
+    loadPay();
+    const unsubPay = base44.entities.Payment.subscribe((event) => {
+      if (event.type === 'create') setPayments(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setPayments(prev => prev.map(p => p.id === event.id ? event.data : p));
+      else if (event.type === 'delete') setPayments(prev => prev.filter(p => p.id !== event.id));
+    });
+    unsubscribers.push(unsubPay);
+
+    // Reminders
+    const loadRem = async () => {
+      const r = await base44.entities.Reminder.list('-fecha_envio');
+      setReminders(r);
+    };
+    loadRem();
+    const unsubRem = base44.entities.Reminder.subscribe((event) => {
+      if (event.type === 'create') setReminders(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setReminders(prev => prev.map(r => r.id === event.id ? event.data : r));
+      else if (event.type === 'delete') setReminders(prev => prev.filter(r => r.id !== event.id));
+    });
+    unsubscribers.push(unsubRem);
+
+    // Events
+    const loadEv = async () => {
+      const e = await base44.entities.Event.list();
+      setEvents(e);
+    };
+    loadEv();
+    const unsubEv = base44.entities.Event.subscribe((event) => {
+      if (event.type === 'create') setEvents(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setEvents(prev => prev.map(e => e.id === event.id ? event.data : e));
+      else if (event.type === 'delete') setEvents(prev => prev.filter(e => e.id !== event.id));
+    });
+    unsubscribers.push(unsubEv);
+
+    // Private Conversations
+    const loadPriv = async () => {
+      const pc = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha');
+      setPrivateConversations(pc);
+    };
+    loadPriv();
+    const unsubPriv = base44.entities.PrivateConversation.subscribe((event) => {
+      if (event.type === 'create') setPrivateConversations(prev => [event.data, ...prev]);
+      else if (event.type === 'update') setPrivateConversations(prev => prev.map(p => p.id === event.id ? event.data : p));
+      else if (event.type === 'delete') setPrivateConversations(prev => prev.filter(p => p.id !== event.id));
+    });
+    unsubscribers.push(unsubPriv);
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [isOpen, user]);
 
 
 
