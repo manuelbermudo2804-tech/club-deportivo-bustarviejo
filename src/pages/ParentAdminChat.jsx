@@ -105,42 +105,44 @@ export default function ParentAdminChat() {
     markAdminConversationAsRead(conversation.id, 'parent', queryClient);
   }, [conversation?.id, messages]);
 
+  const sendAdminMessageCore = async (data) => {
+    await base44.entities.AdminMessage.create({
+      conversacion_id: conversation.id,
+      autor: "padre",
+      autor_email: user.email,
+      autor_nombre: user.full_name,
+      mensaje: data.mensaje,
+      archivos_adjuntos: data.archivos_adjuntos || [],
+      leido_padre: true,
+      leido_admin: false,
+      fecha_leido_padre: new Date().toISOString()
+    });
+
+    await base44.entities.AdminConversation.update(conversation.id, {
+      ultimo_mensaje: data.mensaje,
+      ultimo_mensaje_fecha: new Date().toISOString(),
+      ultimo_mensaje_autor: "padre",
+      no_leidos_admin: (conversation.no_leidos_admin || 0) + 1
+    });
+
+    const allUsers = await base44.entities.User.list();
+    const admins = allUsers.filter(u => u.role === "admin");
+    for (const admin of admins) {
+      await base44.entities.AppNotification.create({
+        usuario_email: admin.email,
+        titulo: `🚨 Respuesta en conversación crítica`,
+        mensaje: `${user.full_name}: ${data.mensaje.substring(0, 100)}`,
+        tipo: "urgente",
+        icono: "🚨",
+        enlace: "AdminChat",
+        vista: false
+      });
+    }
+  };
+
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
-      await base44.entities.AdminMessage.create({
-        conversacion_id: conversation.id,
-        autor: "padre",
-        autor_email: user.email,
-        autor_nombre: user.full_name,
-        mensaje: data.mensaje,
-        archivos_adjuntos: data.archivos_adjuntos || [],
-        leido_padre: true,
-        leido_admin: false,
-        fecha_leido_padre: new Date().toISOString()
-      });
-
-      await base44.entities.AdminConversation.update(conversation.id, {
-        ultimo_mensaje: data.mensaje,
-        ultimo_mensaje_fecha: new Date().toISOString(),
-        ultimo_mensaje_autor: "padre",
-        no_leidos_admin: (conversation.no_leidos_admin || 0) + 1
-      });
-
-      // Notificar a todos los admins
-      const allUsers = await base44.entities.User.list();
-      const admins = allUsers.filter(u => u.role === "admin");
-
-      for (const admin of admins) {
-        await base44.entities.AppNotification.create({
-          usuario_email: admin.email,
-          titulo: `🚨 Respuesta en conversación crítica`,
-          mensaje: `${user.full_name}: ${data.mensaje.substring(0, 100)}`,
-          tipo: "urgente",
-          icono: "🚨",
-          enlace: "AdminChat",
-          vista: false
-        });
-      }
+      return await sendAdminMessageCore(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parentAdminMessages'] });
