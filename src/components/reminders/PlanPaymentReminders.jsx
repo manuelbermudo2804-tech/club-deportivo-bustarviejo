@@ -5,6 +5,7 @@ import { useActiveSeason } from "../season/SeasonProvider";
 export default function PlanPaymentReminders({ user }) {
   const [processing, setProcessing] = useState(false);
   const lastRunRef = useRef(null);
+  const { activeSeason } = useActiveSeason();
 
   useEffect(() => {
     if (!user) return;
