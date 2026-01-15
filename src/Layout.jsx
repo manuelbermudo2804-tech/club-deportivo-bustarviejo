@@ -661,10 +661,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation)
   const isPublicPage = location.pathname.includes('ClubMembership') || 
-                       location.pathname.includes('ValidateAdminInvitation') ||
-                       location.pathname.toLowerCase().includes('pwaentry') ||
-                       location.pathname.includes('PwaEntry') ||
-                       location.pathname.includes('pwa-entry');
+                       location.pathname.includes('ValidateAdminInvitation');
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -678,11 +675,10 @@ export default function Layout({ children, currentPageName }) {
 
                         // Verificar si es primera vez del usuario (mostrar WelcomeScreen)
                         const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-                                  const installTrigger = localStorage.getItem('installPromptAfterOnboarding') === 'true';
-                                  const disableLegacyOnboarding = localStorage.getItem('disableLegacyOnboarding') === 'true';
-                                  if (!disableLegacyOnboarding && !hasSeenWelcome && !isPublicPage && !installTrigger) {
-                                    setShowWelcome(true);
-                                  }
+                        const installTrigger = localStorage.getItem('installPromptAfterOnboarding') === 'true';
+                        if (!hasSeenWelcome && !isPublicPage && !installTrigger) {
+                          setShowWelcome(true);
+                        }
 
                         // Procesar invitación de ADMIN si existe (flujo de segundo progenitor eliminado)
                         const urlParams = new URLSearchParams(window.location.search);
@@ -1405,11 +1401,20 @@ export default function Layout({ children, currentPageName }) {
     }, 250);
   };
 
-  // Páginas públicas: renderizar SIEMPRE el contenido sin envolver en el Layout
-  if (isPublicPage) {
+  // Si es página pública y ya se verificó la autenticación pero no hay usuario, mostrar contenido sin layout
+  if (isPublicPage && authChecked && !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {children}
+      </div>
+    );
+  }
+
+  // Si es página pública y aún se está verificando la autenticación, mostrar loading
+  if (isPublicPage && !authChecked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
       </div>
     );
   }
@@ -1428,7 +1433,7 @@ export default function Layout({ children, currentPageName }) {
                       // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
 
                       // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor
-                      if (localStorage.getItem('disableLegacyOnboarding') !== 'true' && !user.tipo_panel && user.es_segundo_progenitor !== true) {
+                      if (!user.tipo_panel && user.es_segundo_progenitor !== true) {
                         setOnboardingView('selector');
                         return;
                       }

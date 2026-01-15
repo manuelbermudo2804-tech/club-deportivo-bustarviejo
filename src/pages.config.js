@@ -90,7 +90,6 @@ import Store from './pages/Store';
 import Surveys from './pages/Surveys';
 import TacticsBoard from './pages/TacticsBoard';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
-import PwaEntry from './pages/PwaEntry';
 import TeamRosters from './pages/TeamRosters';
 import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
@@ -192,7 +191,6 @@ export const PAGES = {
     "Surveys": Surveys,
     "TacticsBoard": TacticsBoard,
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
-    "PwaEntry": PwaEntry,
     "TeamRosters": TeamRosters,
     "TrainingSchedules": TrainingSchedules,
     "TreasurerDashboard": TreasurerDashboard,
