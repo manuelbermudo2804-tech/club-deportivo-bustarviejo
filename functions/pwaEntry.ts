@@ -70,8 +70,8 @@ Deno.serve(async (req) => {
       </div>
 
       <div class="hint">
-        <strong>¿Problemas?</strong>
-        <div class="small">También puedes abrir <a class="link" href="/functions/pwaEntry?skip=1">esta versión</a> que marca la instalación como completada y te lleva a iniciar sesión.</div>
+        <strong>Importante</strong>
+        <div class="small">La app requiere instalación para continuar. Si ya la instalaste, pulsa “Ya la tengo instalada”.</div>
       </div>
 
       <p class="small center" style="margin-top:10px;">© CD Bustarviejo · PWA</p>
