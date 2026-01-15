@@ -1539,7 +1539,7 @@ export default function Layout({ children, currentPageName }) {
                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                    <div className="text-center mb-4">
                                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                             <Smartphone className="w-8 h-8 text-green-600" />
+                                             <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-10 h-10 rounded-md" />
                                            </div>
                                            <h2 className="text-2xl font-bold text-green-700">📲 Instala la App del Club</h2>
                                            <p className="text-slate-600 mt-1 text-sm">¡Es muy sencillo! Solo 4 pasos y tardarás menos de 1 minuto</p>
@@ -1885,7 +1885,7 @@ export default function Layout({ children, currentPageName }) {
                 className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
                 title="Ver cómo instalar"
               >
-                <Smartphone className="w-5 h-5" />
+                <img src={CLUB_LOGO_URL} alt="Instalar" className="w-5 h-5 rounded" />
               </button>
               <Suspense fallback={null}><NotificationCenter /></Suspense>
               <ThemeToggle />
@@ -1931,7 +1931,7 @@ export default function Layout({ children, currentPageName }) {
                     }}
                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg mb-4"
                   >
-                    <Smartphone className="w-6 h-6 flex-shrink-0" />
+                    <img src={CLUB_LOGO_URL} alt="Instalar" className="w-6 h-6 flex-shrink-0 rounded" />
                     <span className="font-bold text-base flex-1">📲 Ver cómo instalar la App</span>
                   </button>
                 )}
@@ -1969,7 +1969,7 @@ export default function Layout({ children, currentPageName }) {
                                                       }}
                                                                                           className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/20 text-white hover:bg-green-500/30 transition-all"
                                                                                         >
-                                                                                          <Smartphone className="w-6 h-6" />
+                                                                                          <img src={CLUB_LOGO_URL} alt="Instalar" className="w-6 h-6 rounded" />
                                                                                           <span className="font-semibold text-lg">📲 Ver cómo instalar</span>
                                                                                         </button>
                                                                                       )}
@@ -2085,7 +2085,7 @@ export default function Layout({ children, currentPageName }) {
                 variant="outline" 
                 className="w-full mt-3 border-green-500 text-green-400 hover:bg-green-500/20 font-semibold py-3 rounded-xl"
               >
-                <Smartphone className="w-4 h-4 mr-2" />
+                <img src={CLUB_LOGO_URL} alt="Instalar" className="w-4 h-4 mr-2 rounded" />
                 {isAppInstalled ? "✅ App instalada" : "📲 Ver cómo instalar"}
               </Button>
 
