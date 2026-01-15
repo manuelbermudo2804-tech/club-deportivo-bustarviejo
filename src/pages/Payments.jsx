@@ -85,15 +85,16 @@ export default function Payments() {
   // Active season from global provider
   const { activeSeason: activeSeasonStr, seasonConfig: activeSeasonConfig } = useActiveSeason();
 
-  // Mantener siempre el filtro en la temporada activa
+
+  
+  // Filtros avanzados - SIEMPRE la temporada activa
+  const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonStr);
+  // Sincronizar automáticamente cuando cambie la temporada activa
   useEffect(() => {
     if (activeSeasonStr && temporadaFilter !== activeSeasonStr) {
       setTemporadaFilter(activeSeasonStr);
     }
-  }, [activeSeasonStr, temporadaFilter]);
-  
-  // Filtros avanzados - SIEMPRE la temporada activa
-  const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonStr);
+  }, [activeSeasonStr]);
   const [categoriaFilter, setCategoriaFilter] = useState("all");
   const [estadoFilter, setEstadoFilter] = useState("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
