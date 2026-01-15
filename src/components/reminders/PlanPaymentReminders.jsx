@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { useActiveSeason } from "../season/SeasonProvider";
 
 export default function PlanPaymentReminders({ user }) {
   const [processing, setProcessing] = useState(false);
