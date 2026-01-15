@@ -12,6 +12,19 @@ export default function PwaEntry() {
   );
 
   useEffect(() => {
+    // Bypass de emergencia: /PwaEntry?skip=1 marca flags y entra a la web
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('skip') === '1') {
+        localStorage.setItem('disableLegacyOnboarding', 'true');
+        localStorage.setItem('hasSeenWelcome', 'true');
+        localStorage.setItem('installCompleted', 'true');
+        localStorage.setItem('pwaInstalled', 'true');
+        window.location.replace('/Home');
+        return;
+      }
+    } catch {}
+
     // Si ya está instalada, no mostrar onboarding
     if (isStandalone()) {
       // Marcar flags para desactivar onboarding legacy
