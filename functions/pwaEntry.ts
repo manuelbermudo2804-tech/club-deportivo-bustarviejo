@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     });
 
     alreadyInstalledBtn.addEventListener('click', () => markInstalledAndGo());
-    skipBtn.addEventListener('click', () => window.location.href = '/login?nextUrl=' + encodeURIComponent('/Home'));
+    // Sin bypass: instalación obligatoria
   </script>
 </body>
 </html>`;
