@@ -23,6 +23,19 @@ const BASE_CATEGORIES = [
   "Baloncesto (Mixto)"
 ];
 
+// Cuotas por defecto de respaldo si no existen categorías previas
+const DEFAULT_BASE_QUOTAS = {
+  "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75 },
+  "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75 },
+  "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83 },
+  "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83 },
+  "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95 },
+  "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95 },
+  "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95 },
+  "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95 },
+  "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50 }
+};
+
 export default function CategoryConfigAdmin() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
@@ -71,6 +84,39 @@ export default function CategoryConfigAdmin() {
     enabled: !!activeSeason
   });
 
+  // Crear 9 categorías BASE para la temporada activa copiando de anteriores o usando valores por defecto
+  const createBaseCategoriesForActiveSeason = async () => {
+    if (!activeSeason) return;
+    try {
+      const allExisting = await base44.entities.CategoryConfig.list();
+      for (const name of BASE_CATEGORIES) {
+        const fromPrevious = allExisting.find(c => c.nombre === name && c.es_base === true);
+        const cuotas = fromPrevious ? {
+          inscripcion: fromPrevious.cuota_inscripcion,
+          segunda: fromPrevious.cuota_segunda,
+          tercera: fromPrevious.cuota_tercera,
+        } : DEFAULT_BASE_QUOTAS[name];
+
+        if (!cuotas) continue;
+        await base44.entities.CategoryConfig.create({
+          nombre: name,
+          temporada: activeSeason.temporada,
+          activa: true,
+          es_base: true,
+          deporte: name.includes('Baloncesto') ? 'Baloncesto' : 'Fútbol',
+          cuota_inscripcion: cuotas.inscripcion,
+          cuota_segunda: cuotas.segunda,
+          cuota_tercera: cuotas.tercera,
+          cuota_total: (cuotas.inscripcion || 0) + (cuotas.segunda || 0) + (cuotas.tercera || 0)
+        });
+      }
+      await queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
+      toast.success(`Categorías BASE creadas para ${activeSeason.temporada}`);
+    } catch (e) {
+      console.error('Error creando categorías base:', e);
+      toast.error('No se pudieron crear las categorías base');
+    }
+  };
   // Mutations
   const updateCategoryMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.CategoryConfig.update(id, data),
