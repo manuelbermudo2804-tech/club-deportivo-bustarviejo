@@ -14,8 +14,21 @@ export default function PwaEntry() {
   useEffect(() => {
     // Si ya está instalada, no mostrar onboarding
     if (isStandalone()) {
-      // Ir a la app (Layout decidirá dashboard)
-      window.location.replace('/');
+      // Ir según tipo_panel guardado
+      (async () => {
+        try {
+          const isAuth = await base44.auth.isAuthenticated();
+          if (isAuth) {
+            const me = await base44.auth.me();
+            const target = me?.tipo_panel === 'jugador_adulto' ? '/PlayerDashboard' : '/ParentDashboard';
+            window.location.replace(target);
+          } else {
+            window.location.replace('/login');
+          }
+        } catch {
+          window.location.replace('/login');
+        }
+      })();
       return;
     }
 
