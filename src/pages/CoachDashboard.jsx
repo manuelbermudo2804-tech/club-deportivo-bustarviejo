@@ -53,6 +53,26 @@ export default function CoachDashboard() {
 
   const { notifications } = useUnifiedNotifications(user);
 
+  // Debounced display counts to avoid initial flicker while data hydrates
+  const [displayFamilyUnread, setDisplayFamilyUnread] = useState(0);
+  const [displayStaffUnread, setDisplayStaffUnread] = useState(0);
+  const [displayCoordUnread, setDisplayCoordUnread] = useState(0);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDisplayFamilyUnread(notifications?.unreadFamilyMessages || 0), 300);
+    return () => clearTimeout(t);
+  }, [notifications?.unreadFamilyMessages]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDisplayStaffUnread(notifications?.unreadStaffMessages || 0), 300);
+    return () => clearTimeout(t);
+  }, [notifications?.unreadStaffMessages]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDisplayCoordUnread(notifications?.unreadCoordinatorMessages || 0), 300);
+    return () => clearTimeout(t);
+  }, [notifications?.unreadCoordinatorMessages]);
+
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
@@ -368,9 +388,9 @@ export default function CoachDashboard() {
 
               <Link to={createPageUrl("CoachParentChat")} className="relative">
                 <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {unreadFamiliesForCoach > 0 && (
+                  {displayFamilyUnread > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{unreadFamiliesForCoach}</span>
+                      <span className="text-white text-xs font-bold">{displayFamilyUnread}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold text-center">💬 Familias</p>
@@ -381,9 +401,9 @@ export default function CoachDashboard() {
               {(user?.es_coordinador || user?.role === "admin") && (
                 <Link to={createPageUrl("CoordinatorChat")} className="relative">
                 <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {unreadCoordinatorAsCoord > 0 && (
+                  {displayCoordUnread > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{unreadCoordinatorAsCoord}</span>
+                      <span className="text-white text-xs font-bold">{displayCoordUnread}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold text-center">🏟️ Coordinador</p>
@@ -394,9 +414,9 @@ export default function CoachDashboard() {
 
                <Link to={createPageUrl("StaffChat")} className={`${showCoordinatorTile ? '' : 'col-span-2 lg:col-span-1'} relative`}>
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {unreadStaffMessages > 0 && (
+                  {displayStaffUnread > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{unreadStaffMessages}</span>
+                      <span className="text-white text-xs font-bold">{displayStaffUnread}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold text-center">💼 Staff</p>

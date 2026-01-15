@@ -401,9 +401,9 @@ export default function CoordinatorDashboard() {
 
               <Link to={createPageUrl("FamilyChats")} className="flex-1">
                 <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  {Number(unreadFamilyMessages) > 0 && (
+                  {Number(displayFamilyUnread) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{unreadFamilyMessages}</span>
+                      <span className="text-white text-xs font-bold">{displayFamilyUnread}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold text-center mb-1">💬 Familias</p>
@@ -413,9 +413,9 @@ export default function CoordinatorDashboard() {
 
               <Link to={createPageUrl("StaffChat")} className="flex-1">
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  {Number(unreadStaff) > 0 && (
+                  {Number(displayStaffUnread) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{unreadStaff}</span>
+                      <span className="text-white text-xs font-bold">{displayStaffUnread}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold text-center mb-1">💼 Staff</p>

@@ -11,6 +11,11 @@ export default function NotificationBadge() {
 
   const isAdmin = user?.role === 'admin';
   const { total: chatUnread } = useUnreadChats();
+  // Debounce to avoid brief spikes while queries hydrate
+  const debounce = (fn, delay) => {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+  };
   const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
       const { data: messages = [] } = useQuery({
               queryKey: ['chatMessages', user?.email],
