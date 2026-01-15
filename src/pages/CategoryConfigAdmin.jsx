@@ -215,6 +215,7 @@ export default function CategoryConfigAdmin() {
 
   const baseCategories = categories.filter(c => BASE_CATEGORIES.includes(c.nombre));
   const extraCategories = categories.filter(c => !BASE_CATEGORIES.includes(c.nombre));
+  const missingBaseCount = BASE_CATEGORIES.filter(name => !categories.some(c => c.nombre === name)).length;
 
   if (!isAdmin) {
     return (
@@ -249,15 +250,15 @@ export default function CategoryConfigAdmin() {
         <p className="text-slate-600 mt-1">Temporada: <strong>{activeSeason.temporada}</strong></p>
       </div>
 
-      {categories.length === 0 && (
+      {missingBaseCount > 0 && (
         <Card className="border-2 border-amber-300 bg-amber-50">
           <CardContent className="py-5 flex items-center justify-between gap-4">
             <div>
-              <p className="font-semibold text-amber-900">No hay categorías configuradas para esta temporada</p>
-              <p className="text-sm text-amber-800">Pulsa el botón para crear automáticamente las 9 categorías BASE con sus cuotas.</p>
+              <p className="font-semibold text-amber-900">Faltan {missingBaseCount} de 9 categorías BASE en esta temporada</p>
+              <p className="text-sm text-amber-800">Pulsa el botón para completar automáticamente las que falten con sus cuotas.</p>
             </div>
             <Button onClick={createBaseCategoriesForActiveSeason} className="bg-amber-600 hover:bg-amber-700">
-              Crear 9 categorías BASE
+              Completar categorías BASE
             </Button>
           </CardContent>
         </Card>
@@ -271,7 +272,14 @@ export default function CategoryConfigAdmin() {
               <CheckCircle2 className="w-5 h-5 text-green-600" />
               <CardTitle className="text-green-900">✅ 9 Categorías BASE (INMUTABLES)</CardTitle>
             </div>
-            <Badge className="bg-green-600">Siempre {BASE_CATEGORIES.length}</Badge>
+            <div className="flex items-center gap-2">
+              {missingBaseCount > 0 && (
+                <Button onClick={createBaseCategoriesForActiveSeason} size="sm" className="bg-amber-600 hover:bg-amber-700">
+                  Completar ({missingBaseCount})
+                </Button>
+              )}
+              <Badge className="bg-green-600">Siempre {BASE_CATEGORIES.length}</Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
