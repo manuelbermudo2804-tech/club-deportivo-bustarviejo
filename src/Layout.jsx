@@ -1521,7 +1521,7 @@ export default function Layout({ children, currentPageName }) {
 
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
-               <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInstallInstructions(false)}>
+               <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={() => { if (installContext !== 'onboarding') setShowInstallInstructions(false); }}>
                  <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                    <div className="text-center mb-4">
                                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -1692,17 +1692,19 @@ export default function Layout({ children, currentPageName }) {
                     >
                       ✅ Ya la tengo instalada
                     </Button>
-                                      <Button 
-                                        onClick={() => {
-                                          setShowInstallInstructions(false);
-                                          setInstallDismissed(true);
-                                          localStorage.setItem('installPromptDismissed', 'true');
-                                        }} 
-                                        variant="outline"
-                                        className="w-full mt-2 py-3"
-                                      >
-                                        Cerrar
-                                      </Button>
+                                      {installContext !== 'onboarding' && (
+                                        <Button 
+                                          onClick={() => {
+                                            setShowInstallInstructions(false);
+                                            setInstallDismissed(true);
+                                            localStorage.setItem('installPromptDismissed', 'true');
+                                          }} 
+                                          variant="outline"
+                                          className="w-full mt-2 py-3"
+                                        >
+                                          Cerrar
+                                        </Button>
+                                      )}
                   </div>
                 </div>
                 )}
