@@ -5,47 +5,69 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import Papa from "papaparse";
 
 export default function BankStatementUpload({ onUploadComplete }) {
   const [uploading, setUploading] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
+  // Parser CSV ligero sin dependencias (soporta comas/semicolon y campos entrecomillados)
   const parseCSV = async (file) => {
-    return new Promise((resolve, reject) => {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          try {
-            const movements = results.data.map(row => {
-              // Detectar formato del CSV (cada banco es diferente)
-              const fecha = row.Fecha || row.fecha || row['F.Valor'] || row.date;
-              const concepto = row.Concepto || row.concepto || row.Descripcion || row.description || row['Desc.'];
-              const importe = row.Importe || row.importe || row.Cantidad || row.amount;
-              
-              if (!fecha || !concepto || !importe) {
-                throw new Error("CSV incompleto - revisa las columnas");
-              }
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (lines.length < 2) return [];
 
-              const importeNum = parseFloat(String(importe).replace(',', '.'));
-              
-              return {
-                fecha: fecha,
-                concepto: concepto.trim(),
-                importe: Math.abs(importeNum),
-                tipo: importeNum > 0 ? "ingreso" : "gasto"
-              };
-            }).filter(m => m.tipo === "ingreso"); // Solo ingresos para conciliación de pagos
+    const detectDelimiter = (s) => {
+      const commas = (s.match(/,/g) || []).length;
+      const semis = (s.match(/;/g) || []).length;
+      return semis > commas ? ';' : ',';
+    };
+    const delimiter = detectDelimiter(lines[0]);
 
-            resolve(movements);
-          } catch (error) {
-            reject(error);
-          }
-        },
-        error: (error) => reject(error)
-      });
+    const splitLine = (line) => {
+      const out = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+          else { inQuotes = !inQuotes; }
+        } else if (ch === delimiter && !inQuotes) {
+          out.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out.map(v => v.replace(/^"|"$/g, '').trim());
+    };
+
+    const headers = splitLine(lines[0]);
+    const rows = lines.slice(1).map(l => {
+      const cells = splitLine(l);
+      const obj = {};
+      headers.forEach((h, idx) => { obj[h] = cells[idx] ?? ''; });
+      return obj;
     });
+
+    const movements = rows.map(row => {
+      const fecha = row.Fecha || row.fecha || row['F.Valor'] || row.date;
+      const concepto = row.Concepto || row.concepto || row.Descripcion || row.description || row['Desc.'];
+      const importe = row.Importe || row.importe || row.Cantidad || row.amount;
+      if (!fecha || !concepto || !importe) {
+        throw new Error('CSV incompleto - revisa las columnas');
+      }
+      const importeNum = parseFloat(String(importe).replace(',', '.'));
+      return {
+        fecha: fecha,
+        concepto: String(concepto).trim(),
+        importe: Math.abs(importeNum),
+        tipo: importeNum > 0 ? 'ingreso' : 'gasto',
+      };
+    }).filter(m => m.tipo === 'ingreso');
+
+    return movements;
   };
 
   const handleFileUpload = async (e) => {
