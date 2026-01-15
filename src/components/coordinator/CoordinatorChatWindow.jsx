@@ -78,8 +78,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       if (!conversation?.id) return [];
       return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
-    refetchInterval: 3000,
-    refetchOnWindowFocus: true,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    gcTime: 300000,
     enabled: !!conversation?.id,
   });
 

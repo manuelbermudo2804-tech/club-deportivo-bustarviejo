@@ -125,8 +125,10 @@ export default function ParentCoordinatorChat() {
       return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
     enabled: !!conversation?.id,
-    refetchInterval: 1000,
-    refetchOnWindowFocus: true,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    gcTime: 300000,
   });
 
   // Auto-marcar como leídos los mensajes del coordinador cuando el padre tiene el chat abierto
