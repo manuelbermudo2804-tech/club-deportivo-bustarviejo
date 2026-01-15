@@ -1405,20 +1405,11 @@ export default function Layout({ children, currentPageName }) {
     }, 250);
   };
 
-  // Si es página pública y ya se verificó la autenticación pero no hay usuario, mostrar contenido sin layout
-  if (isPublicPage && authChecked && !user) {
+  // Páginas públicas: renderizar SIEMPRE el contenido sin envolver en el Layout
+  if (isPublicPage) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {children}
-      </div>
-    );
-  }
-
-  // Si es página pública y aún se está verificando la autenticación, mostrar loading
-  if (isPublicPage && !authChecked) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
       </div>
     );
   }
