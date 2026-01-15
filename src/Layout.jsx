@@ -1441,11 +1441,15 @@ export default function Layout({ children, currentPageName }) {
 
       // Invitar en el primer arranque desde el icono (PWA)
       useEffect(() => {
-                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-                    if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true) {
-                      setShowFirstLaunchInvite(true);
-                    }
-                  }, [user]);
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        if (isStandalone) {
+          localStorage.setItem('pwaInstalled', 'true');
+          setIsAppInstalled(true);
+        }
+        if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true) {
+          setShowFirstLaunchInvite(true);
+        }
+      }, [user]);
 
       if (isLoading && !isPublicPage) {
         return (
@@ -1683,6 +1687,8 @@ export default function Layout({ children, currentPageName }) {
                     <Button 
                       onClick={() => {
                         localStorage.setItem('installCompleted', 'true');
+                        localStorage.setItem('pwaInstalled', 'true');
+                        setIsAppInstalled(true);
                         setShowInstallInstructions(false);
                         if (installContext === 'onboarding') {
                           setShowInstallSuccess(true);
