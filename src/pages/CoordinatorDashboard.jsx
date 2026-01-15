@@ -389,6 +389,7 @@ export default function CoordinatorDashboard() {
             </div>
             
             <div className="grid grid-cols-3 gap-2">
+              {/* Bubble should reflect both coach+coordinator family messages */}
               <Link to={createPageUrl("Chatbot")} className="flex-1">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
@@ -401,7 +402,7 @@ export default function CoordinatorDashboard() {
 
               <Link to={createPageUrl("FamilyChats")} className="flex-1">
                 <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  {unreadFamilyMessages > 0 && (
+                  {Number(unreadFamilyMessages) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                       <span className="text-white text-xs font-bold">{unreadFamilyMessages}</span>
                     </div>

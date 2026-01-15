@@ -49,6 +49,7 @@ export function useUnifiedNotifications(user) {
 
   const [rawData, setRawData] = useState({
     coordinatorConversations: [],
+    coachConversations: [],
     chatMessages: [],
     staffMessages: [],
     adminConversations: [],
@@ -77,7 +78,14 @@ export function useUnifiedNotifications(user) {
       const convs = await base44.entities.CoordinatorConversation.list('-updated_date', 500);
       setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
     };
+
+    // Coach Conversations
+    const loadCoachConvs = async () => {
+      const convs = await base44.entities.CoachConversation.list('-updated_date', 500);
+      setRawData(prev => ({ ...prev, coachConversations: convs }));
+    };
     loadCoordConvs();
+    loadCoachConvs();
     const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.coordinatorConversations];
@@ -88,6 +96,17 @@ export function useUnifiedNotifications(user) {
       });
     });
     unsubscribers.push(unsubCoordConv);
+
+    const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
+      setRawData(prev => {
+        let updated = [...prev.coachConversations];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+        return { ...prev, coachConversations: updated };
+      });
+    });
+    unsubscribers.push(unsubCoachConv);
 
     // Chat Messages
     const loadChatMsgs = async () => {
@@ -339,6 +358,13 @@ export function useUnifiedNotifications(user) {
       rawData.coordinatorConversations.forEach(conv => {
         unreadCoordinator += (conv.no_leidos_coordinador || 0);
       });
+    }
+
+    // Coach (para entrenadores): mensajes en CoachConversation
+    if (user.es_entrenador) {
+      rawData.coachConversations
+        .filter(conv => conv.entrenador_email === user.email)
+        .forEach(conv => { unreadCoach += (conv.no_leidos_entrenador || 0); });
     }
 
     // Coach (ChatMessage tipo entrenador_a_grupo)
