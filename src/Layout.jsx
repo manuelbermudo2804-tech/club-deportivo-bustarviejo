@@ -1428,7 +1428,7 @@ export default function Layout({ children, currentPageName }) {
                       // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
 
                       // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor
-                      if (localStorage.getItem('disableLegacyOnboarding') !== 'true' && !user.tipo_panel && user.es_segundo_progenitor !== true) {
+                      if (!user.tipo_panel && user.es_segundo_progenitor !== true) {
                         setOnboardingView('selector');
                         return;
                       }
@@ -1773,7 +1773,7 @@ export default function Layout({ children, currentPageName }) {
                         <div className="bg-green-500 text-white rounded-2xl p-6 space-y-2">
                           <div className="flex items-center justify-center gap-3">
                             <div className="w-14 h-14 bg-white text-green-500 rounded-full flex items-center justify-center font-black text-2xl shadow-lg">2</div>
-                            <Smartphone className="w-10 h-10" />
+                            <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-10 h-10 rounded-md" />
                           </div>
                           <p className="text-2xl font-black">ABRE EL ICONO</p>
                           <p className="text-sm">Busca el icono del CD Bustarviejo en tu pantalla</p>
