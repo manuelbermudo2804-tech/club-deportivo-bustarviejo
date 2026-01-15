@@ -25,7 +25,7 @@ export default function PwaEntry() {
       }
     } catch {}
 
-    // Si ya está instalada, marcar y mandar al login (obligatorio)
+    // Si ya está instalada, no mostrar onboarding
     if (isStandalone()) {
       // Marcar flags para desactivar onboarding legacy
       try {
