@@ -129,7 +129,7 @@ export default function PwaEntry() {
           />
         </div>
         <h1 className="text-2xl font-bold text-slate-900">Instalar la App</h1>
-        <p className="text-slate-600 mt-1">Para continuar, instala la aplicación en tu dispositivo.</p>
+        <p className="text-slate-600 mt-1">Para continuar, instala la aplicación en tu dispositivo. Este paso es obligatorio.</p>
 
         <div className="mt-6">
           <button
