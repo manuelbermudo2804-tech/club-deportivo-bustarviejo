@@ -89,7 +89,13 @@ export default function CategoryConfigAdmin() {
     if (!activeSeason) return;
     try {
       const allExisting = await base44.entities.CategoryConfig.list();
+      let createdCount = 0;
       for (const name of BASE_CATEGORIES) {
+        // Si ya existe en la temporada activa, saltar
+        const alreadyInSeason = categories.some(c => c.nombre === name);
+        if (alreadyInSeason) continue;
+
+        // Tomar precios de la última base conocida o por defecto
         const fromPrevious = allExisting.find(c => c.nombre === name && c.es_base === true);
         const cuotas = fromPrevious ? {
           inscripcion: fromPrevious.cuota_inscripcion,
@@ -109,9 +115,14 @@ export default function CategoryConfigAdmin() {
           cuota_tercera: cuotas.tercera,
           cuota_total: (cuotas.inscripcion || 0) + (cuotas.segunda || 0) + (cuotas.tercera || 0)
         });
+        createdCount++;
       }
+      // Refrescar lista exacta y prefijo para asegurar re-render
+      await queryClient.invalidateQueries({ queryKey: ['categoryConfig', activeSeason?.id] });
       await queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
-      toast.success(`Categorías BASE creadas para ${activeSeason.temporada}`);
+      toast.success(createdCount > 0 
+        ? `Categorías BASE creadas para ${activeSeason.temporada}`
+        : 'Ya existían las categorías BASE de esta temporada');
     } catch (e) {
       console.error('Error creando categorías base:', e);
       toast.error('No se pudieron crear las categorías base');
