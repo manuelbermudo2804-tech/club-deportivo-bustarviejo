@@ -383,6 +383,19 @@ const alerts = [];
   // Alertas para coordinadores (ya incluidas desde chatItems)
   // if (isCoordinator) { ... } - Ahora se gestiona desde useUnreadChats
 
+  // Fallback: si el hook no devolvió item de familias para coordinador, usa el prop calculado
+  if (isCoordinator && unreadCoordinatorMessages > 0 && !alerts.some(a => a.id === 'families-chat' || a.id === 'families-chat-coordinator')) {
+    alerts.push({
+      id: 'families-chat-coordinator',
+      icon: MessageCircle,
+      title: '👨‍👩‍👧 Mensajes de Familias',
+      description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
+      url: createPageUrl('CoordinatorChat'),
+      color: 'bg-blue-600',
+      priority: 1,
+    });
+  }
+
   // Incidencias eliminadas - la entidad no existe
 
   // Alertas para entrenadores/coordinadores (NO admin)
