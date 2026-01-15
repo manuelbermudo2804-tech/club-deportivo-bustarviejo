@@ -23,6 +23,7 @@ import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 
 export default function CoachCallups() {
   usePageTutorial("coach_callups");
@@ -93,6 +94,7 @@ export default function CoachCallups() {
     }
   }, [selectedCategory]);
 
+  const { activeSeason: activeSeasonStr } = useActiveSeason();
   const { data: callups, isLoading } = useQuery({
     queryKey: ['convocatorias'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
@@ -304,8 +306,20 @@ Email: cdbustarviejo@gmail.com
     }
   };
 
+  // Season range filtering
+  const getSeasonRange = (s) => {
+    if (!s || !s.includes('/')) return { start: new Date(2000,0,1), end: new Date(2999,11,31) };
+    const [y1,y2] = s.split('/').map(n=>parseInt(n,10));
+    return { start: new Date(y1, 8, 1), end: new Date(y2, 7, 31) };
+  };
+  const { start: seasonStart, end: seasonEnd } = getSeasonRange(activeSeasonStr);
+  const seasonCallups = callups.filter(c => {
+    const d = new Date(c.fecha_partido);
+    return !isNaN(d) && d >= seasonStart && d <= seasonEnd;
+  });
+
   // Filter callups for coach's categories
-  const myCallups = callups.filter(c => {
+  const myCallups = seasonCallups.filter(c => {
     if (user?.role === "admin") return true; // Admins see all callups
     
     // Coach/Coordinator: ONLY see callups from their assigned categories

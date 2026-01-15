@@ -18,6 +18,7 @@ import CalendarExport from "../components/calendar/CalendarExport";
 import AgendaView from "../components/calendar/AgendaView";
 import TrainingScheduleForm from "../components/training/TrainingScheduleForm";
 import ContactCard from "../components/ContactCard";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 
 const DIAS_ORDEN = {
   "Lunes": 1,
@@ -77,6 +78,8 @@ export default function CalendarAndSchedules() {
     checkUser();
   }, []);
 
+  const { activeSeason: activeSeasonStr } = useActiveSeason();
+
   // Calendar data
   const { data: events, isLoading: eventsLoading } = useQuery({
     queryKey: ['events'],
@@ -97,8 +100,8 @@ export default function CalendarAndSchedules() {
   });
 
   const { data: schedules, isLoading: schedulesLoading } = useQuery({
-    queryKey: ['trainingSchedules'],
-    queryFn: () => base44.entities.TrainingSchedule.list(),
+    queryKey: ['trainingSchedules', activeSeasonStr],
+    queryFn: () => base44.entities.TrainingSchedule.filter({ temporada: activeSeasonStr }),
     initialData: [],
   });
 
@@ -215,7 +218,15 @@ export default function CalendarAndSchedules() {
 
   // Calendar computed data
   const visibleCallups = useMemo(() => {
-    if (isAdmin) return callups.filter(c => c.publicada);
+    const getSeasonRange = (s) => {
+      if (!s || !s.includes('/')) return { start: new Date(2000,0,1), end: new Date(2999,11,31) };
+      const [y1,y2] = s.split('/').map(n=>parseInt(n,10));
+      return { start: new Date(y1, 8, 1), end: new Date(y2, 7, 31) };
+    };
+    const { start: seasonStart, end: seasonEnd } = getSeasonRange(activeSeasonStr);
+    const inSeason = (dStr) => { const d = new Date(dStr); return !isNaN(d) && d >= seasonStart && d <= seasonEnd; };
+
+    if (isAdmin) return callups.filter(c => c.publicada && inSeason(c.fecha_partido));
     
     return callups.filter(callup => {
       if (!callup.publicada) return false;
@@ -224,8 +235,16 @@ export default function CalendarAndSchedules() {
   }, [callups, isAdmin, myPlayersSports]);
 
   const allCalendarItems = useMemo(() => {
+    const getSeasonRange = (s) => {
+      if (!s || !s.includes('/')) return { start: new Date(2000,0,1), end: new Date(2999,11,31) };
+      const [y1,y2] = s.split('/').map(n=>parseInt(n,10));
+      return { start: new Date(y1, 8, 1), end: new Date(y2, 7, 31) };
+    };
+    const { start: seasonStart, end: seasonEnd } = getSeasonRange(activeSeasonStr);
+    const inSeason = (dStr) => { const d = new Date(dStr); return !isNaN(d) && d >= seasonStart && d <= seasonEnd; };
+
     const eventItems = events
-      .filter(event => (isAdmin || event.publicado) && event.tipo !== 'Partido')
+      .filter(event => (isAdmin || event.publicado) && event.tipo !== 'Partido' && inSeason(event.fecha))
       .map(event => ({
         ...event,
         type: 'event',
@@ -234,7 +253,7 @@ export default function CalendarAndSchedules() {
         category: event.deporte,
       }));
 
-    const callupItems = visibleCallups.map(callup => ({
+    const callupItems = visibleCallups.filter(c => inSeason(c.fecha_partido)).map(callup => ({
       ...callup,
       type: 'callup',
       date: callup.fecha_partido,

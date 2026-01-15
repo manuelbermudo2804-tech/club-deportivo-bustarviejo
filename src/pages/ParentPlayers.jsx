@@ -6,6 +6,7 @@ import { Plus, Info } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
@@ -66,16 +67,7 @@ export default function ParentPlayers() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
-    queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
-    },
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-  });
+  const { activeSeason: currentSeason, seasonConfig } = useActiveSeason();
 
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs', seasonConfig?.temporada],

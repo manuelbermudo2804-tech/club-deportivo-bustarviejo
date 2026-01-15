@@ -23,6 +23,7 @@ import CustomPaymentPlansList from "../components/payments/CustomPaymentPlansLis
 import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
 import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
 import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -81,24 +82,18 @@ export default function Payments() {
   const [playerFilter, setPlayerFilter] = useState(jugadorIdFromUrl || "all");
   const [previewImage, setPreviewImage] = useState(null);
   
-  // Fetch active season config
-  const { data: activeSeasonConfig } = useQuery({
-    queryKey: ['activeSeasonConfig'],
-    queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
-    },
-  });
+  // Active season from global provider
+  const { activeSeason: activeSeasonStr, seasonConfig: activeSeasonConfig } = useActiveSeason();
 
-  // Inicializar filtro de temporada con la temporada activa cuando se carga
+  // Mantener siempre el filtro en la temporada activa
   useEffect(() => {
-    if (activeSeasonConfig?.temporada && temporadaFilter === "all") {
-      setTemporadaFilter(activeSeasonConfig.temporada);
+    if (activeSeasonStr && temporadaFilter !== activeSeasonStr) {
+      setTemporadaFilter(activeSeasonStr);
     }
-  }, [activeSeasonConfig]);
+  }, [activeSeasonStr, temporadaFilter]);
   
-  // Filtros avanzados - iniciar con temporada activa para evitar mostrar miles de cuotas
-  const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonConfig?.temporada || getCurrentSeason());
+  // Filtros avanzados - SIEMPRE la temporada activa
+  const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonStr);
   const [categoriaFilter, setCategoriaFilter] = useState("all");
   const [estadoFilter, setEstadoFilter] = useState("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
@@ -922,7 +917,7 @@ export default function Payments() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        setTemporadaFilter(activeSeasonConfig?.temporada || "all");
+                        setTemporadaFilter(activeSeasonStr || "all");
                         setCategoriaFilter("all");
                         setEstadoFilter("all");
                         setShowOverdueOnly(false);

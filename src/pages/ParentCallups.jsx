@@ -31,6 +31,7 @@ import WeatherWidget from "../components/callups/WeatherWidget";
 import CallupCountdown from "../components/callups/CallupCountdown";
 import CallupMap from "../components/callups/CallupMap";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 
 export default function ParentCallups() {
   const [user, setUser] = useState(null);
@@ -68,6 +69,7 @@ export default function ParentCallups() {
     fetchUser();
   }, []);
 
+  const { activeSeason: activeSeasonStr } = useActiveSeason();
   const { data: callups, isLoading } = useQuery({
     queryKey: ['convocatorias'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
@@ -131,7 +133,18 @@ export default function ParentCallups() {
     });
   };
 
-  const relevantCallups = callups.filter(c => {
+  const getSeasonRange = (s) => {
+    if (!s || !s.includes('/')) return { start: new Date(2000,0,1), end: new Date(2999,11,31) };
+    const [y1,y2] = s.split('/').map(n=>parseInt(n,10));
+    return { start: new Date(y1, 8, 1), end: new Date(y2, 7, 31) };
+  };
+  const { start: seasonStart, end: seasonEnd } = getSeasonRange(activeSeasonStr);
+  const seasonCallups = callups.filter(c => {
+    const d = new Date(c.fecha_partido);
+    return !isNaN(d) && d >= seasonStart && d <= seasonEnd;
+  });
+
+  const relevantCallups = seasonCallups.filter(c => {
     if (!c.publicada) return false;
     
     const hasMyPlayer = c.jugadores_convocados?.some(j => 
