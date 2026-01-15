@@ -140,8 +140,19 @@ export default function PwaEntry() {
           </button>
         </div>
 
-        <div className="mt-6 text-xs text-slate-500">
-          <p>Si usas iPhone/iPad, abre en Safari y añade a pantalla de inicio desde Compartir.</p>
+        <div className="mt-6 space-y-3">
+          <div className="text-xs text-slate-500">
+            <p className="font-semibold text-slate-700">¿No aparece el botón “Instalar aplicación”?</p>
+            <p>• iPhone/iPad: abre en Safari → botón Compartir → “Añadir a pantalla de inicio”.</p>
+            <p>• Android: abre en Chrome → menú ⋮ → “Instalar app” o “Añadir a pantalla de inicio”.</p>
+          </div>
+
+          <button
+            onClick={() => { try { window.location.href = '/Home'; } catch {} }}
+            className="w-full py-3 rounded-xl bg-slate-200 text-slate-800 font-semibold hover:bg-slate-300"
+          >
+            Continuar sin instalar (abrir la web)
+          </button>
         </div>
       </div>
     </div>
