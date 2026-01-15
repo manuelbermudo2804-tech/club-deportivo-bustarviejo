@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { getCuotasPorCategoriaSync } from "../components/payments/paymentAmounts";
 
 import SocialLinks from "../components/SocialLinks";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import SelectiveReminderDialog from "../components/reminders/SelectiveReminderDialog";
 
@@ -31,6 +32,8 @@ export default function PaymentReminders() {
   const [filterStaff, setFilterStaff] = useState("all"); // all, staff, noStaff
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterDebtRange, setFilterDebtRange] = useState("all"); // all, low, medium, high
+
+  const { activeSeason } = useActiveSeason();
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
     queryKey: ['payments'],
@@ -100,7 +103,7 @@ export default function PaymentReminders() {
 
   // Agrupar por familia (email_padre)
   const familiesData = useMemo(() => {
-    const currentSeason = getCurrentSeason();
+    const currentSeason = (activeSeason || getCurrentSeason()).replace(/-/g, '/');
     const activePlayers = players.filter(p => p.activo === true);
     const familyMap = {};
 
@@ -304,7 +307,7 @@ export default function PaymentReminders() {
         totalPendingPayments: family.jugadores.reduce((sum, j) => sum + j.pendingMonths.length, 0)
       }))
       .sort((a, b) => b.totalFamilyDue - a.totalFamilyDue);
-  }, [players, payments, categoryConfigs]);
+  }, [players, payments, categoryConfigs, activeSeason]);
 
   const filteredFamilies = familiesData.filter(family => {
     // Filtro de búsqueda de texto
@@ -657,7 +660,7 @@ export default function PaymentReminders() {
                 
                 try {
                   toast.loading("Recalculando cantidades...");
-                  const currentSeason = getCurrentSeason();
+                  const currentSeason = (activeSeason || getCurrentSeason()).replace(/-/g, '/');
                   const allPayments = await base44.entities.Payment.list();
                   const activePlayers = await base44.entities.Player.list();
                   

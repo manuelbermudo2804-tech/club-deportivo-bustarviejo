@@ -18,12 +18,13 @@ export function isPaymentOverdue(payment) {
     return match ? parseInt(match[1], 10) : now.getFullYear();
   };
 
-  // Fechas límite por mes (del año actual por defecto)
-  const currentYear = now.getFullYear();
+  // Fechas límite por mes basadas en la TEMPORADA del pago
+  const startYear = getSeasonStartYear(payment.temporada);
+  const endYear = startYear + 1;
   const monthDeadlines = {
-    "Junio": new Date(currentYear, 5, 30),      // 30 junio
-    "Septiembre": new Date(currentYear, 8, 30), // 30 septiembre
-    "Diciembre": new Date(currentYear, 11, 31), // 31 diciembre
+    "Junio": new Date(endYear, 5, 30),       // 30 junio del AÑO SIGUIENTE
+    "Septiembre": new Date(startYear, 8, 30),// 30 septiembre del AÑO INICIO
+    "Diciembre": new Date(startYear, 11, 31) // 31 diciembre del AÑO INICIO
   };
 
   // Caso especial: Pago Único (ignora meses estándar)

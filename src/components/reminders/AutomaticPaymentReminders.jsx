@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { getCuotasPorCategoriaSync } from "../payments/paymentAmounts";
+import { useActiveSeason } from "../season/SeasonProvider";
 
 // Motor de recordatorios automáticos de pago
 export default function AutomaticPaymentReminders({ user }) {
   const [processing, setProcessing] = useState(false);
+  const { activeSeason } = useActiveSeason();
 
   useEffect(() => {
     if (!user) return;
@@ -26,8 +28,8 @@ export default function AutomaticPaymentReminders({ user }) {
         const currentDay = now.getDate();
         const currentYear = now.getFullYear();
         
-        // Determinar temporada actual
-        const currentSeason = currentMonth >= 9 ? `${currentYear}/${currentYear + 1}` : `${currentYear - 1}/${currentYear}`;
+        // Determinar temporada ACTIVA (SeasonProvider) con fallback por fecha
+        const currentSeason = (activeSeason || (currentMonth >= 9 ? `${currentYear}/${currentYear + 1}` : `${currentYear - 1}/${currentYear}`)).replace(/-/g, '/');
         
         // Determinar si estamos en fecha de envío de recordatorio
         // Fechas límite: Junio 30, Septiembre 15, Diciembre 15
