@@ -14,6 +14,15 @@ export default function PwaEntry() {
   useEffect(() => {
     // Si ya está instalada, no mostrar onboarding
     if (isStandalone()) {
+      // Marcar flags para desactivar onboarding legacy
+      try {
+        localStorage.setItem('pwaInstalled', 'true');
+        localStorage.setItem('hasSeenWelcome', 'true');
+        localStorage.setItem('installCompleted', 'true');
+        localStorage.setItem('disableLegacyOnboarding', 'true');
+        localStorage.removeItem('installPromptAfterOnboarding');
+      } catch {}
+
       // Ir según tipo_panel guardado
       (async () => {
         try {
@@ -57,7 +66,13 @@ export default function PwaEntry() {
     window.addEventListener('beforeinstallprompt', onBip);
 
     const onInstalled = () => {
-      localStorage.setItem('pwaInstalled', 'true');
+      try {
+        localStorage.setItem('pwaInstalled', 'true');
+        localStorage.setItem('hasSeenWelcome', 'true');
+        localStorage.setItem('installCompleted', 'true');
+        localStorage.setItem('disableLegacyOnboarding', 'true');
+        localStorage.removeItem('installPromptAfterOnboarding');
+      } catch {}
       setInstalledStep(true);
     };
     window.addEventListener('appinstalled', onInstalled);
@@ -76,8 +91,16 @@ export default function PwaEntry() {
     deferred.prompt();
     const choice = await deferred.userChoice;
     if (choice && choice.outcome === 'accepted') {
-      // Mostrar paso final y redirigir al login
+      // Mostrar paso final y marcar flags
+      try {
+        localStorage.setItem('pwaInstalled', 'true');
+        localStorage.setItem('hasSeenWelcome', 'true');
+        localStorage.setItem('installCompleted', 'true');
+        localStorage.setItem('disableLegacyOnboarding', 'true');
+        localStorage.removeItem('installPromptAfterOnboarding');
+      } catch {}
       setInstalledStep(true);
+      // Redirigir al login
       try { window.location.href = '/login'; } catch {}
     }
   };
