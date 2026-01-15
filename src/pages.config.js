@@ -79,7 +79,6 @@ import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import Players from './pages/Players';
 import PublicClubMembership from './pages/PublicClubMembership';
-import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
 import Reminders from './pages/Reminders';
 import RenewalDashboard from './pages/RenewalDashboard';
@@ -91,6 +90,7 @@ import Store from './pages/Store';
 import Surveys from './pages/Surveys';
 import TacticsBoard from './pages/TacticsBoard';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
+import PwaEntry from './pages/PwaEntry';
 import TeamRosters from './pages/TeamRosters';
 import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
@@ -181,7 +181,6 @@ export const PAGES = {
     "PlayerRenewal": PlayerRenewal,
     "Players": Players,
     "PublicClubMembership": PublicClubMembership,
-    "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
     "Reminders": Reminders,
     "RenewalDashboard": RenewalDashboard,
@@ -193,6 +192,7 @@ export const PAGES = {
     "Surveys": Surveys,
     "TacticsBoard": TacticsBoard,
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
+    "PwaEntry": PwaEntry,
     "TeamRosters": TeamRosters,
     "TrainingSchedules": TrainingSchedules,
     "TreasurerDashboard": TreasurerDashboard,
