@@ -16,6 +16,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
+import { SeasonProvider } from "./components/season/SeasonProvider";
 
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
@@ -1534,6 +1535,7 @@ export default function Layout({ children, currentPageName }) {
     }
 
     return (
+            <SeasonProvider>
             <>
 
               {/* Modal de instrucciones de instalación */}
@@ -2117,5 +2119,6 @@ export default function Layout({ children, currentPageName }) {
         )}
         </div>
         </>
+        </SeasonProvider>
         );
 }

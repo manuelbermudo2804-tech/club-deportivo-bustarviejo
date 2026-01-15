@@ -11,6 +11,7 @@ import { Upload, FileText, Loader2, Search, Plus, X, Gift, Info, DollarSign } fr
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
@@ -153,16 +154,7 @@ export default function ParentPayments() {
     }
   }, []);
 
-  const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
-    queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
-    },
-    staleTime: 600000, // 10 minutos
-    gcTime: 1200000,
-    refetchOnWindowFocus: false,
-  });
+  const { activeSeason: currentSeason, seasonConfig } = useActiveSeason();
 
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs'],
@@ -442,7 +434,7 @@ export default function ParentPayments() {
     return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
   };
   
-  const currentSeason = seasonConfig?.temporada || getCurrentSeason();
+  // currentSeason provided by SeasonProvider
 
   return (
     <>
@@ -546,17 +538,8 @@ export default function ParentPayments() {
                 return season.replace(/-/g, '/');
               };
 
-              // Determinar temporada objetivo por jugador: activa o última con datos
-              const playerAllPayments = payments.filter(p => p.jugador_id === player.id);
-              const hasInActive = playerAllPayments.some(p => normalizeSeason(p.temporada) === normalizeSeason(currentSeason));
-              const playerSeason = hasInActive
-                ? currentSeason
-                : (playerAllPayments.length > 0
-                   ? playerAllPayments
-                       .map(p => normalizeSeason(p.temporada))
-                       .filter(Boolean)
-                       .sort((a,b) => parseInt(b.split('/')[0]) - parseInt(a.split('/')[0]))[0]
-                   : currentSeason);
+              // Usar SIEMPRE la temporada activa
+              const playerSeason = currentSeason;
               const allPlayerPayments = payments.filter(p => 
                 p.jugador_id === player.id && 
                 normalizeSeason(p.temporada) === normalizeSeason(playerSeason)
@@ -633,7 +616,7 @@ export default function ParentPayments() {
                     jugador_id: player.id,
                     jugador_nombre: player.nombre,
                     mes: mes,
-                    temporada: playerSeason,
+                    temporada: currentSeason,
                     estado: "Pendiente",
                     cantidad: cantidad,
                     tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
