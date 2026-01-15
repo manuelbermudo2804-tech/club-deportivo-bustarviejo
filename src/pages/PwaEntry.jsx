@@ -21,7 +21,7 @@ export default function PwaEntry() {
     // Inyectar manifest y theme-color en <head>
     const link = document.createElement('link');
     link.rel = 'manifest';
-    link.href = '/manifest.json';
+    link.href = '/functions/manifest';
     document.head.appendChild(link);
 
     const meta = document.createElement('meta');
@@ -31,7 +31,7 @@ export default function PwaEntry() {
 
     // Registrar Service Worker en raíz
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/functions/sw', { scope: '/' }).catch(() => {});
     }
 
     // Capturar beforeinstallprompt
