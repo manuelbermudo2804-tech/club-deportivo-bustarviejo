@@ -571,6 +571,8 @@ export default function Layout({ children, currentPageName }) {
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(false);
+  // Modo silencioso por mantenimiento (pausa notificaciones/polling ruidoso)
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
   
   const [installDismissed, setInstallDismissed] = useState(false);
   // isIOS/isAndroid definidos arriba para evitar TDZ
@@ -582,6 +584,46 @@ export default function Layout({ children, currentPageName }) {
                     const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
                     setIsAppInstalled(userMarkedInstalled);
                   }, []);
+
+        // Detectar mantenimiento/429 y activar modo silencioso + eliminar CDN tailwind si existiera
+        useEffect(() => {
+          // Eliminar cualquier script CDN de tailwind en runtime
+          try {
+            const scripts = Array.from(document.querySelectorAll('script[src*="cdn.tailwindcss.com"]'));
+            scripts.forEach(s => s.parentNode && s.parentNode.removeChild(s));
+          } catch {}
+
+          const key = 'maintenanceModeUntil';
+          const until = Number(localStorage.getItem(key) || 0);
+          if (until > Date.now()) {
+            setMaintenanceMode(true);
+          }
+
+          const maintenanceHandler = (e) => {
+            const status = e?.reason?.response?.status;
+            const msg = (e?.reason?.message || e?.message || '').toString();
+            if (status === 503 || status === 429 || /\b(503|429)\b/.test(msg)) {
+              const next = Date.now() + 5 * 60 * 1000; // 5 minutos
+              localStorage.setItem(key, String(next));
+              setMaintenanceMode(true);
+            }
+          };
+          window.addEventListener('unhandledrejection', maintenanceHandler);
+          return () => window.removeEventListener('unhandledrejection', maintenanceHandler);
+        }, []);
+
+        useEffect(() => {
+          if (!maintenanceMode) return;
+          const key = 'maintenanceModeUntil';
+          const t = setInterval(() => {
+            const until = Number(localStorage.getItem(key) || 0);
+            if (until && Date.now() > until) {
+              localStorage.removeItem(key);
+              setMaintenanceMode(false);
+            }
+          }, 5000);
+          return () => clearInterval(t);
+        }, [maintenanceMode]);
 
       // Recordatorios de instalación COMPLETAMENTE DESACTIVADOS
       // Los usuarios pueden ver las instrucciones manualmente desde el menú lateral
@@ -1810,20 +1852,22 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 )}
 
-                <Suspense fallback={null}>
-                  <SessionManager />
-                  <NotificationBadge />
-                  <PaymentApprovalNotifier isAdmin={isAdmin} />
-                  <PlanPaymentReminders user={user} />
-                  <AutomaticRenewalReminders />
-                  <AutomaticRenewalClosure />
-                  <RenewalNotificationEngine />
-                  <PostRenewalPaymentReminder />
-                  <ChatSoundNotifier user={user} chatType="all" />
-                  <CallupSoundNotifier user={user} />
-                  <AnnouncementSoundNotifier user={user} />
-                  <PaymentSoundNotifier user={user} />
+                {!maintenanceMode && (
+                  <Suspense fallback={null}>
+                    <SessionManager />
+                    <NotificationBadge />
+                    <PaymentApprovalNotifier isAdmin={isAdmin} />
+                    <PlanPaymentReminders user={user} />
+                    <AutomaticRenewalReminders />
+                    <AutomaticRenewalClosure />
+                    <RenewalNotificationEngine />
+                    <PostRenewalPaymentReminder />
+                    <ChatSoundNotifier user={user} chatType="all" />
+                    <CallupSoundNotifier user={user} />
+                    <AnnouncementSoundNotifier user={user} />
+                    <PaymentSoundNotifier user={user} />
                   </Suspense>
+                )}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
@@ -2057,6 +2101,11 @@ export default function Layout({ children, currentPageName }) {
         </nav>
 
         <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
+          {maintenanceMode && (
+            <div className="mx-4 mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-900 text-sm">
+              Modo silencioso por mantenimiento: algunas actualizaciones en tiempo real están pausadas temporalmente.
+            </div>
+          )}
           {children}
           </main>
 
