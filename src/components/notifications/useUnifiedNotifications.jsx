@@ -159,6 +159,25 @@ export function useUnifiedNotifications(user) {
     });
     unsubscribers.push(unsubAdminConv);
 
+    // App Notifications (para fallback de badges, incluido Staff)
+    const loadAppNotifs = async () => {
+      const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, vista: false });
+      setRawData(prev => ({ ...prev, appNotifications: notifs }));
+    };
+    loadAppNotifs();
+    const unsubAppNotif = base44.entities.AppNotification.subscribe((event) => {
+      // Solo notificaciones del usuario actual
+      if (event.data?.usuario_email !== user.email) return;
+      setRawData(prev => {
+        let updated = [...(prev.appNotifications || [])];
+        if (event.type === 'create') updated = [event.data, ...updated];
+        else if (event.type === 'update') updated = updated.map(n => n.id === event.id ? event.data : n);
+        else if (event.type === 'delete') updated = updated.filter(n => n.id !== event.id);
+        return { ...prev, appNotifications: updated };
+      });
+    });
+    unsubscribers.push(unsubAppNotif);
+
     // Private Conversations
     const loadPrivateConvs = async () => {
       const convs = await base44.entities.PrivateConversation.list('-updated_date', 500);
@@ -406,11 +425,15 @@ export function useUnifiedNotifications(user) {
 
     // Staff
     if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
+      // No leídos por leido_por (mensajes de otros)
       rawData.staffMessages.forEach(msg => {
-        if (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email)) {
+        if (msg.autor_email !== user.email && (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
           unreadStaff++;
         }
       });
+      // Fallback: si hay AppNotifications de Staff pendientes, usar el mayor
+      const pendingStaffNotifs = (rawData.appNotifications || []).filter(n => n.enlace === 'StaffChat' && n.vista === false).length;
+      if (pendingStaffNotifs > unreadStaff) unreadStaff = pendingStaffNotifs;
     }
 
     // Admin (para familias): usar counter de conversación
