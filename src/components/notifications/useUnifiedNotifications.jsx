@@ -64,6 +64,7 @@ export function useUnifiedNotifications(user) {
     lotteryOrders: [],
     clubMembers: [],
     matchObservations: [],
+    appNotifications: [],
   });
 
   useEffect(() => {
