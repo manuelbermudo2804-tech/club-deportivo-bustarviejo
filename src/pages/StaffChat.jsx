@@ -96,7 +96,10 @@ export default function StaffChat() {
       if (!conversation?.id) return [];
       return await base44.entities.StaffMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
-    refetchInterval: 3000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    gcTime: 300000,
     enabled: !!conversation?.id,
   });
 
