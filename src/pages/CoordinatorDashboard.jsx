@@ -184,10 +184,8 @@ export default function CoordinatorDashboard() {
     ).length;
   }, [staffMessagesCoord, user?.email]);
 
-  const unreadCoachMessages = useMemo(() => 
-    coachConversations.reduce((sum, conv) => sum + (conv.no_leidos_entrenador || 0), 0),
-    [coachConversations]
-  );
+  // Legacy coach unread counter removed (using unified notifications)
+  const unreadCoachMessages = 0;
 
   // Total mensajes de familias (coordinador + entrenador) - centralizado
   // (Usamos notifications.unreadFamilyMessages)
