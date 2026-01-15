@@ -442,7 +442,7 @@ export default function ParentPayments() {
     return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
   };
   
-  const currentSeason = getCurrentSeason();
+  const currentSeason = seasonConfig?.temporada || getCurrentSeason();
 
   return (
     <>
@@ -546,9 +546,20 @@ export default function ParentPayments() {
                 return season.replace(/-/g, '/');
               };
 
+              // Determinar temporada objetivo por jugador: activa o última con datos
+              const playerAllPayments = payments.filter(p => p.jugador_id === player.id);
+              const hasInActive = playerAllPayments.some(p => normalizeSeason(p.temporada) === normalizeSeason(currentSeason));
+              const playerSeason = hasInActive
+                ? currentSeason
+                : (playerAllPayments.length > 0
+                   ? playerAllPayments
+                       .map(p => normalizeSeason(p.temporada))
+                       .filter(Boolean)
+                       .sort((a,b) => parseInt(b.split('/')[0]) - parseInt(a.split('/')[0]))[0]
+                   : currentSeason);
               const allPlayerPayments = payments.filter(p => 
                 p.jugador_id === player.id && 
-                normalizeSeason(p.temporada) === normalizeSeason(currentSeason)
+                normalizeSeason(p.temporada) === normalizeSeason(playerSeason)
               );
 
               // Verificar si tiene plan personalizado
@@ -622,7 +633,7 @@ export default function ParentPayments() {
                     jugador_id: player.id,
                     jugador_nombre: player.nombre,
                     mes: mes,
-                    temporada: currentSeason,
+                    temporada: playerSeason,
                     estado: "Pendiente",
                     cantidad: cantidad,
                     tipo_pago: hasPagoUnico ? "Único" : "Tres meses",
