@@ -1,0 +1,112 @@
+import React, { useEffect, useRef, useState } from "react";
+
+export default function PwaEntry() {
+  const [canInstall, setCanInstall] = useState(false);
+  const [installedStep, setInstalledStep] = useState(false);
+  const deferredPromptRef = useRef(null);
+
+  const isStandalone = () => (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true
+  );
+
+  useEffect(() => {
+    // Si ya está instalada, no mostrar onboarding
+    if (isStandalone()) {
+      // Ir a la app (Layout decidirá dashboard)
+      window.location.replace('/');
+      return;
+    }
+
+    // Inyectar manifest y theme-color en <head>
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = '/manifest.json';
+    document.head.appendChild(link);
+
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.content = '#1e1e1e';
+    document.head.appendChild(meta);
+
+    // Registrar Service Worker en raíz
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    // Capturar beforeinstallprompt
+    const onBip = (e) => {
+      e.preventDefault();
+      deferredPromptRef.current = e;
+      setCanInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt', onBip);
+
+    const onInstalled = () => {
+      localStorage.setItem('pwaInstalled', 'true');
+      setInstalledStep(true);
+    };
+    window.addEventListener('appinstalled', onInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBip);
+      window.removeEventListener('appinstalled', onInstalled);
+      try { document.head.removeChild(link); } catch {}
+      try { document.head.removeChild(meta); } catch {}
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    const deferred = deferredPromptRef.current;
+    if (!deferred) return;
+    deferred.prompt();
+    const choice = await deferred.userChoice;
+    if (choice && choice.outcome === 'accepted') {
+      // Mostrar paso final y redirigir al login
+      setInstalledStep(true);
+      try { window.location.href = '/login'; } catch {}
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-6 text-center">
+        <div className="mb-4">
+          <img
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
+            alt="CD Bustarviejo"
+            className="w-20 h-20 mx-auto rounded-xl object-cover"
+          />
+        </div>
+        <h1 className="text-2xl font-bold text-slate-900">Instalar la App</h1>
+        <p className="text-slate-600 mt-1">Para continuar, instala la aplicación en tu dispositivo.</p>
+
+        <div className="mt-6">
+          <button
+            id="installBtn"
+            onClick={handleInstall}
+            disabled={!canInstall}
+            className={`w-full py-3 rounded-xl text-white font-semibold shadow-lg ${canInstall ? 'bg-orange-600 hover:bg-orange-700' : 'bg-slate-300 cursor-not-allowed'}`}
+          >
+            {canInstall ? 'Instalar aplicación' : 'Preparando instalación…'}
+          </button>
+        </div>
+
+        <div id="finalStep" style={{ display: installedStep ? 'block' : 'none' }} className="mt-6">
+          <h2 className="text-xl font-bold text-slate-900 mb-2">¡Ya está instalada!</h2>
+          <p className="text-slate-700 mb-4">Cierra esta pestaña y abre la app desde el icono creado.</p>
+          <button
+            onClick={() => { try { window.open('', '_self'); window.close(); } catch {} }}
+            className="w-full py-3 rounded-xl bg-slate-800 text-white font-semibold"
+          >
+            Entendido
+          </button>
+        </div>
+
+        <div className="mt-6 text-xs text-slate-500">
+          <p>Si usas iPhone/iPad, abre en Safari y añade a pantalla de inicio desde Compartir.</p>
+        </div>
+      </div>
+    </div>
+  );
+}

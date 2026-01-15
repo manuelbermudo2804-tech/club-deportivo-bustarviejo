@@ -661,7 +661,10 @@ export default function Layout({ children, currentPageName }) {
 
   // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation)
   const isPublicPage = location.pathname.includes('ClubMembership') || 
-                       location.pathname.includes('ValidateAdminInvitation');
+                       location.pathname.includes('ValidateAdminInvitation') ||
+                       location.pathname.toLowerCase().includes('pwaentry') ||
+                       location.pathname.includes('PwaEntry') ||
+                       location.pathname.includes('pwa-entry');
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
