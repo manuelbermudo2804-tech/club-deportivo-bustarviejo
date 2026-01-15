@@ -161,25 +161,7 @@ export default function PwaEntry() {
           </div>
 
           <div className="space-y-2">
-            <button
-              onClick={() => { 
-                try { 
-                  localStorage.setItem('disableLegacyOnboarding', 'true');
-                  localStorage.setItem('hasSeenWelcome', 'true');
-                  localStorage.setItem('installCompleted', 'true');
-                  window.location.href = '/Home'; 
-                } catch {} 
-              }}
-              className="w-full py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700"
-            >
-              Omitir instalación ahora (marcar como instalada)
-            </button>
-            <button
-              onClick={() => { try { window.location.href = '/Home'; } catch {} }}
-              className="w-full py-3 rounded-xl bg-slate-200 text-slate-800 font-semibold hover:bg-slate-300"
-            >
-              Abrir la web sin instalar
-            </button>
+            {/* Eliminado el bypass: la instalación es obligatoria */}
           </div>
         </div>
       </div>
