@@ -29,6 +29,7 @@ import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import CoachAlertCenter from "../components/dashboard/CoachAlertCenter";
 import SocialLinks from "../components/SocialLinks";
+import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import CoachClassificationsMatchesBanner from "../components/dashboard/CoachClassificationsMatchesBanner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -49,6 +50,8 @@ export default function CoachDashboard() {
     };
     fetchUser();
   }, []);
+
+  const { notifications } = useUnifiedNotifications(user);
 
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
@@ -92,16 +95,17 @@ export default function CoachDashboard() {
     enabled: hasPlayers,
   });
 
+  // (legacy) conversations queries not needed for badge counters (using unified)
   const { data: allCoordinatorConvs = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
     queryFn: () => base44.entities.CoordinatorConversation.list(),
-    enabled: !!user,
+    enabled: false,
   });
 
   const { data: allCoachConvs = [] } = useQuery({
     queryKey: ['coachConversations'],
     queryFn: () => base44.entities.CoachConversation.list(),
-    enabled: !!user,
+    enabled: false,
   });
 
   const { data: allAdminConvs = [] } = useQuery({
@@ -125,18 +129,9 @@ export default function CoachDashboard() {
 
   const userButtonConfig = buttonConfigs[0];
 
-  // Unread counters for badges in Mensajes tiles
-  const unreadFamiliesForCoach = useMemo(() => {
-    return (allCoachConvs || [])
-      .filter(c => c.entrenador_email === user?.email)
-      .reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
-  }, [allCoachConvs, user?.email]);
-
-  const unreadCoordinatorAsCoord = useMemo(() => {
-    return (allCoordinatorConvs || [])
-      .filter(c => c.participante_coordinador_email === user?.email)
-      .reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
-  }, [allCoordinatorConvs, user?.email]);
+  // Unread counters for badges in Mensajes tiles (centralized)
+  const unreadFamiliesForCoach = notifications?.unreadFamilyMessages || 0;
+  const unreadCoordinatorAsCoord = notifications?.unreadCoordinatorMessages || 0;
 
   const { data: staffConversationCoach } = useQuery({
     queryKey: ['staffConversationCoach'],

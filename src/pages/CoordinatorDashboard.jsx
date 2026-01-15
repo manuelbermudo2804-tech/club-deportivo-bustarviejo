@@ -22,6 +22,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ContactCard from "../components/ContactCard";
+import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
 import SocialLinks from "../components/SocialLinks";
@@ -52,6 +53,8 @@ export default function CoordinatorDashboard() {
     fetchUser();
   }, []);
 
+  const { notifications } = useUnifiedNotifications(user);
+
   // Fetch data
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
@@ -76,9 +79,11 @@ export default function CoordinatorDashboard() {
     refetchOnWindowFocus: false,
   });
 
+  // (legacy) coordinator conversations query not needed for badge; keep for other uses if any
   const { data: coordinatorConversations = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
     queryFn: () => base44.entities.CoordinatorConversation.list(),
+    enabled: false,
   });
 
   const { data: allSurveys = [] } = useQuery({
@@ -103,10 +108,11 @@ export default function CoordinatorDashboard() {
     enabled: hasPlayers,
   });
 
+  // (legacy) coach conversations query not needed for badge; keeping other data intact
   const { data: allCoachConvs = [] } = useQuery({
     queryKey: ['coachConversations'],
     queryFn: () => base44.entities.CoachConversation.list(),
-    enabled: hasPlayers,
+    enabled: false,
   });
 
   const { data: allAdminConvs = [] } = useQuery({
@@ -150,17 +156,8 @@ export default function CoordinatorDashboard() {
     },
   });
 
-  // Mensajes no leídos de familias (COORDINADOR)
-  const unreadCoordinatorMessages = useMemo(() => 
-    coordinatorConversations.reduce((sum, conv) => sum + (conv.no_leidos_coordinador || 0), 0),
-    [coordinatorConversations]
-  );
-
-  // Mensajes no leídos de familias (ENTRENADOR)
-  const { data: coachConversations = [] } = useQuery({
-    queryKey: ['coachConversations'],
-    queryFn: () => base44.entities.CoachConversation.list(),
-  });
+  // Unread from unified hook (familias → coord + entrenador)
+  const unreadFamilyMessages = notifications?.unreadFamilyMessages || 0;
 
   // Staff unread for badge
   const { data: staffConversationCoord } = useQuery({
@@ -192,8 +189,9 @@ export default function CoordinatorDashboard() {
     [coachConversations]
   );
 
-  // Total mensajes de familias (coordinador + entrenador)
-  const unreadFamilyMessages = unreadCoordinatorMessages + unreadCoachMessages;
+  // Total mensajes de familias (coordinador + entrenador) - centralizado
+  // (Usamos notifications.unreadFamilyMessages)
+  // const unreadFamilyMessages = unreadCoordinatorMessages + unreadCoachMessages;
 
   // Convocatorias pendientes de respuesta
   const pendingCallupResponses = useMemo(() => {
