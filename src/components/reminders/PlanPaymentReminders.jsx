@@ -167,7 +167,7 @@ export default function PlanPaymentReminders({ user }) {
 
             // Registrar recordatorio automático
             await base44.entities.AutomaticReminder.create({
-              temporada: plan.temporada,
+              temporada: (activeSeason || plan.temporada)?.replace(/-/g, '/'),
               mes: `Cuota ${cuota.numero}`,
               tipo_recordatorio: tipo,
               familia_email: familyEmail,
