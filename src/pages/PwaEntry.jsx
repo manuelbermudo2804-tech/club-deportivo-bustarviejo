@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { base44 } from "@/api/base44Client";
 
 export default function PwaEntry() {
   const [canInstall, setCanInstall] = useState(false);
