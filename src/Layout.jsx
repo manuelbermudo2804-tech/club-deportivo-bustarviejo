@@ -614,26 +614,7 @@ export default function Layout({ children, currentPageName }) {
     };
     }, []);
 
-  // Cargar configuración de temporada solo una vez al montar
-  const [seasonConfigLoaded, setSeasonConfigLoaded] = useState(false);
-  
-  useEffect(() => {
-    if (seasonConfigLoaded) return;
-    
-    const fetchSeasonConfig = async () => {
-      try {
-        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
-        const activeConfig = configs[0];
-        setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
-        setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
-        setProgramaSociosActivo(activeConfig?.programa_socios_activo === true);
-        setSeasonConfigLoaded(true);
-      } catch (error) {
-        console.error("Error fetching season config:", error);
-      }
-    };
-    fetchSeasonConfig();
-  }, [seasonConfigLoaded]);
+  // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
 
   // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation)
   const isPublicPage = location.pathname.includes('ClubMembership') || 
@@ -778,17 +759,7 @@ export default function Layout({ children, currentPageName }) {
           console.log('ℹ️ [LAYOUT] Verificación segundo progenitor fallida:', e);
         }
 
-        // Auto-catalogar segundo progenitor por email (sin tokens)
-        try {
-          if (currentUser.es_segundo_progenitor !== true) {
-            const linkedAsSecond = await base44.entities.Player.filter({ email_tutor_2: currentUser.email });
-            if (linkedAsSecond.length > 0) {
-              await base44.auth.updateMe({ es_segundo_progenitor: true, tipo_panel: 'familia' });
-            }
-          }
-        } catch (e) {
-          console.log('Error auto-catalogando segundo progenitor:', e);
-        }
+        // (Eliminado) Doble verificación de segundo progenitor para evitar llamadas duplicadas
 
         // DETECCIÓN DE JUGADOR +18
         // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
