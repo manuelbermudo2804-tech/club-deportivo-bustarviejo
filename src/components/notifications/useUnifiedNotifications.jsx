@@ -380,6 +380,7 @@ export function useUnifiedNotifications(user) {
 
     // Families (para coach/coordinator)
     if (user.es_entrenador || user.es_coordinador) {
+      // 1) Mensajes de familias en chats de grupo
       rawData.chatMessages.forEach(msg => {
         if (msg.tipo === 'padre_a_grupo' &&
             (coachCategories.includes(msg.deporte) || coachCategories.includes(msg.grupo_id)) &&
@@ -387,6 +388,20 @@ export function useUnifiedNotifications(user) {
           unreadFamilies++;
         }
       });
+
+      // 2) Conversaciones directas con Coordinador (contadores propios)
+      if (user.es_coordinador) {
+        rawData.coordinatorConversations.forEach(conv => {
+          unreadFamilies += (conv.no_leidos_coordinador || 0);
+        });
+      }
+
+      // 3) Conversaciones directas con Entrenador (si también es entrenador)
+      if (user.es_entrenador) {
+        rawData.coachConversations
+          .filter(conv => conv.entrenador_email === user.email)
+          .forEach(conv => { unreadFamilies += (conv.no_leidos_entrenador || 0); });
+      }
     }
 
     // Staff
