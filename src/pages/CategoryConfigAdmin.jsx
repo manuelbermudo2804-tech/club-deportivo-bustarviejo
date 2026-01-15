@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock } from "lucide-react";
+import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // 9 categorías BASE que NUNCA pueden ser eliminadas
@@ -49,6 +49,8 @@ export default function CategoryConfigAdmin() {
     cuota_segunda: 0,
     cuota_tercera: 0
   });
+  const [isCreating, setIsCreating] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Fetch user
   useEffect(() => {
@@ -84,18 +86,21 @@ export default function CategoryConfigAdmin() {
     enabled: !!activeSeason
   });
 
-  // Crear 9 categorías BASE para la temporada activa copiando de anteriores o usando valores por defecto
+  // Crear 9 categorías BASE (con backoff automático y bulkCreate para evitar 429)
   const createBaseCategoriesForActiveSeason = async () => {
     if (!activeSeason) return;
+    setIsCreating(true);
+
+    const missingNames = BASE_CATEGORIES.filter(name => !categories.some(c => c.nombre === name));
+    if (missingNames.length === 0) {
+      toast.success('Ya existían las categorías BASE de esta temporada');
+      setIsCreating(false);
+      return;
+    }
+
     try {
       const allExisting = await base44.entities.CategoryConfig.list();
-      let createdCount = 0;
-      for (const name of BASE_CATEGORIES) {
-        // Si ya existe en la temporada activa, saltar
-        const alreadyInSeason = categories.some(c => c.nombre === name);
-        if (alreadyInSeason) continue;
-
-        // Tomar precios de la última base conocida o por defecto
+      const items = missingNames.map((name) => {
         const fromPrevious = allExisting.find(c => c.nombre === name && c.es_base === true);
         const cuotas = fromPrevious ? {
           inscripcion: fromPrevious.cuota_inscripcion,
@@ -103,29 +108,54 @@ export default function CategoryConfigAdmin() {
           tercera: fromPrevious.cuota_tercera,
         } : DEFAULT_BASE_QUOTAS[name];
 
-        if (!cuotas) continue;
-        await base44.entities.CategoryConfig.create({
+        return {
           nombre: name,
           temporada: activeSeason.temporada,
           activa: true,
           es_base: true,
           deporte: name.includes('Baloncesto') ? 'Baloncesto' : 'Fútbol',
-          cuota_inscripcion: cuotas.inscripcion,
-          cuota_segunda: cuotas.segunda,
-          cuota_tercera: cuotas.tercera,
-          cuota_total: (cuotas.inscripcion || 0) + (cuotas.segunda || 0) + (cuotas.tercera || 0)
-        });
-        createdCount++;
-      }
-      // Refrescar lista exacta y prefijo para asegurar re-render
-      await queryClient.invalidateQueries({ queryKey: ['categoryConfig', activeSeason?.id] });
-      await queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
-      toast.success(createdCount > 0 
-        ? `Categorías BASE creadas para ${activeSeason.temporada}`
-        : 'Ya existían las categorías BASE de esta temporada');
+          cuota_inscripcion: cuotas?.inscripcion || 0,
+          cuota_segunda: cuotas?.segunda || 0,
+          cuota_tercera: cuotas?.tercera || 0,
+          cuota_total: (cuotas?.inscripcion || 0) + (cuotas?.segunda || 0) + (cuotas?.tercera || 0)
+        };
+      });
+
+      const attempt = async (n) => {
+        try {
+          if (items.length > 0) {
+            // Un único request reduce riesgo de 429
+            await base44.entities.CategoryConfig.bulkCreate(items);
+          }
+          await queryClient.invalidateQueries({ queryKey: ['categoryConfig', activeSeason?.id] });
+          await queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
+          toast.success(`Categorías BASE creadas para ${activeSeason.temporada}`);
+          setIsCreating(false);
+          setRetryCount(0);
+        } catch (err) {
+          const status = err?.response?.status;
+          const is503 = status === 503 || (err?.message || '').includes('503');
+          const is429 = status === 429 || (err?.message || '').includes('429');
+          if (is503 || is429) {
+            const delay = Math.min(60000, Math.floor((is503 ? 3000 : 1500) * Math.pow(2, n)));
+            setRetryCount(n + 1);
+            toast.info(is503
+              ? `Mantenimiento activo: reintentando en ${Math.round(delay/1000)}s...`
+              : `Demasiadas peticiones: reintentando en ${Math.round(delay/1000)}s...`);
+            setTimeout(() => attempt(n + 1), delay);
+          } else {
+            console.error('Error creando categorías base:', err);
+            toast.error('No se pudieron crear las categorías base');
+            setIsCreating(false);
+          }
+        }
+      };
+
+      await attempt(retryCount);
     } catch (e) {
-      console.error('Error creando categorías base:', e);
-      toast.error('No se pudieron crear las categorías base');
+      console.error('Error preparando categorías base:', e);
+      toast.error('No se pudieron preparar las categorías base');
+      setIsCreating(false);
     }
   };
   // Mutations
@@ -257,8 +287,12 @@ export default function CategoryConfigAdmin() {
               <p className="font-semibold text-amber-900">Faltan {missingBaseCount} de 9 categorías BASE en esta temporada</p>
               <p className="text-sm text-amber-800">Pulsa el botón para completar automáticamente las que falten con sus cuotas.</p>
             </div>
-            <Button onClick={createBaseCategoriesForActiveSeason} className="bg-amber-600 hover:bg-amber-700">
-              Completar categorías BASE
+            <Button
+              onClick={createBaseCategoriesForActiveSeason}
+              disabled={isCreating}
+              className={`bg-amber-600 hover:bg-amber-700 ${isCreating ? 'opacity-80 cursor-not-allowed' : ''}`}
+            >
+              {isCreating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creando...</>) : 'Completar categorías BASE'}
             </Button>
           </CardContent>
         </Card>
@@ -274,8 +308,13 @@ export default function CategoryConfigAdmin() {
             </div>
             <div className="flex items-center gap-2">
               {missingBaseCount > 0 && (
-                <Button onClick={createBaseCategoriesForActiveSeason} size="sm" className="bg-amber-600 hover:bg-amber-700">
-                  Completar ({missingBaseCount})
+                <Button
+                  onClick={createBaseCategoriesForActiveSeason}
+                  size="sm"
+                  disabled={isCreating}
+                  className={`bg-amber-600 hover:bg-amber-700 ${isCreating ? 'opacity-80 cursor-not-allowed' : ''}`}
+                >
+                  {isCreating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creando...</>) : `Completar (${missingBaseCount})`}
                 </Button>
               )}
               <Badge className="bg-green-600">Siempre {BASE_CATEGORIES.length}</Badge>
