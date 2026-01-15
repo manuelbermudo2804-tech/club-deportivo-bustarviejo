@@ -64,7 +64,7 @@ export default function PlanPaymentReminders({ user }) {
             // Idempotencia por familia + cuota + tipo + día
             const already = reminders.find(r =>
               r.familia_email === familyEmail &&
-              r.temporada === plan.temporada &&
+              (r.temporada?.replace(/-/g, '/') === (activeSeason || plan.temporada)?.replace(/-/g, '/')) &&
               r.mes === `Cuota ${cuota.numero}` &&
               r.tipo_recordatorio === tipo &&
               r.fecha_envio && new Date(r.fecha_envio).toDateString() === todayStr
