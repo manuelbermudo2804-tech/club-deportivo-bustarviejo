@@ -238,6 +238,20 @@ export default function CategoryConfigAdmin() {
         <p className="text-slate-600 mt-1">Temporada: <strong>{activeSeason.temporada}</strong></p>
       </div>
 
+      {categories.length === 0 && (
+        <Card className="border-2 border-amber-300 bg-amber-50">
+          <CardContent className="py-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold text-amber-900">No hay categorías configuradas para esta temporada</p>
+              <p className="text-sm text-amber-800">Pulsa el botón para crear automáticamente las 9 categorías BASE con sus cuotas.</p>
+            </div>
+            <Button onClick={createBaseCategoriesForActiveSeason} className="bg-amber-600 hover:bg-amber-700">
+              Crear 9 categorías BASE
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Tabla: 9 CATEGORÍAS BASE */}
       <Card className="border-2 border-green-300">
         <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
