@@ -16,7 +16,7 @@ export default function PwaEntry() {
     if (!document.querySelector('link[rel="manifest"]')) {
       const link = document.createElement('link');
       link.rel = 'manifest';
-      link.href = '/manifest.json';
+      link.href = '/functions/manifest';
       document.head.appendChild(link);
     }
     // theme-color
@@ -32,7 +32,7 @@ export default function PwaEntry() {
   // Register service worker (root scope)
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/functions/sw', { scope: '/' }).catch(() => {});
     }
   }, []);
 
