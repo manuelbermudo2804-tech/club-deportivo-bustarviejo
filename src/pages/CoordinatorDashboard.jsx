@@ -158,6 +158,7 @@ export default function CoordinatorDashboard() {
 
   // Unread from unified hook (familias → coord + entrenador)
   const unreadFamilyMessages = notifications?.unreadFamilyMessages || 0;
+  const unreadStaff = notifications?.unreadStaffMessages || 0;
 
   // Staff unread for badge
   const { data: staffConversationCoord } = useQuery({
@@ -411,7 +412,12 @@ export default function CoordinatorDashboard() {
               </Link>
 
               <Link to={createPageUrl("StaffChat")} className="flex-1">
-                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
+                  {Number(unreadStaff) > 0 && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-xs font-bold">{unreadStaff}</span>
+                    </div>
+                  )}
                   <p className="text-sm font-bold text-center mb-1">💼 Staff</p>
                   <p className="text-xs text-slate-100 text-center">Interno</p>
                 </div>
