@@ -667,6 +667,17 @@ export default function Layout({ children, currentPageName }) {
                        location.pathname.includes('pwa-entry');
   const [authChecked, setAuthChecked] = useState(false);
 
+  // ENFORCE PWA INSTALL: si no está instalada y no es pública, redirige al flujo público
+  useEffect(() => {
+    try {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator.standalone === true);
+      const installedFlag = localStorage.getItem('pwaInstalled') === 'true' || localStorage.getItem('installCompleted') === 'true';
+      if (!isPublicPage && !(standalone || installedFlag)) {
+        window.location.href = '/functions/pwaEntry';
+      }
+    } catch {}
+  }, [isPublicPage]);
+
   useEffect(() => {
     const fetchUser = async () => {
                         console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
