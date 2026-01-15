@@ -368,20 +368,39 @@ export default function StaffChat() {
         ultimo_mensaje_autor: user.full_name
       });
 
-      // Crear notificaciones para todo el staff (excepto el autor)
+      // Crear notificaciones sin depender de listar usuarios (respeta permisos)
       try {
-        const all = await base44.entities.User.list();
-        const recipients = all.filter(u => (u.es_coordinador || u.es_entrenador || u.role === "admin") && u.email !== user.email);
-        await Promise.all(recipients.map(u => base44.entities.AppNotification.create({
-          usuario_email: u.email,
+        const notifPayload = {
           titulo: "Nuevo mensaje en Staff",
           mensaje: (data.mensaje || "Archivo/acción en el chat").slice(0, 120),
           tipo: "mensaje",
           prioridad: "importante",
           enlace: "StaffChat",
           vista: false
-        })));
-      } catch (_) {}
+        };
+
+        const tasks = [];
+
+        // Notificar a coordinadores
+        try {
+          const coordSettings = await base44.entities.CoordinatorSettings.list();
+          const coordEmails = Array.from(new Set((coordSettings || []).map(s => s.coordinador_email).filter(Boolean)));
+          coordEmails
+            .filter(email => email && email !== user.email)
+            .forEach(email => tasks.push(base44.entities.AppNotification.create({ usuario_email: email, ...notifPayload })));
+        } catch {}
+
+        // Notificar a entrenadores
+        try {
+          const coachSettings = await base44.entities.CoachSettings?.list?.();
+          const coachEmails = Array.from(new Set((coachSettings || []).map(s => s.entrenador_email || s.coach_email).filter(Boolean)));
+          coachEmails
+            .filter(email => email && email !== user.email)
+            .forEach(email => tasks.push(base44.entities.AppNotification.create({ usuario_email: email, ...notifPayload })));
+        } catch {}
+
+        await Promise.all(tasks);
+      } catch {}
 
       return newMessage;
     },
