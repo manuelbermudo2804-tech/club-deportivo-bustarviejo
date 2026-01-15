@@ -129,6 +129,32 @@ export default function ParentCoordinatorChat() {
     refetchOnWindowFocus: true,
   });
 
+  // Auto-marcar como leídos los mensajes del coordinador cuando el padre tiene el chat abierto
+  useEffect(() => {
+    if (!conversation?.id || !user) return;
+    const unreadFromCoordinator = messages.filter(m => m.autor === 'coordinador' && !m.leido_padre);
+    if (unreadFromCoordinator.length === 0 && ((conversation.no_leidos_padre || 0) === 0)) return;
+    (async () => {
+      try {
+        if (unreadFromCoordinator.length > 0) {
+          for (const msg of unreadFromCoordinator) {
+            await base44.entities.CoordinatorMessage.update(msg.id, {
+              leido_padre: true,
+              fecha_leido_padre: new Date().toISOString()
+            });
+          }
+        }
+        if ((conversation.no_leidos_padre || 0) > 0) {
+          await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_padre: 0 });
+        }
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
+          queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
+        ]);
+      } catch {}
+    })();
+  }, [messages, conversation?.id, user?.email]);
+
   // REAL-TIME: Suscripción a mensajes nuevos
   useEffect(() => {
     if (!conversation?.id) return;

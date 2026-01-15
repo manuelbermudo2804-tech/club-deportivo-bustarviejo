@@ -83,6 +83,34 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     enabled: !!conversation?.id,
   });
 
+  // Auto-marcar como leídos cuando la conversación está abierta y llegan mensajes nuevos
+  useEffect(() => {
+    if (!conversation?.id) return;
+    const field = isCoordinator ? 'no_leidos_coordinador' : 'no_leidos_padre';
+    const msgField = isCoordinator ? 'leido_coordinador' : 'leido_padre';
+    const dateField = isCoordinator ? 'fecha_leido_coordinador' : 'fecha_leido_padre';
+
+    const unreadMessages = messages.filter(m => m.autor !== (isCoordinator ? 'coordinador' : 'padre') && !m[msgField]);
+    if (unreadMessages.length === 0 && ((conversation[field] || 0) === 0)) return;
+
+    (async () => {
+      try {
+        if (unreadMessages.length > 0) {
+          for (const msg of unreadMessages) {
+            await base44.entities.CoordinatorMessage.update(msg.id, {
+              [msgField]: true,
+              [dateField]: new Date().toISOString(),
+            });
+          }
+        }
+        if ((conversation[field] || 0) > 0) {
+          await base44.entities.CoordinatorConversation.update(conversation.id, { [field]: 0 });
+        }
+        await queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
+      } catch {}
+    })();
+  }, [messages, conversation?.id, isCoordinator]);
+
   // REAL-TIME: Suscripción a mensajes
   useEffect(() => {
     if (!conversation?.id) return;
