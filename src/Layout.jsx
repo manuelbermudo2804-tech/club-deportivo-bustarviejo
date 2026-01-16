@@ -601,6 +601,11 @@ export default function Layout({ children, currentPageName }) {
             setMaintenanceMode(true);
           }
 
+          // Reduce live subscriptions while in maintenance mode
+          if (maintenanceMode && typeof window !== 'undefined') {
+            window.__BASE44_PAUSE_REALTIME__ = true;
+          }
+
           const maintenanceHandler = (e) => {
             const status = e?.reason?.response?.status;
             const msg = (e?.reason?.message || e?.message || '').toString();
