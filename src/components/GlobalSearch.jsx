@@ -28,8 +28,28 @@ export default function GlobalSearch({ isAdmin = false, isCoach = false, isTreas
   }, []);
 
   const { data: players } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryKey: ['players', isOpen],
+    queryFn: async () => {
+      if (!isOpen) return [];
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (!isAuth) return [];
+        const me = await base44.auth.me();
+        const isStaff = me?.role === 'admin' || me?.es_entrenador || me?.es_coordinador || me?.es_tesorero;
+        if (isStaff) {
+          return await base44.entities.Player.list('-updated_date', 200);
+        }
+        return await base44.entities.Player.filter({
+          $or: [
+            { email_padre: me.email },
+            { email_tutor_2: me.email },
+            { email_jugador: me.email },
+          ]
+        }, '-updated_date', 200);
+      } catch {
+        return [];
+      }
+    },
     initialData: [],
     enabled: isOpen,
   });
