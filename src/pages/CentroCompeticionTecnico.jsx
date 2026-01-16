@@ -32,14 +32,10 @@ export default function CentroCompeticionTecnico() {
 
   // Categorías visibles para el técnico
   const myCats = React.useMemo(() => {
-    // Entrenadores y coordinadores: ver TODAS las categorías (se filtran desde Config)
+    // Técnicos (entrenador o coordinador) ven TODAS las categorías y luego filtran en Configuración
     if (isCoordinator || isCoach) return CATEGORIES;
-    const coached = Array.isArray(me?.categorias_entrena) ? me.categorias_entrena : [];
-    const normalized = CATEGORIES.filter((c) =>
-      coached.some((x) => (x || "").toLowerCase() === c.toLowerCase() || (x || "").toLowerCase().includes(c.split(" ")[1]?.toLowerCase() || ""))
-    );
-    return normalized.length ? normalized : CATEGORIES;
-  }, [me, isCoordinator, isCoach]);
+    return CATEGORIES;
+  }, [isCoordinator, isCoach]);
 
   const getUrlParam = (key, fallback) => {
     const params = new URLSearchParams(window.location.search);
