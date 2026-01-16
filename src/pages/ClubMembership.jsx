@@ -643,28 +643,40 @@ export default function ClubMembership() {
     }
   }, [showForm]);
 
-  // Mostrar pantalla de éxito al volver de Stripe
+  // Mostrar pantalla de éxito al volver de Stripe + confirmar en backend si webhook falló
   useEffect(() => {
     // Forzar repintado inicial para evitar que el contenido aparezca solo al hacer scroll
     window.scrollTo(0, 0);
     requestAnimationFrame(() => { window.dispatchEvent(new Event('resize')); });
-    try {
-      const url = new URL(window.location.href);
-      const paid = url.searchParams.get('paid');
-      const stripePending = localStorage.getItem('stripePendingSuccess') === '1';
-      if (paid === 'stripe' || stripePending) {
-        const name = localStorage.getItem('stripeMemberName') || '';
-        if (name) setLastRegisteredName(name);
-        setShowSuccess(true);
-        localStorage.removeItem('stripePendingSuccess');
-        // limpiar parámetro de la URL
-        if (paid) {
-          url.searchParams.delete('paid');
-          window.history.replaceState({}, '', url.toString());
+    (async () => {
+      try {
+        const url = new URL(window.location.href);
+        const paid = url.searchParams.get('paid');
+        const stripePending = localStorage.getItem('stripePendingSuccess') === '1';
+        if (paid === 'stripe' || stripePending) {
+          const name = localStorage.getItem('stripeMemberName') || '';
+          const sessionId = localStorage.getItem('stripeSessionId');
+          if (sessionId) {
+            try {
+              await base44.functions.invoke('confirmStripeMembership', { sessionId });
+            } catch (e) {
+              console.warn('[ClubMembership] confirmStripeMembership error:', e?.message || e);
+            }
+          }
+          if (name) setLastRegisteredName(name);
+          setShowSuccess(true);
+          localStorage.removeItem('stripePendingSuccess');
+          localStorage.removeItem('stripeSessionId');
+          localStorage.removeItem('stripeMemberData');
+          // limpiar parámetro de la URL
+          if (paid) {
+            url.searchParams.delete('paid');
+            window.history.replaceState({}, '', url.toString());
+          }
+          setTimeout(() => setShowSuccess(false), 5000);
         }
-        setTimeout(() => setShowSuccess(false), 5000);
-      }
-    } catch {}
+      } catch {}
+    })();
   }, []);
 
    if (loadingRenewal) {
@@ -1304,6 +1316,22 @@ export default function ClubMembership() {
                             metodo_pago: 'Tarjeta'
                           }
                         });
+                        if (data?.id) {
+                          localStorage.setItem('stripeSessionId', data.id);
+                          localStorage.setItem('stripeMemberData', JSON.stringify({
+                            nombre_completo: formData.nombre_completo,
+                            dni: formData.dni,
+                            telefono: formData.telefono,
+                            email: formData.email,
+                            direccion: formData.direccion,
+                            municipio: formData.municipio,
+                            tipo_inscripcion: formData.tipo_inscripcion,
+                            es_segundo_progenitor: formData.es_segundo_progenitor,
+                            referido_por: formData.referido_por || '',
+                            es_socio_externo: isExternalUser,
+                            temporada: seasonConfig?.temporada || ''
+                          }));
+                        }
                         if (data?.url) window.location.href = data.url;
                       }}
                     >
