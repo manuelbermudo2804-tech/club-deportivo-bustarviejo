@@ -528,6 +528,9 @@ export default function Layout({ children, currentPageName }) {
   
   // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
   const { notifications } = useUnifiedNotifications(user);
+  // Evitar relanzar suscripciones si ya están activas; la lib interna maneja dedupe, pero
+  // este guard reduce llamadas iniciales cuando user cambia rápidamente
+  const notifInitRef = useRef(false);
   
   // Mapear a variables legacy para compatibilidad
   const pendingCallupsCount = notifications.pendingCallups || 0;
