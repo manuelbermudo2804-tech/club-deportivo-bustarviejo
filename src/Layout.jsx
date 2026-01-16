@@ -1076,6 +1076,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0 },
     { title: "📊 Estadísticas de Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
+    { title: "💬 Retroalimentación", url: createPageUrl("FeedbackManagement"), icon: MessageCircle },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
@@ -1287,6 +1288,7 @@ export default function Layout({ children, currentPageName }) {
     // 📋 EXTRAS
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+    { title: "💬 Enviar Feedback", url: createPageUrl("UserFeedback"), icon: MessageCircle },
     ];
 
   const playerNavigationItems = [

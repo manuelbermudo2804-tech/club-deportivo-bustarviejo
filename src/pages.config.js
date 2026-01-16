@@ -1,5 +1,6 @@
 import AdminChat from './pages/AdminChat';
 import AdminGallery from './pages/AdminGallery';
+import AdminPushSetup from './pages/AdminPushSetup';
 import AdminStats from './pages/AdminStats';
 import Announcements from './pages/Announcements';
 import Anuncios from './pages/Anuncios';
@@ -96,13 +97,15 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import AdminPushSetup from './pages/AdminPushSetup';
+import UserFeedback from './pages/UserFeedback';
+import FeedbackManagement from './pages/FeedbackManagement';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminChat": AdminChat,
     "AdminGallery": AdminGallery,
+    "AdminPushSetup": AdminPushSetup,
     "AdminStats": AdminStats,
     "Announcements": Announcements,
     "Anuncios": Anuncios,
@@ -199,7 +202,8 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "AdminPushSetup": AdminPushSetup,
+    "UserFeedback": UserFeedback,
+    "FeedbackManagement": FeedbackManagement,
 }
 
 export const pagesConfig = {
