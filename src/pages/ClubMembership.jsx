@@ -973,7 +973,7 @@ export default function ClubMembership() {
 
       {/* Formulario de inscripción */}
       {(showForm || isRenewal) ? (
-        <Card ref={formRef} className="border-none shadow-xl">
+        <Card ref={formRef} className="border-none shadow-xl opacity-0 animate-fade-in-up [animation-fill-mode:forwards]">
             <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
