@@ -36,15 +36,8 @@ export default function PushNotificationManager() {
         return;
       }
 
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 3000)
-      );
-      
-      const registration = await Promise.race([
-        navigator.serviceWorker.ready,
-        timeoutPromise
-      ]);
-      
+      // Usar el primer service worker registrado sin esperar a que esté ready
+      const registration = registrations[0];
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
     } catch (error) {
