@@ -90,8 +90,8 @@ export function useUnifiedNotifications(user) {
       const convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 200);
       setRawData(prev => ({ ...prev, coachConversations: convs }));
     };
-    loadCoordConvs();
-    loadCoachConvs();
+    setTimeout(loadCoordConvs, 0);
+    setTimeout(loadCoachConvs, 100);
     const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.coordinatorConversations];
@@ -119,7 +119,7 @@ export function useUnifiedNotifications(user) {
       const msgs = await base44.entities.ChatMessage.list('-created_date', 200);
       setRawData(prev => ({ ...prev, chatMessages: msgs }));
     };
-    loadChatMsgs();
+    setTimeout(loadChatMsgs, 200);
     // Throttle chat subscription updates
     let lastChatUpdate = 0;
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
@@ -141,7 +141,7 @@ export function useUnifiedNotifications(user) {
       const msgs = await base44.entities.StaffMessage.list('-created_date', 200);
       setRawData(prev => ({ ...prev, staffMessages: msgs }));
     };
-    loadStaffMsgs();
+    setTimeout(loadStaffMsgs, 300);
     let lastStaffUpdate = 0;
     const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
       const now = Date.now();
@@ -167,7 +167,7 @@ export function useUnifiedNotifications(user) {
       }
       setRawData(prev => ({ ...prev, adminConversations: convs }));
     };
-    loadAdminConvs();
+    setTimeout(loadAdminConvs, 400);
     const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.adminConversations];
@@ -184,7 +184,7 @@ export function useUnifiedNotifications(user) {
       const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, vista: false });
       setRawData(prev => ({ ...prev, appNotifications: notifs }));
     };
-    loadAppNotifs();
+    setTimeout(loadAppNotifs, 500);
     const unsubAppNotif = base44.entities.AppNotification.subscribe((event) => {
       // Solo notificaciones del usuario actual
       if (event.data?.usuario_email !== user.email) return;
@@ -203,7 +203,7 @@ export function useUnifiedNotifications(user) {
       const convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 200);
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
-    loadPrivateConvs();
+    setTimeout(loadPrivateConvs, 600);
     const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.privateConversations];
@@ -220,7 +220,7 @@ export function useUnifiedNotifications(user) {
       const convs = await base44.entities.Convocatoria.list('-created_date', 200);
       setRawData(prev => ({ ...prev, convocatorias: convs }));
     };
-    loadConvocatorias();
+    setTimeout(loadConvocatorias, 700);
     const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.convocatorias];
@@ -237,7 +237,7 @@ export function useUnifiedNotifications(user) {
       const pays = await base44.entities.Payment.list('-created_date', 200);
       setRawData(prev => ({ ...prev, payments: pays }));
     };
-    loadPayments();
+    setTimeout(loadPayments, 800);
     const unsubPayments = base44.entities.Payment.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.payments];
@@ -259,7 +259,7 @@ export function useUnifiedNotifications(user) {
       }
       setRawData(prev => ({ ...prev, players: pls }));
     };
-    loadPlayers();
+    setTimeout(loadPlayers, 900);
     const unsubPlayers = base44.entities.Player.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.players];
@@ -276,7 +276,7 @@ export function useUnifiedNotifications(user) {
       const anns = await base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 200);
       setRawData(prev => ({ ...prev, announcements: anns }));
     };
-    loadAnnouncements();
+    setTimeout(loadAnnouncements, 1000);
     const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.announcements];
@@ -307,7 +307,7 @@ export function useUnifiedNotifications(user) {
           clubMembers: members
         }));
       };
-      loadInvitations();
+      setTimeout(loadInvitations, 1100);
       
       const unsubInv = base44.entities.InvitationRequest.subscribe(() => {
         base44.entities.InvitationRequest.filter({ estado: "Pendiente" }).then(inv => {
@@ -348,7 +348,7 @@ export function useUnifiedNotifications(user) {
         const obs = await base44.entities.MatchObservation.list('-updated_date', 200);
         setRawData(prev => ({ ...prev, matchObservations: obs }));
       };
-      loadObservations();
+      setTimeout(loadObservations, 1200);
       const unsubObs = base44.entities.MatchObservation.subscribe((event) => {
         setRawData(prev => {
           let updated = [...prev.matchObservations];
