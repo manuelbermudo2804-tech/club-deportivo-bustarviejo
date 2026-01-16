@@ -663,6 +663,7 @@ export default function Layout({ children, currentPageName }) {
   const isPublicPage = location.pathname.includes('ClubMembership') || 
                        location.pathname.includes('ValidateAdminInvitation');
   const [authChecked, setAuthChecked] = useState(false);
+  const [needsLogin, setNeedsLogin] = useState(false);
 
   // Login en popup (sin navegar fuera del dominio)
   const AUTH_POPUP_LOGIN_URL = 'https://app.base44.com/login';
@@ -731,7 +732,7 @@ export default function Layout({ children, currentPageName }) {
                               // Guardar token y redirigir a login
                               localStorage.setItem('pending_invitation_token', invitationToken);
                               localStorage.setItem('pending_invitation_type', invitationType);
-                              await openAuthPopup();
+                              setNeedsLogin(true);
                               return;
                               return;
                             }
@@ -815,8 +816,8 @@ export default function Layout({ children, currentPageName }) {
         } catch (authError) {
           console.error('❌ [LAYOUT] Error auth.me():', authError);
           setIsLoading(false);
-          // Si falla la autenticación, redirigir al login
-          await openAuthPopup();
+          // Mostrar pantalla de login sin redirecciones automáticas
+          setNeedsLogin(true);
           return;
           return;
         }
@@ -1503,6 +1504,20 @@ export default function Layout({ children, currentPageName }) {
           setShowFirstLaunchInvite(true);
         }
       }, [user]);
+
+      // Pantalla de bienvenida/login (sin navegación fuera del dominio)
+      if (needsLogin) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+            <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center space-y-4 border border-slate-200">
+              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-20 h-20 mx-auto rounded-xl object-contain shadow" />
+              <h1 className="text-2xl font-bold text-slate-900">Bienvenido</h1>
+              <p className="text-slate-600">Inicia sesión para continuar</p>
+              <Button onClick={openAuthPopup} className="w-full bg-orange-600 hover:bg-orange-700">Iniciar sesión</Button>
+            </div>
+          </div>
+        );
+      }
 
       if (isLoading && !isPublicPage) {
         return (
