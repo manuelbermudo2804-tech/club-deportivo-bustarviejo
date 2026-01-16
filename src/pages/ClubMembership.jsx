@@ -1182,7 +1182,7 @@ export default function ClubMembership() {
                           const successUrl = window.location.origin + createPageUrl("ClubMembership");
                           const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
                           const { data } = await base44.functions.invoke('stripeCheckout', {
-                            amount: 25,
+                            amount: seasonConfig?.precio_socio || 25,
                             name: 'Cuota de Socio',
                             currency: 'eur',
                             successUrl,
