@@ -113,51 +113,10 @@ export default function ClubMembership() {
       };
       fetchMemberForRenewal();
     } else if (refCode) {
-      // Buscar el usuario que tiene ese código de referido Y que sea padre con hijos en el club
-      const fetchInviter = async () => {
-        try {
-          const [allUsers, allPlayers, allMembers] = await Promise.all([
-            base44.entities.User.list(),
-            base44.entities.Player.list(),
-            base44.entities.ClubMember.list()
-          ]);
-          
-          // Obtener emails de padres con jugadores activos
-          const parentEmails = new Set();
-          allPlayers.forEach(p => {
-            if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase());
-            if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase());
-          });
-          
-          // Buscar el usuario cuyo código coincida Y sea padre con hijos
-          const inviter = allUsers.find(u => 
-            generateReferralCode(u.email) === refCode && 
-            parentEmails.has(u.email.toLowerCase())
-          );
-          
-          if (inviter) {
-            // Verificar que el inviter no haya alcanzado el máximo de 15 referidos
-            const currentCount = inviter.referrals_count || 0;
-            if (currentCount >= 15) {
-              // Ha alcanzado el límite, no mostrar como invitador válido
-              console.log("El invitador ha alcanzado el máximo de 15 referidos");
-              setInvitadoPor(null);
-              // No establecer el referido_por
-            } else {
-              setInvitadoPor(inviter);
-              setFormData(prev => ({ ...prev, referido_por: inviter.full_name }));
-            }
-          } else {
-            // El código no corresponde a un padre con hijos en el club
-            // Esto ocurre cuando un socio externo reenvía el enlace
-            console.log("Código de referido no válido o no es padre con hijos en el club");
-            setInvitadoPor(null);
-          }
-        } catch (error) {
-          console.error("Error fetching inviter:", error);
-        }
-      };
-      fetchInviter();
+      // Código de referido presente: evitamos llamadas pesadas para no saturar el sistema
+      // El nombre del referidor se podrá escribir manualmente o procesar por admin
+      setInvitadoPor(null);
+      setFormData(prev => ({ ...prev, referido_por: "" }));
     }
   }, [isCheckingAuth, user]);
 
@@ -684,7 +643,7 @@ export default function ClubMembership() {
             <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
         ) : (
-          <div className="space-y-6 will-change-transform" style={{contain:'content'}}>
+          <div className="space-y-6 will-change-transform">
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center">
@@ -974,7 +933,7 @@ export default function ClubMembership() {
 
       {/* Formulario de inscripción */}
       {(showForm || isRenewal) ? (
-        <Card ref={formRef} className="border-none shadow-xl opacity-0 animate-fade-in-up [animation-fill-mode:forwards]">
+        <Card ref={formRef} className="border-none shadow-xl">
             <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
@@ -1283,17 +1242,7 @@ export default function ClubMembership() {
                           base44.auth.redirectToLogin(nextUrl);
                           return;
                         }
-                        if (window.self !== window.top) {
-                          toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
-                          return;
-                        }
-                        const authOk = await base44.auth.isAuthenticated();
-                        if (!authOk) {
-                          const nextUrl = window.location.origin + createPageUrl("ClubMembership");
-                          toast.info("Inicia sesión para pagar con tarjeta");
-                          base44.auth.redirectToLogin(nextUrl);
-                          return;
-                        }
+
                         const successUrl = window.location.origin + createPageUrl("ClubMembership") + "?paid=stripe";
                         const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
                         // Guardar nombre para pantalla de éxito al volver de Stripe
