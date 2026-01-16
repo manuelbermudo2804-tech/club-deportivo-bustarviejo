@@ -144,6 +144,9 @@ export function useUnifiedNotifications(user) {
     loadStaffMsgs();
     let lastStaffUpdate = 0;
     const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastStaffUpdate < 500) return prev;
+      lastStaffUpdate = now;
       setRawData(prev => {
         let updated = [...prev.staffMessages];
         if (event.type === 'create') updated = [event.data, ...updated];
