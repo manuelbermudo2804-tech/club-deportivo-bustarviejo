@@ -684,7 +684,7 @@ export default function ClubMembership() {
             <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
         ) : (
-          <div className="space-y-6 will-change-transform">
+          <div className="space-y-6 will-change-transform" style={{contain:'content'}}>
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center">
