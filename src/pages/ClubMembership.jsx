@@ -644,6 +644,9 @@ export default function ClubMembership() {
 
   // Mostrar pantalla de éxito al volver de Stripe
   useEffect(() => {
+    // Forzar repintado inicial para evitar que el contenido aparezca solo al hacer scroll
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => { window.dispatchEvent(new Event('resize')); });
     try {
       const url = new URL(window.location.href);
       const paid = url.searchParams.get('paid');
