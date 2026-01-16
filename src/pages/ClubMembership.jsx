@@ -1286,6 +1286,11 @@ export default function ClubMembership() {
                       type="button"
                       className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
                       onClick={async () => {
+                        // Bloquear si estamos en iframe (preview)
+                        if (window.self !== window.top) {
+                          toast.error('Para pagar con tarjeta abre la app publicada (no en el preview)');
+                          return;
+                        }
                         if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
                           toast.error("Por favor, rellena todos los campos obligatorios");
                           return;
