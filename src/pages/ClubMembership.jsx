@@ -352,6 +352,7 @@ export default function ClubMembership() {
         estado_pago: data.justificante_url ? "En revisión" : "Pendiente",
         temporada: seasonConfig?.temporada || new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
         jugadores_relacionados: myPlayers.map(p => ({ jugador_id: p.id, jugador_nombre: p.nombre })),
+        es_socio_externo: isExternalUser === true,
         activo: true
       });
 
@@ -516,6 +517,7 @@ export default function ClubMembership() {
         queryClient.invalidateQueries({ queryKey: ['allMemberships'] });
         queryClient.invalidateQueries({ queryKey: ['allUsers'] });
         queryClient.invalidateQueries({ queryKey: ['freshUser'] });
+        queryClient.invalidateQueries({ queryKey: ['allMembers'] });
         
         // Forzar recarga inmediata de los datos del usuario
         if (refetchUser) {
