@@ -70,6 +70,12 @@ export function useUnifiedNotifications(user) {
   useEffect(() => {
     if (!user) return;
 
+    // Pause heavy real-time if maintenance window active or tab hidden
+    const until = Number(localStorage.getItem('maintenanceModeUntil') || 0);
+    const paused = until && Date.now() < until;
+    const hidden = typeof document !== 'undefined' && document.hidden;
+    if (paused || hidden) return;
+
     const unsubscribers = [];
 
     // ===== CHATS =====
@@ -78,16 +84,16 @@ export function useUnifiedNotifications(user) {
     const loadCoordConvs = async () => {
       let convs = [];
       if (user?.es_coordinador) {
-        convs = await base44.entities.CoordinatorConversation.list('-updated_date', 200);
+        convs = await base44.entities.CoordinatorConversation.list('-updated_date', 100);
       } else {
-        convs = await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 200);
+        convs = await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 100);
       }
       setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
     };
 
     // Coach Conversations
     const loadCoachConvs = async () => {
-      const convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 200);
+      const convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 100);
       setRawData(prev => ({ ...prev, coachConversations: convs }));
     };
     setTimeout(loadCoordConvs, 0);
@@ -116,7 +122,7 @@ export function useUnifiedNotifications(user) {
 
     // Chat Messages
     const loadChatMsgs = async () => {
-      const msgs = await base44.entities.ChatMessage.list('-created_date', 200);
+      const msgs = await base44.entities.ChatMessage.list('-created_date', 100);
       setRawData(prev => ({ ...prev, chatMessages: msgs }));
     };
     setTimeout(loadChatMsgs, 200);
@@ -138,7 +144,7 @@ export function useUnifiedNotifications(user) {
 
     // Staff Messages
     const loadStaffMsgs = async () => {
-      const msgs = await base44.entities.StaffMessage.list('-created_date', 200);
+      const msgs = await base44.entities.StaffMessage.list('-created_date', 100);
       setRawData(prev => ({ ...prev, staffMessages: msgs }));
     };
     setTimeout(loadStaffMsgs, 300);
@@ -161,9 +167,9 @@ export function useUnifiedNotifications(user) {
     const loadAdminConvs = async () => {
       let convs = [];
       if (user?.role === 'admin') {
-        convs = await base44.entities.AdminConversation.list('-updated_date', 500);
+        convs = await base44.entities.AdminConversation.list('-updated_date', 200);
       } else {
-        convs = await base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 200);
+        convs = await base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 100);
       }
       setRawData(prev => ({ ...prev, adminConversations: convs }));
     };
@@ -200,7 +206,7 @@ export function useUnifiedNotifications(user) {
 
     // Private Conversations
     const loadPrivateConvs = async () => {
-      const convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 200);
+      const convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 100);
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
     setTimeout(loadPrivateConvs, 600);
@@ -217,7 +223,7 @@ export function useUnifiedNotifications(user) {
 
     // ===== CONVOCATORIAS =====
     const loadConvocatorias = async () => {
-      const convs = await base44.entities.Convocatoria.list('-created_date', 200);
+      const convs = await base44.entities.Convocatoria.list('-created_date', 100);
       setRawData(prev => ({ ...prev, convocatorias: convs }));
     };
     setTimeout(loadConvocatorias, 700);
@@ -232,30 +238,32 @@ export function useUnifiedNotifications(user) {
     });
     unsubscribers.push(unsubConvocatorias);
 
-    // ===== PAGOS =====
-    const loadPayments = async () => {
-      const pays = await base44.entities.Payment.list('-created_date', 200);
-      setRawData(prev => ({ ...prev, payments: pays }));
-    };
-    setTimeout(loadPayments, 800);
-    const unsubPayments = base44.entities.Payment.subscribe((event) => {
-      setRawData(prev => {
-        let updated = [...prev.payments];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
-        else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
-        return { ...prev, payments: updated };
+    // ===== PAGOS ===== (solo para admin/tesorero, para reducir carga)
+    if (user.role === 'admin' || user.es_tesorero) {
+      const loadPayments = async () => {
+        const pays = await base44.entities.Payment.list('-created_date', 100);
+        setRawData(prev => ({ ...prev, payments: pays }));
+      };
+      setTimeout(loadPayments, 800);
+      const unsubPayments = base44.entities.Payment.subscribe((event) => {
+        setRawData(prev => {
+          let updated = [...prev.payments];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
+          else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
+          return { ...prev, payments: updated };
+        });
       });
-    });
-    unsubscribers.push(unsubPayments);
+      unsubscribers.push(unsubPayments);
+    }
 
     // ===== JUGADORES =====
     const loadPlayers = async () => {
       let pls = [];
       if (user?.role === 'admin') {
-        pls = await base44.entities.Player.filter({ categoria_requiere_revision: true }, '-updated_date', 500);
+        pls = await base44.entities.Player.filter({ categoria_requiere_revision: true }, '-updated_date', 200);
       } else {
-        pls = await base44.entities.Player.filter({ $or: [ { email_padre: user?.email }, { email_tutor_2: user?.email }, { email_jugador: user?.email } ] }, '-updated_date', 200);
+        pls = await base44.entities.Player.filter({ $or: [ { email_padre: user?.email }, { email_tutor_2: user?.email }, { email_jugador: user?.email } ] }, '-updated_date', 150);
       }
       setRawData(prev => ({ ...prev, players: pls }));
     };
@@ -273,7 +281,7 @@ export function useUnifiedNotifications(user) {
 
     // ===== ANUNCIOS =====
     const loadAnnouncements = async () => {
-      const anns = await base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 200);
+      const anns = await base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 100);
       setRawData(prev => ({ ...prev, announcements: anns }));
     };
     setTimeout(loadAnnouncements, 1000);
@@ -294,7 +302,7 @@ export function useUnifiedNotifications(user) {
         const [inv, secInv, clothing, lottery, members] = await Promise.all([
           base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
           base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
-          base44.entities.ClothingOrder.list('-updated_date', 200),
+          base44.entities.ClothingOrder.list('-updated_date', 150),
           base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }),
           base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })
         ]);
@@ -345,7 +353,7 @@ export function useUnifiedNotifications(user) {
     // ===== ENTRENADORES/COORDINADORES =====
     if (user.es_entrenador || user.es_coordinador) {
       const loadObservations = async () => {
-        const obs = await base44.entities.MatchObservation.list('-updated_date', 200);
+        const obs = await base44.entities.MatchObservation.list('-updated_date', 100);
         setRawData(prev => ({ ...prev, matchObservations: obs }));
       };
       setTimeout(loadObservations, 1200);
