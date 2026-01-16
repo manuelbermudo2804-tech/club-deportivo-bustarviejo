@@ -663,7 +663,7 @@ export default function Layout({ children, currentPageName }) {
   const isPublicPage = location.pathname.includes('ClubMembership') || 
                        location.pathname.includes('ValidateAdminInvitation');
   const [authChecked, setAuthChecked] = useState(false);
-  const [needsLogin, setNeedsLogin] = useState(false);
+  const [needsLogin, setNeedsLogin] = useState(true);
 
   // Login en popup (sin navegar fuera del dominio)
   const AUTH_POPUP_LOGIN_URL = 'https://app.base44.com/login';
@@ -686,6 +686,7 @@ export default function Layout({ children, currentPageName }) {
     await new Promise((resolve) => {
       const onMessage = (event) => {
         if (event.origin === window.location.origin && event.data?.type === 'base44-auth-complete') {
+          try { sessionStorage.setItem('authReady', 'true'); } catch {}
           window.removeEventListener('message', onMessage);
           clearInterval(timer);
           popup.close();
@@ -809,9 +810,9 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        // Pre-check auth to prevent any redirects; only proceed if already authenticated
-        const alreadyAuth = await base44.auth.isAuthenticated();
-        if (!alreadyAuth) {
+        // No llamar al SDK hasta que el usuario haga clic (evitar redirects automáticos)
+        const authReady = sessionStorage.getItem('authReady') === 'true';
+        if (!authReady) {
           setNeedsLogin(true);
           setIsLoading(false);
           setAuthChecked(true);
