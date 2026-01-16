@@ -8,26 +8,28 @@ export default function PushNotificationManager() {
   const [permission, setPermission] = useState('default');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
-      checkSubscription();
-    } else {
-      setLoading(false);
-    }
+    checkSubscription();
   }, []);
 
   const checkSubscription = async () => {
-    setLoading(true);
     try {
+      if (!('Notification' in window)) {
+        setChecking(false);
+        return;
+      }
+
+      setPermission(Notification.permission);
+
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        setLoading(false);
+        setChecking(false);
         return;
       }
 
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 5000)
+        setTimeout(() => reject(new Error('Timeout')), 3000)
       );
       
       const registration = await Promise.race([
@@ -40,7 +42,7 @@ export default function PushNotificationManager() {
     } catch (error) {
       console.error('Error checking subscription:', error);
     } finally {
-      setLoading(false);
+      setChecking(false);
     }
   };
 
@@ -151,6 +153,16 @@ export default function PushNotificationManager() {
 
   if (!('Notification' in window) || !('serviceWorker' in navigator)) {
     return null;
+  }
+
+  if (checking) {
+    return (
+      <div className="inline-block">
+        <Button variant="outline" size="sm" disabled className="gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+        </Button>
+      </div>
+    );
   }
 
   return (
