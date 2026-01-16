@@ -17,6 +17,7 @@ export default function PushNotificationManager() {
   }, []);
 
   const checkSubscription = async () => {
+    setLoading(true);
     try {
       if ('serviceWorker' in navigator && 'PushManager' in window) {
         const registration = await navigator.serviceWorker.ready;
@@ -25,6 +26,8 @@ export default function PushNotificationManager() {
       }
     } catch (error) {
       console.error('Error checking subscription:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
