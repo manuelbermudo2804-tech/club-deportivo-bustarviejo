@@ -1058,18 +1058,10 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-  if (!showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "restricted") {
-    return <RestrictedAccessScreen user={user} restriction={user} />;
-  }
-  if (!showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "closed") {
-    return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
-  }
-  if (!showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "inscriptions") {
-    return <InscriptionPeriodScreen user={user} isAdmin={isAdmin} />;
-  }
-  if (!showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "vacation") {
-    return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
-  }
+  const shouldShowRestricted = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "restricted";
+  const shouldShowClosed = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "closed";
+  const shouldShowInscriptions = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "inscriptions";
+  const shouldShowVacation = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "vacation";
 
 
 
@@ -1415,23 +1407,9 @@ export default function Layout({ children, currentPageName }) {
     }, 250);
   };
 
-  // Si es página pública y ya se verificó la autenticación pero no hay usuario, mostrar contenido sin layout
-  if (isPublicPage && authChecked && !user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        {children}
-      </div>
-    );
-  }
-
-  // Si es página pública y aún se está verificando la autenticación, mostrar loading
-  if (isPublicPage && !authChecked) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-      </div>
-    );
-  }
+  // Flags para manejar páginas públicas sin returns antes de hooks
+  const isPublicAnon = isPublicPage && authChecked && !user;
+  const isPublicLoading = isPublicPage && !authChecked;
 
   
 
@@ -1491,7 +1469,37 @@ export default function Layout({ children, currentPageName }) {
       }
 
       console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
-      
+
+      // Reubicación de returns: después de declarar todos los hooks
+      if (isPublicLoading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+          </div>
+        );
+      }
+
+      if (isPublicAnon) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+            {children}
+          </div>
+        );
+      }
+
+      if (shouldShowRestricted) {
+        return <RestrictedAccessScreen user={user} restriction={user} />;
+      }
+      if (shouldShowClosed) {
+        return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
+      }
+      if (shouldShowInscriptions) {
+        return <InscriptionPeriodScreen user={user} isAdmin={isAdmin} />;
+      }
+      if (shouldShowVacation) {
+        return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
+      }
+
       const renderOnboarding = () => {
         switch (onboardingView) {
           case 'selector':
