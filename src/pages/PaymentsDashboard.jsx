@@ -32,12 +32,16 @@ export default function PaymentsDashboard() {
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-created_date'),
     initialData: [],
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: players } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   if (!isAdmin) {

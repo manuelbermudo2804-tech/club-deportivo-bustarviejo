@@ -73,6 +73,7 @@ export default function TreasurerFinancialPanel() {
     queryKey: ['seasons'],
     queryFn: () => base44.entities.SeasonConfig.list(),
     staleTime: 600000, // 10 minutos
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -84,42 +85,49 @@ export default function TreasurerFinancialPanel() {
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
     staleTime: 60000, // 1 minuto
+    refetchOnWindowFocus: false,
   });
 
   const { data: players = [] } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     staleTime: 300000, // 5 minutos
+    refetchOnWindowFocus: false,
   });
 
   const { data: clothingOrders = [] } = useQuery({
     queryKey: ['clothingOrders'],
     queryFn: () => base44.entities.ClothingOrder.list(),
     staleTime: 120000, // 2 minutos
+    refetchOnWindowFocus: false,
   });
 
   const { data: lotteryOrders = [] } = useQuery({
     queryKey: ['lotteryOrders'],
     queryFn: () => base44.entities.LotteryOrder.list(),
     staleTime: 120000, // 2 minutos
+    refetchOnWindowFocus: false,
   });
 
   const { data: clubMembers = [] } = useQuery({
     queryKey: ['clubMembers'],
     queryFn: () => base44.entities.ClubMember.list(),
     staleTime: 300000, // 5 minutos
+    refetchOnWindowFocus: false,
   });
 
   const { data: sponsors = [] } = useQuery({
     queryKey: ['sponsors'],
     queryFn: () => base44.entities.Sponsor.list(),
     staleTime: 600000, // 10 minutos
+    refetchOnWindowFocus: false,
   });
 
   const { data: customPlans = [] } = useQuery({
     queryKey: ['customPaymentPlans'],
     queryFn: () => base44.entities.CustomPaymentPlan.list(),
     staleTime: 120000, // 2 minutos
+    refetchOnWindowFocus: false,
   });
 
   const { data: allSeasons = [] } = useQuery({

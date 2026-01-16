@@ -52,11 +52,15 @@ export default function ClubMembersManagement() {
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['allMembers'],
     queryFn: () => base44.entities.ClubMember.list('-created_date'),
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: players = [] } = useQuery({
     queryKey: ['allPlayers'],
     queryFn: () => base44.entities.Player.list(),
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: seasonConfig } = useQuery({
@@ -65,6 +69,8 @@ export default function ClubMembersManagement() {
       const configs = await base44.entities.SeasonConfig.list();
       return configs.find(c => c.activa === true);
     },
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   // Detectar socios que NO se renovaron (de temporada anterior sin registro en actual)

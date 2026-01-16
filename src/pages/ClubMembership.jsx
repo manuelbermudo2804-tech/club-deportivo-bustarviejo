@@ -202,6 +202,8 @@ export default function ClubMembership() {
       }
     },
     enabled: !!user?.email,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allMemberships = [] } = useQuery({
@@ -215,6 +217,8 @@ export default function ClubMembership() {
       }
     },
     enabled: !isCheckingAuth,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: seasonConfig } = useQuery({
@@ -229,6 +233,8 @@ export default function ClubMembership() {
       }
     },
     enabled: !isCheckingAuth,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   // Detectar si el email ya fue socio en temporadas anteriores (para auto-marcar como renovación)
@@ -263,6 +269,8 @@ export default function ClubMembership() {
       }
     },
     enabled: !!user?.email,
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
   });
 
   // Detectar referidos históricos (que no renovaron) - DESPUÉS de myPlayers
@@ -284,6 +292,8 @@ export default function ClubMembership() {
       return historicRefs;
     },
     enabled: !!user?.email && !!seasonConfig?.temporada && myPlayers.length > 0,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   // Determinar si es un usuario externo (sin autenticación o sin hijos en el club)
@@ -294,8 +304,8 @@ export default function ClubMembership() {
     queryKey: ['freshUser'],
     queryFn: () => base44.auth.me(),
     enabled: !!user,
-    staleTime: 0,
-    refetchInterval: 5000, // Refrescar cada 5 segundos para ver cambios de crédito
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   // Usar datos frescos del usuario si están disponibles
