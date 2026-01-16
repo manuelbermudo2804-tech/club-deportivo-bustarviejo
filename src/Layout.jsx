@@ -693,7 +693,7 @@ export default function Layout({ children, currentPageName }) {
                               localStorage.setItem('pending_invitation_token', invitationToken);
                               localStorage.setItem('pending_invitation_type', invitationType);
                               const loginUrl = 'https://app.base44.com/login';
-                              const returnUrl = encodeURIComponent('https://app.cdbustarviejo.com');
+                              const returnUrl = encodeURIComponent('https://cdbustarviejo-pwa.vercel.app');
                               window.location.href = `${loginUrl}?nextUrl=${returnUrl}`;
                               return;
                             }
@@ -778,7 +778,7 @@ export default function Layout({ children, currentPageName }) {
           console.error('❌ [LAYOUT] Error auth.me():', authError);
           setIsLoading(false);
           // Si falla la autenticación, redirigir al login
-          base44.auth.redirectToLogin();
+          base44.auth.redirectToLogin('https://cdbustarviejo-pwa.vercel.app');
           return;
         }
 
