@@ -693,10 +693,7 @@ export default function ParentLottery() {
                     {metodoPago === "Bizum" && seasonConfig?.bizum_telefono && (
                       <div className="bg-white rounded-lg p-3 border-2 border-green-300">
                         <p className="text-sm text-slate-900">
-                          📱 <strong>Enviar Bizum al:</strong> {seasonConfig.bizum_telefono}
-                        </p>
-                        <p className="text-xs text-slate-600 mt-1">
-                          Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
+                          📱 <strong>Bizum</strong> está disponible, pero te recomendamos pagar con <strong>tarjeta</strong> para confirmar al instante y no tener que subir justificante.
                         </p>
                       </div>
                     )}
