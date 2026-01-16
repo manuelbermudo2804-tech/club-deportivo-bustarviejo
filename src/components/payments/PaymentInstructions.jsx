@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Copy, CheckCircle2, QrCode, CreditCard, Info } from "lucide-react";
 import { toast } from "sonner";
 
-const CLUB_IBAN = "ES82 0049 4447 38 2010604048";
+const CLUB_IBAN = "ES8200494447382010004048";
 const CLUB_BANK = "Banco Santander";
 
 export default function PaymentInstructions({ playerName, playerCategory, amount, paymentType }) {
