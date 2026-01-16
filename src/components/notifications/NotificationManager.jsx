@@ -10,14 +10,14 @@ export default function NotificationManager({ user }) {
   const { data: notifications } = useQuery({
     queryKey: ['appNotifications', user?.email],
     queryFn: async () => {
-      const mine = await base44.entities.AppNotification.filter({ usuario_email: user?.email, vista: false }, '-created_date', 50);
+      const mine = await base44.entities.AppNotification.filter({ usuario_email: user?.email, vista: false }, '-created_date', 20);
       return mine;
     },
     enabled: !!user?.email,
-    refetchInterval: 120000,
+    refetchInterval: 180000,
     initialData: [],
-    staleTime: 60_000,
-    gcTime: 5 * 60_000,
+    staleTime: 120_000,
+    gcTime: 10 * 60_000,
   });
 
   const markAsViewedMutation = useMutation({
