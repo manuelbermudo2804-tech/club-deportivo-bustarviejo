@@ -79,7 +79,6 @@ import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import Players from './pages/Players';
 import PublicClubMembership from './pages/PublicClubMembership';
-import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
 import Reminders from './pages/Reminders';
 import RenewalDashboard from './pages/RenewalDashboard';
@@ -181,7 +180,6 @@ export const PAGES = {
     "PlayerRenewal": PlayerRenewal,
     "Players": Players,
     "PublicClubMembership": PublicClubMembership,
-    "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
     "Reminders": Reminders,
     "RenewalDashboard": RenewalDashboard,

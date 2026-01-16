@@ -659,20 +659,10 @@ export default function Layout({ children, currentPageName }) {
 
   // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
 
-  // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation, PWA aliases)
-  const lowerPath = location.pathname.toLowerCase();
-  const isPublicPage = lowerPath.includes('clubmembership') || 
-                               lowerPath.includes('validateadmininvitation') ||
-                               lowerPath.includes('pwaentry');
+  // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation)
+  const isPublicPage = location.pathname.includes('ClubMembership') || 
+                       location.pathname.includes('ValidateAdminInvitation');
   const [authChecked, setAuthChecked] = useState(false);
-
-  // Redirigir alias de PWA a la ruta canónica
-  useEffect(() => {
-    const p = window.location.pathname.toLowerCase();
-    if (p === '/pwaentry' || p === '/pwa-entry') {
-      window.location.replace(createPageUrl('PwaEntry'));
-    }
-  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
