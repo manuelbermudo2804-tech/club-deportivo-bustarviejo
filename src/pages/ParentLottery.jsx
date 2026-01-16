@@ -710,12 +710,12 @@ export default function ParentLottery() {
                     {metodoPago !== 'Tarjeta' && (
                     <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
                       <Label className="text-base font-semibold text-orange-900">
-                        📎 Justificante de Pago * (Obligatorio)
+                        📎 Justificante de Pago * (Obligatorio si no pagas con tarjeta)
                       </Label>
                       <p className="text-sm text-orange-800">
                         {metodoPago === "Bizum" 
-                          ? "Sube una captura del justificante de Bizum" 
-                          : "Sube una captura o foto del justificante de tu transferencia bancaria"}
+                          ? "Si eliges Bizum, sube una captura del justificante."
+                          : "Si eliges transferencia, sube una captura o foto del justificante."}
                       </p>
                       <div className="flex gap-3">
                         <Button
