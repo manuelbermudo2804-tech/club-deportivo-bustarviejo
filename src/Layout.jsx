@@ -963,6 +963,13 @@ export default function Layout({ children, currentPageName }) {
           }
         } catch (error) {
           console.error('Error fetching season config (cached):', error);
+          // Activar modo silencioso inmediatamente ante 429 para evitar saturación
+          try {
+            const key = 'maintenanceModeUntil';
+            const next = Date.now() + 5 * 60 * 1000; // 5 minutos
+            localStorage.setItem(key, String(next));
+          } catch {}
+          setMaintenanceMode(true);
         }
 
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
@@ -1576,6 +1583,8 @@ export default function Layout({ children, currentPageName }) {
 
     console.log('✅ [LAYOUT] Renderizando contenido principal con children');
 
+    const shouldLoadEngines = !maintenanceMode && !isPublicPage && (isAdmin || isCoordinator || isCoach || isTreasurer);
+
     // Mostrar WelcomeScreen si es primera vez
     if (showWelcome) {
       return (
@@ -1910,20 +1919,31 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 )}
 
-                {!maintenanceMode && (
+                {shouldLoadEngines && (
                   <Suspense fallback={null}>
                     <SessionManager />
+                    {/* Indicadores básicos */}
                     <NotificationBadge />
-                    <PaymentApprovalNotifier isAdmin={isAdmin} />
-                    <PlanPaymentReminders user={user} />
-                    <AutomaticRenewalReminders />
-                    <AutomaticRenewalClosure />
-                    <RenewalNotificationEngine />
-                    <PostRenewalPaymentReminder />
-                    <ChatSoundNotifier user={user} chatType="all" />
-                    <CallupSoundNotifier user={user} />
-                    <AnnouncementSoundNotifier user={user} />
-                    <PaymentSoundNotifier user={user} />
+                    {/* Motores de backoffice solo para staff */}
+                    {(isAdmin || isCoordinator || isTreasurer) && (
+                      <>
+                        <PaymentApprovalNotifier isAdmin={isAdmin} />
+                        <PlanPaymentReminders user={user} />
+                        <AutomaticRenewalReminders />
+                        <AutomaticRenewalClosure />
+                        <RenewalNotificationEngine />
+                        <PostRenewalPaymentReminder />
+                      </>
+                    )}
+                    {/* Notificadores de sonido solo para staff */}
+                    {(isAdmin || isCoordinator || isCoach || isTreasurer) && (
+                      <>
+                        <ChatSoundNotifier user={user} chatType="all" />
+                        <CallupSoundNotifier user={user} />
+                        <AnnouncementSoundNotifier user={user} />
+                        <PaymentSoundNotifier user={user} />
+                      </>
+                    )}
                   </Suspense>
                 )}
 
