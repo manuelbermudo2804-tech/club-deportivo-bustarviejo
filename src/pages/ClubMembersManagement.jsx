@@ -116,6 +116,13 @@ export default function ClubMembersManagement() {
     return emails;
   }, [players, members]);
 
+  // Normalizar temporadas y utilidades
+  const normalizeSeasonKey = (s) => (s ? String(s).replace(/[^\d]/g, "") : "");
+  const seasonMatches = (a, b) => {
+    if (!a || !b) return false;
+    return normalizeSeasonKey(a) === normalizeSeasonKey(b);
+  };
+
   // Obtener temporadas únicas para el filtro
   const availableSeasons = [...new Set(members.map(m => m.temporada).filter(Boolean))].sort().reverse();
 
@@ -787,7 +794,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
       m.numero_socio?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || m.estado_pago === statusFilter;
-    const matchesSeason = seasonFilter === "all" || m.temporada === seasonFilter;
+    const matchesSeason = seasonFilter === "all" || seasonMatches(m.temporada, seasonFilter);
     const matchesType = typeFilter === "all" || m.tipo_inscripcion === typeFilter;
     
     // Filtro externos/padres
@@ -819,10 +826,8 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
 
   // Estadísticas de la temporada actual - incluir TODOS los socios de la temporada
   const currentSeasonMembers = members.filter(m => {
-    // Si no hay temporada activa, usar la temporada más reciente
     const targetSeason = seasonConfig?.temporada || availableSeasons[0];
-    return m.temporada === targetSeason;
-    // NO filtrar por activo - el campo activo puede estar en false pero siguen siendo socios válidos
+    return seasonMatches(m.temporada, targetSeason);
   });
   
   const stats = {

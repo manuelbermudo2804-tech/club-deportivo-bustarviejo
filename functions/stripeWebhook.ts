@@ -30,10 +30,47 @@ Deno.serve(async (req) => {
           amount_total: session.amount_total,
           currency: session.currency,
           metadata: session.metadata,
-          payment_intent: session.payment_intent,
+          customer_email: session.customer_details?.email || session.customer_email,
         });
-        // Example placeholder: here you could update your entities
-        // await base44.asServiceRole.entities.Payment.create({...})
+
+        try {
+          const base44 = createClientFromRequest(req);
+          const email = (session.customer_details?.email || session.customer_email || '').toLowerCase();
+          const name = session.customer_details?.name || '';
+          const temporada = session.metadata?.temporada || '';
+          const tipo = session.metadata?.tipo || '';
+          const amount = (session.amount_total || 0) / 100;
+
+          if (tipo === 'cuota_socio' && email) {
+            // Buscar socio de la temporada; si no existe, crearlo como externo
+            const existing = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
+            if (existing && existing.length > 0) {
+              const member = existing[0];
+              await base44.asServiceRole.entities.ClubMember.update(member.id, {
+                estado_pago: 'Pagado',
+                cuota_pagada: amount || 25,
+                fecha_pago: new Date().toISOString().split('T')[0]
+              });
+              console.log('[stripeWebhook] ClubMember actualizado como Pagado:', member.id);
+            } else {
+              const created = await base44.asServiceRole.entities.ClubMember.create({
+                numero_socio: `CDB-${new Date().getFullYear()}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}`,
+                nombre_completo: name || email,
+                email,
+                cuota_socio: amount || 25,
+                cuota_pagada: amount || 25,
+                tipo_inscripcion: 'Nueva Inscripción',
+                estado_pago: 'Pagado',
+                temporada: temporada,
+                activo: true,
+                es_socio_externo: true
+              });
+              console.log('[stripeWebhook] ClubMember creado y marcado Pagado:', created.id);
+            }
+          }
+        } catch (e) {
+          console.error('[stripeWebhook] Error procesando cuota socio:', e);
+        }
         break;
       }
       case 'payment_intent.succeeded':
