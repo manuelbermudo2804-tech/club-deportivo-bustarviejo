@@ -459,9 +459,9 @@ export default function ParentLottery() {
                   <strong>📊 Décimos Vendidos:</strong>
                   <br />
                   {maxDecimos ? (
-                    <>
+                    
                       <span className="text-2xl font-bold text-yellow-300">{decimosDisponibles}</span> disponibles de {maxDecimos}
-                    </>
+                    
                   ) : (
                     <span className="text-2xl font-bold text-yellow-300">{totalDecimosVendidos}</span>
                   )}
@@ -511,18 +511,18 @@ export default function ParentLottery() {
                 <div className="space-y-2 text-green-900">
                   <p>1️⃣ Haz tu pedido aquí</p>
                   {requierePagoAdelantado ? (
-                    <>
+                    
                       <p>2️⃣ Realiza el pago por transferencia o Bizum</p>
                       <p>3️⃣ Sube el justificante de pago</p>
                       <p>4️⃣ Tu entrenador te entregará los décimos</p>
                       <p>5️⃣ ¡Y a esperar el sorteo! 🎉</p>
-                    </>
+                    
                   ) : (
-                    <>
+                    
                       <p>2️⃣ Tu entrenador te entregará los décimos</p>
                       <p>3️⃣ Pagas al entrenador al recibirlos</p>
                       <p>4️⃣ ¡Y a esperar el sorteo! 🎉</p>
-                    </>
+                    
                   )}
                 </div>
               </div>
@@ -634,7 +634,7 @@ export default function ParentLottery() {
 
 {/* Sección de Pago */}
                 {requierePagoAdelantado ? (
-                  <>
+                  
                   {/* PAGO ADELANTADO: Solo Transferencia y Bizum (si activo) */}
                   <div className="space-y-4">
                     <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
@@ -702,15 +702,15 @@ export default function ParentLottery() {
                           className="flex-1 bg-white"
                         >
                           {uploadingFile ? (
-                            <>
+                            
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                               Subiendo...
-                            </>
+                            
                           ) : (
-                            <>
+                            
                               <Upload className="w-4 h-4 mr-2" />
                               {justificanteUrl ? "Cambiar justificante" : "Subir justificante"}
-                            </>
+                            
                           )}
                         </Button>
                         {justificanteUrl && (
@@ -740,7 +740,7 @@ export default function ParentLottery() {
                     )}
                   </div>
                 ) : (
-                  <>
+                  
                   {/* SIN PAGO ADELANTADO: Solo Pago al Entrenador */}
                   <div className="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-xl border-2 border-green-300">
                     <p className="text-green-900 font-bold text-lg mb-2">👨‍🏫 Pago al Entrenador</p>
