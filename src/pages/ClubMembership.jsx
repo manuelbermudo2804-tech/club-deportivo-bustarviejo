@@ -1185,7 +1185,7 @@ export default function ClubMembership() {
                   <div className="bg-white rounded-xl p-4 border-2 border-green-200">
                     <p className="text-sm text-slate-700 mb-2 font-semibold">📋 Datos bancarios:</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-lg font-mono bg-slate-100 p-2 rounded flex-1">ES12 1234 5678 1234 5678 9012</p>
+                      <p className="text-lg font-mono bg-slate-100 p-2 rounded flex-1">ES8200494447382010004048</p>
                       <Button
                         type="button"
                         variant="outline"
