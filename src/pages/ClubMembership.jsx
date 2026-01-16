@@ -1287,8 +1287,8 @@ export default function ClubMembership() {
                           toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
                           return;
                         }
-                        const isAuth = await base44.auth.isAuthenticated();
-                        if (!isAuth) {
+                        const authOk = await base44.auth.isAuthenticated();
+                        if (!authOk) {
                           const nextUrl = window.location.origin + createPageUrl("ClubMembership");
                           toast.info("Inicia sesión para pagar con tarjeta");
                           base44.auth.redirectToLogin(nextUrl);
