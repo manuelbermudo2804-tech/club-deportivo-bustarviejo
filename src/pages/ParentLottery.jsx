@@ -644,9 +644,8 @@ export default function ParentLottery() {
 
 {/* Sección de Pago */}
                 {requierePagoAdelantado ? (
-                  
-                  {/* PAGO ADELANTADO: Solo Transferencia y Bizum (si activo) */}
-                  <div className="space-y-4">
+                  (
+                    <div className="space-y-4">
                     <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
                     <Select value={metodoPago} onValueChange={setMetodoPago}>
                       <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
