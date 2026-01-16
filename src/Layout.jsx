@@ -663,7 +663,7 @@ export default function Layout({ children, currentPageName }) {
   const isPublicPage = location.pathname.includes('ClubMembership') || 
                        location.pathname.includes('ValidateAdminInvitation');
   const [authChecked, setAuthChecked] = useState(false);
-  const [needsLogin, setNeedsLogin] = useState(true);
+  const [authState, setAuthState] = useState('public');
 
   // Login en popup (sin navegar fuera del dominio)
   const AUTH_POPUP_LOGIN_URL = 'https://app.base44.com/login';
