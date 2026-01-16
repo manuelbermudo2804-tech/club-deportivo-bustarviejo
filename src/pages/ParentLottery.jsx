@@ -750,10 +750,8 @@ export default function ParentLottery() {
                     </div>
                     )}
                   </div>
-                ) : (
-                  
-                  {/* SIN PAGO ADELANTADO: Solo Pago al Entrenador */}
-                  <div className="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-xl border-2 border-green-300">
+                  ) : (
+                    <div className="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-xl border-2 border-green-300">
                     <p className="text-green-900 font-bold text-lg mb-2">👨‍🏫 Pago al Entrenador</p>
                     <p className="text-green-800 text-sm">
                       Tu entrenador te entregará los décimos y le pagarás directamente cuando los recibas.
