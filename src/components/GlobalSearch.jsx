@@ -27,6 +27,7 @@ export default function GlobalSearch({ isAdmin = false, isCoach = false, isTreas
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const maintenancePaused = typeof window !== 'undefined' && window.__BASE44_PAUSE_REALTIME__ === true;
   const { data: players } = useQuery({
     queryKey: ['players', isOpen],
     queryFn: async () => {
