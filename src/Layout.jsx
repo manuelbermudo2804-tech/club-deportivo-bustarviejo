@@ -22,6 +22,7 @@ const RegistrationTypeSelector = React.lazy(() => import("./components/players/R
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 const NotificationManager = React.lazy(() => import("./components/notifications/NotificationManager"));
+const PushNotificationManager = React.lazy(() => import("./components/notifications/PushNotificationManager"));
 const AutomaticNotificationEngine = React.lazy(() => import("./components/notifications/AutomaticNotificationEngine"));
 const EmailNotificationTrigger = React.lazy(() => import("./components/notifications/EmailNotificationTrigger"));
 const AutomaticPaymentReminders = React.lazy(() => import("./components/reminders/AutomaticPaymentReminders"));
@@ -1902,6 +1903,7 @@ export default function Layout({ children, currentPageName }) {
               >
                 <Smartphone className="w-5 h-5" />
               </button>
+              <Suspense fallback={null}><PushNotificationManager /></Suspense>
               <Suspense fallback={null}><NotificationCenter /></Suspense>
               <ThemeToggle />
               <button
@@ -2019,6 +2021,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
             )}
             <div className="flex items-center gap-1">
+              <Suspense fallback={null}><PushNotificationManager /></Suspense>
               <Suspense fallback={null}><NotificationCenter /></Suspense>
               <ThemeToggle />
               <Suspense fallback={null}><Suspense fallback={null}><LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} /></Suspense></Suspense>
