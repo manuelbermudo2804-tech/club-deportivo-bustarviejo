@@ -57,9 +57,16 @@ export default function PushNotificationManager() {
       // Obtener service worker
       const registration = await navigator.serviceWorker.ready;
 
-      // Obtener clave pública VAPID
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 
-                            (await fetch('/api/getVapidPublicKey').then(r => r.text()));
+      // Obtener clave pública VAPID desde variable de entorno del backend
+      let vapidPublicKey;
+      try {
+        const keyResponse = await base44.functions.invoke('getVapidPublicKey', {});
+        vapidPublicKey = keyResponse.data.publicKey;
+      } catch (error) {
+        toast.error('Error obteniendo clave VAPID. Verifica que las variables estén configuradas.');
+        setLoading(false);
+        return;
+      }
 
       // Suscribirse a push
       const subscription = await registration.pushManager.subscribe({
