@@ -198,7 +198,7 @@ export default function ClubMembership() {
     const t = setTimeout(() => {
       console.warn('[ClubMembership] Auth check timeout, continuando en modo público');
       setIsCheckingAuth(false);
-    }, 8000);
+    }, 2000);
     return () => clearTimeout(t);
   }, [isCheckingAuth]);
 
@@ -1273,6 +1273,14 @@ export default function ClubMembership() {
                         }
                         if (window.self !== window.top) {
                           toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
+                          return;
+                        }
+                        // Requiere sesión para pagar con tarjeta
+                        const isAuth = await base44.auth.isAuthenticated();
+                        if (!isAuth) {
+                          toast.info("Inicia sesión para pagar con tarjeta");
+                          const nextUrl = window.location.origin + createPageUrl("ClubMembership");
+                          base44.auth.redirectToLogin(nextUrl);
                           return;
                         }
                         const successUrl = window.location.origin + createPageUrl("ClubMembership") + "?paid=stripe";
