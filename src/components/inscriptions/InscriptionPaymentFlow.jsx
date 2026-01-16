@@ -47,7 +47,22 @@ export default function InscriptionPaymentFlow({
   const [tipoPago, setTipoPago] = useState("Único");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const cuotas = getCuotasFromConfig(playerData.deporte, categoryConfigs);
+  const deriveFromSeason = (cfg) => {
+    if (!cfg) return null;
+    const hasUnique = typeof cfg.cuota_unica === 'number' && cfg.cuota_unica > 0;
+    const hasTres = typeof cfg.cuota_tres_meses === 'number' && cfg.cuota_tres_meses > 0;
+    if (hasUnique || hasTres) {
+      const third = hasUnique ? Math.round((cfg.cuota_unica || 0) / 3) : (cfg.cuota_tres_meses || 0);
+      return {
+        inscripcion: third,
+        segunda: third,
+        tercera: third,
+        total: hasUnique ? cfg.cuota_unica : (cfg.cuota_tres_meses || 0) * 3
+      };
+    }
+    return null;
+  };
+  const cuotas = getCuotasFromConfig(playerData.deporte, categoryConfigs) || deriveFromSeason(seasonConfig);
 
   const importeTotal = cuotas ? cuotas.total - descuentoHermano : 0;
   const importeInscripcion = cuotas ? cuotas.inscripcion - descuentoHermano : 0;
