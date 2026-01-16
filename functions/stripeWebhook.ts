@@ -86,8 +86,23 @@ Deno.serve(async (req) => {
               });
               console.log('[stripeWebhook] ClubMember creado y marcado Pagado:', created.id);
             }
-          }
-        } catch (e) {
+            }
+
+            // Lotería: marcar pedido como pagado
+            if (tipo === 'loteria' && session.metadata?.order_id) {
+            try {
+              const orderId = session.metadata.order_id;
+              await base44.asServiceRole.entities.LotteryOrder.update(orderId, {
+                pagado: true,
+                metodo_pago: 'Tarjeta',
+                fecha_pago: new Date().toISOString()
+              });
+              console.log('[stripeWebhook] Lotería pagada por tarjeta. Order:', orderId);
+            } catch (err) {
+              console.error('[stripeWebhook] Error actualizando LotteryOrder:', err);
+            }
+            }
+            } catch (e) {
           console.error('[stripeWebhook] Error procesando cuota socio:', e);
         }
         break;

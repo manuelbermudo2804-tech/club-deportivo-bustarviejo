@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Gift, Sparkles, Star, PartyPopper, AlertCircle, Upload, X, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { createPageUrl } from "@/utils";
 
 const NUMERO_LOTERIA = "28720";
 
@@ -29,8 +30,10 @@ export default function ParentLottery() {
   const [isStaff, setIsStaff] = useState(false);
 
   const queryClient = useQueryClient();
+  const [isIframe, setIsIframe] = useState(false);
 
   useEffect(() => {
+    try { setIsIframe(window.self !== window.top); } catch { setIsIframe(false); }
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
@@ -48,6 +51,26 @@ export default function ParentLottery() {
     };
     fetchUser();
   }, []);
+
+  // Detectar retorno de Stripe
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const paid = url.searchParams.get('paid');
+      const lotteryPending = localStorage.getItem('stripeLotteryPending') === '1';
+      if (paid === 'lottery' || lotteryPending) {
+        toast.success('✅ Pago con tarjeta confirmado');
+        localStorage.removeItem('stripeLotteryPending');
+        // Refrescar pedidos
+        queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
+        queryClient.invalidateQueries({ queryKey: ['myLotteryOrders'] });
+        if (paid) {
+          url.searchParams.delete('paid');
+          window.history.replaceState({}, '', url.toString());
+        }
+      }
+    } catch {}
+  }, [queryClient]);
 
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
@@ -235,15 +258,83 @@ export default function ParentLottery() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (requierePagoAdelantado && !justificanteUrl) {
+    if (requierePagoAdelantado && metodoPago !== 'Tarjeta' && !justificanteUrl) {
       toast.error("Debes subir el justificante de pago");
       return;
     }
     
     const total = numDecimos * precioDecimo;
+
+    // Pago con TARJETA (Stripe)
+    if (requierePagoAdelantado && metodoPago === 'Tarjeta') {
+      if (isIframe) {
+        toast.error('Abre la app publicada para pagar con tarjeta');
+        return;
+      }
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        const nextUrl = window.location.origin + createPageUrl('ParentLottery');
+        base44.auth.redirectToLogin(nextUrl);
+        return;
+      }
+
+      // Validar jugador si aplica
+      let jugador_id = user.id;
+      let jugador_nombre = user.full_name;
+      let jugador_categoria = 'Staff del Club';
+      if (!(isStaff && !hasPlayers)) {
+        const player = players.find(p => p.id === selectedPlayer);
+        if (!player) { toast.error('Selecciona un jugador'); return; }
+        jugador_id = player.id;
+        jugador_nombre = player.nombre;
+        jugador_categoria = player.deporte;
+      }
+
+      // Crear pedido pendiente
+      const order = await base44.entities.LotteryOrder.create({
+        jugador_id,
+        jugador_nombre,
+        jugador_categoria,
+        email_padre: user.email,
+        telefono: user.telefono || '',
+        numero_decimos: numDecimos,
+        precio_por_decimo: precioDecimo,
+        total,
+        estado: 'Solicitado',
+        pagado: false,
+        metodo_pago: 'Tarjeta',
+        justificante_url: '',
+        temporada: new Date().getFullYear().toString(),
+        notas
+      });
+
+      // Lanzar Stripe Checkout
+      localStorage.setItem('stripeLotteryPending', '1');
+      const successUrl = window.location.origin + createPageUrl('ParentLottery') + '?paid=lottery';
+      const cancelUrl = window.location.origin + createPageUrl('ParentLottery');
+      const { data } = await base44.functions.invoke('stripeCheckout', {
+        amount: total,
+        name: `Lotería de Navidad - ${numDecimos} décimos`,
+        currency: 'eur',
+        successUrl,
+        cancelUrl,
+        metadata: {
+          tipo: 'loteria',
+          order_id: order.id,
+          temporada: new Date().getFullYear().toString(),
+          user_email: user.email
+        }
+      });
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error('No se pudo iniciar el pago con Stripe');
+      }
+      return;
+    }
 
     // Si es staff (entrenador/coordinador/tesorero) sin hijos, pedido a nombre propio
     if (isStaff && !hasPlayers) {
@@ -551,12 +642,22 @@ export default function ParentLottery() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Transferencia">💳 Transferencia Bancaria</SelectItem>
+                        <SelectItem value="Transferencia">🏦 Transferencia Bancaria</SelectItem>
                         {seasonConfig?.bizum_activo && (
-                          <SelectItem value="Bizum">📱 Bizum</SelectItem>
+                         <SelectItem value="Bizum">📱 Bizum</SelectItem>
                         )}
-                      </SelectContent>
+                        <SelectItem value="Tarjeta">💳 Tarjeta (Stripe)</SelectItem>
+                        </SelectContent>
                     </Select>
+
+                    {metodoPago === "Tarjeta" && (
+                      <div className="bg-white rounded-lg p-3 border-2 border-orange-300">
+                        <p className="text-sm text-slate-900 font-semibold">💳 Pago inmediato con tarjeta (Stripe)</p>
+                        {isIframe && (
+                          <p className="text-xs text-red-600 mt-1">Abre la app publicada para poder pagar con tarjeta.</p>
+                        )}
+                      </div>
+                    )}
 
                     {metodoPago === "Bizum" && seasonConfig?.bizum_telefono && (
                       <div className="bg-white rounded-lg p-3 border-2 border-green-300">
@@ -580,7 +681,8 @@ export default function ParentLottery() {
                       </div>
                     )}
 
-                    {/* Justificante obligatorio */}
+                    {/* Justificante obligatorio (no aplica a Tarjeta) */}
+                    {metodoPago !== 'Tarjeta' && (
                     <div className="space-y-3 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
                       <Label className="text-base font-semibold text-orange-900">
                         📎 Justificante de Pago * (Obligatorio)
@@ -668,9 +770,9 @@ export default function ParentLottery() {
                     Cancelar
                   </Button>
                   <Button 
-                    type="submit" 
-                    className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-red-600 hover:from-green-700 hover:to-red-700 border-2 border-yellow-400 font-bold"
-                    disabled={createOrderMutation.isPending || (requierePagoAdelantado && !justificanteUrl)}
+                   type="submit" 
+                   className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-red-600 hover:from-green-700 hover:to-red-700 border-2 border-yellow-400 font-bold"
+                   disabled={createOrderMutation.isPending || (requierePagoAdelantado && metodoPago !== 'Tarjeta' && !justificanteUrl)}
                   >
                     {createOrderMutation.isPending ? "Enviando..." : "🎁 Confirmar Pedido"}
                   </Button>
