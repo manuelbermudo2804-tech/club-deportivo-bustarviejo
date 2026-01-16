@@ -902,33 +902,64 @@ export default function Layout({ children, currentPageName }) {
           role_RAW: currentUser.role
         });
 
-        // Cargar configuración de temporada AQUÍ (dentro del fetchUser)
+        // Cargar configuración de temporada (con caché local para evitar rate limit)
         try {
-          const configs = await base44.entities.SeasonConfig.filter({ activa: true });
-          const activeConfig = configs[0];
+          const now = Date.now();
+          const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+          // SeasonConfig cache
+          const cfgKey = 'seasonConfigCache';
+          let activeConfig = null;
+          try {
+            const cachedCfg = localStorage.getItem(cfgKey);
+            if (cachedCfg) {
+              const parsed = JSON.parse(cachedCfg);
+              if (parsed?.ts && (now - parsed.ts) < CACHE_TTL) {
+                activeConfig = parsed.data || null;
+              }
+            }
+          } catch {}
+
+          if (!activeConfig) {
+            const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+            activeConfig = configs[0] || null;
+            try { localStorage.setItem(cfgKey, JSON.stringify({ ts: now, data: activeConfig })); } catch {}
+          }
+
           setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
           setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
           const sociosActivo = activeConfig?.programa_socios_activo === true;
           setProgramaSociosActivo(sociosActivo);
-          console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
 
-          // Verificar si el usuario es socio pagado (para TODOS los usuarios)
+          // Verificar si el usuario es socio pagado (cacheado por email)
           if (sociosActivo) {
-            const members = await base44.entities.ClubMember.filter({ 
-              email: currentUser.email,
-              estado_pago: "Pagado"
-            });
-            const isPaid = members.length > 0;
-            console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
-              email: currentUser.email,
-              socios_encontrados: members.length,
-              isPaid,
-              programa_socios_activo: sociosActivo
-            });
+            const memberKey = `memberPaidCache:${currentUser.email}`;
+            let isPaid = false;
+            let hasFreshCache = false;
+            try {
+              const cachedMember = localStorage.getItem(memberKey);
+              if (cachedMember) {
+                const parsed = JSON.parse(cachedMember);
+                if (parsed?.ts && (now - parsed.ts) < CACHE_TTL) {
+                  isPaid = !!parsed.isPaid;
+                  hasFreshCache = true;
+                }
+              }
+            } catch {}
+
+            if (!hasFreshCache) {
+              const members = await base44.entities.ClubMember.filter({ 
+                email: currentUser.email,
+                estado_pago: 'Pagado'
+              });
+              isPaid = members.length > 0;
+              try { localStorage.setItem(memberKey, JSON.stringify({ ts: now, isPaid })); } catch {}
+            }
+
             setIsMemberPaid(isPaid);
           }
         } catch (error) {
-          console.error("Error fetching season config:", error);
+          console.error('Error fetching season config (cached):', error);
         }
 
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
