@@ -28,6 +28,14 @@ export default function PushNotificationManager() {
         return;
       }
 
+      // Verificar si hay un service worker registrado primero
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      if (!registrations || registrations.length === 0) {
+        console.log('No hay service worker registrado aún');
+        setChecking(false);
+        return;
+      }
+
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Timeout')), 3000)
       );
