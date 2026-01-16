@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Gift, Sparkles, Star, PartyPopper, AlertCircle, Upload, X, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -28,6 +29,7 @@ export default function ParentLottery() {
   const [isCoach, setIsCoach] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
+  const [pedidoPersonal, setPedidoPersonal] = useState(false);
 
   const queryClient = useQueryClient();
   const [isIframe, setIsIframe] = useState(false);
@@ -285,7 +287,7 @@ export default function ParentLottery() {
       let jugador_id = user.id;
       let jugador_nombre = user.full_name;
       let jugador_categoria = 'Staff del Club';
-      if (!(isStaff && !hasPlayers)) {
+      if (!(isStaff && pedidoPersonal)) {
         const player = players.find(p => p.id === selectedPlayer);
         if (!player) { toast.error('Selecciona un jugador'); return; }
         jugador_id = player.id;
@@ -337,7 +339,7 @@ export default function ParentLottery() {
     }
 
     // Si es staff (entrenador/coordinador/tesorero) sin hijos, pedido a nombre propio
-    if (isStaff && !hasPlayers) {
+    if (isStaff && pedidoPersonal) {
       createOrderMutation.mutate({
         jugador_id: user.id,
         jugador_nombre: user.full_name,
@@ -577,17 +579,38 @@ export default function ParentLottery() {
             </CardHeader>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {isStaff && !hasPlayers ? (
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border-2 border-blue-300">
-                    <p className="text-blue-900 font-bold text-lg mb-2">
-                      👔 Pedido Personal - Staff del Club
-                    </p>
-                    <p className="text-blue-800 text-sm">
-                      Tu pedido se registrará a nombre de: <strong>{user?.full_name}</strong>
-                    </p>
-                    <p className="text-xs text-blue-700 mt-2">
-                      📧 Email de confirmación: {user?.email}
-                    </p>
+                {isStaff ? (
+                  <div className="space-y-3">
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border-2 border-blue-300">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-blue-900 font-bold text-lg">👔 Pedido Personal - Staff del Club</p>
+                          <p className="text-blue-800 text-sm">A nombre de: <strong>{user?.full_name}</strong></p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-sm text-blue-900">Pedir a mi nombre</Label>
+                          <Switch checked={pedidoPersonal} onCheckedChange={setPedidoPersonal} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {!pedidoPersonal && (
+                      <div className="space-y-2">
+                        <Label className="text-lg font-bold text-slate-900">👤 Jugador</Label>
+                        <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
+                          <SelectTrigger className="border-2 border-red-300 h-12 text-lg">
+                            <SelectValue placeholder="Selecciona un jugador" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {players.map(player => (
+                              <SelectItem key={player.id} value={player.id}>
+                                {player.nombre} - {player.deporte}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-2">
