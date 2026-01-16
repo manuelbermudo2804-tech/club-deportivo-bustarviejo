@@ -696,7 +696,7 @@ export default function ClubMembership() {
         </div>
       )}
       {/* Header festivo */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 opacity-0 animate-fade-in-up [animation-fill-mode:forwards]">
         <div className="flex justify-center gap-2 text-4xl animate-bounce">
           <span>🎉</span>
           <span>⚽</span>
