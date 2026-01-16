@@ -23,7 +23,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     switch (event.type) {
-      case 'checkout.session.completed': {
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded': {
         const session = event.data.object;
         console.log('[stripeWebhook] checkout.session.completed', {
           id: session.id,
@@ -39,9 +40,23 @@ Deno.serve(async (req) => {
           const emailFromMeta = (meta.email || '').toLowerCase();
           const email = (emailFromMeta || session.customer_details?.email || session.customer_email || '').toLowerCase();
           const name = meta.nombre_completo || session.customer_details?.name || '';
-          const temporada = meta.temporada || '';
+          let temporada = meta.temporada || '';
           const tipo = meta.tipo || '';
           const amount = (session.amount_total || 0) / 100;
+
+          // Fallback de temporada si no viene en metadata
+          if (!temporada) {
+            try {
+              const configs = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
+              temporada = configs?.[0]?.temporada || '';
+            } catch (_) {}
+            if (!temporada) {
+              const now = new Date();
+              const y = now.getFullYear();
+              const m = now.getMonth() + 1;
+              temporada = m >= 9 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
+            }
+          }
           const extra = {
             dni: meta.dni || '',
             telefono: meta.telefono || '',
@@ -53,7 +68,7 @@ Deno.serve(async (req) => {
             es_socio_externo: meta.es_socio_externo === 'true'
           };
 
-          if (tipo === 'cuota_socio' && email) {
+          if ((tipo === 'cuota_socio' || !tipo) && email) {
             // Buscar socio de la temporada; si no existe, crearlo como externo
             const existing = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
             if (existing && existing.length > 0) {
