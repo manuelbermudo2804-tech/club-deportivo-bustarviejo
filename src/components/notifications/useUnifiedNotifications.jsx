@@ -124,7 +124,7 @@ export function useUnifiedNotifications(user) {
     let lastChatUpdate = 0;
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
       const now = Date.now();
-      if (now - lastChatUpdate < 500) return prev; // throttle 2/s
+      if (now - lastChatUpdate < 500) return; // throttle 2/s
       lastChatUpdate = now;
       setRawData(prev => {
         let updated = [...prev.chatMessages];
@@ -145,7 +145,7 @@ export function useUnifiedNotifications(user) {
     let lastStaffUpdate = 0;
     const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
       const now = Date.now();
-      if (now - lastStaffUpdate < 500) return prev;
+      if (now - lastStaffUpdate < 500) return;
       lastStaffUpdate = now;
       setRawData(prev => {
         let updated = [...prev.staffMessages];
