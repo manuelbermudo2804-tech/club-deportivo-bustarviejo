@@ -100,8 +100,16 @@ export default function PushNotificationManager() {
         return;
       }
 
-      console.log('🔔 Esperando service worker...');
-      const registration = await navigator.serviceWorker.ready;
+      console.log('🔔 Preparando service worker...');
+      let registration;
+      const regs = await navigator.serviceWorker.getRegistrations();
+      if (!regs || regs.length === 0) {
+        console.log('🔔 Registrando service worker...');
+        await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
+        registration = await navigator.serviceWorker.ready;
+      } else {
+        registration = await navigator.serviceWorker.ready;
+      }
       console.log('🔔 Service Worker listo');
 
       console.log('🔔 Obteniendo clave VAPID...');

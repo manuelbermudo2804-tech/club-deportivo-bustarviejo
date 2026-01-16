@@ -510,6 +510,25 @@ export default function Layout({ children, currentPageName }) {
     childrenType: typeof children,
     childrenExists: !!children 
   });
+
+  // Registrar Service Worker para notificaciones push
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    (async () => {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        const hasSW = regs && regs.length > 0 && regs.some(r => (r.active?.scriptURL || r.installing?.scriptURL || r.waiting?.scriptURL || '').includes('/functions/sw'));
+        if (!hasSW) {
+          console.log('🧩 [SW] Registrando service worker...');
+          await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
+          await navigator.serviceWorker.ready;
+          console.log('✅ [SW] Registrado y listo');
+        }
+      } catch (e) {
+        console.warn('⚠️ [SW] No se pudo registrar:', e?.message || e);
+      }
+    })();
+  }, []);
   
   const location = useLocation();
   const navigate = useNavigate();
