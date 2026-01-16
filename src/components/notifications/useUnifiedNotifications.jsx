@@ -123,6 +123,9 @@ export function useUnifiedNotifications(user) {
     // Throttle chat subscription updates
     let lastChatUpdate = 0;
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastChatUpdate < 500) return prev; // throttle 2/s
+      lastChatUpdate = now;
       setRawData(prev => {
         let updated = [...prev.chatMessages];
         if (event.type === 'create') updated = [event.data, ...updated];
