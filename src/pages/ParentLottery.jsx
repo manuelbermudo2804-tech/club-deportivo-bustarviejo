@@ -460,7 +460,7 @@ export default function ParentLottery() {
                   <br />
                   {maxDecimos ? (
                     
-                      <span className="text-2xl font-bold text-yellow-300">{decimosDisponibles}</span> disponibles de {maxDecimos}
+                      <span><span className="text-2xl font-bold text-yellow-300">{decimosDisponibles}</span> disponibles de {maxDecimos}</span>
                     
                   ) : (
                     <span className="text-2xl font-bold text-yellow-300">{totalDecimosVendidos}</span>
@@ -512,16 +512,20 @@ export default function ParentLottery() {
                   <p>1️⃣ Haz tu pedido aquí</p>
                   {requierePagoAdelantado ? (
                     
+                      <div>
                       <p>2️⃣ Realiza el pago por transferencia o Bizum</p>
                       <p>3️⃣ Sube el justificante de pago</p>
                       <p>4️⃣ Tu entrenador te entregará los décimos</p>
                       <p>5️⃣ ¡Y a esperar el sorteo! 🎉</p>
+                      </div>
                     
                   ) : (
                     
+                      <div>
                       <p>2️⃣ Tu entrenador te entregará los décimos</p>
                       <p>3️⃣ Pagas al entrenador al recibirlos</p>
                       <p>4️⃣ ¡Y a esperar el sorteo! 🎉</p>
+                      </div>
                     
                   )}
                 </div>
@@ -703,13 +707,11 @@ export default function ParentLottery() {
                         >
                           {uploadingFile ? (
                             
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Subiendo...
+                              <span className="flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" />Subiendo...</span>
                             
                           ) : (
                             
-                              <Upload className="w-4 h-4 mr-2" />
-                              {justificanteUrl ? "Cambiar justificante" : "Subir justificante"}
+                              <span className="flex items-center"><Upload className="w-4 h-4 mr-2" />{justificanteUrl ? "Cambiar justificante" : "Subir justificante"}</span>
                             
                           )}
                         </Button>
