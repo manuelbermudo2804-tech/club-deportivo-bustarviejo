@@ -736,6 +736,7 @@ export default function ParentLottery() {
                         <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
                       )}
                     </div>
+                    )}
                   </div>
                 ) : (
                   /* SIN PAGO ADELANTADO: Solo Pago al Entrenador */
