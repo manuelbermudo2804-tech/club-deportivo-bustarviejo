@@ -679,11 +679,11 @@ export default function ClubMembership() {
       <InvitationPWAGuide />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto">
         {isCheckingAuth ? (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex items-center justify-center min-h-[40vh]">
             <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 will-change-transform">
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center">
