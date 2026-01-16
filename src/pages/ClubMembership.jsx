@@ -1168,6 +1168,33 @@ export default function ClubMembership() {
                     <p className="text-sm text-slate-600 mt-3">
                       <strong>Concepto:</strong> SOCIO - {formData.nombre_completo || "Tu nombre"}
                     </p>
+                    <div className="mt-3">
+                      {/* Pago con tarjeta (Stripe) solo fuera del preview/iframe */}
+                      <Button
+                        type="button"
+                        className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
+                        onClick={async () => {
+                          // Bloquear si estamos en iframe (preview)
+                          if (window.self !== window.top) {
+                            toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
+                            return;
+                          }
+                          const successUrl = window.location.origin + createPageUrl("ClubMembership");
+                          const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
+                          const { data } = await base44.functions.invoke('stripeCheckout', {
+                            amount: 25,
+                            name: 'Cuota de Socio',
+                            currency: 'eur',
+                            successUrl,
+                            cancelUrl,
+                            metadata: { tipo: 'cuota_socio', temporada: seasonConfig?.temporada || '' }
+                          });
+                          if (data?.url) window.location.href = data.url;
+                        }}
+                      >
+                        💳 Pagar cuota con tarjeta (Stripe)
+                      </Button>
+                    </div>
                   </div>
                 )}
 
