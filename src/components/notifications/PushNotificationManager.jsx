@@ -15,8 +15,14 @@ export default function PushNotificationManager() {
   }, []);
 
   const checkSubscription = async () => {
+    const timeout = setTimeout(() => {
+      console.warn('⚠️ checkSubscription timeout - forzando salida de checking');
+      setChecking(false);
+    }, 3000);
+
     try {
       if (!('Notification' in window)) {
+        clearTimeout(timeout);
         setChecking(false);
         return;
       }
@@ -24,25 +30,27 @@ export default function PushNotificationManager() {
       setPermission(Notification.permission);
 
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        clearTimeout(timeout);
         setChecking(false);
         return;
       }
 
-      // Verificar si hay un service worker registrado primero
       const registrations = await navigator.serviceWorker.getRegistrations();
       if (!registrations || registrations.length === 0) {
-        console.log('No hay service worker registrado aún');
+        console.log('No hay service worker registrado');
+        clearTimeout(timeout);
         setChecking(false);
         return;
       }
 
-      // Usar el primer service worker registrado sin esperar a que esté ready
       const registration = registrations[0];
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
+      console.log('✅ Estado suscripción:', !!subscription);
     } catch (error) {
       console.error('Error checking subscription:', error);
     } finally {
+      clearTimeout(timeout);
       setChecking(false);
     }
   };
@@ -61,88 +69,80 @@ export default function PushNotificationManager() {
   };
 
   const subscribeToPush = async () => {
+    console.log('🔔 CLICK EN BOTÓN DETECTADO');
     setLoading(true);
+    
+    const timeout = setTimeout(() => {
+      console.error('⚠️ Timeout en subscribeToPush - forzando reset');
+      setLoading(false);
+      toast.error('Operación tardó demasiado. Intenta de nuevo.');
+    }, 15000);
+
     try {
       console.log('🔔 Iniciando suscripción push...');
       
-      // Verificar soporte básico
       if (!('serviceWorker' in navigator)) {
+        clearTimeout(timeout);
         toast.error('Tu navegador no soporta notificaciones push');
         setLoading(false);
         return;
       }
 
-      // Pedir permiso
-      console.log('🔔 Pidiendo permiso al navegador...');
+      console.log('🔔 Pidiendo permiso...');
       const perm = await Notification.requestPermission();
       setPermission(perm);
-      console.log('🔔 Permiso:', perm);
+      console.log('🔔 Permiso obtenido:', perm);
 
       if (perm !== 'granted') {
+        clearTimeout(timeout);
         toast.error('Permiso denegado. Actívalo en ajustes del navegador.');
         setLoading(false);
         return;
       }
 
-      // Verificar service worker - timeout de 10s
-      console.log('🔔 Verificando service worker...');
-      const registrationPromise = navigator.serviceWorker.ready;
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Service Worker timeout')), 10000)
-      );
-      
-      const registration = await Promise.race([registrationPromise, timeoutPromise]);
+      console.log('🔔 Esperando service worker...');
+      const registration = await navigator.serviceWorker.ready;
       console.log('🔔 Service Worker listo');
 
-      // Obtener clave pública VAPID desde variable de entorno del backend
       console.log('🔔 Obteniendo clave VAPID...');
-      let vapidPublicKey;
-      try {
-        const keyResponse = await base44.functions.invoke('getVapidPublicKey', {});
-        vapidPublicKey = keyResponse.data.publicKey;
-        console.log('🔔 Clave VAPID obtenida');
-        
-        if (!vapidPublicKey) {
-          console.error('❌ VAPID_PUBLIC_KEY no configurada');
-          toast.error('VAPID_PUBLIC_KEY no configurada en el servidor');
-          setLoading(false);
-          return;
-        }
-      } catch (error) {
-        console.error('❌ Error obteniendo VAPID key:', error);
-        toast.error('Error de configuración. Contacta con el administrador.');
+      const keyResponse = await base44.functions.invoke('getVapidPublicKey', {});
+      const vapidPublicKey = keyResponse.data.publicKey;
+      console.log('🔔 Clave VAPID obtenida');
+      
+      if (!vapidPublicKey) {
+        clearTimeout(timeout);
+        console.error('❌ VAPID_PUBLIC_KEY no configurada');
+        toast.error('Configuración incompleta');
         setLoading(false);
         return;
       }
 
-      // Suscribirse a push
-      console.log('🔔 Suscribiendo al push manager...');
+      console.log('🔔 Suscribiendo...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
       console.log('🔔 Suscripción creada');
 
-      // Guardar en BD
       console.log('🔔 Guardando en BD...');
       const response = await base44.functions.invoke('registerPushSubscription', {
         subscription: subscription.toJSON(),
         userAgent: navigator.userAgent
       });
-      console.log('🔔 Respuesta BD:', response.data);
 
+      clearTimeout(timeout);
+      
       if (response.data.success) {
         setIsSubscribed(true);
-        toast.success('✅ Notificaciones activadas correctamente');
-        console.log('✅ Suscripción completada');
+        toast.success('✅ Notificaciones activadas');
+        console.log('✅ Completado');
       } else {
-        console.error('❌ Error al registrar:', response.data);
-        toast.error('Error al registrar suscripción');
+        toast.error('Error al guardar');
       }
     } catch (error) {
-      console.error('❌ Error completo subscribing to push:', error);
-      const errorMsg = error.message || 'Error desconocido';
-      toast.error('No se pudo activar: ' + errorMsg);
+      clearTimeout(timeout);
+      console.error('❌ Error:', error);
+      toast.error('Error: ' + (error.message || 'Desconocido'));
     } finally {
       setLoading(false);
     }
@@ -187,7 +187,12 @@ export default function PushNotificationManager() {
         <Button
           variant="outline"
           size="sm"
-          onClick={unsubscribeFromPush}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔔 Click desactivar detectado');
+            unsubscribeFromPush();
+          }}
           disabled={loading}
           className="gap-2"
         >
@@ -202,7 +207,12 @@ export default function PushNotificationManager() {
         <Button
           variant="outline"
           size="sm"
-          onClick={subscribeToPush}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔔 Click activar detectado');
+            subscribeToPush();
+          }}
           disabled={loading}
           className="gap-2 animate-pulse"
         >
