@@ -329,9 +329,9 @@ export default function TreasurerFinancialPanel() {
       loteriaPagada: currentSeasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0),
       loteriaPendiente: currentSeasonLottery.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.total || 0), 0),
       
-      sociosTotal: currentSeasonMembers.filter(m => m.activo !== false).reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
-      sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
-      sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago === "Pendiente").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0),
+      sociosTotal: currentSeasonMembers.filter(m => m.activo !== false).reduce((sum, m) => sum + (m.cuota_socio || m.cuota_pagada || 0), 0),
+      sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + ((m.cuota_pagada || m.cuota_socio || 0)), 0),
+      sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago !== "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 0), 0),
       
       patrociniosTotal: sponsors.filter(s => s.estado === "Activo" && seasonMatches(s.temporada, activeSeason.temporada)).reduce((sum, s) => sum + (s.monto || 0), 0),
     };

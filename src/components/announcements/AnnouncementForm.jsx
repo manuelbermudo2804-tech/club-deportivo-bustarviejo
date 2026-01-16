@@ -25,12 +25,23 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     enviar_chat: false,
     email_enviado: false,
     fecha_publicacion: new Date().toISOString(),
-    leido_por: []
+    leido_por: [],
+    // Nuevos campos de segmentación y banner
+    destinatarios_emails: "",
+    mostrar_como_banner: false,
+    banner_activo: false,
+    banner_posicion: "top",
+    banner_dismissible: true,
+    banner_variant: "info"
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(currentAnnouncement);
+    const emails = Array.isArray(currentAnnouncement.destinatarios_emails)
+      ? currentAnnouncement.destinatarios_emails
+      : (currentAnnouncement.destinatarios_emails || "").split(",").map((x) => x.trim()).filter(Boolean);
+    const payload = { ...currentAnnouncement, destinatarios_emails: emails };
+    onSubmit(payload);
   };
 
   return (
@@ -117,6 +128,86 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                     <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto (Mixto)</SelectItem>
                   </SelectContent>
                 </Select>
+                <div className="space-y-1">
+                  <Label className="text-sm">Emails específicos (opcional)</Label>
+                  <Input
+                    placeholder="email1@dominio.com, email2@dominio.com"
+                    value={currentAnnouncement.destinatarios_emails}
+                    onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_emails: e.target.value })}
+                  />
+                  <p className="text-xs text-slate-500">Si rellenas esta lista, solo esos emails verán el anuncio (además del filtro por grupo si aplica).</p>
+                </div>
+              </div>
+
+              {/* Configuración de Banner */}
+              <div className="space-y-3 md:col-span-2 p-4 rounded-lg bg-purple-50 border-2 border-purple-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium text-purple-900">Mostrar como Banner</Label>
+                    <p className="text-sm text-purple-700">Aparecerá fijo en la parte superior o inferior de la app</p>
+                  </div>
+                  <Switch
+                    checked={currentAnnouncement.mostrar_como_banner}
+                    onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, mostrar_como_banner: checked })}
+                    className="data-[state=checked]:bg-purple-600"
+                  />
+                </div>
+
+                {currentAnnouncement.mostrar_como_banner && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label>Estado</Label>
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={currentAnnouncement.banner_activo}
+                          onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, banner_activo: checked })}
+                        />
+                        <span className="text-sm">{currentAnnouncement.banner_activo ? 'Activo' : 'Inactivo'}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Posición</Label>
+                      <Select
+                        value={currentAnnouncement.banner_posicion}
+                        onValueChange={(v) => setCurrentAnnouncement({ ...currentAnnouncement, banner_posicion: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="top">Arriba</SelectItem>
+                          <SelectItem value="bottom">Abajo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Estilo</Label>
+                      <Select
+                        value={currentAnnouncement.banner_variant}
+                        onValueChange={(v) => setCurrentAnnouncement({ ...currentAnnouncement, banner_variant: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="info">Info</SelectItem>
+                          <SelectItem value="warning">Aviso</SelectItem>
+                          <SelectItem value="success">Éxito</SelectItem>
+                          <SelectItem value="danger">Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1 md:col-span-3">
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={currentAnnouncement.banner_dismissible}
+                          onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, banner_dismissible: checked })}
+                        />
+                        <Label>Permitir que el usuario lo oculte</Label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tipo de caducidad */}
