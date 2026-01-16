@@ -191,6 +191,16 @@ export default function ClubMembership() {
     fetchUser();
   }, []);
 
+  // Fallback: si la verificación de sesión tarda demasiado, liberar el loading
+  useEffect(() => {
+    if (!isCheckingAuth) return;
+    const t = setTimeout(() => {
+      console.warn('[ClubMembership] Auth check timeout, continuando en modo público');
+      setIsCheckingAuth(false);
+    }, 8000);
+    return () => clearTimeout(t);
+  }, [isCheckingAuth]);
+
   const { data: myMemberships = [], isLoading } = useQuery({
     queryKey: ['myMemberships', user?.email],
     queryFn: async () => {
