@@ -52,7 +52,7 @@ export default function GlobalSearch({ isAdmin = false, isCoach = false, isTreas
       }
     },
     initialData: [],
-    enabled: isOpen,
+    enabled: isOpen && !maintenancePaused,
   });
 
   const { data: payments } = useQuery({
@@ -66,21 +66,21 @@ export default function GlobalSearch({ isAdmin = false, isCoach = false, isTreas
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
     initialData: [],
-    enabled: isOpen,
+    enabled: isOpen && !maintenancePaused,
   });
 
   const { data: announcements } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list(),
     initialData: [],
-    enabled: isOpen,
+    enabled: isOpen && !maintenancePaused,
   });
 
   const { data: events } = useQuery({
     queryKey: ['events'],
     queryFn: () => base44.entities.Event.list(),
     initialData: [],
-    enabled: isOpen,
+    enabled: isOpen && !maintenancePaused,
   });
 
   const filterResults = (items, fields) => {
