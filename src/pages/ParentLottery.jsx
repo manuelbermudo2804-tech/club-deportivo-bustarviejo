@@ -459,9 +459,7 @@ export default function ParentLottery() {
                   <strong>📊 Décimos Vendidos:</strong>
                   <br />
                   {maxDecimos ? (
-                    
-                      <span><span className="text-2xl font-bold text-yellow-300">{decimosDisponibles}</span> disponibles de {maxDecimos}</span>
-                    
+                    <span><span className="text-2xl font-bold text-yellow-300">{decimosDisponibles}</span> disponibles de {maxDecimos}</span>
                   ) : (
                     <span className="text-2xl font-bold text-yellow-300">{totalDecimosVendidos}</span>
                   )}
