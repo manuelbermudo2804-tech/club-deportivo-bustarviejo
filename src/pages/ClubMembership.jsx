@@ -192,12 +192,6 @@ export default function ClubMembership() {
     fetchUser();
   }, []);
 
-  // Forzar posición inicial arriba al montar
-  useEffect(() => {
-  window.scrollTo(0, 0);
-  requestAnimationFrame(() => { window.scrollTo(0, 0); window.dispatchEvent(new Event('resize')); });
-  }, []);
-
   // Fallback: si la verificación de sesión tarda demasiado, liberar el loading
   useEffect(() => {
     if (!isCheckingAuth) return;
@@ -642,48 +636,35 @@ export default function ClubMembership() {
   // Scroll automático al formulario cuando se abre
   useEffect(() => {
     if (showForm && formRef.current) {
-      // Espera al siguiente frame para asegurar layout y desplaza un poco por debajo del header fijo
+      // Espera al siguiente frame para asegurar layout
       requestAnimationFrame(() => {
-        const top = formRef.current.getBoundingClientRect().top + window.scrollY - 80;
-        window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
   }, [showForm]);
 
-  // Mostrar pantalla de éxito al volver de Stripe + confirmar en backend si webhook falló
+  // Mostrar pantalla de éxito al volver de Stripe
   useEffect(() => {
     // Forzar repintado inicial para evitar que el contenido aparezca solo al hacer scroll
     window.scrollTo(0, 0);
     requestAnimationFrame(() => { window.dispatchEvent(new Event('resize')); });
-    (async () => {
-      try {
-        const url = new URL(window.location.href);
-        const paid = url.searchParams.get('paid');
-        const stripePending = localStorage.getItem('stripePendingSuccess') === '1';
-        if (paid === 'stripe' || stripePending) {
-          const name = localStorage.getItem('stripeMemberName') || '';
-          const sessionId = localStorage.getItem('stripeSessionId');
-          if (sessionId) {
-            try {
-              await base44.functions.invoke('confirmStripeMembership', { sessionId });
-            } catch (e) {
-              console.warn('[ClubMembership] confirmStripeMembership error:', e?.message || e);
-            }
-          }
-          if (name) setLastRegisteredName(name);
-          setShowSuccess(true);
-          localStorage.removeItem('stripePendingSuccess');
-          localStorage.removeItem('stripeSessionId');
-          localStorage.removeItem('stripeMemberData');
-          // limpiar parámetro de la URL
-          if (paid) {
-            url.searchParams.delete('paid');
-            window.history.replaceState({}, '', url.toString());
-          }
-          setTimeout(() => setShowSuccess(false), 5000);
+    try {
+      const url = new URL(window.location.href);
+      const paid = url.searchParams.get('paid');
+      const stripePending = localStorage.getItem('stripePendingSuccess') === '1';
+      if (paid === 'stripe' || stripePending) {
+        const name = localStorage.getItem('stripeMemberName') || '';
+        if (name) setLastRegisteredName(name);
+        setShowSuccess(true);
+        localStorage.removeItem('stripePendingSuccess');
+        // limpiar parámetro de la URL
+        if (paid) {
+          url.searchParams.delete('paid');
+          window.history.replaceState({}, '', url.toString());
         }
-      } catch {}
-    })();
+        setTimeout(() => setShowSuccess(false), 5000);
+      }
+    } catch {}
   }, []);
 
    if (loadingRenewal) {
@@ -699,7 +680,7 @@ export default function ClubMembership() {
       <InvitationPWAGuide />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto">
         {isCheckingAuth ? (
-          <div className="flex items-center justify-center min-h-screen">
+          <div className="flex items-center justify-center min-h-[40vh]">
             <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
         ) : (
@@ -716,7 +697,7 @@ export default function ClubMembership() {
         </div>
       )}
       {/* Header festivo */}
-      <div className="text-center space-y-2 animate-fade-in-up">
+      <div className="text-center space-y-2 opacity-0 animate-fade-in-up [animation-fill-mode:forwards]">
         <div className="flex justify-center gap-2 text-4xl animate-bounce">
           <span>🎉</span>
           <span>⚽</span>
@@ -993,7 +974,7 @@ export default function ClubMembership() {
 
       {/* Formulario de inscripción */}
       {(showForm || isRenewal) ? (
-        <Card ref={formRef} className="border-none shadow-xl animate-fade-in-up">
+        <Card ref={formRef} className="border-none shadow-xl opacity-0 animate-fade-in-up [animation-fill-mode:forwards]">
             <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
@@ -1286,11 +1267,6 @@ export default function ClubMembership() {
                       type="button"
                       className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
                       onClick={async () => {
-                        // Bloquear si estamos en iframe (preview)
-                        if (window.self !== window.top) {
-                          toast.error('Para pagar con tarjeta abre la app publicada (no en el preview)');
-                          return;
-                        }
                         if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
                           toast.error("Por favor, rellena todos los campos obligatorios");
                           return;
@@ -1305,8 +1281,6 @@ export default function ClubMembership() {
                         localStorage.setItem('stripePendingSuccess', '1');
                         localStorage.setItem('stripeMemberName', formData.nombre_completo || '');
                         const { data } = await base44.functions.invoke('stripeCheckout', {
-                          // Prevención: si se abre en iframe (preview), bloquear
-                          ...(window.self !== window.top ? (() => { throw new Error('checkout_not_allowed_in_iframe'); })() : {}),
                           amount: seasonConfig?.precio_socio || 25,
                           name: 'Cuota de Socio',
                           currency: 'eur',
@@ -1328,22 +1302,6 @@ export default function ClubMembership() {
                             metodo_pago: 'Tarjeta'
                           }
                         });
-                        if (data?.id) {
-                          localStorage.setItem('stripeSessionId', data.id);
-                          localStorage.setItem('stripeMemberData', JSON.stringify({
-                            nombre_completo: formData.nombre_completo,
-                            dni: formData.dni,
-                            telefono: formData.telefono,
-                            email: formData.email,
-                            direccion: formData.direccion,
-                            municipio: formData.municipio,
-                            tipo_inscripcion: formData.tipo_inscripcion,
-                            es_segundo_progenitor: formData.es_segundo_progenitor,
-                            referido_por: formData.referido_por || '',
-                            es_socio_externo: isExternalUser,
-                            temporada: seasonConfig?.temporada || ''
-                          }));
-                        }
                         if (data?.url) window.location.href = data.url;
                       }}
                     >
