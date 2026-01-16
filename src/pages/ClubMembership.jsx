@@ -642,7 +642,28 @@ export default function ClubMembership() {
     }
   }, [showForm]);
 
-  if (loadingRenewal) {
+  // Mostrar pantalla de éxito al volver de Stripe
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const paid = url.searchParams.get('paid');
+      const stripePending = localStorage.getItem('stripePendingSuccess') === '1';
+      if (paid === 'stripe' || stripePending) {
+        const name = localStorage.getItem('stripeMemberName') || '';
+        if (name) setLastRegisteredName(name);
+        setShowSuccess(true);
+        localStorage.removeItem('stripePendingSuccess');
+        // limpiar parámetro de la URL
+        if (paid) {
+          url.searchParams.delete('paid');
+          window.history.replaceState({}, '', url.toString());
+        }
+        setTimeout(() => setShowSuccess(false), 5000);
+      }
+    } catch {}
+  }, []);
+
+   if (loadingRenewal) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
@@ -1190,8 +1211,8 @@ export default function ClubMembership() {
                 {formData.metodo_pago === "Transferencia" && (
                   <div className="bg-white rounded-xl p-4 border-2 border-green-200">
                     <p className="text-sm text-slate-700 mb-2 font-semibold">📋 Datos bancarios:</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-lg font-mono bg-slate-100 p-2 rounded flex-1">ES8200494447382010004048</p>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <p className="text-sm font-mono bg-slate-100 p-2 rounded w-full sm:flex-1 overflow-x-auto whitespace-nowrap">ES8200494447382010004048</p>
                       <Button
                         type="button"
                         variant="outline"
@@ -1200,7 +1221,7 @@ export default function ClubMembership() {
                           navigator.clipboard.writeText("ES8200494447382010004048");
                           toast.success("IBAN copiado al portapapeles");
                         }}
-                        className="flex-shrink-0"
+                        className="self-end sm:self-auto sm:flex-shrink-0"
                       >
                         📋 Copiar
                       </Button>
@@ -1208,8 +1229,6 @@ export default function ClubMembership() {
                     <p className="text-sm text-slate-600 mt-3">
                       <strong>Concepto:</strong> SOCIO - {formData.nombre_completo || "Tu nombre"}
                     </p>
-
-
                   </div>
                 )}
 
@@ -1252,8 +1271,11 @@ export default function ClubMembership() {
                           toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
                           return;
                         }
-                        const successUrl = window.location.origin + createPageUrl("ClubMembership");
+                        const successUrl = window.location.origin + createPageUrl("ClubMembership") + "?paid=stripe";
                         const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
+                        // Guardar nombre para pantalla de éxito al volver de Stripe
+                        localStorage.setItem('stripePendingSuccess', '1');
+                        localStorage.setItem('stripeMemberName', formData.nombre_completo || '');
                         const { data } = await base44.functions.invoke('stripeCheckout', {
                           amount: seasonConfig?.precio_socio || 25,
                           name: 'Cuota de Socio',
@@ -1334,7 +1356,7 @@ export default function ClubMembership() {
                   ) : isRenewal ? (
                     <>🔄 Renovar Membresía</>
                   ) : (
-                    <>🎉 Enviar Solicitud (Transferencia/Bizum)</>
+                    <>enviar solicitud</>
                   )}
                 </Button>
               </div>
