@@ -515,26 +515,25 @@ export default function ParentLottery() {
                 <div className="space-y-2 text-green-900">
                   <p>1️⃣ Haz tu pedido aquí</p>
                   {requierePagoAdelantado ? (
-                    
-                      <>
-                        <div>
-                          <p>2️⃣ Realiza el pago por transferencia o Bizum</p>
-                          <p>3️⃣ Sube el justificante de pago</p>
-                          <p>4️⃣ Tu entrenador te entregará los décimos</p>
-                          <p>5️⃣ ¡Y a esperar el sorteo! 🎉</p>
-                        </div>
-                      </>
-                    
+                    <>
+                      <div>
+                        <p>2️⃣ Elige cómo pagar:</p>
+                        <ul className="list-disc ml-5 space-y-1">
+                          <li><strong>💳 Tarjeta (recomendado):</strong> pagas ahora y listo. No tienes que subir justificante ni hacer nada más.</li>
+                          <li><strong>🏦 Transferencia:</strong> realiza la transferencia y sube el justificante desde el formulario.</li>
+                        </ul>
+                        <p>3️⃣ Tu entrenador te entregará los décimos</p>
+                        <p>4️⃣ ¡Y a esperar el sorteo! 🎉</p>
+                      </div>
+                    </>
                   ) : (
-                    
-                      <>
-                        <div>
-                          <p>2️⃣ Tu entrenador te entregará los décimos</p>
-                          <p>3️⃣ Pagas al entrenador al recibirlos</p>
-                          <p>4️⃣ ¡Y a esperar el sorteo! 🎉</p>
-                        </div>
-                      </>
-                    
+                    <>
+                      <div>
+                        <p>2️⃣ Tu entrenador te entregará los décimos</p>
+                        <p>3️⃣ Pagas al entrenador al recibirlos</p>
+                        <p>4️⃣ ¡Y a esperar el sorteo! 🎉</p>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
