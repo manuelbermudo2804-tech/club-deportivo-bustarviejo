@@ -77,7 +77,7 @@ Importe: ${amount}€`;
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
               <div className="flex-1">
                 <p className="text-xs text-slate-600 font-medium mb-1">IBAN</p>
-                <p className="font-mono font-bold text-sm md:text-base text-slate-900">{CLUB_IBAN}</p>
+                <p className="font-mono font-bold text-sm md:text-base text-slate-900 tracking-wider">{CLUB_IBAN}</p>
               </div>
               <Button
                 size="sm"
