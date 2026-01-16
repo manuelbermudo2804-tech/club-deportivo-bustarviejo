@@ -192,6 +192,12 @@ export default function ClubMembership() {
     fetchUser();
   }, []);
 
+  // Forzar posición inicial arriba al montar
+  useEffect(() => {
+  window.scrollTo(0, 0);
+  requestAnimationFrame(() => { window.scrollTo(0, 0); window.dispatchEvent(new Event('resize')); });
+  }, []);
+
   // Fallback: si la verificación de sesión tarda demasiado, liberar el loading
   useEffect(() => {
     if (!isCheckingAuth) return;
@@ -636,9 +642,10 @@ export default function ClubMembership() {
   // Scroll automático al formulario cuando se abre
   useEffect(() => {
     if (showForm && formRef.current) {
-      // Espera al siguiente frame para asegurar layout
+      // Espera al siguiente frame para asegurar layout y desplaza un poco por debajo del header fijo
       requestAnimationFrame(() => {
-        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const top = formRef.current.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
       });
     }
   }, [showForm]);
@@ -692,7 +699,7 @@ export default function ClubMembership() {
       <InvitationPWAGuide />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto">
         {isCheckingAuth ? (
-          <div className="flex items-center justify-center min-h-[40vh]">
+          <div className="flex items-center justify-center min-h-screen">
             <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
         ) : (
@@ -709,7 +716,7 @@ export default function ClubMembership() {
         </div>
       )}
       {/* Header festivo */}
-      <div className="text-center space-y-2 opacity-0 animate-fade-in-up [animation-fill-mode:forwards]">
+      <div className="text-center space-y-2 animate-fade-in-up">
         <div className="flex justify-center gap-2 text-4xl animate-bounce">
           <span>🎉</span>
           <span>⚽</span>
@@ -986,7 +993,7 @@ export default function ClubMembership() {
 
       {/* Formulario de inscripción */}
       {(showForm || isRenewal) ? (
-        <Card ref={formRef} className="border-none shadow-xl opacity-0 animate-fade-in-up [animation-fill-mode:forwards]">
+        <Card ref={formRef} className="border-none shadow-xl animate-fade-in-up">
             <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
