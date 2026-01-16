@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -666,6 +666,7 @@ export default function Layout({ children, currentPageName }) {
                                lowerPath.includes('validateadmininvitation') ||
                                lowerPath.includes('pwaentry');
   const [authChecked, setAuthChecked] = useState(false);
+  const fetchUserOnceRef = useRef(false);
 
   // Redirigir alias de PWA a la ruta canónica
   useEffect(() => {
@@ -676,6 +677,8 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   useEffect(() => {
+    if (fetchUserOnceRef.current) return;
+    fetchUserOnceRef.current = true;
     const fetchUser = async () => {
                         console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
                         try {
