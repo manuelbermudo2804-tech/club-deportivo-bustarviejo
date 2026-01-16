@@ -93,12 +93,44 @@ export default function LotteryManagement() {
   });
 
   const markAsPaidMutation = useMutation({
-    mutationFn: (orderId) => {
+    mutationFn: async (orderId) => {
       const order = orders.find(o => o.id === orderId);
-      return base44.entities.LotteryOrder.update(orderId, {
+      const updated = await base44.entities.LotteryOrder.update(orderId, {
         ...order,
         pagado: true
       });
+
+      // Registrar margen en FinancialTransaction (evitar duplicados)
+      try {
+        const existentes = await base44.entities.FinancialTransaction.filter({ referencia_origen: orderId, concepto: 'Ganancia Lotería' });
+        if (!existentes || existentes.length === 0) {
+          const baseCoste = 20;
+          const precio = Number(order?.precio_por_decimo || seasonConfig?.precio_decimo_loteria || 22);
+          const margenPorDecimoLocal = Math.max(precio - baseCoste, 0);
+          const decimos = Number(order?.numero_decimos || 0);
+          const margenTotal = Number((margenPorDecimoLocal * decimos).toFixed(2));
+          if (margenTotal > 0) {
+            await base44.entities.FinancialTransaction.create({
+              tipo: 'Ingreso',
+              concepto: 'Ganancia Lotería',
+              cantidad: margenTotal,
+              fecha: new Date().toISOString().split('T')[0],
+              categoria: 'Lotería',
+              subtipo_documento: 'Lotería',
+              metodo_pago: order?.metodo_pago || 'Transferencia',
+              temporada: order?.temporada || '',
+              proveedor_cliente: order?.jugador_nombre || '',
+              automatico: true,
+              referencia_origen: orderId,
+              notas: `Margen ${margenPorDecimoLocal}€ x ${decimos} décimos`
+            });
+          }
+        }
+      } catch (e) {
+        console.error('[LotteryManagement] Error creando FinancialTransaction margen lotería:', e);
+      }
+
+      return updated;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
@@ -192,7 +224,8 @@ export default function LotteryManagement() {
   });
 
   const totalDecimos = orders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
-  const gananciasClub = totalDecimos * 2;
+  const margenPorDecimo = Math.max(((seasonConfig?.precio_decimo_loteria || 22) - 20), 0);
+  const gananciasClub = totalDecimos * margenPorDecimo;
   const pendingPaymentCount = orders.filter(o => !o.pagado).length;
   const paidNotDeliveredCount = orders.filter(o => o.pagado && o.estado !== "Entregado").length;
   const deliveredCount = orders.filter(o => o.estado === "Entregado").length;
@@ -548,7 +581,7 @@ export default function LotteryManagement() {
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           {order.metodo_pago && (
                             <Badge className="bg-blue-100 text-blue-700 text-xs">
-                              {order.metodo_pago === "Bizum" ? "📱 Bizum" : "💳 Transferencia"}
+                              {order.metodo_pago === "Bizum" ? "📱 Bizum" : order.metodo_pago === "Tarjeta" ? "💳 Tarjeta" : "🏦 Transferencia"}
                             </Badge>
                           )}
                           {order.justificante_url && user?.role === "admin" && (

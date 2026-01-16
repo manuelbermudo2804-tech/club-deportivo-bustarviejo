@@ -88,19 +88,52 @@ Deno.serve(async (req) => {
             }
             }
 
-            // Lotería: marcar pedido como pagado
+            // Lotería: marcar pedido como pagado y registrar margen financiero
             if (tipo === 'loteria' && session.metadata?.order_id) {
-            try {
-              const orderId = session.metadata.order_id;
-              await base44.asServiceRole.entities.LotteryOrder.update(orderId, {
-                pagado: true,
-                metodo_pago: 'Tarjeta',
-                fecha_pago: new Date().toISOString()
-              });
-              console.log('[stripeWebhook] Lotería pagada por tarjeta. Order:', orderId);
-            } catch (err) {
-              console.error('[stripeWebhook] Error actualizando LotteryOrder:', err);
-            }
+              try {
+                const orderId = session.metadata.order_id;
+                await base44.asServiceRole.entities.LotteryOrder.update(orderId, {
+                  pagado: true,
+                  metodo_pago: 'Tarjeta',
+                  fecha_pago: new Date().toISOString()
+                });
+                console.log('[stripeWebhook] Lotería pagada por tarjeta. Order:', orderId);
+
+                // Obtener pedido para calcular margen
+                const pedidos = await base44.asServiceRole.entities.LotteryOrder.filter({ id: orderId });
+                const pedido = pedidos?.[0];
+                if (pedido) {
+                  const baseCoste = 20;
+                  const precio = Number(pedido.precio_por_decimo || session.metadata?.precio_por_decimo || 22);
+                  const margenPorDecimo = Math.max(precio - baseCoste, 0);
+                  const decimos = Number(pedido.numero_decimos || 0);
+                  const margenTotal = Number((margenPorDecimo * decimos).toFixed(2));
+
+                  if (margenTotal > 0) {
+                    // Evitar duplicados
+                    const existentes = await base44.asServiceRole.entities.FinancialTransaction.filter({ referencia_origen: orderId, concepto: 'Ganancia Lotería' });
+                    if (!existentes || existentes.length === 0) {
+                      await base44.asServiceRole.entities.FinancialTransaction.create({
+                        tipo: 'Ingreso',
+                        concepto: 'Ganancia Lotería',
+                        cantidad: margenTotal,
+                        fecha: new Date().toISOString().split('T')[0],
+                        categoria: 'Lotería',
+                        subtipo_documento: 'Lotería',
+                        metodo_pago: 'Tarjeta',
+                        temporada: pedido.temporada || session.metadata?.temporada || '',
+                        proveedor_cliente: pedido.jugador_nombre || '',
+                        automatico: true,
+                        referencia_origen: orderId,
+                        notas: `Margen ${margenPorDecimo}€ x ${decimos} décimos`
+                      });
+                      console.log('[stripeWebhook] FinancialTransaction creada para margen de lotería:', orderId, margenTotal);
+                    }
+                  }
+                }
+              } catch (err) {
+                console.error('[stripeWebhook] Error post-proceso Lotería:', err);
+              }
             }
             } catch (e) {
           console.error('[stripeWebhook] Error procesando cuota socio:', e);
