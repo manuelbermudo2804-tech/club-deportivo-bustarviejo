@@ -41,6 +41,7 @@ export default function ClubMembership() {
   const [loadingRenewal, setLoadingRenewal] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isPublicAccess, setIsPublicAccess] = useState(false); // Nuevo: si es acceso público sin login
+  const [stripeFlow, setStripeFlow] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -612,6 +613,10 @@ export default function ClubMembership() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (stripeFlow) {
+      toast.info("Has elegido pagar con tarjeta. No necesitas enviar este formulario.");
+      return;
+    }
     if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
       toast.error("Por favor, rellena todos los campos obligatorios");
       return;
@@ -622,6 +627,7 @@ export default function ClubMembership() {
     }
     createMembershipMutation.mutate(formData);
   };
+
 
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
@@ -1196,11 +1202,17 @@ export default function ClubMembership() {
                         type="button"
                         className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
                         onClick={async () => {
+                          // Validar campos mínimos antes de ir a Stripe (sin justificante)
+                          if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
+                            toast.error("Por favor, rellena todos los campos obligatorios");
+                            return;
+                          }
                           // Bloquear si estamos en iframe (preview)
                           if (window.self !== window.top) {
                             toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
                             return;
                           }
+                          setStripeFlow(true);
                           const successUrl = window.location.origin + createPageUrl("ClubMembership");
                           const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
                           const { data } = await base44.functions.invoke('stripeCheckout', {
@@ -1209,14 +1221,29 @@ export default function ClubMembership() {
                             currency: 'eur',
                             successUrl,
                             cancelUrl,
-                            metadata: { tipo: 'cuota_socio', temporada: seasonConfig?.temporada || '' }
+                            metadata: {
+                              tipo: 'cuota_socio',
+                              temporada: seasonConfig?.temporada || '',
+                              nombre_completo: formData.nombre_completo,
+                              dni: formData.dni,
+                              telefono: formData.telefono,
+                              email: formData.email,
+                              direccion: formData.direccion,
+                              municipio: formData.municipio,
+                              tipo_inscripcion: formData.tipo_inscripcion,
+                              es_segundo_progenitor: formData.es_segundo_progenitor ? 'true' : 'false',
+                              referido_por: formData.referido_por || '',
+                              es_socio_externo: isExternalUser ? 'true' : 'false'
+                            }
                           });
                           if (data?.url) window.location.href = data.url;
                         }}
                       >
                         💳 Pagar cuota con tarjeta (Stripe)
                       </Button>
+                      <p className="text-xs text-slate-600 mt-2">Si pagas con tarjeta, no pulses "Enviar Solicitud": se registrará automáticamente tras el pago.</p>
                     </div>
+
                   </div>
                 )}
 
@@ -1247,14 +1274,14 @@ export default function ClubMembership() {
                 {/* Subir justificante */}
                 <div className="space-y-2">
                   <Label className="font-semibold">Subir Justificante de Pago *</Label>
-                  <p className="text-xs text-slate-600">Obligatorio: sube el comprobante de tu transferencia o Bizum</p>
+                  <p className="text-xs text-slate-600">Obligatorio para Transferencia/Bizum. Si pagas con tarjeta (Stripe) no hace falta.</p>
                   <div className="flex items-center gap-2">
-                    <input type="file" accept="image/*,application/pdf" onChange={handleJustificanteUpload} className="hidden" id="justificante-upload" required />
+                    <input type="file" accept="image/*,application/pdf" onChange={handleJustificanteUpload} className="hidden" id="justificante-upload" required={!stripeFlow} />
                     <Button 
                       type="button" 
                       variant="outline" 
                       onClick={() => document.getElementById('justificante-upload').click()} 
-                      disabled={uploadingJustificante} 
+                      disabled={uploadingJustificante || stripeFlow} 
                       className="flex-1"
                     >
                       {uploadingJustificante ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
@@ -1286,14 +1313,14 @@ export default function ClubMembership() {
                 <Button 
                   type="submit" 
                   className={`order-1 sm:order-2 ${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' : 'bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700'} py-6 text-lg font-bold`} 
-                  disabled={createMembershipMutation.isPending}
+                  disabled={createMembershipMutation.isPending || stripeFlow}
                 >
                   {createMembershipMutation.isPending ? (
                     <><Loader2 className="w-5 h-5 animate-spin mr-2" />Enviando...</>
                   ) : isRenewal ? (
                     <>🔄 Renovar Membresía</>
                   ) : (
-                    <>🎉 Enviar Solicitud</>
+                    <>🎉 Enviar Solicitud (Transferencia/Bizum)</>
                   )}
                 </Button>
               </div>
