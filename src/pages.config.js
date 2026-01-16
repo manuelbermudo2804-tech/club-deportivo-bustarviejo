@@ -79,6 +79,7 @@ import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import Players from './pages/Players';
 import PublicClubMembership from './pages/PublicClubMembership';
+import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
 import Reminders from './pages/Reminders';
 import RenewalDashboard from './pages/RenewalDashboard';
@@ -95,7 +96,6 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import PwaEntry from './pages/PwaEntry';
 import __Layout from './Layout.jsx';
 
 
@@ -181,6 +181,7 @@ export const PAGES = {
     "PlayerRenewal": PlayerRenewal,
     "Players": Players,
     "PublicClubMembership": PublicClubMembership,
+    "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
     "Reminders": Reminders,
     "RenewalDashboard": RenewalDashboard,
@@ -197,7 +198,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "PwaEntry": PwaEntry,
 }
 
 export const pagesConfig = {
