@@ -604,7 +604,12 @@ export default function Layout({ children, currentPageName }) {
           const maintenanceHandler = (e) => {
             const status = e?.reason?.response?.status;
             const msg = (e?.reason?.message || e?.message || '').toString();
-            if (status === 503 || status === 429 || /\b(503|429)\b/.test(msg)) {
+            if (
+              status === 503 ||
+              status === 429 ||
+              /\b(503|429)\b/i.test(msg) ||
+              /rate\s*limit/i.test(msg)
+            ) {
               const next = Date.now() + 5 * 60 * 1000; // 5 minutos
               localStorage.setItem(key, String(next));
               setMaintenanceMode(true);
