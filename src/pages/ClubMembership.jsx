@@ -1283,6 +1283,17 @@ export default function ClubMembership() {
                           base44.auth.redirectToLogin(nextUrl);
                           return;
                         }
+                        if (window.self !== window.top) {
+                          toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
+                          return;
+                        }
+                        const isAuth = await base44.auth.isAuthenticated();
+                        if (!isAuth) {
+                          const nextUrl = window.location.origin + createPageUrl("ClubMembership");
+                          toast.info("Inicia sesión para pagar con tarjeta");
+                          base44.auth.redirectToLogin(nextUrl);
+                          return;
+                        }
                         const successUrl = window.location.origin + createPageUrl("ClubMembership") + "?paid=stripe";
                         const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
                         // Guardar nombre para pantalla de éxito al volver de Stripe
