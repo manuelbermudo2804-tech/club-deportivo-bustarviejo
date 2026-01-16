@@ -634,7 +634,7 @@ export default function ParentLottery() {
 
 {/* Sección de Pago */}
                 {requierePagoAdelantado ? (
-                  /* PAGO ADELANTADO: Solo Transferencia y Bizum (si activo) */
+                  {/* PAGO ADELANTADO: Solo Transferencia y Bizum (si activo) */}
                   <div className="space-y-4">
                     <Label className="text-lg font-bold text-slate-900">💳 Método de Pago</Label>
                     <Select value={metodoPago} onValueChange={setMetodoPago}>
@@ -739,7 +739,7 @@ export default function ParentLottery() {
                     )}
                   </div>
                 ) : (
-                  /* SIN PAGO ADELANTADO: Solo Pago al Entrenador */
+                  {/* SIN PAGO ADELANTADO: Solo Pago al Entrenador */}
                   <div className="bg-gradient-to-r from-green-100 to-green-200 p-4 rounded-xl border-2 border-green-300">
                     <p className="text-green-900 font-bold text-lg mb-2">👨‍🏫 Pago al Entrenador</p>
                     <p className="text-green-800 text-sm">
