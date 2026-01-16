@@ -13,17 +13,30 @@ export default function PushNotificationManager() {
     if ('Notification' in window) {
       setPermission(Notification.permission);
       checkSubscription();
+    } else {
+      setLoading(false);
     }
   }, []);
 
   const checkSubscription = async () => {
     setLoading(true);
     try {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        setIsSubscribed(!!subscription);
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setLoading(false);
+        return;
       }
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      const registration = await Promise.race([
+        navigator.serviceWorker.ready,
+        timeoutPromise
+      ]);
+      
+      const subscription = await registration.pushManager.getSubscription();
+      setIsSubscribed(!!subscription);
     } catch (error) {
       console.error('Error checking subscription:', error);
     } finally {
