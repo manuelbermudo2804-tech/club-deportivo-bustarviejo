@@ -1455,6 +1455,7 @@ export default function Layout({ children, currentPageName }) {
   if (isPublicPage && authChecked && !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        {/* Página pública: no forzar login ni SDK */}
         {children}
       </div>
     );
