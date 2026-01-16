@@ -669,6 +669,7 @@ export default function Layout({ children, currentPageName }) {
   const AUTH_POPUP_LOGIN_URL = 'https://app.base44.com/login';
   const AUTH_POPUP_RETURN_URL = 'https://cdbustarviejo-pwa.vercel.app/AuthComplete';
   async function openAuthPopup() {
+    setAuthState('auth_pending');
     const width = 520;
     const height = 680;
     const left = Math.max(0, Math.floor((window.screen.width - width) / 2));
@@ -733,7 +734,7 @@ export default function Layout({ children, currentPageName }) {
                               // Guardar token y redirigir a login
                               localStorage.setItem('pending_invitation_token', invitationToken);
                               localStorage.setItem('pending_invitation_type', invitationType);
-                              setNeedsLogin(true);
+                              setAuthState('public');
                               return;
                               return;
                             }
@@ -813,7 +814,7 @@ export default function Layout({ children, currentPageName }) {
         // No llamar al SDK hasta que el usuario haga clic (evitar redirects automáticos)
         const authReady = sessionStorage.getItem('authReady') === 'true';
         if (!authReady) {
-          setNeedsLogin(true);
+          setAuthState('public');
           setIsLoading(false);
           setAuthChecked(true);
           return;
@@ -827,7 +828,7 @@ export default function Layout({ children, currentPageName }) {
           console.error('❌ [LAYOUT] Error auth.me():', authError);
           setIsLoading(false);
           // Mostrar pantalla de login sin redirecciones automáticas
-          setNeedsLogin(true);
+          setAuthState('public');
           return;
           return;
         }
@@ -1517,7 +1518,7 @@ export default function Layout({ children, currentPageName }) {
       }, [user]);
 
       // Pantalla de bienvenida/login (sin navegación fuera del dominio)
-      if (needsLogin) {
+      if (authState === 'public') {
         return (
           <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
             <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center space-y-4 border border-slate-200">
