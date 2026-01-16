@@ -62,6 +62,8 @@ export default function PushNotificationManager() {
   const subscribeToPush = async () => {
     setLoading(true);
     try {
+      console.log('🔔 Iniciando suscripción push...');
+      
       // Verificar soporte básico
       if (!('serviceWorker' in navigator)) {
         toast.error('Tu navegador no soporta notificaciones push');
@@ -70,8 +72,10 @@ export default function PushNotificationManager() {
       }
 
       // Pedir permiso
+      console.log('🔔 Pidiendo permiso al navegador...');
       const perm = await Notification.requestPermission();
       setPermission(perm);
+      console.log('🔔 Permiso:', perm);
 
       if (perm !== 'granted') {
         toast.error('Permiso denegado. Actívalo en ajustes del navegador.');
@@ -80,51 +84,62 @@ export default function PushNotificationManager() {
       }
 
       // Verificar service worker - timeout de 10s
+      console.log('🔔 Verificando service worker...');
       const registrationPromise = navigator.serviceWorker.ready;
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Service Worker timeout')), 10000)
       );
       
       const registration = await Promise.race([registrationPromise, timeoutPromise]);
+      console.log('🔔 Service Worker listo');
 
       // Obtener clave pública VAPID desde variable de entorno del backend
+      console.log('🔔 Obteniendo clave VAPID...');
       let vapidPublicKey;
       try {
         const keyResponse = await base44.functions.invoke('getVapidPublicKey', {});
         vapidPublicKey = keyResponse.data.publicKey;
+        console.log('🔔 Clave VAPID obtenida');
         
         if (!vapidPublicKey) {
+          console.error('❌ VAPID_PUBLIC_KEY no configurada');
           toast.error('VAPID_PUBLIC_KEY no configurada en el servidor');
           setLoading(false);
           return;
         }
       } catch (error) {
-        console.error('Error obteniendo VAPID key:', error);
+        console.error('❌ Error obteniendo VAPID key:', error);
         toast.error('Error de configuración. Contacta con el administrador.');
         setLoading(false);
         return;
       }
 
       // Suscribirse a push
+      console.log('🔔 Suscribiendo al push manager...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
+      console.log('🔔 Suscripción creada');
 
       // Guardar en BD
+      console.log('🔔 Guardando en BD...');
       const response = await base44.functions.invoke('registerPushSubscription', {
         subscription: subscription.toJSON(),
         userAgent: navigator.userAgent
       });
+      console.log('🔔 Respuesta BD:', response.data);
 
       if (response.data.success) {
         setIsSubscribed(true);
-        toast.success('✅ Notificaciones activadas');
+        toast.success('✅ Notificaciones activadas correctamente');
+        console.log('✅ Suscripción completada');
       } else {
+        console.error('❌ Error al registrar:', response.data);
         toast.error('Error al registrar suscripción');
       }
     } catch (error) {
-      console.error('Error subscribing to push:', error);
+      console.error('❌ Error completo subscribing to push:', error);
       const errorMsg = error.message || 'Error desconocido';
       toast.error('No se pudo activar: ' + errorMsg);
     } finally {
