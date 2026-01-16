@@ -701,10 +701,7 @@ export default function ParentLottery() {
                     {metodoPago === "Transferencia" && (
                       <div className="bg-white rounded-lg p-3 border-2 border-blue-300">
                         <p className="text-sm text-slate-900">
-                          🏦 <strong>Transferencia a:</strong> ES12 1234 5678 1234 5678 9012
-                        </p>
-                        <p className="text-xs text-slate-600 mt-1">
-                          Concepto: Lotería {selectedPlayer ? players.find(p => p.id === selectedPlayer)?.nombre : user?.full_name}
+                          🏦 <strong>Transferencia bancaria</strong> (si no pagas con tarjeta). Recuerda que deberás subir un justificante para confirmar tu pedido.
                         </p>
                       </div>
                     )}
