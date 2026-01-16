@@ -1118,6 +1118,7 @@ export default function Layout({ children, currentPageName }) {
     // ⚙️ CONFIGURACIÓN
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+    { title: "📲 Configurar Push", url: createPageUrl("AdminPushSetup"), icon: Bell },
     // Eliminado: Clasificaciones (migrado a Centro de Competición)
     ];
 
