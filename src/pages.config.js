@@ -201,7 +201,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "AdminChat",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: __Layout,
 };
