@@ -44,6 +44,13 @@ export default function PushNotificationManager() {
   const subscribeToPush = async () => {
     setLoading(true);
     try {
+      // Verificar soporte básico
+      if (!('serviceWorker' in navigator)) {
+        toast.error('Tu navegador no soporta notificaciones push');
+        setLoading(false);
+        return;
+      }
+
       // Pedir permiso
       const perm = await Notification.requestPermission();
       setPermission(perm);
@@ -54,16 +61,28 @@ export default function PushNotificationManager() {
         return;
       }
 
-      // Obtener service worker
-      const registration = await navigator.serviceWorker.ready;
+      // Verificar service worker - timeout de 10s
+      const registrationPromise = navigator.serviceWorker.ready;
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Service Worker timeout')), 10000)
+      );
+      
+      const registration = await Promise.race([registrationPromise, timeoutPromise]);
 
       // Obtener clave pública VAPID desde variable de entorno del backend
       let vapidPublicKey;
       try {
         const keyResponse = await base44.functions.invoke('getVapidPublicKey', {});
         vapidPublicKey = keyResponse.data.publicKey;
+        
+        if (!vapidPublicKey) {
+          toast.error('VAPID_PUBLIC_KEY no configurada en el servidor');
+          setLoading(false);
+          return;
+        }
       } catch (error) {
-        toast.error('Error obteniendo clave VAPID. Verifica que las variables estén configuradas.');
+        console.error('Error obteniendo VAPID key:', error);
+        toast.error('Error de configuración. Contacta con el administrador.');
         setLoading(false);
         return;
       }
@@ -88,7 +107,8 @@ export default function PushNotificationManager() {
       }
     } catch (error) {
       console.error('Error subscribing to push:', error);
-      toast.error('Error al activar notificaciones: ' + error.message);
+      const errorMsg = error.message || 'Error desconocido';
+      toast.error('No se pudo activar: ' + errorMsg);
     } finally {
       setLoading(false);
     }
