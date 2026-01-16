@@ -42,8 +42,13 @@ export default function ClubMembership() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isPublicAccess, setIsPublicAccess] = useState(false); // Nuevo: si es acceso público sin login
   const [stripeFlow, setStripeFlow] = useState(false);
+  const [isIframe, setIsIframe] = useState(false);
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    try { setIsIframe(window.self !== window.top); } catch (e) { setIsIframe(false); }
+  }, []);
 
   // Función para generar el mismo código de referido que en ReferralProgramCard
   const generateReferralCode = (email) => {
@@ -1222,8 +1227,24 @@ export default function ClubMembership() {
                 {formData.metodo_pago === "Tarjeta" && (
                   <div className="bg-white rounded-xl p-4 border-2 border-orange-300">
                     <p className="text-sm text-slate-700 mb-3 font-semibold">💳 Paga con tarjeta de forma segura (Stripe)</p>
+                    {isIframe && (
+                      <Alert className="mb-3 bg-yellow-50 border-yellow-200">
+                        <AlertDescription className="text-yellow-800 text-sm">
+                          Para pagar con tarjeta abre la app publicada. En la vista previa del editor no se puede abrir Stripe.
+                          <a
+                            href={"https://app.cdbustarviejo.com" + createPageUrl("ClubMembership")}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-2 underline text-orange-700"
+                          >
+                            Abrir app publicada
+                          </a>
+                        </AlertDescription>
+                      </Alert>
+                    )}
                     <Button
                       type="button"
+                      disabled={isIframe}
                       className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
                       onClick={async () => {
                         if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
@@ -1270,7 +1291,11 @@ export default function ClubMembership() {
                             metodo_pago: 'Tarjeta'
                           }
                         });
-                        if (data?.url) window.location.href = data.url;
+                        if (data?.url) {
+                          window.location.href = data.url;
+                        } else {
+                          toast.error("No se pudo iniciar el pago con Stripe");
+                        }
                       }}
                     >
                       💳 Pagar cuota con tarjeta (Stripe)
