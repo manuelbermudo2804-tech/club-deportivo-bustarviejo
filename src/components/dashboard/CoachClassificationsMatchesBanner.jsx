@@ -25,13 +25,18 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
     enabled: myCategories.length > 0,
     staleTime: 5 * 60_000,
     gcTime: 10 * 60_000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 60_000,
   });
 
   const { data: allCallups = [] } = useQuery({
     queryKey: ['callupsCoach'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
-    enabled: myCategories.length > 0
+    enabled: myCategories.length > 0,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 60_000,
   });
 
   const today = new Date().toISOString().split('T')[0];

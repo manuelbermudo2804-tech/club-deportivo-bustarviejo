@@ -27,7 +27,9 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
     enabled: !!userEmail && myPlayers.length > 0 && playerCategories.length > 0,
     staleTime: 5 * 60_000,
     gcTime: 10 * 60_000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 60_000,
   });
 
   // Resumen de resultados desactivado para vista Familia (consulta eliminada)
@@ -38,7 +40,10 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
   const { data: allCallups = [] } = useQuery({
     queryKey: ['nextMatchCallups'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
-    enabled: myPlayers.length > 0
+    enabled: myPlayers.length > 0,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 60_000,
   });
 
   const today = new Date().toISOString().split('T')[0];
