@@ -13,6 +13,7 @@ import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import { toast } from "sonner";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
+import { Link } from "react-router-dom";
 
 const CUOTA_SOCIO = 25;
 
@@ -648,15 +649,31 @@ export default function ClubMembership() {
             <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
         ) : (
-          <div className="space-y-6 will-change-transform">
+          <div className="space-y-6 min-h-screen">
         {showSuccess && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
-          <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center">
-            <CheckCircle2 className="w-24 h-24 text-green-500 mx-auto mb-4" />
-            <p className="text-2xl font-bold text-slate-900 whitespace-pre-line">
-              ✅ ¡{lastRegisteredName} registrado correctamente!
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
+          <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center relative" onClick={(e)=>e.stopPropagation()}>
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-green-100 flex items-center justify-center shadow-lg">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            <h3 className="mt-6 text-2xl font-extrabold text-slate-900">¡Socio registrado!</h3>
+            <p className="mt-2 text-slate-700">
+              {lastRegisteredName ? `${lastRegisteredName} ha quedado registrado correctamente.` : 'Registro completado correctamente.'}
             </p>
-            <p className="text-slate-600 mt-2">Si quieres, puedes registrar otra persona</p>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowSuccess(false);
+                  setShowForm(true);
+                }}
+              >
+                Registrar otro
+              </Button>
+              <Link to={createPageUrl('Home')} className="w-full">
+                <Button className="w-full bg-green-600 hover:bg-green-700">Ir al inicio</Button>
+              </Link>
+            </div>
           </div>
         </div>
       )}

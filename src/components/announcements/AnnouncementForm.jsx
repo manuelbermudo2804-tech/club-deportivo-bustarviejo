@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +35,14 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     banner_posicion: "top",
     banner_dismissible: true,
     banner_variant: "info"
+  });
+
+  const [userSearch, setUserSearch] = useState("");
+  const { data: users = [], isLoading: usersLoading } = useQuery({
+    queryKey: ['announcementUsers'],
+    queryFn: () => base44.entities.User.list(),
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const handleSubmit = (e) => {
@@ -129,13 +139,51 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                   </SelectContent>
                 </Select>
                 <div className="space-y-1">
-                  <Label className="text-sm">Emails específicos (opcional)</Label>
+                  <Label className="text-sm">Usuarios específicos (opcional)</Label>
                   <Input
-                    placeholder="email1@dominio.com, email2@dominio.com"
-                    value={currentAnnouncement.destinatarios_emails}
-                    onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_emails: e.target.value })}
+                    placeholder="Buscar por nombre o email"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
                   />
-                  <p className="text-xs text-slate-500">Si rellenas esta lista, solo esos emails verán el anuncio (además del filtro por grupo si aplica).</p>
+                  <div className="max-h-56 overflow-auto rounded-lg border p-2 bg-white">
+                    {usersLoading && (
+                      <div className="text-xs text-slate-500 px-1 py-2">Cargando usuarios...</div>
+                    )}
+                    {(users || [])
+                      .filter(u => {
+                        const q = userSearch.toLowerCase();
+                        const name = (u.full_name || '').toLowerCase();
+                        const email = (u.email || '').toLowerCase();
+                        return !q || name.includes(q) || email.includes(q);
+                      })
+                      .map((u) => {
+                        const email = u.email;
+                        const name = u.full_name || email;
+                        const selected = Array.isArray(currentAnnouncement.destinatarios_emails)
+                          ? currentAnnouncement.destinatarios_emails
+                          : (currentAnnouncement.destinatarios_emails || '').split(',').map(s=>s.trim()).filter(Boolean);
+                        const checked = selected.includes(email);
+                        return (
+                          <label key={u.id} className="flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                const next = new Set(selected);
+                                if (e.target.checked) next.add(email); else next.delete(email);
+                                setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_emails: Array.from(next) });
+                              }}
+                            />
+                            <span className="text-sm text-slate-800 truncate max-w-[40%]">{name}</span>
+                            <span className="ml-auto text-xs text-slate-500 truncate">{email}</span>
+                          </label>
+                        );
+                      })}
+                    {(!usersLoading && users.length === 0) && (
+                      <div className="text-xs text-slate-500 px-1 py-2">No hay usuarios para mostrar</div>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">Marca usuarios para segmentar el anuncio (además del filtro por grupo si aplica).</p>
                 </div>
               </div>
 
