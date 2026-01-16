@@ -613,7 +613,7 @@ export default function ClubMembership() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (stripeFlow) {
+    if (formData.metodo_pago === 'Tarjeta') {
       toast.info("Has elegido pagar con tarjeta. No necesitas enviar este formulario.");
       return;
     }
@@ -1172,6 +1172,12 @@ export default function ClubMembership() {
                         </Label>
                       </div>
                     )}
+                    <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border-2 border-slate-200 hover:border-green-400 transition-colors">
+                      <RadioGroupItem value="Tarjeta" id="tarjeta" />
+                      <Label htmlFor="tarjeta" className="cursor-pointer flex-1">
+                        <span className="font-semibold">💳 Tarjeta (Stripe)</span>
+                      </Label>
+                    </div>
                   </RadioGroup>
                 </div>
 
@@ -1196,53 +1202,7 @@ export default function ClubMembership() {
                     <p className="text-sm text-slate-600 mt-3">
                       <strong>Concepto:</strong> SOCIO - {formData.nombre_completo || "Tu nombre"}
                     </p>
-                    <div className="mt-3">
-                      {/* Pago con tarjeta (Stripe) solo fuera del preview/iframe */}
-                      <Button
-                        type="button"
-                        className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
-                        onClick={async () => {
-                          // Validar campos mínimos antes de ir a Stripe (sin justificante)
-                          if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
-                            toast.error("Por favor, rellena todos los campos obligatorios");
-                            return;
-                          }
-                          // Bloquear si estamos en iframe (preview)
-                          if (window.self !== window.top) {
-                            toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
-                            return;
-                          }
-                          setStripeFlow(true);
-                          const successUrl = window.location.origin + createPageUrl("ClubMembership");
-                          const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
-                          const { data } = await base44.functions.invoke('stripeCheckout', {
-                            amount: seasonConfig?.precio_socio || 25,
-                            name: 'Cuota de Socio',
-                            currency: 'eur',
-                            successUrl,
-                            cancelUrl,
-                            metadata: {
-                              tipo: 'cuota_socio',
-                              temporada: seasonConfig?.temporada || '',
-                              nombre_completo: formData.nombre_completo,
-                              dni: formData.dni,
-                              telefono: formData.telefono,
-                              email: formData.email,
-                              direccion: formData.direccion,
-                              municipio: formData.municipio,
-                              tipo_inscripcion: formData.tipo_inscripcion,
-                              es_segundo_progenitor: formData.es_segundo_progenitor ? 'true' : 'false',
-                              referido_por: formData.referido_por || '',
-                              es_socio_externo: isExternalUser ? 'true' : 'false'
-                            }
-                          });
-                          if (data?.url) window.location.href = data.url;
-                        }}
-                      >
-                        💳 Pagar cuota con tarjeta (Stripe)
-                      </Button>
-                      <p className="text-xs text-slate-600 mt-2">Si pagas con tarjeta, no pulses "Enviar Solicitud": se registrará automáticamente tras el pago.</p>
-                    </div>
+
 
                   </div>
                 )}
@@ -1271,17 +1231,65 @@ export default function ClubMembership() {
                   </div>
                 )}
 
+                {formData.metodo_pago === "Tarjeta" && (
+                  <div className="bg-white rounded-xl p-4 border-2 border-orange-300">
+                    <p className="text-sm text-slate-700 mb-3 font-semibold">💳 Paga con tarjeta de forma segura (Stripe)</p>
+                    <Button
+                      type="button"
+                      className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
+                      onClick={async () => {
+                        if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
+                          toast.error("Por favor, rellena todos los campos obligatorios");
+                          return;
+                        }
+                        if (window.self !== window.top) {
+                          toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
+                          return;
+                        }
+                        const successUrl = window.location.origin + createPageUrl("ClubMembership");
+                        const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
+                        const { data } = await base44.functions.invoke('stripeCheckout', {
+                          amount: seasonConfig?.precio_socio || 25,
+                          name: 'Cuota de Socio',
+                          currency: 'eur',
+                          successUrl,
+                          cancelUrl,
+                          metadata: {
+                            tipo: 'cuota_socio',
+                            temporada: seasonConfig?.temporada || '',
+                            nombre_completo: formData.nombre_completo,
+                            dni: formData.dni,
+                            telefono: formData.telefono,
+                            email: formData.email,
+                            direccion: formData.direccion,
+                            municipio: formData.municipio,
+                            tipo_inscripcion: formData.tipo_inscripcion,
+                            es_segundo_progenitor: formData.es_segundo_progenitor ? 'true' : 'false',
+                            referido_por: formData.referido_por || '',
+                            es_socio_externo: isExternalUser ? 'true' : 'false',
+                            metodo_pago: 'Tarjeta'
+                          }
+                        });
+                        if (data?.url) window.location.href = data.url;
+                      }}
+                    >
+                      💳 Pagar cuota con tarjeta (Stripe)
+                    </Button>
+                    <p className="text-xs text-slate-600 mt-2">No necesitas subir justificante ni enviar el formulario.</p>
+                  </div>
+                )}
+
                 {/* Subir justificante */}
                 <div className="space-y-2">
                   <Label className="font-semibold">Subir Justificante de Pago *</Label>
-                  <p className="text-xs text-slate-600">Obligatorio para Transferencia/Bizum. Si pagas con tarjeta (Stripe) no hace falta.</p>
+                  <p className="text-xs text-slate-600">Obligatorio solo para Transferencia/Bizum. Si eliges Tarjeta no hace falta.</p>
                   <div className="flex items-center gap-2">
-                    <input type="file" accept="image/*,application/pdf" onChange={handleJustificanteUpload} className="hidden" id="justificante-upload" required={!stripeFlow} />
+                    <input type="file" accept="image/*,application/pdf" onChange={handleJustificanteUpload} className="hidden" id="justificante-upload" required={formData.metodo_pago !== "Tarjeta"} />
                     <Button 
                       type="button" 
                       variant="outline" 
                       onClick={() => document.getElementById('justificante-upload').click()} 
-                      disabled={uploadingJustificante || stripeFlow} 
+                      disabled={uploadingJustificante || formData.metodo_pago === "Tarjeta"} 
                       className="flex-1"
                     >
                       {uploadingJustificante ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
@@ -1313,7 +1321,7 @@ export default function ClubMembership() {
                 <Button 
                   type="submit" 
                   className={`order-1 sm:order-2 ${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' : 'bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700'} py-6 text-lg font-bold`} 
-                  disabled={createMembershipMutation.isPending || stripeFlow}
+                  disabled={createMembershipMutation.isPending || formData.metodo_pago === 'Tarjeta'}
                 >
                   {createMembershipMutation.isPending ? (
                     <><Loader2 className="w-5 h-5 animate-spin mr-2" />Enviando...</>
