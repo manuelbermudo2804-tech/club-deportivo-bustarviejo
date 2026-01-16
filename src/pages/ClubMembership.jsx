@@ -636,9 +636,10 @@ export default function ClubMembership() {
   // Scroll automático al formulario cuando se abre
   useEffect(() => {
     if (showForm && formRef.current) {
-      setTimeout(() => {
+      // Espera al siguiente frame para asegurar layout
+      requestAnimationFrame(() => {
         formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      });
     }
   }, [showForm]);
 
