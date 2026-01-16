@@ -68,6 +68,10 @@ export default function PushNotificationManager() {
     return outputArray;
   };
 
+  const showPermissionHelp = () => {
+    toast.error('Las notificaciones están bloqueadas o denegadas. Pulsa el candado junto a la URL → Permisos → Notificaciones → Permitir y recarga. En Android: Ajustes del sitio > Notificaciones. En iPhone: instala la app (Añadir a pantalla de inicio) y activa Notificaciones.');
+  };
+
   const subscribeToPush = async () => {
     console.log('🔔 CLICK EN BOTÓN DETECTADO');
     setLoading(true);
@@ -95,6 +99,7 @@ export default function PushNotificationManager() {
 
       if (perm !== 'granted') {
         clearTimeout(timeout);
+        if (perm === 'denied') showPermissionHelp();
         toast.error('Permiso denegado. Actívalo en ajustes del navegador.');
         setLoading(false);
         return;
@@ -143,6 +148,10 @@ export default function PushNotificationManager() {
       if (response.data.success) {
         setIsSubscribed(true);
         toast.success('✅ Notificaciones activadas');
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification('CD Bustarviejo', { body: 'Notificación de prueba', icon: '/icon-192.png' });
+        } catch (e) { console.warn('No se pudo mostrar notificación de prueba', e); }
         console.log('✅ Completado');
       } else {
         toast.error('Error al guardar');
@@ -184,6 +193,22 @@ export default function PushNotificationManager() {
       <div className="inline-block">
         <Button variant="outline" size="sm" disabled className="gap-2">
           <Loader2 className="w-4 h-4 animate-spin" />
+        </Button>
+      </div>
+    );
+  }
+
+  if (permission === 'denied') {
+    return (
+      <div className="inline-block">
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); showPermissionHelp(); }}
+          className="gap-2"
+        >
+          <BellOff className="w-4 h-4" />
+          Permiso bloqueado
         </Button>
       </div>
     );
