@@ -664,6 +664,45 @@ export default function Layout({ children, currentPageName }) {
                        location.pathname.includes('ValidateAdminInvitation');
   const [authChecked, setAuthChecked] = useState(false);
 
+  // Login en popup (sin navegar fuera del dominio)
+  const AUTH_POPUP_LOGIN_URL = 'https://app.base44.com/login';
+  const AUTH_POPUP_RETURN_URL = 'https://cdbustarviejo-pwa.vercel.app/AuthComplete';
+  async function openAuthPopup() {
+    const width = 520;
+    const height = 680;
+    const left = Math.max(0, Math.floor((window.screen.width - width) / 2));
+    const top = Math.max(0, Math.floor((window.screen.height - height) / 2));
+    const url = `${AUTH_POPUP_LOGIN_URL}?nextUrl=${encodeURIComponent(AUTH_POPUP_RETURN_URL)}`;
+    const popup = window.open(
+      url,
+      'base44_auth',
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+    );
+    if (!popup) {
+      alert('Por favor, permite ventanas emergentes para iniciar sesión.');
+      return;
+    }
+    await new Promise((resolve) => {
+      const onMessage = (event) => {
+        if (event.origin === window.location.origin && event.data?.type === 'base44-auth-complete') {
+          window.removeEventListener('message', onMessage);
+          clearInterval(timer);
+          popup.close();
+          resolve(true);
+        }
+      };
+      window.addEventListener('message', onMessage);
+      const timer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(timer);
+          window.removeEventListener('message', onMessage);
+          resolve(false);
+        }
+      }, 500);
+    });
+    window.location.reload();
+  }
+
   useEffect(() => {
     const fetchUser = async () => {
                         console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
@@ -692,9 +731,8 @@ export default function Layout({ children, currentPageName }) {
                               // Guardar token y redirigir a login
                               localStorage.setItem('pending_invitation_token', invitationToken);
                               localStorage.setItem('pending_invitation_type', invitationType);
-                              const loginUrl = 'https://app.base44.com/login';
-                              const returnUrl = encodeURIComponent('https://cdbustarviejo-pwa.vercel.app');
-                              window.location.href = `${loginUrl}?nextUrl=${returnUrl}`;
+                              await openAuthPopup();
+                              return;
                               return;
                             }
 
@@ -778,7 +816,8 @@ export default function Layout({ children, currentPageName }) {
           console.error('❌ [LAYOUT] Error auth.me():', authError);
           setIsLoading(false);
           // Si falla la autenticación, redirigir al login
-          base44.auth.redirectToLogin('https://cdbustarviejo-pwa.vercel.app');
+          await openAuthPopup();
+          return;
           return;
         }
 
