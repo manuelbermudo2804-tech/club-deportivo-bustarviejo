@@ -659,52 +659,20 @@ export default function Layout({ children, currentPageName }) {
 
   // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
 
-  // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation)
-  const isPublicPage = location.pathname.includes('ClubMembership') || 
-                       location.pathname.includes('ValidateAdminInvitation');
+  // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation, PWA aliases)
+  const lowerPath = location.pathname.toLowerCase();
+  const isPublicPage = lowerPath.includes('clubmembership') || 
+                               lowerPath.includes('validateadmininvitation') ||
+                               lowerPath.includes('pwaentry');
   const [authChecked, setAuthChecked] = useState(false);
-  const [authState, setAuthState] = useState('public');
 
-  // Login en popup (sin navegar fuera del dominio)
-  const AUTH_POPUP_LOGIN_URL = 'https://app.base44.com/login';
-  const AUTH_POPUP_RETURN_URL = 'https://cdbustarviejo-pwa.vercel.app/AuthComplete';
-  async function openAuthPopup() {
-    setAuthState('auth_pending');
-    const width = 520;
-    const height = 680;
-    const left = Math.max(0, Math.floor((window.screen.width - width) / 2));
-    const top = Math.max(0, Math.floor((window.screen.height - height) / 2));
-    const url = `${AUTH_POPUP_LOGIN_URL}?nextUrl=${encodeURIComponent(AUTH_POPUP_RETURN_URL)}`;
-    const popup = window.open(
-      url,
-      'base44_auth',
-      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    );
-    if (!popup) {
-      alert('Por favor, permite ventanas emergentes para iniciar sesión.');
-      return;
+  // Redirigir alias de PWA a la ruta canónica
+  useEffect(() => {
+    const p = window.location.pathname.toLowerCase();
+    if (p === '/pwaentry' || p === '/pwa-entry') {
+      window.location.replace(createPageUrl('PwaEntry'));
     }
-    await new Promise((resolve) => {
-      const onMessage = (event) => {
-        if (event.origin === window.location.origin && event.data?.type === 'base44-auth-complete') {
-          try { sessionStorage.setItem('authReady', 'true'); } catch {}
-          window.removeEventListener('message', onMessage);
-          clearInterval(timer);
-          popup.close();
-          resolve(true);
-        }
-      };
-      window.addEventListener('message', onMessage);
-      const timer = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(timer);
-          window.removeEventListener('message', onMessage);
-          resolve(false);
-        }
-      }, 500);
-    });
-    window.location.reload();
-  }
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -734,8 +702,9 @@ export default function Layout({ children, currentPageName }) {
                               // Guardar token y redirigir a login
                               localStorage.setItem('pending_invitation_token', invitationToken);
                               localStorage.setItem('pending_invitation_type', invitationType);
-                              setAuthState('public');
-                              return;
+                              const loginUrl = 'https://app.base44.com/login';
+                              const returnUrl = encodeURIComponent('https://app.cdbustarviejo.com');
+                              window.location.href = `${loginUrl}?nextUrl=${returnUrl}`;
                               return;
                             }
 
@@ -794,7 +763,6 @@ export default function Layout({ children, currentPageName }) {
             try {
               const currentUser = await base44.auth.me();
               setUser(currentUser);
-              setAuthState('authenticated');
               setAuthChecked(true);
             } catch (userError) {
               // Usuario autenticado pero no existe en la BD - permitir acceso anónimo
@@ -812,15 +780,6 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
-        // No llamar al SDK hasta que el usuario haga clic (evitar redirects automáticos)
-        const authReady = sessionStorage.getItem('authReady') === 'true';
-        if (!authReady) {
-          setAuthState('public');
-          setIsLoading(false);
-          setAuthChecked(true);
-          return;
-        }
-
         let currentUser;
         try {
           currentUser = await base44.auth.me();
@@ -828,14 +787,12 @@ export default function Layout({ children, currentPageName }) {
         } catch (authError) {
           console.error('❌ [LAYOUT] Error auth.me():', authError);
           setIsLoading(false);
-          // Mostrar pantalla de login sin redirecciones automáticas
-          setAuthState('public');
-          return;
+          // Si falla la autenticación, redirigir al login
+          base44.auth.redirectToLogin();
           return;
         }
 
         setUser(currentUser);
-        setAuthState('authenticated');
         setIsAdmin(currentUser.role === "admin");
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
@@ -1458,7 +1415,6 @@ export default function Layout({ children, currentPageName }) {
   if (isPublicPage && authChecked && !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        {/* Página pública: no forzar login ni SDK */}
         {children}
       </div>
     );
@@ -1518,20 +1474,6 @@ export default function Layout({ children, currentPageName }) {
           setShowFirstLaunchInvite(true);
         }
       }, [user]);
-
-      // Pantalla de bienvenida/login (sin navegación fuera del dominio)
-      if (authState === 'public') {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center space-y-4 border border-slate-200">
-              <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-20 h-20 mx-auto rounded-xl object-contain shadow" />
-              <h1 className="text-2xl font-bold text-slate-900">Bienvenido</h1>
-              <p className="text-slate-600">Inicia sesión para continuar</p>
-              <Button onClick={openAuthPopup} className="w-full bg-orange-600 hover:bg-orange-700">Iniciar sesión</Button>
-            </div>
-          </div>
-        );
-      }
 
       if (isLoading && !isPublicPage) {
         return (

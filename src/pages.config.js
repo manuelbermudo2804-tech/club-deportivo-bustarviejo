@@ -3,7 +3,6 @@ import AdminGallery from './pages/AdminGallery';
 import AdminStats from './pages/AdminStats';
 import Announcements from './pages/Announcements';
 import Anuncios from './pages/Anuncios';
-import AuthComplete from './pages/AuthComplete';
 import BoardTasks from './pages/BoardTasks';
 import CalendarAndSchedules from './pages/CalendarAndSchedules';
 import CategoryConfigAdmin from './pages/CategoryConfigAdmin';
@@ -80,6 +79,7 @@ import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import Players from './pages/Players';
 import PublicClubMembership from './pages/PublicClubMembership';
+import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
 import Reminders from './pages/Reminders';
 import RenewalDashboard from './pages/RenewalDashboard';
@@ -105,7 +105,6 @@ export const PAGES = {
     "AdminStats": AdminStats,
     "Announcements": Announcements,
     "Anuncios": Anuncios,
-    "AuthComplete": AuthComplete,
     "BoardTasks": BoardTasks,
     "CalendarAndSchedules": CalendarAndSchedules,
     "CategoryConfigAdmin": CategoryConfigAdmin,
@@ -182,6 +181,7 @@ export const PAGES = {
     "PlayerRenewal": PlayerRenewal,
     "Players": Players,
     "PublicClubMembership": PublicClubMembership,
+    "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
     "Reminders": Reminders,
     "RenewalDashboard": RenewalDashboard,

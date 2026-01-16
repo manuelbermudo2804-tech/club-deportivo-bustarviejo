@@ -57,8 +57,6 @@ export default function Home() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const authReady = sessionStorage.getItem('authReady') === 'true';
-        if (!authReady) return; // Evitar llamadas que puedan disparar redirects
         console.log('👤 [Home] Cargando usuario...');
         const currentUser = await base44.auth.me();
         console.log('✅ [Home] Usuario cargado:', currentUser.email, 'role:', currentUser.role);
