@@ -809,6 +809,15 @@ export default function Layout({ children, currentPageName }) {
           }
         }
 
+        // Pre-check auth to prevent any redirects; only proceed if already authenticated
+        const alreadyAuth = await base44.auth.isAuthenticated();
+        if (!alreadyAuth) {
+          setNeedsLogin(true);
+          setIsLoading(false);
+          setAuthChecked(true);
+          return;
+        }
+
         let currentUser;
         try {
           currentUser = await base44.auth.me();
