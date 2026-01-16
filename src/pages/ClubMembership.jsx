@@ -1281,6 +1281,8 @@ export default function ClubMembership() {
                         localStorage.setItem('stripePendingSuccess', '1');
                         localStorage.setItem('stripeMemberName', formData.nombre_completo || '');
                         const { data } = await base44.functions.invoke('stripeCheckout', {
+                          // Prevención: si se abre en iframe (preview), bloquear
+                          ...(window.self !== window.top ? (() => { throw new Error('checkout_not_allowed_in_iframe'); })() : {}),
                           amount: seasonConfig?.precio_socio || 25,
                           name: 'Cuota de Socio',
                           currency: 'eur',
