@@ -120,6 +120,8 @@ export function useUnifiedNotifications(user) {
       setRawData(prev => ({ ...prev, chatMessages: msgs }));
     };
     loadChatMsgs();
+    // Throttle chat subscription updates
+    let lastChatUpdate = 0;
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
       setRawData(prev => {
         let updated = [...prev.chatMessages];
