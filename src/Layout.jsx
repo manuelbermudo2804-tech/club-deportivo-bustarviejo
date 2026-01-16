@@ -13,6 +13,7 @@ const NotificationBadge = React.lazy(() => import("./components/NotificationBadg
 const SessionManager = React.lazy(() => import("./components/SessionManager"));
 const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
+import ActiveBanner from "./components/announcements/ActiveBanner";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
@@ -2142,7 +2143,9 @@ export default function Layout({ children, currentPageName }) {
               Modo silencioso por mantenimiento: algunas actualizaciones en tiempo real están pausadas temporalmente.
             </div>
           )}
+          <ActiveBanner position="top" user={user} />
           {children}
+          <ActiveBanner position="bottom" user={user} />
           </main>
 
         {/* Banner de Patrocinadores - Footer fijo */}
