@@ -35,11 +35,23 @@ Deno.serve(async (req) => {
 
         try {
           const base44 = createClientFromRequest(req);
-          const email = (session.customer_details?.email || session.customer_email || '').toLowerCase();
-          const name = session.customer_details?.name || '';
-          const temporada = session.metadata?.temporada || '';
-          const tipo = session.metadata?.tipo || '';
+          const meta = session.metadata || {};
+          const emailFromMeta = (meta.email || '').toLowerCase();
+          const email = (emailFromMeta || session.customer_details?.email || session.customer_email || '').toLowerCase();
+          const name = meta.nombre_completo || session.customer_details?.name || '';
+          const temporada = meta.temporada || '';
+          const tipo = meta.tipo || '';
           const amount = (session.amount_total || 0) / 100;
+          const extra = {
+            dni: meta.dni || '',
+            telefono: meta.telefono || '',
+            direccion: meta.direccion || '',
+            municipio: meta.municipio || '',
+            tipo_inscripcion: meta.tipo_inscripcion || 'Nueva Inscripción',
+            es_segundo_progenitor: meta.es_segundo_progenitor === 'true',
+            referido_por: meta.referido_por || '',
+            es_socio_externo: meta.es_socio_externo === 'true'
+          };
 
           if (tipo === 'cuota_socio' && email) {
             // Buscar socio de la temporada; si no existe, crearlo como externo
@@ -49,21 +61,28 @@ Deno.serve(async (req) => {
               await base44.asServiceRole.entities.ClubMember.update(member.id, {
                 estado_pago: 'Pagado',
                 cuota_pagada: amount || 25,
-                fecha_pago: new Date().toISOString().split('T')[0]
+                fecha_pago: new Date().toISOString().split('T')[0],
+                metodo_pago: 'Tarjeta'
               });
               console.log('[stripeWebhook] ClubMember actualizado como Pagado:', member.id);
             } else {
               const created = await base44.asServiceRole.entities.ClubMember.create({
                 numero_socio: `CDB-${new Date().getFullYear()}-${Math.floor(Math.random()*10000).toString().padStart(4,'0')}`,
                 nombre_completo: name || email,
+                dni: extra.dni,
+                telefono: extra.telefono,
                 email,
+                direccion: extra.direccion,
+                municipio: extra.municipio,
                 cuota_socio: amount || 25,
                 cuota_pagada: amount || 25,
-                tipo_inscripcion: 'Nueva Inscripción',
+                tipo_inscripcion: extra.tipo_inscripcion,
                 estado_pago: 'Pagado',
                 temporada: temporada,
                 activo: true,
-                es_socio_externo: true
+                es_socio_externo: extra.es_socio_externo,
+                metodo_pago: 'Tarjeta',
+                referido_por: extra.referido_por
               });
               console.log('[stripeWebhook] ClubMember creado y marcado Pagado:', created.id);
             }
