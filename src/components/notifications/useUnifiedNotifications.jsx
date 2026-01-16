@@ -76,13 +76,18 @@ export function useUnifiedNotifications(user) {
     
     // Coordinator Conversations
     const loadCoordConvs = async () => {
-      const convs = await base44.entities.CoordinatorConversation.list('-updated_date', 500);
+      let convs = [];
+      if (user?.es_coordinador) {
+        convs = await base44.entities.CoordinatorConversation.list('-updated_date', 200);
+      } else {
+        convs = await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 200);
+      }
       setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
     };
 
     // Coach Conversations
     const loadCoachConvs = async () => {
-      const convs = await base44.entities.CoachConversation.list('-updated_date', 500);
+      const convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 200);
       setRawData(prev => ({ ...prev, coachConversations: convs }));
     };
     loadCoordConvs();
@@ -111,7 +116,7 @@ export function useUnifiedNotifications(user) {
 
     // Chat Messages
     const loadChatMsgs = async () => {
-      const msgs = await base44.entities.ChatMessage.list('-created_date', 500);
+      const msgs = await base44.entities.ChatMessage.list('-created_date', 200);
       setRawData(prev => ({ ...prev, chatMessages: msgs }));
     };
     loadChatMsgs();
@@ -128,7 +133,7 @@ export function useUnifiedNotifications(user) {
 
     // Staff Messages
     const loadStaffMsgs = async () => {
-      const msgs = await base44.entities.StaffMessage.list('-created_date', 500);
+      const msgs = await base44.entities.StaffMessage.list('-created_date', 200);
       setRawData(prev => ({ ...prev, staffMessages: msgs }));
     };
     loadStaffMsgs();
@@ -145,7 +150,12 @@ export function useUnifiedNotifications(user) {
 
     // Admin Conversations
     const loadAdminConvs = async () => {
-      const convs = await base44.entities.AdminConversation.list('-updated_date', 500);
+      let convs = [];
+      if (user?.role === 'admin') {
+        convs = await base44.entities.AdminConversation.list('-updated_date', 500);
+      } else {
+        convs = await base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 200);
+      }
       setRawData(prev => ({ ...prev, adminConversations: convs }));
     };
     loadAdminConvs();
@@ -181,7 +191,7 @@ export function useUnifiedNotifications(user) {
 
     // Private Conversations
     const loadPrivateConvs = async () => {
-      const convs = await base44.entities.PrivateConversation.list('-updated_date', 500);
+      const convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 200);
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
     loadPrivateConvs();
@@ -198,7 +208,7 @@ export function useUnifiedNotifications(user) {
 
     // ===== CONVOCATORIAS =====
     const loadConvocatorias = async () => {
-      const convs = await base44.entities.Convocatoria.list('-created_date', 500);
+      const convs = await base44.entities.Convocatoria.list('-created_date', 200);
       setRawData(prev => ({ ...prev, convocatorias: convs }));
     };
     loadConvocatorias();
@@ -215,7 +225,7 @@ export function useUnifiedNotifications(user) {
 
     // ===== PAGOS =====
     const loadPayments = async () => {
-      const pays = await base44.entities.Payment.list('-created_date', 500);
+      const pays = await base44.entities.Payment.list('-created_date', 200);
       setRawData(prev => ({ ...prev, payments: pays }));
     };
     loadPayments();
@@ -232,7 +242,12 @@ export function useUnifiedNotifications(user) {
 
     // ===== JUGADORES =====
     const loadPlayers = async () => {
-      const pls = await base44.entities.Player.list();
+      let pls = [];
+      if (user?.role === 'admin') {
+        pls = await base44.entities.Player.filter({ categoria_requiere_revision: true }, '-updated_date', 500);
+      } else {
+        pls = await base44.entities.Player.filter({ $or: [ { email_padre: user?.email }, { email_tutor_2: user?.email }, { email_jugador: user?.email } ] }, '-updated_date', 200);
+      }
       setRawData(prev => ({ ...prev, players: pls }));
     };
     loadPlayers();
@@ -249,7 +264,7 @@ export function useUnifiedNotifications(user) {
 
     // ===== ANUNCIOS =====
     const loadAnnouncements = async () => {
-      const anns = await base44.entities.Announcement.list('-fecha_publicacion', 500);
+      const anns = await base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 200);
       setRawData(prev => ({ ...prev, announcements: anns }));
     };
     loadAnnouncements();
@@ -270,7 +285,7 @@ export function useUnifiedNotifications(user) {
         const [inv, secInv, clothing, lottery, members] = await Promise.all([
           base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
           base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
-          base44.entities.ClothingOrder.list(),
+          base44.entities.ClothingOrder.list('-updated_date', 200),
           base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }),
           base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })
         ]);
@@ -321,7 +336,7 @@ export function useUnifiedNotifications(user) {
     // ===== ENTRENADORES/COORDINADORES =====
     if (user.es_entrenador || user.es_coordinador) {
       const loadObservations = async () => {
-        const obs = await base44.entities.MatchObservation.list('-updated_date', 500);
+        const obs = await base44.entities.MatchObservation.list('-updated_date', 200);
         setRawData(prev => ({ ...prev, matchObservations: obs }));
       };
       loadObservations();
