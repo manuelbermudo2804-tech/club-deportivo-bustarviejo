@@ -27,6 +27,13 @@ Deno.serve(async (req) => {
     const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
 
     const sessionParams = {
+      payment_intent_data: {
+        metadata: {
+          base44_app_id: Deno.env.get('BASE44_APP_ID') || 'unknown',
+          user_email: user.email,
+          ...metadata,
+        }
+      },
       mode: 'payment',
       customer_email: user.email,
       success_url: successUrl,
