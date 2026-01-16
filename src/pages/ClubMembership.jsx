@@ -1191,7 +1191,7 @@ export default function ClubMembership() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          navigator.clipboard.writeText("ES12 1234 5678 1234 5678 9012");
+                          navigator.clipboard.writeText("ES8200494447382010004048");
                           toast.success("IBAN copiado al portapapeles");
                         }}
                         className="flex-shrink-0"
