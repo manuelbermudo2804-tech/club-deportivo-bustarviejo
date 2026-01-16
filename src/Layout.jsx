@@ -794,6 +794,7 @@ export default function Layout({ children, currentPageName }) {
             try {
               const currentUser = await base44.auth.me();
               setUser(currentUser);
+              setAuthState('authenticated');
               setAuthChecked(true);
             } catch (userError) {
               // Usuario autenticado pero no existe en la BD - permitir acceso anónimo
@@ -834,6 +835,7 @@ export default function Layout({ children, currentPageName }) {
         }
 
         setUser(currentUser);
+        setAuthState('authenticated');
         setIsAdmin(currentUser.role === "admin");
         setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
         setIsCoordinator(currentUser.es_coordinador === true);
