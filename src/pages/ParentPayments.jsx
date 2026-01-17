@@ -87,6 +87,7 @@ export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [quickPayOpen, setQuickPayOpen] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
   const [selectedPaymentMonth, setSelectedPaymentMonth] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
