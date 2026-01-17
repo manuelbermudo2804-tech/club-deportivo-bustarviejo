@@ -29,6 +29,22 @@ export default function ExtraCharges() {
     includeAdmins: false,
     playerSearch: "",
   });
+  const [openForm, setOpenForm] = useState(false);
+  const [showPlayerPicker, setShowPlayerPicker] = useState(false);
+  const [form, setForm] = useState({
+    titulo: "",
+    descripcion: "",
+    fecha_limite: "",
+    metodos: ["Tarjeta", "Transferencia"],
+    items: [{ nombre: "Autobús", precio: 10, obligatorio: false, permite_cantidad: false }],
+    selectedCategories: [],
+    selectedPlayerIds: [],
+    includeCoaches: false,
+    includeCoordinators: false,
+    includeTreasurer: false,
+    includeAdmins: false,
+    playerSearch: "",
+  });
   const { data: charges = [] } = useQuery({
     queryKey: ["extraCharges"],
     queryFn: () => base44.entities.ExtraCharge.list(),
