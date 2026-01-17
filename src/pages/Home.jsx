@@ -33,6 +33,8 @@ export default function Home() {
   const [userRole, setUserRole] = useState("parent");
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  // Pausa global de consultas cuando el Layout detecta 429/503
+  const realtimePaused = typeof window !== 'undefined' && window.__BASE44_PAUSE_REALTIME__ === true;
 
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
@@ -45,7 +47,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user,
+    enabled: !!user && !realtimePaused,
   });
 
   useEffect(() => {
@@ -109,7 +111,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user,
+    enabled: !!user && !realtimePaused,
   });
 
   const { data: payments } = useQuery({
@@ -121,7 +123,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user,
+    enabled: !!user && !realtimePaused,
   });
 
   const { data: messages } = useQuery({
@@ -133,7 +135,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user,
+    enabled: !!user && !realtimePaused,
   });
 
   const { data: privateConversations = [] } = useQuery({
@@ -145,7 +147,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user,
+    enabled: !!user && !realtimePaused,
   });
 
   const { data: callups } = useQuery({
@@ -157,7 +159,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user,
+    enabled: !!user && !realtimePaused,
   });
 
   const { data: matchObservations = [] } = useQuery({
@@ -168,7 +170,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: !!user && (isCoach || isCoordinator),
+    enabled: !!user && (isCoach || isCoordinator) && !realtimePaused,
   });
 
   const { data: attendances } = useQuery({
@@ -180,7 +182,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   const { data: evaluations } = useQuery({
@@ -192,7 +194,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   const { data: surveys } = useQuery({
@@ -216,7 +218,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && ((isCoach || isCoordinator) && hasPlayers || isAdmin),
+    enabled: !!user && ((isCoach || isCoordinator) && hasPlayers || isAdmin) && !realtimePaused,
   });
 
   // Encuestas para admin (ver todas las respuestas nuevas)
@@ -228,7 +230,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   // Eventos para admin (ver confirmaciones recientes)
@@ -240,7 +242,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   // Pedidos de ropa para admin
@@ -250,10 +252,10 @@ export default function Home() {
     initialData: [],
     staleTime: 30000, // 30 segundos
     gcTime: 600000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 30000, // Actualizar cada 30 segundos
-    enabled: !!user && isAdmin,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   // Solicitudes de socios para admin
@@ -265,7 +267,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   // Pedidos de lotería para admin
@@ -277,7 +279,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: !!user && isAdmin && loteriaVisible,
+    enabled: !!user && isAdmin && loteriaVisible && !realtimePaused,
   });
 
   // Solicitudes de invitación pendientes (jugadores +18)
@@ -287,7 +289,7 @@ export default function Home() {
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
@@ -300,7 +302,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user,
+    enabled: !!user && !realtimePaused,
   });
 
   const { data: adminConversations = [] } = useQuery({
@@ -311,7 +313,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: !!user && !isAdmin,
+    enabled: !!user && !isAdmin && !realtimePaused,
   });
 
   // Configuración de botones del dashboard
@@ -325,7 +327,7 @@ export default function Home() {
       return configs;
     },
     staleTime: 600000,
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   const userButtonConfig = buttonConfigs[0];
@@ -337,7 +339,7 @@ export default function Home() {
       const convs = await base44.entities.StaffConversation.filter({ categoria: 'General' });
       return convs[0] || null;
     },
-    enabled: !!user && (isCoordinator || isCoach || isAdmin),
+    enabled: !!user && (isCoordinator || isCoach || isAdmin) && !realtimePaused,
   });
 
   const { data: staffMessagesHome = [] } = useQuery({
@@ -346,7 +348,7 @@ export default function Home() {
       if (!staffConversationHome?.id) return [];
       return await base44.entities.StaffMessage.filter({ conversacion_id: staffConversationHome.id }, 'created_date');
     },
-    enabled: !!user && !!staffConversationHome?.id,
+    enabled: !!user && !!staffConversationHome?.id && !realtimePaused,
   });
 
   const saveButtonConfigMutation = useMutation({
@@ -397,7 +399,7 @@ export default function Home() {
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdmin && !realtimePaused,
   });
 
   const stats = useMemo(() => {
