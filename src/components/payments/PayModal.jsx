@@ -1,0 +1,51 @@
+import React from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { CreditCard, Banknote, Shield } from "lucide-react";
+
+export default function PayModal({ open, onClose, player, payment, onPayCard, onChooseTransfer }) {
+  if (!payment || !player) return null;
+  return (
+    <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
+      <DialogContent className="max-w-lg p-0 overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-4">
+          <h3 className="text-lg font-bold">Pagar cuota</h3>
+          <p className="text-sm opacity-90">{player.nombre} • {payment.mes} • {Number(payment.cantidad).toFixed(2)}€</p>
+        </div>
+        <div className="p-4">
+          <Tabs defaultValue="card" className="w-full">
+            <TabsList className="grid grid-cols-2 w-full">
+              <TabsTrigger value="card" className="flex items-center gap-2"><CreditCard className="w-4 h-4"/>Tarjeta</TabsTrigger>
+              <TabsTrigger value="transfer" className="flex items-center gap-2"><Banknote className="w-4 h-4"/>Transferencia</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="card" className="mt-4">
+              <div className="space-y-3">
+                <p className="text-sm text-slate-700">Pagarás con tarjeta mediante Stripe. Es rápido y seguro.</p>
+                <div className="text-xs text-slate-600 bg-slate-50 border rounded-lg p-3">
+                  Modo test activo: puedes probar con 4242 4242 4242 4242, fecha futura y CVC cualquiera.
+                </div>
+                <div className="flex items-center gap-2 text-slate-600 text-xs">
+                  <Shield className="w-4 h-4"/> Pagos protegidos por Stripe.
+                </div>
+                <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={onPayCard}>
+                  <CreditCard className="w-4 h-4 mr-2"/> Pagar {Number(payment.cantidad).toFixed(2)}€ con tarjeta
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="transfer" className="mt-4">
+              <div className="space-y-3">
+                <p className="text-sm text-slate-700">Si prefieres transferencia, abre el formulario para subir el justificante.</p>
+                <Button variant="outline" className="w-full" onClick={onChooseTransfer}>
+                  Abrir formulario de transferencia
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
           const emailFromMeta = (meta.email || '').toLowerCase();
           const email = (emailFromMeta || session.customer_details?.email || session.customer_email || '').toLowerCase();
           const name = meta.nombre_completo || session.customer_details?.name || '';
-          const temporada = meta.temporada || '';
+          const temporada = (meta.temporada || '').replace(/-/g,'/');
           const tipo = meta.tipo || '';
           const amount = (session.amount_total || 0) / 100;
           // Normalizar temporada en metadatos (usar formato YYYY/YYYY+1 si viene con guiones)
@@ -90,6 +90,39 @@ Deno.serve(async (req) => {
               });
               console.log('[stripeWebhook] ClubMember creado y marcado Pagado:', created.id);
             }
+            }
+
+            // Cuotas: marcar Payment como pagado y registrar transacción
+            if (tipo === 'pago_cuota' && session.metadata?.payment_id) {
+              try {
+                const paymentId = session.metadata.payment_id;
+                // Idempotencia: si ya existe transaction para este payment, no repetir
+                const existentes = await base44.asServiceRole.entities.FinancialTransaction.filter({ referencia_origen: paymentId, categoria: 'Cuotas' });
+                if (!existentes || existentes.length === 0) {
+                  // Actualizar Payment
+                  await base44.asServiceRole.entities.Payment.update(paymentId, {
+                    estado: 'Pagado',
+                    metodo_pago: 'Tarjeta',
+                    fecha_pago: new Date().toISOString().split('T')[0]
+                  });
+                  const temporadaNorm = (session.metadata?.temporada || '').replace(/-/g,'/');
+                  await base44.asServiceRole.entities.FinancialTransaction.create({
+                    tipo: 'Ingreso',
+                    concepto: `Cuota ${session.metadata?.mes || ''}`.trim(),
+                    cantidad: amount,
+                    fecha: new Date().toISOString().split('T')[0],
+                    categoria: 'Cuotas',
+                    subtipo_documento: 'Cuota',
+                    metodo_pago: 'Tarjeta',
+                    temporada: temporadaNorm,
+                    proveedor_cliente: session.metadata?.jugador_nombre || email,
+                    automatico: true,
+                    referencia_origen: paymentId,
+                  });
+                }
+              } catch (err) {
+                console.error('[stripeWebhook] Error post-proceso Cuota:', err);
+              }
             }
 
             // Lotería: marcar pedido como pagado y registrar margen financiero

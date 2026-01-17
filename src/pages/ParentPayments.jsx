@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useActiveSeason } from "../components/season/SeasonProvider";
+import PayModal from "../components/payments/PayModal";
+import { createPageUrl } from "@/utils";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
@@ -83,6 +85,8 @@ export default function ParentPayments() {
   const [selectedPaymentMonth, setSelectedPaymentMonth] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [payModalContext, setPayModalContext] = useState({ player: null, payment: null });
   const queryClient = useQueryClient();
   
   // Tutorial interactivo para primera visita
@@ -151,6 +155,15 @@ export default function ParentPayments() {
     const jugadorId = urlParams.get('jugador_id');
     if (jugadorId) {
       setShowForm(true);
+    }
+    if (urlParams.get('stripe') === 'success') {
+      setSuccessMessage('✅ Pago con tarjeta completado. Se confirmará en segundos.');
+      setShowSuccess(true);
+      window.history.replaceState({}, '', createPageUrl('ParentPayments'));
+    }
+    if (urlParams.get('stripe') === 'canceled') {
+      // No toast to reduce noise
+      window.history.replaceState({}, '', createPageUrl('ParentPayments'));
     }
   }, []);
 
@@ -788,15 +801,8 @@ export default function ParentPayments() {
                                     <Button
                                       size="sm"
                                       onClick={() => {
-                                        setSelectedPlayerId(player.id);
-                                        setSelectedPaymentMonth(payment.mes);
-                                        setShowForm(true);
-                                        setTimeout(() => {
-                                          const formElement = document.querySelector('[data-payment-form]');
-                                          if (formElement) {
-                                            formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                          }
-                                        }, 100);
+                                        setPayModalContext({ player, payment });
+                                        setPayModalOpen(true);
                                       }}
                                       className="bg-orange-600 hover:bg-orange-700 text-white"
                                     >
@@ -839,6 +845,60 @@ export default function ParentPayments() {
       </div>
 
       <ContactCard />
+
+      <PayModal
+        open={payModalOpen}
+        onClose={() => setPayModalOpen(false)}
+        player={payModalContext.player}
+        payment={payModalContext.payment}
+        onPayCard={async () => {
+          const { player, payment } = payModalContext;
+          if (!player || !payment) return;
+          try {
+            // Bloquear en iframe (editor)
+            if (window.top !== window.self) {
+              alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.');
+              return;
+            }
+            const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
+            const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
+            const { data } = await base44.functions.invoke('stripeCheckout', {
+              amount: Number(payment.cantidad),
+              name: `Cuota ${payment.mes} - ${player.nombre} (${payment.temporada})`,
+              currency: 'eur',
+              successUrl,
+              cancelUrl,
+              metadata: {
+                tipo: 'pago_cuota',
+                payment_id: payment.id,
+                jugador_id: player.id,
+                jugador_nombre: player.nombre,
+                temporada: payment.temporada,
+                mes: payment.mes,
+                categoria: player.deporte || ''
+              }
+            });
+            if (data?.url) {
+              window.location.href = data.url;
+            }
+          } catch (e) {
+            console.error('Stripe checkout error', e);
+          }
+        }}
+        onChooseTransfer={() => {
+          const { player, payment } = payModalContext;
+          setPayModalOpen(false);
+          setSelectedPlayerId(player?.id || null);
+          setSelectedPaymentMonth(payment?.mes || null);
+          setShowForm(true);
+          setTimeout(() => {
+            const formElement = document.querySelector('[data-payment-form]');
+            if (formElement) {
+              formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        }}
+      />
 
       {/* Instrucciones simplificadas */}
       <Card className="border-orange-200 bg-orange-50">
