@@ -34,8 +34,11 @@ export default function ExtraChargePayModal({ open, onClose, charge, onPayCard, 
   const isEmbedded = typeof window !== 'undefined' && window.top !== window.self;
   const cardAllowed = !!charge?.metodos?.includes('Tarjeta');
   const transferAllowed = !!charge?.metodos?.includes('Transferencia');
-  const cardDisabled = total <= 0 || !cardAllowed || isEmbedded;
-  const transferDisabled = total <= 0 || !transferAllowed;
+  const requiredItems = (charge?.items || []).filter(i => i.obligatorio);
+  const requiredMin = requiredItems.reduce((sum, i) => sum + Number(i.precio || 0) * 1, 0);
+  const hasSelectedRequired = requiredItems.every((i) => (selection.find(s => s.nombre === i.nombre)?.cantidad || 0) > 0);
+  const cardDisabled = total <= 0 || !cardAllowed || isEmbedded || (requiredItems.length > 0 && !hasSelectedRequired);
+  const transferDisabled = total <= 0 || !transferAllowed || (requiredItems.length > 0 && !hasSelectedRequired);
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose?.(); }}>
