@@ -13,6 +13,7 @@ import { AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import PayModal from "../components/payments/PayModal";
+import QuickPaySelector from "../components/payments/QuickPaySelector";
 import PaymentsCartBar from "../components/payments/PaymentsCartBar";
 import BatchTransferDialog from "../components/payments/BatchTransferDialog";
 import BatchSummaryDialog from "../components/payments/BatchSummaryDialog";
