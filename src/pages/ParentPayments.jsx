@@ -967,7 +967,7 @@ export default function ParentPayments() {
                                   {(() => {
                                     const key = payment.id;
                                     const isSelected = cartSelected.some(s => s.payment.id === payment.id);
-                                    const canSelect = payment.estado === 'Pendiente' && mostrarBotonPagar;
+                                    const canSelect = payment.estado === 'Pendiente';
                                     return (
                                       <div className="flex items-center gap-2">
                                         <Checkbox
