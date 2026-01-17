@@ -1,0 +1,49 @@
+import React from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+export default function BatchSummaryDialog({ open, onClose, items = [], total = 0, onPayCard, onTransfer }) {
+  return (
+    <Dialog open={open} onOpenChange={(v)=>{ if(!v) onClose(); }}>
+      <DialogContent className="max-w-2xl">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold">Resumen de pago</h3>
+            <p className="text-sm text-slate-600">Has seleccionado varias cuotas. Revisa el detalle y elige cómo quieres pagar.</p>
+          </div>
+          <div className="max-h-64 overflow-auto border rounded-xl">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 text-slate-600">
+                  <th className="text-left p-2">Jugador</th>
+                  <th className="text-left p-2">Mes</th>
+                  <th className="text-left p-2">Temporada</th>
+                  <th className="text-right p-2">Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((it, idx) => (
+                  <tr key={idx} className="border-t">
+                    <td className="p-2">{it.player?.nombre || it.jugador_nombre}</td>
+                    <td className="p-2">{it.payment?.mes || it.mes}</td>
+                    <td className="p-2">{it.payment?.temporada || it.temporada}</td>
+                    <td className="p-2 text-right">{Number(it.payment?.cantidad ?? it.cantidad).toFixed(2)}€</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-slate-600">Puedes pagar todas juntas con tarjeta o generar una única transferencia. El comprobante se aplica a cada cuota del lote.</p>
+            <div className="text-right font-bold">Total: {Number(total).toFixed(2)}€</div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={onClose}>Seguir seleccionando</Button>
+            <Button onClick={onTransfer} variant="secondary">🧾 Transferencia</Button>
+            <Button className="bg-orange-600 hover:bg-orange-700" onClick={onPayCard}>💳 Pagar con tarjeta</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -15,6 +15,8 @@ import { useActiveSeason } from "../components/season/SeasonProvider";
 import PayModal from "../components/payments/PayModal";
 import PaymentsCartBar from "../components/payments/PaymentsCartBar";
 import BatchTransferDialog from "../components/payments/BatchTransferDialog";
+import BatchSummaryDialog from "../components/payments/BatchSummaryDialog";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createPageUrl } from "@/utils";
 
@@ -94,6 +96,7 @@ export default function ParentPayments() {
   const [cartSelected, setCartSelected] = useState([]); // [{key, player, payment}]
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [transferConcept, setTransferConcept] = useState("");
+  const [showSummary, setShowSummary] = useState(false);
   const queryClient = useQueryClient();
   
   // Tutorial interactivo para primera visita
@@ -1006,6 +1009,14 @@ export default function ParentPayments() {
         )}
       </div>
 
+      {/* Aviso de selección múltiple */}
+      <Alert className="mb-4">
+        <AlertTitle>Pago múltiple de cuotas</AlertTitle>
+        <AlertDescription>
+          Puedes seleccionar distintas cuotas de diferentes jugadores y pagarlas todas a la vez. Marca las cuotas que quieras, revisa el total y elige Tarjeta o Transferencia.
+        </AlertDescription>
+      </Alert>
+
       <ContactCard />
 
       <PayModal
@@ -1064,10 +1075,19 @@ export default function ParentPayments() {
 
         {/* Barra flotante del carrito */}
         <PaymentsCartBar
-        selectedCount={cartSelected.length}
-        total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
-        onPayCard={handlePayCartWithCard}
-        onTransfer={handleGenerateTransfer}
+          selectedCount={cartSelected.length}
+          total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
+          onPayCard={() => setShowSummary(true)}
+          onTransfer={() => setShowSummary(true)}
+        />
+
+        <BatchSummaryDialog
+          open={showSummary}
+          onClose={() => setShowSummary(false)}
+          items={cartSelected}
+          total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
+          onPayCard={async () => { setShowSummary(false); await handlePayCartWithCard(); }}
+          onTransfer={async () => { setShowSummary(false); await handleGenerateTransfer(); }}
         />
 
         {/* Diálogo de transferencia por lote */}
