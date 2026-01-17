@@ -153,11 +153,12 @@ export default function ParentPayments() {
       console.log('✅ [ParentPayments] Pagos filtrados (server):', filtered.length);
       return filtered;
     },
-    enabled: !!user?.email,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    enabled: !!user?.email && players.length > 0,
+    retry: 1,
+    staleTime: 300000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const isLoading = !user || loadingPlayers;
