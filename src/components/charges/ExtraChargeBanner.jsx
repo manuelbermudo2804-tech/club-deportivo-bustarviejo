@@ -11,6 +11,9 @@ export default function ExtraChargeBanner({ charge, onOpen }) {
           <div>
             <p className="text-sm font-bold text-orange-900">Pago disponible</p>
             <p className="text-lg font-extrabold text-slate-900">{charge.titulo}</p>
+            {Array.isArray(charge.items) && charge.items.some(i => i.obligatorio) && (
+              <p className="text-xs text-slate-700 mt-1">Incluye conceptos obligatorios</p>
+            )}
             {charge.fecha_limite && (
               <p className="text-xs text-orange-700 mt-1">Vence: {new Date(charge.fecha_limite).toLocaleDateString('es-ES')}</p>
             )}
