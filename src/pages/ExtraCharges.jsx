@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Save, Send, X, Trash2 } from "lucide-react";
@@ -30,7 +31,46 @@ export default function ExtraCharges() {
     staleTime: 300000,
   });
 
+  // Lista corta oficial de categorías (fallback)
+  const CATEGORY_OPTIONS = [
+    "Fútbol Pre-Benjamín (Mixto)",
+    "Fútbol Benjamín (Mixto)",
+    "Fútbol Alevín (Mixto)",
+    "Fútbol Infantil (Mixto)",
+    "Fútbol Cadete",
+    "Fútbol Juvenil",
+    "Fútbol Aficionado",
+    "Fútbol Femenino",
+    "Baloncesto (Mixto)"
+  ];
+
+  // Categorías activas únicas o fallback
+  const categoryNames = React.useMemo(() => {
+    const unique = Array.from(new Set((categories || [])
+      .filter((c) => c && c.activa && c.nombre)
+      .map((c) => c.nombre)));
+    return unique.length > 0 ? unique : CATEGORY_OPTIONS;
+  }, [categories]);
+
+  // Jugadores filtrados por categorías seleccionadas y búsqueda
+  const filteredPlayers = React.useMemo(() => {
+    let list = players || [];
+    const selected = form.selectedCategories || [];
+    if (selected.length > 0) {
+      list = list.filter((p) =>
+        (p.categoria_principal && selected.includes(p.categoria_principal)) ||
+        (Array.isArray(p.categorias) && p.categorias.some((cat) => selected.includes(cat)))
+      );
+    }
+    if (form.playerSearch) {
+      const q = form.playerSearch.toLowerCase();
+      list = list.filter((p) => p.nombre?.toLowerCase().includes(q));
+    }
+    return list.slice(0, 50);
+  }, [players, form.selectedCategories, form.playerSearch]);
+
   const [openForm, setOpenForm] = useState(false);
+  const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [form, setForm] = useState({
     titulo: "",
     descripcion: "",
@@ -233,15 +273,15 @@ export default function ExtraCharges() {
               <div>
                 <p className="text-xs text-slate-600 mb-1">Categorías / Equipos</p>
                 <div className="flex flex-wrap gap-2">
-                  {(categories || []).filter(c => c.activa).map(c => (
-                    <label key={c.id} className="text-xs bg-slate-100 px-2 py-1 rounded-md flex items-center gap-2">
+                  {(categoryNames || []).map((name) => (
+                    <label key={name} className="text-xs bg-slate-100 px-2 py-1 rounded-md flex items-center gap-2">
                       <Checkbox
-                        checked={(form.selectedCategories || []).includes(c.nombre)}
+                        checked={(form.selectedCategories || []).includes(name)}
                         onCheckedChange={(v) => setForm(f => ({
                           ...f,
-                          selectedCategories: v ? [...(f.selectedCategories||[]), c.nombre] : (f.selectedCategories||[]).filter(x => x !== c.nombre)
+                          selectedCategories: v ? [...(f.selectedCategories||[]), name] : (f.selectedCategories||[]).filter(x => x !== name)
                         }))}
-                      /> {c.nombre}
+                      /> {name}
                     </label>
                   ))}
                 </div>
@@ -249,28 +289,38 @@ export default function ExtraCharges() {
 
               {/* Jugadores individuales */}
               <div className="mt-3">
-                <p className="text-xs text-slate-600 mb-1">Jugadores individuales</p>
-                <Input
-                  placeholder="Buscar jugador por nombre..."
-                  value={form.playerSearch}
-                  onChange={(e) => setForm({ ...form, playerSearch: e.target.value })}
-                />
-                <div className="mt-2 max-h-40 overflow-auto rounded-md border p-2 bg-white">
-                  {(players || [])
-                    .filter(p => !form.playerSearch || p.nombre?.toLowerCase().includes(form.playerSearch.toLowerCase()))
-                    .slice(0, 20)
-                    .map(p => (
-                      <label key={p.id} className="flex items-center gap-2 text-xs py-1">
-                        <Checkbox
-                          checked={(form.selectedPlayerIds||[]).includes(p.id)}
-                          onCheckedChange={(v) => setForm(f => ({
-                            ...f,
-                            selectedPlayerIds: v ? [...(f.selectedPlayerIds||[]), p.id] : (f.selectedPlayerIds||[]).filter(x => x !== p.id)
-                          }))}
-                        /> {p.nombre}
-                      </label>
-                    ))}
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-slate-600 mb-1">Jugadores individuales</p>
+                  <label className="flex items-center gap-2 text-xs">
+                    <span>Elegir jugadores concretos</span>
+                    <Switch checked={showPlayerPicker} onCheckedChange={setShowPlayerPicker} />
+                  </label>
                 </div>
+                {showPlayerPicker && (
+                  <>
+                    <Input
+                      placeholder={`Buscar en ${filteredPlayers.length} jugadores...`}
+                      value={form.playerSearch}
+                      onChange={(e) => setForm({ ...form, playerSearch: e.target.value })}
+                    />
+                    <div className="mt-2 max-h-40 overflow-auto rounded-md border p-2 bg-white">
+                      {filteredPlayers.map((p) => (
+                        <label key={p.id} className="flex items-center gap-2 text-xs py-1">
+                          <Checkbox
+                            checked={(form.selectedPlayerIds || []).includes(p.id)}
+                            onCheckedChange={(v) => setForm((f) => ({
+                              ...f,
+                              selectedPlayerIds: v ? [...(f.selectedPlayerIds || []), p.id] : (f.selectedPlayerIds || []).filter((x) => x !== p.id)
+                            }))}
+                          /> {p.nombre}
+                        </label>
+                      ))}
+                      {filteredPlayers.length === 0 && (
+                        <p className="text-xs text-slate-500">No hay jugadores que coincidan con el filtro.</p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Staff */}
