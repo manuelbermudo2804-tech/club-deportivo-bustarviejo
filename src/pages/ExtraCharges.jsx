@@ -17,18 +17,26 @@ export default function ExtraCharges() {
     queryKey: ["extraCharges"],
     queryFn: () => base44.entities.ExtraCharge.list(),
     staleTime: 300000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categoryConfigs"],
     queryFn: () => base44.entities.CategoryConfig.list(),
     staleTime: 300000,
+    enabled: false,
+    refetchOnWindowFocus: false,
+    retry: 0,
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ["allPlayers"],
+    queryKey: ["allPlayers", openForm, showPlayerPicker],
     queryFn: () => base44.entities.Player.list(),
     staleTime: 300000,
+    enabled: openForm && showPlayerPicker,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Lista corta oficial de categorías (fallback)
