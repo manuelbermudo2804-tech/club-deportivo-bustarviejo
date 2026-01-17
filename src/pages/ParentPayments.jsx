@@ -14,6 +14,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import PayModal from "../components/payments/PayModal";
 import { createPageUrl } from "@/utils";
+import BatchBar from "../components/payments/BatchBar";
+import PaymentSelect from "../components/payments/PaymentSelect";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
@@ -87,6 +89,7 @@ export default function ParentPayments() {
   const [successMessage, setSuccessMessage] = useState("");
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [payModalContext, setPayModalContext] = useState({ player: null, payment: null });
+  const [selectedPayments, setSelectedPayments] = useState({});
   const queryClient = useQueryClient();
   
   // Tutorial interactivo para primera visita
@@ -168,6 +171,20 @@ export default function ParentPayments() {
   }, []);
 
   const { activeSeason: currentSeason, seasonConfig } = useActiveSeason();
+
+  const toggleSelect = (payment, player, checked) => {
+    setSelectedPayments((prev) => {
+      const key = payment.id;
+      const next = { ...prev };
+      if (checked) next[key] = { payment, player };
+      else delete next[key];
+      return next;
+    });
+  };
+
+  const selectedList = Object.values(selectedPayments);
+  const selectedTotal = selectedList.reduce((sum, it) => sum + Number(it.payment.cantidad || 0), 0);
+  const hasSelection = selectedList.length > 0;
 
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs'],
@@ -797,6 +814,14 @@ export default function ParentPayments() {
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 w-full md:w-auto justify-start md:justify-end">
+                                  {/* Selector para carrito (permitimos seleccionar cuotas Pendiente; las virtuales solo se usarán para transferencia) */}
+                                  {payment.estado === "Pendiente" && (
+                                    <PaymentSelect
+                                      checked={!!selectedPayments[payment.id]}
+                                      onChange={(val) => toggleSelect(payment, player, val)}
+                                      disabled={payment.estado !== "Pendiente"}
+                                    />
+                                  )}
                                   {mostrarBotonPagar && !payment.isVirtual && (
                                     <Button
                                       size="sm"
@@ -845,6 +870,106 @@ export default function ParentPayments() {
       </div>
 
       <ContactCard />
+
+      {/* Barra de lote / carrito */}
+      <BatchBar
+        visible={hasSelection}
+        count={selectedList.length}
+        total={selectedTotal}
+        onPayCard={async () => {
+          // Para tarjeta: solo pagos reales (no virtuales) y Pendiente
+          const items = selectedList.filter(x => !x.payment.isVirtual && x.payment.estado === 'Pendiente');
+          if (items.length === 0) { alert('Selecciona al menos una cuota pendiente (no virtual)'); return; }
+          // Crear lote
+          const concepto = `CDB-${new Date().toISOString().slice(0,7).replace('-','')}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
+          const batch = await base44.entities.BatchPayment.create({
+            metodo: 'Tarjeta',
+            estado: 'Pendiente',
+            temporada: currentSeason,
+            total: items.reduce((s, i) => s + Number(i.payment.cantidad||0), 0),
+            concepto,
+            items: items.map(({payment, player}) => ({
+              payment_id: payment.id,
+              jugador_id: player.id,
+              jugador_nombre: player.nombre,
+              mes: payment.mes,
+              temporada: payment.temporada,
+              cantidad: payment.cantidad,
+              tipo_pago: payment.tipo_pago
+            }))
+          });
+          const lineItems = items.map(({payment, player}) => ({
+            price_data: {
+              currency: 'eur',
+              product_data: { name: `Cuota ${payment.mes} - ${player.nombre} (${payment.temporada})` },
+              unit_amount: Math.round(Number(payment.cantidad)*100)
+            },
+            quantity: 1
+          }));
+          const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
+          const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
+          const { data } = await base44.functions.invoke('stripeCheckout', {
+            lineItems,
+            successUrl,
+            cancelUrl,
+            metadata: {
+              tipo: 'lote_cuotas',
+              batch_id: batch.id,
+              temporada: currentSeason
+            }
+          });
+          if (data?.url) window.location.href = data.url;
+        }}
+        onTransfer={async (file) => {
+          if (!file) return;
+          const items = selectedList; // incluir virtuales
+          if (items.length === 0) { alert('Selecciona al menos una cuota'); return; }
+          const concepto = `CDB-${new Date().toISOString().slice(0,7).replace('-','')}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
+          const total = items.reduce((s, i) => s + Number(i.payment.cantidad||0), 0);
+          const batch = await base44.entities.BatchPayment.create({
+            metodo: 'Transferencia', estado: 'Pendiente', temporada: currentSeason, total, concepto,
+            items: items.map(({payment, player}) => ({
+              payment_id: payment.isVirtual ? '' : payment.id,
+              jugador_id: player.id,
+              jugador_nombre: player.nombre,
+              mes: payment.mes,
+              temporada: payment.temporada,
+              cantidad: payment.cantidad,
+              tipo_pago: payment.tipo_pago
+            }))
+          });
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          // Aplicar justificante a cada pago
+          for (const it of items) {
+            const { payment, player } = it;
+            if (payment.isVirtual) {
+              // Crear payment real
+              await base44.entities.Payment.create({
+                jugador_id: player.id,
+                jugador_nombre: player.nombre,
+                tipo_pago: payment.tipo_pago,
+                mes: payment.mes,
+                temporada: payment.temporada,
+                cantidad: payment.cantidad,
+                estado: 'En revisión',
+                metodo_pago: 'Transferencia',
+                justificante_url: file_url
+              });
+            } else {
+              await base44.entities.Payment.update(payment.id, {
+                justificante_url: file_url,
+                estado: 'En revisión',
+                metodo_pago: 'Transferencia'
+              });
+            }
+          }
+          await base44.entities.BatchPayment.update(batch.id, { estado: 'En revisión', justificante_url: file_url });
+          setSelectedPayments({});
+          queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+          setSuccessMessage('🔍 Transferencia generada: justificante recibido, en revisión');
+          setShowSuccess(true);
+        }}
+      />
 
       <PayModal
         open={payModalOpen}
