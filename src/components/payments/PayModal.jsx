@@ -8,14 +8,14 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
   if (!payment || !player) return null;
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden">
+      <DialogContent className="w-[92vw] max-w-md p-0 overflow-hidden rounded-2xl max-h-[85vh]">
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-4">
           <h3 className="text-lg font-bold">Pagar cuota</h3>
           <p className="text-sm opacity-90">{player.nombre} • {payment.mes} • {Number(payment.cantidad).toFixed(2)}€</p>
         </div>
-        <div className="p-4">
+        <div className="p-4 overflow-y-auto max-h-[70vh]">
           <Tabs defaultValue="card" className="w-full">
-            <TabsList className="grid grid-cols-2 w-full">
+            <TabsList className="grid grid-cols-2 w-full sticky top-0 bg-white">
               <TabsTrigger value="card" className="flex items-center gap-2"><CreditCard className="w-4 h-4"/>Tarjeta</TabsTrigger>
               <TabsTrigger value="transfer" className="flex items-center gap-2"><Banknote className="w-4 h-4"/>Transferencia</TabsTrigger>
             </TabsList>

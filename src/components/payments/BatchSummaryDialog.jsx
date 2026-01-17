@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export default function BatchSummaryDialog({ open, onClose, items = [], total = 0, onPayCard, onTransfer }) {
   return (
     <Dialog open={open} onOpenChange={(v)=>{ if(!v) onClose(); }}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[92vw] max-w-lg max-h-[85vh] rounded-2xl">
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-bold">Resumen de pago</h3>
@@ -37,10 +37,10 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
             <p className="text-sm text-slate-600">Puedes pagar todas juntas con tarjeta o generar una única transferencia. El comprobante se aplica a cada cuota del lote.</p>
             <div className="text-right font-bold">Total: {Number(total).toFixed(2)}€</div>
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={onClose}>Seguir seleccionando</Button>
-            <Button onClick={onTransfer} variant="secondary">🧾 Transferencia</Button>
-            <Button className="bg-orange-600 hover:bg-orange-700" onClick={onPayCard}>💳 Pagar con tarjeta</Button>
+          <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
+            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Seguir seleccionando</Button>
+            <Button onClick={onTransfer} variant="secondary" className="w-full sm:w-auto">🧾 Transferencia</Button>
+            <Button className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto" onClick={onPayCard}>💳 Pagar con tarjeta</Button>
           </div>
         </div>
       </DialogContent>
