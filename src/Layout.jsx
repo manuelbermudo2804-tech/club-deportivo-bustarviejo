@@ -927,12 +927,51 @@ export default function Layout({ children, currentPageName }) {
           setProgramaSociosActivo(sociosActivo);
           console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
 
-          // Cargar Cobros Extra activos asignados al usuario
+          // Cargar Cobros Extra activos asignados al usuario (filtrado por destinatarios)
           try {
             if (currentUser?.email) {
               const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
-              // Simplificación: mostrar el primero activo; en futuro: filtrar por destinatarios
-              setExtraChargeVisible(charges[0] || null);
+
+              // Jugadores vinculados a este usuario (padre, tutor2 o jugador adulto)
+              let myPlayers = [];
+              try {
+                myPlayers = await base44.entities.Player.filter({
+                  $or: [
+                    { email_padre: currentUser.email },
+                    { email_tutor_2: currentUser.email },
+                    { email_jugador: currentUser.email }
+                  ],
+                  activo: true
+                });
+              } catch {}
+
+              const isCoach = currentUser.es_entrenador === true;
+              const isCoordinator = currentUser.es_coordinador === true;
+              const isTreasurer = currentUser.es_tesorero === true;
+              const isAdminUser = currentUser.role === 'admin';
+
+              const categoryNames = new Set([
+                ...(myPlayers || []).map(p => p.categoria_principal).filter(Boolean),
+                ...((myPlayers || []).flatMap(p => p.categorias || []))
+              ]);
+              const playerIds = new Set((myPlayers || []).map(p => p.id));
+
+              const matchesUser = (charge) => {
+                const dests = charge.destinatarios || [];
+                if (dests.length === 0) return true; // sin filtro => todos
+
+                if (dests.some(d => d.tipo === 'categoria' && categoryNames.has(d.valor))) return true;
+                if (dests.some(d => d.tipo === 'jugador' && playerIds.has(d.valor))) return true;
+
+                if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:entrenadores') && isCoach) return true;
+                if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:coordinadores') && isCoordinator) return true;
+                if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:tesoreria') && isTreasurer) return true;
+                if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:admins') && isAdminUser) return true;
+                return false;
+              };
+
+              const forUser = (charges || []).find(matchesUser) || null;
+              setExtraChargeVisible(forUser);
             }
           } catch (e) { console.log('⚠️ No hay cobros extra activos:', e); } 
 
