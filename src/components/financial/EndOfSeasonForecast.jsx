@@ -18,18 +18,28 @@ export default function EndOfSeasonForecast({
 
     const now = new Date();
     
-    // Calcular fecha fin: usar fecha_fin si existe, sino usar fin de temporada (junio del segundo año)
+    // Calcular fecha fin: usar fecha_fin si existe, sino fin de temporada (junio del segundo año)
     let seasonEnd;
-    if (activeSeason.fecha_fin) {
+    if (activeSeason?.fecha_fin) {
       seasonEnd = new Date(activeSeason.fecha_fin);
     } else {
-      // La temporada es "2024/2025", el fin es junio 2025 (segundo año)
-      const secondYear = activeSeason.temporada.split('/')[1];
-      seasonEnd = new Date(`${secondYear}-06-30`);
+      // Normalizar temporada: admite "2024/2025", "2024-2025" o "24/25"
+      const seasonStr = String(activeSeason?.temporada || '').replace('-', '/');
+      let endYearStr = seasonStr.split('/')[1] || '';
+      if (endYearStr.length === 2) endYearStr = `20${endYearStr}`; // "24/25" -> 2025
+      let endYear = parseInt(endYearStr, 10);
+      if (!endYear || endYear < 2000 || endYear > 2100) {
+        const y = now.getFullYear();
+        endYear = (now.getMonth() + 1) >= 9 ? y + 1 : y; // fallback sensato
+      }
+      // Fin de temporada: 30 de junio del segundo año
+      seasonEnd = new Date(endYear, 5, 30);
     }
-    
-    const daysRemaining = differenceInDays(seasonEnd, now);
-    const monthsRemaining = Math.max(0, daysRemaining / 30);
+
+    // Evitar negativos si ya pasó la fecha fin
+    const rawDaysRemaining = differenceInDays(seasonEnd, now);
+    const daysRemaining = Math.max(0, rawDaysRemaining);
+    const monthsRemaining = daysRemaining / 30;
 
     // Calcular tendencia actual basada en pagos recientes
     const recentPayments = payments.filter(p => {
