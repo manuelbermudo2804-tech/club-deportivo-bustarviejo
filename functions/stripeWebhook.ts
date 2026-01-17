@@ -42,6 +42,10 @@ Deno.serve(async (req) => {
           const temporada = meta.temporada || '';
           const tipo = meta.tipo || '';
           const amount = (session.amount_total || 0) / 100;
+          // Normalizar temporada en metadatos (usar formato YYYY/YYYY+1 si viene con guiones)
+          if (session?.metadata?.temporada) {
+            try { session.metadata.temporada = session.metadata.temporada.replace(/-/g,'/'); } catch {}
+          }
           const extra = {
             dni: meta.dni || '',
             telefono: meta.telefono || '',
@@ -108,6 +112,7 @@ Deno.serve(async (req) => {
                   const margenPorDecimo = Math.max(precio - baseCoste, 0);
                   const decimos = Number(pedido.numero_decimos || 0);
                   const margenTotal = Number((margenPorDecimo * decimos).toFixed(2));
+                  const temporadaNorm = (pedido.temporada || session.metadata?.temporada || '').replace(/-/g,'/');
 
                   if (margenTotal > 0) {
                     // Evitar duplicados
@@ -121,7 +126,7 @@ Deno.serve(async (req) => {
                         categoria: 'Lotería',
                         subtipo_documento: 'Lotería',
                         metodo_pago: 'Tarjeta',
-                        temporada: pedido.temporada || session.metadata?.temporada || '',
+                        temporada: temporadaNorm || '',
                         proveedor_cliente: pedido.jugador_nombre || '',
                         automatico: true,
                         referencia_origen: orderId,

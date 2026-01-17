@@ -255,7 +255,11 @@ export default function TreasurerDashboard() {
     o.estado === "Pendiente" || o.estado === "En revisión"
   ).length;
 
-  const pendingLotteryOrders = lotteryOrders.filter(o => !o.pagado).length;
+  const seasonName = activeSeason?.temporada ? activeSeason.temporada.replace(/-/g,'/') : null;
+  const pendingLotteryOrders = lotteryOrders.filter(o => {
+    const orderSeason = (o.temporada || '').replace(/-/g,'/');
+    return !o.pagado && (!seasonName || orderSeason === seasonName);
+  }).length;
 
   const pendingMemberRequests = clubMembers.filter(m => 
     m.estado_pago === "En revisión" || m.estado_pago === "Pendiente"

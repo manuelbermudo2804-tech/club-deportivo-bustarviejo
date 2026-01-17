@@ -16,6 +16,14 @@ import { createPageUrl } from "@/utils";
 
 const NUMERO_LOTERIA = "28720";
 
+// Helper para calcular la temporada actual (YYYY/YYYY+1)
+const getCurrentSeasonName = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // 1-12
+  return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+};
+
 export default function ParentLottery() {
   const [showForm, setShowForm] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState("");
@@ -326,7 +334,7 @@ export default function ParentLottery() {
         metadata: {
           tipo: 'loteria',
           order_id: order.id,
-          temporada: new Date().getFullYear().toString(),
+          temporada: seasonConfig?.temporada || getCurrentSeasonName(),
           user_email: user.email
         }
       });

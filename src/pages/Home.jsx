@@ -576,8 +576,12 @@ export default function Home() {
       // Pedidos de ropa en revisión
       pendingClothingOrders = clothingOrders?.filter(o => o.estado === "En revisión" || o.estado === "Pendiente").length || 0;
       
-      // Pedidos de lotería pendientes (sin pagar)
-      pendingLotteryOrders = lotteryOrders?.filter(o => !o.pagado).length || 0;
+      // Pedidos de lotería pendientes (sin pagar) SOLO de temporada activa
+      const activeSeasonName = seasonConfig?.temporada ? seasonConfig.temporada.replace(/-/g,'/') : null;
+      pendingLotteryOrders = lotteryOrders?.filter(o => {
+        const orderSeason = (o.temporada || '').replace(/-/g,'/');
+        return !o.pagado && (!activeSeasonName || orderSeason === activeSeasonName);
+      }).length || 0;
       
       // Solicitudes de socios pendientes (incluir "En revisión" Y "Pendiente")
       pendingMemberRequests = clubMembers?.filter(m => 
@@ -728,7 +732,7 @@ export default function Home() {
       recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
       unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations, unresolvedAdminChats
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isCoach, coordinatorConversations, matchObservations, staffMessagesHome]);
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isCoach, coordinatorConversations, matchObservations, staffMessagesHome, seasonConfig]);
 
 
 
