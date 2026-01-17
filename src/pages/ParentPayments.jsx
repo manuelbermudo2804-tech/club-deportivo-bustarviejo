@@ -13,9 +13,10 @@ import { AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import PayModal from "../components/payments/PayModal";
+import PaymentsCartBar from "../components/payments/PaymentsCartBar";
+import BatchTransferDialog from "../components/payments/BatchTransferDialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createPageUrl } from "@/utils";
-import BatchBar from "../components/payments/BatchBar";
-import PaymentSelect from "../components/payments/PaymentSelect";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
@@ -89,7 +90,10 @@ export default function ParentPayments() {
   const [successMessage, setSuccessMessage] = useState("");
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [payModalContext, setPayModalContext] = useState({ player: null, payment: null });
-  const [selectedPayments, setSelectedPayments] = useState({});
+  // Carrito de pagos
+  const [cartSelected, setCartSelected] = useState([]); // [{key, player, payment}]
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [transferConcept, setTransferConcept] = useState("");
   const queryClient = useQueryClient();
   
   // Tutorial interactivo para primera visita
@@ -162,6 +166,7 @@ export default function ParentPayments() {
     if (urlParams.get('stripe') === 'success') {
       setSuccessMessage('✅ Pago con tarjeta completado. Se confirmará en segundos.');
       setShowSuccess(true);
+      setCartSelected([]);
       window.history.replaceState({}, '', createPageUrl('ParentPayments'));
     }
     if (urlParams.get('stripe') === 'canceled') {
@@ -171,20 +176,6 @@ export default function ParentPayments() {
   }, []);
 
   const { activeSeason: currentSeason, seasonConfig } = useActiveSeason();
-
-  const toggleSelect = (payment, player, checked) => {
-    setSelectedPayments((prev) => {
-      const key = payment.id;
-      const next = { ...prev };
-      if (checked) next[key] = { payment, player };
-      else delete next[key];
-      return next;
-    });
-  };
-
-  const selectedList = Object.values(selectedPayments);
-  const selectedTotal = selectedList.reduce((sum, it) => sum + Number(it.payment.cantidad || 0), 0);
-  const hasSelection = selectedList.length > 0;
 
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs'],
@@ -443,6 +434,137 @@ export default function ParentPayments() {
 
   const handleSubmitPayment = async (paymentData) => {
     createPaymentMutation.mutate(paymentData);
+  };
+
+  // --- Carrito de pagos ---
+  const generateConceptCode = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `CDB-${y}${m}-${rand}`;
+  };
+
+  const ensureRealPayments = async (selected) => {
+    // Convierte virtuales en reales y devuelve items con payment_id asegurado
+    const items = [];
+    for (const sel of selected) {
+      const p = sel.payment;
+      if (p.isVirtual) {
+        const created = await base44.entities.Payment.create({
+          jugador_id: sel.player.id,
+          jugador_nombre: sel.player.nombre,
+          tipo_pago: p.tipo_pago,
+          mes: p.mes,
+          temporada: p.temporada,
+          cantidad: p.cantidad,
+          estado: 'Pendiente',
+          metodo_pago: 'Transferencia'
+        });
+        items.push({
+          payment_id: created.id,
+          jugador_id: sel.player.id,
+          jugador_nombre: sel.player.nombre,
+          mes: p.mes,
+          temporada: p.temporada,
+          cantidad: p.cantidad
+        });
+      } else {
+        items.push({
+          payment_id: p.id,
+          jugador_id: sel.player.id,
+          jugador_nombre: sel.player.nombre,
+          mes: p.mes,
+          temporada: p.temporada,
+          cantidad: p.cantidad
+        });
+      }
+    }
+    return items;
+  };
+
+  const handlePayCartWithCard = async () => {
+    if (cartSelected.length === 0) return;
+    if (window.top !== window.self) {
+      alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.');
+      return;
+    }
+    const items = await ensureRealPayments(cartSelected);
+    const total = items.reduce((s, it) => s + Number(it.cantidad || 0), 0);
+    const batch = await base44.entities.BatchPayment.create({
+      code: generateConceptCode(),
+      user_email: user.email,
+      metodo: 'Tarjeta',
+      status: 'draft',
+      total,
+      items
+    });
+    // Crear sesión Stripe con múltiples conceptos
+    const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
+    const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
+    const lineItems = items.map((it) => ({
+      price_data: {
+        currency: 'eur',
+        product_data: { name: `Cuota ${it.mes} - ${it.jugador_nombre} (${it.temporada})` },
+        unit_amount: Math.round(Number(it.cantidad) * 100)
+      },
+      quantity: 1
+    }));
+    const { data } = await base44.functions.invoke('stripeCheckout', {
+      lineItems,
+      successUrl,
+      cancelUrl,
+      metadata: {
+        tipo: 'pago_cuota_batch',
+        batch_id: batch.id
+      }
+    });
+    if (data?.id) {
+      await base44.entities.BatchPayment.update(batch.id, { stripe_session_id: data.id });
+    }
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+  };
+
+  const handleGenerateTransfer = async () => {
+    if (cartSelected.length === 0) return;
+    const concept = generateConceptCode();
+    setTransferConcept(concept);
+    setShowTransferDialog(true);
+  };
+
+  const handleConfirmTransfer = async (file) => {
+    const items = await ensureRealPayments(cartSelected);
+    const total = items.reduce((s, it) => s + Number(it.cantidad || 0), 0);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const batch = await base44.entities.BatchPayment.create({
+      code: transferConcept,
+      user_email: user.email,
+      metodo: 'Transferencia',
+      status: 'pending_review',
+      total,
+      concepto: transferConcept,
+      justificante_url: file_url,
+      items
+    });
+    // Marcar cada payment en revisión con justificante común
+    for (const it of items) {
+      const current = payments.find((p) => p.id === it.payment_id);
+      await base44.entities.Payment.update(it.payment_id, {
+        ...(current || {}),
+        estado: 'En revisión',
+        metodo_pago: 'Transferencia',
+        justificante_url: file_url
+      });
+    }
+    // Limpiar selección y cerrar
+    setShowTransferDialog(false);
+    setCartSelected([]);
+    setSuccessMessage('📤 Justificante recibido para el lote. Pagos en revisión.');
+    setShowSuccess(true);
+    queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+    queryClient.invalidateQueries({ queryKey: ['allPayments'] });
   };
 
   const filteredPayments = payments.filter(payment =>
@@ -814,26 +936,41 @@ export default function ParentPayments() {
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 w-full md:w-auto justify-start md:justify-end">
-                                  {/* Selector para carrito (permitimos seleccionar cuotas Pendiente; las virtuales solo se usarán para transferencia) */}
-                                  {payment.estado === "Pendiente" && (
-                                    <PaymentSelect
-                                      checked={!!selectedPayments[payment.id]}
-                                      onChange={(val) => toggleSelect(payment, player, val)}
-                                      disabled={payment.estado !== "Pendiente"}
-                                    />
-                                  )}
-                                  {mostrarBotonPagar && !payment.isVirtual && (
-                                    <Button
-                                      size="sm"
-                                      onClick={() => {
-                                        setPayModalContext({ player, payment });
-                                        setPayModalOpen(true);
-                                      }}
-                                      className="bg-orange-600 hover:bg-orange-700 text-white"
-                                    >
-                                      💳 Pagar
-                                    </Button>
-                                  )}
+                                  {/* Selección para carrito */}
+                                  {(() => {
+                                    const key = payment.id;
+                                    const isSelected = cartSelected.some(s => s.payment.id === payment.id);
+                                    const canSelect = payment.estado === 'Pendiente' && mostrarBotonPagar;
+                                    return (
+                                      <div className="flex items-center gap-2">
+                                        <Checkbox
+                                          checked={isSelected}
+                                          onCheckedChange={(v) => {
+                                            if (!canSelect) return;
+                                            setCartSelected(prev => {
+                                              const exists = prev.some(s => s.payment.id === payment.id);
+                                              if (v && !exists) return [...prev, { player, payment }];
+                                              if (!v && exists) return prev.filter(s => s.payment.id !== payment.id);
+                                              return prev;
+                                            });
+                                          }}
+                                          disabled={!canSelect}
+                                        />
+                                        {mostrarBotonPagar && !payment.isVirtual && (
+                                          <Button
+                                            size="sm"
+                                            onClick={() => {
+                                              setPayModalContext({ player, payment });
+                                              setPayModalOpen(true);
+                                            }}
+                                            className="bg-orange-600 hover:bg-orange-700 text-white"
+                                          >
+                                            💳 Pagar
+                                          </Button>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                                   {payment.justificante_url && (
                                    <Button
                                      size="sm"
@@ -870,111 +1007,6 @@ export default function ParentPayments() {
       </div>
 
       <ContactCard />
-
-      {/* Barra de lote / carrito */}
-      <BatchBar
-        visible={hasSelection}
-        count={selectedList.length}
-        total={selectedTotal}
-        onPayCard={async () => {
-          // Para tarjeta: solo pagos reales (no virtuales) y Pendiente
-          const items = selectedList.filter(x => !x.payment.isVirtual && x.payment.estado === 'Pendiente');
-          if (items.length === 0) { alert('Selecciona al menos una cuota pendiente (no virtual)'); return; }
-          // Crear lote
-          const concepto = `CDB-${new Date().toISOString().slice(0,7).replace('-','')}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
-          const batch = await base44.entities.BatchPayment.create({
-            metodo: 'Tarjeta',
-            estado: 'Pendiente',
-            temporada: currentSeason,
-            total: items.reduce((s, i) => s + Number(i.payment.cantidad||0), 0),
-            concepto,
-            items: items.map(({payment, player}) => ({
-              payment_id: payment.id,
-              jugador_id: player.id,
-              jugador_nombre: player.nombre,
-              mes: payment.mes,
-              temporada: payment.temporada,
-              cantidad: payment.cantidad,
-              tipo_pago: payment.tipo_pago
-            }))
-          });
-          const lineItems = items.map(({payment, player}) => ({
-            price_data: {
-              currency: 'eur',
-              product_data: { name: `Cuota ${payment.mes} - ${player.nombre} (${payment.temporada})` },
-              unit_amount: Math.round(Number(payment.cantidad)*100)
-            },
-            quantity: 1
-          }));
-          // Bloquear en iframe (editor)
-          if (window.top !== window.self) {
-            alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.');
-            return;
-          }
-          const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
-          const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
-          const { data } = await base44.functions.invoke('stripeCheckout', {
-            lineItems,
-            successUrl,
-            cancelUrl,
-            metadata: {
-              tipo: 'pago_cuota_batch',
-              batch_id: batch.id,
-              temporada: currentSeason
-            }
-          });
-          if (data?.url) window.location.href = data.url;
-        }}
-        onTransfer={async (file) => {
-          if (!file) return;
-          const items = selectedList; // incluir virtuales
-          if (items.length === 0) { alert('Selecciona al menos una cuota'); return; }
-          const concepto = `CDB-${new Date().toISOString().slice(0,7).replace('-','')}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
-          const total = items.reduce((s, i) => s + Number(i.payment.cantidad||0), 0);
-          const batch = await base44.entities.BatchPayment.create({
-            metodo: 'Transferencia', estado: 'Pendiente', temporada: currentSeason, total, concepto,
-            items: items.map(({payment, player}) => ({
-              payment_id: payment.isVirtual ? '' : payment.id,
-              jugador_id: player.id,
-              jugador_nombre: player.nombre,
-              mes: payment.mes,
-              temporada: payment.temporada,
-              cantidad: payment.cantidad,
-              tipo_pago: payment.tipo_pago
-            }))
-          });
-          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          // Aplicar justificante a cada pago
-          for (const it of items) {
-            const { payment, player } = it;
-            if (payment.isVirtual) {
-              // Crear payment real
-              await base44.entities.Payment.create({
-                jugador_id: player.id,
-                jugador_nombre: player.nombre,
-                tipo_pago: payment.tipo_pago,
-                mes: payment.mes,
-                temporada: payment.temporada,
-                cantidad: payment.cantidad,
-                estado: 'En revisión',
-                metodo_pago: 'Transferencia',
-                justificante_url: file_url
-              });
-            } else {
-              await base44.entities.Payment.update(payment.id, {
-                justificante_url: file_url,
-                estado: 'En revisión',
-                metodo_pago: 'Transferencia'
-              });
-            }
-          }
-          await base44.entities.BatchPayment.update(batch.id, { estado: 'En revisión', justificante_url: file_url });
-          setSelectedPayments({});
-          queryClient.invalidateQueries({ queryKey: ['myPayments'] });
-          setSuccessMessage('🔍 Transferencia generada: justificante recibido, en revisión');
-          setShowSuccess(true);
-        }}
-      />
 
       <PayModal
         open={payModalOpen}
@@ -1028,9 +1060,26 @@ export default function ParentPayments() {
             }
           }, 100);
         }}
-      />
+        />
 
-      {/* Instrucciones simplificadas */}
+        {/* Barra flotante del carrito */}
+        <PaymentsCartBar
+        selectedCount={cartSelected.length}
+        total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
+        onPayCard={handlePayCartWithCard}
+        onTransfer={handleGenerateTransfer}
+        />
+
+        {/* Diálogo de transferencia por lote */}
+        <BatchTransferDialog
+        open={showTransferDialog}
+        onClose={() => setShowTransferDialog(false)}
+        concept={transferConcept}
+        total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
+        onConfirm={handleConfirmTransfer}
+        />
+
+        {/* Instrucciones simplificadas */}
       <Card className="border-orange-200 bg-orange-50">
         <CardContent className="p-4">
           <p className="text-sm text-slate-700">
