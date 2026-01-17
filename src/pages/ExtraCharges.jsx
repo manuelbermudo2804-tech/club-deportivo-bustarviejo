@@ -77,14 +77,32 @@ export default function ExtraCharges() {
 
   // Jugadores por categoría con búsqueda local (máx 50)
   const getPlayersByCategory = React.useCallback((cat, search) => {
+    const norm = (s) => (s || '').toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\(.*?\)/g, '') // quita (Mixto), etc.
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const catNorm = norm(cat);
+
     let list = players || [];
-    list = list.filter((p) =>
-      (p.categoria_principal && p.categoria_principal === cat) ||
-      (Array.isArray(p.categorias) && p.categorias.includes(cat))
-    );
+    list = list.filter((p) => {
+      const fields = [
+        p.categoria_principal,
+        p.deporte,
+        p.categoria, // legacy si existiera
+        ...(Array.isArray(p.categorias) ? p.categorias : []),
+      ].filter(Boolean);
+      return fields.some((f) => {
+        const nf = norm(f);
+        return nf === catNorm || nf.includes(catNorm) || catNorm.includes(nf);
+      });
+    });
+
     if (search) {
-      const q = search.toLowerCase();
-      list = list.filter((p) => p.nombre?.toLowerCase().includes(q));
+      const q = norm(search);
+      list = list.filter((p) => norm(p.nombre).includes(q));
     }
     return list.slice(0, 50);
   }, [players]);
