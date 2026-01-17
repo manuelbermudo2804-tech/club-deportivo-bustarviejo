@@ -8,13 +8,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Save, Send, X } from "lucide-react";
+import { Plus, Save, Send, X, Trash2 } from "lucide-react";
 
 export default function ExtraCharges() {
   const qc = useQueryClient();
   const { data: charges = [] } = useQuery({
     queryKey: ["extraCharges"],
     queryFn: () => base44.entities.ExtraCharge.list(),
+    staleTime: 300000,
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categoryConfigs"],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+    staleTime: 300000,
+  });
+
+  const { data: players = [] } = useQuery({
+    queryKey: ["allPlayers"],
+    queryFn: () => base44.entities.Player.list(),
     staleTime: 300000,
   });
 
@@ -25,6 +37,13 @@ export default function ExtraCharges() {
     fecha_limite: "",
     metodos: ["Tarjeta", "Transferencia"],
     items: [{ nombre: "Autobús", precio: 10, obligatorio: false, permite_cantidad: false }],
+    selectedCategories: [],
+    selectedPlayerIds: [],
+    includeCoaches: false,
+    includeCoordinators: false,
+    includeTreasurer: false,
+    includeAdmins: false,
+    playerSearch: "",
   });
 
   const createMutation = useMutation({
@@ -37,6 +56,11 @@ export default function ExtraCharges() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["extraCharges"] }),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.ExtraCharge.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["extraCharges"] }),
+  });
+
   const resetForm = () => {
     setForm({
       titulo: "",
@@ -44,6 +68,13 @@ export default function ExtraCharges() {
       fecha_limite: "",
       metodos: ["Tarjeta", "Transferencia"],
       items: [{ nombre: "Concepto", precio: 1, obligatorio: false, permite_cantidad: false }],
+      selectedCategories: [],
+      selectedPlayerIds: [],
+      includeCoaches: false,
+      includeCoordinators: false,
+      includeTreasurer: false,
+      includeAdmins: false,
+      playerSearch: "",
     });
   };
 
@@ -52,8 +83,18 @@ export default function ExtraCharges() {
   };
 
   const saveDraft = async () => {
+    const destinatarios = [
+      ...(form.selectedCategories || []).map(c => ({ tipo: 'categoria', valor: c })),
+      ...(form.selectedPlayerIds || []).map(id => ({ tipo: 'jugador', valor: id })),
+      ...(form.includeCoaches ? [{ tipo: 'equipo', valor: 'staff:entrenadores' }] : []),
+      ...(form.includeCoordinators ? [{ tipo: 'equipo', valor: 'staff:coordinadores' }] : []),
+      ...(form.includeTreasurer ? [{ tipo: 'equipo', valor: 'staff:tesoreria' }] : []),
+      ...(form.includeAdmins ? [{ tipo: 'equipo', valor: 'staff:admins' }] : []),
+    ];
     await createMutation.mutateAsync({
       ...form,
+      destinatarios,
+      asignado_a: form.selectedPlayerIds || [],
       publicado: false,
       banner_activo: false,
       estado: "borrador",
@@ -63,8 +104,18 @@ export default function ExtraCharges() {
   };
 
   const publishCharge = async () => {
-    const created = await createMutation.mutateAsync({
+    const destinatarios = [
+      ...(form.selectedCategories || []).map(c => ({ tipo: 'categoria', valor: c })),
+      ...(form.selectedPlayerIds || []).map(id => ({ tipo: 'jugador', valor: id })),
+      ...(form.includeCoaches ? [{ tipo: 'equipo', valor: 'staff:entrenadores' }] : []),
+      ...(form.includeCoordinators ? [{ tipo: 'equipo', valor: 'staff:coordinadores' }] : []),
+      ...(form.includeTreasurer ? [{ tipo: 'equipo', valor: 'staff:tesoreria' }] : []),
+      ...(form.includeAdmins ? [{ tipo: 'equipo', valor: 'staff:admins' }] : []),
+    ];
+    await createMutation.mutateAsync({
       ...form,
+      destinatarios,
+      asignado_a: form.selectedPlayerIds || [],
       publicado: true,
       banner_activo: true,
       estado: "activo",
@@ -97,6 +148,7 @@ export default function ExtraCharges() {
                 <TableHead>Items</TableHead>
                 <TableHead>Banner</TableHead>
                 <TableHead>Acciones</TableHead>
+                <TableHead>Borrar</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -129,6 +181,19 @@ export default function ExtraCharges() {
                         Cerrar
                       </Button>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => {
+                        if (confirm('¿Borrar este cobro extra? Esta acción no se puede deshacer.')) {
+                          deleteMutation.mutate(c.id);
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" /> Borrar
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
