@@ -14,6 +14,7 @@ const SessionManager = React.lazy(() => import("./components/SessionManager"));
 const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
 import ActiveBanner from "./components/announcements/ActiveBanner";
+import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
