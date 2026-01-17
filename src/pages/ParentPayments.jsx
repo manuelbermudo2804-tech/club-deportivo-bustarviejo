@@ -451,7 +451,7 @@ export default function ParentPayments() {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `CDB-${y}${m}-${rand}`;
+    return `CDB-MULTI-${y}${m}-${rand}`;
   };
 
   const ensureRealPayments = async (selected) => {
