@@ -125,6 +125,49 @@ Deno.serve(async (req) => {
               }
             }
 
+            // Lote de cuotas (tarjeta): marcar cada Payment y crear asientos
+            if (tipo === 'pago_cuota_batch' && session.metadata?.batch_id) {
+              try {
+                const batchId = session.metadata.batch_id;
+                const batchList = await base44.asServiceRole.entities.BatchPayment.filter({ id: batchId });
+                const batch = batchList?.[0];
+                if (batch) {
+                  const temporadaNorm = (batch.temporada || session.metadata?.temporada || '').replace(/-/g,'/');
+                  for (const it of (batch.items || [])) {
+                    const pid = it.payment_id;
+                    // Idempotencia por payment_id
+                    const existentes = await base44.asServiceRole.entities.FinancialTransaction.filter({ referencia_origen: pid, categoria: 'Cuotas' });
+                    if (!existentes || existentes.length === 0) {
+                      await base44.asServiceRole.entities.Payment.update(pid, {
+                        estado: 'Pagado',
+                        metodo_pago: 'Tarjeta',
+                        fecha_pago: new Date().toISOString().split('T')[0]
+                      });
+                      await base44.asServiceRole.entities.FinancialTransaction.create({
+                        tipo: 'Ingreso',
+                        concepto: `Cuota ${it.mes}`.trim(),
+                        cantidad: it.cantidad,
+                        fecha: new Date().toISOString().split('T')[0],
+                        categoria: 'Cuotas',
+                        subtipo_documento: 'Cuota',
+                        metodo_pago: 'Tarjeta',
+                        temporada: it.temporada || temporadaNorm,
+                        proveedor_cliente: it.jugador_nombre || email,
+                        automatico: true,
+                        referencia_origen: pid
+                      });
+                    }
+                  }
+                  await base44.asServiceRole.entities.BatchPayment.update(batch.id, {
+                    status: 'paid',
+                    stripe_status: 'completed'
+                  });
+                }
+              } catch (err) {
+                console.error('[stripeWebhook] Error post-proceso Lote Cuotas:', err);
+              }
+            }
+
             // Lotería: marcar pedido como pagado y registrar margen financiero
             if (tipo === 'loteria' && session.metadata?.order_id) {
               try {
