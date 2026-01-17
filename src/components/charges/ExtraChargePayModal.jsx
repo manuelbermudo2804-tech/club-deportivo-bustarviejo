@@ -67,7 +67,7 @@ export default function ExtraChargePayModal({ open, onClose, charge, onPayCard, 
                   />
                   <div>
                     <p className="font-semibold text-slate-900">{item.nombre}</p>
-                    <p className="text-xs text-slate-600">{item.obligatorio ? 'Obligatorio' : 'Opcional'} • {Number(item.precio).toFixed(2)}€</p>
+                    <p className="text-xs text-slate-600">{item.obligatorio ? 'Obligatorio (pago requerido)' : 'Opcional (elige si lo necesitas)'} • {Number(item.precio).toFixed(2)}€</p>
                   </div>
                 </div>
                 {item.permite_cantidad && (
