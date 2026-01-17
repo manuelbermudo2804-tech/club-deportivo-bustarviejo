@@ -52,6 +52,13 @@ export default function LotteryManagement() {
     initialData: [],
   });
 
+  // Filtrar por temporada activa
+  const activeSeasonName = seasonConfig?.temporada ? seasonConfig.temporada.replace(/-/g,'/') : null;
+  const allOrdersSeason = React.useMemo(() => {
+    if (!activeSeasonName) return allOrders;
+    return allOrders.filter(o => (o.temporada || '').replace(/-/g,'/') === activeSeasonName);
+  }, [allOrders, activeSeasonName]);
+
   const totalDecimosVendidos = allOrders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
   const maxDecimos = seasonConfig?.loteria_max_decimos;
   const decimosDisponibles = maxDecimos ? maxDecimos - totalDecimosVendidos : null;
@@ -60,14 +67,14 @@ export default function LotteryManagement() {
   // Filtrar pedidos según el rol del usuario
   const orders = React.useMemo(() => {
     if (!user) return [];
-    
+    const base = allOrdersSeason;
     // Admin y Tesorero ven todo
-    if (user.role === "admin" || user.es_tesorero === true) return allOrders;
+    if (user.role === "admin" || user.es_tesorero === true) return base;
     
     // Entrenadores/coordinadores solo ven sus categorías
     const myCategories = user.categorias_entrena || [];
-    return allOrders.filter(order => myCategories.includes(order.jugador_categoria));
-  }, [allOrders, user]);
+    return base.filter(order => myCategories.includes(order.jugador_categoria));
+  }, [allOrdersSeason, user]);
 
   const updateOrderMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.LotteryOrder.update(id, data),

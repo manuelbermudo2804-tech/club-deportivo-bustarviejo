@@ -115,8 +115,8 @@ Deno.serve(async (req) => {
                   const temporadaNorm = (pedido.temporada || session.metadata?.temporada || '').replace(/-/g,'/');
 
                   if (margenTotal > 0) {
-                    // Evitar duplicados
-                    const existentes = await base44.asServiceRole.entities.FinancialTransaction.filter({ referencia_origen: orderId, concepto: 'Ganancia Lotería' });
+                    // Evitar duplicados por order y temporada
+                    const existentes = await base44.asServiceRole.entities.FinancialTransaction.filter({ referencia_origen: orderId, concepto: 'Ganancia Lotería', temporada: temporadaNorm });
                     if (!existentes || existentes.length === 0) {
                       await base44.asServiceRole.entities.FinancialTransaction.create({
                         tipo: 'Ingreso',

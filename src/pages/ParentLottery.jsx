@@ -98,7 +98,14 @@ export default function ParentLottery() {
     enabled: !!seasonConfig,
   });
 
-  const totalDecimosVendidos = allLotteryOrders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
+  // Filtrar pedidos a temporada activa
+  const activeSeasonName = seasonConfig?.temporada ? seasonConfig.temporada.replace(/-/g,'/') : null;
+  const allLotteryOrdersSeason = React.useMemo(() => {
+    if (!activeSeasonName) return allLotteryOrders;
+    return allLotteryOrders.filter(o => (o.temporada || '').replace(/-/g,'/') === activeSeasonName);
+  }, [allLotteryOrders, activeSeasonName]);
+
+  const totalDecimosVendidos = allLotteryOrdersSeason.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
   const maxDecimos = seasonConfig?.loteria_max_decimos;
   const decimosDisponibles = maxDecimos ? maxDecimos - totalDecimosVendidos : null;
   const agotado = maxDecimos && totalDecimosVendidos >= maxDecimos;
@@ -317,7 +324,7 @@ export default function ParentLottery() {
         pagado: false,
         metodo_pago: 'Tarjeta',
         justificante_url: '',
-        temporada: new Date().getFullYear().toString(),
+        temporada: seasonConfig?.temporada || getCurrentSeasonName(),
         notas
       });
 
@@ -361,7 +368,7 @@ export default function ParentLottery() {
         pagado: false,
         metodo_pago: requierePagoAdelantado ? metodoPago : null,
         justificante_url: justificanteUrl,
-        temporada: new Date().getFullYear().toString(),
+        temporada: seasonConfig?.temporada || getCurrentSeasonName(),
         notas: notas
       });
     } else {
@@ -385,7 +392,7 @@ export default function ParentLottery() {
         pagado: false,
         metodo_pago: requierePagoAdelantado ? metodoPago : null,
         justificante_url: justificanteUrl,
-        temporada: new Date().getFullYear().toString(),
+        temporada: seasonConfig?.temporada || getCurrentSeasonName(),
         notas: notas
       });
     }
