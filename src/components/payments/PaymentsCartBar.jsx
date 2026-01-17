@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 export default function PaymentsCartBar({ selectedCount, total, onPayCard, onTransfer }) {
   if (!selectedCount) return null;
   return (
-    <div className="fixed bottom-4 left-4 right-4 lg:left-80 z-40">
+    <div className="fixed bottom-24 left-4 right-4 lg:left-80 z-50">
       <div className="bg-white border rounded-2xl shadow-xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="text-sm font-medium text-slate-800">
           Selecciona varias cuotas de diferentes jugadores y págalo todo junto.
