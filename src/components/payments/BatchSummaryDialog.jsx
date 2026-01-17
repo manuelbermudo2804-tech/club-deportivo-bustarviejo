@@ -35,7 +35,7 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
           </div>
           <div className="flex items-start sm:items-center justify-between gap-3">
             <p className="text-sm text-slate-600">Puedes pagar todas juntas con tarjeta o generar una única transferencia. El comprobante se aplica a cada cuota del lote.</p>
-            <div className="text-right font-bold">Total: {Number(total).toFixed(2)}€</div>
+            <div className="text-right font-bold shrink-0">Total: {Number(total).toFixed(2)}€</div>
           </div>
           <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
             <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Seguir seleccionando</Button>
