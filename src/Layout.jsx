@@ -562,6 +562,8 @@ export default function Layout({ children, currentPageName }) {
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [showMemberCard, setShowMemberCard] = useState(false);
+  const [extraChargeVisible, setExtraChargeVisible] = useState(null);
+  const [extraChargeModalOpen, setExtraChargeModalOpen] = useState(false);
   const [memberCardActive, setMemberCardActive] = useState(false);
   const [isMemberPaid, setIsMemberPaid] = useState(false);
   const [programaSociosActivo, setProgramaSociosActivo] = useState(false);
