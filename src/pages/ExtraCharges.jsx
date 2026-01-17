@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Save, Send, X, Trash2 } from "lucide-react";
@@ -14,7 +13,6 @@ import { Plus, Save, Send, X, Trash2 } from "lucide-react";
 export default function ExtraCharges() {
   const qc = useQueryClient();
   const [openForm, setOpenForm] = useState(false);
-  const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [form, setForm] = useState({
     titulo: "",
     descripcion: "",
@@ -22,12 +20,11 @@ export default function ExtraCharges() {
     metodos: ["Tarjeta", "Transferencia"],
     items: [{ nombre: "Concepto", precio: 1, obligatorio: false, permite_cantidad: false }],
     selectedCategories: [],
-    selectedPlayerIds: [],
+    categoryOverrides: {}, // { [categoria]: { mode: 'category'|'players', playerIds: [], search: '' } }
     includeCoaches: false,
     includeCoordinators: false,
     includeTreasurer: false,
     includeAdmins: false,
-    playerSearch: "",
   });
 
 
@@ -49,10 +46,10 @@ export default function ExtraCharges() {
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ["allPlayers", openForm, showPlayerPicker],
+    queryKey: ["allPlayers", openForm, (form.selectedCategories || []).join("|")],
     queryFn: () => base44.entities.Player.list(),
     staleTime: 300000,
-    enabled: openForm && showPlayerPicker,
+    enabled: openForm && (form.selectedCategories || []).length > 0,
     refetchOnWindowFocus: false,
     retry: 1,
   });
@@ -78,22 +75,19 @@ export default function ExtraCharges() {
     return unique.length > 0 ? unique : CATEGORY_OPTIONS;
   }, [categories]);
 
-  // Jugadores filtrados por categorías seleccionadas y búsqueda
-  const filteredPlayers = React.useMemo(() => {
+  // Jugadores por categoría con búsqueda local (máx 50)
+  const getPlayersByCategory = React.useCallback((cat, search) => {
     let list = players || [];
-    const selected = form.selectedCategories || [];
-    if (selected.length > 0) {
-      list = list.filter((p) =>
-        (p.categoria_principal && selected.includes(p.categoria_principal)) ||
-        (Array.isArray(p.categorias) && p.categorias.some((cat) => selected.includes(cat)))
-      );
-    }
-    if (form.playerSearch) {
-      const q = form.playerSearch.toLowerCase();
+    list = list.filter((p) =>
+      (p.categoria_principal && p.categoria_principal === cat) ||
+      (Array.isArray(p.categorias) && p.categorias.includes(cat))
+    );
+    if (search) {
+      const q = search.toLowerCase();
       list = list.filter((p) => p.nombre?.toLowerCase().includes(q));
     }
     return list.slice(0, 50);
-  }, [players, form.selectedCategories, form.playerSearch]);
+  }, [players]);
 
   const createMutation = useMutation({
     mutationFn: (payload) => base44.entities.ExtraCharge.create(payload),
@@ -118,12 +112,11 @@ export default function ExtraCharges() {
       metodos: ["Tarjeta", "Transferencia"],
       items: [{ nombre: "Concepto", precio: 1, obligatorio: false, permite_cantidad: false }],
       selectedCategories: [],
-      selectedPlayerIds: [],
+      categoryOverrides: {},
       includeCoaches: false,
       includeCoordinators: false,
       includeTreasurer: false,
       includeAdmins: false,
-      playerSearch: "",
     });
   };
 
@@ -132,18 +125,30 @@ export default function ExtraCharges() {
   };
 
   const saveDraft = async () => {
-    const destinatarios = [
-      ...(form.selectedCategories || []).map(c => ({ tipo: 'categoria', valor: c })),
-      ...(form.selectedPlayerIds || []).map(id => ({ tipo: 'jugador', valor: id })),
-      ...(form.includeCoaches ? [{ tipo: 'equipo', valor: 'staff:entrenadores' }] : []),
-      ...(form.includeCoordinators ? [{ tipo: 'equipo', valor: 'staff:coordinadores' }] : []),
-      ...(form.includeTreasurer ? [{ tipo: 'equipo', valor: 'staff:tesoreria' }] : []),
-      ...(form.includeAdmins ? [{ tipo: 'equipo', valor: 'staff:admins' }] : []),
-    ];
+    const destinatarios = [];
+    (form.selectedCategories || []).forEach((cat) => {
+      const ov = form.categoryOverrides?.[cat];
+      if (ov && ov.mode === 'players') {
+        (ov.playerIds || []).forEach((id) => destinatarios.push({ tipo: 'jugador', valor: id }));
+      } else {
+        destinatarios.push({ tipo: 'categoria', valor: cat });
+      }
+    });
+    if (form.includeCoaches) destinatarios.push({ tipo: 'equipo', valor: 'staff:entrenadores' });
+    if (form.includeCoordinators) destinatarios.push({ tipo: 'equipo', valor: 'staff:coordinadores' });
+    if (form.includeTreasurer) destinatarios.push({ tipo: 'equipo', valor: 'staff:tesoreria' });
+    if (form.includeAdmins) destinatarios.push({ tipo: 'equipo', valor: 'staff:admins' });
+
+    const asignadoA = [];
+    (form.selectedCategories || []).forEach((cat) => {
+      const ov = form.categoryOverrides?.[cat];
+      if (ov?.mode === 'players') asignadoA.push(...(ov.playerIds || []));
+    });
+
     await createMutation.mutateAsync({
       ...form,
       destinatarios,
-      asignado_a: form.selectedPlayerIds || [],
+      asignado_a: asignadoA,
       publicado: false,
       banner_activo: false,
       estado: "borrador",
@@ -153,18 +158,30 @@ export default function ExtraCharges() {
   };
 
   const publishCharge = async () => {
-    const destinatarios = [
-      ...(form.selectedCategories || []).map(c => ({ tipo: 'categoria', valor: c })),
-      ...(form.selectedPlayerIds || []).map(id => ({ tipo: 'jugador', valor: id })),
-      ...(form.includeCoaches ? [{ tipo: 'equipo', valor: 'staff:entrenadores' }] : []),
-      ...(form.includeCoordinators ? [{ tipo: 'equipo', valor: 'staff:coordinadores' }] : []),
-      ...(form.includeTreasurer ? [{ tipo: 'equipo', valor: 'staff:tesoreria' }] : []),
-      ...(form.includeAdmins ? [{ tipo: 'equipo', valor: 'staff:admins' }] : []),
-    ];
+    const destinatarios = [];
+    (form.selectedCategories || []).forEach((cat) => {
+      const ov = form.categoryOverrides?.[cat];
+      if (ov && ov.mode === 'players') {
+        (ov.playerIds || []).forEach((id) => destinatarios.push({ tipo: 'jugador', valor: id }));
+      } else {
+        destinatarios.push({ tipo: 'categoria', valor: cat });
+      }
+    });
+    if (form.includeCoaches) destinatarios.push({ tipo: 'equipo', valor: 'staff:entrenadores' });
+    if (form.includeCoordinators) destinatarios.push({ tipo: 'equipo', valor: 'staff:coordinadores' });
+    if (form.includeTreasurer) destinatarios.push({ tipo: 'equipo', valor: 'staff:tesoreria' });
+    if (form.includeAdmins) destinatarios.push({ tipo: 'equipo', valor: 'staff:admins' });
+
+    const asignadoA = [];
+    (form.selectedCategories || []).forEach((cat) => {
+      const ov = form.categoryOverrides?.[cat];
+      if (ov?.mode === 'players') asignadoA.push(...(ov.playerIds || []));
+    });
+
     await createMutation.mutateAsync({
       ...form,
       destinatarios,
-      asignado_a: form.selectedPlayerIds || [],
+      asignado_a: asignadoA,
       publicado: true,
       banner_activo: true,
       estado: "activo",
@@ -286,51 +303,111 @@ export default function ExtraCharges() {
                     <label key={name} className="text-xs bg-slate-100 px-2 py-1 rounded-md flex items-center gap-2">
                       <Checkbox
                         checked={(form.selectedCategories || []).includes(name)}
-                        onCheckedChange={(v) => setForm(f => ({
-                          ...f,
-                          selectedCategories: v ? [...(f.selectedCategories||[]), name] : (f.selectedCategories||[]).filter(x => x !== name)
-                        }))}
+                        onCheckedChange={(v) => setForm(f => {
+                          const nextSelected = v ? [...(f.selectedCategories||[]), name] : (f.selectedCategories||[]).filter(x => x !== name);
+                          const nextOverrides = { ...(f.categoryOverrides || {}) };
+                          if (v) {
+                            if (!nextOverrides[name]) nextOverrides[name] = { mode: 'category', playerIds: [], search: '' };
+                          } else {
+                            delete nextOverrides[name];
+                          }
+                          return { ...f, selectedCategories: nextSelected, categoryOverrides: nextOverrides };
+                        })}
                       /> {name}
                     </label>
                   ))}
                 </div>
               </div>
 
-              {/* Jugadores individuales */}
-              <div className="mt-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-600 mb-1">Jugadores individuales</p>
-                  <label className="flex items-center gap-2 text-xs">
-                    <span>Elegir jugadores concretos</span>
-                    <Switch checked={showPlayerPicker} onCheckedChange={setShowPlayerPicker} />
-                  </label>
-                </div>
-                {showPlayerPicker && (
-                  <>
-                    <Input
-                      placeholder={`Buscar en ${filteredPlayers.length} jugadores...`}
-                      value={form.playerSearch}
-                      onChange={(e) => setForm({ ...form, playerSearch: e.target.value })}
-                    />
-                    <div className="mt-2 max-h-40 overflow-auto rounded-md border p-2 bg-white">
-                      {filteredPlayers.map((p) => (
-                        <label key={p.id} className="flex items-center gap-2 text-xs py-1">
-                          <Checkbox
-                            checked={(form.selectedPlayerIds || []).includes(p.id)}
-                            onCheckedChange={(v) => setForm((f) => ({
+              {/* Opciones por categoría seleccionada */}
+              {(form.selectedCategories || []).map((cat) => {
+                const ov = form.categoryOverrides?.[cat] || { mode: 'category', playerIds: [], search: '' };
+                const catPlayers = getPlayersByCategory(cat, ov.search);
+                return (
+                  <div key={cat} className="mt-3 p-3 rounded-lg border bg-white">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <p className="text-xs text-slate-600">Opciones para {cat}</p>
+                      <div className="flex items-center gap-4 text-xs">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name={`mode-${cat}`}
+                            checked={ov.mode !== 'players'}
+                            onChange={() => setForm(f => ({
                               ...f,
-                              selectedPlayerIds: v ? [...(f.selectedPlayerIds || []), p.id] : (f.selectedPlayerIds || []).filter((x) => x !== p.id)
+                              categoryOverrides: { ...(f.categoryOverrides || {}), [cat]: { ...(f.categoryOverrides?.[cat] || {}), mode: 'category' } }
                             }))}
-                          /> {p.nombre}
+                          />
+                          Cobrar a toda la categoría
                         </label>
-                      ))}
-                      {filteredPlayers.length === 0 && (
-                        <p className="text-xs text-slate-500">No hay jugadores que coincidan con el filtro.</p>
-                      )}
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name={`mode-${cat}`}
+                            checked={ov.mode === 'players'}
+                            onChange={() => setForm(f => ({
+                              ...f,
+                              categoryOverrides: { ...(f.categoryOverrides || {}), [cat]: { ...(f.categoryOverrides?.[cat] || {}), mode: 'players', playerIds: (f.categoryOverrides?.[cat]?.playerIds || []), search: f.categoryOverrides?.[cat]?.search || '' } }
+                            }))}
+                          />
+                          Elegir jugadores
+                        </label>
+                      </div>
                     </div>
-                  </>
-                )}
-              </div>
+
+                    {ov.mode === 'players' && (
+                      <div className="mt-2">
+                        <Input
+                          placeholder={`Buscar jugadores de ${cat}...`}
+                          value={ov.search || ""}
+                          onChange={(e) => setForm(f => ({
+                            ...f,
+                            categoryOverrides: { ...(f.categoryOverrides || {}), [cat]: { ...(f.categoryOverrides?.[cat] || { mode: 'players', playerIds: [] }), search: e.target.value } }
+                          }))}
+                        />
+                        <div className="mt-2 max-h-40 overflow-auto rounded-md border p-2 bg-white">
+                          {catPlayers.map((p) => (
+                            <label key={p.id} className="flex items-center gap-2 text-xs py-1">
+                              <Checkbox
+                                checked={(ov.playerIds || []).includes(p.id)}
+                                onCheckedChange={(v) => setForm(f => {
+                                  const current = f.categoryOverrides?.[cat]?.playerIds || [];
+                                  const next = v ? [...current, p.id] : current.filter(x => x !== p.id);
+                                  return {
+                                    ...f,
+                                    categoryOverrides: { ...(f.categoryOverrides || {}), [cat]: { ...(f.categoryOverrides?.[cat] || { mode: 'players' }), playerIds: next, search: f.categoryOverrides?.[cat]?.search || '' } }
+                                  };
+                                })}
+                              />
+                              {p.nombre}
+                            </label>
+                          ))}
+                          {catPlayers.length === 0 && (
+                            <p className="text-xs text-slate-500">No hay jugadores que coincidan con el filtro.</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          <Button variant="outline" size="sm" onClick={() => setForm(f => {
+                            const allIds = catPlayers.map(p => p.id);
+                            return {
+                              ...f,
+                              categoryOverrides: { ...(f.categoryOverrides || {}), [cat]: { ...(f.categoryOverrides?.[cat] || { mode: 'players' }), playerIds: allIds, search: f.categoryOverrides?.[cat]?.search || '' } }
+                            };
+                          })}>
+                            Seleccionar todos
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setForm(f => ({
+                            ...f,
+                            categoryOverrides: { ...(f.categoryOverrides || {}), [cat]: { ...(f.categoryOverrides?.[cat] || { mode: 'players' }), playerIds: [], search: f.categoryOverrides?.[cat]?.search || '' } }
+                          }))}>
+                            Quitar selección
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
 
               {/* Staff */}
               <div className="mt-3">
