@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export default function BatchSummaryDialog({ open, onClose, items = [], total = 0, onPayCard, onTransfer }) {
   return (
     <Dialog open={open} onOpenChange={(v)=>{ if(!v) onClose(); }}>
-      <DialogContent className="w-[92vw] max-w-lg max-h-[85vh] rounded-2xl">
+      <DialogContent className="w-[92vw] max-w-lg max-h-[85vh] rounded-2xl sm:mt-8">
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-bold">Resumen de pago</h3>
