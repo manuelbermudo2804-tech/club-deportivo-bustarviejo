@@ -120,12 +120,14 @@ export default function ParentPayments() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       console.log('🔍 [ParentPayments] Buscando jugadores para:', user?.email);
-      const allPlayers = await base44.entities.Player.list();
-      console.log('📊 [ParentPayments] Total jugadores en BD:', allPlayers.length);
-      const filtered = allPlayers.filter(p =>
-        (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
-      );
-      console.log('✅ [ParentPayments] Jugadores activos filtrados:', filtered.length, filtered.map(p => p.nombre));
+      const filtered = await base44.entities.Player.filter({
+        $or: [
+          { email_padre: user?.email },
+          { email_tutor_2: user?.email }
+        ],
+        activo: true
+      });
+      console.log('✅ [ParentPayments] Jugadores activos filtrados (server):', filtered.length);
       return filtered;
     },
     enabled: !!user?.email,
