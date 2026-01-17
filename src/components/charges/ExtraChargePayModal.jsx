@@ -96,6 +96,9 @@ export default function ExtraChargePayModal({ open, onClose, charge, onPayCard, 
               Para pagar con tarjeta abre la app publicada (fuera del editor).
             </p>
           )}
+          {!hasSelectedRequired && requiredItems.length > 0 && (
+            <p className="text-xs text-orange-600 mt-1">Selecciona los conceptos obligatorios para continuar.</p>
+          )}
         </div>
       </DialogContent>
     </Dialog>
