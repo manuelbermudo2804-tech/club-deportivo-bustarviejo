@@ -31,7 +31,7 @@ const AutomaticPaymentReminders = React.lazy(() => import("./components/reminder
 const PlanPaymentReminders = React.lazy(() => import("./components/reminders/PlanPaymentReminders"));
 import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
 const AutomaticRenewalClosure = React.lazy(() => import("./components/renewals/AutomaticRenewalClosure.jsx"));
-const RenewalNotificationEngine = React.lazy(() => import("./components/renewals/RenewalNotificationEngine.jsx"));
+const RenewalNotificationEngine = React.lazy(() => import("./components/renewals/RenewalNotificationEngine"));
 const PostRenewalPaymentReminder = React.lazy(() => import("./components/renewals/PostRenewalPaymentReminder.jsx"));
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
 const ChatSoundNotifier = React.lazy(() => import("./components/notifications/ChatSoundNotifier"));
