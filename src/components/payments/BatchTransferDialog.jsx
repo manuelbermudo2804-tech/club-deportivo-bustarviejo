@@ -13,7 +13,7 @@ export default function BatchTransferDialog({ open, onClose, concept, total, onC
           <p className="text-sm">Importe total: {total.toFixed(2)}€</p>
         </div>
         <div className="p-4 space-y-3 overflow-y-auto max-h-[70vh]">
-          <p className="text-sm text-slate-700">Sube un único justificante para este lote.</p>
+          <p className="text-sm text-slate-700">Sube un único justificante para este lote. Se registrará como <strong>pago múltiple</strong> con el detalle de jugadores.</p>
           <input type="file" accept="image/*,application/pdf" onChange={(e)=> setFile(e.target.files?.[0] || null)} className="w-full" />
           <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
             <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancelar</Button>
