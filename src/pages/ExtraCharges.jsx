@@ -228,22 +228,81 @@ export default function ExtraCharges() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-semibold">Métodos permitidos</p>
-              <div className="flex gap-4">
-                {(["Tarjeta", "Transferencia"]).map(m => (
-                  <label key={m} className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={form.metodos.includes(m)}
-                      onCheckedChange={(v) => {
-                        setForm((f) => ({
+              <p className="text-sm font-semibold">Destinatarios</p>
+              {/* Categorías / Equipos */}
+              <div>
+                <p className="text-xs text-slate-600 mb-1">Categorías / Equipos</p>
+                <div className="flex flex-wrap gap-2">
+                  {(categories || []).filter(c => c.activa).map(c => (
+                    <label key={c.id} className="text-xs bg-slate-100 px-2 py-1 rounded-md flex items-center gap-2">
+                      <Checkbox
+                        checked={(form.selectedCategories || []).includes(c.nombre)}
+                        onCheckedChange={(v) => setForm(f => ({
                           ...f,
-                          metodos: v ? [...f.metodos, m] : f.metodos.filter(x => x !== m)
-                        }));
-                      }}
-                    />
-                    {m}
-                  </label>
-                ))}
+                          selectedCategories: v ? [...(f.selectedCategories||[]), c.nombre] : (f.selectedCategories||[]).filter(x => x !== c.nombre)
+                        }))}
+                      /> {c.nombre}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Jugadores individuales */}
+              <div className="mt-3">
+                <p className="text-xs text-slate-600 mb-1">Jugadores individuales</p>
+                <Input
+                  placeholder="Buscar jugador por nombre..."
+                  value={form.playerSearch}
+                  onChange={(e) => setForm({ ...form, playerSearch: e.target.value })}
+                />
+                <div className="mt-2 max-h-40 overflow-auto rounded-md border p-2 bg-white">
+                  {(players || [])
+                    .filter(p => !form.playerSearch || p.nombre?.toLowerCase().includes(form.playerSearch.toLowerCase()))
+                    .slice(0, 20)
+                    .map(p => (
+                      <label key={p.id} className="flex items-center gap-2 text-xs py-1">
+                        <Checkbox
+                          checked={(form.selectedPlayerIds||[]).includes(p.id)}
+                          onCheckedChange={(v) => setForm(f => ({
+                            ...f,
+                            selectedPlayerIds: v ? [...(f.selectedPlayerIds||[]), p.id] : (f.selectedPlayerIds||[]).filter(x => x !== p.id)
+                          }))}
+                        /> {p.nombre}
+                      </label>
+                    ))}
+                </div>
+              </div>
+
+              {/* Staff */}
+              <div className="mt-3">
+                <p className="text-xs text-slate-600 mb-1">Staff</p>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <label className="flex items-center gap-2"><Checkbox checked={form.includeCoaches} onCheckedChange={(v)=>setForm(f=>({...f, includeCoaches: !!v}))} /> Entrenadores</label>
+                  <label className="flex items-center gap-2"><Checkbox checked={form.includeCoordinators} onCheckedChange={(v)=>setForm(f=>({...f, includeCoordinators: !!v}))} /> Coordinadores</label>
+                  <label className="flex items-center gap-2"><Checkbox checked={form.includeTreasurer} onCheckedChange={(v)=>setForm(f=>({...f, includeTreasurer: !!v}))} /> Tesorería</label>
+                  <label className="flex items-center gap-2"><Checkbox checked={form.includeAdmins} onCheckedChange={(v)=>setForm(f=>({...f, includeAdmins: !!v}))} /> Admins</label>
+                </div>
+              </div>
+
+              {/* Métodos */}
+              <div className="mt-4">
+                <p className="text-sm font-semibold">Métodos permitidos</p>
+                <div className="flex gap-4">
+                  {["Tarjeta", "Transferencia"].map(m => (
+                    <label key={m} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={form.metodos.includes(m)}
+                        onCheckedChange={(v) => {
+                          setForm((f) => ({
+                            ...f,
+                            metodos: v ? [...f.metodos, m] : f.metodos.filter(x => x !== m)
+                          }));
+                        }}
+                      />
+                      {m}
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 
