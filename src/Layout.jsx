@@ -19,6 +19,7 @@ import NotificationCenter from "./components/NotificationCenter";
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 import { SeasonProvider } from "./components/season/SeasonProvider";
+import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
