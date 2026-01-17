@@ -610,22 +610,13 @@ export default function ParentPayments() {
         </div>
         <Button
           onClick={() => {
-            setSelectedPlayerId(null);
-            setShowForm(!showForm);
-            if (!showForm) {
-              setTimeout(() => {
-                const formElement = document.querySelector('[data-payment-form]');
-                if (formElement) {
-                  formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }, 100);
-            }
+            setQuickPayOpen(true);
           }}
           type="button"
           className="bg-orange-600 hover:bg-orange-700 shadow-lg"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Registrar Pago
+          Pagar / Registrar
         </Button>
       </div>
 
