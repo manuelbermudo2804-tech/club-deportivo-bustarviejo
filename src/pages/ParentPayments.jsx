@@ -624,6 +624,33 @@ export default function ParentPayments() {
 
 
 
+      {/* Modal selector rápido Tarjeta / Transferencia */}
+      <QuickPaySelector
+        open={quickPayOpen}
+        onClose={() => setQuickPayOpen(false)}
+        onChooseCard={() => {
+          // Si hay exactamente 1 cuota seleccionada en la tabla, abrimos el PayModal de esa; si no, mostramos aviso para usar los botones de Pagar o el carrito
+          if (cartSelected.length === 1) {
+            const { player, payment } = cartSelected[0];
+            setPayModalContext({ player, payment });
+            setPayModalOpen(true);
+          } else {
+            alert('Selecciona una cuota concreta para pagar con tarjeta o usa el carrito para varias.');
+          }
+        }}
+        onChooseTransfer={() => {
+          setQuickPayOpen(false);
+          setSelectedPlayerId(null);
+          setShowForm(true);
+          setTimeout(() => {
+            const formElement = document.querySelector('[data-payment-form]');
+            if (formElement) {
+              formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        }}
+      />
+
       {/* Payment Form */}
       <div data-payment-form>
         <AnimatePresence>
