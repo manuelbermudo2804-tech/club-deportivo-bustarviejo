@@ -927,6 +927,15 @@ export default function Layout({ children, currentPageName }) {
           setProgramaSociosActivo(sociosActivo);
           console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
 
+          // Cargar Cobros Extra activos asignados al usuario
+          try {
+            if (currentUser?.email) {
+              const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
+              // Simplificación: mostrar el primero activo; en futuro: filtrar por destinatarios
+              setExtraChargeVisible(charges[0] || null);
+            }
+          } catch (e) { console.log('⚠️ No hay cobros extra activos:', e); } 
+
           // Verificar si el usuario es socio pagado (para TODOS los usuarios)
           if (sociosActivo) {
             const members = await base44.entities.ClubMember.filter({ 
