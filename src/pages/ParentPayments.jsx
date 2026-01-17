@@ -131,10 +131,11 @@ export default function ParentPayments() {
       return filtered;
     },
     enabled: !!user?.email,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    retry: 1,
+    staleTime: 300000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: payments = [], isLoading: loadingPayments } = useQuery({
