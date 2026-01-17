@@ -109,10 +109,11 @@ export default function ParentPayments() {
       console.log('👤 [ParentPayments] Usuario cargado:', u.email);
       return u;
     },
-    staleTime: 0,
+    staleTime: 300000,
     gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
@@ -142,13 +143,12 @@ export default function ParentPayments() {
         console.log('⚠️ [ParentPayments] Sin jugadores, retornando pagos vacíos');
         return [];
       }
-      const allPayments = await base44.entities.Payment.list('-created_date');
-      console.log('📊 [ParentPayments] Total pagos en BD:', allPayments.length);
       const playerIds = players.map(p => p.id);
-      const filtered = allPayments.filter(payment => 
-        playerIds.includes(payment.jugador_id) && payment.is_deleted !== true
-      );
-      console.log('✅ [ParentPayments] Pagos filtrados:', filtered.length);
+      const filtered = await base44.entities.Payment.filter({
+        jugador_id: { $in: playerIds },
+        is_deleted: { $ne: true }
+      }, '-created_date');
+      console.log('✅ [ParentPayments] Pagos filtrados (server):', filtered.length);
       return filtered;
     },
     enabled: !!user?.email,
