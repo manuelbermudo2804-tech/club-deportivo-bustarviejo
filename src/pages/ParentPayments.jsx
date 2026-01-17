@@ -906,6 +906,11 @@ export default function ParentPayments() {
             },
             quantity: 1
           }));
+          // Bloquear en iframe (editor)
+          if (window.top !== window.self) {
+            alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.');
+            return;
+          }
           const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
           const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
           const { data } = await base44.functions.invoke('stripeCheckout', {
@@ -913,7 +918,7 @@ export default function ParentPayments() {
             successUrl,
             cancelUrl,
             metadata: {
-              tipo: 'lote_cuotas',
+              tipo: 'pago_cuota_batch',
               batch_id: batch.id,
               temporada: currentSeason
             }
