@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
                     }
                   }
                   await base44.asServiceRole.entities.BatchPayment.update(batch.id, {
-                   estado: 'Pagado',
+                   status: 'paid',
                    stripe_session_id: session.id
                   });
                 }
