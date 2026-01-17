@@ -8,7 +8,7 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
   if (!payment || !player) return null;
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
-      <DialogContent className="w-[92vw] max-w-md p-0 overflow-hidden rounded-2xl max-h-[85vh]">
+      <DialogContent className="w-[92vw] max-w-md p-0 overflow-hidden rounded-2xl max-h-[85vh] sm:mt-8">
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-4">
           <h3 className="text-lg font-bold">Pagar cuota</h3>
           <p className="text-sm opacity-90">{player.nombre} • {payment.mes} • {Number(payment.cantidad).toFixed(2)}€</p>
