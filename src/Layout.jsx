@@ -2157,8 +2157,49 @@ export default function Layout({ children, currentPageName }) {
             </div>
           )}
           <ActiveBanner position="top" user={user} />
+          {extraChargeVisible && (
+            <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
+          )}
           {children}
           <ActiveBanner position="bottom" user={user} />
+
+          <ExtraChargePayModal
+            open={extraChargeModalOpen}
+            charge={extraChargeVisible}
+            onClose={() => setExtraChargeModalOpen(false)}
+            onPayCard={async (selection) => {
+              // Crear registro y mandar a Stripe
+              try {
+                const chosen = (selection || []).filter(s => Number(s.cantidad) > 0);
+                const total = chosen.reduce((sum, s) => {
+                  const def = extraChargeVisible.items.find(i => i.nombre === s.nombre);
+                  return sum + (Number(s.cantidad)||0) * Number(def?.precio||0);
+                }, 0);
+                if (window.top !== window.self) { alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.'); return; }
+                const lineItems = chosen.map((s) => {
+                  const def = extraChargeVisible.items.find(i => i.nombre === s.nombre);
+                  return {
+                    price_data: { currency: 'eur', product_data: { name: `${extraChargeVisible.titulo} - ${s.nombre}` }, unit_amount: Math.round(Number(def?.precio||0) * 100) },
+                    quantity: Number(s.cantidad||0)
+                  };
+                });
+                const successUrl = window.location.href.split('#')[0];
+                const cancelUrl = window.location.href.split('#')[0];
+                const { data } = await base44.functions.invoke('stripeCheckout', {
+                  lineItems,
+                  successUrl,
+                  cancelUrl,
+                  metadata: { tipo: 'extra_charge', extra_charge_id: extraChargeVisible.id }
+                });
+                if (data?.url) window.location.href = data.url;
+              } catch (e) { console.error('ExtraCharge Stripe error', e); }
+            }}
+            onChooseTransfer={async (selection) => {
+              // Registrar transferencia + pedir justificante tras subir (familia usará ParentPayments formulario)
+              setExtraChargeModalOpen(false);
+              alert('Para transferencias: sube el justificante desde Mis Pagos. Añadiremos el detalle al panel de tesorería.');
+            }}
+          />
           </main>
 
         {/* Banner de Patrocinadores - Footer fijo */}
