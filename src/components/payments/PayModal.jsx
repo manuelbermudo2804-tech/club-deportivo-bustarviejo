@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Banknote, Shield } from "lucide-react";
+import { CreditCard, Banknote, Shield, Gift } from "lucide-react";
 
 export default function PayModal({ open, onClose, player, payment, onPayCard, onChooseTransfer, onUploadTransfer }) {
   const [file, setFile] = useState(null);
@@ -15,6 +15,12 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
           <p className="text-sm opacity-90">{player.nombre} • {payment.mes} • {Number(payment.cantidad).toFixed(2)}€</p>
         </div>
         <div className="p-4 overflow-y-auto max-h-[70vh]">
+          {player.tiene_descuento_hermano && Number(player.descuento_aplicado) > 0 && payment.mes === 'Junio' && (
+            <div className="mb-3 flex items-center gap-2 bg-purple-50 border border-purple-200 text-purple-800 text-xs rounded-lg px-3 py-2">
+              <Gift className="w-3.5 h-3.5" />
+              <span>Descuento familiar aplicado: -{Number(player.descuento_aplicado).toFixed(2)}€ (Junio)</span>
+            </div>
+          )}
           <Tabs defaultValue="card" className="w-full">
             <TabsList className="grid grid-cols-2 w-full sticky top-0 bg-white">
               <TabsTrigger value="card" className="flex items-center gap-2"><CreditCard className="w-4 h-4"/>Tarjeta</TabsTrigger>

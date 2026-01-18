@@ -33,6 +33,24 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
               </tbody>
             </table>
           </div>
+          {/* Descuentos familiares detectados */}
+          {(() => {
+            const notes = items.filter(it => {
+              const p = it.player || {};
+              const mes = it.payment?.mes || it.mes;
+              return p.tiene_descuento_hermano && Number(p.descuento_aplicado) > 0 && mes === 'Junio';
+            }).map(it => {
+              const p = it.player || {};
+              const surname = (p.nombre || it.jugador_nombre || '').trim().split(' ').slice(-1)[0]?.toUpperCase();
+              return `• ${surname}: -${Number(p.descuento_aplicado).toFixed(2)}€ (aplicado en Junio)`;
+            });
+            return notes.length ? (
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-xs text-purple-800">
+                <p className="font-semibold mb-1">Descuento familiar</p>
+                {notes.filter((v, i, a) => a.indexOf(v) === i).map((t, idx) => <p key={idx}>{t}</p>)}
+              </div>
+            ) : null;
+          })()}
           <div className="flex items-start sm:items-center justify-between gap-3">
             <p className="text-sm text-slate-600">Puedes pagar todas juntas con tarjeta o generar una única transferencia. El comprobante se aplica a cada cuota del lote.</p>
             <div className="text-right font-bold shrink-0">Total: {Number(total).toFixed(2)}€</div>
