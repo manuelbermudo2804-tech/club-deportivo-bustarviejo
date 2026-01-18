@@ -72,20 +72,22 @@ export default function Home() {
         setIsCoordinator(coordinatorCheck);
         setIsCoach(coachCheck);
 
-        if (adminCheck) setUserRole("admin");
-        else if (coordinatorCheck) {
+        if (adminCheck) {
+          setUserRole("admin");
+        } else if (currentUser.es_junta === true) {
+          // Miembro de Junta: se queda en Home con banner de KPIs
+          setUserRole("junta");
+        } else if (coordinatorCheck) {
           console.log('🎓 [Home] Coordinador en Home - redirigiendo a CoordinatorDashboard');
           setUserRole("coordinator");
           window.location.href = createPageUrl('CoordinatorDashboard');
           return;
-        }
-        else if (coachCheck) {
+        } else if (coachCheck) {
           console.log('🏃 [Home] Entrenador en Home - redirigiendo a CoachDashboard');
           setUserRole("coach");
           window.location.href = createPageUrl('CoachDashboard');
           return;
-        }
-        else {
+        } else {
           console.log('👨‍👩‍👧 [Home] Usuario padre en Home - redirigiendo a ParentDashboard');
           setUserRole("parent");
           window.location.href = createPageUrl('ParentDashboard');
@@ -125,7 +127,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: queriesEnabled && (isAdmin || hasPlayers),
+    enabled: queriesEnabled && (isAdmin || hasPlayers || user?.es_junta),
   });
 
   const { data: messages } = useQuery({
@@ -184,7 +186,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: queriesEnabled && isAdmin,
+    enabled: queriesEnabled && (isAdmin || user?.es_junta),
   });
 
   const { data: evaluations } = useQuery({
@@ -412,8 +414,8 @@ export default function Home() {
     let reviewPayments = 0;
     let overduePayments = 0;
 
-    if (isAdmin) {
-      // Admin y Tesorero ven TODOS los pagos del club
+    if (isAdmin || user?.es_junta) {
+      // Admin y Junta ven TODOS los pagos del club
       // NO contar pagos ya reconciliados como pendientes
       const allPendingPayments = payments?.filter(p => 
         p.estado === "Pendiente" && 
