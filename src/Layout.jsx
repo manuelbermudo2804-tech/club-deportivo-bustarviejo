@@ -653,7 +653,17 @@ export default function Layout({ children, currentPageName }) {
       const payment = url.searchParams.get('payment');
       if (payment === 'ok') {
         setShowPaymentSuccess(true);
-        // Ocultar inmediatamente el banner del cobro extra
+        // Ocultar inmediatamente el banner del cobro extra y recordar no mostrarlo
+        try {
+          const extraId = new URL(window.location.href).searchParams.get('extra_charge_id');
+          if (extraId) {
+            const arr = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
+            if (!arr.includes(extraId)) {
+              arr.push(extraId);
+              localStorage.setItem('extraChargeSuppress', JSON.stringify(arr));
+            }
+          }
+        } catch {}
         setExtraChargeVisible(null);
         setTimeout(() => setShowPaymentSuccess(false), 3000);
         url.searchParams.delete('payment');
