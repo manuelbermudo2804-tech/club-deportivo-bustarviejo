@@ -581,6 +581,77 @@ export default function ParentPayments() {
         justificante_url: file_url
       });
     }
+
+    // Notificaciones por email: resumen a tesorería y confirmaciones por jugador
+    try {
+      // Resumen a tesorería (si está habilitado en la temporada)
+      if (seasonConfig?.notificaciones_admin_email) {
+        const rows = items.map((it) => `
+          <tr>
+            <td style="padding:6px 8px;border-bottom:1px solid #eee;">${it.jugador_nombre}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eee;">${it.mes}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eee;">${it.temporada}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;">${Number(it.cantidad).toFixed(2)}€</td>
+          </tr>`).join('');
+        const adminHtml = `
+          <h2>Lote de Transferencia Recibido</h2>
+          <p><strong>Usuario:</strong> ${user.email}</p>
+          <p><strong>Concepto:</strong> ${transferConcept}</p>
+          <p><strong>Importe total:</strong> ${total.toFixed(2)}€</p>
+          <p><strong>Justificante:</strong> <a href="${file_url}" target="_blank" rel="noopener">Ver archivo</a></p>
+          <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;">
+            <thead>
+              <tr style="background:#f8fafc;color:#334155;">
+                <th style="text-align:left;padding:6px 8px;">Jugador</th>
+                <th style="text-align:left;padding:6px 8px;">Mes</th>
+                <th style="text-align:left;padding:6px 8px;">Temporada</th>
+                <th style="text-align:right;padding:6px 8px;">Importe</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+        await base44.functions.invoke('sendEmail', {
+          to: 'cdbustarviejo@gmail.com',
+          subject: `Lote Transferencia - ${items.length} pagos - ${total.toFixed(2)}€`,
+          html: adminHtml
+        });
+      }
+
+      // Confirmación a familias por cada jugador
+      const byPlayer = items.reduce((acc, it) => {
+        acc[it.jugador_id] = acc[it.jugador_id] || [];
+        acc[it.jugador_id].push(it);
+        return acc;
+      }, {});
+      for (const jugadorId of Object.keys(byPlayer)) {
+        const p = players.find(pl => pl.id === jugadorId);
+        if (!p) continue;
+        const list = byPlayer[jugadorId];
+        const subtotal = list.reduce((s, it) => s + Number(it.cantidad || 0), 0);
+        const meses = list.map((it) => `${it.mes} (${Number(it.cantidad).toFixed(2)}€)`).join(', ');
+        const html = `
+          <h2>Justificante recibido - CD Bustarviejo</h2>
+          <p>Hemos recibido el justificante de transferencia para <strong>${p.nombre}</strong>.</p>
+          <div style="background:#f0f9ff;border-left:4px solid #3b82f6;padding:12px;margin:12px 0;">
+            <p><strong>Concepto:</strong> ${transferConcept}</p>
+            <p><strong>Cuotas incluidas:</strong> ${meses}</p>
+            <p><strong>Importe para este jugador:</strong> ${subtotal.toFixed(2)}€</p>
+            <p><strong>Estado:</strong> En revisión 🟠</p>
+          </div>
+          <p>Te avisaremos cuando el pago quede verificado por Tesorería.</p>
+        `;
+        if (p.email_padre) {
+          await base44.functions.invoke('sendEmail', { to: p.email_padre, subject: 'Justificante recibido - CD Bustarviejo', html });
+        }
+        if (p.email_tutor_2) {
+          await base44.functions.invoke('sendEmail', { to: p.email_tutor_2, subject: 'Justificante recibido - CD Bustarviejo', html });
+        }
+      }
+    } catch (e) {
+      console.log('Email notifications (batch) error:', e);
+    }
+
     // Limpiar selección y cerrar
     setShowTransferDialog(false);
     setCartSelected([]);
