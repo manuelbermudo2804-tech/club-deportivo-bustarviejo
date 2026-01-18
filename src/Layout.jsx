@@ -45,7 +45,6 @@ const EventReminderEngine = React.lazy(() => import("./components/events/EventRe
 const DocumentReminderEngine = React.lazy(() => import("./components/documents/DocumentReminderEngine"));
 const SponsorBanner = React.lazy(() => import("./components/sponsors/SponsorBanner"));
 import InstallSuccessOverlay from "./components/pwa/InstallSuccessOverlay";
-import PWAInstallGuide from "./components/pwa/PWAInstallGuide";
 
 
 
@@ -1201,7 +1200,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
-    { title: "📲 Vista Guía Instalación", url: createPageUrl("InstallGuidePreview"), icon: Smartphone },
     // Eliminado: Clasificaciones (migrado a Centro de Competición)
     ];
 
