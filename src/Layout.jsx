@@ -530,7 +530,7 @@ export default function Layout({ children, currentPageName }) {
   const [isJunta, setIsJunta] = useState(false);
   
   // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
-  const { notifications } = useUnifiedNotifications(user);
+  const { notifications } = useUnifiedNotifications(enginesReady ? user : null);
   
   // Mapear a variables legacy para compatibilidad
   const pendingCallupsCount = notifications.pendingCallups || 0;
@@ -2005,7 +2005,7 @@ export default function Layout({ children, currentPageName }) {
                 <Smartphone className="w-5 h-5" />
               </button>
               
-              <Suspense fallback={null}><NotificationCenter /></Suspense>
+              {enginesReady && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
               <ThemeToggle />
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -2020,7 +2020,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Mobile Search Bar */}
         <div className="lg:hidden fixed top-[52px] left-0 right-0 z-40 bg-white border-b shadow-sm p-2">
-          <Suspense fallback={null}><GlobalSearch isAdmin={isAdmin} isCoach={isCoach} /></Suspense>
+          {enginesReady && (<Suspense fallback={null}><GlobalSearch isAdmin={isAdmin} isCoach={isCoach} /></Suspense>)}
         </div>
 
         {mobileMenuOpen && (
@@ -2118,12 +2118,12 @@ export default function Layout({ children, currentPageName }) {
             <div className="space-y-2">
             {user && (
               <div className="w-full">
-                <Suspense fallback={null}><GlobalSearch isAdmin={isAdmin} isCoach={isCoach} /></Suspense>
+                {enginesReady && (<Suspense fallback={null}><GlobalSearch isAdmin={isAdmin} isCoach={isCoach} /></Suspense>)}
               </div>
             )}
             <div className="flex items-center gap-1">
               
-              <Suspense fallback={null}><NotificationCenter /></Suspense>
+              {enginesReady && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
               <ThemeToggle />
               <Suspense fallback={null}><Suspense fallback={null}><LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} /></Suspense></Suspense>
             </div>
