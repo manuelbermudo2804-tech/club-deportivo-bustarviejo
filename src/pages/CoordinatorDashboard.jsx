@@ -80,12 +80,6 @@ export default function CoordinatorDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  // Attendance data for coordinator KPIs
-  const { data: allAttendances = [] } = useQuery({
-    queryKey: ['attendances'],
-    queryFn: () => base44.entities.Attendance.list(),
-  });
-
   // (legacy) coordinator conversations query not needed for badge; keep for other uses if any
   const { data: coordinatorConversations = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
@@ -379,10 +373,17 @@ export default function CoordinatorDashboard() {
               const present = lastCoordAtt.reduce((s,a) => s + (a.asistencias||[]).filter(x => x.estado === 'presente').length, 0);
               const expected = lastCoordAtt.reduce((s,a) => s + (a.asistencias||[]).length, 0);
               att30 = expected > 0 ? Math.round((present/expected)*100) : 0;
+            } else {
+              const allCoord = (allAttendances || []).filter(a => myCategories.includes(a.categoria));
+              if (allCoord.length > 0) {
+                const present = allCoord.reduce((s,a) => s + (a.asistencias||[]).filter(x => x.estado === 'presente').length, 0);
+                const expected = allCoord.reduce((s,a) => s + (a.asistencias||[]).length, 0);
+                att30 = expected > 0 ? Math.round((present/expected)*100) : 0;
+              }
             }
             const attTone = att30 >= 80 ? 'green' : att30 >= 65 ? 'amber' : 'red';
 
-            const pending = pendingCallupResponses || 0;
+            const pending = (notifications?.pendingCallupResponses ?? pendingCallupResponses) || 0;
             const pendingTone = pending === 0 ? 'green' : pending <= 10 ? 'amber' : 'red';
 
             return (

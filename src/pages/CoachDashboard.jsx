@@ -365,10 +365,12 @@ export default function CoachDashboard() {
               const present = lastMyAtt.reduce((s,a) => s + (a.asistencias||[]).filter(x => x.estado === 'presente').length, 0);
               const expected = lastMyAtt.reduce((s,a) => s + (a.asistencias||[]).length, 0);
               att30 = expected > 0 ? Math.round((present/expected)*100) : 0;
+            } else {
+              att30 = attendanceAverage || 0;
             }
             const attTone = att30 >= 80 ? 'green' : att30 >= 65 ? 'amber' : 'red';
 
-            const pending = pendingCallupResponses || 0;
+            const pending = (notifications?.pendingCallupResponses ?? pendingCallupResponses) || 0;
             const pendingTone = pending === 0 ? 'green' : pending <= 5 ? 'amber' : 'red';
 
             return (
