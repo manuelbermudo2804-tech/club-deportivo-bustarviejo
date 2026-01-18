@@ -530,7 +530,7 @@ export default function Layout({ children, currentPageName }) {
   const [isJunta, setIsJunta] = useState(false);
   
   // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
-  const { notifications } = useUnifiedNotifications(enginesReady ? user : null);
+  const { notifications } = useUnifiedNotifications(user);
   
   // Mapear a variables legacy para compatibilidad
   const pendingCallupsCount = notifications.pendingCallups || 0;
