@@ -113,7 +113,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: queriesEnabled,
+    enabled: queriesEnabled && (isAdmin || isCoach || isCoordinator || hasPlayers),
   });
 
   const { data: payments } = useQuery({
@@ -125,7 +125,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: queriesEnabled,
+    enabled: queriesEnabled && (isAdmin || hasPlayers),
   });
 
   const { data: messages } = useQuery({
@@ -137,7 +137,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: queriesEnabled,
+    enabled: queriesEnabled && (hasPlayers || isAdmin || isCoordinator || isCoach),
   });
 
   const { data: privateConversations = [] } = useQuery({
@@ -149,7 +149,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: queriesEnabled,
+    enabled: queriesEnabled && (isAdmin || isCoordinator || hasPlayers),
   });
 
   const { data: callups } = useQuery({
@@ -161,7 +161,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-    enabled: queriesEnabled,
+    enabled: queriesEnabled && (isAdmin || isCoach || isCoordinator || hasPlayers),
   });
 
   const { data: matchObservations = [] } = useQuery({
