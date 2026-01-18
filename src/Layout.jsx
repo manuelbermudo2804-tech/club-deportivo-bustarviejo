@@ -653,6 +653,8 @@ export default function Layout({ children, currentPageName }) {
       const payment = url.searchParams.get('payment');
       if (payment === 'ok') {
         setShowPaymentSuccess(true);
+        // Ocultar inmediatamente el banner del cobro extra
+        setExtraChargeVisible(null);
         setTimeout(() => setShowPaymentSuccess(false), 3000);
         url.searchParams.delete('payment');
         url.searchParams.delete('type');
