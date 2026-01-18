@@ -809,8 +809,6 @@ export default function Layout({ children, currentPageName }) {
           if (currentUser.es_segundo_progenitor !== true) {
             const linkedAsSecond = await base44.entities.Player.filter({ email_tutor_2: currentUser.email });
             if (linkedAsSecond.length > 0) {
-              // Marcar inmediatamente para evitar mostrar selector en el primer arranque
-              localStorage.setItem('secondParentAutodetected', 'true');
               await base44.auth.updateMe({ es_segundo_progenitor: true, tipo_panel: 'familia' });
               console.log('✅ [LAYOUT] Marcado como segundo progenitor');
             }
@@ -1511,8 +1509,7 @@ export default function Layout({ children, currentPageName }) {
                       // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
 
                       // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor
-                      const secondParentAutodetected = localStorage.getItem('secondParentAutodetected') === 'true';
-                      if (!user.tipo_panel && user.es_segundo_progenitor !== true && !secondParentAutodetected) {
+                      if (!user.tipo_panel && user.es_segundo_progenitor !== true) {
                         setOnboardingView('selector');
                         return;
                       }
@@ -1822,7 +1819,9 @@ export default function Layout({ children, currentPageName }) {
                         localStorage.setItem('pwaInstalled', 'true');
                         setIsAppInstalled(true);
                         setShowInstallInstructions(false);
-                        // No mostramos pantalla extra agresiva; simplemente cerramos el diálogo
+                        if (installContext === 'onboarding') {
+                          setShowInstallSuccess(true);
+                        }
                       }} 
                       className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold"
                     >
