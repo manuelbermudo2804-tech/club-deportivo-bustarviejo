@@ -80,6 +80,12 @@ export default function CoordinatorDashboard() {
     refetchOnWindowFocus: false,
   });
 
+  // Attendance data for coordinator KPIs
+  const { data: allAttendances = [] } = useQuery({
+    queryKey: ['attendances'],
+    queryFn: () => base44.entities.Attendance.list(),
+  });
+
   // (legacy) coordinator conversations query not needed for badge; keep for other uses if any
   const { data: coordinatorConversations = [] } = useQuery({
     queryKey: ['coordinatorConversations'],
