@@ -1095,6 +1095,12 @@ export default function ParentPayments() {
             }
           }, 100);
         }}
+        onUploadTransfer={(file) => {
+          if (!payModalContext?.payment?.id) return;
+          setPayModalOpen(false);
+          setUploadingPaymentId(payModalContext.payment.id);
+          uploadJustificanteMutation.mutate({ paymentId: payModalContext.payment.id, file });
+        }}
         />
 
         {/* Barra flotante del carrito */}

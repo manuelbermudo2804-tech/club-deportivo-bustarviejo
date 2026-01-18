@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Banknote, Shield } from "lucide-react";
 
-export default function PayModal({ open, onClose, player, payment, onPayCard, onChooseTransfer }) {
+export default function PayModal({ open, onClose, player, payment, onPayCard, onChooseTransfer, onUploadTransfer }) {
+  const [file, setFile] = useState(null);
   if (!payment || !player) return null;
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
@@ -36,7 +37,7 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
             </TabsContent>
 
             <TabsContent value="transfer" className="mt-4">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="bg-slate-50 border rounded-xl p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
@@ -55,10 +56,16 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
                     <Button size="sm" variant="outline" className="bg-white" onClick={() => navigator.clipboard.writeText(`CDB CUOTA ${payment.mes} ${(payment.temporada||'').replace(/-/g,'/')} ${(player.nombre||'').trim().split(' ').slice(-1)[0]?.toUpperCase()}`)}>Copiar</Button>
                   </div>
                 </div>
-                <p className="text-sm text-slate-700">Luego abre el formulario para subir el justificante.</p>
-                <Button variant="outline" className="w-full" onClick={onChooseTransfer}>
-                  Abrir formulario de transferencia
-                </Button>
+                <div className="space-y-2">
+                  <p className="text-sm text-slate-700">Sube el justificante para esta cuota y lo pondremos en revisión al momento.</p>
+                  <input type="file" accept="image/*,application/pdf" onChange={(e)=> setFile(e.target.files?.[0] || null)} className="w-full" />
+                  <Button className="w-full bg-orange-600 hover:bg-orange-700" disabled={!file} onClick={() => file && onUploadTransfer?.(file)}>
+                    Enviar justificante ahora
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={onChooseTransfer}>
+                    Prefiero el formulario completo
+                  </Button>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
