@@ -25,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ContactCard from "../components/ContactCard";
+import MiniKPIBanner from "../components/dashboard/MiniKPIBanner";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import CoachAlertCenter from "../components/dashboard/CoachAlertCenter";
@@ -353,6 +354,35 @@ export default function CoachDashboard() {
         <SocialLinks />
         
         {/* Header */}
+
+        {/* Mini KPIs Staff (Entrenador) */}
+        {user && (
+          (() => {
+            const since = new Date(Date.now() - 30*24*60*60*1000);
+            const lastMyAtt = (allAttendances || []).filter(a => new Date(a.fecha) >= since && myCategories.includes(a.categoria) && a.entrenador_email === user?.email);
+            let att30 = 0;
+            if (lastMyAtt.length > 0) {
+              const present = lastMyAtt.reduce((s,a) => s + (a.asistencias||[]).filter(x => x.estado === 'presente').length, 0);
+              const expected = lastMyAtt.reduce((s,a) => s + (a.asistencias||[]).length, 0);
+              att30 = expected > 0 ? Math.round((present/expected)*100) : 0;
+            }
+            const attTone = att30 >= 80 ? 'green' : att30 >= 65 ? 'amber' : 'red';
+
+            const pending = pendingCallupResponses || 0;
+            const pendingTone = pending === 0 ? 'green' : pending <= 5 ? 'amber' : 'red';
+
+            return (
+              <MiniKPIBanner
+                className="mt-1"
+                items={[
+                  { label: 'asistencia 30d', value: `${att30}%`, tone: attTone },
+                  { label: 'respuestas conv.', value: pending, tone: pendingTone },
+                ]}
+              />
+            );
+          })()
+        )}
+
         <div className="text-center lg:text-left">
           <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
             🏃 Panel Entrenador
