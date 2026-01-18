@@ -809,9 +809,11 @@ export default function Layout({ children, currentPageName }) {
           if (currentUser.es_segundo_progenitor !== true) {
             const linkedAsSecond = await base44.entities.Player.filter({ email_tutor_2: currentUser.email });
             if (linkedAsSecond.length > 0) {
-              await base44.auth.updateMe({ es_segundo_progenitor: true, tipo_panel: 'familia' });
-              console.log('✅ [LAYOUT] Marcado como segundo progenitor');
-            }
+                                await base44.auth.updateMe({ es_segundo_progenitor: true, tipo_panel: 'familia' });
+                                // Reflejarlo inmediatamente en el estado local para evitar ver el selector
+                                setUser((prev) => ({ ...(prev || {}), es_segundo_progenitor: true, tipo_panel: 'familia' }));
+                                console.log('✅ [LAYOUT] Marcado como segundo progenitor');
+                              }
           }
         } catch (e) {
           console.log('ℹ️ [LAYOUT] Verificación segundo progenitor fallida:', e);
