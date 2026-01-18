@@ -447,11 +447,11 @@ export default function ParentPayments() {
 
   // --- Carrito de pagos ---
   const generateConceptCode = () => {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `CDB-MULTI-${y}${m}-${rand}`;
+    const n = cartSelected.length;
+    const firstName = n > 0 ? (cartSelected[0].player?.nombre || '').trim() : '';
+    const surname = firstName ? (firstName.split(' ').slice(-1)[0] || firstName) : 'FAMILIA';
+    const season = (currentSeason || getCurrentSeason()).replace(/-/g,'/');
+    return `CDB CUOTAS ${season} ${surname.toUpperCase()}${n>1 ? ` +${n-1}` : ''}`;
   };
 
   const ensureRealPayments = async (selected) => {

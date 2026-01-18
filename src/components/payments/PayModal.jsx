@@ -37,7 +37,25 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
 
             <TabsContent value="transfer" className="mt-4">
               <div className="space-y-3">
-                <p className="text-sm text-slate-700">Si prefieres transferencia, abre el formulario para subir el justificante.</p>
+                <div className="bg-slate-50 border rounded-xl p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-slate-600">IBAN</p>
+                      <p className="font-mono font-bold tracking-wider">ES8200494447382010004048</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText('ES8200494447382010004048')}>Copiar</Button>
+                  </div>
+                  <p className="text-xs text-slate-600"><strong>Banco:</strong> Banco Santander</p>
+                  <p className="text-xs text-slate-600"><strong>Beneficiario:</strong> CD Bustarviejo</p>
+                </div>
+                <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-3">
+                  <p className="text-xs font-bold text-orange-900 mb-1">Concepto sugerido</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-mono font-bold text-orange-900 truncate">{`CDB CUOTA ${payment.mes} ${(payment.temporada||'').replace(/-/g,'/')} ${(player.nombre||'').trim().split(' ').slice(-1)[0]?.toUpperCase()}`}</p>
+                    <Button size="sm" variant="outline" className="bg-white" onClick={() => navigator.clipboard.writeText(`CDB CUOTA ${payment.mes} ${(payment.temporada||'').replace(/-/g,'/')} ${(player.nombre||'').trim().split(' ').slice(-1)[0]?.toUpperCase()}`)}>Copiar</Button>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-700">Luego abre el formulario para subir el justificante.</p>
                 <Button variant="outline" className="w-full" onClick={onChooseTransfer}>
                   Abrir formulario de transferencia
                 </Button>

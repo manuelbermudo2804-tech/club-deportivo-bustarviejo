@@ -12,7 +12,41 @@ export default function BatchTransferDialog({ open, onClose, concept, total, onC
           <p className="text-sm opacity-90">Concepto: {concept}</p>
           <p className="text-sm">Importe total: {total.toFixed(2)}€</p>
         </div>
-        <div className="p-4 space-y-3 overflow-y-auto max-h-[70vh]">
+        <div className="p-4 space-y-4 overflow-y-auto max-h-[70vh]">
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-slate-900">Datos para transferencia</h4>
+            <div className="bg-slate-50 border rounded-xl p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-600">IBAN</p>
+                  <p className="font-mono font-bold tracking-wider">ES8200494447382010004048</p>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText('ES8200494447382010004048')}>Copiar</Button>
+              </div>
+              <p className="text-xs text-slate-600"><strong>Banco:</strong> Banco Santander</p>
+              <p className="text-xs text-slate-600"><strong>Beneficiario:</strong> CD Bustarviejo</p>
+            </div>
+            <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-3">
+              <p className="text-xs font-bold text-orange-900 mb-1">Concepto (Obligatorio)</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-mono font-bold text-orange-900 truncate">{concept}</p>
+                <Button size="sm" variant="outline" className="bg-white" onClick={() => navigator.clipboard.writeText(concept)}>Copiar</Button>
+              </div>
+            </div>
+            <div>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => {
+                  const txt = `DATOS PARA TRANSFERENCIA\nIBAN: ES8200494447382010004048\nBanco: Banco Santander\nBeneficiario: CD Bustarviejo\nConcepto: ${concept}\nImporte: ${total.toFixed(2)}€`;
+                  navigator.clipboard.writeText(txt);
+                }}
+              >
+                Copiar todos los datos
+              </Button>
+            </div>
+          </div>
+
           <p className="text-sm text-slate-700">Sube un único justificante para este lote. Se registrará como <strong>pago múltiple</strong> con el detalle de jugadores.</p>
           <input type="file" accept="image/*,application/pdf" onChange={(e)=> setFile(e.target.files?.[0] || null)} className="w-full" />
           <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
