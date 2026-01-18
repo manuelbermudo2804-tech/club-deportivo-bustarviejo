@@ -945,7 +945,8 @@ export default function Layout({ children, currentPageName }) {
                 return false;
               };
 
-              const candidates = (charges || []).filter(matchesUser);
+              const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
+              const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
               let visibleCharge = null;
               for (const c of candidates) {
                 try {
