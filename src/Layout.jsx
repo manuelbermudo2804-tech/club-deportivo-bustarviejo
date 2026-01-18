@@ -44,6 +44,7 @@ const PaymentSoundNotifier = React.lazy(() => import("./components/notifications
 const EventReminderEngine = React.lazy(() => import("./components/events/EventReminderEngine"));
 const DocumentReminderEngine = React.lazy(() => import("./components/documents/DocumentReminderEngine"));
 const SponsorBanner = React.lazy(() => import("./components/sponsors/SponsorBanner"));
+import InstallSuccessOverlay from "./components/pwa/InstallSuccessOverlay";
 
 
 
@@ -1198,6 +1199,7 @@ export default function Layout({ children, currentPageName }) {
     // ⚙️ CONFIGURACIÓN
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+    { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
     // Eliminado: Clasificaciones (migrado a Centro de Competición)
     ];
 
