@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 const NotificationBadge = React.lazy(() => import("./components/NotificationBadge"));
-const SessionManager = React.lazy(() => import("./components/SessionManager.js"));
+const SessionManager = React.lazy(() => import("./components/SessionManager.jsx"));
 const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
 import ActiveBanner from "./components/announcements/ActiveBanner";
