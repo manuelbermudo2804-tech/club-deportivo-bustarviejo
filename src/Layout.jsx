@@ -1848,78 +1848,24 @@ export default function Layout({ children, currentPageName }) {
 
                 {/* Pantalla de éxito - totalmente diferente a la app, parece otra web */}
                 {showInstallSuccess && (
-                <div className="fixed inset-0 z-[999999] bg-gradient-to-br from-purple-600 via-pink-600 to-red-600">
-                  {/* Barra navegador simulada arriba */}
-                  <div className="absolute top-0 left-0 right-0 bg-gray-200 p-3 flex items-center gap-2 border-b-2 border-gray-300">
-                    <div className="flex gap-1.5">
-                      <button 
-                        onClick={() => { forceCloseWindow(); }}
-                        className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 cursor-pointer transition-all hover:scale-110"
-                        title="Cerrar navegador"
-                      ></button>
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    </div>
-                    <div className="flex-1 bg-white rounded-md px-3 py-1.5 text-gray-700 text-xs flex items-center gap-2">
-                      <span>🔒</span>
-                      <span className="font-mono">app.cdbustarviejo.com</span>
-                    </div>
-                  </div>
-
-                  {/* Contenido principal - COMPLETAMENTE diferente a la app */}
-                  <div className="h-full flex items-center justify-center p-6 pt-20">
-                    <div className="text-center text-white max-w-lg space-y-6">
-                      
-                      <div className="text-8xl animate-bounce mb-4">
-                        ✅
-                      </div>
-
-                      <h1 className="text-5xl font-black text-white drop-shadow-2xl">
-                        ¡PERFECTO!
-                      </h1>
-
-                      <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border-2 border-white/30 space-y-6">
-                        
-                        {/* PASO 1: Cerrar navegador */}
-                        <div className="bg-red-500 text-white rounded-2xl p-6 space-y-2">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="w-14 h-14 bg-white text-red-500 rounded-full flex items-center justify-center font-black text-2xl shadow-lg">1</div>
-                            <X className="w-10 h-10" />
-                          </div>
-                          <p className="text-2xl font-black">CIERRA ESTE NAVEGADOR</p>
-                          <p className="text-sm">Desliza hacia arriba o pulsa X</p>
+                <div className="fixed inset-0 z-[999999] bg-gradient-to-br from-green-50 via-sky-50 to-blue-50">
+                  <div className="h-full flex items-center justify-center p-6">
+                    <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-200 p-8 text-center space-y-4">
+                      <div className="text-6xl">✅</div>
+                      <h1 className="text-2xl font-extrabold text-slate-900">App instalada correctamente</h1>
+                      <p className="text-slate-700">Para continuar, no sigas en este navegador.</p>
+                      <p className="text-slate-700">Cierra esta ventana y abre la app desde el icono “CD Bustarviejo” que acabas de instalar.</p>
+                      <div className="grid gap-3 text-left">
+                        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-3">
+                          <span className="text-green-700 font-bold">1</span>
+                          <span className="text-green-800 text-sm">Cierra esta ventana del navegador</span>
                         </div>
-
-                        {/* PASO 2: Abrir icono */}
-                        <div className="bg-green-500 text-white rounded-2xl p-6 space-y-2">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="w-14 h-14 bg-white text-green-500 rounded-full flex items-center justify-center font-black text-2xl shadow-lg">2</div>
-                            <Smartphone className="w-10 h-10" />
-                          </div>
-                          <p className="text-2xl font-black">ABRE EL ICONO</p>
-                          <p className="text-sm">Busca el icono del CD Bustarviejo en tu pantalla</p>
+                        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-3">
+                          <span className="text-blue-700 font-bold">2</span>
+                          <span className="text-blue-800 text-sm">Toca el icono “CD Bustarviejo” en tu pantalla de inicio</span>
                         </div>
-
-                        {/* PASO 3: Siguiente */}
-                        <div className="bg-orange-500 text-white rounded-2xl p-6 space-y-2">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="w-14 h-14 bg-white text-orange-500 rounded-full flex items-center justify-center font-black text-2xl shadow-lg">3</div>
-                            <span className="text-4xl">📝</span>
-                          </div>
-                          <p className="text-2xl font-black">REGISTRA {user?.tipo_panel === 'familia' ? 'JUGADORES' : 'TU PERFIL'}</p>
-                          <p className="text-sm">Te lo pediremos al abrir la app desde el icono</p>
-                        </div>
-
                       </div>
-
-                      <div className="text-6xl animate-pulse">
-                        👇
-                      </div>
-
-                      <p className="text-2xl font-bold text-white drop-shadow-lg">
-                        CIERRA ESTA VENTANA YA
-                      </p>
-
+                      <p className="text-xs text-slate-500">Si no se cierra automáticamente, ciérrala manualmente.</p>
                     </div>
                   </div>
                 </div>
