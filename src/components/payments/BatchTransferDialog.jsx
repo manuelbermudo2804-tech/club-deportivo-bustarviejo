@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function BatchTransferDialog({ open, onClose, concept, total, onConfirm }) {
   const [file, setFile] = useState(null);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`IBAN: ES8200494447382010004048\nConcepto: ${concept}\nImporte: ${Number(total).toFixed(2)}€`)}`;
   return (
     <Dialog open={open} onOpenChange={(v)=>{ if(!v) onClose(); }}>
       <DialogContent className="w-[92vw] max-w-sm p-0 overflow-hidden rounded-2xl max-h-[85vh] sm:mt-8">
@@ -44,6 +45,15 @@ export default function BatchTransferDialog({ open, onClose, concept, total, onC
               >
                 Copiar todos los datos
               </Button>
+            </div>
+
+            {/* QR de pago con datos */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-bold text-slate-900">Código QR (datos de pago)</h4>
+              <div className="bg-white p-4 rounded-xl border flex flex-col items-center">
+                <img src={qrUrl} alt="QR Transferencia" className="w-40 h-40 border rounded" />
+                <p className="text-xs text-slate-600 mt-2">Escanea para ver IBAN, concepto e importe</p>
+              </div>
             </div>
           </div>
 
