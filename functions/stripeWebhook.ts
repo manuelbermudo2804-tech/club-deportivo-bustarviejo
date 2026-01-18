@@ -119,8 +119,35 @@ Deno.serve(async (req) => {
                     automatico: true,
                     referencia_origen: paymentId,
                   });
-                }
-              } catch (err) {
+                  }
+
+                  // Enviar emails de confirmación (tarjeta) a familia y copia al club
+                  try {
+                  const pagos = await base44.asServiceRole.entities.Payment.filter({ id: paymentId });
+                  const pago = pagos?.[0];
+                  if (pago) {
+                    const jugadores = await base44.asServiceRole.entities.Player.filter({ id: pago.jugador_id });
+                    const jugador = jugadores?.[0];
+                    const subject = `Pago confirmado - ${jugador?.nombre || ''} - ${pago.mes || ''}`.trim();
+                    const html = `
+                      <h2>✅ Pago confirmado (tarjeta)</h2>
+                      <p>Hemos registrado tu pago de <strong>${(amount || 0).toFixed(2)}€</strong> correspondiente a <strong>${pago.mes || ''}</strong> (${(pago.temporada || '').replace(/-/g,'/')}).</p>
+                      <p><strong>Jugador:</strong> ${jugador?.nombre || ''}</p>
+                      <p><strong>Método:</strong> Tarjeta</p>
+                      <hr>
+                      <p>Puedes ver tus pagos y descargar el recibo desde la app: <a href="https://app.cdbustarviejo.com${createPageUrl ? createPageUrl('ParentPayments') : ''}">Mis Pagos</a></p>
+                    `;
+                    const destinos = [jugador?.email_padre, jugador?.email_tutor_2].filter(Boolean);
+                    for (const to of destinos) {
+                      await base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body: html });
+                    }
+                    // Copia al club
+                    await base44.asServiceRole.integrations.Core.SendEmail({ to: 'CDBUSTARVIEJO@GMAIL.COM', subject: `[CLUB] Pago tarjeta confirmado - ${jugador?.nombre || ''} - ${pago.mes || ''}`.trim(), body: html });
+                  }
+                  } catch (mailErr) {
+                  console.error('[stripeWebhook] Error enviando emails cuota tarjeta:', mailErr);
+                  }
+                  } catch (err) {
                 console.error('[stripeWebhook] Error post-proceso Cuota:', err);
               }
             }
@@ -144,26 +171,38 @@ Deno.serve(async (req) => {
                         fecha_pago: new Date().toISOString().split('T')[0]
                       });
                       await base44.asServiceRole.entities.FinancialTransaction.create({
-                        tipo: 'Ingreso',
-                        concepto: `Cuota ${it.mes}`.trim(),
-                        cantidad: it.cantidad,
-                        fecha: new Date().toISOString().split('T')[0],
-                        categoria: 'Cuotas',
-                        subtipo_documento: 'Cuota',
-                        metodo_pago: 'Tarjeta',
-                        temporada: it.temporada || temporadaNorm,
-                        proveedor_cliente: it.jugador_nombre || email,
-                        automatico: true,
-                        referencia_origen: pid
+                            tipo: 'Ingreso',
+                            concepto: `Cuota ${it.mes}`.trim(),
+                            cantidad: it.cantidad,
+                            fecha: new Date().toISOString().split('T')[0],
+                            categoria: 'Cuotas',
+                            subtipo_documento: 'Cuota',
+                            metodo_pago: 'Tarjeta',
+                            temporada: it.temporada || temporadaNorm,
+                            proveedor_cliente: it.jugador_nombre || email,
+                            automatico: true,
+                            referencia_origen: pid
+                          });
+                        }
+                      }
+                      await base44.asServiceRole.entities.BatchPayment.update(batch.id, {
+                       status: 'paid',
+                       stripe_session_id: session.id
                       });
-                    }
-                  }
-                  await base44.asServiceRole.entities.BatchPayment.update(batch.id, {
-                   status: 'paid',
-                   stripe_session_id: session.id
-                  });
-                }
-              } catch (err) {
+
+                      // Email resumen al pagador y copia al club
+                      try {
+                        const resumen = (batch.items || []).map(x => `${x.jugador_nombre || ''} - ${x.mes}: ${Number(x.cantidad).toFixed(2)}€`).join('<br>');
+                        const subject = 'Pago por tarjeta confirmado (lote de cuotas)';
+                        const html = `<h2>✅ Pago confirmado (tarjeta)</h2><p>Hemos registrado tu pago en lote:</p><p>${resumen}</p>`;
+                        const destinatario = (session.customer_details?.email || session.customer_email || email || '').toLowerCase();
+                        if (destinatario) await base44.asServiceRole.integrations.Core.SendEmail({ to: destinatario, subject, body: html });
+                        await base44.asServiceRole.integrations.Core.SendEmail({ to: 'CDBUSTARVIEJO@GMAIL.COM', subject: '[CLUB] Lote de cuotas pagado (tarjeta)', body: html });
+                      } catch (mailErr) {
+                        console.error('[stripeWebhook] Error email batch tarjeta:', mailErr);
+                      }
+                      }
+                      } catch (err) {
                 console.error('[stripeWebhook] Error post-proceso Lote Cuotas:', err);
               }
             }
@@ -178,6 +217,17 @@ Deno.serve(async (req) => {
                   fecha_pago: new Date().toISOString()
                 });
                 console.log('[stripeWebhook] Lotería pagada por tarjeta. Order:', orderId);
+
+                // Email confirmación lotería
+                try {
+                  const destinatario = (session.customer_details?.email || session.customer_email || email || '').toLowerCase();
+                  const subject = 'Pago de Lotería confirmado (tarjeta)';
+                  const html = `<h2>✅ Pago confirmado (tarjeta)</h2><p>Hemos registrado tu pago de lotería.</p>`;
+                  if (destinatario) await base44.asServiceRole.integrations.Core.SendEmail({ to: destinatario, subject, body: html });
+                  await base44.asServiceRole.integrations.Core.SendEmail({ to: 'CDBUSTARVIEJO@GMAIL.COM', subject: '[CLUB] Lotería pagada (tarjeta)', body: html });
+                } catch (mailErr) {
+                  console.error('[stripeWebhook] Error email lotería tarjeta:', mailErr);
+                }
 
                 // Obtener pedido para calcular margen
                 const pedidos = await base44.asServiceRole.entities.LotteryOrder.filter({ id: orderId });
@@ -256,6 +306,15 @@ Deno.serve(async (req) => {
                     estado: 'Pagado',
                     concepto: session.metadata?.titulo || ''
                   });
+                  // Email confirmación cobro extra
+                  try {
+                    const subject = `Pago confirmado - ${session.metadata?.titulo || 'Cobro extra'}`;
+                    const html = `<h2>✅ Pago confirmado (tarjeta)</h2><p>Hemos registrado tu pago por: <strong>${session.metadata?.titulo || ''}</strong> (<strong>${totalAmount.toFixed(2)}€</strong>).</p>`;
+                    if (emailFinal) await base44.asServiceRole.integrations.Core.SendEmail({ to: emailFinal, subject, body: html });
+                    await base44.asServiceRole.integrations.Core.SendEmail({ to: 'CDBUSTARVIEJO@GMAIL.COM', subject: '[CLUB] Cobro extra pagado (tarjeta)', body: html });
+                  } catch (mailErr) {
+                    console.error('[stripeWebhook] Error email cobro extra tarjeta:', mailErr);
+                  }
 
                   try {
                     await base44.asServiceRole.entities.FinancialTransaction.create({

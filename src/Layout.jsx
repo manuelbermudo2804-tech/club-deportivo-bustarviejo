@@ -1175,6 +1175,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "💬 Chat Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: unreadCoordinatorChat > 0 ? unreadCoordinatorChat : null },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
+    { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
 
     // 🛍️ PEDIDOS Y EXTRAS
@@ -1317,13 +1318,14 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const parentNavigationItems = [
-        // 🎫 CARNET DE SOCIO (primera posición si es socio pagado - con o sin hijos)
-        ...(programaSociosActivo && isMemberPaid ? [{ 
-          title: "🎫 MI CARNET DE SOCIO", 
-          url: createPageUrl("MemberCardDisplay"), 
-          icon: Users,
-          highlight: true
-        }] : []),
+                // 🎫 CARNET DE SOCIO (primera posición si es socio pagado - con o sin hijos)
+                ...(programaSociosActivo && isMemberPaid ? [{ 
+                  title: "🎫 MI CARNET DE SOCIO", 
+                  url: createPageUrl("MemberCardDisplay"), 
+                  icon: Users,
+                  highlight: true
+                }] : []),
+                ...(isJunta ? [{ title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck, highlight: true }] : []),
 
         // 🏠 INICIO
         { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
