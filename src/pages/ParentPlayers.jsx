@@ -417,6 +417,7 @@ export default function ParentPlayers() {
           });
           if (existingInv.length === 0) {
             await base44.entities.SecondParentInvitation.create({
+              token: `${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
               email_destino: email2,
               nombre_destino: dataWithParentEmail.nombre_tutor_2 || '',
               jugador_id: newPlayer.id,
@@ -669,6 +670,7 @@ Email: cdbustarviejo@gmail.com
                   });
                   if (existingInv.length === 0) {
                     await base44.entities.SecondParentInvitation.create({
+                      token: `${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
                       email_destino: nextEmail2,
                       nombre_destino: safeData.nombre_tutor_2 || '',
                       jugador_id: id,

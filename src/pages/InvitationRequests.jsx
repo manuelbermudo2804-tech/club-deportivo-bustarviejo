@@ -120,9 +120,9 @@ export default function InvitationRequests() {
           Pendientes {pendingSecondParentCount + pendingAdultCount > 0 && `(${pendingSecondParentCount + pendingAdultCount})`}
         </Button>
         <Button 
-          variant={filter === "procesada" ? "default" : "outline"}
-          onClick={() => setFilter("procesada")}
-          className={filter === "procesada" ? "bg-green-600" : ""}
+          variant={filter === "aceptada" ? "default" : "outline"}
+          onClick={() => setFilter("aceptada")}
+          className={filter === "aceptada" ? "bg-green-600" : ""}
         >
           <CheckCircle2 className="w-4 h-4 mr-2" />
           Procesadas
@@ -177,7 +177,7 @@ export default function InvitationRequests() {
                         {inv.estado === "pendiente" && (
                           <Badge className="bg-orange-600 text-white">Pendiente</Badge>
                         )}
-                        {inv.estado === "procesada" && (
+                        {inv.estado === "aceptada" && (
                           <Badge className="bg-green-600 text-white">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Procesada
@@ -235,7 +235,7 @@ export default function InvitationRequests() {
                     </Button>
                     {inv.estado === "pendiente" && (
                       <Button
-                        onClick={() => markAsProcessedMutation.mutate({ id: inv.id, type: 'second_parent', estado: 'procesada' })}
+                        onClick={() => markAsProcessedMutation.mutate({ id: inv.id, type: 'second_parent', estado: 'aceptada' })}
                         disabled={markAsProcessedMutation.isPending}
                         className="bg-green-600 hover:bg-green-700"
                       >
@@ -279,7 +279,7 @@ export default function InvitationRequests() {
                         {req.estado === "pendiente" && (
                           <Badge className="bg-orange-600 text-white">Pendiente</Badge>
                         )}
-                        {req.estado === "procesada" && (
+                        {req.estado === "aceptada" && (
                           <Badge className="bg-green-600 text-white">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Procesada
@@ -340,7 +340,7 @@ export default function InvitationRequests() {
                     </Button>
                     {req.estado === "pendiente" && (
                       <Button
-                        onClick={() => markAsProcessedMutation.mutate({ id: req.id, type: 'adult_player', estado: 'procesada' })}
+                        onClick={() => markAsProcessedMutation.mutate({ id: req.id, type: 'adult_player', estado: 'aceptada' })}
                         disabled={markAsProcessedMutation.isPending}
                         className="bg-green-600 hover:bg-green-700"
                       >
