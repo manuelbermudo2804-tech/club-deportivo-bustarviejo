@@ -1296,8 +1296,8 @@ export default function Home() {
             }
             const attTone = attPct >= 80 ? 'green' : attPct >= 65 ? 'amber' : 'red';
 
-            // Pagos en revisión (ya calculado en stats)
-            const inReview = stats?.reviewPayments || 0;
+            // Pagos en revisión (calcular directamente para Junta/Admin)
+            const inReview = seasonPayments.filter(p => p.estado === 'En revisión').length;
             const revTone = inReview === 0 ? 'green' : inReview <= 10 ? 'amber' : 'red';
 
             return (
