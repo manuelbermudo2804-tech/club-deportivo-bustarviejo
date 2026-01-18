@@ -577,6 +577,7 @@ export default function Layout({ children, currentPageName }) {
   const [installContext, setInstallContext] = useState('manual');
 
   const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [enginesReady, setEnginesReady] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(false);
   // Modo silencioso por mantenimiento (pausa notificaciones/polling ruidoso)
@@ -957,30 +958,34 @@ export default function Layout({ children, currentPageName }) {
 
               const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
               const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
+              // Minimizar llamadas: obtener todos mis pagos una sola vez
+              const myPayments = await base44.entities.ExtraChargePayment.filter({
+                usuario_email: currentUser.email,
+                $or: [{ estado: 'Pagado' }, { estado: 'En revisión' }]
+              });
               let visibleCharge = null;
               for (const c of candidates) {
                 try {
                   const requiredSum = (c.items || [])
                     .filter(i => i.obligatorio)
                     .reduce((sum, i) => sum + Number(i.precio || 0) * 1, 0);
-                  const payments = await base44.entities.ExtraChargePayment.filter({
-                    extra_charge_id: c.id,
-                    usuario_email: currentUser.email,
-                    $or: [{ estado: 'Pagado' }, { estado: 'En revisión' }]
-                  });
+                  const paymentsForCharge = (myPayments || []).filter(p => p.extra_charge_id === c.id);
                   let hasPaidRequired = false;
-                  if ((payments || []).length > 0) {
-                    const p = payments[0];
-                    const sel = p.seleccion || [];
-                    const mandatoryNames = new Set((c.items || []).filter(i => i.obligatorio).map(i => i.nombre));
-                    const paidMandatorySum = sel
-                      .filter(s => mandatoryNames.has(s.item_nombre))
-                      .reduce((sum, s) => sum + Number(s.cantidad || 0) * Number(s.precio_unitario || 0), 0);
-                    hasPaidRequired = (requiredSum > 0 && paidMandatorySum >= requiredSum) || (requiredSum === 0 && Number(p.total || 0) > 0);
+                  if ((paymentsForCharge || []).length > 0) {
+                    for (const p of paymentsForCharge) {
+                      const sel = p.seleccion || [];
+                      const mandatoryNames = new Set((c.items || []).filter(i => i.obligatorio).map(i => i.nombre));
+                      const paidMandatorySum = sel
+                        .filter(s => mandatoryNames.has(s.item_nombre))
+                        .reduce((sum, s) => sum + Number(s.cantidad || 0) * Number(s.precio_unitario || 0), 0);
+                      if ((requiredSum > 0 && paidMandatorySum >= requiredSum) || (requiredSum === 0 && Number(p.total || 0) > 0)) {
+                        hasPaidRequired = true;
+                        break;
+                      }
+                    }
                   }
                   if (!hasPaidRequired) { visibleCharge = c; break; }
                 } catch (e) {
-                  // Ante errores, mostrar el primer cobro aplicable
                   visibleCharge = c; break;
                 }
               }
