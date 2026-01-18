@@ -1527,6 +1527,14 @@ export default function Layout({ children, currentPageName }) {
         setOnboardingView('none');
       }, [user]);
 
+      // Activar motores en diferido para evitar ráfaga de llamadas
+      useEffect(() => {
+        if (!isLoading && user) {
+          const id = setTimeout(() => setEnginesReady(true), 1200);
+          return () => clearTimeout(id);
+        }
+      }, [isLoading, user]);
+
       // Invitar en el primer arranque desde el icono (PWA)
       useEffect(() => {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -1958,7 +1966,8 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 )}
 
-                <Suspense fallback={null}>
+                {enginesReady && (
+                  <Suspense fallback={null}>
                     <SessionManager />
                     <NotificationBadge />
                     <PaymentApprovalNotifier isAdmin={isAdmin} />
@@ -1972,6 +1981,7 @@ export default function Layout({ children, currentPageName }) {
                     <AnnouncementSoundNotifier user={user} />
                     <PaymentSoundNotifier user={user} />
                   </Suspense>
+                )}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
