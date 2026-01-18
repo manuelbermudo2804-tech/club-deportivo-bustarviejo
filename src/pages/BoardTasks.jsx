@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Filter } from "lucide-react";
 import BoardTaskForm from "../components/board/BoardTaskForm";
 import BoardKanbanColumn from "../components/board/BoardKanbanColumn";
+import CompleteTaskDialog from "../components/board/CompleteTaskDialog";
 
 const ROLE_OPTIONS = ["Todos", "Presidente", "Vicepresidente", "Secretaría", "Tesorero", "Vocal1", "Vocal2", "Vocal3"];
 const AREAS = [
@@ -27,6 +28,7 @@ export default function BoardTasks() {
   const [roleFilter, setRoleFilter] = React.useState("Todos");
   const [areaFilter, setAreaFilter] = React.useState("Todas");
   const [search, setSearch] = React.useState("");
+  const [completeTask, setCompleteTask] = React.useState(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -47,7 +49,7 @@ export default function BoardTasks() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.BoardTask.update(id, data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["boardTasks"] }); setEditing(null); }
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["boardTasks"] }); setEditing(null); setCompleteTask(null); }
   });
 
   const deleteMutation = useMutation({
@@ -135,13 +137,36 @@ export default function BoardTasks() {
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-            <BoardKanbanColumn columnId="pendiente" title="Pendiente" tasks={columns.pendiente} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} />
-            <BoardKanbanColumn columnId="en_progreso" title="En progreso" tasks={columns.en_progreso} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} />
-            <BoardKanbanColumn columnId="bloqueado" title="Bloqueado" tasks={columns.bloqueado} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} />
-            <BoardKanbanColumn columnId="hecho" title="Hecho" tasks={columns.hecho} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} />
+            <BoardKanbanColumn columnId="pendiente" title="Pendiente" tasks={columns.pendiente} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="en_progreso" title="En progreso" tasks={columns.en_progreso} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="bloqueado" title="Bloqueado" tasks={columns.bloqueado} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="hecho" title="Hecho" tasks={columns.hecho} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} onComplete={(t)=> setCompleteTask(t)} />
           </div>
         </DragDropContext>
       )}
+
+      {/* Completar tarea - explicación */}
+      <CompleteTaskDialog
+        open={!!completeTask}
+        task={completeTask}
+        onCancel={()=>setCompleteTask(null)}
+        onConfirm={(mensaje)=>{
+          if (!completeTask || !user) return;
+          const nuevosComentarios = [ ...(completeTask.comentarios || []), {
+            autor_email: user.email,
+            autor_nombre: user.full_name || "",
+            mensaje: mensaje && mensaje.trim() ? mensaje.trim() : "Tarea marcada como hecha",
+            fecha: new Date().toISOString()
+          } ];
+          updateMutation.mutate({ id: completeTask.id, data: {
+            estado: 'hecho',
+            fecha_cierre: new Date().toISOString(),
+            cerrado_por_email: user.email,
+            cerrado_por_nombre: user.full_name || "",
+            comentarios: nuevosComentarios
+          }});
+        }}
+      />
     </div>
   );
 }

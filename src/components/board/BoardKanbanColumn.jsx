@@ -2,7 +2,7 @@ import React from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import BoardTaskCard from "./BoardTaskCard";
 
-export default function BoardKanbanColumn({ columnId, title, tasks, onEdit, onDelete }) {
+export default function BoardKanbanColumn({ columnId, title, tasks, onEdit, onDelete, onComplete }) {
   return (
     <div className="bg-slate-50 rounded-xl p-3 shadow-sm min-h-[200px]">
       <div className="flex items-center justify-between mb-2">
@@ -15,7 +15,7 @@ export default function BoardKanbanColumn({ columnId, title, tasks, onEdit, onDe
               <Draggable key={task.id} draggableId={task.id} index={index}>
                 {(dragProvided) => (
                   <div ref={dragProvided.innerRef} {...dragProvided.draggableProps} {...dragProvided.dragHandleProps}>
-                    <BoardTaskCard task={task} onEdit={onEdit} onDelete={onDelete} />
+                    <BoardTaskCard task={task} onEdit={onEdit} onDelete={onDelete} onComplete={onComplete} />
                   </div>
                 )}
               </Draggable>
