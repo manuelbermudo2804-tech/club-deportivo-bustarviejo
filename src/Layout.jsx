@@ -571,6 +571,7 @@ export default function Layout({ children, currentPageName }) {
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
 
   const [installContext, setInstallContext] = useState('manual');
@@ -643,6 +644,24 @@ export default function Layout({ children, currentPageName }) {
     if (p === '/pwaentry' || p === '/pwa-entry') {
       window.location.replace(createPageUrl('PwaEntry'));
     }
+  }, []);
+
+  // Detectar retorno de Stripe (éxito de pago)
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const payment = url.searchParams.get('payment');
+      if (payment === 'ok') {
+        setShowPaymentSuccess(true);
+        setTimeout(() => setShowPaymentSuccess(false), 3000);
+        url.searchParams.delete('payment');
+        url.searchParams.delete('type');
+        url.searchParams.delete('extra_charge_id');
+        url.searchParams.delete('session_id');
+        const cleaned = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '');
+        window.history.replaceState({}, '', cleaned);
+      }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -2198,13 +2217,18 @@ export default function Layout({ children, currentPageName }) {
                     quantity: Number(s.cantidad||0)
                   };
                 });
-                const successUrl = window.location.href.split('#')[0];
-                const cancelUrl = window.location.href.split('#')[0];
+                const baseUrl = window.location.href.split('#')[0].split('?')[0];
+                const successUrl = `${baseUrl}?payment=ok&type=extra_charge&extra_charge_id=${encodeURIComponent(extraChargeVisible.id)}&session_id={CHECKOUT_SESSION_ID}`;
+                const cancelUrl = baseUrl;
                 const { data } = await base44.functions.invoke('stripeCheckout', {
                   lineItems,
                   successUrl,
                   cancelUrl,
-                  metadata: { tipo: 'extra_charge', extra_charge_id: extraChargeVisible.id }
+                  metadata: { 
+                    tipo: 'extra_charge', 
+                    extra_charge_id: extraChargeVisible.id,
+                    titulo: extraChargeVisible.titulo
+                  }
                 });
                 if (data?.url) window.location.href = data.url;
               } catch (e) { console.error('ExtraCharge Stripe error', e); }
@@ -2215,6 +2239,15 @@ export default function Layout({ children, currentPageName }) {
               alert('Para transferencias: sube el justificante desde Mis Pagos. Añadiremos el detalle al panel de tesorería.');
             }}
           />
+          {showPaymentSuccess && (
+            <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-6">
+              <div className="bg-white rounded-3xl p-8 text-center shadow-2xl">
+                <div className="text-6xl mb-2">✅</div>
+                <h2 className="text-2xl font-bold">Pago realizado con éxito</h2>
+                <p className="text-slate-600 mt-1">Hemos registrado tu pago correctamente.</p>
+              </div>
+            </div>
+          )}
           </main>
 
         {/* Banner de Patrocinadores - Footer fijo */}

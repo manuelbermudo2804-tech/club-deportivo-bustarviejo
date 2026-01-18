@@ -216,8 +216,71 @@ Deno.serve(async (req) => {
                 console.error('[stripeWebhook] Error post-proceso Lotería:', err);
               }
             }
-            } catch (e) {
-          console.error('[stripeWebhook] Error procesando cuota socio:', e);
+
+            // Cobros Extra: registrar pago y transacción
+            if (tipo === 'extra_charge' && session.metadata?.extra_charge_id) {
+              try {
+                const extraChargeId = session.metadata.extra_charge_id;
+                const emailFinal = email;
+                let selection = [];
+                try {
+                  const li = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
+                  selection = (li.data || []).map((it) => {
+                    const desc = it.description || '';
+                    const parts = desc.split(' - ');
+                    const itemName = parts.length > 1 ? parts[parts.length - 1] : desc;
+                    const qty = it.quantity || 1;
+                    const unitCents = it.amount_subtotal ? Math.round(it.amount_subtotal / qty) : (it.amount || 0);
+                    return { item_nombre: itemName, cantidad: qty, precio_unitario: Number((unitCents / 100).toFixed(2)) };
+                  });
+                } catch (e) {
+                  console.error('[stripeWebhook] Error obteniendo line_items ExtraCharge:', e);
+                }
+
+                const totalAmount = (session.amount_total || 0) / 100;
+
+                const already = await base44.asServiceRole.entities.ExtraChargePayment.filter({
+                  extra_charge_id: extraChargeId,
+                  usuario_email: emailFinal,
+                  total: totalAmount,
+                  metodo: 'Tarjeta'
+                });
+
+                if (!already || already.length === 0) {
+                  await base44.asServiceRole.entities.ExtraChargePayment.create({
+                    extra_charge_id: extraChargeId,
+                    usuario_email: emailFinal,
+                    seleccion: selection,
+                    total: totalAmount,
+                    metodo: 'Tarjeta',
+                    estado: 'Pagado',
+                    concepto: session.metadata?.titulo || ''
+                  });
+
+                  try {
+                    await base44.asServiceRole.entities.FinancialTransaction.create({
+                      tipo: 'Ingreso',
+                      concepto: `Cobro Extra: ${session.metadata?.titulo || ''}`.trim(),
+                      cantidad: totalAmount,
+                      fecha: new Date().toISOString().split('T')[0],
+                      categoria: 'Cobros Extra',
+                      subtipo_documento: 'Cobro Extra',
+                      metodo_pago: 'Tarjeta',
+                      proveedor_cliente: emailFinal,
+                      automatico: true,
+                      referencia_origen: session.id
+                    });
+                  } catch (e) {
+                    console.error('[stripeWebhook] No se pudo crear FinancialTransaction (Cobros Extra):', e);
+                  }
+                }
+              } catch (err) {
+                console.error('[stripeWebhook] Error post-proceso Cobros Extra:', err);
+              }
+            }
+
+             } catch (e) {
+            console.error('[stripeWebhook] Error procesando cuota socio:', e);
         }
         break;
       }
