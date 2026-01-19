@@ -1760,7 +1760,7 @@ CD Bustarviejo`);
 
       {/* Diálogo de Bloqueo de Chat */}
       <Dialog open={showChatBlockDialog} onOpenChange={setShowChatBlockDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               {selectedUser?.chat_bloqueado ? (
