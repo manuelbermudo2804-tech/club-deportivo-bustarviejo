@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useStaffCounters, useCoachCounters, useCoordinatorCounters, useFamilyCounters, usePrivateCounters, useAdminCounters } from "../chats/useChatCounters";
-import { MessageCircle, ShieldAlert, Users, Briefcase } from "lucide-react";
+import { MessageCircle, ShieldAlert, Users, Briefcase } from "lucide-react"; // icons kept for future use
 
 const Chip = ({ label, count, color, onClick }) => {
   if (!count || count <= 0) return null;
