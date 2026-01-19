@@ -639,15 +639,17 @@ export default function StaffChat() {
                 <Folder className="w-3 h-3 sm:mr-1" />
                 <span className="hidden sm:inline text-xs">Archivos</span>
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowParticipants(true)}
-                className="text-white hover:bg-white/20 text-xs"
-              >
-                <Users className="w-3 h-3 sm:mr-1" />
-                <span className="hidden sm:inline text-xs">{staffUsers?.length || 0}</span>
-              </Button>
+              {user?.role === 'admin' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowParticipants(true)}
+                  className="text-white hover:bg-white/20 text-xs"
+                >
+                  <Users className="w-3 h-3 sm:mr-1" />
+                  <span className="hidden sm:inline text-xs">{staffUsers?.length || 0}</span>
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -1097,37 +1099,39 @@ export default function StaffChat() {
       </Dialog>
 
       {/* Diálogo de participantes */}
-      <Dialog open={showParticipants} onOpenChange={setShowParticipants}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>👥 Miembros del Staff</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {staffUsers.length === 0 ? (
-              <p className="text-center text-slate-500 py-4">Cargando participantes...</p>
-            ) : (
-              staffUsers.map((staffUser, idx) => (
-              <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
-                <div className="flex items-center gap-2">
-                  {staffUser.es_coordinador && <span>🎓</span>}
-                  {staffUser.es_entrenador && <span>🏃</span>}
-                  {staffUser.role === "admin" && <span>👑</span>}
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-900">{staffUser.full_name}</p>
-                    <p className="text-xs text-slate-600">{staffUser.email}</p>
-                    <div className="flex gap-1 mt-1">
-                      {staffUser.role === "admin" && <Badge className="text-xs bg-orange-600">Admin</Badge>}
-                      {staffUser.es_coordinador && <Badge className="text-xs bg-cyan-600">Coordinador</Badge>}
-                      {staffUser.es_entrenador && <Badge className="text-xs bg-blue-600">Entrenador</Badge>}
+      {user?.role === 'admin' && (
+        <Dialog open={showParticipants} onOpenChange={setShowParticipants}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>👥 Miembros del Staff</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 max-h[400px] overflow-y-auto">
+              {staffUsers.length === 0 ? (
+                <p className="text-center text-slate-500 py-4">Cargando participantes...</p>
+              ) : (
+                staffUsers.map((staffUser, idx) => (
+                <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
+                  <div className="flex items-center gap-2">
+                    {staffUser.es_coordinador && <span>🎓</span>}
+                    {staffUser.es_entrenador && <span>🏃</span>}
+                    {staffUser.role === "admin" && <span>👑</span>}
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-900">{staffUser.full_name}</p>
+                      <p className="text-xs text-slate-600">{staffUser.email}</p>
+                      <div className="flex gap-1 mt-1">
+                        {staffUser.role === "admin" && <Badge className="text-xs bg-orange-600">Admin</Badge>}
+                        {staffUser.es_coordinador && <Badge className="text-xs bg-cyan-600">Coordinador</Badge>}
+                        {staffUser.es_entrenador && <Badge className="text-xs bg-blue-600">Entrenador</Badge>}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+              ))
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Vista previa de imagen */}
       {showImagePreview && (
