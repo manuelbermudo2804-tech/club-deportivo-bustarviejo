@@ -167,7 +167,7 @@ export default function NotificationCenter() {
 
 
 
-  const { total: chatUnread, items: chatItems } = useUnreadChats(isOpen);
+  const { total: chatUnread, items: chatItems } = useUnreadChats(true);
 
   const markMessageAsReadMutation = useMutation({
     mutationFn: ({ id, message }) => base44.entities.ChatMessage.update(id, { ...message, leido: true }),
