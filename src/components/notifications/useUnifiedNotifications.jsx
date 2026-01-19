@@ -582,15 +582,17 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // Staff
     if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
-      // No leídos por leido_por (mensajes de otros)
+      // Agrupar por canal/tema para evitar picos tras volver atrás
       rawData.staffMessages.forEach(msg => {
-        if (msg.autor_email !== user.email && (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
-          unreadStaff++;
-        }
+        if (msg.autor_email === user.email) return;
+        const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
+        if (!isUnread) return;
+        const key = msg.grupo_id || msg.categoria || 'general';
+        const ts = msg.created_date ? new Date(msg.created_date).getTime() : 0;
+        const prev = latestByGroup.get(key);
+        if (!prev || ts > prev) latestByGroup.set(key, ts);
       });
-      // Fallback desactivado: evitamos picos inconsistentes en el badge de Staff
-      // (el recuento se calcula únicamente desde StaffMessage + leido_por)
-      
+      unreadStaff = latestByGroup.size;
     }
 
     // Admin (para familias): usar counter de conversación
