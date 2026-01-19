@@ -39,6 +39,8 @@ import ChatSoundNotifier from "./components/notifications/ChatSoundNotifier";
 import CallupSoundNotifier from "./components/notifications/CallupSoundNotifier";
 import AnnouncementSoundNotifier from "./components/notifications/AnnouncementSoundNotifier";
 import PaymentSoundNotifier from "./components/notifications/PaymentSoundNotifier";
+import PendingTasksBar from "./components/notifications/PendingTasksBar";
+import { useStaffCounters, useCoachCounters, useCoordinatorCounters, useFamilyCounters, usePrivateCounters, useAdminCounters } from "./components/chats/useChatCounters";
 
 
 // ToastContainer eliminado - causaba spam de notificaciones
@@ -551,13 +553,19 @@ export default function Layout({ children, currentPageName }) {
   const pendingLotteryOrders = notifications.pendingLotteryOrders || 0;
   const pendingMemberRequests = notifications.pendingMemberRequests || 0;
 
-  // Unread chat counters (real-time)
-  const unreadCoachChat = notifications.unreadCoachMessages || 0;
-  const unreadCoordinatorChat = notifications.unreadCoordinatorMessages || 0;
-  const unreadStaffChat = notifications.unreadStaffMessages || 0;
-  const unreadPrivateChat = notifications.unreadPrivateMessages || 0;
-  const unreadFamilyChat = notifications.unreadFamilyMessages || 0;
-  const unreadAdminMessagesCount = notifications.unreadAdminMessages || 0;
+  // Unread chat counters (real-time) via ChatCounter
+  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
+  const { total: coachTotal } = useCoachCounters({ refetchOnFocus: true });
+  const { total: coordTotal } = useCoordinatorCounters({ refetchOnFocus: true });
+  const { total: familyTotal } = useFamilyCounters({ refetchOnFocus: true });
+  const { total: privateTotal } = usePrivateCounters({ refetchOnFocus: true });
+  const { total: adminTotal } = useAdminCounters({ refetchOnFocus: true });
+  const unreadCoachChat = coachTotal;
+  const unreadCoordinatorChat = coordTotal;
+  const unreadStaffChat = staffTotal;
+  const unreadPrivateChat = privateTotal;
+  const unreadFamilyChat = familyTotal;
+  const unreadAdminMessagesCount = adminTotal;
   // Propagar rol al PendingTasksBar para mantener visible cuando contadores están a 0
   const enrichedNotifications = {
     ...notifications,
@@ -2235,7 +2243,7 @@ export default function Layout({ children, currentPageName }) {
 
           <ActiveBanner position="top" user={user} />
           {/* Barra de tareas pendientes (chats) */}
-          <Suspense fallback={null}></Suspense>
+          <PendingTasksBar notifications={enrichedNotifications} />
 
           {extraChargeVisible && (
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
