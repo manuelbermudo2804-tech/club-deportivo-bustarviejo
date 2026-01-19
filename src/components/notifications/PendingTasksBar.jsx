@@ -54,7 +54,7 @@ export default function PendingTasksBar({ notifications }) {
         />
         <Chip
           label="Staff"
-          count={n.unreadStaffMessages}
+          count={staffTotal}
           color="bg-purple-600"
           onClick={() => navigate(createPageUrl('StaffChat'))}
         />
