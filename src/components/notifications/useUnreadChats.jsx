@@ -59,11 +59,12 @@ export default function useUnreadChats(enabled = true) {
     return unsubscribe;
   }, [enabled, user]);
 
-  // Conversaciones de Admin - Real-time
+  // Conversaciones de Admin - Real-time (solo cuando aplica: admin o familia/jugador)
   const [adminConvs, setAdminConvs] = useState([]);
 
   useEffect(() => {
     if (!enabled || !user) return;
+    if (!isAdmin && !isFamily && !isPlayer) return;
 
     const loadInitial = async () => {
       const convs = await base44.entities.AdminConversation.list("-updated_date", 200);
@@ -78,7 +79,7 @@ export default function useUnreadChats(enabled = true) {
     });
 
     return unsubscribe;
-  }, [enabled, user]);
+  }, [enabled, user, isAdmin, isFamily, isPlayer]);
 
   // Mensajes de grupos entrenador↔familia - Real-time
   const [groupMessages, setGroupMessages] = useState([]);
