@@ -16,6 +16,8 @@ import ThemeToggle from "./components/ThemeToggle";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
+import BirthdayModal from "./components/birthday/BirthdayModal";
+import BirthdayWidget from "./components/birthday/BirthdayWidget";
 
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
