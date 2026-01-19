@@ -67,6 +67,8 @@ export default function AlertCenter({
   userEmail = null,
   userSports = []
 }) {
+  // Usuario actual (para unificar origen de notificaciones)
+  const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
   // Contadores unificados (mismo origen que las burbujas del menú)
   const { notifications } = useUnifiedNotifications(meUser);
   
@@ -110,7 +112,6 @@ useEffect(() => {
 
 const alerts = [];
 
-  const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
   const isJuntaUser = meUser?.es_junta === true;
 
 
