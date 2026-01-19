@@ -86,9 +86,8 @@ export default function ChatToasts() {
         const isToCoach = m.tipo === 'padre_a_grupo';
         const isToFamilies = m.tipo === 'entrenador_a_grupo';
         // Filtrar por pertenencia
-        const key = group;
-        const coachShouldSee = isToCoach && coachCategories.includes(key);
-        const parentShouldSee = isToFamilies && (myCategories.includes(key));
+        const coachShouldSee = isToCoach && (coachCategories.includes(m.deporte) || coachCategories.includes(m.grupo_id));
+        const parentShouldSee = isToFamilies && (myCategories.includes(m.deporte) || myCategories.includes(m.grupo_id));
         if (!coachShouldSee && !parentShouldSee) return;
         // Entrenador recibe cuando familias escriben, familias reciben cuando entrenador escribe
         const subtitle = isToCoach ? 'Familias → Entrenador' : 'Entrenador → Familias';
