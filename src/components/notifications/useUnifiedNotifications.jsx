@@ -67,6 +67,20 @@ export function useUnifiedNotifications(user, options = {}) {
     appNotifications: [],
   });
 
+  // Global listener to receive updates from the primary notifications instance
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const globalState = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE;
+      if (globalState) setNotifications(globalState);
+    } catch {}
+    const handler = (e) => {
+      if (e?.detail) setNotifications(e.detail);
+    };
+    window.addEventListener('b44_unified_notifications_updated', handler);
+    return () => window.removeEventListener('b44_unified_notifications_updated', handler);
+  }, []);
+
   useEffect(() => {
     if (!user) return;
 

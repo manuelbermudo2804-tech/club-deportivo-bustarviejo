@@ -70,7 +70,7 @@ export default function AlertCenter({
   // Usuario actual (para unificar origen de notificaciones)
   const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
   // Contadores unificados (mismo origen que las burbujas del menú)
-  const { notifications } = useUnifiedNotifications(meUser);
+  const { notifications } = useUnifiedNotifications(meUser, { forceInstance: true, ignorePause: true });
   
   // Real-time subscriptions para recalcular alertas instantáneamente
   const [refreshTrigger, setRefreshTrigger] = useState(0);
