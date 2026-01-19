@@ -723,28 +723,12 @@ const alerts = [];
   };
 
   if (visibleAlerts.length === 0) {
-    return (
-      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-        <CardContent className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-green-800">¡Todo al día!</p>
-            <p className="text-sm text-green-600">No tienes tareas pendientes</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return null;
   }
 
   return (
     <Card className="border-orange-200 shadow-lg overflow-hidden">
       <CardContent className="p-3">
-        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-orange-200">
-          <Bell className="w-5 h-5 text-orange-600" />
-          <p className="text-base font-bold text-orange-600">🔔 Tareas Pendientes ({visibleAlerts.length})</p>
-        </div>
         <div className="space-y-2">
           {visibleAlerts.map((alert) => (
             <Link

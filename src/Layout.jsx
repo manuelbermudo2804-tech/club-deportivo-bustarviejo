@@ -39,7 +39,6 @@ import ChatSoundNotifier from "./components/notifications/ChatSoundNotifier";
 import CallupSoundNotifier from "./components/notifications/CallupSoundNotifier";
 import AnnouncementSoundNotifier from "./components/notifications/AnnouncementSoundNotifier";
 import PaymentSoundNotifier from "./components/notifications/PaymentSoundNotifier";
-import PendingTasksBar from "./components/notifications/PendingTasksBar";
 import { useStaffCounters, useCoachCounters, useCoordinatorCounters, useFamilyCounters, usePrivateCounters, useAdminCounters } from "./components/chats/useChatCounters";
 
 
@@ -2242,8 +2241,6 @@ export default function Layout({ children, currentPageName }) {
         <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
 
           <ActiveBanner position="top" user={user} />
-          {/* Barra de tareas pendientes (chats) */}
-          <PendingTasksBar notifications={enrichedNotifications} />
 
           {extraChargeVisible && (
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
