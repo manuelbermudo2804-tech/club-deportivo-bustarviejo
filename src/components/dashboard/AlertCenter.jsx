@@ -253,6 +253,7 @@ const alerts = [];
       url: createPageUrl('StaffChat'),
       color: 'bg-purple-600',
       priority: 1,
+      sticky: true,
     });
   }
 
