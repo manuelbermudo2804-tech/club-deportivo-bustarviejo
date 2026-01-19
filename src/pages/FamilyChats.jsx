@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 import ErrorBoundary from "../components/common/ErrorBoundary";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,8 @@ export default function FamilyChats() {
   const [coordUnreadCount, setCoordUnreadCount] = useState(0);
   const [coachUnreadCount, setCoachUnreadCount] = useState(0);
   const [activeTab, setActiveTab] = useState('coordinador');
+  const [coordinatorKey, setCoordinatorKey] = useState(0);
+  const [coachKey, setCoachKey] = useState(0);
   const [coordinatorKey, setCoordinatorKey] = useState(0);
   const [coachKey, setCoachKey] = useState(0);
 
