@@ -92,7 +92,9 @@ export function useUnifiedNotifications(user, options = {}) {
     // Coordinator Conversations
     const loadCoordConvs = async () => {
       let convs = [];
-      if (user?.es_coordinador) {
+      if (options?.testModeLoadAll) {
+        convs = await base44.entities.CoordinatorConversation.list('-updated_date', 100);
+      } else if (user?.es_coordinador) {
         convs = await base44.entities.CoordinatorConversation.list('-updated_date', 100);
       } else {
         convs = await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 100);
@@ -102,7 +104,12 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // Coach Conversations
     const loadCoachConvs = async () => {
-      const convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 80);
+      let convs = [];
+      if (options?.testModeLoadAll) {
+        convs = await base44.entities.CoachConversation.list('-updated_date', 80);
+      } else {
+        convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 80);
+      }
       setRawData(prev => ({ ...prev, coachConversations: convs }));
     };
     setTimeout(loadCoordConvs, 0);
@@ -129,8 +136,8 @@ export function useUnifiedNotifications(user, options = {}) {
     });
     unsubscribers.push(unsubCoachConv);
 
-    // Chat Messages (skip for pure admins)
-    if (user.role !== 'admin') {
+    // Chat Messages (skip for pure admins, unless test mode)
+    if (options?.testModeLoadAll || user.role !== 'admin') {
       const loadChatMsgs = async () => {
         const msgs = await base44.entities.ChatMessage.list('-created_date', 20);
         setRawData(prev => ({ ...prev, chatMessages: msgs }));
@@ -153,8 +160,8 @@ export function useUnifiedNotifications(user, options = {}) {
       unsubscribers.push(unsubChatMsg);
     }
 
-    // Staff Messages (only for staff roles)
-    if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
+    // Staff Messages (only for staff roles, unless test mode)
+    if (options?.testModeLoadAll || user.es_entrenador || user.es_coordinador || user.role === 'admin') {
       const loadStaffMsgs = async () => {
         const msgs = await base44.entities.StaffMessage.list('-created_date', 20);
         setRawData(prev => ({ ...prev, staffMessages: msgs }));
@@ -179,7 +186,7 @@ export function useUnifiedNotifications(user, options = {}) {
     // Admin Conversations (skip for staff unless admin)
     const loadAdminConvs = async () => {
       let convs = [];
-      if (user?.role === 'admin') {
+      if (options?.testModeLoadAll || user?.role === 'admin') {
         convs = await base44.entities.AdminConversation.list('-updated_date', 100);
       } else if (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
         convs = await base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 100);
@@ -223,7 +230,12 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // Private Conversations
     const loadPrivateConvs = async () => {
-      const convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 60);
+      let convs = [];
+      if (options?.testModeLoadAll) {
+        convs = await base44.entities.PrivateConversation.list('-updated_date', 60);
+      } else {
+        convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 60);
+      }
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
     setTimeout(loadPrivateConvs, 600);
@@ -277,7 +289,9 @@ export function useUnifiedNotifications(user, options = {}) {
     // ===== JUGADORES =====
     const loadPlayers = async () => {
       let pls = [];
-      if (user?.role === 'admin') {
+      if (options?.testModeLoadAll) {
+        pls = await base44.entities.Player.list('-updated_date', 300);
+      } else if (user?.role === 'admin') {
         pls = await base44.entities.Player.filter({ categoria_requiere_revision: true }, '-updated_date', 120);
       } else {
         pls = await base44.entities.Player.filter({ $or: [ { email_padre: user?.email }, { email_tutor_2: user?.email }, { email_jugador: user?.email } ] }, '-updated_date', 100);

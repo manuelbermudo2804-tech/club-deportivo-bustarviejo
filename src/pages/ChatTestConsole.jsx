@@ -9,7 +9,7 @@ import { MessageCircle, ShieldAlert, Users, Bell, Rocket, Mail } from "lucide-re
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
 function RoleCounters({ title, userStub }) {
-  const { notifications } = useUnifiedNotifications(userStub, { forceInstance: true });
+  const { notifications } = useUnifiedNotifications(userStub, { forceInstance: true, ignorePause: true, testModeLoadAll: true });
   const items = [
     { label: "Staff", value: notifications?.unreadStaffMessages },
     { label: "Familias→Entrenador", value: notifications?.unreadFamilyMessages },
@@ -40,7 +40,7 @@ function RoleCounters({ title, userStub }) {
 }
 
 function AlertPreview({ title, userStub }) {
-  const { notifications } = useUnifiedNotifications(userStub, { forceInstance: true, ignorePause: true });
+  const { notifications } = useUnifiedNotifications(userStub, { forceInstance: true, ignorePause: true, testModeLoadAll: true });
   const items = (() => {
     if (!userStub) return [];
     if (userStub.role === 'admin') {
