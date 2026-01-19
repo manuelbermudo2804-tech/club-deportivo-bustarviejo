@@ -127,7 +127,7 @@ export function useUnifiedNotifications(user, options = {}) {
       setRawData(prev => ({ ...prev, coachConversations: convs }));
     };
     setTimeout(loadCoordConvs, 0);
-    setTimeout(loadCoachConvs, 100);
+    if (user.es_entrenador || options?.includeCoachConvs) setTimeout(loadCoachConvs, 100);
     let lastCoordConvUpdate = 0;
     const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
       const now = Date.now();
@@ -143,20 +143,22 @@ export function useUnifiedNotifications(user, options = {}) {
     });
     unsubscribers.push(unsubCoordConv);
 
-    let lastCoachConvUpdate = 0;
-    const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
-      const now = Date.now();
-      if (now - lastCoachConvUpdate < 1000) return;
-      lastCoachConvUpdate = now;
-      setRawData(prev => {
-        let updated = [...prev.coachConversations];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
-        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
-        return { ...prev, coachConversations: updated };
+    if (user.es_entrenador || options?.includeCoachConvs) {
+      let lastCoachConvUpdate = 0;
+      const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
+        const now = Date.now();
+        if (now - lastCoachConvUpdate < 1000) return;
+        lastCoachConvUpdate = now;
+        setRawData(prev => {
+          let updated = [...prev.coachConversations];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+          else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+          return { ...prev, coachConversations: updated };
+        });
       });
-    });
-    unsubscribers.push(unsubCoachConv);
+      unsubscribers.push(unsubCoachConv);
+    }
 
     // Chat Messages (skip for pure admins, unless test mode)
     if (options?.testModeLoadAll || user.role !== 'admin') {
@@ -169,7 +171,7 @@ export function useUnifiedNotifications(user, options = {}) {
       let lastChatUpdate = 0;
       const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
         const now = Date.now();
-        if (now - lastChatUpdate < 1000) return; // throttle 1/s
+        if (now - lastChatUpdate < 2000) return; // throttle 1 per 2s
         lastChatUpdate = now;
         setRawData(prev => {
           let updated = [...prev.chatMessages];
@@ -350,20 +352,22 @@ export function useUnifiedNotifications(user, options = {}) {
       setRawData(prev => ({ ...prev, players: pls }));
     };
     setTimeout(loadPlayers, 900);
-    let lastPlayersUpdate = 0;
-    const unsubPlayers = base44.entities.Player.subscribe((event) => {
-      const now = Date.now();
-      if (now - lastPlayersUpdate < 1000) return;
-      lastPlayersUpdate = now;
-      setRawData(prev => {
-        let updated = [...prev.players];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
-        else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
-        return { ...prev, players: updated };
+    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
+      let lastPlayersUpdate = 0;
+      const unsubPlayers = base44.entities.Player.subscribe((event) => {
+        const now = Date.now();
+        if (now - lastPlayersUpdate < 1500) return;
+        lastPlayersUpdate = now;
+        setRawData(prev => {
+          let updated = [...prev.players];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
+          else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
+          return { ...prev, players: updated };
+        });
       });
-    });
-    unsubscribers.push(unsubPlayers);
+      unsubscribers.push(unsubPlayers);
+    }
 
     // ===== ANUNCIOS =====
     const loadAnnouncements = async () => {
