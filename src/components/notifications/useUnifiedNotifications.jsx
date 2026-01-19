@@ -620,21 +620,19 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // Staff
     if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
-      // Agrupar por canal/tema para evitar picos tras volver atrás
+      // Contar mensajes no leídos (coherente con burbujas y barra)
+      let unreadStaffCount = 0;
       rawData.staffMessages.forEach(msg => {
         if (msg.autor_email === user.email) return;
         const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
         if (!isUnread) return;
+        unreadStaffCount += 1;
         const key = msg.grupo_id || msg.categoria || 'general';
-        const ts = msg.created_date ? new Date(msg.created_date).getTime() : 0;
-        const prev = latestByGroup.get(key);
-        if (!prev || ts > prev) latestByGroup.set(key, ts);
         breakdown.staffByGroup[key] = (breakdown.staffByGroup[key] || 0) + 1;
       });
-      unreadStaff = latestByGroup.size;
-      // Asegurar sincronía con burbuja: considerar AppNotifications de StaffChat
+      // Considerar AppNotifications como fallback (p. ej., notificaciones push)
       const staffNotifs = (rawData.appNotifications || []).filter(n => n.enlace === 'StaffChat' && n.vista === false).length;
-      if (staffNotifs > unreadStaff) unreadStaff = staffNotifs;
+      unreadStaff = Math.max(unreadStaffCount, staffNotifs);
     }
 
     // Admin (para familias): usar counter de conversación
