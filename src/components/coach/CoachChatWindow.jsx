@@ -63,16 +63,17 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     queryKey: ['coachGroupMessages', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return [];
-      
+
       if (selectedCategory === "Todas las categorías") {
         return await base44.entities.ChatMessage.list('-created_date');
       }
-      
+
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       return await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
     },
-    refetchInterval: 1000,
-    refetchOnWindowFocus: true,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
     enabled: !!selectedCategory,
   });
 
@@ -123,10 +124,24 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
     const markReads = async () => {
       try {
-        for (const msg of unreadFromParents) {
-          const leido_por = msg.leido_por || [];
-          leido_por.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-          await base44.entities.ChatMessage.update(msg.id, { leido_por });
+        const BATCH_SIZE = 10;
+        const processBatch = async (batch) => {
+          for (const msg of batch) {
+            const leido_por = msg.leido_por || [];
+            leido_por.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
+            await base44.entities.ChatMessage.update(msg.id, { leido_por });
+          }
+        };
+        const first = unreadFromParents.slice(0, BATCH_SIZE);
+        await processBatch(first);
+        if (unreadFromParents.length > BATCH_SIZE) {
+          setTimeout(async () => {
+            const rest = unreadFromParents.slice(BATCH_SIZE);
+            for (let i = 0; i < rest.length; i += BATCH_SIZE) {
+              await processBatch(rest.slice(i, i + BATCH_SIZE));
+              await new Promise(r => setTimeout(r, 300));
+            }
+          }, 300);
         }
 
         if (unreadFromParents.length > 0) {

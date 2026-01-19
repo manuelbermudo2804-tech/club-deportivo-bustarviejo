@@ -98,11 +98,25 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     (async () => {
       try {
         if (unreadMessages.length > 0) {
-          for (const msg of unreadMessages) {
-            await base44.entities.CoordinatorMessage.update(msg.id, {
-              [msgField]: true,
-              [dateField]: new Date().toISOString(),
-            });
+          const BATCH_SIZE = 10;
+          const processBatch = async (batch) => {
+            for (const msg of batch) {
+              await base44.entities.CoordinatorMessage.update(msg.id, {
+                [msgField]: true,
+                [dateField]: new Date().toISOString(),
+              });
+            }
+          };
+          const first = unreadMessages.slice(0, BATCH_SIZE);
+          await processBatch(first);
+          if (unreadMessages.length > BATCH_SIZE) {
+            setTimeout(async () => {
+              const rest = unreadMessages.slice(BATCH_SIZE);
+              for (let i = 0; i < rest.length; i += BATCH_SIZE) {
+                await processBatch(rest.slice(i, i + BATCH_SIZE));
+                await new Promise(r => setTimeout(r, 300));
+              }
+            }, 300);
           }
         }
         if ((conversation[field] || 0) > 0) {
@@ -167,7 +181,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           });
 
           const unreadMessages = messages.filter(m => m.autor !== (isCoordinator ? "coordinador" : "padre") && !m[msgField]);
-          for (const msg of unreadMessages) {
+          const BATCH_SIZE = 20;
+          for (let i = 0; i < unreadMessages.length && i < BATCH_SIZE; i++) {
+            const msg = unreadMessages[i];
             await base44.entities.CoordinatorMessage.update(msg.id, {
               [msgField]: true,
               [dateField]: new Date().toISOString()
