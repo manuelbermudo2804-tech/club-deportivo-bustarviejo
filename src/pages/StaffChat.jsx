@@ -218,15 +218,18 @@ export default function StaffChat() {
       // Si no hay mensajes nuevos, pero hay AppNotifications no vistas, márcalas igual
       const hasStaffNotifs = (await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: 'StaffChat', vista: false })).length > 0;
 
-      for (const msg of unreadMessages) {
-        const leido_por = msg.leido_por || [];
-        leido_por.push({
-          email: user.email,
-          nombre: user.full_name,
-          fecha: new Date().toISOString()
-        });
-        
-        await base44.entities.StaffMessage.update(msg.id, { leido_por });
+      if (unreadMessages.length === 0 && !hasStaffNotifs) {
+        // Nada que marcar
+      } else {
+        for (const msg of unreadMessages) {
+          const leido_por = msg.leido_por || [];
+          leido_por.push({
+            email: user.email,
+            nombre: user.full_name,
+            fecha: new Date().toISOString()
+          });
+          await base44.entities.StaffMessage.update(msg.id, { leido_por });
+        }
       }
 
       // Marcar notificaciones del Staff como vistas
