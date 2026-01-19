@@ -1315,7 +1315,7 @@ export default function Layout({ children, currentPageName }) {
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💬 Chat Familias", url: createPageUrl("FamilyChats"), icon: MessageCircle, badge: unreadFamilyChat > 0 ? unreadFamilyChat : null, urgentBadge: unreadFamilyChat > 0 },
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: unreadStaffChat > 0 ? unreadStaffChat : null },
+    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: unreadStaffChat > 0 ? unreadStaffChat : null, urgentBadge: unreadStaffChat > 0 },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
