@@ -66,7 +66,7 @@ export default function PendingTasksBar({ notifications }) {
         />
         <Chip
           label="Privados"
-          count={n.unreadPrivateMessages}
+          count={privateTotal}
           color="bg-slate-700"
           onClick={() => navigate(createPageUrl('DirectMessages'))}
         />
