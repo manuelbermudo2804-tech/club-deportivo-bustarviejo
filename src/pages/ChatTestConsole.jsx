@@ -48,6 +48,10 @@ export default function ChatTestConsole() {
   const [parentEmail, setParentEmail] = useState("");
   const [category, setCategory] = useState("");
 
+  // UI feedback
+  const [busy, setBusy] = useState(null); // 'staff'|'p2c'|'c2g'|'p2coord'|'admin2fam'|'private'|null
+  const [status, setStatus] = useState(null);
+
   // Impersonaciones ligeras (siempre declarar hooks antes de cualquier return)
   const asAdmin = me;
   const asCoordinator = useMemo(
@@ -118,100 +122,148 @@ export default function ChatTestConsole() {
 
   // Actions (crear mensajes de prueba)
   const sendStaff = async () => {
-    const convs = await base44.entities.StaffConversation.filter({ categoria: "General" });
-    const conv = convs[0] || (await base44.entities.StaffConversation.create({ nombre: "Chat Interno Staff", categoria: "General", participantes: [], activa: true }));
-    await base44.entities.StaffMessage.create({
-      conversacion_id: conv.id,
-      autor_email: me.email,
-      autor_nombre: me.full_name,
-      autor_rol: "admin",
-      mensaje: `Prueba staff ${new Date().toLocaleTimeString()}`,
-      leido_por: [{ email: me.email, nombre: me.full_name, fecha: new Date().toISOString() }],
-    });
+    setBusy('staff'); setStatus(null);
+    try {
+      const convs = await base44.entities.StaffConversation.filter({ categoria: "General" });
+      const conv = convs[0] || (await base44.entities.StaffConversation.create({ nombre: "Chat Interno Staff", categoria: "General", participantes: [], activa: true }));
+      await base44.entities.StaffMessage.create({
+        conversacion_id: conv.id,
+        autor_email: me.email,
+        autor_nombre: me.full_name,
+        autor_rol: "admin",
+        mensaje: `Prueba staff ${new Date().toLocaleTimeString()}`,
+        leido_por: [{ email: me.email, nombre: me.full_name, fecha: new Date().toISOString() }],
+      });
+      setStatus('✅ Staff: mensaje creado');
+    } catch (e) {
+      setStatus(`❌ Staff: ${e?.message || e}`);
+    } finally {
+      setBusy(null);
+    }
   };
 
   const sendParentToCoach = async () => {
-    if (!category || !parentEmail) return;
-    await base44.entities.ChatMessage.create({
-      grupo_id: slug(category),
-      deporte: category,
-      tipo: "padre_a_grupo",
-      remitente_email: parentEmail,
-      remitente_nombre: "Familia Test",
-      mensaje: `Familia→Entrenador (${category}) ${new Date().toLocaleTimeString()}`,
-      leido: false,
-      leido_por: [],
-    });
+    setBusy('p2c'); setStatus(null);
+    try {
+      if (!category || !parentEmail) throw new Error('Falta categoría o email de familia');
+      await base44.entities.ChatMessage.create({
+        grupo_id: slug(category),
+        deporte: category,
+        tipo: "padre_a_grupo",
+        remitente_email: parentEmail,
+        remitente_nombre: "Familia Test",
+        mensaje: `Familia→Entrenador (${category}) ${new Date().toLocaleTimeString()}`,
+        leido: false,
+        leido_por: [],
+      });
+      setStatus('✅ Enviado: Familia→Entrenador');
+    } catch (e) {
+      setStatus(`❌ Familia→Entrenador: ${e?.message || e}`);
+    } finally {
+      setBusy(null);
+    }
   };
 
   const sendCoachToGroup = async () => {
-    if (!category || !coachEmail) return;
-    await base44.entities.ChatMessage.create({
-      grupo_id: slug(category),
-      deporte: category,
-      tipo: "entrenador_a_grupo",
-      remitente_email: coachEmail,
-      remitente_nombre: "Coach Test",
-      mensaje: `Entrenador→Grupo (${category}) ${new Date().toLocaleTimeString()}`,
-      leido: false,
-      leido_por: [],
-    });
+    setBusy('c2g'); setStatus(null);
+    try {
+      if (!category || !coachEmail) throw new Error('Falta categoría o email de entrenador');
+      await base44.entities.ChatMessage.create({
+        grupo_id: slug(category),
+        deporte: category,
+        tipo: "entrenador_a_grupo",
+        remitente_email: coachEmail,
+        remitente_nombre: "Coach Test",
+        mensaje: `Entrenador→Grupo (${category}) ${new Date().toLocaleTimeString()}`,
+        leido: false,
+        leido_por: [],
+      });
+      setStatus('✅ Enviado: Entrenador→Grupo');
+    } catch (e) {
+      setStatus(`❌ Entrenador→Grupo: ${e?.message || e}`);
+    } finally {
+      setBusy(null);
+    }
   };
 
   const sendParentToCoordinator = async () => {
-    if (!parentEmail) return;
-    const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
-    const conv = convs[0] || (await base44.entities.CoordinatorConversation.create({ padre_email: parentEmail, padre_nombre: "Familia Test", no_leidos_coordinador: 0, no_leidos_padre: 0, archivada: false }));
-    await base44.entities.CoordinatorMessage.create({
-      conversacion_id: conv.id,
-      autor: "padre",
-      autor_email: parentEmail,
-      autor_nombre: "Familia Test",
-      mensaje: `Familia→Coordinador ${new Date().toLocaleTimeString()}`,
-      leido_padre: true,
-      leido_coordinador: false,
-    });
-    await base44.entities.CoordinatorConversation.update(conv.id, { ultimo_mensaje: "Nuevo mensaje (familia)", ultimo_mensaje_autor: "padre", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_coordinador: (conv.no_leidos_coordinador || 0) + 1 });
+    setBusy('p2coord'); setStatus(null);
+    try {
+      if (!parentEmail) throw new Error('Falta email de familia');
+      const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
+      const conv = convs[0] || (await base44.entities.CoordinatorConversation.create({ padre_email: parentEmail, padre_nombre: "Familia Test", no_leidos_coordinador: 0, no_leidos_padre: 0, archivada: false }));
+      await base44.entities.CoordinatorMessage.create({
+        conversacion_id: conv.id,
+        autor: "padre",
+        autor_email: parentEmail,
+        autor_nombre: "Familia Test",
+        mensaje: `Familia→Coordinador ${new Date().toLocaleTimeString()}`,
+        leido_padre: true,
+        leido_coordinador: false,
+      });
+      await base44.entities.CoordinatorConversation.update(conv.id, { ultimo_mensaje: "Nuevo mensaje (familia)", ultimo_mensaje_autor: "padre", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_coordinador: (conv.no_leidos_coordinador || 0) + 1 });
+      setStatus('✅ Enviado: Familia→Coordinador');
+    } catch (e) {
+      setStatus(`❌ Familia→Coordinador: ${e?.message || e}`);
+    } finally {
+      setBusy(null);
+    }
   };
 
   const sendAdminToFamily = async () => {
-    if (!parentEmail) return;
-    const convs = await base44.entities.AdminConversation.filter({ padre_email: parentEmail, resuelta: false });
-    const conv = convs[0] || (await base44.entities.AdminConversation.create({ padre_email: parentEmail, padre_nombre: "Familia Test", escalada_desde_coordinador: true, coordinador_que_escalo: coordEmail || "coordinador@club", motivo_escalacion: "Otro" }));
-    await base44.entities.AdminMessage.create({
-      conversacion_id: conv.id,
-      autor: "admin",
-      autor_email: me.email,
-      autor_nombre: me.full_name,
-      mensaje: `Admin→Familia ${new Date().toLocaleTimeString()}`,
-      leido_admin: true,
-      leido_padre: false,
-    });
-    await base44.entities.AdminConversation.update(conv.id, { ultimo_mensaje: "Nuevo mensaje (admin)", ultimo_mensaje_autor: "admin", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_padre: (conv.no_leidos_padre || 0) + 1 });
+    setBusy('admin2fam'); setStatus(null);
+    try {
+      if (!parentEmail) throw new Error('Falta email de familia');
+      const convs = await base44.entities.AdminConversation.filter({ padre_email: parentEmail, resuelta: false });
+      const conv = convs[0] || (await base44.entities.AdminConversation.create({ padre_email: parentEmail, padre_nombre: "Familia Test", escalada_desde_coordinador: true, coordinador_que_escalo: coordEmail || "coordinador@club", motivo_escalacion: "Otro" }));
+      await base44.entities.AdminMessage.create({
+        conversacion_id: conv.id,
+        autor: "admin",
+        autor_email: me.email,
+        autor_nombre: me.full_name,
+        mensaje: `Admin→Familia ${new Date().toLocaleTimeString()}`,
+        leido_admin: true,
+        leido_padre: false,
+      });
+      await base44.entities.AdminConversation.update(conv.id, { ultimo_mensaje: "Nuevo mensaje (admin)", ultimo_mensaje_autor: "admin", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_padre: (conv.no_leidos_padre || 0) + 1 });
+      setStatus('✅ Enviado: Admin→Familia');
+    } catch (e) {
+      setStatus(`❌ Admin→Familia: ${e?.message || e}`);
+    } finally {
+      setBusy(null);
+    }
   };
 
   const sendPrivateToFamily = async () => {
-    if (!parentEmail) return;
-    const convs = await base44.entities.PrivateConversation.filter({ participante_familia_email: parentEmail });
-    const conv = convs[0] || (await base44.entities.PrivateConversation.create({
-      participante_familia_email: parentEmail,
-      participante_familia_nombre: "Familia Test",
-      participante_staff_email: me.email,
-      participante_staff_nombre: me.full_name,
-      participante_staff_rol: "admin",
-      categoria: category || "General",
-      no_leidos_familia: 0,
-      no_leidos_staff: 0,
-    }));
-    await base44.entities.PrivateMessage.create({
-      conversacion_id: conv.id,
-      remitente_email: me.email,
-      remitente_nombre: me.full_name,
-      remitente_tipo: "staff",
-      mensaje: `Privado del Club ${new Date().toLocaleTimeString()}`,
-      leido: false,
-    });
-    await base44.entities.PrivateConversation.update(conv.id, { ultimo_mensaje: "Privado del Club", ultimo_mensaje_de: "staff", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_familia: (conv.no_leidos_familia || 0) + 1 });
+    setBusy('private'); setStatus(null);
+    try {
+      if (!parentEmail) throw new Error('Falta email de familia');
+      const convs = await base44.entities.PrivateConversation.filter({ participante_familia_email: parentEmail });
+      const conv = convs[0] || (await base44.entities.PrivateConversation.create({
+        participante_familia_email: parentEmail,
+        participante_familia_nombre: "Familia Test",
+        participante_staff_email: me.email,
+        participante_staff_nombre: me.full_name,
+        participante_staff_rol: "admin",
+        categoria: category || "General",
+        no_leidos_familia: 0,
+        no_leidos_staff: 0,
+      }));
+      await base44.entities.PrivateMessage.create({
+        conversacion_id: conv.id,
+        remitente_email: me.email,
+        remitente_nombre: me.full_name,
+        remitente_tipo: "staff",
+        mensaje: `Privado del Club ${new Date().toLocaleTimeString()}`,
+        leido: false,
+      });
+      await base44.entities.PrivateConversation.update(conv.id, { ultimo_mensaje: "Privado del Club", ultimo_mensaje_de: "staff", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_familia: (conv.no_leidos_familia || 0) + 1 });
+      setStatus('✅ Enviado: Privado del Club');
+    } catch (e) {
+      setStatus(`❌ Privado del Club: ${e?.message || e}`);
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
@@ -283,12 +335,27 @@ export default function ChatTestConsole() {
             <CardTitle className="text-sm">Acciones de prueba</CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-2">
-            <Button onClick={sendStaff} className="gap-2"><Users className="w-4 h-4" /> Staff: nuevo mensaje</Button>
-            <Button onClick={sendParentToCoach} className="gap-2"><MessageCircle className="w-4 h-4" /> Familia→Entrenador</Button>
-            <Button onClick={sendCoachToGroup} className="gap-2"><MessageCircle className="w-4 h-4" /> Entrenador→Grupo</Button>
-            <Button onClick={sendParentToCoordinator} className="gap-2"><MessageCircle className="w-4 h-4" /> Familia→Coordinador</Button>
-            <Button onClick={sendAdminToFamily} className="gap-2"><ShieldAlert className="w-4 h-4" /> Admin→Familia (crítica)</Button>
-            <Button onClick={sendPrivateToFamily} className="gap-2"><Mail className="w-4 h-4" /> Privado del Club</Button>
+            <Button disabled={!!busy} onClick={sendStaff} className="gap-2">
+              {busy==='staff' ? <div className="spinner-elegant" /> : <Users className="w-4 h-4" />} Staff: nuevo mensaje
+            </Button>
+            <Button disabled={!!busy} onClick={sendParentToCoach} className="gap-2">
+              {busy==='p2c' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Familia→Entrenador
+            </Button>
+            <Button disabled={!!busy} onClick={sendCoachToGroup} className="gap-2">
+              {busy==='c2g' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Entrenador→Grupo
+            </Button>
+            <Button disabled={!!busy} onClick={sendParentToCoordinator} className="gap-2">
+              {busy==='p2coord' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Familia→Coordinador
+            </Button>
+            <Button disabled={!!busy} onClick={sendAdminToFamily} className="gap-2">
+              {busy==='admin2fam' ? <div className="spinner-elegant" /> : <ShieldAlert className="w-4 h-4" />} Admin→Familia (crítica)
+            </Button>
+            <Button disabled={!!busy} onClick={sendPrivateToFamily} className="gap-2">
+              {busy==='private' ? <div className="spinner-elegant" /> : <Mail className="w-4 h-4" />} Privado del Club
+            </Button>
+            {status && (
+              <div className="md:col-span-3 text-sm text-slate-600 mt-2">{status}</div>
+            )}
           </CardContent>
         </Card>
 
