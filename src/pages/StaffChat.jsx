@@ -237,6 +237,16 @@ export default function StaffChat() {
           await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
         }
       } catch {}
+
+      // Sincronizar inmediatamente badges y barra (evitar desfases visuales)
+      try {
+        if (typeof window !== 'undefined') {
+          const current = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE || {};
+          const next = { ...current, unreadStaffMessages: 0 };
+          window.__BASE44_UNIFIED_NOTIFICATIONS_STATE = next;
+          window.dispatchEvent(new CustomEvent('b44_unified_notifications_updated', { detail: next }));
+        }
+      } catch {}
     };
     
     if (messages.some(m => m.autor_email !== user.email && !m.leido_por?.some(l => l.email === user.email))) {
