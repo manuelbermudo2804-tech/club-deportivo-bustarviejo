@@ -1993,18 +1993,19 @@ export default function Layout({ children, currentPageName }) {
                 )}
 
                 {enginesStage3Ready && (
-                  <Suspense fallback={null}>
-                    <PlanPaymentReminders user={user} />
-                    <AutomaticRenewalReminders />
-                    <AutomaticRenewalClosure />
-                    <RenewalNotificationEngine />
-                    <PostRenewalPaymentReminder />
-                    <ChatSoundNotifier user={user} chatType="all" />
-                    <CallupSoundNotifier user={user} />
-                    <AnnouncementSoundNotifier user={user} />
-                    <PaymentSoundNotifier user={user} />
-                  </Suspense>
-                )}
+                                        <Suspense fallback={null}>
+                                          <PlanPaymentReminders user={user} />
+                                          <AutomaticRenewalReminders />
+                                          <AutomaticRenewalClosure />
+                                          <RenewalNotificationEngine />
+                                          <PostRenewalPaymentReminder />
+                                          <ChatSoundNotifier user={user} chatType="all" />
+                                          <CallupSoundNotifier user={user} />
+                                          <AnnouncementSoundNotifier user={user} />
+                                          <PaymentSoundNotifier user={user} />
+                                          <ChatToasts />
+                                        </Suspense>
+                                      )}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
