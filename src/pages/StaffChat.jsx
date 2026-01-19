@@ -233,14 +233,15 @@ export default function StaffChat() {
       if (unreadMessages.length === 0 && !hasStaffNotifs) {
         // Nada que marcar
       } else {
-        for (const msg of unreadMessages) {
-          const leido_por = msg.leido_por || [];
-          leido_por.push({
-            email: user.email,
-            nombre: user.full_name,
-            fecha: new Date().toISOString()
-          });
-          await base44.entities.StaffMessage.update(msg.id, { leido_por });
+        const BATCH = 10;
+        for (let i = 0; i < unreadMessages.length; i += BATCH) {
+          const batch = unreadMessages.slice(i, i + BATCH);
+          for (const msg of batch) {
+            const leido_por = msg.leido_por || [];
+            leido_por.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
+            await base44.entities.StaffMessage.update(msg.id, { leido_por });
+          }
+          await new Promise(r => setTimeout(r, 200));
         }
       }
 
