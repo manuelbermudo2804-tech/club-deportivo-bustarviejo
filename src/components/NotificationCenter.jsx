@@ -12,7 +12,7 @@ import { es } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
-import useUnreadChats from "./notifications/useUnreadChats";
+import { useUnifiedNotifications } from "./notifications/useUnifiedNotifications";
 
 export default function NotificationCenter() {
   const [user, setUser] = useState(null);
@@ -183,7 +183,31 @@ export default function NotificationCenter() {
 
 
 
-  const { total: chatUnread, items: chatItems } = useUnreadChats(isOpen);
+  const isAdmin = user?.role === 'admin';
+  const isCoordinator = user?.es_coordinador === true;
+  const isCoach = user?.es_entrenador === true;
+  const isPlayer = user?.es_jugador === true || user?.tipo_panel === 'jugador_adulto';
+  const isFamily = !!user && !isAdmin && !isCoach && !isCoordinator && !isPlayer;
+
+  const { notifications } = useUnifiedNotifications(user);
+  const chatUnread = (
+    (notifications?.unreadStaffMessages || 0) +
+    (notifications?.unreadCoordinatorMessages || 0) +
+    (notifications?.unreadAdminMessages || 0) +
+    (notifications?.unreadPrivateMessages || 0) +
+    (notifications?.unreadCoachMessages || 0) +
+    (notifications?.unreadFamilyMessages || 0)
+  );
+
+  const chatItems = [
+    ((isAdmin || isCoach || isCoordinator) && (notifications?.unreadStaffMessages || 0) > 0) ? { source: 'staff', label: 'Chat Staff', count: notifications.unreadStaffMessages, link: 'StaffChat' } : null,
+    (isCoordinator && (notifications?.unreadCoordinatorMessages || 0) > 0) ? { source: 'coordinator', label: 'Familias', count: notifications.unreadCoordinatorMessages, link: 'CoordinatorChat' } : null,
+    (isCoach && (notifications?.unreadFamilyMessages || 0) > 0) ? { source: 'families', label: 'Familias', count: notifications.unreadFamilyMessages, link: 'CoachParentChat' } : null,
+    (isAdmin && (notifications?.unreadAdminMessages || 0) > 0) ? { source: 'admin', label: 'Administrador', count: notifications.unreadAdminMessages, link: 'AdminChat' } : null,
+    (isFamily && (notifications?.unreadCoachMessages || 0) > 0) ? { source: 'coach', label: 'Entrenador', count: notifications.unreadCoachMessages, link: 'ParentCoachChat' } : null,
+    (isFamily && (notifications?.unreadPrivateMessages || 0) > 0) ? { source: 'private', label: 'Mensajes del Club', count: notifications.unreadPrivateMessages, link: 'ParentSystemMessages' } : null,
+    (isFamily && (notifications?.unreadAdminMessages || 0) > 0) ? { source: 'admin', label: 'Administrador', count: notifications.unreadAdminMessages, link: 'ParentAdminChat' } : null,
+  ].filter(Boolean);
 
   const markMessageAsReadMutation = useMutation({
     mutationFn: ({ id, message }) => base44.entities.ChatMessage.update(id, { ...message, leido: true }),

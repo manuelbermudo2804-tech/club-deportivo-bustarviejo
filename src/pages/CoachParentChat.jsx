@@ -76,14 +76,23 @@ export default function CoachParentChat({ embedded = false }) {
     setUnreadByCategory(unreadCounts);
   }, [messages, user]);
 
-  // Marcar no leídos de la categoría abierta como leídos automáticamente
+  // Marcar no leídos de la categoría abierta como leídos (padre_a_grupo) usando leido_por
   useEffect(() => {
-    if (!selectedCategory || !messages?.length) return;
-    const toRead = messages.filter(m => m.autor === "padre" && !m.leido_entrenador && (m.grupo_categoria === selectedCategory || m.categoria === selectedCategory));
-    toRead.forEach(msg => {
-      base44.entities.CoachMessage.update(msg.id, { leido_entrenador: true });
-    });
-  }, [selectedCategory, messages]);
+    if (!selectedCategory || !messages?.length || !user) return;
+    const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+    const unread = messages.filter(m => 
+      m.tipo === 'padre_a_grupo' && 
+      (m.grupo_id === grupo_id || m.deporte === selectedCategory) &&
+      (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
+    );
+    (async () => {
+      for (const msg of unread) {
+        const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
+        leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
+        await base44.entities.ChatMessage.update(msg.id, { leido: true, leido_por: leidoPor });
+      }
+    })();
+  }, [selectedCategory, messages, user]);
 
   if (!user) {
     return (

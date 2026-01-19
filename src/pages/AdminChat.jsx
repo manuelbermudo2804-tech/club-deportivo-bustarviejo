@@ -112,7 +112,18 @@ export default function AdminChat() {
 
   const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_admin || 0), 0);
 
-  return (
+  // Al abrir una conversación, poner a cero el contador del admin inmediatamente
+  useEffect(() => {
+    if (!selectedConversation?.id) return;
+    if ((selectedConversation.no_leidos_admin || 0) > 0) {
+      base44.entities.AdminConversation.update(selectedConversation.id, {
+        no_leidos_admin: 0,
+        last_read_admin_at: new Date().toISOString()
+      });
+    }
+  }, [selectedConversation?.id, selectedConversation?.no_leidos_admin]);
+
+   return (
     <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] flex">
       {/* Sidebar de conversaciones */}
       <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} lg:w-96 flex-col border-r bg-white overflow-hidden`}>
