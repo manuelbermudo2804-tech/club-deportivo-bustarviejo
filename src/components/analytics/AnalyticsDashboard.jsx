@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, TrendingUp, Users, Zap, BarChart3, CheckCircle2, Clock } from 'lucide-react';
+import { AlertCircle, TrendingUp, Users, Zap, BarChart3, CheckCircle2, Clock, CreditCard, Database, MessageCircle, Plug, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function AnalyticsDashboard() {
