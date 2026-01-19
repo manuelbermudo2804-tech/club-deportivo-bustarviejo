@@ -53,16 +53,30 @@ export default function AnalyticsDashboard() {
     .filter(a => filtroSeveridad === 'all' || a.severidad === filtroSeveridad)
     .sort((a, b) => (b.prioridad_score || 0) - (a.prioridad_score || 0));
 
-  if (alertasLoading || eventosLoading) {
+  if (alertasLoading || eventosLoading || analysisLoading) {
     return <div className="p-6 text-center">Cargando dashboard...</div>;
   }
+
+  // Agrupar alertas por análisis
+  const alertasPorAnalisis = {
+    stripe: comprehensiveAnalysis.stripe?.alerts || [],
+    users: comprehensiveAnalysis.users?.alerts || [],
+    data: comprehensiveAnalysis.data?.alerts || [],
+    chats: comprehensiveAnalysis.chats?.alerts || [],
+    performance: comprehensiveAnalysis.performance?.alerts || [],
+    integrations: comprehensiveAnalysis.integrations?.alerts || [],
+    email: comprehensiveAnalysis.email?.alerts || []
+  };
+
+  const allAnalysisAlerts = Object.values(alertasPorAnalisis).flat();
+  const alertasTotal = [...alertas, ...allAnalysisAlerts];
 
   return (
     <div className="p-6 space-y-6">
       {/* HEADER */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold text-slate-900">📊 Centro de Análisis</h1>
-        <p className="text-slate-600">Monitor en tiempo real de errores, rendimiento y comportamiento</p>
+        <h1 className="text-4xl font-bold text-slate-900">📊 Centro de Análisis Integral</h1>
+        <p className="text-slate-600">Monitor en tiempo real de errores, rendimiento, usuarios, pagos y más</p>
       </div>
 
       {/* KPI CARDS */}
