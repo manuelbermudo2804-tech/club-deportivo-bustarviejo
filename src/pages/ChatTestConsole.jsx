@@ -189,9 +189,9 @@ export default function ChatTestConsole() {
 
   // Unificar: una instancia del hook por rol (evita duplicados y rate limits)
   const adminN = useUnifiedNotifications(asAdmin, { forceInstance: true, testModeLoadAll: false }).notifications;
-  const coordN = useUnifiedNotifications(asCoordinator, { forceInstance: true, ignorePause: true }).notifications;
-  const coachN = useUnifiedNotifications(asCoach, { forceInstance: true, ignorePause: true }).notifications;
-  const familyN = useUnifiedNotifications(asFamily, { forceInstance: true, ignorePause: true }).notifications;
+  const coordN = useUnifiedNotifications(asCoordinator, { forceInstance: true }).notifications;
+  const coachN = useUnifiedNotifications(asCoach, { forceInstance: true }).notifications;
+  const familyN = useUnifiedNotifications(asFamily, { forceInstance: true }).notifications;
 
   useEffect(() => {
     (async () => {
@@ -260,13 +260,27 @@ export default function ChatTestConsole() {
       const convs = await base44.entities.StaffConversation.filter({ categoria: "General" });
       const conv = convs[0] || (await base44.entities.StaffConversation.create({ nombre: "Chat Interno Staff", categoria: "General", participantes: [], activa: true }));
       const s = getSender();
+      const nowIso = new Date().toISOString();
+      // Asegurar participantes (para que el hook los considere)
+      let participantes = Array.isArray(conv.participantes) ? [...conv.participantes] : [];
+      const ensurePart = (email, nombre, rol) => {
+        if (!email) return;
+        if (!participantes.some(p => p.email === email)) participantes.push({ email, nombre: nombre || email, rol });
+      };
+      ensurePart(coachEmail, "Coach Test", "entrenador");
+      ensurePart(coordEmail, "Coordinador Test", "coordinador");
+      // Marcar lectura del remitente en la conversación
+      let last = Array.isArray(conv.last_read_by) ? [...conv.last_read_by] : [];
+      const li = last.findIndex(r => r.email === s.email);
+      if (li >= 0) last[li].fecha = nowIso; else last.push({ email: s.email, fecha: nowIso });
+      await base44.entities.StaffConversation.update(conv.id, { participantes, last_read_by: last });
       await base44.entities.StaffMessage.create({
         conversacion_id: conv.id,
         autor_email: s.email,
         autor_nombre: s.nombre,
         autor_rol: s.rol,
         mensaje: `Prueba staff ${new Date().toLocaleTimeString()}`,
-        leido_por: [{ email: s.email, nombre: s.nombre, fecha: new Date().toISOString() }],
+        leido_por: [{ email: s.email, nombre: s.nombre, fecha: nowIso }],
       });
       setStatus('✅ Staff: mensaje creado');
     } catch (e) {
