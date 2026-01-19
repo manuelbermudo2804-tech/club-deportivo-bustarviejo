@@ -777,7 +777,7 @@ export function useUnifiedNotifications(user, options = {}) {
     const next = {
       unreadCoordinatorMessages: unreadCoordinator,
       unreadCoachMessages: unreadCoach,
-      unreadStaffMessages: unreadStaff,
+      unreadStaffMessages: unreadStaff, // legacy; UI usa ChatCounter
       unreadAdminMessages: unreadAdmin,
       unreadPrivateMessages: unreadPrivate,
       unreadFamilyMessages: unreadFamilies,
