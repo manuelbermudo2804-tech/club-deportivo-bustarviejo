@@ -70,32 +70,12 @@ export default function AlertCenter({
   // Usuario actual (para unificar origen de notificaciones)
   const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
   // Contadores unificados (mismo origen que las burbujas del menú)
-  const { notifications } = useUnifiedNotifications(meUser, { forceInstance: true, ignorePause: true });
+  const { notifications } = useUnifiedNotifications(meUser);
   
-  // Real-time subscriptions para recalcular alertas instantáneamente
+  // Real-time subscriptions eliminadas para evitar duplicar cargas (nos apoyamos en useUnifiedNotifications + bus global)
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
   useEffect(() => {
-    if (!userEmail) return;
-    
-    const unsubscribers = [];
-    
-    // Trigger refresh cuando cambian las entidades relevantes
-    const entities = [
-      'ChatMessage', 'CoordinatorConversation', 'AdminConversation', 'StaffMessage',
-      'Convocatoria', 'Payment', 'Player', 'Announcement', 'Event'
-    ];
-    
-    entities.forEach(entityName => {
-      const unsub = base44.entities[entityName].subscribe(() => {
-        setRefreshTrigger(prev => prev + 1);
-      });
-      unsubscribers.push(unsub);
-    });
-    
-    return () => {
-      unsubscribers.forEach(unsub => unsub());
-    };
+    setRefreshTrigger((n) => n); // no-op; mantenemos el estado para compatibilidad
   }, [userEmail]);
   const [dismissedAlerts, setDismissedAlerts] = useState(() => {
   try {
@@ -161,7 +141,8 @@ const alerts = [];
     queryKey: ['announcements'],
     queryFn: () => base44.entities.Announcement.list('-fecha_publicacion', 60),
     enabled: !!userEmail,
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    staleTime: 60000,
   });
 
   // Verificar anuncios no leídos

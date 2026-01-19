@@ -95,7 +95,7 @@ export function useUnifiedNotifications(user, options = {}) {
     const paused = until && Date.now() < until;
     const hidden = typeof document !== 'undefined' && document.hidden;
     const pausedGlobal = typeof window !== 'undefined' && window.__BASE44_PAUSE_REALTIME__ === true;
-    if (paused || hidden || pausedGlobal) {
+    if ((paused || pausedGlobal) || hidden) {
       if (!options?.ignorePause) return;
     }
 
@@ -161,10 +161,10 @@ export function useUnifiedNotifications(user, options = {}) {
     // Chat Messages (skip for pure admins, unless test mode)
     if (options?.testModeLoadAll || user.role !== 'admin') {
       const loadChatMsgs = async () => {
-        const msgs = await base44.entities.ChatMessage.list('-created_date', 20);
+        const msgs = await base44.entities.ChatMessage.list('-created_date', 15);
         setRawData(prev => ({ ...prev, chatMessages: msgs }));
       };
-      setTimeout(loadChatMsgs, 200);
+      setTimeout(loadChatMsgs, 300);
       // Throttle chat subscription updates
       let lastChatUpdate = 0;
       const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
@@ -185,10 +185,10 @@ export function useUnifiedNotifications(user, options = {}) {
     // Staff Messages (only for staff roles, unless test mode)
     if (options?.testModeLoadAll || user.es_entrenador || user.es_coordinador || user.role === 'admin') {
       const loadStaffMsgs = async () => {
-        const msgs = await base44.entities.StaffMessage.list('-created_date', 20);
+        const msgs = await base44.entities.StaffMessage.list('-created_date', 15);
         setRawData(prev => ({ ...prev, staffMessages: msgs }));
       };
-      setTimeout(loadStaffMsgs, 300);
+      setTimeout(loadStaffMsgs, 400);
       let lastStaffUpdate = 0;
       const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
         const now = Date.now();
@@ -286,7 +286,7 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // ===== CONVOCATORIAS =====
     const loadConvocatorias = async () => {
-      const convs = await base44.entities.Convocatoria.list('-created_date', 40);
+      const convs = await base44.entities.Convocatoria.list('-created_date', 30);
       setRawData(prev => ({ ...prev, convocatorias: convs }));
     };
     setTimeout(loadConvocatorias, 700);
@@ -308,7 +308,7 @@ export function useUnifiedNotifications(user, options = {}) {
     // ===== PAGOS ===== (solo para admin/tesorero, para reducir carga)
     if (user.role === 'admin' || user.es_tesorero) {
       const loadPayments = async () => {
-        const pays = await base44.entities.Payment.list('-created_date', 40);
+        const pays = await base44.entities.Payment.list('-created_date', 30);
         setRawData(prev => ({ ...prev, payments: pays }));
       };
       setTimeout(loadPayments, 800);
@@ -332,7 +332,7 @@ export function useUnifiedNotifications(user, options = {}) {
     const loadPlayers = async () => {
       let pls = [];
       if (options?.testModeLoadAll) {
-        pls = await base44.entities.Player.list('-updated_date', 120);
+        pls = await base44.entities.Player.list('-updated_date', 80);
       } else if (user?.role === 'admin') {
         pls = await base44.entities.Player.filter({ categoria_requiere_revision: true }, '-updated_date', 120);
       } else {
@@ -358,7 +358,7 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // ===== ANUNCIOS =====
     const loadAnnouncements = async () => {
-      const anns = await base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 30);
+      const anns = await base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 20);
       setRawData(prev => ({ ...prev, announcements: anns }));
     };
     setTimeout(loadAnnouncements, 1000);
