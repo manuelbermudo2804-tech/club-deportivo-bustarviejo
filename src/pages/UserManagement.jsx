@@ -1760,7 +1760,7 @@ CD Bustarviejo`);
 
       {/* Diálogo de Bloqueo de Chat */}
       <Dialog open={showChatBlockDialog} onOpenChange={setShowChatBlockDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               {selectedUser?.chat_bloqueado ? (
@@ -1888,7 +1888,7 @@ CD Bustarviejo`);
 
       {/* Diálogo de Eliminación */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               <Trash2 className="w-6 h-6 text-slate-700" />
@@ -1964,7 +1964,7 @@ CD Bustarviejo`);
 
       {/* Diálogo de Cambio de Rol */}
       <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               <Shield className="w-6 h-6 text-purple-600" />
@@ -2090,7 +2090,7 @@ CD Bustarviejo`);
 
       {/* Diálogo Casar Progenitores */}
       <Dialog open={showPairDialog} onOpenChange={setShowPairDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-xl">👨‍👩‍👧 Casar progenitores</DialogTitle>
             <DialogDescription>
@@ -2136,7 +2136,7 @@ CD Bustarviejo`);
 
       {/* Diálogo de recordatorio de renovación */}
       <Dialog open={!!showReminderDialog} onOpenChange={() => setShowReminderDialog(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>📧 Enviar Recordatorio de Renovación</DialogTitle>
           </DialogHeader>
