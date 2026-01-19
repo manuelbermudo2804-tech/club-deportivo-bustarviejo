@@ -186,10 +186,10 @@ export default function ChatTestConsole() {
   );
 
   // Unificar: una instancia del hook por rol (evita duplicados y rate limits)
-  const adminN = useUnifiedNotifications(asAdmin, { forceInstance: true, ignorePause: true, testModeLoadAll: true }).notifications;
-  const coordN = useUnifiedNotifications(asCoordinator, { forceInstance: true, ignorePause: true }).notifications;
-  const coachN = useUnifiedNotifications(asCoach, { forceInstance: true, ignorePause: true }).notifications;
-  const familyN = useUnifiedNotifications(asFamily, { forceInstance: true, ignorePause: true }).notifications;
+  const adminN = useUnifiedNotifications(asAdmin, { forceInstance: true, testModeLoadAll: true }).notifications;
+  const coordN = useUnifiedNotifications(asCoordinator, { forceInstance: true }).notifications;
+  const coachN = useUnifiedNotifications(asCoach, { forceInstance: true }).notifications;
+  const familyN = useUnifiedNotifications(asFamily, { forceInstance: true }).notifications;
 
   useEffect(() => {
     (async () => {
