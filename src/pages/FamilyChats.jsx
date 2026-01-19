@@ -1,10 +1,9 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import ErrorBoundary from "../components/common/ErrorBoundary";
-import ErrorBoundary from "../components/common/ErrorBoundary";
-import ErrorBoundary from "../components/common/ErrorBoundary";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import BubbleBadge from "../components/notifications/BubbleBadge";
 
 const CoordinatorChat = lazy(() => import("./CoordinatorChat"));
 const CoachParentChat = lazy(() => import("./CoachParentChat"));
@@ -79,7 +78,7 @@ export default function FamilyChats() {
           </TabsList>
         </div>
 
-        <TabsContent value="coordinador" className="flex-1 mt-0 overflow-hidden">
+        <TabsContent value="coordinador" className="relative flex-1 mt-0 overflow-hidden">
           {activeTab === 'coordinador' ? (
             loading ? (
               <div className="h-full flex items-center justify-center">
@@ -97,8 +96,10 @@ export default function FamilyChats() {
           ) : null}
         </TabsContent>
 
-         <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden">
+         <TabsContent value="entrenador" className="relative flex-1 mt-0 overflow-hidden">
            {activeTab === 'entrenador' ? (
+             <BubbleBadge title="Nuevos mensajes de familias (Coordinador)" color="blue" position="left" count={coordUnreadCount} onClick={() => setActiveTab('coordinador')} />
+             <BubbleBadge title="Nuevos mensajes (Entrenador)" color="red" position="right" count={coachUnreadCount} onClick={() => setActiveTab('entrenador')} />
              loading ? (
                <div className="h-full flex items-center justify-center">
                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>

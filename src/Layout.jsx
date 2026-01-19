@@ -16,6 +16,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
+import PendingTasksBar from "./components/notifications/PendingTasksBar";
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 import { SeasonProvider } from "./components/season/SeasonProvider";
@@ -2226,6 +2227,9 @@ export default function Layout({ children, currentPageName }) {
         <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
 
           <ActiveBanner position="top" user={user} />
+          {/* Barra de tareas pendientes (chats) */}
+          <Suspense fallback={null}></Suspense>
+          <PendingTasksBar notifications={notifications} />
           {extraChargeVisible && (
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}

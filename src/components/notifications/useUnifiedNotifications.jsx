@@ -539,11 +539,24 @@ export function useUnifiedNotifications(user, options = {}) {
     let unreadPrivate = 0;
     let unreadFamilies = 0;
 
+    // Desgloses por conversación/grupo (para pestañas y burbujas)
+    const breakdown = {
+      coordinatorByConvForCoordinator: {}, // convId -> count (coordinador)
+      coordinatorByConvForParent: {},      // convId -> count (familia)
+      coachGroupForCoach: {},              // grupo_id/deporte -> count (familias->grupo)
+      coachGroupForParent: {},             // grupo_id/deporte -> count (entrenador->grupo)
+      staffByGroup: {},                    // grupo/canal -> count
+      adminByConv: {},                     // convId -> count
+      privateByConv: {},                   // convId -> count por rol
+    };
+
     // Coordinator (para familias): usar counters de la conversación
     if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador) {
       rawData.coordinatorConversations.forEach(conv => {
         if (conv.padre_email === user.email && conv.resuelta !== true) {
-          unreadCoordinator += (conv.no_leidos_padre || 0);
+          const c = (conv.no_leidos_padre || 0);
+          unreadCoordinator += c;
+          if (c > 0) breakdown.coordinatorByConvForParent[conv.id] = c;
         }
       });
     }
@@ -551,7 +564,9 @@ export function useUnifiedNotifications(user, options = {}) {
     // Coordinator (para coordinadores): mensajes de familias pendientes
     if (user.es_coordinador) {
       rawData.coordinatorConversations.forEach(conv => {
-        unreadCoordinator += (conv.no_leidos_coordinador || 0);
+        const c = (conv.no_leidos_coordinador || 0);
+        unreadCoordinator += c;
+        if (c > 0) breakdown.coordinatorByConvForCoordinator[conv.id] = c;
       });
     }
 
@@ -559,7 +574,7 @@ export function useUnifiedNotifications(user, options = {}) {
     if (user.es_entrenador) {
       rawData.coachConversations
         .filter(conv => conv.entrenador_email === user.email)
-        .forEach(conv => { unreadCoach += (conv.no_leidos_entrenador || 0); });
+        .forEach(conv => { const c = (conv.no_leidos_entrenador || 0); unreadCoach += c; if (c>0) breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] = (breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] || 0) + c; });
     }
 
     // Coach (ChatMessage tipo entrenador_a_grupo)
@@ -569,6 +584,8 @@ export function useUnifiedNotifications(user, options = {}) {
             (myCategories.includes(msg.deporte) || myCategories.includes(msg.grupo_id)) &&
             (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
           unreadCoach++;
+          const key = msg.grupo_id || msg.deporte || 'general';
+          breakdown.coachGroupForParent[key] = (breakdown.coachGroupForParent[key] || 0) + 1;
         }
       });
     }
@@ -581,6 +598,8 @@ export function useUnifiedNotifications(user, options = {}) {
             (coachCategories.includes(msg.deporte) || coachCategories.includes(msg.grupo_id)) &&
             (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
           unreadFamilies++;
+          const key = msg.grupo_id || msg.deporte || 'general';
+          breakdown.coachGroupForCoach[key] = (breakdown.coachGroupForCoach[key] || 0) + 1;
         }
       });
 
@@ -610,6 +629,7 @@ export function useUnifiedNotifications(user, options = {}) {
         const ts = msg.created_date ? new Date(msg.created_date).getTime() : 0;
         const prev = latestByGroup.get(key);
         if (!prev || ts > prev) latestByGroup.set(key, ts);
+        breakdown.staffByGroup[key] = (breakdown.staffByGroup[key] || 0) + 1;
       });
       unreadStaff = latestByGroup.size;
       // Asegurar sincronía con burbuja: considerar AppNotifications de StaffChat
@@ -621,7 +641,9 @@ export function useUnifiedNotifications(user, options = {}) {
     if (user.role !== 'admin') {
       rawData.adminConversations.forEach(conv => {
         if (conv.padre_email === user.email && conv.resuelta === false) {
-          unreadAdmin += (conv.no_leidos_padre || 0);
+          const c = (conv.no_leidos_padre || 0);
+          unreadAdmin += c;
+          if (c>0) breakdown.adminByConv[conv.id] = c;
         }
       });
     }
@@ -629,9 +651,13 @@ export function useUnifiedNotifications(user, options = {}) {
     // Private
     rawData.privateConversations.forEach(conv => {
       if (conv.participante_familia_email === user.email) {
-        unreadPrivate += (conv.no_leidos_familia || 0);
+        const c = (conv.no_leidos_familia || 0);
+        unreadPrivate += c;
+        if (c>0) breakdown.privateByConv[conv.id] = c;
       } else if (conv.participante_staff_email === user.email) {
-        unreadPrivate += (conv.no_leidos_staff || 0);
+        const c = (conv.no_leidos_staff || 0);
+        unreadPrivate += c;
+        if (c>0) breakdown.privateByConv[conv.id] = c;
       }
     });
 
@@ -778,6 +804,7 @@ export function useUnifiedNotifications(user, options = {}) {
       pendingMemberRequests,
       pendingMatchObservations,
       hasActiveAdminConversation,
+      breakdown,
     };
     setNotifications(next);
     try {
