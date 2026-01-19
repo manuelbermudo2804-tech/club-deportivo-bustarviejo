@@ -215,6 +215,9 @@ export default function StaffChat() {
         !m.leido_por?.some(l => l.email === user.email)
       );
 
+      // Si no hay mensajes nuevos, pero hay AppNotifications no vistas, márcalas igual
+      const hasStaffNotifs = (await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: 'StaffChat', vista: false })).length > 0;
+
       for (const msg of unreadMessages) {
         const leido_por = msg.leido_por || [];
         leido_por.push({
