@@ -520,9 +520,66 @@ export default function ChatTestConsole() {
     finally { setBusy(null); }
   };
 
+  // Marca anuncios como leídos para todos los correos de prueba y pone a cero los contadores de Staff
+  const resetMetaBadges = async () => {
+    const emails = Array.from(new Set([me?.email, coachEmail, coordEmail, parentEmail].filter(Boolean)));
+    const nowIso = new Date().toISOString();
+
+    // Anuncios → marcar como leídos
+    try {
+      const anns = await base44.entities.Announcement.filter({ publicado: true });
+      for (const ann of anns) {
+        const leido = Array.isArray(ann.leido_por) ? [...ann.leido_por] : [];
+        let changed = false;
+        for (const email of emails) {
+          if (!leido.some((x) => x.email === email)) {
+            leido.push({ email, nombre: email, fecha: nowIso });
+            changed = true;
+          }
+        }
+        if (changed) await base44.entities.Announcement.update(ann.id, { leido_por: leido });
+      }
+    } catch (e) {
+      // opcional: ignorar errores de anuncios en reset
+    }
+
+    // Staff → actualizar last_read_by para todos
+    try {
+      const staffConvs = await base44.entities.StaffConversation.list('-updated_date', 50);
+      for (const sc of staffConvs) {
+        let last = Array.isArray(sc.last_read_by) ? [...sc.last_read_by] : [];
+        let changed = false;
+        for (const email of emails) {
+          const idx = last.findIndex((x) => x.email === email);
+          if (idx >= 0) {
+            if (last[idx].fecha !== nowIso) { last[idx].fecha = nowIso; changed = true; }
+          } else {
+            last.push({ email, fecha: nowIso });
+            changed = true;
+          }
+        }
+        if (changed) await base44.entities.StaffConversation.update(sc.id, { last_read_by: last });
+      }
+    } catch (e) {
+      // ignorar errores
+    }
+
+    // Notificaciones de app residuales
+    try {
+      for (const email of emails) {
+        const notifs = await base44.entities.AppNotification.filter({ user_email: email });
+        for (const n of notifs) await base44.entities.AppNotification.delete(n.id);
+      }
+    } catch (e) {
+      // ignorar
+    }
+  };
+
   const resetAll = async () => {
     setBusy('reset-all'); setStatus('⏳ Reseteando todo...');
     try {
+      // Primero, poner a cero anuncios/staff/app-notifs para TODOS los roles de prueba
+      await resetMetaBadges();
       // Ejecutar en serie para evitar picos de carga
       await resetParentToCoach();
       await resetCoachToGroup();
@@ -530,6 +587,8 @@ export default function ChatTestConsole() {
       await resetAdminFamily();
       await resetPrivateClub();
       await resetStaff();
+      // Activar aislamiento con la línea base ya limpia
+      setAdminBase(adminN); setCoordBase(coordN); setCoachBase(coachN); setFamilyBase(familyN); setIsolateMode(true);
       setStatus('✅ Reset completo');
     } catch (e) {
       setStatus(`❌ Reset general: ${e?.message || e}`);
@@ -640,6 +699,11 @@ export default function ChatTestConsole() {
             <CardTitle className="text-sm">Reseteo de pruebas</CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-2">
+            <div className="md:col-span-3 flex flex-wrap gap-2 mb-1">
+              <Button variant="outline" size="sm" onClick={takeBaseline} disabled={!!busy}>🧹 Forzar a 0 (aislar)</Button>
+              <Button variant="ghost" size="sm" onClick={clearBaseline} disabled={!!busy || !isolateMode}>Salir de aislamiento</Button>
+              {isolateMode && <Badge className="bg-green-600">Aislamiento activo</Badge>}
+            </div>
             <div className="md:col-span-3 flex flex-wrap gap-2 mb-1">
               <Button variant="outline" size="sm" onClick={takeBaseline} disabled={!!busy}>🧹 Forzar a 0 (aislar)</Button>
               <Button variant="ghost" size="sm" onClick={clearBaseline} disabled={!!busy || !isolateMode}>Salir de aislamiento</Button>
