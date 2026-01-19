@@ -52,22 +52,26 @@ export async function trackError(errorData) {
   try {
     const navData = detectarNavegador();
 
-    await base44.functions.invoke('analyticsCollector', {
-      tipo: 'error',
-      email: errorData.email,
-      rol: errorData.rol,
-      pagina: errorData.pagina,
-      severidad: errorData.severidad || 'error',
-      titulo: errorData.titulo,
-      mensaje: errorData.mensaje,
-      detalles: {
-        stack: errorData.stack,
-        url: window.location.href,
-        timestamp: new Date().toISOString()
-      },
-      navegador: navData.navegador,
-      dispositivo: navData.dispositivo,
-      so: navData.so
+    await retryWithBackoff(async () => {
+      return await globalThrottler.execute(async () => {
+        return await base44.functions.invoke('analyticsCollector', {
+          tipo: 'error',
+          email: errorData.email,
+          rol: errorData.rol,
+          pagina: errorData.pagina,
+          severidad: errorData.severidad || 'error',
+          titulo: errorData.titulo,
+          mensaje: errorData.mensaje,
+          detalles: {
+            stack: errorData.stack,
+            url: window.location.href,
+            timestamp: new Date().toISOString()
+          },
+          navegador: navData.navegador,
+          dispositivo: navData.dispositivo,
+          so: navData.so
+        });
+      });
     });
   } catch (e) {
     console.error('Error tracking failed:', e);
