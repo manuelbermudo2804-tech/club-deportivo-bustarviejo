@@ -558,6 +558,13 @@ export default function Layout({ children, currentPageName }) {
   const unreadPrivateChat = notifications.unreadPrivateMessages || 0;
   const unreadFamilyChat = notifications.unreadFamilyMessages || 0;
   const unreadAdminMessagesCount = notifications.unreadAdminMessages || 0;
+  // Propagar rol al PendingTasksBar para mantener visible cuando contadores están a 0
+  const enrichedNotifications = {
+    ...notifications,
+    role: user?.role,
+    isCoordinator,
+    isCoach,
+  };
 
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
