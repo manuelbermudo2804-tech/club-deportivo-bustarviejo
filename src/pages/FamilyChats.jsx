@@ -28,13 +28,34 @@ export default function FamilyChats() {
     fetchUser();
   }, []);
 
-  // Contadores por defecto
-  const coordUnreadCount = 0;
-  const coachUnreadCount = 0;
+  // Contadores con estado (escuchan sistema unificado)
+  const [coordUnreadCount, setCoordUnreadCount] = useState(0);
+  const [coachUnreadCount, setCoachUnreadCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('coordinador');
+
+  useEffect(() => {
+    const init = () => {
+      try {
+        const s = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE || {};
+        setCoordUnreadCount(Number(s.unreadCoordinatorMessages || 0));
+        setCoachUnreadCount(Number(s.unreadFamilyMessages || 0));
+      } catch {}
+    };
+    init();
+    const handler = (e) => {
+      try {
+        const d = e?.detail || {};
+        setCoordUnreadCount(Number(d.unreadCoordinatorMessages || 0));
+        setCoachUnreadCount(Number(d.unreadFamilyMessages || 0));
+      } catch {}
+    };
+    window.addEventListener('b44_unified_notifications_updated', handler);
+    return () => window.removeEventListener('b44_unified_notifications_updated', handler);
+  }, []);
 
   return (
     <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
-      <Tabs defaultValue="coordinador" className="h-full flex flex-col">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
         <div className="flex-shrink-0 bg-white border-b px-2 py-2">
           <TabsList className="w-full">
             <TabsTrigger value="coordinador" className="flex-1 relative">
@@ -54,31 +75,35 @@ export default function FamilyChats() {
         </div>
 
         <TabsContent value="coordinador" className="flex-1 mt-0 overflow-hidden">
-           {loading ? (
-             <div className="h-full flex items-center justify-center">
-               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-             </div>
-           ) : isCoordinator ? (
-             <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
-               <CoordinatorChat embedded={true} />
-             </Suspense>
-           ) : (
-             <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
-           )}
-         </TabsContent>
+          {activeTab === 'coordinador' ? (
+            loading ? (
+              <div className="h-full flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+              </div>
+            ) : isCoordinator ? (
+              <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
+                <CoordinatorChat embedded={true} />
+              </Suspense>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
+            )
+          ) : null}
+        </TabsContent>
 
          <TabsContent value="entrenador" className="flex-1 mt-0 overflow-hidden">
-           {loading ? (
-             <div className="h-full flex items-center justify-center">
-               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-             </div>
-           ) : isCoach ? (
-             <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
-               <CoachParentChat embedded={true} />
-             </Suspense>
-           ) : (
-             <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
-           )}
+           {activeTab === 'entrenador' ? (
+             loading ? (
+               <div className="h-full flex items-center justify-center">
+                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+               </div>
+             ) : isCoach ? (
+               <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
+                 <CoachParentChat embedded={true} />
+               </Suspense>
+             ) : (
+               <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
+             )
+           ) : null}
          </TabsContent>
       </Tabs>
     </div>
