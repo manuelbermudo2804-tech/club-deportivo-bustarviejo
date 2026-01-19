@@ -98,21 +98,23 @@ export default function FamilyChats() {
 
          <TabsContent value="entrenador" className="relative flex-1 mt-0 overflow-hidden">
            {activeTab === 'entrenador' ? (
-             <BubbleBadge title="Nuevos mensajes de familias (Coordinador)" color="blue" position="left" count={coordUnreadCount} onClick={() => setActiveTab('coordinador')} />
-             <BubbleBadge title="Nuevos mensajes (Entrenador)" color="red" position="right" count={coachUnreadCount} onClick={() => setActiveTab('entrenador')} />
-             loading ? (
-               <div className="h-full flex items-center justify-center">
-                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-               </div>
-             ) : isCoach ? (
-               <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
-                 <ErrorBoundary onReset={() => setCoachKey((k) => k + 1)}>
-                   <CoachParentChat key={`coach-${coachKey}`} embedded={true} />
-                 </ErrorBoundary>
-               </Suspense>
-             ) : (
-               <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
-             )
+             <>
+               <BubbleBadge title="Nuevos mensajes de familias (Coordinador)" color="blue" position="left" count={coordUnreadCount} onClick={() => setActiveTab('coordinador')} />
+               <BubbleBadge title="Nuevos mensajes (Entrenador)" color="red" position="right" count={coachUnreadCount} onClick={() => setActiveTab('entrenador')} />
+               {loading ? (
+                 <div className="h-full flex items-center justify-center">
+                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                 </div>
+               ) : isCoach ? (
+                 <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
+                   <ErrorBoundary onReset={() => setCoachKey((k) => k + 1)}>
+                     <CoachParentChat key={`coach-${coachKey}`} embedded={true} />
+                   </ErrorBoundary>
+                 </Suspense>
+               ) : (
+                 <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
+               )}
+             </>
            ) : null}
          </TabsContent>
       </Tabs>
