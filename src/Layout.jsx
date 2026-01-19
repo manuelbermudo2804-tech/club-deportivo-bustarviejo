@@ -1164,6 +1164,16 @@ export default function Layout({ children, currentPageName }) {
 
 
 
+  // Admin: only allow critical chat; redirect from other chat pages
+  useEffect(() => {
+    if (!isAdmin) return;
+    const p = location.pathname.toLowerCase();
+    const blocked = ['/familychats','/parentcoordinatorchat','/parentcoachchat','/staffchat','/coachparentchat','/directmessages'];
+    if (blocked.some(b => p.includes(b))) {
+      navigate(createPageUrl('AdminChat'));
+    }
+  }, [isAdmin, location.pathname, navigate]);
+
   const shouldShowRestricted = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "restricted";
   const shouldShowClosed = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "closed";
   const shouldShowInscriptions = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "inscriptions";
@@ -1198,7 +1208,7 @@ export default function Layout({ children, currentPageName }) {
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
 
     // 💬 COMUNICACIÓN
-    { title: "💬 Chat Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: unreadCoordinatorChat > 0 ? unreadCoordinatorChat : null },
+
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
