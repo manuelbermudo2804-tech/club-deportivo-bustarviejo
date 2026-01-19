@@ -77,6 +77,12 @@ export default function CoachParentChat({ embedded = false }) {
   }, [messages, user]);
 
   // Marcar no leídos de la categoría abierta como leídos (padre_a_grupo) usando leido_por
+  // Si hay ?category= en la URL, abrir directamente esa pestaña
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get('category');
+    if (cat && !selectedCategory) setSelectedCategory(cat);
+  }, [selectedCategory]);
   useEffect(() => {
     if (!selectedCategory || !messages?.length || !user) return;
     const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
