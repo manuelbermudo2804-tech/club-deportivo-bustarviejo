@@ -591,6 +591,7 @@ export default function Layout({ children, currentPageName }) {
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
+  const [showBirthdayModal, setShowBirthdayModal] = useState(null);
 
   const [installContext, setInstallContext] = useState('manual');
 
@@ -1571,16 +1572,49 @@ export default function Layout({ children, currentPageName }) {
                         return;
                       }
 
-        // 2) Mostrar instrucciones de instalación (tras onboarding o si no se ha completado)
-        const triggerInstall = localStorage.getItem('installPromptAfterOnboarding') === 'true';
-        if (triggerInstall) {
-          setInstallContext('onboarding');
-          setShowInstallInstructions(true);
-          localStorage.removeItem('installPromptAfterOnboarding');
-        } else if (!localStorage.getItem('installCompleted')) {
-          setInstallContext('onboarding');
-          setShowInstallInstructions(true);
-        }
+        // 2) Verificar si es cumpleaños del usuario hoy
+          if (user?.email) {
+            try {
+              const today = new Date();
+              const month = String(today.getMonth() + 1).padStart(2, '0');
+              const day = String(today.getDate()).padStart(2, '0');
+              const todayMDKey = `${month}-${day}`;
+
+              const logs = await base44.asServiceRole.entities.BirthdayLog.filter({
+                destinatario_email: user.email,
+                email_enviado: true
+              });
+
+              const hoyEs = logs.find(log => {
+                if (!log.fecha_envio_email) return false;
+                const logDate = log.fecha_envio_email.split('T')[0];
+                const todayStr = today.toISOString().split('T')[0];
+                return logDate === todayStr && log.notificacion_app_mostrada !== true;
+              });
+
+              if (hoyEs) {
+                setShowBirthdayModal(hoyEs);
+                // Marcar como mostrada
+                await base44.asServiceRole.entities.BirthdayLog.update(hoyEs.id, {
+                  notificacion_app_mostrada: true,
+                  fecha_notificacion_app: new Date().toISOString()
+                });
+              }
+            } catch (e) {
+              console.log('Info: error buscando cumpleaños:', e);
+            }
+          }
+
+          // 3) Mostrar instrucciones de instalación (tras onboarding o si no se ha completado)
+          const triggerInstall = localStorage.getItem('installPromptAfterOnboarding') === 'true';
+          if (triggerInstall) {
+            setInstallContext('onboarding');
+            setShowInstallInstructions(true);
+            localStorage.removeItem('installPromptAfterOnboarding');
+          } else if (!localStorage.getItem('installCompleted')) {
+            setInstallContext('onboarding');
+            setShowInstallInstructions(true);
+          }
 
         // 3) Normal - sin onboarding
         setOnboardingView('none');
@@ -2242,7 +2276,14 @@ export default function Layout({ children, currentPageName }) {
 
         <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
 
-          <ActiveBanner position="top" user={user} />
+          {/* Widget de cumpleaños hoy */}
+          {!isAdmin && isLoading === false && (
+            <div className="px-4 pt-4 lg:pt-6">
+              <BirthdayWidget />
+            </div>
+          )}
+
+        <ActiveBanner position="top" user={user} />
 
           {extraChargeVisible && (
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
@@ -2300,6 +2341,16 @@ export default function Layout({ children, currentPageName }) {
                 <p className="text-slate-600 mt-1">Hemos registrado tu pago correctamente.</p>
               </div>
             </div>
+          )}
+
+          {/* Modal de felicitación de cumpleaños */}
+          {showBirthdayModal && (
+            <BirthdayModal
+              nombre={showBirthdayModal.destinatario_nombre}
+              edad={showBirthdayModal.edad}
+              tipo={showBirthdayModal.destinatario_tipo}
+              onClose={() => setShowBirthdayModal(null)}
+            />
           )}
           </main>
 
