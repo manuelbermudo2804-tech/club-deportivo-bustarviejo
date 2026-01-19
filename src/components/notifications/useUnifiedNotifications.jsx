@@ -66,6 +66,7 @@ export function useUnifiedNotifications(user, options = {}) {
     matchObservations: [],
     appNotifications: [],
   });
+  const [isPrimaryInstance, setIsPrimaryInstance] = useState(false);
 
   // Global listener to receive updates from the primary notifications instance
   useEffect(() => {
@@ -84,10 +85,19 @@ export function useUnifiedNotifications(user, options = {}) {
   useEffect(() => {
     if (!user) return;
 
-    // Prevent duplicate initialization across mounts
+    // Prevent duplicate initialization across mounts (mark primary/secondary)
+    let primary = true;
     if (!options?.forceInstance && typeof window !== 'undefined') {
-      if (window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE) return;
-      window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = true;
+      if (window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE) {
+        primary = false;
+      } else {
+        window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = true;
+      }
+    }
+    setIsPrimaryInstance(primary);
+    if (!primary) {
+      // Secondary instances only listen to global bus; no subscriptions
+      return;
     }
 
     // Pause heavy real-time if maintenance window active or tab hidden
@@ -469,7 +479,7 @@ export function useUnifiedNotifications(user, options = {}) {
 
     return () => {
       unsubscribers.forEach(unsub => unsub());
-      if (!options?.forceInstance && typeof window !== 'undefined') {
+      if (!options?.forceInstance && typeof window !== 'undefined' && isPrimaryInstance) {
         window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = false;
       }
     };
