@@ -167,6 +167,7 @@ export default function CoachParentChat({ embedded = false }) {
           {/* Pestañas de categorías - más compactas */}
           <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
             {categories.map(cat => {
+              const catKey = typeof cat === 'string' ? cat : (cat?.nombre || String(cat));
               const categoryPlayers = cat === "Todas las categorías" 
                 ? allPlayers 
                 : allPlayers.filter(p => p.deporte === cat);
