@@ -401,6 +401,8 @@ export default function ChatTestConsole() {
     }
   };
 
+  const bubbleN = bubbleRole==='admin' ? adminN : bubbleRole==='coordinator' ? coordN : bubbleRole==='coach' ? coachN : familyN;
+
   // ==== Reset de pruebas ====
   const resetStaff = async () => {
     setBusy('reset-staff'); setStatus(null);
