@@ -1557,7 +1557,7 @@ CD Bustarviejo`);
 
       {/* Diálogo de Tesorero */}
       <Dialog open={showTreasurerDialog} onOpenChange={setShowTreasurerDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               <Shield className="w-6 h-6 text-green-600" />
