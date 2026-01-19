@@ -163,8 +163,15 @@ export default function ChatTestConsole() {
   const [coachBase, setCoachBase] = useState(null);
   const [familyBase, setFamilyBase] = useState(null);
 
+  // Pausar realtime global del resto de la app mientras probamos
+  useEffect(() => {
+    const prev = typeof window !== 'undefined' ? window.__BASE44_PAUSE_REALTIME__ : false;
+    if (typeof window !== 'undefined') window.__BASE44_PAUSE_REALTIME__ = true;
+    return () => { if (typeof window !== 'undefined') window.__BASE44_PAUSE_REALTIME__ = prev || false; };
+  }, []);
+
   // Impersonaciones ligeras (siempre declarar hooks antes de cualquier return)
-  const asAdmin = me;
+  const asAdmin = me; // admin real
   const asCoordinator = useMemo(
     () => ({ email: coordEmail, full_name: "Coord (test)", role: "user", es_coordinador: true }),
     [coordEmail]

@@ -97,7 +97,7 @@ export function useUnifiedNotifications(user, options = {}) {
       } else if (user?.es_coordinador) {
         convs = await base44.entities.CoordinatorConversation.list('-updated_date', 100);
       } else {
-        convs = await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 100);
+        convs = await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 30);
       }
       setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
     };
@@ -197,7 +197,7 @@ export function useUnifiedNotifications(user, options = {}) {
       if (options?.testModeLoadAll || user?.role === 'admin') {
         convs = await base44.entities.AdminConversation.list('-updated_date', 30);
       } else if (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
-        convs = await base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 100);
+        convs = await base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 30);
       } else {
         return;
       }
@@ -250,7 +250,7 @@ export function useUnifiedNotifications(user, options = {}) {
       if (options?.testModeLoadAll) {
         convs = await base44.entities.PrivateConversation.list('-updated_date', 30);
       } else {
-        convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 60);
+        convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 40);
       }
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
