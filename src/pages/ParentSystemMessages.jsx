@@ -39,7 +39,10 @@ export default function ParentSystemMessages() {
         (c.participante_staff_rol === 'admin' || c.participante_staff_rol === 'entrenador' || c.participante_staff_email === 'sistema@cdbustarviejo.com')
       );
     },
-    refetchInterval: 5000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    gcTime: 300000,
     enabled: !!user?.email,
   });
 
@@ -53,11 +56,32 @@ export default function ParentSystemMessages() {
         conversations.some(c => c.id === m.conversacion_id)
       );
     },
-    refetchInterval: 3000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    gcTime: 300000,
     enabled: conversations.length > 0,
   });
 
-  // Marcar mensajes como leídos INMEDIATAMENTE + LIMPIAR NOTIFICACIONES
+  // Suscripciones en tiempo real (sin polling)
+  useEffect(() => {
+    if (!user?.email) return;
+    const unsubConv = base44.entities.PrivateConversation.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['parentPrivateConversations', user.email] });
+    });
+    return unsubConv;
+  }, [user?.email, queryClient]);
+
+  useEffect(() => {
+    const unsubMsg = base44.entities.PrivateMessage.subscribe((event) => {
+      if (conversations.some(c => c.id === event.data?.conversacion_id)) {
+        queryClient.invalidateQueries({ queryKey: ['parentPrivateMessages'] });
+      }
+    });
+    return unsubMsg;
+  }, [conversations, queryClient]);
+
+   // Marcar mensajes como leídos INMEDIATAMENTE + LIMPIAR NOTIFICACIONES
   useEffect(() => {
     const markAsRead = async () => {
       if (!user) return;

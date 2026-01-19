@@ -41,7 +41,10 @@ export default function ParentAdminChat() {
       return all[0] || null;
     },
     enabled: !!user,
-    refetchInterval: 5000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    gcTime: 300000,
   });
 
   const { data: messages = [] } = useQuery({
@@ -53,7 +56,10 @@ export default function ParentAdminChat() {
       }, 'created_date');
       return all.filter(m => !m.es_nota_interna);
     },
-    refetchInterval: 3000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    gcTime: 300000,
     enabled: !!conversation?.id,
   });
 

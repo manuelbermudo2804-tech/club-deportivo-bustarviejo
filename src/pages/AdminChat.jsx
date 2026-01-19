@@ -34,7 +34,10 @@ export default function AdminChat() {
     queryFn: async () => {
       return await base44.entities.AdminConversation.list('-ultimo_mensaje_fecha');
     },
-    refetchInterval: 5000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    gcTime: 300000,
     enabled: !!user,
   });
 
