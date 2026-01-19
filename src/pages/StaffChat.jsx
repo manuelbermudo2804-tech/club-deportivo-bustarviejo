@@ -402,19 +402,31 @@ export default function StaffChat() {
 
         const tasks = [];
 
-        // Notificar a coordinadores
+        // Notificar a coordinadores (con fallback por Usuarios)
         try {
           const coordSettings = await base44.entities.CoordinatorSettings.list();
-          const coordEmails = Array.from(new Set((coordSettings || []).map(s => s.coordinador_email).filter(Boolean)));
+          let coordEmails = Array.from(new Set((coordSettings || []).map(s => s.coordinador_email).filter(Boolean)));
+          if (coordEmails.length === 0) {
+            try {
+              const coords = await base44.entities.User.filter({ es_coordinador: true });
+              coordEmails = Array.from(new Set(coords.map(u => u.email).filter(Boolean)));
+            } catch {}
+          }
           coordEmails
             .filter(email => email && email !== user.email)
             .forEach(email => tasks.push(base44.entities.AppNotification.create({ usuario_email: email, ...notifPayload })));
         } catch {}
 
-        // Notificar a entrenadores
+        // Notificar a entrenadores (con fallback por Usuarios)
         try {
           const coachSettings = await base44.entities.CoachSettings?.list?.();
-          const coachEmails = Array.from(new Set((coachSettings || []).map(s => s.entrenador_email || s.coach_email).filter(Boolean)));
+          let coachEmails = Array.from(new Set((coachSettings || []).map(s => s.entrenador_email || s.coach_email).filter(Boolean)));
+          if (coachEmails.length === 0) {
+            try {
+              const coaches = await base44.entities.User.filter({ es_entrenador: true });
+              coachEmails = Array.from(new Set(coaches.map(u => u.email).filter(Boolean)));
+            } catch {}
+          }
           coachEmails
             .filter(email => email && email !== user.email)
             .forEach(email => tasks.push(base44.entities.AppNotification.create({ usuario_email: email, ...notifPayload })));
