@@ -151,6 +151,8 @@ export default function ChatTestConsole() {
   const [coordEmail, setCoordEmail] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [category, setCategory] = useState("");
+  // Remitente para modo simple
+  const [testSenderRole, setTestSenderRole] = useState("entrenador");
 
   // UI feedback
   const [busy, setBusy] = useState(null); // 'staff'|'p2c'|'c2g'|'p2coord'|'admin2fam'|'private'|null
@@ -244,19 +246,27 @@ export default function ChatTestConsole() {
 
   const slug = (str) => (str || "").toLowerCase().replace(/\s+/g, "_");
 
+  // Helpers para modo simple
+  const getSender = () => {
+    if (testSenderRole === 'entrenador' && coachEmail) return { email: coachEmail, nombre: 'Coach Test', rol: 'entrenador' };
+    if (testSenderRole === 'coordinador' && coordEmail) return { email: coordEmail, nombre: 'Coordinador Test', rol: 'coordinador' };
+    return { email: me.email, nombre: me.full_name, rol: 'admin' };
+  };
+
   // Actions (crear mensajes de prueba)
   const sendStaff = async () => {
     setBusy('staff'); setStatus(null);
     try {
       const convs = await base44.entities.StaffConversation.filter({ categoria: "General" });
       const conv = convs[0] || (await base44.entities.StaffConversation.create({ nombre: "Chat Interno Staff", categoria: "General", participantes: [], activa: true }));
+      const s = getSender();
       await base44.entities.StaffMessage.create({
         conversacion_id: conv.id,
-        autor_email: me.email,
-        autor_nombre: me.full_name,
-        autor_rol: "admin",
+        autor_email: s.email,
+        autor_nombre: s.nombre,
+        autor_rol: s.rol,
         mensaje: `Prueba staff ${new Date().toLocaleTimeString()}`,
-        leido_por: [{ email: me.email, nombre: me.full_name, fecha: new Date().toISOString() }],
+        leido_por: [{ email: s.email, nombre: s.nombre, fecha: new Date().toISOString() }],
       });
       setStatus('✅ Staff: mensaje creado');
     } catch (e) {
@@ -657,6 +667,39 @@ export default function ChatTestConsole() {
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Modo simple */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Modo simple</CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-2">
+            <div className="md:col-span-3 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-slate-500">Remitente:</span>
+              <Button size="sm" variant={testSenderRole==='entrenador'?'default':'outline'} onClick={()=>setTestSenderRole('entrenador')}>Entrenador</Button>
+              <Button size="sm" variant={testSenderRole==='coordinador'?'default':'outline'} onClick={()=>setTestSenderRole('coordinador')}>Coordinador</Button>
+              <Button size="sm" variant={testSenderRole==='admin'?'default':'outline'} onClick={()=>setTestSenderRole('admin')}>Admin</Button>
+            </div>
+            <Button onClick={sendStaff} className="gap-2">
+              <Users className="w-4 h-4" /> Enviar al Staff (General)
+            </Button>
+            <Button onClick={sendCoachToGroup} className="gap-2">
+              <MessageCircle className="w-4 h-4" /> Entrenador→Grupo
+            </Button>
+            <Button onClick={sendParentToCoach} className="gap-2">
+              <MessageCircle className="w-4 h-4" /> Familia→Entrenador
+            </Button>
+            <Button onClick={sendCoordinatorToFamily} className="gap-2">
+              <MessageCircle className="w-4 h-4" /> Coordinador→Familia
+            </Button>
+            <Button onClick={sendParentToCoordinator} className="gap-2">
+              <MessageCircle className="w-4 h-4" /> Familia→Coordinador
+            </Button>
+            <Button onClick={()=>{ setAdminBase(adminN); setCoordBase(coordN); setCoachBase(coachN); setFamilyBase(familyN); setIsolateMode(true); setStatus('🧹 Aislamiento activado'); }} variant="outline">
+              🧹 Forzar a 0
+            </Button>
           </CardContent>
         </Card>
 
