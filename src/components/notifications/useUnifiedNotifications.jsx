@@ -515,6 +515,7 @@ export function useUnifiedNotifications(user, options = {}) {
     let unreadCoordinator = 0;
     let unreadCoach = 0;
     let unreadStaff = 0;
+    const latestByGroup = new Map();
     let unreadAdmin = 0;
     let unreadPrivate = 0;
     let unreadFamilies = 0;
