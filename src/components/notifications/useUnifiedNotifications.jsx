@@ -375,6 +375,32 @@ export function useUnifiedNotifications(user) {
     };
   }, [user]);
 
+  // Limpieza automática de notificaciones huérfanas/antiguas (no vistas)
+  useEffect(() => {
+    if (!user) return;
+    const cleanup = async () => {
+      try {
+        const now = Date.now();
+        const stale = (rawData.appNotifications || []).filter(n => {
+          if (!n || n.vista) return false;
+          const created = n.created_date ? new Date(n.created_date).getTime() : 0;
+          const ageHours = created ? (now - created) / 36e5 : 0;
+          // Regla: notifs de eventos >48h o cualquier notif >30 días
+          if ((n.tipo && /event/i.test(n.tipo) && ageHours > 48)) return true;
+          if (ageHours > 24 * 30) return true;
+          return false;
+        });
+        for (const notif of stale) {
+          await base44.entities.AppNotification.update(notif.id, {
+            vista: true,
+            fecha_vista: new Date().toISOString()
+          });
+        }
+      } catch {}
+    };
+    cleanup();
+  }, [user, rawData.appNotifications]);
+
   // CALCULAR NOTIFICACIONES a partir de rawData
   useEffect(() => {
     if (!user) return;
