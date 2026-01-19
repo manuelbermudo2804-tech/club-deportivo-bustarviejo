@@ -127,6 +127,16 @@ export default function StaffChat() {
       !m.leido_por?.some(l => l.email === user.email)
     ).length;
     setUnreadCount(unread);
+    // Sincronía inmediata con sistema unificado (para barra/burbujas)
+    try {
+      if (typeof window !== 'undefined') {
+        const current = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE || {};
+        const next = { ...current, unreadStaffMessages: unread };
+        window.__BASE44_UNIFIED_NOTIFICATIONS_STATE = next;
+        window.dispatchEvent(new CustomEvent('b44_unified_notifications_updated', { detail: next }));
+      }
+    } catch {}
+    
   }, [messages, user]);
 
   const { data: allUsers = [] } = useQuery({
