@@ -258,17 +258,8 @@ export default function StaffChat() {
         }
       } catch {}
 
-      // Sincronizar inmediatamente badges y barra (evitar desfases visuales)
-      try {
-        if (typeof window !== 'undefined') {
-          const current = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE || {};
-          // Si hay notificaciones App pendientes, mantenemos >=1 para no esconder la burbuja antes de que se persistan
-          const keepOne = (await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: 'StaffChat', vista: false })).length > 0;
-          const next = { ...current, unreadStaffMessages: keepOne ? Math.max(current.unreadStaffMessages || 0, 1) : 0 };
-          window.__BASE44_UNIFIED_NOTIFICATIONS_STATE = next;
-          window.dispatchEvent(new CustomEvent('b44_unified_notifications_updated', { detail: next }));
-        }
-      } catch {}
+      // Actualizar contadores independientes
+      try { markRead && (await markRead(conversation.id)); } catch {}
     };
     
     if (messages.some(m => m.autor_email !== user.email && !m.leido_por?.some(l => l.email === user.email))) {
