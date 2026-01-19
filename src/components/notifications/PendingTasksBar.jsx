@@ -60,7 +60,7 @@ export default function PendingTasksBar({ notifications }) {
         />
         <Chip
           label="Administrador"
-          count={n.unreadAdminMessages}
+          count={adminTotal}
           color="bg-orange-600"
           onClick={() => navigate(createPageUrl('ParentAdminChat'))}
         />
