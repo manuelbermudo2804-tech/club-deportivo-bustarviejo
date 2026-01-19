@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { MessageCircle, ShieldAlert, Users, Bell, Rocket, Mail } from "lucide-react";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
-function RoleCounters({ title, userStub }) {
-  const { notifications } = useUnifiedNotifications(userStub, { forceInstance: true, ignorePause: true, testModeLoadAll: true });
+function RoleCounters({ title, notifications }) {
   const items = [
     { label: "Staff", value: notifications?.unreadStaffMessages },
     { label: "Familias→Entrenador", value: notifications?.unreadFamilyMessages },
@@ -39,8 +38,7 @@ function RoleCounters({ title, userStub }) {
   );
 }
 
-function AlertPreview({ title, userStub }) {
-  const { notifications } = useUnifiedNotifications(userStub, { forceInstance: true, ignorePause: true, testModeLoadAll: true });
+function AlertPreview({ title, userStub, notifications }) {
   const items = (() => {
     if (!userStub) return [];
     if (userStub.role === 'admin') {
@@ -119,6 +117,12 @@ export default function ChatTestConsole() {
     () => ({ email: parentEmail, full_name: "Familia (test)", role: "user" }),
     [parentEmail]
   );
+
+  // Unificar: una instancia del hook por rol (evita duplicados y rate limits)
+  const adminN = useUnifiedNotifications(asAdmin, { forceInstance: true, ignorePause: true, testModeLoadAll: true }).notifications;
+  const coordN = useUnifiedNotifications(asCoordinator, { forceInstance: true, ignorePause: true }).notifications;
+  const coachN = useUnifiedNotifications(asCoach, { forceInstance: true, ignorePause: true }).notifications;
+  const familyN = useUnifiedNotifications(asFamily, { forceInstance: true, ignorePause: true }).notifications;
 
   useEffect(() => {
     (async () => {
@@ -441,10 +445,10 @@ export default function ChatTestConsole() {
 
         {/* Contadores en vivo por rol */}
         <div className="grid md:grid-cols-4 gap-3">
-          <RoleCounters title="Vista Admin" userStub={asAdmin} />
-          <RoleCounters title="Vista Coordinador" userStub={asCoordinator} />
-          <RoleCounters title="Vista Entrenador" userStub={asCoach} />
-          <RoleCounters title="Vista Familia" userStub={asFamily} />
+          <RoleCounters title="Vista Admin" notifications={adminN} />
+          <RoleCounters title="Vista Coordinador" notifications={coordN} />
+          <RoleCounters title="Vista Entrenador" notifications={coachN} />
+          <RoleCounters title="Vista Familia" notifications={familyN} />
         </div>
 
         {/* Previsualización barra de tareas (AlertCenter) por rol */}
@@ -454,10 +458,10 @@ export default function ChatTestConsole() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-4 gap-3">
-              <AlertPreview title="Admin" userStub={asAdmin} />
-              <AlertPreview title="Coordinador" userStub={asCoordinator} />
-              <AlertPreview title="Entrenador" userStub={asCoach} />
-              <AlertPreview title="Familia" userStub={asFamily} />
+              <AlertPreview title="Admin" userStub={asAdmin} notifications={adminN} />
+              <AlertPreview title="Coordinador" userStub={asCoordinator} notifications={coordN} />
+              <AlertPreview title="Entrenador" userStub={asCoach} notifications={coachN} />
+              <AlertPreview title="Familia" userStub={asFamily} notifications={familyN} />
             </div>
           </CardContent>
         </Card>
