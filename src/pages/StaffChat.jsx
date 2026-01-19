@@ -132,6 +132,8 @@ export default function StaffChat() {
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsersStaff'],
     queryFn: () => base44.entities.User.list(),
+    enabled: user?.role === 'admin',
+    staleTime: 60000,
   });
 
   const staffUsers = allUsers.filter(u => 
@@ -406,7 +408,7 @@ export default function StaffChat() {
         try {
           const coordSettings = await base44.entities.CoordinatorSettings.list();
           let coordEmails = Array.from(new Set((coordSettings || []).map(s => s.coordinador_email).filter(Boolean)));
-          if (coordEmails.length === 0) {
+          if (coordEmails.length === 0 && user.role === 'admin') {
             try {
               const coords = await base44.entities.User.filter({ es_coordinador: true });
               coordEmails = Array.from(new Set(coords.map(u => u.email).filter(Boolean)));
@@ -421,7 +423,7 @@ export default function StaffChat() {
         try {
           const coachSettings = await base44.entities.CoachSettings?.list?.();
           let coachEmails = Array.from(new Set((coachSettings || []).map(s => s.entrenador_email || s.coach_email).filter(Boolean)));
-          if (coachEmails.length === 0) {
+          if (coachEmails.length === 0 && user.role === 'admin') {
             try {
               const coaches = await base44.entities.User.filter({ es_entrenador: true });
               coachEmails = Array.from(new Set(coaches.map(u => u.email).filter(Boolean)));
