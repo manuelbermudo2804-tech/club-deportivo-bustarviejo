@@ -6,410 +6,258 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (user?.role !== 'admin') {
-      return new Response(JSON.stringify({ error: 'Admin only' }), { status: 403 });
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { analysisType } = await req.json();
+    const { analysisType = 'all' } = await req.json();
 
-    switch (analysisType) {
-      case 'stripe':
-        return await analyzeStripe(base44);
-      case 'users':
-        return await analyzeUsers(base44);
-      case 'data':
-        return await analyzeDataIntegrity(base44);
-      case 'chats':
-        return await analyzeChats(base44);
-      case 'performance':
-        return await analyzePerformance(base44);
-      case 'integrations':
-        return await analyzeIntegrations(base44);
-      case 'email':
-        return await analyzeEmail(base44);
-      default:
-        return await analyzeAll(base44);
+    // Obtener datos en paralelo
+    const [payments, users, events, chats, players, alerts] = await Promise.all([
+      base44.asServiceRole.entities.Payment.list(),
+      base44.asServiceRole.entities.User.list(),
+      base44.asServiceRole.entities.AnalyticsEvent.list(),
+      base44.asServiceRole.entities.ChatMessage.list(),
+      base44.asServiceRole.entities.Player.list(),
+      base44.asServiceRole.entities.SystemAlert.list()
+    ]);
+
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // STRIPE - Transacciones fallidas
+    const stripeAnalysis = () => {
+      const failedPayments = (payments || []).filter(p => p.estado === 'Anulado');
+      const pendingAmount = (payments || [])
+        .filter(p => p.estado === 'Pendiente')
+        .reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
+      const avgPaymentTime = failedPayments.length > 0
+        ? failedPayments.reduce((sum, p) => {
+            if (!p.fecha_pago || !p.created_date) return sum;
+            const diff = new Date(p.fecha_pago) - new Date(p.created_date);
+            return sum + diff;
+          }, 0) / failedPayments.length / (1000 * 60 * 60)
+        : 0;
+
+      return {
+        alerts: failedPayments.map(p => ({
+          titulo: `Pago fallido - ${p.jugador_nombre}`,
+          descripcion: `Importe: €${p.cantidad}, Método: ${p.metodo_pago}`,
+          categoria: 'stripe',
+          severidad: 'high',
+          prioridad_score: 75
+        })),
+        stats: {
+          failedPayments: failedPayments.length,
+          pendingAmount: pendingAmount.toFixed(2),
+          avgPaymentTime: avgPaymentTime.toFixed(1),
+          failureRate: ((failedPayments.length / (payments?.length || 1)) * 100).toFixed(1)
+        }
+      };
+    };
+
+    // USUARIOS - Análisis de comportamiento
+    const usersAnalysis = () => {
+      const inactiveUsers = (users || []).filter(u => {
+        if (!u.updated_date) return false;
+        const lastUpdate = new Date(u.updated_date);
+        return lastUpdate < thirtyDaysAgo;
+      });
+
+      const adminsWithoutActivity = (users || []).filter(u => u.role === 'admin' && u.updated_date && new Date(u.updated_date) < thirtyDaysAgo);
+
+      const duplicateEmails = {};
+      (users || []).forEach(u => {
+        if (u.email) {
+          duplicateEmails[u.email] = (duplicateEmails[u.email] || 0) + 1;
+        }
+      });
+      const duplicates = Object.values(duplicateEmails).filter(count => count > 1).length;
+
+      return {
+        alerts: [
+          ...inactiveUsers.slice(0, 5).map(u => ({
+            titulo: `Usuario inactivo - ${u.full_name}`,
+            descripcion: `Sin actividad hace ${Math.floor((today - new Date(u.updated_date)) / (1000 * 60 * 60 * 24))} días`,
+            categoria: 'users',
+            severidad: 'medium',
+            prioridad_score: 40
+          })),
+          ...adminsWithoutActivity.map(u => ({
+            titulo: `Admin inactivo - ${u.full_name}`,
+            descripcion: `Último acceso hace ${Math.floor((today - new Date(u.updated_date)) / (1000 * 60 * 60 * 24))} días`,
+            categoria: 'users',
+            severidad: 'high',
+            prioridad_score: 85
+          }))
+        ],
+        stats: {
+          totalUsers: users?.length || 0,
+          inactiveUsers: inactiveUsers.length,
+          inactiveAdmins: adminsWithoutActivity.length,
+          possibleDuplicates: duplicates
+        }
+      };
+    };
+
+    // DATA INTEGRITY
+    const dataAnalysis = () => {
+      const playersWithoutPhoto = (players || []).filter(p => !p.foto_url);
+      const playersWithoutDNI = (players || []).filter(p => !p.dni_jugador && p.fecha_nacimiento);
+      const orphanPayments = (payments || []).filter(p => !p.jugador_id);
+
+      return {
+        alerts: [
+          ...playersWithoutPhoto.slice(0, 3).map(p => ({
+            titulo: `Jugador sin foto - ${p.nombre}`,
+            descripcion: 'Ficha incompleta',
+            categoria: 'data_integrity',
+            severidad: 'low',
+            prioridad_score: 20
+          })),
+          ...playersWithoutDNI.slice(0, 3).map(p => ({
+            titulo: `Jugador sin DNI - ${p.nombre}`,
+            descripcion: 'Documento faltante',
+            categoria: 'data_integrity',
+            severidad: 'medium',
+            prioridad_score: 50
+          }))
+        ],
+        stats: {
+          totalPlayers: players?.length || 0,
+          withoutPhoto: playersWithoutPhoto.length,
+          withoutDNI: playersWithoutDNI.length,
+          orphanPayments: orphanPayments.length
+        }
+      };
+    };
+
+    // CHATS
+    const chatsAnalysis = () => {
+      const unreadMessages = (chats || []).filter(c => !c.leido && new Date(c.created_date) < sevenDaysAgo);
+      const inactiveChats = (chats || []).filter(c => new Date(c.created_date) < thirtyDaysAgo && !c.leido);
+
+      return {
+        alerts: unreadMessages.slice(0, 5).map(c => ({
+          titulo: `Chat sin leer antiguo - ${c.remitente_nombre}`,
+          descripcion: `Desde ${Math.floor((today - new Date(c.created_date)) / (1000 * 60 * 60 * 24))} días`,
+          categoria: 'communication',
+          severidad: 'medium',
+          prioridad_score: 45
+        })),
+        stats: {
+          totalMessages: chats?.length || 0,
+          unreadOld: unreadMessages.length,
+          inactiveChats: inactiveChats.length,
+          avgResponseTime: 0
+        }
+      };
+    };
+
+    // PERFORMANCE
+    const performanceAnalysis = () => {
+      const slowPages = ((events || [])
+        .filter(e => e.duracion_ms && e.duracion_ms > 3000)
+        .reduce((acc, e) => {
+          const page = e.pagina || 'unknown';
+          if (!acc[page]) acc[page] = [];
+          acc[page].push(e.duracion_ms);
+          return acc;
+        }, {}));
+
+      const avgSlow = Object.entries(slowPages).map(([page, times]) => ({
+        page,
+        avg: (times.reduce((a, b) => a + b, 0) / times.length).toFixed(0),
+        count: times.length
+      })).sort((a, b) => b.avg - a.avg);
+
+      return {
+        alerts: avgSlow.slice(0, 3).map(item => ({
+          titulo: `Página lenta - ${item.page}`,
+          descripcion: `Promedio: ${item.avg}ms (${item.count} eventos)`,
+          categoria: 'performance',
+          severidad: item.avg > 5000 ? 'high' : 'medium',
+          prioridad_score: item.avg > 5000 ? 70 : 45
+        })),
+        stats: {
+          slowPages: avgSlow.length,
+          avgPageLoadTime: avgSlow[0]?.avg || 0,
+          eventsTotal: events?.length || 0,
+          p95LoadTime: 0
+        }
+      };
+    };
+
+    // INTEGRACIONES
+    const integrationsAnalysis = () => {
+      const failedEvents = ((events || []).filter(e => e.severidad === 'error' && e.detalles?.integration_error));
+
+      return {
+        alerts: failedEvents.slice(0, 3).map(e => ({
+          titulo: `Error de integración - ${e.detalles?.integration_type || 'unknown'}`,
+          descripcion: e.detalles?.integration_error || 'Error desconocido',
+          categoria: 'integration',
+          severidad: 'high',
+          prioridad_score: 80
+        })),
+        stats: {
+          failedIntegrations: failedEvents.length,
+          syncErrors: failedEvents.filter(e => e.detalles?.type === 'sync').length,
+          webhookErrors: failedEvents.filter(e => e.detalles?.type === 'webhook').length,
+          lastError: failedEvents[0]?.created_date || 'N/A'
+        }
+      };
+    };
+
+    // EMAIL
+    const emailAnalysis = () => {
+      const emailEvents = (events || []).filter(e => e.detalles?.service === 'email');
+      const bounces = emailEvents.filter(e => e.detalles?.status === 'bounce').length;
+      const spam = emailEvents.filter(e => e.detalles?.status === 'spam').length;
+
+      return {
+        alerts: [
+          ...(bounces > 5 ? [{
+            titulo: `${bounces} emails rechazados`,
+            descripcion: 'Monitor de entregas alterado',
+            categoria: 'email',
+            severidad: 'medium',
+            prioridad_score: 55
+          }] : []),
+          ...(spam > 3 ? [{
+            titulo: `${spam} emails marcados como spam`,
+            descripcion: 'Revisa contenido de emails',
+            categoria: 'email',
+            severidad: 'medium',
+            prioridad_score: 60
+          }] : [])
+        ],
+        stats: {
+          emailsSent: emailEvents.length,
+          bounceRate: ((bounces / (emailEvents.length || 1)) * 100).toFixed(1),
+          spamRate: ((spam / (emailEvents.length || 1)) * 100).toFixed(1),
+          lastSent: emailEvents[0]?.created_date || 'N/A'
+        }
+      };
+    };
+
+    const analyses = {
+      stripe: stripeAnalysis(),
+      users: usersAnalysis(),
+      data: dataAnalysis(),
+      chats: chatsAnalysis(),
+      performance: performanceAnalysis(),
+      integrations: integrationsAnalysis(),
+      email: emailAnalysis()
+    };
+
+    if (analysisType !== 'all' && analyses[analysisType]) {
+      return Response.json(analyses[analysisType]);
     }
-  } catch (e) {
-    console.error('Analytics error:', e);
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+
+    return Response.json(analyses);
+  } catch (error) {
+    console.error('Analytics error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
-
-// STRIPE ANALYTICS
-async function analyzeStripe(base44) {
-  try {
-    const payments = await base44.asServiceRole.entities.Payment.list();
-    const extraCharges = await base44.asServiceRole.entities.ExtraChargePayment.list();
-
-    const failedPayments = payments.filter(p => p.estado === 'Anulado');
-    const pendingPayments = payments.filter(p => p.estado === 'Pendiente');
-    
-    const totalMissing = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
-
-    const alerts = [];
-
-    if (failedPayments.length > 5) {
-      alerts.push({
-        titulo: 'Alto número de pagos fallidos',
-        descripcion: `${failedPayments.length} pagos anulados en el último mes`,
-        severidad: 'high',
-        categoria: 'stripe',
-        prioridad_score: 75,
-        solucion_sugerida: 'Revisar método de pago, notificar usuarios, verificar tarjetas expiradas'
-      });
-    }
-
-    if (totalMissing > 1000) {
-      alerts.push({
-        titulo: 'Cantidad alta pendiente de cobrar',
-        descripcion: `€${totalMissing.toFixed(2)} en pagos pendientes`,
-        severidad: 'medium',
-        categoria: 'stripe',
-        prioridad_score: 65,
-        solucion_sugerida: 'Enviar recordatorios, seguimiento de pagos, escalación de pagos en mora'
-      });
-    }
-
-    const avgPaymentTime = calculateAvgPaymentTime(payments);
-    if (avgPaymentTime > 10) {
-      alerts.push({
-        titulo: 'Tiempo medio de pago elevado',
-        descripcion: `Los usuarios tardan ${avgPaymentTime} días en pagar`,
-        severidad: 'low',
-        categoria: 'stripe',
-        prioridad_score: 40,
-        solucion_sugerida: 'Mejorar recordatorios, simplificar proceso, ofrecer múltiples métodos'
-      });
-    }
-
-    return new Response(JSON.stringify({ type: 'stripe', alerts, stats: {
-      totalPayments: payments.length,
-      totalAmount: payments.reduce((s, p) => s + (p.cantidad || 0), 0),
-      failedCount: failedPayments.length,
-      pendingCount: pendingPayments.length,
-      successRate: ((payments.filter(p => p.estado === 'Pagado').length / payments.length) * 100).toFixed(1)
-    }}));
-  } catch (e) {
-    console.error('Stripe analysis error:', e);
-    return new Response(JSON.stringify({ type: 'stripe', alerts: [], error: e.message }));
-  }
-}
-
-// USER ANALYTICS
-async function analyzeUsers(base44) {
-  try {
-    const users = await base44.asServiceRole.entities.User.list();
-    const players = await base44.asServiceRole.entities.Player.list();
-
-    const alerts = [];
-    const inactiveUsers = [];
-
-    // Detectar usuarios inactivos (sin login en 30 días)
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    users.forEach(u => {
-      if (u.updated_date && new Date(u.updated_date) < thirtyDaysAgo) {
-        inactiveUsers.push(u);
-      }
-    });
-
-    if (inactiveUsers.length > 0) {
-      alerts.push({
-        titulo: `${inactiveUsers.length} usuarios inactivos`,
-        descripcion: `No acceden desde hace más de 30 días`,
-        severidad: 'low',
-        categoria: 'users',
-        prioridad_score: 30,
-        solucion_sugerida: 'Enviar email de re-engagement, verificar si siguen siendo válidos',
-        afecta_usuarios: inactiveUsers.length
-      });
-    }
-
-    // Detectar roles sin usar
-    const rolesUsed = new Set(users.map(u => u.role).filter(Boolean));
-    const adminUsers = users.filter(u => u.role === 'admin');
-    const trainers = users.filter(u => u.es_entrenador);
-    const coordinators = users.filter(u => u.es_coordinador);
-
-    // Detectar duplicados por email
-    const emailCounts = {};
-    users.forEach(u => {
-      emailCounts[u.email] = (emailCounts[u.email] || 0) + 1;
-    });
-    const duplicateEmails = Object.entries(emailCounts).filter(([_, count]) => count > 1);
-
-    if (duplicateEmails.length > 0) {
-      alerts.push({
-        titulo: 'Usuarios duplicados detectados',
-        descripcion: `${duplicateEmails.length} emails con múltiples cuentas`,
-        severidad: 'high',
-        categoria: 'users',
-        prioridad_score: 70,
-        solucion_sugerida: 'Revisar y fusionar cuentas duplicadas, consolidar datos'
-      });
-    }
-
-    return new Response(JSON.stringify({ type: 'users', alerts, stats: {
-      totalUsers: users.length,
-      adminCount: adminUsers.length,
-      trainerCount: trainers.length,
-      coordinatorCount: coordinators.length,
-      inactiveCount: inactiveUsers.length,
-      duplicateEmails: duplicateEmails.length
-    }}));
-  } catch (e) {
-    console.error('User analysis error:', e);
-    return new Response(JSON.stringify({ type: 'users', alerts: [], error: e.message }));
-  }
-}
-
-// DATA INTEGRITY
-async function analyzeDataIntegrity(base44) {
-  try {
-    const players = await base44.asServiceRole.entities.Player.list();
-    const payments = await base44.asServiceRole.entities.Payment.list();
-    const events = await base44.asServiceRole.entities.Event.list();
-
-    const alerts = [];
-    const issues = [];
-
-    // Jugadores sin email de padre
-    const playersWithoutEmail = players.filter(p => !p.email_padre);
-    if (playersWithoutEmail.length > 0) {
-      issues.push(`${playersWithoutEmail.length} jugadores sin email padre`);
-      alerts.push({
-        titulo: 'Jugadores sin contacto',
-        descripcion: `${playersWithoutEmail.length} registros sin email de padre`,
-        severidad: 'high',
-        categoria: 'data_integrity',
-        prioridad_score: 72,
-        solucion_sugerida: 'Completar datos de contacto, enviar formulario de actualización'
-      });
-    }
-
-    // Pagos huérfanos (sin jugador asociado)
-    const orphanedPayments = payments.filter(p => {
-      return !players.some(pl => pl.id === p.jugador_id);
-    });
-    if (orphanedPayments.length > 0) {
-      alerts.push({
-        titulo: 'Pagos huérfanos',
-        descripcion: `${orphanedPayments.length} pagos sin jugador asociado`,
-        severidad: 'medium',
-        categoria: 'data_integrity',
-        prioridad_score: 55,
-        solucion_sugerida: 'Auditar y corregir referencias de BD, posible corrupción de datos'
-      });
-    }
-
-    // Eventos sin ubicación (crítico)
-    const eventsNoLocation = events.filter(e => !e.ubicacion);
-    if (eventsNoLocation.length > 0) {
-      alerts.push({
-        titulo: 'Eventos incompletos',
-        descripcion: `${eventsNoLocation.length} eventos sin ubicación`,
-        severidad: 'medium',
-        categoria: 'data_integrity',
-        prioridad_score: 50,
-        solucion_sugerida: 'Completar ubicación de eventos, notificar coordinadores'
-      });
-    }
-
-    return new Response(JSON.stringify({ type: 'data', alerts, stats: {
-      totalPlayers: players.length,
-      incompleteRecords: playersWithoutEmail.length,
-      orphanedPayments: orphanedPayments.length,
-      incompleteEvents: eventsNoLocation.length,
-      issues
-    }}));
-  } catch (e) {
-    console.error('Data integrity analysis error:', e);
-    return new Response(JSON.stringify({ type: 'data', alerts: [], error: e.message }));
-  }
-}
-
-// CHAT ANALYTICS
-async function analyzeChats(base44) {
-  try {
-    const familyChats = await base44.asServiceRole.entities.ChatMessage.filter({ tipo: 'padre_a_grupo' });
-    const adminChats = await base44.asServiceRole.entities.AdminConversation.list();
-
-    const alerts = [];
-
-    // Mensajes sin leer muy antiguos
-    const oldUnread = familyChats.filter(m => {
-      if (m.leido) return false;
-      const msgDate = new Date(m.created_date);
-      const daysOld = (Date.now() - msgDate) / (1000 * 60 * 60 * 24);
-      return daysOld > 7;
-    });
-
-    if (oldUnread.length > 5) {
-      alerts.push({
-        titulo: 'Mensajes sin leer antiguos',
-        descripcion: `${oldUnread.length} mensajes sin leer hace más de 7 días`,
-        severidad: 'medium',
-        categoria: 'behavior',
-        prioridad_score: 45,
-        solucion_sugerida: 'Revisar si coordinadores están inactivos, marcar como leído automáticamente o re-notificar'
-      });
-    }
-
-    // Coordinadores inactivos en chats
-    const coordinatorActivity = {};
-    adminChats.forEach(c => {
-      if (c.coordinador_email) {
-        coordinatorActivity[c.coordinador_email] = (coordinatorActivity[c.coordinador_email] || 0) + 1;
-      }
-    });
-
-    const inactiveCoordinators = Object.entries(coordinatorActivity).filter(([_, count]) => count === 0);
-    if (inactiveCoordinators.length > 0) {
-      alerts.push({
-        titulo: 'Coordinadores sin actividad en chats',
-        descripcion: `${inactiveCoordinators.length} coordinadores sin participar`,
-        severidad: 'low',
-        categoria: 'behavior',
-        prioridad_score: 35,
-        solucion_sugerida: 'Verificar disponibilidad, entrenar en uso del sistema, considerar reasignación'
-      });
-    }
-
-    return new Response(JSON.stringify({ type: 'chats', alerts, stats: {
-      totalMessages: familyChats.length,
-      unreadMessages: familyChats.filter(m => !m.leido).length,
-      oldUnread: oldUnread.length,
-      activeConversations: adminChats.length
-    }}));
-  } catch (e) {
-    console.error('Chat analysis error:', e);
-    return new Response(JSON.stringify({ type: 'chats', alerts: [], error: e.message }));
-  }
-}
-
-// PERFORMANCE ANALYTICS
-async function analyzePerformance(base44) {
-  try {
-    const events = await base44.asServiceRole.entities.AnalyticsEvent.filter({ evento_tipo: 'performance' });
-
-    const alerts = [];
-    const pagePerformance = {};
-
-    events.forEach(e => {
-      if (!pagePerformance[e.pagina]) {
-        pagePerformance[e.pagina] = [];
-      }
-      pagePerformance[e.pagina].push(e.duracion_ms || 0);
-    });
-
-    const slowPages = [];
-    Object.entries(pagePerformance).forEach(([pagina, durations]) => {
-      const avgDuration = durations.reduce((a, b) => a + b, 0) / durations.length;
-      if (avgDuration > 3000) {
-        slowPages.push({ pagina, avgDuration: avgDuration.toFixed(0) });
-      }
-    });
-
-    if (slowPages.length > 0) {
-      alerts.push({
-        titulo: `${slowPages.length} páginas lentas`,
-        descripcion: `${slowPages.map(p => `${p.pagina} (${p.avgDuration}ms)`).join(', ')}`,
-        severidad: 'high',
-        categoria: 'performance',
-        prioridad_score: 68,
-        solucion_sugerida: 'Optimizar queries, lazy loading, caché, reducir bundle size'
-      });
-    }
-
-    return new Response(JSON.stringify({ type: 'performance', alerts, stats: {
-      totalPerformanceEvents: events.length,
-      slowPagesCount: slowPages.length,
-      slowPages,
-      avgAppSpeed: (Object.values(pagePerformance).flat().reduce((a, b) => a + b, 0) / events.length).toFixed(0)
-    }}));
-  } catch (e) {
-    console.error('Performance analysis error:', e);
-    return new Response(JSON.stringify({ type: 'performance', alerts: [], error: e.message }));
-  }
-}
-
-// INTEGRATIONS ANALYTICS
-async function analyzeIntegrations(base44) {
-  try {
-    const events = await base44.asServiceRole.entities.Event.filter({ synced_to_google: true });
-    const failedSyncs = events.filter(e => !e.google_calendar_id);
-
-    const alerts = [];
-
-    if (failedSyncs.length > 0) {
-      alerts.push({
-        titulo: 'Eventos no sincronizados con Google Calendar',
-        descripcion: `${failedSyncs.length} eventos fallaron sincronización`,
-        severidad: 'medium',
-        categoria: 'inconsistency',
-        prioridad_score: 52,
-        solucion_sugerida: 'Verificar token Google, reintentar sincronización, revisar permisos'
-      });
-    }
-
-    return new Response(JSON.stringify({ type: 'integrations', alerts, stats: {
-      totalEventsSynced: events.length,
-      failedSyncs: failedSyncs.length,
-      syncRate: ((events.length - failedSyncs.length) / events.length * 100).toFixed(1)
-    }}));
-  } catch (e) {
-    console.error('Integrations analysis error:', e);
-    return new Response(JSON.stringify({ type: 'integrations', alerts: [], error: e.message }));
-  }
-}
-
-// EMAIL ANALYTICS
-async function analyzeEmail(base44) {
-  try {
-    // Aquí iría análisis de logs de email si los guardas
-    const alerts = [];
-
-    alerts.push({
-      titulo: 'Monitor de emails',
-      descripcion: 'Sistema de seguimiento de emails disponible',
-      severidad: 'info',
-      categoria: 'communication',
-      prioridad_score: 10,
-      solucion_sugerida: 'Configurar integración con Resend para tracking completo'
-    });
-
-    return new Response(JSON.stringify({ type: 'email', alerts, stats: {
-      note: 'Email tracking requiere integración con Resend webhooks'
-    }}));
-  } catch (e) {
-    console.error('Email analysis error:', e);
-    return new Response(JSON.stringify({ type: 'email', alerts: [], error: e.message }));
-  }
-}
-
-// ANÁLISIS COMPLETO
-async function analyzeAll(base44) {
-  const results = {
-    stripe: await analyzeStripe(base44),
-    users: await analyzeUsers(base44),
-    data: await analyzeDataIntegrity(base44),
-    chats: await analyzeChats(base44),
-    performance: await analyzePerformance(base44),
-    integrations: await analyzeIntegrations(base44),
-    email: await analyzeEmail(base44)
-  };
-
-  return new Response(JSON.stringify(results));
-}
-
-function calculateAvgPaymentTime(payments) {
-  const paidPayments = payments.filter(p => p.fecha_pago && p.created_date);
-  if (paidPayments.length === 0) return 0;
-
-  const totalDays = paidPayments.reduce((sum, p) => {
-    const created = new Date(p.created_date);
-    const paid = new Date(p.fecha_pago);
-    return sum + (paid - created) / (1000 * 60 * 60 * 24);
-  }, 0);
-
-  return (totalDays / paidPayments.length).toFixed(1);
-}
