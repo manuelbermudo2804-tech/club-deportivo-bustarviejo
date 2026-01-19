@@ -190,7 +190,7 @@ export default function CoachParentChat({ embedded = false }) {
                       : 'text-white hover:bg-white/20'
                   }`}
                 >
-                  {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                  {cat === "Todas las categorías" ? "📋 Todas" : catKey.replace?.('Fútbol ', '').replace?.(' (Mixto)', '') || String(catKey)}
                   <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
                   {unreadCount > 0 && (
                     <Badge className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">
