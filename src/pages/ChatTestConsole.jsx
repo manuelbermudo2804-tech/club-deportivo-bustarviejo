@@ -347,7 +347,100 @@ export default function ChatTestConsole() {
     }
   };
 
-  return (
+  // ==== Reset de pruebas ====
+  const resetStaff = async () => {
+    setBusy('reset-staff'); setStatus(null);
+    try {
+      const msgs = await base44.entities.StaffMessage.filter({ created_by: me.email });
+      for (const m of msgs) await base44.entities.StaffMessage.delete(m.id);
+      setStatus('✅ Reset Staff completado');
+    } catch (e) { setStatus(`❌ Reset Staff: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetParentToCoach = async () => {
+    setBusy('reset-p2c'); setStatus(null);
+    try {
+      const msgs = await base44.entities.ChatMessage.filter({ tipo: 'padre_a_grupo', grupo_id: slug(category), created_by: me.email });
+      for (const m of msgs) await base44.entities.ChatMessage.delete(m.id);
+      setStatus('✅ Reset Familia→Entrenador completado');
+    } catch (e) { setStatus(`❌ Reset Familia→Entrenador: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetCoachToGroup = async () => {
+    setBusy('reset-c2g'); setStatus(null);
+    try {
+      const msgs = await base44.entities.ChatMessage.filter({ tipo: 'entrenador_a_grupo', grupo_id: slug(category), created_by: me.email });
+      for (const m of msgs) await base44.entities.ChatMessage.delete(m.id);
+      setStatus('✅ Reset Entrenador→Grupo completado');
+    } catch (e) { setStatus(`❌ Reset Entrenador→Grupo: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetCoordinatorFamily = async () => {
+    setBusy('reset-coordfam'); setStatus(null);
+    try {
+      const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
+      const conv = convs[0];
+      if (conv) {
+        const msgs = await base44.entities.CoordinatorMessage.filter({ conversacion_id: conv.id, created_by: me.email });
+        for (const m of msgs) await base44.entities.CoordinatorMessage.delete(m.id);
+        await base44.entities.CoordinatorConversation.update(conv.id, { no_leidos_coordinador: 0, no_leidos_padre: 0 });
+      }
+      setStatus('✅ Reset Coordinador↔Familia completado');
+    } catch (e) { setStatus(`❌ Reset Coordinador↔Familia: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetAdminFamily = async () => {
+    setBusy('reset-adminfam'); setStatus(null);
+    try {
+      const convs = await base44.entities.AdminConversation.filter({ padre_email: parentEmail, resuelta: false });
+      const conv = convs[0];
+      if (conv) {
+        const msgs = await base44.entities.AdminMessage.filter({ conversacion_id: conv.id, created_by: me.email });
+        for (const m of msgs) await base44.entities.AdminMessage.delete(m.id);
+        await base44.entities.AdminConversation.update(conv.id, { no_leidos_admin: 0, no_leidos_padre: 0 });
+      }
+      setStatus('✅ Reset Admin↔Familia completado');
+    } catch (e) { setStatus(`❌ Reset Admin↔Familia: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetPrivateClub = async () => {
+    setBusy('reset-private'); setStatus(null);
+    try {
+      const convs = await base44.entities.PrivateConversation.filter({ participante_familia_email: parentEmail, participante_staff_email: me.email });
+      const conv = convs[0];
+      if (conv) {
+        const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: conv.id, created_by: me.email });
+        for (const m of msgs) await base44.entities.PrivateMessage.delete(m.id);
+        await base44.entities.PrivateConversation.update(conv.id, { no_leidos_familia: 0, no_leidos_staff: 0 });
+      }
+      setStatus('✅ Reset Privados (Club) completado');
+    } catch (e) { setStatus(`❌ Reset Privados: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetAll = async () => {
+    setBusy('reset-all'); setStatus('⏳ Reseteando todo...');
+    try {
+      await resetStaff();
+      await resetParentToCoach();
+      await resetCoachToGroup();
+      await resetCoordinatorFamily();
+      await resetAdminFamily();
+      await resetPrivateClub();
+      setStatus('✅ Reset completo');
+    } catch (e) {
+      setStatus(`❌ Reset general: ${e?.message || e}`);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+   return (
     <div className="min-h-screen p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-6xl mx-auto grid gap-4">
         <div className="flex items-center justify-between">
@@ -443,7 +536,38 @@ export default function ChatTestConsole() {
           </CardContent>
         </Card>
 
+        {/* Reseteo de pruebas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Reseteo de pruebas</CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-2">
+            <Button disabled={!!busy} onClick={resetStaff} className="gap-2">
+              {busy==='reset-staff' ? <div className="spinner-elegant" /> : <Users className="w-4 h-4" />} Reset Staff
+            </Button>
+            <Button disabled={!!busy} onClick={resetParentToCoach} className="gap-2">
+              {busy==='reset-p2c' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Reset Familia→Entrenador
+            </Button>
+            <Button disabled={!!busy} onClick={resetCoachToGroup} className="gap-2">
+              {busy==='reset-c2g' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Reset Entrenador→Grupo
+            </Button>
+            <Button disabled={!!busy} onClick={resetCoordinatorFamily} className="gap-2">
+              {busy==='reset-coordfam' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Reset Coordinador↔Familia
+            </Button>
+            <Button disabled={!!busy} onClick={resetAdminFamily} className="gap-2">
+              {busy==='reset-adminfam' ? <div className="spinner-elegant" /> : <ShieldAlert className="w-4 h-4" />} Reset Admin↔Familia
+            </Button>
+            <Button disabled={!!busy} onClick={resetPrivateClub} className="gap-2">
+              {busy==='reset-private' ? <div className="spinner-elegant" /> : <Mail className="w-4 h-4" />} Reset Privados (Club)
+            </Button>
+            <Button disabled={!!busy} onClick={resetAll} variant="outline" className="gap-2 md:col-span-3">
+              {busy==='reset-all' ? <div className="spinner-elegant" /> : <Bell className="w-4 h-4" />} Reset TODO
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Contadores en vivo por rol */}
+        <div className="text-xs text-slate-500 mb-1">Arriba: contadores en vivo por rol. Abajo: previsualización de la barra de tareas.</div>
         <div className="grid md:grid-cols-4 gap-3">
           <RoleCounters title="Vista Admin" notifications={adminN} />
           <RoleCounters title="Vista Coordinador" notifications={coordN} />
