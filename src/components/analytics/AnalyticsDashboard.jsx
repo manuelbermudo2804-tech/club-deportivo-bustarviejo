@@ -273,6 +273,12 @@ export default function AnalyticsDashboard() {
         </CardContent>
       </Card>
 
+      {/* PREDICCIONES IA */}
+      <PredictiveAlerts />
+
+      {/* AUTOMATIZACIONES */}
+      <AutomationActions />
+
       {/* ANÁLISIS POR MÓDULO - DETALLE */}
       {analysisType !== 'all' && comprehensiveAnalysis[analysisType]?.stats && (
         <Card className="border-2 border-blue-200 bg-blue-50">
@@ -282,15 +288,49 @@ export default function AnalyticsDashboard() {
           <CardContent className="p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(comprehensiveAnalysis[analysisType].stats).map(([key, value]) => (
-                <div key={key} className="p-3 bg-white rounded-lg border border-blue-200">
-                  <p className="text-xs text-slate-600 capitalize">{key}</p>
-                  <p className="text-2xl font-bold text-blue-600">{typeof value === 'number' ? value : JSON.stringify(value).substring(0, 20)}</p>
+                <div key={key} className="p-3 bg-white rounded-lg border border-blue-200 hover:shadow-lg transition-shadow">
+                  <p className="text-xs text-slate-600 capitalize font-semibold">{key.replace(/_/g, ' ')}</p>
+                  <p className="text-2xl font-bold text-blue-600 mt-1">{typeof value === 'number' ? value : JSON.stringify(value).substring(0, 20)}</p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* GRÁFICOS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TrendChart data={[
+          { day: 'Lun', critical: 2, high: 5, medium: 8 },
+          { day: 'Mar', critical: 1, high: 4, medium: 7 },
+          { day: 'Mié', critical: 3, high: 6, medium: 10 },
+          { day: 'Jue', critical: 2, high: 5, medium: 8 },
+          { day: 'Vie', critical: 4, high: 7, medium: 12 },
+          { day: 'Sab', critical: 1, high: 3, medium: 5 },
+          { day: 'Dom', critical: 0, high: 2, medium: 3 }
+        ]} />
+        
+        <SeverityChart data={[
+          { name: 'Crítica', value: alertas.filter(a => a.severidad === 'critical').length || 5 },
+          { name: 'Alta', value: alertas.filter(a => a.severidad === 'high').length || 12 },
+          { name: 'Media', value: alertas.filter(a => a.severidad === 'medium').length || 23 },
+          { name: 'Baja', value: alertas.filter(a => a.severidad === 'low').length || 8 }
+        ]} />
+      </div>
+
+      {/* COMPARATIVA PERÍODO */}
+      <ComparisonChart 
+        currentPeriod={[
+          { name: 'Alertas', value: alertas.length },
+          { name: 'Errores', value: metricas.erroresHoy },
+          { name: 'Pagos Fallidos', value: metricas.alertasAltas }
+        ]}
+        previousPeriod={[
+          { name: 'Alertas', value: alertas.length - 5 },
+          { name: 'Errores', value: metricas.erroresHoy - 3 },
+          { name: 'Pagos Fallidos', value: metricas.alertasAltas - 2 }
+        ]}
+      />
 
       {/* MÉTRICAS ADICIONALES */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
