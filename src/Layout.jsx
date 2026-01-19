@@ -533,13 +533,14 @@ export default function Layout({ children, currentPageName }) {
   // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
   const { notifications } = useUnifiedNotifications(user);
   
-  // Mapear a variables legacy para compatibilidad
-  const pendingCallupsCount = notifications.pendingCallups || 0;
-  const pendingSignaturesCount = notifications.pendingSignatures || 0;
-  const pendingCallupResponses = notifications.pendingCallupResponses || 0;
+  // Mapear a variables legacy para compatibilidad (filtrando ruido para Admin)
+  const sanitize = (v) => (isAdmin ? 0 : (v || 0));
+  const pendingCallupsCount = sanitize(notifications.pendingCallups);
+  const pendingSignaturesCount = sanitize(notifications.pendingSignatures);
+  const pendingCallupResponses = sanitize(notifications.pendingCallupResponses);
   const unreadAnnouncementsCount = notifications.unreadAnnouncements || 0;
   const hasActiveAdminConversation = notifications.hasActiveAdminConversation || false;
-  const pendingMatchObservations = notifications.pendingMatchObservations || 0;
+  const pendingMatchObservations = sanitize(notifications.pendingMatchObservations);
   const unresolvedAdminChats = notifications.unresolvedAdminChats || 0;
   const paymentsInReview = notifications.paymentsInReview || 0;
   const playersNeedingReview = notifications.playersNeedingReview || 0;
@@ -550,11 +551,11 @@ export default function Layout({ children, currentPageName }) {
   const pendingMemberRequests = notifications.pendingMemberRequests || 0;
 
   // Unread chat counters (real-time)
-  const unreadCoachChat = notifications.unreadCoachMessages || 0;
-  const unreadCoordinatorChat = notifications.unreadCoordinatorMessages || 0;
-  const unreadStaffChat = notifications.unreadStaffMessages || 0;
-  const unreadPrivateChat = notifications.unreadPrivateMessages || 0;
-  const unreadFamilyChat = notifications.unreadFamilyMessages || 0;
+  const unreadCoachChat = sanitize(notifications.unreadCoachMessages);
+  const unreadCoordinatorChat = sanitize(notifications.unreadCoordinatorMessages);
+  const unreadStaffChat = sanitize(notifications.unreadStaffMessages);
+  const unreadPrivateChat = sanitize(notifications.unreadPrivateMessages);
+  const unreadFamilyChat = sanitize(notifications.unreadFamilyMessages);
   const unreadAdminMessagesCount = notifications.unreadAdminMessages || 0;
 
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
