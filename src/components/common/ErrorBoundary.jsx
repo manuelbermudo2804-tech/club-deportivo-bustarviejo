@@ -25,11 +25,15 @@ export default class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      const message = this.state.error?.message || '';
       return this.props.fallback || (
         <div className="h-full w-full flex items-center justify-center p-4">
           <div className="text-center max-w-md">
             <div className="text-4xl mb-2">⚠️</div>
-            <p className="text-slate-700 mb-3">Se produjo un error al cargar este chat.</p>
+            <p className="text-slate-700 mb-1">Se produjo un error al cargar este chat.</p>
+            {message && (
+              <p className="text-xs text-slate-500 mb-3 break-all">{message}</p>
+            )}
             <button onClick={this.handleRetry} className="px-4 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700">Reintentar</button>
           </div>
         </div>

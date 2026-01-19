@@ -83,8 +83,8 @@ export default function FamilyChats() {
               </div>
             ) : isCoordinator ? (
               <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
-                <ErrorBoundary>
-                  <CoordinatorChat key="coordinator" embedded={true} />
+                <ErrorBoundary onReset={() => setCoordinatorKey((k) => k + 1)}>
+                  <CoordinatorChat key={`coordinator-${coordinatorKey}`} embedded={true} />
                 </ErrorBoundary>
               </Suspense>
             ) : (
@@ -101,8 +101,8 @@ export default function FamilyChats() {
                </div>
              ) : isCoach ? (
                <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
-                 <ErrorBoundary>
-                   <CoachParentChat key="coach" embedded={true} />
+                 <ErrorBoundary onReset={() => setCoachKey((k) => k + 1)}>
+                   <CoachParentChat key={`coach-${coachKey}`} embedded={true} />
                  </ErrorBoundary>
                </Suspense>
              ) : (
