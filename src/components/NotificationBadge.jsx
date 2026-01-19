@@ -127,12 +127,20 @@ export default function NotificationBadge() {
 
     // Chats unificados (ya incluido en chatUnread)
 
-    // Count new events (published in the last 24 hours and not notified yet)
+    // Count new events (published in the last 24 hours and not notified yet) y que no hayan pasado
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const todayCutoff = new Date();
+    todayCutoff.setHours(0, 0, 0, 0);
     
     events.forEach(event => {
       if (event.publicado && !event.notificado && event.created_date) {
+        // Excluir eventos cuya fecha ya pasó
+        if (event.fecha) {
+          const eventDate = new Date(event.fecha);
+          eventDate.setHours(0, 0, 0, 0);
+          if (eventDate < todayCutoff) return;
+        }
         const eventCreated = new Date(event.created_date);
         if (eventCreated > oneDayAgo) {
           unreadCount++;
