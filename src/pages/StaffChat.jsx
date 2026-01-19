@@ -39,6 +39,8 @@ export default function StaffChat() {
   const [showParticipants, setShowParticipants] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Contador global estable (evita parpadeo)
+  const { total: staffCounterTotal, markRead: markReadCounter } = useStaffCounters({ refetchOnFocus: true });
   // Contador independiente (ChatCounter)
   const { markRead, reload } = (() => {
     try {
