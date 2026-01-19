@@ -8,6 +8,59 @@ import { Input } from "@/components/ui/input";
 import { MessageCircle, ShieldAlert, Users, Bell, Rocket, Mail } from "lucide-react";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
+function BubbleRow({ role, notifications }) {
+  const items = (() => {
+    if (role === 'admin') {
+      return [
+        { key: 'crit', label: 'Críticos', value: notifications.unresolvedAdminChats, Icon: ShieldAlert },
+        { key: 'staff', label: 'Staff', value: notifications.unreadStaffMessages, Icon: Users },
+        { key: 'pago', label: 'Pagos', value: notifications.paymentsInReview, Icon: Bell },
+        { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
+      ];
+    }
+    if (role === 'coordinator') {
+      return [
+        { key: 'fam', label: 'Familias', value: notifications.unreadFamilyMessages, Icon: MessageCircle },
+        { key: 'resp', label: 'Respuestas', value: notifications.pendingCallupResponses, Icon: Bell },
+        { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
+      ];
+    }
+    if (role === 'coach') {
+      return [
+        { key: 'fam', label: 'Familias', value: notifications.unreadFamilyMessages, Icon: MessageCircle },
+        { key: 'resp', label: 'Respuestas', value: notifications.pendingCallupResponses, Icon: Bell },
+        { key: 'obs', label: 'Obs.', value: notifications.pendingMatchObservations, Icon: ShieldAlert },
+        { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
+      ];
+    }
+    // familia
+    return [
+      { key: 'coach', label: 'Entrenador', value: notifications.unreadCoachMessages, Icon: MessageCircle },
+      { key: 'conv', label: 'Convocatorias', value: notifications.pendingCallups, Icon: Bell },
+      { key: 'priv', label: 'Privados', value: notifications.unreadPrivateMessages, Icon: Mail },
+      { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
+      { key: 'coord', label: 'Coord.', value: notifications.unreadCoordinatorMessages, Icon: MessageCircle },
+    ];
+  })();
+  return (
+    <div className="flex flex-wrap gap-5 items-center">
+      {items.map(({ key, label, value, Icon }) => (
+        <div key={key} className="flex flex-col items-center">
+          <div className="relative">
+            <div className="h-11 w-11 rounded-full bg-white border flex items-center justify-center shadow">
+              <Icon className="w-5 h-5 text-slate-700" />
+            </div>
+            <span className={`absolute -top-1 -right-1 rounded-full text-[10px] px-1.5 py-0.5 ${ (value||0) > 0 ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700' }`}>
+              {value || 0}
+            </span>
+          </div>
+          <div className="text-[10px] text-slate-600 mt-1">{label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function RoleCounters({ title, notifications }) {
   const items = [
     { label: "Staff", value: notifications?.unreadStaffMessages },
@@ -102,6 +155,7 @@ export default function ChatTestConsole() {
   // UI feedback
   const [busy, setBusy] = useState(null); // 'staff'|'p2c'|'c2g'|'p2coord'|'admin2fam'|'private'|null
   const [status, setStatus] = useState(null);
+  const [bubbleRole, setBubbleRole] = useState('admin');
 
   // Impersonaciones ligeras (siempre declarar hooks antes de cualquier return)
   const asAdmin = me;
@@ -563,6 +617,23 @@ export default function ChatTestConsole() {
             <Button disabled={!!busy} onClick={resetAll} variant="outline" className="gap-2 md:col-span-3">
               {busy==='reset-all' ? <div className="spinner-elegant" /> : <Bell className="w-4 h-4" />} Reset TODO
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Previsualización de burbujas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Previsualización de burbujas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs text-slate-500">Rol:</span>
+              <Button size="sm" variant={bubbleRole==='admin' ? 'default' : 'outline'} onClick={() => setBubbleRole('admin')}>Admin</Button>
+              <Button size="sm" variant={bubbleRole==='coordinator' ? 'default' : 'outline'} onClick={() => setBubbleRole('coordinator')}>Coordinador</Button>
+              <Button size="sm" variant={bubbleRole==='coach' ? 'default' : 'outline'} onClick={() => setBubbleRole('coach')}>Entrenador</Button>
+              <Button size="sm" variant={bubbleRole==='family' ? 'default' : 'outline'} onClick={() => setBubbleRole('family')}>Familia</Button>
+            </div>
+            <BubbleRow role={bubbleRole} notifications={bubbleN} />
           </CardContent>
         </Card>
 
