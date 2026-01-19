@@ -20,10 +20,20 @@ const Chip = ({ label, count, color, onClick }) => {
 
 export default function PendingTasksBar({ notifications }) {
   const navigate = useNavigate();
-  const n = notifications || {};
-  const total = (n.unreadCoordinatorMessages||0) + (n.unreadCoachMessages||0) + (n.unreadStaffMessages||0) + (n.unreadAdminMessages||0) + (n.unreadPrivateMessages||0);
-  // Mostrar siempre la barra si hay staff (coordinadores/entrenadores/admin), aunque otros contadores estén a 0, para evitar parpadeos
-  const shouldShow = total > 0 || (n.role === 'admin' || n.isCoordinator || n.isCoach);
+  const role = notifications?.role;
+  const isCoordinator = notifications?.isCoordinator;
+  const isCoach = notifications?.isCoach;
+
+  // Counters independientes por chat
+  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
+  const { total: coachTotal } = useCoachCounters({ refetchOnFocus: true });
+  const { total: coordTotal } = useCoordinatorCounters({ refetchOnFocus: true });
+  const { total: familyTotal } = useFamilyCounters({ refetchOnFocus: true });
+  const { total: privateTotal } = usePrivateCounters({ refetchOnFocus: true });
+  const { total: adminTotal } = useAdminCounters({ refetchOnFocus: true });
+
+  const total = coordTotal + coachTotal + staffTotal + adminTotal + privateTotal + familyTotal;
+  const shouldShow = total > 0 || (role === 'admin' || isCoordinator || isCoach);
   if (!shouldShow) return null;
 
   return (
