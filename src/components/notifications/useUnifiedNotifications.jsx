@@ -185,10 +185,10 @@ export function useUnifiedNotifications(user, options = {}) {
     // Staff Messages (only for staff roles, unless test mode)
     if (options?.testModeLoadAll || user.es_entrenador || user.es_coordinador || user.role === 'admin') {
       const loadStaffMsgs = async () => {
-        const msgs = await base44.entities.StaffMessage.list('-created_date', 15);
+        const msgs = await base44.entities.StaffMessage.list('-created_date', 40);
         setRawData(prev => ({ ...prev, staffMessages: msgs }));
       };
-      setTimeout(loadStaffMsgs, 400);
+      setTimeout(loadStaffMsgs, 0);
       let lastStaffUpdate = 0;
       const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
         const now = Date.now();
@@ -578,9 +578,9 @@ export function useUnifiedNotifications(user, options = {}) {
           unreadStaff++;
         }
       });
-      // Fallback: si hay AppNotifications de Staff pendientes, usar el mayor
-      const pendingStaffNotifs = (rawData.appNotifications || []).filter(n => n.enlace === 'StaffChat' && n.vista === false).length;
-      if (pendingStaffNotifs > unreadStaff) unreadStaff = pendingStaffNotifs;
+      // Fallback desactivado: evitamos picos inconsistentes en el badge de Staff
+      // (el recuento se calcula únicamente desde StaffMessage + leido_por)
+      
     }
 
     // Admin (para familias): usar counter de conversación
