@@ -108,10 +108,41 @@ export default function AnalyticsDashboard() {
         <KPICard
           icon={<TrendingUp className="w-6 h-6" />}
           titulo="Total Alertas"
-          valor={alertas.length}
+          valor={alertasTotal.length}
           color="purple"
         />
       </div>
+
+      {/* ANÁLISIS POR MÓDULO */}
+      <Card className="border-2 border-slate-200">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100">
+          <CardTitle>🔍 Análisis por Módulo</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {[
+              { type: 'all', label: 'Todo', icon: BarChart3 },
+              { type: 'stripe', label: 'Pagos', icon: CreditCard },
+              { type: 'users', label: 'Usuarios', icon: Users },
+              { type: 'data', label: 'Datos', icon: Database },
+              { type: 'chats', label: 'Chats', icon: MessageCircle },
+              { type: 'performance', label: 'Performance', icon: Zap },
+              { type: 'integrations', label: 'Integraciones', icon: Plug }
+            ].map(({ type, label, icon: Icon }) => (
+              <Button
+                key={type}
+                variant={analysisType === type ? 'default' : 'outline'}
+                onClick={() => setAnalysisType(type)}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{label}</span>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ALERTAS ACTIVAS */}
       <Card className="border-2 border-slate-200">
