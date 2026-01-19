@@ -42,7 +42,7 @@ export default function PendingTasksBar({ notifications }) {
         <span className="text-[11px] font-bold text-slate-600 mr-2">Tareas pendientes</span>
         <Chip
           label="Coord."
-          count={n.unreadCoordinatorMessages}
+          count={coordTotal}
           color="bg-blue-600"
           onClick={() => navigate(createPageUrl('FamilyChats'))}
         />
