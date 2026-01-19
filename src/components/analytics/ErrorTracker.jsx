@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { globalThrottler, debounce, retryWithBackoff } from '@/components/utils/requestThrottler';
 
 /**
  * Hook para trackear errores automáticamente
