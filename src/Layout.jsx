@@ -2236,7 +2236,7 @@ export default function Layout({ children, currentPageName }) {
           <ActiveBanner position="top" user={user} />
           {/* Barra de tareas pendientes (chats) */}
           <Suspense fallback={null}></Suspense>
-          <PendingTasksBar notifications={notifications} />
+          <PendingTasksBar notifications={enrichedNotifications} />
           {extraChargeVisible && (
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}
