@@ -36,6 +36,7 @@ import RenewalNotificationEngine from "./components/renewals/RenewalNotification
 import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPaymentReminder.jsx";
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
 import ChatSoundNotifier from "./components/notifications/ChatSoundNotifier";
+import ChatToasts from "./components/notifications/ChatToasts";
 import CallupSoundNotifier from "./components/notifications/CallupSoundNotifier";
 import AnnouncementSoundNotifier from "./components/notifications/AnnouncementSoundNotifier";
 import PaymentSoundNotifier from "./components/notifications/PaymentSoundNotifier";
