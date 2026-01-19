@@ -25,24 +25,36 @@ export default function AdminStats() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
+    enabled: isAdmin,
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
     initialData: [],
+    enabled: isAdmin,
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: matchResults } = useQuery({
     queryKey: ['matchResults'],
     queryFn: () => base44.entities.MatchResult.list('-fecha_partido'),
     initialData: [],
+    enabled: isAdmin,
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: medicalRecords } = useQuery({
     queryKey: ['medicalRecords'],
     queryFn: () => base44.entities.MedicalRecord.list(),
     initialData: [],
+    enabled: isAdmin,
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
   });
 
   if (!isAdmin) {
