@@ -263,6 +263,30 @@ export default function ChatTestConsole() {
     }
   };
 
+  const sendCoordinatorToFamily = async () => {
+    setBusy('coord2fam'); setStatus(null);
+    try {
+      if (!parentEmail || !coordEmail) throw new Error('Faltan emails (familia o coordinador)');
+      const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
+      const conv = convs[0] || (await base44.entities.CoordinatorConversation.create({ padre_email: parentEmail, padre_nombre: "Familia Test", no_leidos_coordinador: 0, no_leidos_padre: 0, archivada: false }));
+      await base44.entities.CoordinatorMessage.create({
+        conversacion_id: conv.id,
+        autor: "coordinador",
+        autor_email: coordEmail,
+        autor_nombre: "Coordinador Test",
+        mensaje: `Coordinador→Familia ${new Date().toLocaleTimeString()}`,
+        leido_padre: false,
+        leido_coordinador: true,
+      });
+      await base44.entities.CoordinatorConversation.update(conv.id, { ultimo_mensaje: "Nuevo mensaje (coordinador)", ultimo_mensaje_autor: "coordinador", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_padre: (conv.no_leidos_padre || 0) + 1 });
+      setStatus('✅ Enviado: Coordinador→Familia');
+    } catch (e) {
+      setStatus(`❌ Coordinador→Familia: ${e?.message || e}`);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const sendAdminToFamily = async () => {
     setBusy('admin2fam'); setStatus(null);
     try {
@@ -399,6 +423,9 @@ export default function ChatTestConsole() {
             </Button>
             <Button disabled={!!busy} onClick={sendParentToCoordinator} className="gap-2">
               {busy==='p2coord' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Familia→Coordinador
+            </Button>
+            <Button disabled={!!busy} onClick={sendCoordinatorToFamily} className="gap-2">
+              {busy==='coord2fam' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Coordinador→Familia
             </Button>
             <Button disabled={!!busy} onClick={sendAdminToFamily} className="gap-2">
               {busy==='admin2fam' ? <div className="spinner-elegant" /> : <ShieldAlert className="w-4 h-4" />} Admin→Familia (crítica)
