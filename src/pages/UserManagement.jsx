@@ -1888,7 +1888,7 @@ CD Bustarviejo`);
 
       {/* Diálogo de Eliminación */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               <Trash2 className="w-6 h-6 text-slate-700" />
