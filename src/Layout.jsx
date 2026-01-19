@@ -1576,35 +1576,37 @@ export default function Layout({ children, currentPageName }) {
 
         // 2) Verificar si es cumpleaños del usuario hoy
           if (user?.email) {
-            try {
-              const today = new Date();
-              const month = String(today.getMonth() + 1).padStart(2, '0');
-              const day = String(today.getDate()).padStart(2, '0');
-              const todayMDKey = `${month}-${day}`;
+            (async () => {
+              try {
+                const today = new Date();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                const todayMDKey = `${month}-${day}`;
 
-              const logs = await base44.asServiceRole.entities.BirthdayLog.filter({
-                destinatario_email: user.email,
-                email_enviado: true
-              });
-
-              const hoyEs = logs.find(log => {
-                if (!log.fecha_envio_email) return false;
-                const logDate = log.fecha_envio_email.split('T')[0];
-                const todayStr = today.toISOString().split('T')[0];
-                return logDate === todayStr && log.notificacion_app_mostrada !== true;
-              });
-
-              if (hoyEs) {
-                setShowBirthdayModal(hoyEs);
-                // Marcar como mostrada
-                await base44.asServiceRole.entities.BirthdayLog.update(hoyEs.id, {
-                  notificacion_app_mostrada: true,
-                  fecha_notificacion_app: new Date().toISOString()
+                const logs = await base44.asServiceRole.entities.BirthdayLog.filter({
+                  destinatario_email: user.email,
+                  email_enviado: true
                 });
+
+                const hoyEs = logs.find(log => {
+                  if (!log.fecha_envio_email) return false;
+                  const logDate = log.fecha_envio_email.split('T')[0];
+                  const todayStr = today.toISOString().split('T')[0];
+                  return logDate === todayStr && log.notificacion_app_mostrada !== true;
+                });
+
+                if (hoyEs) {
+                  setShowBirthdayModal(hoyEs);
+                  // Marcar como mostrada
+                  await base44.asServiceRole.entities.BirthdayLog.update(hoyEs.id, {
+                    notificacion_app_mostrada: true,
+                    fecha_notificacion_app: new Date().toISOString()
+                  });
+                }
+              } catch (e) {
+                console.log('Info: error buscando cumpleaños:', e);
               }
-            } catch (e) {
-              console.log('Info: error buscando cumpleaños:', e);
-            }
+            })();
           }
 
           // 3) Mostrar instrucciones de instalación (tras onboarding o si no se ha completado)
