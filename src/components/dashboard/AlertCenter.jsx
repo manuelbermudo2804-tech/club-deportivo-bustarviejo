@@ -255,69 +255,28 @@ const alerts = [];
     }
   }
 
-  // ALERTAS DE CHATS DESDE useUnreadChats (Coordinador, Entrenador, Admin, Staff, Privados)
+  // ALERTAS DE CHATS DESDE useUnreadChats (fuente única y consistente)
   chatItems.forEach(item => {
-    if (item.source === "coordinator" && item.count > 0) {
-      alerts.push({
-        id: "coordinator-chat",
-        icon: MessageCircle,
-        title: "💬 Mensajes del Coordinador",
-        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl(item.link),
-        color: "bg-cyan-500",
-        priority: 1
-      });
-    } else if (item.source === "coach" && item.count > 0) {
-      alerts.push({
-        id: "coach-chat",
-        icon: MessageCircle,
-        title: "⚽ Mensajes del Entrenador",
-        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl(item.link),
-        color: "bg-blue-500",
-        priority: 1
-      });
-    } else if (item.source === "admin" && item.count > 0) {
-      alerts.push({
-        id: "admin-chat",
-        icon: ShieldAlert,
-        title: "🛡️ Mensajes del Administrador",
-        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl(item.link),
-        color: "bg-red-600",
-        priority: 0
-      });
-    } else if (item.source === "staff" && item.count > 0) {
-      alerts.push({
-        id: "staff-chat",
-        icon: MessageCircle,
-        title: "💼 Chat Interno Staff",
-        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl(item.link),
-        color: "bg-purple-600",
-        priority: 1
-      });
-    } else if (item.source === "private" && item.count > 0) {
-      alerts.push({
-        id: "private-messages",
-        icon: Bell,
-        title: "🔔 Mensajes del Club",
-        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl(item.link),
-        color: "bg-purple-500",
-        priority: 1
-      });
-    } else if (item.source === "families" && item.count > 0) {
-      alerts.push({
-        id: "families-chat",
-        icon: MessageCircle,
-        title: "👨‍👩‍👧 Mensajes de Familias",
-        description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
-        url: createPageUrl(item.link),
-        color: "bg-blue-600",
-        priority: 1
-      });
-    }
+    if (item.count <= 0) return;
+    const map = {
+      coordinator: { id: 'coordinator-chat', icon: MessageCircle, title: '💬 Mensajes del Coordinador', color: 'bg-cyan-500', priority: 1 },
+      coach: { id: 'coach-chat', icon: MessageCircle, title: '⚽ Mensajes del Entrenador', color: 'bg-blue-500', priority: 1 },
+      admin: { id: 'admin-chat', icon: ShieldAlert, title: '🛡️ Mensajes del Administrador', color: 'bg-red-600', priority: 0 },
+      staff: { id: 'staff-chat', icon: MessageCircle, title: '💼 Chat Interno Staff', color: 'bg-purple-600', priority: 1 },
+      private: { id: 'private-messages', icon: Bell, title: '🔔 Mensajes del Club', color: 'bg-purple-500', priority: 1 },
+      families: { id: 'families-chat', icon: MessageCircle, title: '👨‍👩‍👧 Mensajes de Familias', color: 'bg-blue-600', priority: 1 }
+    };
+    const cfg = map[item.source];
+    if (!cfg) return;
+    alerts.push({
+      id: cfg.id,
+      icon: cfg.icon,
+      title: cfg.title,
+      description: `${item.count} mensaje${item.count > 1 ? 's' : ''} sin leer`,
+      url: createPageUrl(item.link),
+      color: cfg.color,
+      priority: cfg.priority
+    });
   });
 
   // Alertas para padres
