@@ -551,11 +551,11 @@ export default function Layout({ children, currentPageName }) {
   const pendingMemberRequests = notifications.pendingMemberRequests || 0;
 
   // Unread chat counters (real-time)
-  const unreadCoachChat = sanitize(notifications.unreadCoachMessages);
-  const unreadCoordinatorChat = sanitize(notifications.unreadCoordinatorMessages);
-  const unreadStaffChat = sanitize(notifications.unreadStaffMessages);
-  const unreadPrivateChat = sanitize(notifications.unreadPrivateMessages);
-  const unreadFamilyChat = sanitize(notifications.unreadFamilyMessages);
+  const unreadCoachChat = notifications.unreadCoachMessages || 0;
+  const unreadCoordinatorChat = notifications.unreadCoordinatorMessages || 0;
+  const unreadStaffChat = notifications.unreadStaffMessages || 0;
+  const unreadPrivateChat = notifications.unreadPrivateMessages || 0;
+  const unreadFamilyChat = notifications.unreadFamilyMessages || 0;
   const unreadAdminMessagesCount = notifications.unreadAdminMessages || 0;
 
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
