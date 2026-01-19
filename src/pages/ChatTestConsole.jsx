@@ -48,6 +48,21 @@ export default function ChatTestConsole() {
   const [parentEmail, setParentEmail] = useState("");
   const [category, setCategory] = useState("");
 
+  // Impersonaciones ligeras (siempre declarar hooks antes de cualquier return)
+  const asAdmin = me;
+  const asCoordinator = useMemo(
+    () => ({ email: coordEmail, full_name: "Coord (test)", role: "user", es_coordinador: true }),
+    [coordEmail]
+  );
+  const asCoach = useMemo(
+    () => ({ email: coachEmail, full_name: "Coach (test)", role: "user", es_entrenador: true, categorias_entrena: category ? [category] : [] }),
+    [coachEmail, category]
+  );
+  const asFamily = useMemo(
+    () => ({ email: parentEmail, full_name: "Familia (test)", role: "user" }),
+    [parentEmail]
+  );
+
   useEffect(() => {
     (async () => {
       const u = await base44.auth.me();
@@ -92,11 +107,7 @@ export default function ChatTestConsole() {
     );
   }
 
-  // Impersonaciones ligeras (solo para contadores del hook)
-  const asAdmin = me;
-  const asCoordinator = useMemo(() => ({ email: coordEmail, full_name: "Coord (test)", role: "user", es_coordinador: true }), [coordEmail]);
-  const asCoach = useMemo(() => ({ email: coachEmail, full_name: "Coach (test)", role: "user", es_entrenador: true, categorias_entrena: category ? [category] : [] }), [coachEmail, category]);
-  const asFamily = useMemo(() => ({ email: parentEmail, full_name: "Familia (test)", role: "user" }), [parentEmail]);
+  // (moved hooks above to keep consistent order)
 
   const categories = Array.from(new Set(players.map((p) => p.deporte).filter(Boolean)));
   const parentOptions = Array.from(new Set(players.map((p) => p.email_padre).filter(Boolean)));
