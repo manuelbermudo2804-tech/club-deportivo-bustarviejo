@@ -580,6 +580,8 @@ export default function Layout({ children, currentPageName }) {
 
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [enginesReady, setEnginesReady] = useState(false);
+  const [enginesStage2Ready, setEnginesStage2Ready] = useState(false);
+  const [enginesStage3Ready, setEnginesStage3Ready] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -1576,6 +1578,14 @@ export default function Layout({ children, currentPageName }) {
         }
       }, [isLoading, user]);
 
+      // Escalonar carga de motores para reducir llamadas concurrentes
+      useEffect(() => {
+        if (!enginesReady) return;
+        const t2 = setTimeout(() => setEnginesStage2Ready(true), 1200);
+        const t3 = setTimeout(() => setEnginesStage3Ready(true), 2500);
+        return () => { clearTimeout(t2); clearTimeout(t3); };
+      }, [enginesReady]);
+
       // Invitar en el primer arranque desde el icono (PWA)
       useEffect(() => {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -1956,8 +1966,18 @@ export default function Layout({ children, currentPageName }) {
                 {enginesReady && (
                   <Suspense fallback={null}>
                     <SessionManager />
+                  </Suspense>
+                )}
+
+                {enginesStage2Ready && (
+                  <Suspense fallback={null}>
                     <NotificationBadge />
                     <PaymentApprovalNotifier isAdmin={isAdmin} />
+                  </Suspense>
+                )}
+
+                {enginesStage3Ready && (
+                  <Suspense fallback={null}>
                     <PlanPaymentReminders user={user} />
                     <AutomaticRenewalReminders />
                     <AutomaticRenewalClosure />
