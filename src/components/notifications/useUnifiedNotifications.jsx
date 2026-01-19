@@ -7,7 +7,7 @@ import { base44 } from '@/api/base44Client';
  * - Centralizado - una única fuente de verdad
  * - Actualización instantánea
  */
-export function useUnifiedNotifications(user) {
+export function useUnifiedNotifications(user, options = {}) {
   const [notifications, setNotifications] = useState({
     // CHATS
     unreadCoordinatorMessages: 0,
@@ -71,7 +71,7 @@ export function useUnifiedNotifications(user) {
     if (!user) return;
 
     // Prevent duplicate initialization across mounts
-    if (typeof window !== 'undefined') {
+    if (!options?.forceInstance && typeof window !== 'undefined') {
       if (window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE) return;
       window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = true;
     }
@@ -386,7 +386,7 @@ export function useUnifiedNotifications(user) {
 
     return () => {
       unsubscribers.forEach(unsub => unsub());
-      if (typeof window !== 'undefined') {
+      if (!options?.forceInstance && typeof window !== 'undefined') {
         window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = false;
       }
     };
