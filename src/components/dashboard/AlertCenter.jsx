@@ -473,10 +473,18 @@ const alerts = [];
   // Eventos nuevos publicados en últimas 48h QUE REQUIEREN CONFIRMACIÓN (no automáticos de gestión)
   const twoDaysAgo = new Date();
   twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  const todayCutoff = new Date();
+  todayCutoff.setHours(0, 0, 0, 0);
   const newEvents = events.filter(e => {
     if (!e.publicado) return false;
     if (e.es_automatico === true) return false; // Excluir eventos automáticos de plantillas anuales
     if (e.requiere_confirmacion === false) return false; // Solo mostrar eventos que requieren confirmación
+    // Excluir eventos pasados
+    if (e.fecha) {
+      const eventDate = new Date(e.fecha);
+      eventDate.setHours(0, 0, 0, 0);
+      if (eventDate < todayCutoff) return false;
+    }
     const createdDate = new Date(e.created_date);
     return createdDate > twoDaysAgo;
   });
