@@ -38,6 +38,15 @@ export default function StaffChat() {
   const [showParticipants, setShowParticipants] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Contador independiente (ChatCounter)
+  const { markRead, reload } = (() => {
+    try {
+      const mod = require?.('../components/chats/useChatCounters');
+      return mod ? mod.useStaffCounters({}) : { markRead: async () => {}, reload: async () => {} };
+    } catch {
+      return { markRead: async () => {}, reload: async () => {} };
+    }
+  })();
   const [searchTerm, setSearchTerm] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showPollDialog, setShowPollDialog] = useState(false);
