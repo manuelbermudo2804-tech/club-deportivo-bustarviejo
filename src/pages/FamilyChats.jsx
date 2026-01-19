@@ -37,8 +37,6 @@ export default function FamilyChats() {
   const [activeTab, setActiveTab] = useState('coordinador');
   const [coordinatorKey, setCoordinatorKey] = useState(0);
   const [coachKey, setCoachKey] = useState(0);
-  const [coordinatorKey, setCoordinatorKey] = useState(0);
-  const [coachKey, setCoachKey] = useState(0);
 
   useEffect(() => {
     const init = () => {
