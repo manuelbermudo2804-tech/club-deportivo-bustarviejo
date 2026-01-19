@@ -633,6 +633,11 @@ export default function ChatTestConsole() {
             <CardTitle className="text-sm">Reseteo de pruebas</CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-2">
+            <div className="md:col-span-3 flex flex-wrap gap-2 mb-1">
+              <Button variant="outline" size="sm" onClick={takeBaseline} disabled={!!busy}>🧹 Forzar a 0 (aislar)</Button>
+              <Button variant="ghost" size="sm" onClick={clearBaseline} disabled={!!busy || !isolateMode}>Salir de aislamiento</Button>
+              {isolateMode && <Badge className="bg-green-600">Aislamiento activo</Badge>}
+            </div>
             <Button disabled={!!busy} onClick={resetStaff} className="gap-2">
               {busy==='reset-staff' ? <div className="spinner-elegant" /> : <Users className="w-4 h-4" />} Reset Staff
             </Button>
