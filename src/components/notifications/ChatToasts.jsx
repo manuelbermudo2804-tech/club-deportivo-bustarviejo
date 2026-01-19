@@ -45,7 +45,17 @@ export default function ChatToasts() {
   const idRef = useRef(0);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    const init = async () => {
+      try {
+        const u = await base44.auth.me();
+        setUser(u);
+        const players = await base44.entities.Player.filter({ $or: [ { email_padre: u.email }, { email_tutor_2: u.email }, { email_jugador: u.email } ] });
+        const cats = Array.from(new Set(players.flatMap(p => [p.categoria_principal, p.deporte].filter(Boolean))));
+        setMyCategories(cats);
+        setCoachCategories(Array.isArray(u.categorias_entrena) ? u.categorias_entrena : []);
+      } catch {}
+    };
+    init();
   }, []);
 
   const pushToast = (t) => {
