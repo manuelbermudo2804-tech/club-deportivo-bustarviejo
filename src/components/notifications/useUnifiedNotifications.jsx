@@ -70,6 +70,12 @@ export function useUnifiedNotifications(user) {
   useEffect(() => {
     if (!user) return;
 
+    // Prevent duplicate initialization across mounts
+    if (typeof window !== 'undefined') {
+      if (window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE) return;
+      window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = true;
+    }
+
     // Pause heavy real-time if maintenance window active or tab hidden
     const until = Number(localStorage.getItem('maintenanceModeUntil') || 0);
     const paused = until && Date.now() < until;
@@ -121,70 +127,78 @@ export function useUnifiedNotifications(user) {
     });
     unsubscribers.push(unsubCoachConv);
 
-    // Chat Messages
-    const loadChatMsgs = async () => {
-      const msgs = await base44.entities.ChatMessage.list('-created_date', 50);
-      setRawData(prev => ({ ...prev, chatMessages: msgs }));
-    };
-    setTimeout(loadChatMsgs, 200);
-    // Throttle chat subscription updates
-    let lastChatUpdate = 0;
-    const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
-      const now = Date.now();
-      if (now - lastChatUpdate < 1000) return; // throttle 1/s
-      lastChatUpdate = now;
-      setRawData(prev => {
-        let updated = [...prev.chatMessages];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
-        else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
-        return { ...prev, chatMessages: updated };
+    // Chat Messages (skip for pure admins)
+    if (user.role !== 'admin') {
+      const loadChatMsgs = async () => {
+        const msgs = await base44.entities.ChatMessage.list('-created_date', 20);
+        setRawData(prev => ({ ...prev, chatMessages: msgs }));
+      };
+      setTimeout(loadChatMsgs, 200);
+      // Throttle chat subscription updates
+      let lastChatUpdate = 0;
+      const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
+        const now = Date.now();
+        if (now - lastChatUpdate < 1000) return; // throttle 1/s
+        lastChatUpdate = now;
+        setRawData(prev => {
+          let updated = [...prev.chatMessages];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
+          else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
+          return { ...prev, chatMessages: updated };
+        });
       });
-    });
-    unsubscribers.push(unsubChatMsg);
+      unsubscribers.push(unsubChatMsg);
+    }
 
-    // Staff Messages
-    const loadStaffMsgs = async () => {
-      const msgs = await base44.entities.StaffMessage.list('-created_date', 50);
-      setRawData(prev => ({ ...prev, staffMessages: msgs }));
-    };
-    setTimeout(loadStaffMsgs, 300);
-    let lastStaffUpdate = 0;
-    const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
-      const now = Date.now();
-      if (now - lastStaffUpdate < 1000) return;
-      lastStaffUpdate = now;
-      setRawData(prev => {
-        let updated = [...prev.staffMessages];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
-        else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
-        return { ...prev, staffMessages: updated };
+    // Staff Messages (only for staff roles)
+    if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
+      const loadStaffMsgs = async () => {
+        const msgs = await base44.entities.StaffMessage.list('-created_date', 20);
+        setRawData(prev => ({ ...prev, staffMessages: msgs }));
+      };
+      setTimeout(loadStaffMsgs, 300);
+      let lastStaffUpdate = 0;
+      const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
+        const now = Date.now();
+        if (now - lastStaffUpdate < 1000) return;
+        lastStaffUpdate = now;
+        setRawData(prev => {
+          let updated = [...prev.staffMessages];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
+          else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
+          return { ...prev, staffMessages: updated };
+        });
       });
-    });
-    unsubscribers.push(unsubStaffMsg);
+      unsubscribers.push(unsubStaffMsg);
+    }
 
-    // Admin Conversations
+    // Admin Conversations (skip for staff unless admin)
     const loadAdminConvs = async () => {
       let convs = [];
       if (user?.role === 'admin') {
         convs = await base44.entities.AdminConversation.list('-updated_date', 100);
-      } else {
+      } else if (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
         convs = await base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 100);
+      } else {
+        return;
       }
       setRawData(prev => ({ ...prev, adminConversations: convs }));
     };
     setTimeout(loadAdminConvs, 400);
-    const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
-      setRawData(prev => {
-        let updated = [...prev.adminConversations];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
-        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
-        return { ...prev, adminConversations: updated };
+    if (user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero)) {
+      const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
+        setRawData(prev => {
+          let updated = [...prev.adminConversations];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+          else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+          return { ...prev, adminConversations: updated };
+        });
       });
-    });
-    unsubscribers.push(unsubAdminConv);
+      unsubscribers.push(unsubAdminConv);
+    }
 
     // App Notifications (para fallback de badges, incluido Staff)
     const loadAppNotifs = async () => {
@@ -207,7 +221,7 @@ export function useUnifiedNotifications(user) {
 
     // Private Conversations
     const loadPrivateConvs = async () => {
-      const convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 80);
+      const convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 60);
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
     setTimeout(loadPrivateConvs, 600);
@@ -372,6 +386,9 @@ export function useUnifiedNotifications(user) {
 
     return () => {
       unsubscribers.forEach(unsub => unsub());
+      if (typeof window !== 'undefined') {
+        window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = false;
+      }
     };
   }, [user]);
 

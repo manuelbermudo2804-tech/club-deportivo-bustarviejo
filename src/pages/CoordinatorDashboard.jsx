@@ -366,21 +366,7 @@ export default function CoordinatorDashboard() {
         {/* Mini KPIs Staff (Coordinador) */}
         {user && (
           (() => {
-            const since = new Date(Date.now() - 30*24*60*60*1000);
-            const lastCoordAtt = (allAttendances || []).filter(a => new Date(a.fecha) >= since && myCategories.includes(a.categoria));
-            let att30 = 0;
-            if (lastCoordAtt.length > 0) {
-              const present = lastCoordAtt.reduce((s,a) => s + (a.asistencias||[]).filter(x => x.estado === 'presente').length, 0);
-              const expected = lastCoordAtt.reduce((s,a) => s + (a.asistencias||[]).length, 0);
-              att30 = expected > 0 ? Math.round((present/expected)*100) : 0;
-            } else {
-              const allCoord = (allAttendances || []).filter(a => myCategories.includes(a.categoria));
-              if (allCoord.length > 0) {
-                const present = allCoord.reduce((s,a) => s + (a.asistencias||[]).filter(x => x.estado === 'presente').length, 0);
-                const expected = allCoord.reduce((s,a) => s + (a.asistencias||[]).length, 0);
-                att30 = expected > 0 ? Math.round((present/expected)*100) : 0;
-              }
-            }
+            const att30 = 0;
             const attTone = att30 >= 80 ? 'green' : att30 >= 65 ? 'amber' : 'red';
 
             const pending = (notifications?.pendingCallupResponses ?? pendingCallupResponses) || 0;
