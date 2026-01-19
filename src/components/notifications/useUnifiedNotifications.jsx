@@ -81,7 +81,9 @@ export function useUnifiedNotifications(user, options = {}) {
     const paused = until && Date.now() < until;
     const hidden = typeof document !== 'undefined' && document.hidden;
     const pausedGlobal = typeof window !== 'undefined' && window.__BASE44_PAUSE_REALTIME__ === true;
-    if (paused || hidden || pausedGlobal) return;
+    if (paused || hidden || pausedGlobal) {
+      if (!options?.ignorePause) return;
+    }
 
     const unsubscribers = [];
 

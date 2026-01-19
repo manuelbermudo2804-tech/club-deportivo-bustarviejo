@@ -39,6 +39,59 @@ function RoleCounters({ title, userStub }) {
   );
 }
 
+function AlertPreview({ title, userStub }) {
+  const { notifications } = useUnifiedNotifications(userStub, { forceInstance: true, ignorePause: true });
+  const items = (() => {
+    if (!userStub) return [];
+    if (userStub.role === 'admin') {
+      return [
+        { label: 'Chats críticos abiertos', value: notifications.unresolvedAdminChats },
+        { label: 'Mensajes Staff', value: notifications.unreadStaffMessages },
+        { label: 'Pagos en revisión', value: notifications.paymentsInReview },
+      ];
+    }
+    if (userStub.es_coordinador) {
+      return [
+        { label: 'Familias (grupo)', value: notifications.unreadFamilyMessages },
+        { label: 'Coord. directos', value: notifications.unreadCoordinatorMessages },
+        { label: 'Respuestas convocatorias', value: notifications.pendingCallupResponses },
+      ];
+    }
+    if (userStub.es_entrenador) {
+      return [
+        { label: 'Familias (grupo)', value: notifications.unreadFamilyMessages },
+        { label: 'Respuestas convocatorias', value: notifications.pendingCallupResponses },
+        { label: 'Observaciones pendientes', value: notifications.pendingMatchObservations },
+      ];
+    }
+    // Familia
+    return [
+      { label: 'Entrenador→grupo', value: notifications.unreadCoachMessages },
+      { label: 'Convocatorias por confirmar', value: notifications.pendingCallups },
+      { label: 'Anuncios sin leer', value: notifications.unreadAnnouncements },
+    ];
+  })();
+  const total = items.reduce((s, it) => s + (it.value || 0), 0);
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-sm">
+          <span>{title}</span>
+          <Badge className={total > 0 ? 'bg-red-500' : 'bg-green-600'}>{total}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-2">
+        {items.map((it) => (
+          <div key={it.label} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2">
+            <span className="text-xs text-slate-600">{it.label}</span>
+            <Badge className={(it.value||0) > 0 ? 'bg-red-500' : 'bg-slate-700'}>{it.value || 0}</Badge>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ChatTestConsole() {
   const [me, setMe] = useState(null);
   const [users, setUsers] = useState([]);
@@ -366,6 +419,21 @@ export default function ChatTestConsole() {
           <RoleCounters title="Vista Entrenador" userStub={asCoach} />
           <RoleCounters title="Vista Familia" userStub={asFamily} />
         </div>
+
+        {/* Previsualización barra de tareas (AlertCenter) por rol */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Previsualización de barra de tareas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-4 gap-3">
+              <AlertPreview title="Admin" userStub={asAdmin} />
+              <AlertPreview title="Coordinador" userStub={asCoordinator} />
+              <AlertPreview title="Entrenador" userStub={asCoach} />
+              <AlertPreview title="Familia" userStub={asFamily} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
