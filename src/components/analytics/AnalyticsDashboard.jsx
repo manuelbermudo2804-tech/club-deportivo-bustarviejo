@@ -10,11 +10,22 @@ import { motion } from 'framer-motion';
 export default function AnalyticsDashboard() {
   const [filtroCategoria, setFiltroCategoria] = useState('all');
   const [filtroSeveridad, setFiltroSeveridad] = useState('all');
+  const [analysisType, setAnalysisType] = useState('all');
 
   // Obtener alertas
   const { data: alertas = [], isLoading: alertasLoading } = useQuery({
     queryKey: ['system_alerts'],
     queryFn: () => base44.asServiceRole.entities.SystemAlert.filter({ estado: 'activo' })
+  });
+
+  // Análisis integral
+  const { data: comprehensiveAnalysis = {}, isLoading: analysisLoading } = useQuery({
+    queryKey: ['comprehensive_analysis', analysisType],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('comprehensiveAnalytics', { analysisType });
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000
   });
 
   // Obtener eventos
