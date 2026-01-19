@@ -284,6 +284,17 @@ export default function ChatTestConsole() {
         mensaje: `Prueba staff ${new Date().toLocaleTimeString()}`,
         leido_por: [{ email: s.email, nombre: s.nombre, fecha: nowIso }],
       });
+      // Crear AppNotification para el coordinador (para que aparezca en barra/burbuja)
+      if (coordEmail && coordEmail !== s.email) {
+        await base44.entities.AppNotification.create({
+          usuario_email: coordEmail,
+          titulo: "Nuevo mensaje de Staff",
+          contenido: `De ${s.nombre}`,
+          tipo: "staff",
+          enlace: "StaffChat",
+          vista: false,
+        });
+      }
       setStatus('✅ Staff: mensaje creado');
     } catch (e) {
       setStatus(`❌ Staff: ${e?.message || e}`);
