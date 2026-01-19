@@ -162,7 +162,7 @@ export default function AnalyticsDashboard() {
             >
               Todas
             </Button>
-            {['error', 'performance', 'data_integrity', 'inconsistency', 'behavior'].map(cat => (
+            {['error', 'performance', 'data_integrity', 'inconsistency', 'behavior', 'stripe', 'users', 'communication'].map(cat => (
               <Button
                 key={cat}
                 variant={filtroCategoria === cat ? 'default' : 'outline'}
