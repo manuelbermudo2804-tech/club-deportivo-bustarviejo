@@ -2090,7 +2090,7 @@ CD Bustarviejo`);
 
       {/* Diálogo Casar Progenitores */}
       <Dialog open={showPairDialog} onOpenChange={setShowPairDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">👨‍👩‍👧 Casar progenitores</DialogTitle>
             <DialogDescription>
