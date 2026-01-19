@@ -189,18 +189,27 @@ export function useUnifiedNotifications(user, options = {}) {
         setRawData(prev => ({ ...prev, staffMessages: msgs }));
       };
       setTimeout(loadStaffMsgs, 0);
-      let lastStaffUpdate = 0;
-      const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
-        const now = Date.now();
-        if (now - lastStaffUpdate < 1000) return;
-        lastStaffUpdate = now;
+      let staffQueue = [];
+      let staffFlushTimer = null;
+      const flushStaffQueue = () => {
+        if (staffQueue.length === 0) return;
         setRawData(prev => {
           let updated = [...prev.staffMessages];
-          if (event.type === 'create') updated = [event.data, ...updated];
-          else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
-          else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
+          for (const event of staffQueue) {
+            if (event.type === 'create') updated = [event.data, ...updated];
+            else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
+            else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
+          }
           return { ...prev, staffMessages: updated };
         });
+        staffQueue = [];
+        staffFlushTimer = null;
+      };
+      const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
+        staffQueue.push(event);
+        if (!staffFlushTimer) {
+          staffFlushTimer = setTimeout(flushStaffQueue, 250);
+        }
       });
       unsubscribers.push(unsubStaffMsg);
     }
