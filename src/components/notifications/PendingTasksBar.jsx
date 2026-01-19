@@ -21,7 +21,9 @@ export default function PendingTasksBar({ notifications }) {
   const navigate = useNavigate();
   const n = notifications || {};
   const total = (n.unreadCoordinatorMessages||0) + (n.unreadCoachMessages||0) + (n.unreadStaffMessages||0) + (n.unreadAdminMessages||0) + (n.unreadPrivateMessages||0);
-  if (total <= 0) return null;
+  // Mostrar siempre la barra si hay staff (coordinadores/entrenadores/admin), aunque otros contadores estén a 0, para evitar parpadeos
+  const shouldShow = total > 0 || (n.role === 'admin' || n.isCoordinator || n.isCoach);
+  if (!shouldShow) return null;
 
   return (
     <div className="sticky top-[52px] lg:top-0 z-30 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200/70">
