@@ -114,15 +114,19 @@ export async function trackAction(pagina, accion, userEmail, userRole) {
   try {
     const navData = detectarNavegador();
 
-    await base44.functions.invoke('analyticsCollector', {
-      tipo: 'user_action',
-      email: userEmail,
-      rol: userRole,
-      pagina,
-      accion,
-      navegador: navData.navegador,
-      dispositivo: navData.dispositivo,
-      so: navData.so
+    await retryWithBackoff(async () => {
+      return await globalThrottler.execute(async () => {
+        return await base44.functions.invoke('analyticsCollector', {
+          tipo: 'user_action',
+          email: userEmail,
+          rol: userRole,
+          pagina,
+          accion,
+          navegador: navData.navegador,
+          dispositivo: navData.dispositivo,
+          so: navData.so
+        });
+      });
     });
   } catch (e) {
     console.error('Action tracking failed:', e);
