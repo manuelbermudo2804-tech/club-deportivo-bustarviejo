@@ -4,8 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, TrendingUp, Users, Zap, BarChart3, CheckCircle2, Clock, CreditCard, Database, MessageCircle, Plug, Mail } from 'lucide-react';
+import { AlertCircle, TrendingUp, Users, Zap, BarChart3, CheckCircle2, Clock, CreditCard, Database, MessageCircle, Plug, Mail, Download, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
+import PredictiveAlerts from './PredictiveAlerts';
+import AutomationActions from './AutomationActions';
+import { TrendChart, CategoryChart, SeverityChart, ComparisonChart } from './AnalyticsCharts';
 
 export default function AnalyticsDashboard() {
   const [filtroCategoria, setFiltroCategoria] = useState('all');
