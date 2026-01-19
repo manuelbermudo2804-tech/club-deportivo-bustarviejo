@@ -690,7 +690,11 @@ const alerts = [];
   // Ordenar por prioridad
   alerts.sort((a, b) => a.priority - b.priority);
   const alertsWithKeys = alerts.map((a) => ({ ...a, _key: `${a.id}:${a.description}` }));
-  const visibleAlerts = alertsWithKeys.filter((a) => a.sticky || !dismissedAlerts.has(a._key));
+  // Si el contador global ya es 0 para un tipo, no mostrar su alerta (sincroniza con burbuja)
+  const visibleAlerts = alertsWithKeys.filter((a) => {
+    if (a.id === 'staff-chat' && (notifications?.unreadStaffMessages || 0) === 0) return false;
+    return a.sticky || !dismissedAlerts.has(a._key);
+  });
 
   const handleAlertClick = (alert) => {
     // No permitir descartar alertas "sticky" (persisten hasta resolverse)
