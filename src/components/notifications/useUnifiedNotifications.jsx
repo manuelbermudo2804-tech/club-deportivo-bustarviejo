@@ -618,21 +618,15 @@ export function useUnifiedNotifications(user, options = {}) {
       }
     }
 
-    // Staff
+    // Staff - contador visual seguirá viniendo desde ChatCounter en UI; mantener breakdown para tabs
     if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
-      // Contar mensajes no leídos (coherente con burbujas y barra)
-      let unreadStaffCount = 0;
       rawData.staffMessages.forEach(msg => {
         if (msg.autor_email === user.email) return;
         const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
         if (!isUnread) return;
-        unreadStaffCount += 1;
         const key = msg.grupo_id || msg.categoria || 'general';
         breakdown.staffByGroup[key] = (breakdown.staffByGroup[key] || 0) + 1;
       });
-      // Considerar AppNotifications como fallback (p. ej., notificaciones push)
-      const staffNotifs = (rawData.appNotifications || []).filter(n => n.enlace === 'StaffChat' && n.vista === false).length;
-      unreadStaff = Math.max(unreadStaffCount, staffNotifs);
     }
 
     // Admin (para familias): usar counter de conversación
