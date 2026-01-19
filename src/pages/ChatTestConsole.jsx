@@ -156,6 +156,12 @@ export default function ChatTestConsole() {
   const [busy, setBusy] = useState(null); // 'staff'|'p2c'|'c2g'|'p2coord'|'admin2fam'|'private'|null
   const [status, setStatus] = useState(null);
   const [bubbleRole, setBubbleRole] = useState('admin');
+  // Aislamiento de pruebas (fuerza todos los contadores a 0 como base)
+  const [isolateMode, setIsolateMode] = useState(false);
+  const [adminBase, setAdminBase] = useState(null);
+  const [coordBase, setCoordBase] = useState(null);
+  const [coachBase, setCoachBase] = useState(null);
+  const [familyBase, setFamilyBase] = useState(null);
 
   // Impersonaciones ligeras (siempre declarar hooks antes de cualquier return)
   const asAdmin = me;
@@ -401,7 +407,28 @@ export default function ChatTestConsole() {
     }
   };
 
-  const bubbleN = bubbleRole==='admin' ? adminN : bubbleRole==='coordinator' ? coordN : bubbleRole==='coach' ? coachN : familyN;
+  // Aislamiento: calcular dif respecto a la línea base
+  const diffCounters = (now = {}, base = {}) => {
+    const out = { ...now };
+    Object.keys(now || {}).forEach(k => {
+      const n = Number(now[k] || 0);
+      const b = Number((base || {})[k] || 0);
+      out[k] = Math.max(0, n - b);
+    });
+    return out;
+  };
+  const dispAdminN = isolateMode && adminBase ? diffCounters(adminN, adminBase) : adminN;
+  const dispCoordN = isolateMode && coordBase ? diffCounters(coordN, coordBase) : coordN;
+  const dispCoachN = isolateMode && coachBase ? diffCounters(coachN, coachBase) : coachN;
+  const dispFamilyN = isolateMode && familyBase ? diffCounters(familyN, familyBase) : familyN;
+
+  const bubbleN = bubbleRole==='admin' ? dispAdminN : bubbleRole==='coordinator' ? dispCoordN : bubbleRole==='coach' ? dispCoachN : dispFamilyN;
+
+  const takeBaseline = () => {
+    setAdminBase(adminN); setCoordBase(coordN); setCoachBase(coachN); setFamilyBase(familyN);
+    setIsolateMode(true); setStatus('🧹 Aislamiento activado: todo a 0');
+  };
+  const clearBaseline = () => { setIsolateMode(false); setAdminBase(null); setCoordBase(null); setCoachBase(null); setFamilyBase(null); setStatus('🔄 Aislamiento desactivado'); };
 
   // ==== Reset de pruebas ====
   const resetStaff = async () => {
@@ -650,10 +677,10 @@ export default function ChatTestConsole() {
         {/* Contadores en vivo por rol */}
         <div className="text-xs text-slate-500 mb-1">Arriba: contadores en vivo por rol. Abajo: previsualización de la barra de tareas.</div>
         <div className="grid md:grid-cols-4 gap-3">
-          <RoleCounters title="Vista Admin" notifications={adminN} />
-          <RoleCounters title="Vista Coordinador" notifications={coordN} />
-          <RoleCounters title="Vista Entrenador" notifications={coachN} />
-          <RoleCounters title="Vista Familia" notifications={familyN} />
+          <RoleCounters title="Vista Admin" notifications={dispAdminN} />
+          <RoleCounters title="Vista Coordinador" notifications={dispCoordN} />
+          <RoleCounters title="Vista Entrenador" notifications={dispCoachN} />
+          <RoleCounters title="Vista Familia" notifications={dispFamilyN} />
         </div>
 
         {/* Previsualización barra de tareas (AlertCenter) por rol */}
@@ -663,10 +690,10 @@ export default function ChatTestConsole() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-4 gap-3">
-              <AlertPreview title="Admin" userStub={asAdmin} notifications={adminN} />
-              <AlertPreview title="Coordinador" userStub={asCoordinator} notifications={coordN} />
-              <AlertPreview title="Entrenador" userStub={asCoach} notifications={coachN} />
-              <AlertPreview title="Familia" userStub={asFamily} notifications={familyN} />
+              <AlertPreview title="Admin" userStub={asAdmin} notifications={dispAdminN} />
+              <AlertPreview title="Coordinador" userStub={asCoordinator} notifications={dispCoordN} />
+              <AlertPreview title="Entrenador" userStub={asCoach} notifications={dispCoachN} />
+              <AlertPreview title="Familia" userStub={asFamily} notifications={dispFamilyN} />
             </div>
           </CardContent>
         </Card>
