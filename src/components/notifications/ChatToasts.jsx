@@ -40,6 +40,8 @@ function ToastItem({ toast, onClose }) {
 export default function ChatToasts() {
   const [user, setUser] = useState(null);
   const [toasts, setToasts] = useState([]);
+  const [myCategories, setMyCategories] = useState([]);
+  const [coachCategories, setCoachCategories] = useState([]);
   const idRef = useRef(0);
 
   useEffect(() => {
