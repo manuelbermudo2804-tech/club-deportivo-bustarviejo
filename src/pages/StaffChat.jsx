@@ -631,8 +631,8 @@ export default function StaffChat() {
             <CardTitle className="flex items-center gap-2 text-sm">
               <MessageCircle className="w-4 h-4" />
               💼 Chat Interno Staff
-              {unreadCount > 0 && (
-                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{unreadCount}</Badge>
+              {(unreadCount > 0 || staffCounterTotal > 0) && (
+               <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{Math.max(unreadCount, staffCounterTotal)}</Badge>
               )}
             </CardTitle>
             <div className="flex gap-1">
