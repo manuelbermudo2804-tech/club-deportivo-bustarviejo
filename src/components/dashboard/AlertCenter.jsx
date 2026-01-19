@@ -324,7 +324,7 @@ const alerts = [];
   // Alertas para padres
   if (isParent) {
     // ALERTA CRÍTICA DE ADMIN (prioridad máxima) - MOSTRAR SIEMPRE si hay chat activo
-    if (hasActiveAdminChat && !chatItems.some(item => item.source === "admin")) {
+    if (hasActiveAdminChat) {
       alerts.push({
         id: "admin-chat-active",
         icon: AlertTriangle,
