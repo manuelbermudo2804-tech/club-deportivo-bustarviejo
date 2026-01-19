@@ -707,8 +707,8 @@ export function useUnifiedNotifications(user, options = {}) {
       c.padre_email === user.email && c.resuelta === false
     );
 
-    // ACTUALIZAR ESTADO
-    setNotifications({
+    // ACTUALIZAR ESTADO (y publicar en global para otros consumidores)
+    const next = {
       unreadCoordinatorMessages: unreadCoordinator,
       unreadCoachMessages: unreadCoach,
       unreadStaffMessages: unreadStaff,
@@ -730,7 +730,14 @@ export function useUnifiedNotifications(user, options = {}) {
       pendingMemberRequests,
       pendingMatchObservations,
       hasActiveAdminConversation,
-    });
+    };
+    setNotifications(next);
+    try {
+      if (typeof window !== 'undefined') {
+        window.__BASE44_UNIFIED_NOTIFICATIONS_STATE = next;
+        window.dispatchEvent(new CustomEvent('b44_unified_notifications_updated', { detail: next }));
+      }
+    } catch {}
   }, [user, rawData]);
 
   return { notifications, rawData };
