@@ -21,6 +21,7 @@ function BubbleRow({ role, notifications }) {
     if (role === 'coordinator') {
       return [
         { key: 'fam', label: 'Familias', value: notifications.unreadFamilyMessages, Icon: MessageCircle },
+        { key: 'staff', label: 'Staff', value: notifications.unreadStaffMessages, Icon: Users },
         { key: 'resp', label: 'Respuestas', value: notifications.pendingCallupResponses, Icon: Bell },
         { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
       ];
@@ -104,6 +105,7 @@ function AlertPreview({ title, userStub, notifications }) {
     if (userStub.es_coordinador) {
       return [
         { label: 'Familias (grupo)', value: notifications.unreadFamilyMessages },
+        { label: 'Mensajes Staff', value: notifications.unreadStaffMessages },
         { label: 'Coord. directos', value: notifications.unreadCoordinatorMessages },
         { label: 'Respuestas convocatorias', value: notifications.pendingCallupResponses },
       ];
