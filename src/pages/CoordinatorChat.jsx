@@ -63,6 +63,17 @@ export default function CoordinatorChat({ embedded = false }) {
     return unsub;
   }, [isCoordinator, queryClient]);
 
+  // Asegurar orden de hooks: marcar leído debe declararse antes de cualquier return condicional
+  useEffect(() => {
+    if (!selectedConversation?.id) return;
+    if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
+      base44.entities.CoordinatorConversation.update(selectedConversation.id, {
+        no_leidos_coordinador: 0,
+        last_read_coordinador_at: new Date().toISOString()
+      });
+    }
+  }, [selectedConversation?.id, selectedConversation?.no_leidos_coordinador]);
+
   const archiveMutation = useMutation({
     mutationFn: ({ id, archivada }) => 
       base44.entities.CoordinatorConversation.update(id, { 
@@ -103,16 +114,7 @@ export default function CoordinatorChat({ embedded = false }) {
 
   const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
 
-  // Al abrir una conversación, poner a cero el contador del coordinador inmediatamente
-  useEffect(() => {
-    if (!selectedConversation?.id) return;
-    if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
-      base44.entities.CoordinatorConversation.update(selectedConversation.id, {
-        no_leidos_coordinador: 0,
-        last_read_coordinador_at: new Date().toISOString()
-      });
-    }
-  }, [selectedConversation?.id, selectedConversation?.no_leidos_coordinador]);
+
 
    return (
     <div className="h-full flex flex-col lg:flex-row overflow-hidden">
