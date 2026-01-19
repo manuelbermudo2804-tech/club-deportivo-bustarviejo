@@ -60,16 +60,25 @@ export default function CoordinatorDashboard() {
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
+    enabled: !!user,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allEvents = [] } = useQuery({
     queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list(),
+    queryFn: () => base44.entities.Event.list('-fecha', 200),
+    enabled: !!user,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allCallups = [] } = useQuery({
     queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list(),
+    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido', 120),
+    enabled: !!user,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allStandings = [] } = useQuery({
@@ -78,6 +87,7 @@ export default function CoordinatorDashboard() {
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
+    enabled: !!user,
   });
 
   // (legacy) coordinator conversations query not needed for badge; keep for other uses if any
@@ -90,23 +100,33 @@ export default function CoordinatorDashboard() {
   const { data: allSurveys = [] } = useQuery({
     queryKey: ['surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date', 10),
+    enabled: !!user,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allMatchObservations = [] } = useQuery({
     queryKey: ['matchObservations'],
-    queryFn: () => base44.entities.MatchObservation.list(),
+    queryFn: () => base44.entities.MatchObservation.list('-updated_date', 60),
+    enabled: !!user,
+    refetchOnWindowFocus: false,
+    staleTime: 300000,
   });
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list(),
-    enabled: hasPlayers,
+    queryFn: () => base44.entities.Payment.list('-created_date', 200),
+    enabled: !!user && hasPlayers,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allCoordConvs = [] } = useQuery({
     queryKey: ['coordinatorConversationsAll'],
-    queryFn: () => base44.entities.CoordinatorConversation.list(),
-    enabled: hasPlayers,
+    queryFn: () => base44.entities.CoordinatorConversation.list('-updated_date', 100),
+    enabled: !!user && hasPlayers,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   // (legacy) coach conversations query not needed for badge; keeping other data intact
@@ -118,8 +138,10 @@ export default function CoordinatorDashboard() {
 
   const { data: allAdminConvs = [] } = useQuery({
     queryKey: ['adminConversations'],
-    queryFn: () => base44.entities.AdminConversation.list(),
-    enabled: hasPlayers,
+    queryFn: () => base44.entities.AdminConversation.list('-updated_date', 100),
+    enabled: !!user && hasPlayers,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: buttonConfigs = [] } = useQuery({

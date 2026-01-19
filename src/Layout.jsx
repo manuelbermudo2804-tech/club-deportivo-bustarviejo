@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-const NotificationBadge = React.lazy(() => import("./components/NotificationBadge"));
-const SessionManager = React.lazy(() => import("./components/SessionManager"));
+import NotificationBadge from "./components/NotificationBadge";
+import SessionManager from "./components/SessionManager";
 const GlobalSearch = React.lazy(() => import("./components/GlobalSearch"));
 import ThemeToggle from "./components/ThemeToggle";
 import ActiveBanner from "./components/announcements/ActiveBanner";
@@ -28,16 +28,16 @@ const NotificationManager = React.lazy(() => import("./components/notifications/
 const AutomaticNotificationEngine = React.lazy(() => import("./components/notifications/AutomaticNotificationEngine"));
 const EmailNotificationTrigger = React.lazy(() => import("./components/notifications/EmailNotificationTrigger"));
 const AutomaticPaymentReminders = React.lazy(() => import("./components/reminders/AutomaticPaymentReminders"));
-const PlanPaymentReminders = React.lazy(() => import("./components/reminders/PlanPaymentReminders"));
+import PlanPaymentReminders from "./components/reminders/PlanPaymentReminders";
 import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
-const AutomaticRenewalClosure = React.lazy(() => import("./components/renewals/AutomaticRenewalClosure.jsx"));
-const RenewalNotificationEngine = React.lazy(() => import("./components/renewals/RenewalNotificationEngine"));
-const PostRenewalPaymentReminder = React.lazy(() => import("./components/renewals/PostRenewalPaymentReminder.jsx"));
+import AutomaticRenewalClosure from "./components/renewals/AutomaticRenewalClosure.jsx";
+import RenewalNotificationEngine from "./components/renewals/RenewalNotificationEngine";
+import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPaymentReminder.jsx";
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
-const ChatSoundNotifier = React.lazy(() => import("./components/notifications/ChatSoundNotifier"));
-const CallupSoundNotifier = React.lazy(() => import("./components/notifications/CallupSoundNotifier"));
-const AnnouncementSoundNotifier = React.lazy(() => import("./components/notifications/AnnouncementSoundNotifier"));
-const PaymentSoundNotifier = React.lazy(() => import("./components/notifications/PaymentSoundNotifier"));
+import ChatSoundNotifier from "./components/notifications/ChatSoundNotifier";
+import CallupSoundNotifier from "./components/notifications/CallupSoundNotifier";
+import AnnouncementSoundNotifier from "./components/notifications/AnnouncementSoundNotifier";
+import PaymentSoundNotifier from "./components/notifications/PaymentSoundNotifier";
 
 
 // ToastContainer eliminado - causaba spam de notificaciones

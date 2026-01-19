@@ -88,7 +88,11 @@ export default function NotificationCenter() {
       setCallups(c);
     };
     loadCallups();
+    let lastCallupUpdate = 0;
     const unsubCall = base44.entities.Convocatoria.subscribe((event) => {
+      const nowT = Date.now();
+      if (nowT - lastCallupUpdate < 1000) return;
+      lastCallupUpdate = nowT;
       if (event.type === 'create') setCallups(prev => [event.data, ...prev]);
       else if (event.type === 'update') setCallups(prev => prev.map(c => c.id === event.id ? event.data : c));
       else if (event.type === 'delete') setCallups(prev => prev.filter(c => c.id !== event.id));
@@ -101,7 +105,11 @@ export default function NotificationCenter() {
       setAnnouncements(a);
     };
     loadAnn();
+    let lastAnnUpdate = 0;
     const unsubAnn = base44.entities.Announcement.subscribe((event) => {
+      const nowA = Date.now();
+      if (nowA - lastAnnUpdate < 1000) return;
+      lastAnnUpdate = nowA;
       if (event.type === 'create') setAnnouncements(prev => [event.data, ...prev]);
       else if (event.type === 'update') setAnnouncements(prev => prev.map(a => a.id === event.id ? event.data : a));
       else if (event.type === 'delete') setAnnouncements(prev => prev.filter(a => a.id !== event.id));
@@ -140,7 +148,11 @@ export default function NotificationCenter() {
       setEvents(e);
     };
     loadEv();
+    let lastEvUpdate = 0;
     const unsubEv = base44.entities.Event.subscribe((event) => {
+      const nowE = Date.now();
+      if (nowE - lastEvUpdate < 1000) return;
+      lastEvUpdate = nowE;
       if (event.type === 'create') setEvents(prev => [event.data, ...prev]);
       else if (event.type === 'update') setEvents(prev => prev.map(e => e.id === event.id ? event.data : e));
       else if (event.type === 'delete') setEvents(prev => prev.filter(e => e.id !== event.id));
@@ -153,7 +165,11 @@ export default function NotificationCenter() {
       setPrivateConversations(pc);
     };
     loadPriv();
+    let lastPrivUpdate = 0;
     const unsubPriv = base44.entities.PrivateConversation.subscribe((event) => {
+      const nowP = Date.now();
+      if (nowP - lastPrivUpdate < 1000) return;
+      lastPrivUpdate = nowP;
       if (event.type === 'create') setPrivateConversations(prev => [event.data, ...prev]);
       else if (event.type === 'update') setPrivateConversations(prev => prev.map(p => p.id === event.id ? event.data : p));
       else if (event.type === 'delete') setPrivateConversations(prev => prev.filter(p => p.id !== event.id));
