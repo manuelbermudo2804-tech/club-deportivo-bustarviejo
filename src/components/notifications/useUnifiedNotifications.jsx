@@ -86,18 +86,23 @@ export function useUnifiedNotifications(user, options = {}) {
     if (!user) return;
 
     // Prevent duplicate initialization across mounts (mark primary/secondary)
-    let primary = true;
-    if (!options?.forceInstance && typeof window !== 'undefined') {
-      if (window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE) {
-        primary = false;
-      } else {
-        window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = true;
+    if (options?.forceInstance && typeof window !== 'undefined') {
+      setIsPrimaryInstance(true);
+      window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = true;
+    } else {
+      let primary = true;
+      if (!options?.forceInstance && typeof window !== 'undefined') {
+        if (window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE) {
+          primary = false;
+        } else {
+          window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = true;
+        }
       }
-    }
-    setIsPrimaryInstance(primary);
-    if (!primary) {
-      // Secondary instances only listen to global bus; no subscriptions
-      return;
+      setIsPrimaryInstance(primary);
+      if (!primary) {
+        // Secondary instances only listen to global bus; no subscriptions
+        return;
+      }
     }
 
     // Pause heavy real-time if maintenance window active or tab hidden

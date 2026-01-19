@@ -531,7 +531,7 @@ export default function Layout({ children, currentPageName }) {
   const [isJunta, setIsJunta] = useState(false);
   
   // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
-  const { notifications } = useUnifiedNotifications(user);
+  const { notifications } = useUnifiedNotifications(user, { forceInstance: true });
   
   // Mapear a variables legacy para compatibilidad (filtrando ruido para Admin)
   const sanitize = (v) => (isAdmin ? 0 : (v || 0));
