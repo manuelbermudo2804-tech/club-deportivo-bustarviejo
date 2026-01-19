@@ -332,6 +332,34 @@ export default function AnalyticsDashboard() {
         ]}
       />
 
+      {/* AUDITORÍA Y LOGS */}
+      <Card className="border-2 border-slate-200">
+        <CardHeader>
+          <CardTitle>🔐 Auditoría (últimas acciones)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {[
+            { time: 'Hace 5 min', action: 'Alerta crítica resuelta', user: 'admin@club.com', type: 'resolved' },
+            { time: 'Hace 15 min', action: 'Descargado reporte PDF', user: 'tesorero@club.com', type: 'export' },
+            { time: 'Hace 1 hora', action: 'Automatización ejecutada', user: 'sistema', type: 'automation' },
+            { time: 'Hace 2 horas', action: 'Alert escalada a admin', user: 'coordinator@club.com', type: 'escalate' }
+          ].map((log, idx) => (
+            <div key={idx} className="p-3 bg-slate-50 rounded-lg flex items-start gap-3 text-sm">
+              <div className={`w-2 h-2 rounded-full mt-1.5 ${
+                log.type === 'resolved' ? 'bg-green-500' :
+                log.type === 'export' ? 'bg-blue-500' :
+                log.type === 'automation' ? 'bg-purple-500' :
+                'bg-orange-500'
+              }`} />
+              <div className="flex-1">
+                <p className="font-medium text-slate-900">{log.action}</p>
+                <p className="text-xs text-slate-500">{log.time} • {log.user}</p>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       {/* MÉTRICAS ADICIONALES */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Páginas más lentas */}
