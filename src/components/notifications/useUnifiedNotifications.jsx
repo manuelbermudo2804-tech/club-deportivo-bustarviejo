@@ -9,7 +9,7 @@ import { base44 } from '@/api/base44Client';
  */
 export function useUnifiedNotifications(user, options = {}) {
   const [notifications, setNotifications] = useState({
-    // CHATS
+    // CHATS (mantenidos para compatibilidad visual; la fuente real vendrá de ChatCounter en UI)
     unreadCoordinatorMessages: 0,
     unreadCoachMessages: 0,
     unreadStaffMessages: 0,
