@@ -106,7 +106,7 @@ export function useUnifiedNotifications(user, options = {}) {
     const loadCoachConvs = async () => {
       let convs = [];
       if (options?.testModeLoadAll) {
-        convs = await base44.entities.CoachConversation.list('-updated_date', 80);
+        convs = await base44.entities.CoachConversation.list('-updated_date', 30);
       } else {
         convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 80);
       }
@@ -114,7 +114,11 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(loadCoordConvs, 0);
     setTimeout(loadCoachConvs, 100);
+    let lastCoordConvUpdate = 0;
     const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastCoordConvUpdate < 1000) return;
+      lastCoordConvUpdate = now;
       setRawData(prev => {
         let updated = [...prev.coordinatorConversations];
         if (event.type === 'create') updated = [event.data, ...updated];
@@ -125,7 +129,11 @@ export function useUnifiedNotifications(user, options = {}) {
     });
     unsubscribers.push(unsubCoordConv);
 
+    let lastCoachConvUpdate = 0;
     const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastCoachConvUpdate < 1000) return;
+      lastCoachConvUpdate = now;
       setRawData(prev => {
         let updated = [...prev.coachConversations];
         if (event.type === 'create') updated = [event.data, ...updated];
@@ -187,7 +195,7 @@ export function useUnifiedNotifications(user, options = {}) {
     const loadAdminConvs = async () => {
       let convs = [];
       if (options?.testModeLoadAll || user?.role === 'admin') {
-        convs = await base44.entities.AdminConversation.list('-updated_date', 100);
+        convs = await base44.entities.AdminConversation.list('-updated_date', 30);
       } else if (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
         convs = await base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 100);
       } else {
@@ -197,7 +205,11 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(loadAdminConvs, 400);
     if (user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero)) {
+      let lastAdminConvUpdate = 0;
       const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
+        const now = Date.now();
+        if (now - lastAdminConvUpdate < 1000) return;
+        lastAdminConvUpdate = now;
         setRawData(prev => {
           let updated = [...prev.adminConversations];
           if (event.type === 'create') updated = [event.data, ...updated];
@@ -215,7 +227,11 @@ export function useUnifiedNotifications(user, options = {}) {
       setRawData(prev => ({ ...prev, appNotifications: notifs }));
     };
     setTimeout(loadAppNotifs, 500);
+    let lastAppNotifUpdate = 0;
     const unsubAppNotif = base44.entities.AppNotification.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastAppNotifUpdate < 1000) return;
+      lastAppNotifUpdate = now;
       // Solo notificaciones del usuario actual
       if (event.data?.usuario_email !== user.email) return;
       setRawData(prev => {
@@ -232,14 +248,18 @@ export function useUnifiedNotifications(user, options = {}) {
     const loadPrivateConvs = async () => {
       let convs = [];
       if (options?.testModeLoadAll) {
-        convs = await base44.entities.PrivateConversation.list('-updated_date', 60);
+        convs = await base44.entities.PrivateConversation.list('-updated_date', 30);
       } else {
         convs = await base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 60);
       }
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
     setTimeout(loadPrivateConvs, 600);
+    let lastPrivateConvUpdate = 0;
     const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastPrivateConvUpdate < 1000) return;
+      lastPrivateConvUpdate = now;
       setRawData(prev => {
         let updated = [...prev.privateConversations];
         if (event.type === 'create') updated = [event.data, ...updated];
@@ -252,11 +272,15 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // ===== CONVOCATORIAS =====
     const loadConvocatorias = async () => {
-      const convs = await base44.entities.Convocatoria.list('-created_date', 60);
+      const convs = await base44.entities.Convocatoria.list('-created_date', 40);
       setRawData(prev => ({ ...prev, convocatorias: convs }));
     };
     setTimeout(loadConvocatorias, 700);
+    let lastCallupsUpdate = 0;
     const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastCallupsUpdate < 1000) return;
+      lastCallupsUpdate = now;
       setRawData(prev => {
         let updated = [...prev.convocatorias];
         if (event.type === 'create') updated = [event.data, ...updated];
@@ -270,11 +294,15 @@ export function useUnifiedNotifications(user, options = {}) {
     // ===== PAGOS ===== (solo para admin/tesorero, para reducir carga)
     if (user.role === 'admin' || user.es_tesorero) {
       const loadPayments = async () => {
-        const pays = await base44.entities.Payment.list('-created_date', 80);
+        const pays = await base44.entities.Payment.list('-created_date', 40);
         setRawData(prev => ({ ...prev, payments: pays }));
       };
       setTimeout(loadPayments, 800);
+      let lastPaymentsUpdate = 0;
       const unsubPayments = base44.entities.Payment.subscribe((event) => {
+        const now = Date.now();
+        if (now - lastPaymentsUpdate < 1000) return;
+        lastPaymentsUpdate = now;
         setRawData(prev => {
           let updated = [...prev.payments];
           if (event.type === 'create') updated = [event.data, ...updated];
@@ -290,7 +318,7 @@ export function useUnifiedNotifications(user, options = {}) {
     const loadPlayers = async () => {
       let pls = [];
       if (options?.testModeLoadAll) {
-        pls = await base44.entities.Player.list('-updated_date', 300);
+        pls = await base44.entities.Player.list('-updated_date', 120);
       } else if (user?.role === 'admin') {
         pls = await base44.entities.Player.filter({ categoria_requiere_revision: true }, '-updated_date', 120);
       } else {
@@ -299,7 +327,11 @@ export function useUnifiedNotifications(user, options = {}) {
       setRawData(prev => ({ ...prev, players: pls }));
     };
     setTimeout(loadPlayers, 900);
+    let lastPlayersUpdate = 0;
     const unsubPlayers = base44.entities.Player.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastPlayersUpdate < 1000) return;
+      lastPlayersUpdate = now;
       setRawData(prev => {
         let updated = [...prev.players];
         if (event.type === 'create') updated = [event.data, ...updated];
@@ -312,11 +344,15 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // ===== ANUNCIOS =====
     const loadAnnouncements = async () => {
-      const anns = await base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 60);
+      const anns = await base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 30);
       setRawData(prev => ({ ...prev, announcements: anns }));
     };
     setTimeout(loadAnnouncements, 1000);
+    let lastAnnouncementsUpdate = 0;
     const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
+      const now = Date.now();
+      if (now - lastAnnouncementsUpdate < 1000) return;
+      lastAnnouncementsUpdate = now;
       setRawData(prev => {
         let updated = [...prev.announcements];
         if (event.type === 'create') updated = [event.data, ...updated];
@@ -384,11 +420,15 @@ export function useUnifiedNotifications(user, options = {}) {
     // ===== ENTRENADORES/COORDINADORES =====
     if (user.es_entrenador || user.es_coordinador) {
       const loadObservations = async () => {
-        const obs = await base44.entities.MatchObservation.list('-updated_date', 60);
+        const obs = await base44.entities.MatchObservation.list('-updated_date', 40);
         setRawData(prev => ({ ...prev, matchObservations: obs }));
       };
       setTimeout(loadObservations, 1200);
+      let lastObsUpdate = 0;
       const unsubObs = base44.entities.MatchObservation.subscribe((event) => {
+        const now = Date.now();
+        if (now - lastObsUpdate < 1000) return;
+        lastObsUpdate = now;
         setRawData(prev => {
           let updated = [...prev.matchObservations];
           if (event.type === 'create') updated = [event.data, ...updated];
