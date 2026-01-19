@@ -24,7 +24,7 @@ export default function useUnreadChats(enabled = true) {
     if (!enabled || !user || (!isAdmin && !isCoach && !isCoordinator)) return;
 
     const loadInitial = async () => {
-      const messages = await base44.entities.StaffMessage.list("-created_date", 500);
+      const messages = await base44.entities.StaffMessage.list("-created_date", 100);
       setStaffMessages(messages);
     };
     loadInitial();
@@ -45,7 +45,7 @@ export default function useUnreadChats(enabled = true) {
     if (!enabled || !user) return;
 
     const loadInitial = async () => {
-      const convs = await base44.entities.CoordinatorConversation.list("-updated_date", 200);
+      const convs = await base44.entities.CoordinatorConversation.list("-updated_date", 100);
       setCoordConvs(convs);
     };
     loadInitial();
@@ -88,7 +88,7 @@ export default function useUnreadChats(enabled = true) {
     if (!enabled || !user) return;
 
     const loadInitial = async () => {
-      const messages = await base44.entities.ChatMessage.list("-created_date", 1000);
+      const messages = await base44.entities.ChatMessage.list("-created_date", 200);
       setGroupMessages(messages);
     };
     loadInitial();
@@ -109,7 +109,7 @@ export default function useUnreadChats(enabled = true) {
     if (!enabled || !user) return;
 
     const loadInitial = async () => {
-      const convs = await base44.entities.PrivateConversation.list("-ultimo_mensaje_fecha", 300);
+      const convs = await base44.entities.PrivateConversation.list("-ultimo_mensaje_fecha", 120);
       setPrivateConvs(convs);
     };
     loadInitial();

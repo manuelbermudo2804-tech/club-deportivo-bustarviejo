@@ -54,7 +54,7 @@ export default function NotificationCenter() {
 
     // Messages
     const loadMessages = async () => {
-      const msgs = await base44.entities.ChatMessage.list('-created_date', 500);
+      const msgs = await base44.entities.ChatMessage.list('-created_date', 200);
       setMessages(msgs);
     };
     loadMessages();
@@ -67,8 +67,8 @@ export default function NotificationCenter() {
 
     // AppNotifications
     const loadNotifs = async () => {
-      const all = await base44.entities.AppNotification.list('-created_date');
-      setAllNotifications(all.filter(n => n.usuario_email === user.email));
+      const all = await base44.entities.AppNotification.filter({ usuario_email: user.email }, '-created_date', 200);
+      setAllNotifications(all);
     };
     loadNotifs();
     const unsubNotif = base44.entities.AppNotification.subscribe((event) => {
@@ -84,7 +84,7 @@ export default function NotificationCenter() {
 
     // Callups
     const loadCallups = async () => {
-      const c = await base44.entities.Convocatoria.list('-created_date');
+      const c = await base44.entities.Convocatoria.list('-created_date', 120);
       setCallups(c);
     };
     loadCallups();
@@ -110,7 +110,7 @@ export default function NotificationCenter() {
 
     // Payments
     const loadPay = async () => {
-      const p = await base44.entities.Payment.list('-created_date');
+      const p = await base44.entities.Payment.list('-created_date', 200);
       setPayments(p);
     };
     loadPay();
@@ -136,7 +136,7 @@ export default function NotificationCenter() {
 
     // Events
     const loadEv = async () => {
-      const e = await base44.entities.Event.list();
+      const e = await base44.entities.Event.list('-fecha');
       setEvents(e);
     };
     loadEv();
@@ -149,7 +149,7 @@ export default function NotificationCenter() {
 
     // Private Conversations
     const loadPriv = async () => {
-      const pc = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha');
+      const pc = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 150);
       setPrivateConversations(pc);
     };
     loadPriv();
