@@ -612,6 +612,9 @@ export function useUnifiedNotifications(user, options = {}) {
         if (!prev || ts > prev) latestByGroup.set(key, ts);
       });
       unreadStaff = latestByGroup.size;
+      // Asegurar sincronía con burbuja: considerar AppNotifications de StaffChat
+      const staffNotifs = (rawData.appNotifications || []).filter(n => n.enlace === 'StaffChat' && n.vista === false).length;
+      if (staffNotifs > unreadStaff) unreadStaff = staffNotifs;
     }
 
     // Admin (para familias): usar counter de conversación
