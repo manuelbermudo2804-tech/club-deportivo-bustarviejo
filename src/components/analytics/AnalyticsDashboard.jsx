@@ -238,6 +238,25 @@ export default function AnalyticsDashboard() {
         </CardContent>
       </Card>
 
+      {/* ANÁLISIS POR MÓDULO - DETALLE */}
+      {analysisType !== 'all' && comprehensiveAnalysis[analysisType]?.stats && (
+        <Card className="border-2 border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-blue-900">📊 Estadísticas - {analysisType.toUpperCase()}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(comprehensiveAnalysis[analysisType].stats).map(([key, value]) => (
+                <div key={key} className="p-3 bg-white rounded-lg border border-blue-200">
+                  <p className="text-xs text-slate-600 capitalize">{key}</p>
+                  <p className="text-2xl font-bold text-blue-600">{typeof value === 'number' ? value : JSON.stringify(value).substring(0, 20)}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* MÉTRICAS ADICIONALES */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Páginas más lentas */}
