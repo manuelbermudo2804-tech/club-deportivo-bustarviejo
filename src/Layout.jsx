@@ -581,6 +581,28 @@ export default function Layout({ children, currentPageName }) {
   const [enginesReady, setEnginesReady] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(false);
+
+  // Forzar nombre consistente de la app (iOS usa <title> y meta tags)
+  useEffect(() => {
+    const appName = 'CD Bustarviejo';
+    try {
+      if (typeof document !== 'undefined') {
+        if (document.title !== appName) document.title = appName;
+        const ensureMeta = (name, content) => {
+          let tag = document.querySelector(`meta[name="${name}"]`);
+          if (!tag) {
+            tag = document.createElement('meta');
+            tag.setAttribute('name', name);
+            document.head.appendChild(tag);
+          }
+          tag.setAttribute('content', content);
+        };
+        ensureMeta('application-name', appName);
+        ensureMeta('apple-mobile-web-app-title', appName);
+      }
+    } catch {}
+  }, []);
+
   // Modo silencioso por mantenimiento (pausa notificaciones/polling ruidoso)
   // maintenance mode removed
   

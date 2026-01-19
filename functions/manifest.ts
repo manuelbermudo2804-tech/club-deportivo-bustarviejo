@@ -1,7 +1,7 @@
 Deno.serve(async (_req) => {
   const manifest = {
-    name: "Mi App Privada",
-    short_name: "MiApp",
+    name: "CD Bustarviejo",
+    short_name: "CD Bustarviejo",
     start_url: "/PwaEntry",
     scope: "/",
     display: "standalone",
