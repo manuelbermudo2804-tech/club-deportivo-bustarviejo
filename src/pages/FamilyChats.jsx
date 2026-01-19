@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -82,7 +83,9 @@ export default function FamilyChats() {
               </div>
             ) : isCoordinator ? (
               <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
-                <CoordinatorChat embedded={true} />
+                <ErrorBoundary>
+                  <CoordinatorChat key="coordinator" embedded={true} />
+                </ErrorBoundary>
               </Suspense>
             ) : (
               <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
@@ -98,7 +101,9 @@ export default function FamilyChats() {
                </div>
              ) : isCoach ? (
                <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>}>
-                 <CoachParentChat embedded={true} />
+                 <ErrorBoundary>
+                   <CoachParentChat key="coach" embedded={true} />
+                 </ErrorBoundary>
                </Suspense>
              ) : (
                <div className="h-full flex items-center justify-center text-slate-400">No disponible</div>
