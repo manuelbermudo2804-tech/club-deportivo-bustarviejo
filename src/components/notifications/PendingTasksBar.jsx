@@ -39,7 +39,6 @@ export default function PendingTasksBar({ notifications }) {
   return (
     <div className="sticky top-[52px] lg:top-0 z-30 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200/70">
       <div className="max-w-6xl mx-auto px-3 py-2 flex flex-wrap gap-2 items-center">
-        <span className="text-[11px] font-bold text-slate-600 mr-2">Tareas pendientes</span>
         <Chip
           label="Coord."
           count={coordTotal}
