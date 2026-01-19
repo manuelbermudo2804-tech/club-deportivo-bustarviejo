@@ -93,9 +93,9 @@ export function useUnifiedNotifications(user, options = {}) {
     const loadCoordConvs = async () => {
       let convs = [];
       if (options?.testModeLoadAll) {
-        convs = await base44.entities.CoordinatorConversation.list('-updated_date', 100);
+        convs = await base44.entities.CoordinatorConversation.list('-updated_date', 30);
       } else if (user?.es_coordinador) {
-        convs = await base44.entities.CoordinatorConversation.list('-updated_date', 100);
+        convs = await base44.entities.CoordinatorConversation.list('-updated_date', 30);
       } else {
         convs = await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 30);
       }
@@ -108,7 +108,7 @@ export function useUnifiedNotifications(user, options = {}) {
       if (options?.testModeLoadAll) {
         convs = await base44.entities.CoachConversation.list('-updated_date', 30);
       } else {
-        convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 80);
+        convs = await base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 40);
       }
       setRawData(prev => ({ ...prev, coachConversations: convs }));
     };
