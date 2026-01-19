@@ -48,7 +48,7 @@ export default function PendingTasksBar({ notifications }) {
         />
         <Chip
           label="Entrenador"
-          count={n.unreadCoachMessages}
+          count={coachTotal}
           color="bg-red-600"
           onClick={() => navigate(createPageUrl('CoachParentChat'))}
         />
