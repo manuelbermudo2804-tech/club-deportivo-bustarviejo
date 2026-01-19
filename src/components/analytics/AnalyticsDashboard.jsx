@@ -77,9 +77,41 @@ export default function AnalyticsDashboard() {
   return (
     <div className="p-6 space-y-6">
       {/* HEADER */}
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold text-slate-900">📊 Centro de Análisis Integral</h1>
-        <p className="text-slate-600">Monitor en tiempo real de errores, rendimiento, usuarios, pagos y más</p>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900">📊 Centro de Análisis Integral</h1>
+            <p className="text-slate-600">Monitor en tiempo real de errores, rendimiento, usuarios, pagos y más</p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-1"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Actualizar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                const response = await base44.functions.invoke('analyticsReportGenerator', { format: 'pdf' });
+                const blob = new Blob([response.data], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `analytics-${new Date().toISOString().split('T')[0]}.pdf`;
+                a.click();
+              }}
+              className="flex items-center gap-1"
+            >
+              <Download className="w-4 h-4" />
+              Descargar PDF
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* KPI CARDS */}
