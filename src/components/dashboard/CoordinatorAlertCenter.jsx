@@ -27,6 +27,9 @@ export default function CoordinatorAlertCenter({
 }) {
   // Usuario actual (para saber si también es entrenador)
   const { data: meUser } = useQuery({ queryKey: ['me-coordinator-alertcenter'], queryFn: () => base44.auth.me() });
+  // Unificar contadores con la misma fuente que entrenador (burbujas y alertas)
+  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
+  const { total: familyTotal } = useFamilyCounters({ refetchOnFocus: true });
 
 
   return (
