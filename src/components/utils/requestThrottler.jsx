@@ -4,7 +4,7 @@
  */
 
 class RequestThrottler {
-  constructor(maxConcurrent = 3, delayMs = 100) {
+  constructor(maxConcurrent = 2, delayMs = 150) {
     this.maxConcurrent = maxConcurrent;
     this.delayMs = delayMs;
     this.queue = [];
