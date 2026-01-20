@@ -20,6 +20,7 @@ import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } 
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import PendingTasksBar from "../components/notifications/PendingTasksBar";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
+import PendingPaymentsCard from "../components/payments/PendingPaymentsCard";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -543,6 +544,11 @@ export default function ParentDashboard() {
         {!playersLoading && myPlayers.length > 0 && (
           <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />
         )}
+
+        {/* Pagos Pendientes compacto */}
+        {(() => { const { pendingPayments: pagosPendientes } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans); return (
+          <PendingPaymentsCard count={pagosPendientes} to={createPageUrl('ParentPayments')} />
+        ); })()}
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
         {playersLoading ? (
