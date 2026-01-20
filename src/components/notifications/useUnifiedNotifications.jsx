@@ -355,7 +355,7 @@ export function useUnifiedNotifications(user, options = {}) {
           return { ...prev, payments: updated };
         });
       });
-      unsubscribers.push(unsubPayments);
+      unsubscribers.push(() => unsubPayments());
     }
 
     // ===== JUGADORES =====
