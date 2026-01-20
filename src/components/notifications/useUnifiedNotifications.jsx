@@ -200,7 +200,7 @@ export function useUnifiedNotifications(user, options = {}) {
           return { ...prev, chatMessages: updated };
         });
       });
-      unsubscribers.push(unsubChatMsg);
+      unsubscribers.push(() => unsubChatMsg());
     }
 
     // Staff Messages (only for staff roles, unless test mode)
