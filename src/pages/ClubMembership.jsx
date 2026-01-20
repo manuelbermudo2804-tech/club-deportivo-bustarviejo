@@ -249,9 +249,10 @@ export default function ClubMembership() {
       }
     },
     enabled: Boolean(user?.email && !isPublicAccess),
-    staleTime: 120000,
+    staleTime: 600000,
     refetchOnWindowFocus: false,
     retry: 1,
+    keepPreviousData: true,
   });
 
   // Detectar referidos históricos (que no renovaron) - Lazy load
