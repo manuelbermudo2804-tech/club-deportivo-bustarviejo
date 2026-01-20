@@ -53,6 +53,8 @@ export default function CentroCompeticionTecnico() {
 
   const [view, setView] = React.useState(getUrlParam('vista', 'clasificacion')); // 'clasificacion' | 'resultados' | 'goleadores'
   const [search, setSearch] = React.useState("");
+  const [resultsUrl, setResultsUrl] = React.useState("");
+  const [scorersUrl, setScorersUrl] = React.useState("");
   const [fav, setFav] = React.useState(() => (typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') === initialCatGuess : false));
   React.useEffect(() => { setFav((typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') : '') === category); }, [category]);
 
@@ -148,6 +150,33 @@ export default function CentroCompeticionTecnico() {
     const q = search.toLowerCase();
     return { ...standingsPack, data: (standingsPack.data || []).filter(r => (r.nombre_equipo || '').toLowerCase().includes(q)) };
   }, [standingsPack, search]);
+
+  // Config URLs por categoría
+  const { data: config } = useQuery({
+    queryKey: ['standings-config-tech', category],
+    queryFn: async () => {
+      const list = await base44.entities.StandingsConfig.filter({ categoria: category });
+      return list?.[0] || null;
+    },
+    staleTime: 60_000,
+    refetchOnWindowFocus: false
+  });
+
+  React.useEffect(() => {
+    if (config && config.categoria === category) {
+      setResultsUrl(prev => prev || config.rfef_results_url || "");
+      setScorersUrl(prev => prev || config.rfef_scorers_url || "");
+    }
+  }, [config, category]);
+
+  const saveConfigUrls = async (updates) => {
+    const list = await base44.entities.StandingsConfig.filter({ categoria: category });
+    const cfg = list?.[0];
+    if (cfg) await base44.entities.StandingsConfig.update(cfg.id, { ...updates });
+    else await base44.entities.StandingsConfig.create({ categoria: category, ...updates });
+    queryClient.invalidateQueries({ queryKey: ['standings-config-tech', category] });
+    alert('URL guardada');
+  };
 
   // Próximo partido de la categoría actual para análisis/registro
   const { data: callups = [] } = useQuery({
@@ -294,6 +323,52 @@ export default function CentroCompeticionTecnico() {
           </button>
         ))}
       </div>
+
+      {/* URLs Guardadas + Editor RFEF */}
+      <Card className="mb-4 border-2 border-blue-300 bg-blue-50">
+        <CardContent className="p-4 space-y-3">
+          <p className="text-sm font-bold text-blue-900">🔗 URLs RFEF para {category}</p>
+          <div className="grid gap-3">
+            <div>
+              <p className="text-xs text-slate-600 mb-1">Resultados (guardada):</p>
+              {config?.rfef_results_url ? (
+                <div className="bg-white border rounded-lg p-2 flex items-center gap-2">
+                  <code className="text-xs flex-1 truncate" title={config.rfef_results_url}>{config.rfef_results_url}</code>
+                  <Button size="sm" variant="outline" onClick={() => window.open(config.rfef_results_url, '_blank')}>Abrir →</Button>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">Sin URL guardada</p>
+              )}
+              <div className="mt-2 grid md:grid-cols-6 gap-2">
+                <Input className="md:col-span-4" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="Pega aquí la URL de Resultados" />
+                <div className="flex gap-2 md:col-span-2">
+                  <Button variant="outline" onClick={() => resultsUrl && window.open(resultsUrl, '_blank')} disabled={!resultsUrl}>Abrir</Button>
+                  <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_results_url: resultsUrl })} disabled={!resultsUrl}>💾 Guardar</Button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs text-slate-600 mb-1">Goleadores (guardada):</p>
+              {config?.rfef_scorers_url ? (
+                <div className="bg-white border rounded-lg p-2 flex items-center gap-2">
+                  <code className="text-xs flex-1 truncate" title={config.rfef_scorers_url}>{config.rfef_scorers_url}</code>
+                  <Button size="sm" variant="outline" onClick={() => window.open(config.rfef_scorers_url, '_blank')}>Abrir →</Button>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">Sin URL guardada</p>
+              )}
+              <div className="mt-2 grid md:grid-cols-6 gap-2">
+                <Input className="md:col-span-4" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="Pega aquí la URL de Goleadores" />
+                <div className="flex gap-2 md:col-span-2">
+                  <Button variant="outline" onClick={() => scorersUrl && window.open(scorersUrl, '_blank')} disabled={!scorersUrl}>Abrir</Button>
+                  <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_scorers_url: scorersUrl })} disabled={!scorersUrl}>💾 Guardar</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Buscador (para filtrar tabla en StandingsDisplay) */}
       <div className="mt-3 mb-4 flex items-center gap-2">

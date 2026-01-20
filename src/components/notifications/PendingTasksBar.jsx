@@ -4,12 +4,11 @@ import { createPageUrl } from "@/utils";
 import { useStaffCounters, useCoachCounters, useCoordinatorCounters, useFamilyCounters, usePrivateCounters, useAdminCounters } from "../chats/useChatCounters";
 import { MessageCircle, ShieldAlert, Users, Briefcase } from "lucide-react"; // icons kept for future use
 
-const Chip = ({ label, count, color, onClick }) => {
-  if (!count || count <= 0) return null;
+const Chip = ({ label, count = 0, color, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-white ${color} shadow-elegant btn-press`}
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-white ${color} shadow-elegant btn-press opacity-95`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-white/90" />
       {label}
@@ -46,36 +45,37 @@ export default function PendingTasksBar({ notifications, forceShow = false }) {
   if (!shouldShow) return null;
 
   return (
-    <div className="sticky top-[100px] lg:top-0 z-30 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200/70">
+    <div className="sticky top-[100px] lg:top-0 z-30 bg-gradient-to-r from-green-600 to-green-700 border-b border-green-700/50 text-white">
       <div className="max-w-6xl mx-auto px-3 py-2 flex flex-wrap gap-2 items-center">
+        <span className="text-sm font-semibold mr-2">Tareas pendientes</span>
         <Chip
           label="Coord."
           count={coordTotal}
-          color="bg-blue-600"
+          color="bg-green-800/40"
           onClick={() => navigate(createPageUrl('FamilyChats'))}
         />
         <Chip
           label="Entrenador"
           count={coachTotal}
-          color="bg-red-600"
+          color="bg-green-800/40"
           onClick={() => navigate(createPageUrl('CoachParentChat'))}
         />
         <Chip
           label="Staff"
           count={staffTotal}
-          color="bg-purple-600"
+          color="bg-green-800/40"
           onClick={() => navigate(createPageUrl('StaffChat'))}
         />
         <Chip
           label="Administrador"
           count={adminTotal}
-          color="bg-orange-600"
+          color="bg-green-800/40"
           onClick={() => navigate(createPageUrl('ParentAdminChat'))}
         />
         <Chip
           label="Privados"
           count={privateTotal}
-          color="bg-slate-700"
+          color="bg-green-800/40"
           onClick={() => navigate(createPageUrl('DirectMessages'))}
         />
       </div>
