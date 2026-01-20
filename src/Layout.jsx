@@ -1242,7 +1242,7 @@ export default function Layout({ children, currentPageName }) {
     // 📢 COMUNICACIÓN
     { title: "─ COMUNICACIÓN ─", section: true },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle },
+    ...(isAdmin ? [{ title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle }] : []),
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
