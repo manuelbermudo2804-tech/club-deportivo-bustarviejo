@@ -440,7 +440,7 @@ export function useUnifiedNotifications(user, options = {}) {
           setRawData(prev => ({ ...prev, secondParentInvitations: sec }));
         });
       });
-      const unsubClothing = base44.entities.ClothingOrder.subscribe((event) => {
+      const unsubClothing = base44.entities.ClothingOrder.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
         setRawData(prev => {
           let updated = [...prev.clothingOrders];
           if (event.type === 'create') updated = [event.data, ...updated];
