@@ -2227,16 +2227,14 @@ export default function Layout({ children, currentPageName }) {
           </div>
 
           <div className="p-4 space-y-2">
-                    {/* Botón de Feedback - inteligente según rol */}
-                    <Link to={isAdmin ? createPageUrl("FeedbackManagement") : "#"}>
-                      <button
-                        onClick={() => !isAdmin && setShowFeedback(true)}
-                        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all shadow-md mb-2"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        <span className="font-bold text-sm">{isAdmin ? "📋 Ver Feedback" : "💬 Suggerencias y Bugs"}</span>
-                      </button>
-                    </Link>
+                    {/* Botón de Feedback - para TODOS */}
+                    <button
+                      onClick={() => setShowFeedback(true)}
+                      className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all shadow-md mb-2"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      <span className="font-bold text-sm">💬 Suggerencias y Bugs</span>
+                    </button>
 
                     {navigationItems.map((item) => {
                       if (item.section) {
