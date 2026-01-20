@@ -120,9 +120,7 @@ Deno.serve(async (req) => {
                 </p>
               </div>
 
-              <p style="text-align: center; margin-top: 30px;">
-                <a href="https://app.cdbustarviejo.com" class="cta-button">Accede a la App del Club</a>
-              </p>
+
             </div>
 
             <div class="footer">
