@@ -298,7 +298,7 @@ export function useUnifiedNotifications(user, options = {}) {
       }
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
-    setTimeout(loadPrivateConvs, 600);
+    setTimeout(() => run(loadPrivateConvs), 600);
     let lastPrivateConvUpdate = 0;
     const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
       const now = Date.now();
