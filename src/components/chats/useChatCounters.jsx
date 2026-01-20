@@ -7,7 +7,16 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
   const load = useCallback(async () => {
     const res = await base44.functions.invoke('chatGetCounters', {});
     const payload = res?.data || {};
-    const slice = payload?.[chatType] || { total: 0, byConversation: [] };
+    let slice = payload?.[chatType] || { total: 0, byConversation: [] };
+    // Fallback: si hay estado global unificado, úsalo para STAFF
+    try {
+      if (typeof window !== 'undefined' && chatType === 'staff') {
+        const unified = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE;
+        if (unified && typeof unified.unreadStaffMessages === 'number') {
+          slice = { ...slice, total: unified.unreadStaffMessages };
+        }
+      }
+    } catch {}
     setData(slice);
   }, [chatType]);
 
