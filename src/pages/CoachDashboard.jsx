@@ -358,12 +358,15 @@ export default function CoachDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <PendingTasksBar notifications={{ 
-        ...notifications, 
-        role: user?.role, 
-        isCoordinator: user?.es_coordinador === true, 
-        isCoach: user?.es_entrenador === true 
-      }} />
+      <PendingTasksBar 
+        forceShow={true}
+        notifications={{ 
+          ...notifications, 
+          role: user?.role, 
+          isCoordinator: user?.es_coordinador === true, 
+          isCoach: user?.es_entrenador === true 
+        }} 
+      />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
         

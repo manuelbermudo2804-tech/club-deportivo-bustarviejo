@@ -18,7 +18,7 @@ const Chip = ({ label, count, color, onClick }) => {
   );
 };
 
-export default function PendingTasksBar({ notifications }) {
+export default function PendingTasksBar({ notifications, forceShow = false }) {
   const navigate = useNavigate();
   const role = notifications?.role;
   const isCoordinator = notifications?.isCoordinator;
@@ -39,14 +39,14 @@ export default function PendingTasksBar({ notifications }) {
   const total = coordTotal + coachTotal + staffTotal + adminTotal + privateTotal + familyTotal;
   
   // SIEMPRE mostrar para admin, coordinador y entrenador (aunque no haya mensajes)
-  const shouldShow = (role === 'admin' || isCoordinator === true || isCoach === true || total > 0);
+  const shouldShow = (forceShow === true) || (role === 'admin' || isCoordinator === true || isCoach === true || total > 0);
   
   console.log('🟢 [PendingTasksBar] shouldShow:', shouldShow, 'total:', total);
   
   if (!shouldShow) return null;
 
   return (
-    <div className="sticky top-[52px] lg:top-0 z-30 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200/70">
+    <div className="sticky top-[100px] lg:top-0 z-30 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200/70">
       <div className="max-w-6xl mx-auto px-3 py-2 flex flex-wrap gap-2 items-center">
         <Chip
           label="Coord."
