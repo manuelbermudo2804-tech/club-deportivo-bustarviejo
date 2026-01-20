@@ -251,6 +251,7 @@ const alerts = [];
       url: createPageUrl('CoordinatorChat'),
       color: 'bg-cyan-500',
       priority: 1,
+      sticky: true,
     });
   }
 
@@ -305,6 +306,7 @@ const alerts = [];
         url: createPageUrl('ParentCoordinatorChat'),
         color: 'bg-cyan-500',
         priority: 1,
+        sticky: true,
       });
     }
 
