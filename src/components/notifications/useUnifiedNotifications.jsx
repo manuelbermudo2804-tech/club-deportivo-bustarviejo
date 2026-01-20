@@ -226,7 +226,7 @@ export function useUnifiedNotifications(user, options = {}) {
         staffQueue = [];
         staffFlushTimer = null;
       };
-      const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
+      const unsubStaffMsg = base44.entities.StaffMessage.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
         staffQueue.push(event);
         if (!staffFlushTimer) {
           staffFlushTimer = setTimeout(flushStaffQueue, 250);
