@@ -227,7 +227,7 @@ const alerts = [];
   }
 
   // ALERTAS DE CHATS (mismo criterio que las burbujas del menú)
-  const staffCount = notifications?.unreadStaffMessages || 0;
+  const staffCount = staffTotal || notifications?.unreadStaffMessages || 0;
   if ((isAdmin || isCoach || isCoordinator) && staffCount > 0) {
     alerts.push({
       id: 'staff-chat',
