@@ -435,7 +435,7 @@ export function useUnifiedNotifications(user, options = {}) {
           setRawData(prev => ({ ...prev, invitations: inv }));
         });
       });
-      const unsubSecInv = base44.entities.SecondParentInvitation.subscribe(() => {
+      const unsubSecInv = base44.entities.SecondParentInvitation.subscribe(globalThrottler.execute.bind(globalThrottler, () => {
         base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }).then(sec => {
           setRawData(prev => ({ ...prev, secondParentInvitations: sec }));
         });
