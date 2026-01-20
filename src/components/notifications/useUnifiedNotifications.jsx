@@ -449,7 +449,7 @@ export function useUnifiedNotifications(user, options = {}) {
           return { ...prev, clothingOrders: updated };
         });
       });
-      const unsubLottery = base44.entities.LotteryOrder.subscribe(() => {
+      const unsubLottery = base44.entities.LotteryOrder.subscribe(globalThrottler.execute.bind(globalThrottler, () => {
         base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }).then(orders => {
           setRawData(prev => ({ ...prev, lotteryOrders: orders }));
         });
