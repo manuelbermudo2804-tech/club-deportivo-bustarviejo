@@ -112,17 +112,6 @@ Deno.serve(async (req) => {
                 </div>
               </div>
 
-              <div class="section">
-                <h2>🔗 Próximos Pasos</h2>
-                <p>Para aprovechar al máximo tu membresía:</p>
-                <ol>
-                  <li>Accede a la app del club con tu email</li>
-                  <li>Visualiza tu carnet de socio en el panel principal</li>
-                  <li>Descubre todos los beneficios disponibles</li>
-                  <li>¡Participa en la vida del club!</li>
-                </ol>
-              </div>
-
               <div class="contact">
                 <p><strong>¿Preguntas o sugerencias?</strong></p>
                 <p>No dudes en contactarnos:<br>
