@@ -24,6 +24,8 @@ export default function PendingTasksBar({ notifications }) {
   const isCoordinator = notifications?.isCoordinator;
   const isCoach = notifications?.isCoach;
 
+  console.log('🟢 [PendingTasksBar] Renderizando con:', { role, isCoordinator, isCoach });
+
   // Counters independientes por chat
   const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
   const { total: coachTotal } = useCoachCounters({ refetchOnFocus: true });
@@ -32,8 +34,15 @@ export default function PendingTasksBar({ notifications }) {
   const { total: privateTotal } = usePrivateCounters({ refetchOnFocus: true });
   const { total: adminTotal } = useAdminCounters({ refetchOnFocus: true });
 
+  console.log('🟢 [PendingTasksBar] Contadores:', { staffTotal, coachTotal, coordTotal, familyTotal, privateTotal, adminTotal });
+
   const total = coordTotal + coachTotal + staffTotal + adminTotal + privateTotal + familyTotal;
-  const shouldShow = total > 0 || (role === 'admin' || isCoordinator || isCoach);
+  
+  // SIEMPRE mostrar para admin, coordinador y entrenador (aunque no haya mensajes)
+  const shouldShow = (role === 'admin' || isCoordinator === true || isCoach === true || total > 0);
+  
+  console.log('🟢 [PendingTasksBar] shouldShow:', shouldShow, 'total:', total);
+  
   if (!shouldShow) return null;
 
   return (
