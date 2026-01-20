@@ -660,6 +660,49 @@ export default function CentroCompeticion() {
         </Card>
       )}
 
+      {/* URLs GUARDADAS - Visible para Admin SIEMPRE, fuera de las pestañas */}
+      {isAdmin && (
+        <Card className="mb-4 bg-blue-50 border-2 border-blue-300">
+          <CardContent className="p-4 space-y-3">
+            <p className="text-sm font-bold text-blue-900">🔗 URLs Guardadas para {category}</p>
+            
+            <div className="space-y-2">
+              <div className="bg-white rounded-lg p-3 border border-blue-200">
+                <p className="text-xs font-semibold text-slate-600 mb-2">Resultados:</p>
+                {config?.rfef_results_url ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <code className="text-xs text-slate-700 flex-1 truncate" title={config.rfef_results_url}>
+                      {config.rfef_results_url}
+                    </code>
+                    <Button size="sm" variant="outline" onClick={() => window.open(config.rfef_results_url, '_blank')}>
+                      Abrir →
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">Sin URL guardada</p>
+                )}
+              </div>
+
+              <div className="bg-white rounded-lg p-3 border border-blue-200">
+                <p className="text-xs font-semibold text-slate-600 mb-2">Goleadores:</p>
+                {config?.rfef_scorers_url ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <code className="text-xs text-slate-700 flex-1 truncate" title={config.rfef_scorers_url}>
+                      {config.rfef_scorers_url}
+                    </code>
+                    <Button size="sm" variant="outline" onClick={() => window.open(config.rfef_scorers_url, '_blank')}>
+                      Abrir →
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">Sin URL guardada</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Categorías */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
         {(visibleCats && visibleCats.length ? visibleCats : CATEGORIES).map(cat => (

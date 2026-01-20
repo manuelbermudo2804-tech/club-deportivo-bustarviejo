@@ -349,9 +349,21 @@ export default function CoachDashboard() {
 
   const showCoordinatorTile = user?.es_coordinador || user?.role === "admin";
 
+  console.log('🔍 [CoachDashboard] User data:', { 
+    email: user?.email, 
+    role: user?.role, 
+    es_coordinador: user?.es_coordinador, 
+    es_entrenador: user?.es_entrenador 
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <PendingTasksBar notifications={{ ...notifications, role: user?.role, isCoordinator: user?.es_coordinador, isCoach: user?.es_entrenador }} />
+      <PendingTasksBar notifications={{ 
+        ...notifications, 
+        role: user?.role, 
+        isCoordinator: user?.es_coordinador === true, 
+        isCoach: user?.es_entrenador === true 
+      }} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
         
