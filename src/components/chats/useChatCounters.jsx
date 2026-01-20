@@ -41,6 +41,19 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
     return unsub;
   }, [chatType, load]);
 
+  // StaffMessage directo: dispara recálculo inmediato de la burbuja (con throttle ligero)
+  useEffect(() => {
+    if (chatType !== 'staff') return;
+    let last = 0;
+    const unsub = base44.entities.StaffMessage.subscribe(() => {
+      const now = Date.now();
+      if (now - last < 500) return;
+      last = now;
+      load();
+    });
+    return unsub;
+  }, [chatType, load]);
+
   // Escucha el bus global unificado para STAFF y actualiza la burbuja al instante (evita relistar y rate limit)
   useEffect(() => {
     if (chatType !== 'staff') return;
