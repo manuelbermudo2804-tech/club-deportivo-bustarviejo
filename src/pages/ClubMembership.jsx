@@ -194,10 +194,11 @@ export default function ClubMembership() {
         return null;
       }
     },
-    enabled: Boolean(!isCheckingAuth && !isPublicAccess),
-    staleTime: 600000,
+    enabled: Boolean(!isCheckingAuth),
+    staleTime: 1800000,
     refetchOnWindowFocus: false,
     retry: 1,
+    keepPreviousData: true,
   });
 
   const { data: allMemberships = [] } = useQuery({
