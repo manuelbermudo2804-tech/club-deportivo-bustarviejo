@@ -188,7 +188,7 @@ export function useUnifiedNotifications(user, options = {}) {
       setTimeout(() => run(loadChatMsgs), 300);
       // Throttle chat subscription updates
       let lastChatUpdate = 0;
-      const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
+      const unsubChatMsg = base44.entities.ChatMessage.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
         const now = Date.now();
         if (now - lastChatUpdate < 2000) return; // throttle 1 per 2s
         lastChatUpdate = now;
