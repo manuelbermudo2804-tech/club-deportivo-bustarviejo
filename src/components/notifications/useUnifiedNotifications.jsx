@@ -343,7 +343,7 @@ export function useUnifiedNotifications(user, options = {}) {
       };
       setTimeout(() => run(loadPayments), 800);
       let lastPaymentsUpdate = 0;
-      const unsubPayments = base44.entities.Payment.subscribe((event) => {
+      const unsubPayments = base44.entities.Payment.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
         const now = Date.now();
         if (now - lastPaymentsUpdate < 1000) return;
         lastPaymentsUpdate = now;
