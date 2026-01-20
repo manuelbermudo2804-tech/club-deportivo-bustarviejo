@@ -54,6 +54,28 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
     return unsub;
   }, [chatType, load]);
 
+  // Mensajes directos para otros tipos (coach/coordinator/family/private/admin)
+  useEffect(() => {
+    let last = 0;
+    let unsubscribe = null;
+    const subscribe = (entity) => entity.subscribe(() => {
+      const now = Date.now();
+      if (now - last < 500) return;
+      last = now;
+      load();
+    });
+
+    if (chatType === 'coach' || chatType === 'coordinator' || chatType === 'family') {
+      unsubscribe = subscribe(base44.entities.ChatMessage);
+    } else if (chatType === 'private') {
+      unsubscribe = subscribe(base44.entities.PrivateMessage);
+    } else if (chatType === 'admin') {
+      unsubscribe = subscribe(base44.entities.AdminMessage);
+    }
+
+    return unsubscribe;
+  }, [chatType, load]);
+
   // Escucha el bus global unificado para STAFF y actualiza la burbuja al instante (evita relistar y rate limit)
   useEffect(() => {
     if (chatType !== 'staff') return;
