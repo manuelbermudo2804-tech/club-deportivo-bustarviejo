@@ -28,7 +28,7 @@ class RequestThrottler {
   }
 }
 
-export const globalThrottler = new RequestThrottler(3, 50);
+export const globalThrottler = new RequestThrottler(2, 120);
 
 /**
  * Debounce para funciones que se llaman múltiples veces rápido
@@ -44,17 +44,19 @@ export function debounce(fn, delay) {
 /**
  * Retry con exponential backoff
  */
-export async function retryWithBackoff(fn, maxRetries = 3) {
+export async function retryWithBackoff(fn, maxRetries = 5) {
   let lastError;
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error;
-      // Si es rate limit, esperar más
-      const isRateLimit = error?.message?.includes('Rate limit');
-      const delay = isRateLimit ? Math.pow(2, i) * 1000 : Math.pow(2, i) * 100;
-      
+      const status = error?.response?.status || error?.status;
+      const retryAfterHeader = error?.response?.headers?.['retry-after'] || error?.response?.headers?.['Retry-After'];
+      const retryAfter = retryAfterHeader ? Number(retryAfterHeader) * 1000 : null;
+      const isRateLimit = status === 429 || /rate limit|too many requests/i.test(String(error?.message || ''));
+      const baseDelay = isRateLimit ? 1000 : 200; // ms
+      const delay = retryAfter || Math.min(15000, Math.pow(2, i) * baseDelay) * (1 + Math.random() * 0.25);
       if (i < maxRetries - 1) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
