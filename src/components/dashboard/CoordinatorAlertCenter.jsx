@@ -4,6 +4,7 @@ import AlertCenter from "./AlertCenter";
 import RoleAlertBlock from "./RoleAlertBlock";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import { useStaffCounters, useFamilyCounters } from "../chats/useChatCounters";
 
 export default function CoordinatorAlertCenter({
   // Stats de PADRE
