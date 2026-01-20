@@ -193,7 +193,7 @@ export default function ClubMembership() {
         return null;
       }
     },
-    enabled: !isCheckingAuth,
+    enabled: Boolean(!isCheckingAuth),
     staleTime: 600000, // 10 min
     refetchOnWindowFocus: false,
   });
@@ -208,7 +208,7 @@ export default function ClubMembership() {
         return [];
       }
     },
-    enabled: !isCheckingAuth && seasonConfig?.temporada, // Esperar a season config
+    enabled: Boolean(!isCheckingAuth && seasonConfig?.temporada),
     staleTime: 600000, // 10 min
     refetchOnWindowFocus: false,
   });
@@ -244,7 +244,7 @@ export default function ClubMembership() {
         return [];
       }
     },
-    enabled: !!user?.email,
+    enabled: Boolean(user?.email),
     staleTime: 120000,
     refetchOnWindowFocus: false,
   });
@@ -267,7 +267,7 @@ export default function ClubMembership() {
       
       return historicRefs;
     },
-    enabled: !!user?.email && !!seasonConfig?.temporada && myPlayers.length > 0 && allMemberships.length > 0, // Esperar allMemberships
+    enabled: Boolean(user?.email && seasonConfig?.temporada && myPlayers.length > 0 && allMemberships.length > 0),
     staleTime: 600000, // 10 min
     refetchOnWindowFocus: false,
   });
