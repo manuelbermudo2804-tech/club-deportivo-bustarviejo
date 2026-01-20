@@ -430,7 +430,7 @@ export function useUnifiedNotifications(user, options = {}) {
       };
       setTimeout(() => run(loadInvitations), 1100);
       
-      const unsubInv = base44.entities.InvitationRequest.subscribe(() => {
+      const unsubInv = base44.entities.InvitationRequest.subscribe(globalThrottler.execute.bind(globalThrottler, () => {
         base44.entities.InvitationRequest.filter({ estado: "Pendiente" }).then(inv => {
           setRawData(prev => ({ ...prev, invitations: inv }));
         });
