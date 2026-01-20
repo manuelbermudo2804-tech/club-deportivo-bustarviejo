@@ -157,7 +157,7 @@ export default function FeedbackManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="pt-4 text-center">
             <p className="text-3xl font-bold text-blue-700">{stats.total}</p>
@@ -182,7 +182,77 @@ export default function FeedbackManagement() {
             <p className="text-xs text-red-600 mt-1">Bugs</p>
           </CardContent>
         </Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="pt-4 text-center">
+            <p className="text-3xl font-bold text-purple-700">{stats.tasa_resolucion}%</p>
+            <p className="text-xs text-purple-600 mt-1">Resueltos</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Análisis */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-base">📊 Breakdown por Tipo</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm">🐛 Bugs</span>
+              <span className="font-bold text-red-600">{stats.bugs}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm">💡 Sugerencias</span>
+              <span className="font-bold text-purple-600">{stats.sugerencias}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm">💭 Comentarios</span>
+              <span className="font-bold text-slate-600">{feedbacks.filter((f) => f.tipo === "comentario").length}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-base">⚡ Por Prioridad</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm">🔴 Alta</span>
+              <span className="font-bold text-red-600">{analisisPrioridad.alta || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm">🟡 Media</span>
+              <span className="font-bold text-yellow-600">{analisisPrioridad.media || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm">🟢 Baja</span>
+              <span className="font-bold text-green-600">{analisisPrioridad.baja || 0}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top Bugs */}
+      {topProblemas.length > 0 && (
+        <Card className="border-slate-200">
+          <CardHeader>
+            <CardTitle className="text-base">🔴 Top 5 Bugs Reportados</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {topProblemas.map((bug, idx) => (
+              <div key={bug.id} className="flex items-start gap-2 p-2 bg-slate-50 rounded-lg">
+                <span className="text-sm font-bold text-slate-600 flex-shrink-0">#{idx + 1}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{bug.titulo}</p>
+                  <p className="text-xs text-slate-600">Por: {bug.nombre || bug.email}</p>
+                </div>
+                <Badge className={estadoColors[bug.estado]}>{estadoLabels[bug.estado]}</Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filtros */}
       <Card className="border-slate-200">
