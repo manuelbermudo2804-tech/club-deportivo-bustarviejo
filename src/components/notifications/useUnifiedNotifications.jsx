@@ -145,8 +145,8 @@ export function useUnifiedNotifications(user, options = {}) {
       }
       setRawData(prev => ({ ...prev, coachConversations: convs }));
     };
-    setTimeout(loadCoordConvs, 0);
-    if (user.es_entrenador || options?.includeCoachConvs) setTimeout(loadCoachConvs, 100);
+    setTimeout(() => run(loadCoordConvs), 0);
+    if (user.es_entrenador || options?.includeCoachConvs) setTimeout(() => run(loadCoachConvs), 100);
     let lastCoordConvUpdate = 0;
     const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
       const now = Date.now();
