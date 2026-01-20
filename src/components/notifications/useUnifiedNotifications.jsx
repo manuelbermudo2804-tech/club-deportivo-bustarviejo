@@ -634,26 +634,26 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // Staff - contar no leídos para Alert Center y tabs
     if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin')) {
-      rawData.staffMessages.forEach(msg => {
-        if (msg.autor_email === user.email) return;
-        // Un mensaje de staff puede dirigirse a roles específicos: staff_destinatarios: ['coach','coordinator','admin']
-        const destinatarios = Array.isArray(msg.staff_destinatarios) ? msg.staff_destinatarios : null;
-        if (destinatarios) {
-          const soyCoord = user.es_coordinador === true;
-          const soyCoach = user.es_entrenador === true;
-          const soyAdmin = user.role === 'admin';
-          const autorizado =
-            (soyCoord && destinatarios.includes('coordinator')) ||
-            (soyCoach && destinatarios.includes('coach')) ||
-            (soyAdmin && destinatarios.includes('admin'));
-          if (!autorizado) return; // no es para mi rol
-        }
-        const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
-        if (!isUnread) return;
-        unreadStaff++;
-        const key = msg.grupo_id || msg.categoria || 'general';
-        breakdown.staffByGroup[key] = (breakdown.staffByGroup[key] || 0) + 1;
-      });
+     rawData.staffMessages.forEach(msg => {
+       if (msg.autor_email === user.email) return;
+       const destinatarios = Array.isArray(msg.staff_destinatarios) ? msg.staff_destinatarios : null;
+       // Si no hay destinatarios, tratarlo como mensaje para todo el staff
+       let autorizado = true;
+       if (destinatarios && destinatarios.length > 0) {
+         const soyCoord = user.es_coordinador === true;
+         const soyCoach = user.es_entrenador === true;
+         const soyAdmin = user.role === 'admin';
+         autorizado = (soyCoord && destinatarios.includes('coordinator')) ||
+                     (soyCoach && destinatarios.includes('coach')) ||
+                     (soyAdmin && destinatarios.includes('admin'));
+       }
+       if (!autorizado) return;
+       const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
+       if (!isUnread) return;
+       unreadStaff++;
+       const key = msg.grupo_id || msg.categoria || 'general';
+       breakdown.staffByGroup[key] = (breakdown.staffByGroup[key] || 0) + 1;
+     });
     }
 
     // Admin (para familias): usar counter de conversación
