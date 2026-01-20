@@ -373,7 +373,7 @@ export function useUnifiedNotifications(user, options = {}) {
     setTimeout(() => run(loadPlayers), 900);
     if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
       let lastPlayersUpdate = 0;
-      const unsubPlayers = base44.entities.Player.subscribe((event) => {
+      const unsubPlayers = base44.entities.Player.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
         const now = Date.now();
         if (now - lastPlayersUpdate < 1500) return;
         lastPlayersUpdate = now;
