@@ -178,22 +178,7 @@ export default function ClubMembership() {
       }
     },
     enabled: !!user?.email,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: allMemberships = [] } = useQuery({
-    queryKey: ['allMemberships'],
-    queryFn: async () => {
-      try {
-        return await base44.entities.ClubMember.list();
-      } catch (error) {
-        console.error("Error loading memberships:", error);
-        return [];
-      }
-    },
-    enabled: !isCheckingAuth,
-    staleTime: 300000,
+    staleTime: 600000, // 10 min
     refetchOnWindowFocus: false,
   });
 
@@ -209,7 +194,22 @@ export default function ClubMembership() {
       }
     },
     enabled: !isCheckingAuth,
-    staleTime: 300000,
+    staleTime: 600000, // 10 min
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: allMemberships = [] } = useQuery({
+    queryKey: ['allMemberships'],
+    queryFn: async () => {
+      try {
+        return await base44.entities.ClubMember.list();
+      } catch (error) {
+        console.error("Error loading memberships:", error);
+        return [];
+      }
+    },
+    enabled: !isCheckingAuth && seasonConfig?.temporada, // Esperar a season config
+    staleTime: 600000, // 10 min
     refetchOnWindowFocus: false,
   });
 
@@ -249,7 +249,7 @@ export default function ClubMembership() {
     refetchOnWindowFocus: false,
   });
 
-  // Detectar referidos históricos (que no renovaron) - DESPUÉS de myPlayers
+  // Detectar referidos históricos (que no renovaron) - Lazy load
   const { data: myHistoricReferrals = [] } = useQuery({
     queryKey: ['myHistoricReferrals', user?.email, seasonConfig?.temporada],
     queryFn: async () => {
@@ -267,25 +267,16 @@ export default function ClubMembership() {
       
       return historicRefs;
     },
-    enabled: !!user?.email && !!seasonConfig?.temporada && myPlayers.length > 0,
-    staleTime: 300000,
+    enabled: !!user?.email && !!seasonConfig?.temporada && myPlayers.length > 0 && allMemberships.length > 0, // Esperar allMemberships
+    staleTime: 600000, // 10 min
     refetchOnWindowFocus: false,
   });
 
   // Determinar si es un usuario externo (sin autenticación o sin hijos en el club)
   const isExternalUser = !user || myPlayers.length === 0;
 
-  // Refetch user data para mantener crédito actualizado
-  const { data: freshUser, refetch: refetchUser } = useQuery({
-    queryKey: ['freshUser'],
-    queryFn: () => base44.auth.me(),
-    enabled: !!user,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
-  });
-
-  // Usar datos frescos del usuario si están disponibles
-  const currentUser = freshUser || user;
+  // Usar datos del usuario sin refetch constante (lazy load crédito si es necesario)
+  const currentUser = user;
 
   // Función para generar número de socio único
   const generateNumeroSocio = async () => {
@@ -502,13 +493,7 @@ export default function ClubMembership() {
         queryClient.invalidateQueries({ queryKey: ['myMemberships'] });
         queryClient.invalidateQueries({ queryKey: ['allMemberships'] });
         queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-        queryClient.invalidateQueries({ queryKey: ['freshUser'] });
         queryClient.invalidateQueries({ queryKey: ['allMembers'] });
-        
-        // Forzar recarga inmediata de los datos del usuario
-        if (refetchUser) {
-          await refetchUser();
-        }
         
         // Guardar nombre y mostrar mensaje de éxito
         setLastRegisteredName(formData.nombre_completo);
