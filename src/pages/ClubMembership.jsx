@@ -271,9 +271,10 @@ export default function ClubMembership() {
       
       return historicRefs;
     },
-    enabled: Boolean(user?.email && seasonConfig?.temporada && myPlayers.length > 0 && allMemberships.length > 0),
-    staleTime: 600000, // 10 min
+    enabled: Boolean(user?.email && !isPublicAccess && seasonConfig?.temporada && myPlayers.length > 0 && allMemberships.length > 0),
+    staleTime: 600000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Determinar si es un usuario externo (sin autenticación o sin hijos en el club)
