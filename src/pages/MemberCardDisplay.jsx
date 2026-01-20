@@ -209,13 +209,18 @@ export default function MemberCardDisplay() {
         {/* CARNET DIGITAL */}
         <Card className="border-4 border-white shadow-2xl">
           <CardContent className="p-0">
-            {/* Header del carnet */}
-            <div className={`p-6 text-center text-white ${
-              isActive ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-red-600 to-red-700'
-            }`}>
-              <h1 className="text-2xl font-bold mb-1">🎫 CARNET DE SOCIO</h1>
-              <p className="text-sm opacity-90">CD Bustarviejo</p>
-            </div>
+            {/* Header del carnet con logo */}
+             <div className={`p-6 text-center text-white ${
+               isActive ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-red-600 to-red-700'
+             }`}>
+               <img 
+                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" 
+                 alt="Logo CD Bustarviejo" 
+                 className="w-12 h-12 mx-auto mb-2 rounded-lg shadow-lg"
+               />
+               <h1 className="text-2xl font-bold mb-1">🎫 CARNET DE SOCIO</h1>
+               <p className="text-sm opacity-90">CD Bustarviejo</p>
+             </div>
 
             {/* Estado del carnet - GRANDE Y CLARO */}
             <div className={`p-8 text-center ${
