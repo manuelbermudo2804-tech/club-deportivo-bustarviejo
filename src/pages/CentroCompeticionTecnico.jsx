@@ -53,8 +53,6 @@ export default function CentroCompeticionTecnico() {
 
   const [view, setView] = React.useState(getUrlParam('vista', 'clasificacion')); // 'clasificacion' | 'resultados' | 'goleadores'
   const [search, setSearch] = React.useState("");
-  const [resultsUrl, setResultsUrl] = React.useState("");
-  const [scorersUrl, setScorersUrl] = React.useState("");
   const [fav, setFav] = React.useState(() => (typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') === initialCatGuess : false));
   React.useEffect(() => { setFav((typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') : '') === category); }, [category]);
 
@@ -151,32 +149,8 @@ export default function CentroCompeticionTecnico() {
     return { ...standingsPack, data: (standingsPack.data || []).filter(r => (r.nombre_equipo || '').toLowerCase().includes(q)) };
   }, [standingsPack, search]);
 
-  // Config URLs por categoría
-  const { data: config } = useQuery({
-    queryKey: ['standings-config-tech', category],
-    queryFn: async () => {
-      const list = await base44.entities.StandingsConfig.filter({ categoria: category });
-      return list?.[0] || null;
-    },
-    staleTime: 60_000,
-    refetchOnWindowFocus: false
-  });
 
-  React.useEffect(() => {
-    if (config && config.categoria === category) {
-      setResultsUrl(prev => prev || config.rfef_results_url || "");
-      setScorersUrl(prev => prev || config.rfef_scorers_url || "");
-    }
-  }, [config, category]);
 
-  const saveConfigUrls = async (updates) => {
-    const list = await base44.entities.StandingsConfig.filter({ categoria: category });
-    const cfg = list?.[0];
-    if (cfg) await base44.entities.StandingsConfig.update(cfg.id, { ...updates });
-    else await base44.entities.StandingsConfig.create({ categoria: category, ...updates });
-    queryClient.invalidateQueries({ queryKey: ['standings-config-tech', category] });
-    alert('URL guardada');
-  };
 
   // Próximo partido de la categoría actual para análisis/registro
   const { data: callups = [] } = useQuery({
