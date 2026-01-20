@@ -952,111 +952,111 @@ export default function Layout({ children, currentPageName }) {
 
         // Cargar configuración de temporada AQUÍ (dentro del fetchUser)
         try {
-          const configs = await base44.entities.SeasonConfig.filter({ activa: true });
-          const activeConfig = configs[0];
-          setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
-          setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
-          const sociosActivo = activeConfig?.programa_socios_activo === true;
-          setProgramaSociosActivo(sociosActivo);
-          console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
+        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+        const activeConfig = configs[0];
+        setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
+        setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
+        const sociosActivo = activeConfig?.programa_socios_activo === true;
+        setProgramaSociosActivo(sociosActivo);
+        console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
 
-          // Cargar Cobros Extra activos asignados al usuario (filtrado por destinatarios)
-          try {
-            if (currentUser?.email) {
-              const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
+        // Cargar Cobros Extra activos asignados al usuario (filtrado por destinatarios)
+        try {
+          if (currentUser?.email) {
+            const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
 
-              // Jugadores vinculados a este usuario (padre, tutor2 o jugador adulto)
-              let myPlayers = [];
-              try {
-                myPlayers = await base44.entities.Player.filter({
-                  $or: [
-                    { email_padre: currentUser.email },
-                    { email_tutor_2: currentUser.email },
-                    { email_jugador: currentUser.email }
-                  ],
-                  activo: true
-                });
-              } catch {}
-
-              const isCoach = currentUser.es_entrenador === true;
-              const isCoordinator = currentUser.es_coordinador === true;
-              const isTreasurer = currentUser.es_tesorero === true;
-              const isAdminUser = currentUser.role === 'admin';
-
-              const categoryNames = new Set([
-                ...(myPlayers || []).map(p => p.categoria_principal).filter(Boolean),
-                ...((myPlayers || []).flatMap(p => p.categorias || []))
-              ]);
-              const playerIds = new Set((myPlayers || []).map(p => p.id));
-
-              const matchesUser = (charge) => {
-                const dests = charge.destinatarios || [];
-                if (dests.length === 0) return true; // sin filtro => todos
-
-                if (dests.some(d => d.tipo === 'categoria' && categoryNames.has(d.valor))) return true;
-                if (dests.some(d => d.tipo === 'jugador' && playerIds.has(d.valor))) return true;
-
-                if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:entrenadores') && isCoach) return true;
-                if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:coordinadores') && isCoordinator) return true;
-                if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:tesoreria') && isTreasurer) return true;
-                if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:admins') && isAdminUser) return true;
-                return false;
-              };
-
-              const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
-              const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
-              // Minimizar llamadas: obtener todos mis pagos una sola vez
-              const myPayments = await base44.entities.ExtraChargePayment.filter({
-                usuario_email: currentUser.email,
-                $or: [{ estado: 'Pagado' }, { estado: 'En revisión' }]
+            // Jugadores vinculados a este usuario (padre, tutor2 o jugador adulto)
+            let myPlayers = [];
+            try {
+              myPlayers = await base44.entities.Player.filter({
+                $or: [
+                  { email_padre: currentUser.email },
+                  { email_tutor_2: currentUser.email },
+                  { email_jugador: currentUser.email }
+                ],
+                activo: true
               });
-              let visibleCharge = null;
-              for (const c of candidates) {
-                try {
-                  const requiredSum = (c.items || [])
-                    .filter(i => i.obligatorio)
-                    .reduce((sum, i) => sum + Number(i.precio || 0) * 1, 0);
-                  const paymentsForCharge = (myPayments || []).filter(p => p.extra_charge_id === c.id);
-                  let hasPaidRequired = false;
-                  if ((paymentsForCharge || []).length > 0) {
-                    for (const p of paymentsForCharge) {
-                      const sel = p.seleccion || [];
-                      const mandatoryNames = new Set((c.items || []).filter(i => i.obligatorio).map(i => i.nombre));
-                      const paidMandatorySum = sel
-                        .filter(s => mandatoryNames.has(s.item_nombre))
-                        .reduce((sum, s) => sum + Number(s.cantidad || 0) * Number(s.precio_unitario || 0), 0);
-                      if ((requiredSum > 0 && paidMandatorySum >= requiredSum) || (requiredSum === 0 && Number(p.total || 0) > 0)) {
-                        hasPaidRequired = true;
-                        break;
-                      }
+            } catch {}
+
+            const isCoach = currentUser.es_entrenador === true;
+            const isCoordinator = currentUser.es_coordinador === true;
+            const isTreasurer = currentUser.es_tesorero === true;
+            const isAdminUser = currentUser.role === 'admin';
+
+            const categoryNames = new Set([
+              ...(myPlayers || []).map(p => p.categoria_principal).filter(Boolean),
+              ...((myPlayers || []).flatMap(p => p.categorias || []))
+            ]);
+            const playerIds = new Set((myPlayers || []).map(p => p.id));
+
+            const matchesUser = (charge) => {
+              const dests = charge.destinatarios || [];
+              if (dests.length === 0) return true; // sin filtro => todos
+
+              if (dests.some(d => d.tipo === 'categoria' && categoryNames.has(d.valor))) return true;
+              if (dests.some(d => d.tipo === 'jugador' && playerIds.has(d.valor))) return true;
+
+              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:entrenadores') && isCoach) return true;
+              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:coordinadores') && isCoordinator) return true;
+              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:tesoreria') && isTreasurer) return true;
+              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:admins') && isAdminUser) return true;
+              return false;
+            };
+
+            const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
+            const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
+            // Minimizar llamadas: obtener todos mis pagos una sola vez
+            const myPayments = await base44.entities.ExtraChargePayment.filter({
+              usuario_email: currentUser.email,
+              $or: [{ estado: 'Pagado' }, { estado: 'En revisión' }]
+            });
+            let visibleCharge = null;
+            for (const c of candidates) {
+              try {
+                const requiredSum = (c.items || [])
+                  .filter(i => i.obligatorio)
+                  .reduce((sum, i) => sum + Number(i.precio || 0) * 1, 0);
+                const paymentsForCharge = (myPayments || []).filter(p => p.extra_charge_id === c.id);
+                let hasPaidRequired = false;
+                if ((paymentsForCharge || []).length > 0) {
+                  for (const p of paymentsForCharge) {
+                    const sel = p.seleccion || [];
+                    const mandatoryNames = new Set((c.items || []).filter(i => i.obligatorio).map(i => i.nombre));
+                    const paidMandatorySum = sel
+                      .filter(s => mandatoryNames.has(s.item_nombre))
+                      .reduce((sum, s) => sum + Number(s.cantidad || 0) * Number(s.precio_unitario || 0), 0);
+                    if ((requiredSum > 0 && paidMandatorySum >= requiredSum) || (requiredSum === 0 && Number(p.total || 0) > 0)) {
+                      hasPaidRequired = true;
+                      break;
                     }
                   }
-                  if (!hasPaidRequired) { visibleCharge = c; break; }
-                } catch (e) {
-                  visibleCharge = c; break;
                 }
+                if (!hasPaidRequired) { visibleCharge = c; break; }
+              } catch (e) {
+                visibleCharge = c; break;
               }
-              setExtraChargeVisible(visibleCharge);
             }
-          } catch (e) { console.log('⚠️ No hay cobros extra activos:', e); } 
-
-          // Verificar si el usuario es socio pagado (para TODOS los usuarios)
-          if (sociosActivo) {
-            const members = await base44.entities.ClubMember.filter({ 
-              email: currentUser.email,
-              estado_pago: "Pagado"
-            });
-            const isPaid = members.length > 0;
-            console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
-              email: currentUser.email,
-              socios_encontrados: members.length,
-              isPaid,
-              programa_socios_activo: sociosActivo
-            });
-            setIsMemberPaid(isPaid);
+            setExtraChargeVisible(visibleCharge);
           }
+        } catch (e) { console.log('⚠️ No hay cobros extra activos:', e); }
+
+        // Verificar si el usuario es socio pagado (para TODOS los usuarios, incluso sin hijos)
+        try {
+          const members = await base44.entities.ClubMember.filter({ 
+            email: currentUser.email,
+            estado_pago: "Pagado"
+          });
+          const isPaid = members.length > 0;
+          console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
+            email: currentUser.email,
+            socios_encontrados: members.length,
+            isPaid,
+            programa_socios_activo: sociosActivo
+          });
+          setIsMemberPaid(isPaid);
+        } catch (e) { console.log('⚠️ Error verificando socio pagado:', e); }
         } catch (error) {
-          console.error("Error fetching season config:", error);
+        console.error("Error fetching season config:", error);
         }
 
         // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
