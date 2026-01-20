@@ -623,9 +623,25 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Staff - contar no leídos para Alert Center y tabs
-    if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
+    if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin')) {
       rawData.staffMessages.forEach(msg => {
         if (msg.autor_email === user.email) return;
+        // Un mensaje de staff puede dirigirse a roles específicos: staff_destinatarios: ['coach','coordinator','admin']
+        const destinatarios = Array.isArray(msg.staff_destinatarios) ? msg.staff_destinatarios : null;
+        if (destinatarios) {
+          const soyCoord = user.es_coordinador === true;
+          const soyCoach = user.es_entrenador === true;
+          const soyAdmin = user.role === 'admin';
+          if (
+            (soyCoord && !destinatarios.includes('coordinator')) &&
+            (soyCoach && !destinatarios.includes('coach')) &&
+            (soyAdmin && !destinatarios.includes('admin'))
+          ) {
+            return; // no es para mi rol
+          }
+          // Si destinatarios existe pero no coincide ninguno de mis roles, salir
+          if (!soyCoord && !soyCoach && !soyAdmin) return;
+        }
         const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
         if (!isUnread) return;
         unreadStaff++;
