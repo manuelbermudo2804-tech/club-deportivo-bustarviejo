@@ -209,7 +209,7 @@ export function useUnifiedNotifications(user, options = {}) {
         const msgs = await run(() => base44.entities.StaffMessage.list('-created_date', 40);
         setRawData(prev => ({ ...prev, staffMessages: msgs }));
       };
-      setTimeout(loadStaffMsgs, 0);
+      setTimeout(() => run(loadStaffMsgs), 0);
       let staffQueue = [];
       let staffFlushTimer = null;
       const flushStaffQueue = () => {
