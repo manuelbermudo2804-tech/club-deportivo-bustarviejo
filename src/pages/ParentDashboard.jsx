@@ -18,6 +18,8 @@ import ClassificationsAndMatchesBanner from "../components/dashboard/Classificat
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
+import PendingTasksBar from "../components/notifications/PendingTasksBar";
+import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
@@ -71,6 +73,7 @@ export default function ParentDashboard() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
+  const { notifications } = useUnifiedNotifications(user);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -430,6 +433,7 @@ export default function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+      <PendingTasksBar notifications={{ ...notifications, role: user?.role }} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
