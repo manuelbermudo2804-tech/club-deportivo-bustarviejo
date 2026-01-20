@@ -78,11 +78,17 @@ export default function CoachDashboard() {
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allCallups = [] } = useQuery({
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list(),
+    staleTime: 2 * 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allStandings = [] } = useQuery({
@@ -96,25 +102,36 @@ export default function CoachDashboard() {
   const { data: allAttendances = [] } = useQuery({
     queryKey: ['attendances'],
     queryFn: () => base44.entities.Attendance.list(),
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allMatchObservations = [] } = useQuery({
     queryKey: ['matchObservations'],
     queryFn: () => base44.entities.MatchObservation.list(),
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list(),
     enabled: hasPlayers,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   // Season config para mostrar banner de renovaciones cuando el entrenador tambin es padre
   const { data: seasonConfigs = [] } = useQuery({
     queryKey: ['seasonConfigs'],
     queryFn: () => base44.entities.SeasonConfig.list(),
-    staleTime: 600000,
+    staleTime: 10 * 60_000,
+    gcTime: 20 * 60_000,
     enabled: hasPlayers,
+    refetchOnWindowFocus: false,
   });
 
   // (legacy) conversations queries not needed for badge counters (using unified)
@@ -134,6 +151,9 @@ export default function CoachDashboard() {
     queryKey: ['adminConversations'],
     queryFn: () => base44.entities.AdminConversation.list(),
     enabled: hasPlayers,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: buttonConfigs = [] } = useQuery({
@@ -162,6 +182,8 @@ export default function CoachDashboard() {
       return convs[0] || null;
     },
     enabled: !!user,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: staffMessagesCoach = [] } = useQuery({
@@ -171,6 +193,9 @@ export default function CoachDashboard() {
       return await base44.entities.StaffMessage.filter({ conversacion_id: staffConversationCoach.id }, 'created_date');
     },
     enabled: !!user && !!staffConversationCoach?.id,
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const unreadStaffMessages = useMemo(() => {

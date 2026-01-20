@@ -27,12 +27,12 @@ export default function PendingTasksBar({ notifications, forceShow = false }) {
   console.log('🟢 [PendingTasksBar] Renderizando con:', { role, isCoordinator, isCoach });
 
   // Counters independientes por chat
-  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
-  const { total: coachTotal } = useCoachCounters({ refetchOnFocus: true });
-  const { total: coordTotal } = useCoordinatorCounters({ refetchOnFocus: true });
-  const { total: familyTotal } = useFamilyCounters({ refetchOnFocus: true });
-  const { total: privateTotal } = usePrivateCounters({ refetchOnFocus: true });
-  const { total: adminTotal } = useAdminCounters({ refetchOnFocus: true });
+  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: false });
+  const { total: coachTotal } = useCoachCounters({ refetchOnFocus: false });
+  const { total: coordTotal } = useCoordinatorCounters({ refetchOnFocus: false });
+  const { total: familyTotal } = useFamilyCounters({ refetchOnFocus: false });
+  const { total: privateTotal } = usePrivateCounters({ refetchOnFocus: false });
+  const { total: adminTotal } = useAdminCounters({ refetchOnFocus: false });
 
   console.log('🟢 [PendingTasksBar] Contadores:', { staffTotal, coachTotal, coordTotal, familyTotal, privateTotal, adminTotal });
 
