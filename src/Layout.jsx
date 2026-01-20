@@ -1188,12 +1188,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Admin: only allow critical chat; redirect from other chat pages
   useEffect(() => {
-    if (!isAdmin) return;
-    const p = location.pathname.toLowerCase();
-    const blocked = ['/familychats','/parentcoordinatorchat','/parentcoachchat','/staffchat','/coachparentchat','/directmessages'];
-    if (blocked.some(b => p.includes(b))) {
-      navigate(createPageUrl('AdminChat'));
-    }
+    // Admin puede acceder a todos los chats
   }, [isAdmin, location.pathname, navigate]);
 
   const shouldShowRestricted = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "restricted";
@@ -1208,6 +1203,11 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0 },
+    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: unreadStaffChat > 0 ? unreadStaffChat : null },
+    { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: unreadCoordinatorChat > 0 ? unreadCoordinatorChat : null },
+    { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: unreadFamilyChat > 0 ? unreadFamilyChat : null },
+    { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: unreadPrivateChat > 0 ? unreadPrivateChat : null },
+    { title: "✉️ Mensajes Directos", url: createPageUrl("DirectMessages"), icon: MessageCircle, badge: unreadPrivateChat > 0 ? unreadPrivateChat : null },
     { title: "📊 Estadísticas de Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
     { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
     { title: "📊 Sistema de Análisis", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
@@ -1394,6 +1394,7 @@ export default function Layout({ children, currentPageName }) {
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: unreadPrivateChat > 0 ? unreadPrivateChat : null },
+    { title: "🎓 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: unreadCoordinatorChat > 0 ? unreadCoordinatorChat : null },
 
     { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: unreadCoachChat > 0 ? unreadCoachChat : null },
     ...(hasActiveAdminConversation ? [{ title: "🛡️ Chat Administrador", url: createPageUrl("ParentAdminChat"), icon: ShieldAlert }] : []),

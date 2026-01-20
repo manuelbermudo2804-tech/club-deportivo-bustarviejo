@@ -47,7 +47,7 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
     let last = 0;
     const unsub = base44.entities.StaffMessage.subscribe(() => {
       const now = Date.now();
-      if (now - last < 500) return;
+      if (now - last < 200) return;
       last = now;
       load();
     });
@@ -62,7 +62,7 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
       if (!entity || !entity.subscribe) return () => {};
       const un = entity.subscribe(() => {
         const now = Date.now();
-        if (now - last < 500) return;
+        if (now - last < 200) return;
         last = now;
         load();
       });
