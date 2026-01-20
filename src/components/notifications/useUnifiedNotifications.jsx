@@ -454,7 +454,7 @@ export function useUnifiedNotifications(user, options = {}) {
           setRawData(prev => ({ ...prev, lotteryOrders: orders }));
         });
       });
-      const unsubMembers = base44.entities.ClubMember.subscribe(() => {
+      const unsubMembers = base44.entities.ClubMember.subscribe(globalThrottler.execute.bind(globalThrottler, () => {
         base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }).then(members => {
           setRawData(prev => ({ ...prev, clubMembers: members }));
         });
