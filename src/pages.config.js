@@ -42,6 +42,7 @@ import FamilyChats from './pages/FamilyChats';
 import FamilyGuide from './pages/FamilyGuide';
 import FederationSignatures from './pages/FederationSignatures';
 import FederationSignaturesAdmin from './pages/FederationSignaturesAdmin';
+import FeedbackManagement from './pages/FeedbackManagement';
 import FemeninoInterests from './pages/FemeninoInterests';
 import Gallery from './pages/Gallery';
 import Home from './pages/Home';
@@ -100,7 +101,7 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import FeedbackManagement from './pages/FeedbackManagement';
+import EmailTemplates from './pages/EmailTemplates';
 import __Layout from './Layout.jsx';
 
 
@@ -149,6 +150,7 @@ export const PAGES = {
     "FamilyGuide": FamilyGuide,
     "FederationSignatures": FederationSignatures,
     "FederationSignaturesAdmin": FederationSignaturesAdmin,
+    "FeedbackManagement": FeedbackManagement,
     "FemeninoInterests": FemeninoInterests,
     "Gallery": Gallery,
     "Home": Home,
@@ -207,7 +209,7 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "FeedbackManagement": FeedbackManagement,
+    "EmailTemplates": EmailTemplates,
 }
 
 export const pagesConfig = {
