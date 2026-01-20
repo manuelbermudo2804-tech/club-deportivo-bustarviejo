@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'noreply@cdbustarviejo.com',
-        to: [email],
+        to: [finalEmail],
         subject: '🎉 ¡Bienvenido a CD Bustarviejo! Tu membresía está activada',
         html: welcomeHtml
       })
