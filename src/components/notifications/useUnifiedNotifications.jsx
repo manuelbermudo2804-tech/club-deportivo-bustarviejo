@@ -189,7 +189,6 @@ export function useUnifiedNotifications(user, options = {}) {
       // Throttle chat subscription updates
       let lastChatUpdate = 0;
       const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
-        globalThrottler.execute(() => {
           const now = Date.now();
           if (now - lastChatUpdate < 2000) return; // throttle 1 per 2s
           lastChatUpdate = now;
@@ -200,7 +199,6 @@ export function useUnifiedNotifications(user, options = {}) {
             else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
             return { ...prev, chatMessages: updated };
           });
-        });
       });
       unsubscribers.push(unsubChatMsg);
     }
@@ -229,12 +227,10 @@ export function useUnifiedNotifications(user, options = {}) {
         staffFlushTimer = null;
       };
       const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
-        globalThrottler.execute(() => {
           staffQueue.push(event);
           if (!staffFlushTimer) {
             staffFlushTimer = setTimeout(flushStaffQueue, 250);
           }
-        });
       });
       unsubscribers.push(unsubStaffMsg);
     }
@@ -255,7 +251,6 @@ export function useUnifiedNotifications(user, options = {}) {
     if (user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero)) {
       let lastAdminConvUpdate = 0;
       const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
-        globalThrottler.execute(() => {
           const now = Date.now();
           if (now - lastAdminConvUpdate < 1000) return;
           lastAdminConvUpdate = now;
@@ -266,7 +261,6 @@ export function useUnifiedNotifications(user, options = {}) {
             else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
             return { ...prev, adminConversations: updated };
           });
-        });
       });
       unsubscribers.push(unsubAdminConv);
     }
@@ -307,7 +301,6 @@ export function useUnifiedNotifications(user, options = {}) {
     setTimeout(() => run(loadPrivateConvs), 600);
     let lastPrivateConvUpdate = 0;
     const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
-      globalThrottler.execute(() => {
         const now = Date.now();
         if (now - lastPrivateConvUpdate < 1000) return;
         lastPrivateConvUpdate = now;
@@ -318,7 +311,6 @@ export function useUnifiedNotifications(user, options = {}) {
           else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
           return { ...prev, privateConversations: updated };
         });
-      });
     });
     unsubscribers.push(unsubPrivateConv);
 
@@ -330,7 +322,6 @@ export function useUnifiedNotifications(user, options = {}) {
     setTimeout(() => run(loadConvocatorias), 700);
     let lastCallupsUpdate = 0;
     const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
-      globalThrottler.execute(() => {
         const now = Date.now();
         if (now - lastCallupsUpdate < 1000) return;
         lastCallupsUpdate = now;
@@ -341,7 +332,6 @@ export function useUnifiedNotifications(user, options = {}) {
           else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
           return { ...prev, convocatorias: updated };
         });
-      });
     });
     unsubscribers.push(unsubConvocatorias);
 
@@ -354,7 +344,6 @@ export function useUnifiedNotifications(user, options = {}) {
       setTimeout(() => run(loadPayments), 800);
       let lastPaymentsUpdate = 0;
       const unsubPayments = base44.entities.Payment.subscribe((event) => {
-        globalThrottler.execute(() => {
           const now = Date.now();
           if (now - lastPaymentsUpdate < 1000) return;
           lastPaymentsUpdate = now;
@@ -365,7 +354,6 @@ export function useUnifiedNotifications(user, options = {}) {
             else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
             return { ...prev, payments: updated };
           });
-        });
       });
       unsubscribers.push(unsubPayments);
     }
@@ -386,7 +374,6 @@ export function useUnifiedNotifications(user, options = {}) {
     if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
       let lastPlayersUpdate = 0;
       const unsubPlayers = base44.entities.Player.subscribe((event) => {
-        globalThrottler.execute(() => {
           const now = Date.now();
           if (now - lastPlayersUpdate < 1500) return;
           lastPlayersUpdate = now;
@@ -397,7 +384,6 @@ export function useUnifiedNotifications(user, options = {}) {
             else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
             return { ...prev, players: updated };
           });
-        });
       });
       unsubscribers.push(unsubPlayers);
     }
@@ -410,7 +396,6 @@ export function useUnifiedNotifications(user, options = {}) {
     setTimeout(() => run(loadAnnouncements), 1000);
     let lastAnnouncementsUpdate = 0;
     const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
-      globalThrottler.execute(() => {
         const now = Date.now();
         if (now - lastAnnouncementsUpdate < 1000) return;
         lastAnnouncementsUpdate = now;
@@ -421,7 +406,6 @@ export function useUnifiedNotifications(user, options = {}) {
           else if (event.type === 'delete') updated = updated.filter(a => a.id !== event.id);
           return { ...prev, announcements: updated };
         });
-      });
     });
     unsubscribers.push(unsubAnnouncements);
 
