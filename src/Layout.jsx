@@ -2126,28 +2126,37 @@ export default function Layout({ children, currentPageName }) {
                   </button>
                 )}
 
-                {navigationItems.map((item) => (
-                  <Link
-                    key={item.title}
-                    to={item.url}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                      item.highlight
-                        ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg ring-2 ring-green-400 animate-pulse'
-                        : location.pathname === item.url
-                        ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg'
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                  >
-                    <item.icon className="w-6 h-6 flex-shrink-0" />
-                    <span className="font-semibold text-base flex-1">{item.title}</span>
-                    {item.badge && (
-                      <Badge className={`${item.urgentBadge ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </Link>
-                ))}
+                {navigationItems.map((item) => {
+                  if (item.section) {
+                    return (
+                      <div key={item.title} className="px-2 py-3 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                        {item.title}
+                      </div>
+                    );
+                  }
+                  return (
+                    <Link
+                      key={item.title}
+                      to={item.url}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                        item.highlight
+                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg ring-2 ring-green-400 animate-pulse'
+                          : location.pathname === item.url
+                          ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      <item.icon className="w-6 h-6 flex-shrink-0" />
+                      <span className="font-semibold text-base flex-1">{item.title}</span>
+                      {item.badge && (
+                        <Badge className={`${item.urgentBadge ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
               <div className="p-4 bg-slate-900 border-t border-white/10 space-y-2">
                                                   {!isAppInstalled && (
@@ -2203,27 +2212,36 @@ export default function Layout({ children, currentPageName }) {
           </div>
 
           <div className="p-4 space-y-2">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.title}
-                to={item.url}
-                className={`flex items-center justify-center gap-4 p-4 rounded-2xl transition-all group ${
-                  item.highlight
-                    ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-600/50 ring-2 ring-green-400 animate-pulse'
-                    : location.pathname === item.url
-                    ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50'
-                    : 'text-slate-300 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="font-semibold flex-1 text-center">{item.title}</span>
-                {item.badge && (
-                  <Badge className={`${item.urgentBadge ? 'bg-red-500 text-white animate-pulse ring-2 ring-green-400' : 'bg-green-500 text-white'}`}>
-                    {item.urgentBadge && '🔴'} {item.badge}
-                  </Badge>
-                )}
-              </Link>
-            ))}
+            {navigationItems.map((item) => {
+              if (item.section) {
+                return (
+                  <div key={item.title} className="px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-t border-slate-700/50">
+                    {item.title}
+                  </div>
+                );
+              }
+              return (
+                <Link
+                  key={item.title}
+                  to={item.url}
+                  className={`flex items-center justify-center gap-4 p-4 rounded-2xl transition-all group ${
+                    item.highlight
+                      ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-600/50 ring-2 ring-green-400 animate-pulse'
+                      : location.pathname === item.url
+                      ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50'
+                      : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-semibold flex-1 text-center">{item.title}</span>
+                  {item.badge && (
+                    <Badge className={`${item.urgentBadge ? 'bg-red-500 text-white animate-pulse ring-2 ring-green-400' : 'bg-green-500 text-white'}`}>
+                      {item.urgentBadge && '🔴'} {item.badge}
+                    </Badge>
+                  )}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="p-6 mt-auto border-t border-green-500/30">
