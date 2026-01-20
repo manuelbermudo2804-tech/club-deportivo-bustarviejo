@@ -1202,15 +1202,19 @@ export default function Layout({ children, currentPageName }) {
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0 },
+    { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0, highlight: true },
+
+    // 💬 CHATS Y COMUNICACIÓN
+    { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: unreadStaffChat > 0 ? unreadStaffChat : null },
     { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: unreadCoordinatorChat > 0 ? unreadCoordinatorChat : null },
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: unreadFamilyChat > 0 ? unreadFamilyChat : null },
-    { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: unreadPrivateChat > 0 ? unreadPrivateChat : null },
     { title: "✉️ Mensajes Directos", url: createPageUrl("DirectMessages"), icon: MessageCircle, badge: unreadPrivateChat > 0 ? unreadPrivateChat : null },
     { title: "📊 Estadísticas de Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
     { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
     { title: "📊 Sistema de Análisis", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
+    // 💰 FINANZAS
+    { title: "─ FINANZAS ─", section: true },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
     { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
@@ -1218,6 +1222,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
 
     // 👥 GESTIÓN DE PERSONAS
+    { title: "─ GESTIÓN DE PERSONAS ─", section: true },
     { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
     { title: "🔄 Dashboard Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
@@ -1226,19 +1231,21 @@ export default function Layout({ children, currentPageName }) {
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
 
     // ⚽ DEPORTIVO
+    { title: "─ DEPORTIVO ─", section: true },
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
 
-    // 💬 COMUNICACIÓN
-
+    // 📢 COMUNICACIÓN
+    { title: "─ COMUNICACIÓN ─", section: true },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
 
     // 🛍️ PEDIDOS Y EXTRAS
+    { title: "─ PEDIDOS Y EXTRAS ─", section: true },
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag, badge: pendingClothingOrders > 0 ? pendingClothingOrders : null },
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
@@ -1254,6 +1261,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
     // ⚙️ CONFIGURACIÓN
+    { title: "─ CONFIGURACIÓN ─", section: true },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
