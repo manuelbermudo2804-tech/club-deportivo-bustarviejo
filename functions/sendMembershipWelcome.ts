@@ -19,11 +19,38 @@ Deno.serve(async (req) => {
       email, 
       nombre_socio,
       event,
-      data,
-      old_data 
+      data: eventData,
+      old_data: oldEventData
     } = payload;
+
+    // Detectar si viene de automación (evento) o llamada directa
+    const isFromAutomation = event && eventData;
     
-    if (!member_id || !email) {
+    // Si es de automación, extraer datos del evento
+    let finalEmail, finalNombre, finalMemberId;
+    
+    if (isFromAutomation) {
+      // Solo enviar si el estado cambió de algo diferente a "Pagado" → "Pagado"
+      const estadoPagado = eventData.estado_pago === "Pagado";
+      const estadoAntesEraOtro = !oldEventData || oldEventData.estado_pago !== "Pagado";
+      
+      if (!estadoPagado || !estadoAntesEraOtro) {
+        // No es un cambio a "Pagado", ignorar
+        console.log('[sendMembershipWelcome] ℹ️ Evento ignorado - estado_pago no cambió a "Pagado"');
+        return Response.json({ success: true, ignored: true, reason: 'Estado no es Pagado' });
+      }
+      
+      finalEmail = eventData.email;
+      finalNombre = eventData.nombre_completo;
+      finalMemberId = event.entity_id;
+    } else {
+      // Llamada directa (para compatibilidad)
+      finalEmail = email;
+      finalNombre = nombre_socio;
+      finalMemberId = member_id;
+    }
+    
+    if (!finalEmail || !finalMemberId) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
