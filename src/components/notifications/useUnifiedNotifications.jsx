@@ -622,12 +622,13 @@ export function useUnifiedNotifications(user, options = {}) {
       }
     }
 
-    // Staff - contador visual seguirá viniendo desde ChatCounter en UI; mantener breakdown para tabs
+    // Staff - contar no leídos para Alert Center y tabs
     if (user.es_entrenador || user.es_coordinador || user.role === 'admin') {
       rawData.staffMessages.forEach(msg => {
         if (msg.autor_email === user.email) return;
         const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
         if (!isUnread) return;
+        unreadStaff++;
         const key = msg.grupo_id || msg.categoria || 'general';
         breakdown.staffByGroup[key] = (breakdown.staffByGroup[key] || 0) + 1;
       });
