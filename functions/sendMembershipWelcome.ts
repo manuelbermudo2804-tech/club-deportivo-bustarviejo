@@ -3,13 +3,25 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
     
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Para automaciones entity, se ejecuta sin autenticación de usuario final
+    // El payload viene directamente de la automación
+
+    let payload;
+    try {
+      payload = await req.json();
+    } catch {
+      payload = {};
     }
 
-    const { member_id, email, nombre_socio } = await req.json();
+    const { 
+      member_id, 
+      email, 
+      nombre_socio,
+      event,
+      data,
+      old_data 
+    } = payload;
     
     if (!member_id || !email) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
