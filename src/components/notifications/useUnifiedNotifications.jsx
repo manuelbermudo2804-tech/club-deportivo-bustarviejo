@@ -321,7 +321,7 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(() => run(loadConvocatorias), 700);
     let lastCallupsUpdate = 0;
-    const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
+    const unsubConvocatorias = base44.entities.Convocatoria.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
       const now = Date.now();
       if (now - lastCallupsUpdate < 1000) return;
       lastCallupsUpdate = now;
