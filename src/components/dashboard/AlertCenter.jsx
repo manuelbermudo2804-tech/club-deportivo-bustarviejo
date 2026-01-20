@@ -72,6 +72,8 @@ export default function AlertCenter({
   const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
   // Contadores unificados (mismo origen que las burbujas del menú)
   const { notifications } = useUnifiedNotifications(meUser);
+  // Contador STAFF en tiempo real desde ChatCounter (misma fuente que la burbuja)
+  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
   
   // Real-time subscriptions eliminadas para evitar duplicar cargas (nos apoyamos en useUnifiedNotifications + bus global)
   const [refreshTrigger, setRefreshTrigger] = useState(0);
