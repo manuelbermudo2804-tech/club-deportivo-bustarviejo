@@ -300,7 +300,7 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(() => run(loadPrivateConvs), 600);
     let lastPrivateConvUpdate = 0;
-    const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
+    const unsubPrivateConv = base44.entities.PrivateConversation.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
       const now = Date.now();
       if (now - lastPrivateConvUpdate < 1000) return;
       lastPrivateConvUpdate = now;
