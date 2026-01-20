@@ -537,7 +537,7 @@ export function useUnifiedNotifications(user, options = {}) {
     // CHATS
     let unreadCoordinator = 0;
     let unreadCoach = 0;
-    let unreadStaff = 0;
+    let unreadStaff = 0; // staff interno
     const latestByGroup = new Map();
     let unreadAdmin = 0;
     let unreadPrivate = 0;
