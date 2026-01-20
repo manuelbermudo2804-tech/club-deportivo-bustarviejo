@@ -18,6 +18,7 @@ import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
 import BirthdayModal from "./components/birthday/BirthdayModal";
 import BirthdayWidget from "./components/birthday/BirthdayWidget";
+import FeedbackModal from "./components/feedback/FeedbackModal";
 
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
@@ -603,6 +604,7 @@ export default function Layout({ children, currentPageName }) {
   const [enginesStage3Ready, setEnginesStage3Ready] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   // Forzar nombre consistente de la app (iOS usa <title> y meta tags)
   useEffect(() => {
@@ -2212,14 +2214,23 @@ export default function Layout({ children, currentPageName }) {
           </div>
 
           <div className="p-4 space-y-2">
-            {navigationItems.map((item) => {
-              if (item.section) {
-                return (
-                  <div key={item.title} className="px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-t border-slate-700/50">
-                    {item.title}
-                  </div>
-                );
-              }
+                    {/* Botón de Feedback */}
+                    <button
+                      onClick={() => setShowFeedback(true)}
+                      className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all shadow-md mb-2"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      <span className="font-bold text-sm">💬 Suggerencias y Bugs</span>
+                    </button>
+
+                    {navigationItems.map((item) => {
+                      if (item.section) {
+                        return (
+                          <div key={item.title} className="px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-t border-slate-700/50">
+                            {item.title}
+                          </div>
+                        );
+                      }
               return (
                 <Link
                   key={item.title}
@@ -2377,13 +2388,21 @@ export default function Layout({ children, currentPageName }) {
 
           {/* Modal de felicitación de cumpleaños */}
           {showBirthdayModal && (
-            <BirthdayModal
-              nombre={showBirthdayModal.destinatario_nombre}
-              edad={showBirthdayModal.edad}
-              tipo={showBirthdayModal.destinatario_tipo}
-              onClose={() => setShowBirthdayModal(null)}
-            />
-          )}
+                    <BirthdayModal
+                      nombre={showBirthdayModal.destinatario_nombre}
+                      edad={showBirthdayModal.edad}
+                      tipo={showBirthdayModal.destinatario_tipo}
+                      onClose={() => setShowBirthdayModal(null)}
+                    />
+                  )}
+
+                  {/* Modal Feedback */}
+                  <FeedbackModal
+                    open={showFeedback}
+                    onOpenChange={setShowFeedback}
+                    user={user}
+                    currentPage={currentPageName}
+                  />
           </main>
 
         {/* Banner de Socios - Footer fijo */}
