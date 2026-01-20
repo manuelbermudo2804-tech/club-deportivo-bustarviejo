@@ -312,7 +312,7 @@ export function useUnifiedNotifications(user, options = {}) {
         return { ...prev, privateConversations: updated };
       });
     });
-    unsubscribers.push(unsubPrivateConv);
+    unsubscribers.push(() => unsubPrivateConv());
 
     // ===== CONVOCATORIAS =====
     const loadConvocatorias = async () => {
