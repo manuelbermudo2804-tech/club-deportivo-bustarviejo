@@ -1204,6 +1204,7 @@ export default function Layout({ children, currentPageName }) {
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
+    { title: "📧 Emails y Notificaciones", url: createPageUrl("EmailTemplates"), icon: Mail },
 
     // 💬 CHATS Y COMUNICACIÓN
     { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
