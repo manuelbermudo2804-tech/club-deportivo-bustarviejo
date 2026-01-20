@@ -131,7 +131,21 @@ export default function FeedbackManagement() {
     nuevo: feedbacks.filter((f) => f.estado === "nuevo").length,
     resuelto: feedbacks.filter((f) => f.estado === "resuelto").length,
     bugs: feedbacks.filter((f) => f.tipo === "bug").length,
+    sugerencias: feedbacks.filter((f) => f.tipo === "sugerencia").length,
+    tasa_resolucion: feedbacks.length > 0 ? Math.round((feedbacks.filter((f) => f.estado === "resuelto").length / feedbacks.length) * 100) : 0,
   };
+
+  // Análisis por prioridad
+  const analisisPrioridad = feedbacks.reduce((acc, f) => {
+    acc[f.prioridad] = (acc[f.prioridad] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Top problemas
+  const topProblemas = [...feedbacks]
+    .filter((f) => f.tipo === "bug")
+    .sort((a, b) => b.created_date - a.created_date)
+    .slice(0, 5);
 
   return (
     <div className="p-4 lg:p-6 max-w-6xl mx-auto space-y-6">
