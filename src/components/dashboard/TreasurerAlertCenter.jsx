@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import AlertCenter from "./AlertCenter";
+import RoleAlertBlock from "./RoleAlertBlock";
 
 export default function TreasurerAlertCenter({
   // Stats de PADRE
@@ -23,7 +24,7 @@ export default function TreasurerAlertCenter({
   pendingMemberRequests,
 }) {
   return (
-    <Card className="border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-green-50 shadow-lg overflow-hidden">
+    <Card className="border-2 border-orange-200 bg-white shadow-lg overflow-hidden">
       <CardContent className="p-0">
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:divide-x divide-orange-200">
           {/* Columna Izquierda - Tareas como Padre */}
@@ -58,28 +59,20 @@ export default function TreasurerAlertCenter({
 
           {/* Columna Derecha - Tareas como Tesorero */}
           <div className="p-4 border-t lg:border-t-0 border-orange-200">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-lg">💰</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-green-900">Mis Tareas como Tesorero</h3>
-                <p className="text-xs text-green-700">Gestión financiera</p>
-              </div>
-            </div>
-            
-            <AlertCenter 
-              paymentsInReview={paymentsInReviewTreasurer}
-              pendingClothingOrders={pendingClothingOrders}
-              pendingLotteryOrders={pendingLotteryOrders}
-              pendingMemberRequests={pendingMemberRequests}
-              isAdmin={false}
-              isCoach={false}
-              isParent={false}
-              isTreasurer={true}
-              userEmail={userEmail}
-              userSports={[]}
-            />
+            <RoleAlertBlock color="green" icon="💰" title="Mis Tareas como Tesorero" subtitle="Gestión financiera">
+              <AlertCenter 
+                paymentsInReview={paymentsInReviewTreasurer}
+                pendingClothingOrders={pendingClothingOrders}
+                pendingLotteryOrders={pendingLotteryOrders}
+                pendingMemberRequests={pendingMemberRequests}
+                isAdmin={false}
+                isCoach={false}
+                isParent={false}
+                isTreasurer={true}
+                userEmail={userEmail}
+                userSports={[]}
+              />
+            </RoleAlertBlock>
           </div>
         </div>
       </CardContent>
