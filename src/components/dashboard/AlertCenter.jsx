@@ -293,6 +293,21 @@ const alerts = [];
         priority: 1,
       });
     }
+
+    // NUEVO: Mensajes del Coordinador para familias
+    const coordinatorToParent = notifications?.unreadCoordinatorMessages || 0;
+    if (coordinatorToParent > 0) {
+      alerts.push({
+        id: 'coordinator-chat-parent',
+        icon: MessageCircle,
+        title: '🎓 Mensajes del Coordinador',
+        description: `${coordinatorToParent} mensaje${coordinatorToParent > 1 ? 's' : ''} sin leer`,
+        url: createPageUrl('ParentCoordinatorChat'),
+        color: 'bg-cyan-500',
+        priority: 1,
+      });
+    }
+
     const coachToParent = notifications?.unreadCoachMessages || 0;
     if (coachToParent > 0) {
       alerts.push({
