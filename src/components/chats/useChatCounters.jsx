@@ -57,23 +57,35 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
   // Mensajes directos para otros tipos (coach/coordinator/family/private/admin)
   useEffect(() => {
     let last = 0;
-    let unsubscribe = null;
-    const subscribe = (entity) => entity.subscribe(() => {
-      const now = Date.now();
-      if (now - last < 500) return;
-      last = now;
-      load();
-    });
+    const subs = [];
+    const subscribe = (entity) => {
+      if (!entity || !entity.subscribe) return () => {};
+      const un = entity.subscribe(() => {
+        const now = Date.now();
+        if (now - last < 500) return;
+        last = now;
+        load();
+      });
+      subs.push(un);
+      return un;
+    };
 
-    if (chatType === 'coach' || chatType === 'coordinator' || chatType === 'family') {
-      unsubscribe = subscribe(base44.entities.ChatMessage);
+    if (chatType === 'coach') {
+      subscribe(base44.entities.CoachMessage);
+      subscribe(base44.entities.ChatMessage);
+    } else if (chatType === 'coordinator') {
+      subscribe(base44.entities.CoordinatorMessage);
+      subscribe(base44.entities.ChatMessage);
+    } else if (chatType === 'family') {
+      // Familias reciben de ChatMessage (entrenador/coordinador a grupo)
+      subscribe(base44.entities.ChatMessage);
     } else if (chatType === 'private') {
-      unsubscribe = subscribe(base44.entities.PrivateMessage);
+      subscribe(base44.entities.PrivateMessage);
     } else if (chatType === 'admin') {
-      unsubscribe = subscribe(base44.entities.AdminMessage);
+      subscribe(base44.entities.AdminMessage);
     }
 
-    return unsubscribe;
+    return () => subs.forEach((u) => { try { u && u(); } catch {} });
   }, [chatType, load]);
 
   // Escucha el bus global unificado para STAFF y actualiza la burbuja al instante (evita relistar y rate limit)
