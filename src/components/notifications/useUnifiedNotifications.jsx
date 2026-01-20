@@ -232,7 +232,7 @@ export function useUnifiedNotifications(user, options = {}) {
           staffFlushTimer = setTimeout(flushStaffQueue, 250);
         }
       });
-      unsubscribers.push(unsubStaffMsg);
+      unsubscribers.push(() => unsubStaffMsg());
     }
 
     // Admin Conversations (skip for staff unless admin)
