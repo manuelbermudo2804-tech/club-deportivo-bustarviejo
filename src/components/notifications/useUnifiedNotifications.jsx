@@ -395,7 +395,7 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(() => run(loadAnnouncements), 1000);
     let lastAnnouncementsUpdate = 0;
-    const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
+    const unsubAnnouncements = base44.entities.Announcement.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
       const now = Date.now();
       if (now - lastAnnouncementsUpdate < 1000) return;
       lastAnnouncementsUpdate = now;
