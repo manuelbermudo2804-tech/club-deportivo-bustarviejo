@@ -385,7 +385,7 @@ export function useUnifiedNotifications(user, options = {}) {
           return { ...prev, players: updated };
         });
       });
-      unsubscribers.push(unsubPlayers);
+      unsubscribers.push(() => unsubPlayers());
     }
 
     // ===== ANUNCIOS =====
