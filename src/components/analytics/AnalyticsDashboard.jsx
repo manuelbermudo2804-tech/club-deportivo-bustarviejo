@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,47 +14,73 @@ export default function AnalyticsDashboard() {
   const [filtroCategoria, setFiltroCategoria] = useState('all');
   const [filtroSeveridad, setFiltroSeveridad] = useState('all');
   const [analysisType, setAnalysisType] = useState('all');
+  const [timeRange, setTimeRange] = useState('24h'); // 24h por defecto
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const queryClient = useQueryClient();
 
   // Obtener alertas
   const { data: alertas = [], isLoading: alertasLoading } = useQuery({
     queryKey: ['system_alerts'],
-    queryFn: () => base44.asServiceRole.entities.SystemAlert.filter({ estado: 'activo' })
+    queryFn: () => base44.asServiceRole.entities.SystemAlert.filter({ estado: 'activo' }),
+    refetchInterval: 30000,
+    onSuccess: () => setLastUpdated(new Date())
   });
 
   // Análisis integral
-  const { data: comprehensiveAnalysis = {}, isLoading: analysisLoading } = useQuery({
+  const { data: comprehensiveAnalysis = {}, isLoading: analysisLoading, refetch: refetchAnalysis } = useQuery({
     queryKey: ['comprehensive_analysis', analysisType],
     queryFn: async () => {
-      const response = await base44.functions.invoke('comprehensiveAnalytics', { analysisType });
+      const response = await base44.functions.invoke('comprehensiveAnalytics', { analysisType, range: timeRange });
       return response.data;
     },
-    staleTime: 5 * 60 * 1000
+    staleTime: 60 * 1000,
+    refetchInterval: 30000,
+    onSuccess: () => setLastUpdated(new Date())
   });
 
   // Obtener eventos
-  const { data: eventos = [], isLoading: eventosLoading } = useQuery({
-    queryKey: ['analytics_events'],
+  const { data: eventos = [], isLoading: eventosLoading, refetch: refetchEventos } = useQuery({
+    queryKey: ['analytics_events', timeRange],
     queryFn: async () => {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      return base44.asServiceRole.entities.AnalyticsEvent.filter({});
-    }
+      return base44.asServiceRole.entities.AnalyticsEvent.list('-created_date', 500);
+    },
+    refetchInterval: 30000,
+    onSuccess: () => setLastUpdated(new Date())
+  });
+
+  // Ventana temporal
+  const now = new Date();
+  const start = new Date(now.getTime() - (timeRange === '7d' ? 7 : 1) * 24 * 60 * 60 * 1000);
+  const eventosEnRango = (eventos || []).filter(e => {
+    const created = new Date(e.created_date || e.fecha || 0);
+    return created >= start;
   });
 
   // Calcular métricas
   const metricas = {
     alertasCriticas: alertas.filter(a => a.severidad === 'critical').length,
     alertasAltas: alertas.filter(a => a.severidad === 'high').length,
-    erroresHoy: eventos.filter(e => e.evento_tipo === 'error').length,
-    usuariosActivos: new Set(eventos.map(e => e.usuario_email)).size,
-    paginasMasLentas: calcularPaginasMasLentas(eventos),
-    dispositivosDistribucion: calcularDistribucion(eventos, 'dispositivo')
+    erroresHoy: eventosEnRango.filter(e => e.tipo === 'error' || e.evento_tipo === 'error').length,
+    usuariosActivos: new Set(eventosEnRango.map(e => e.usuario_email).filter(Boolean)).size,
+    paginasMasLentas: calcularPaginasMasLentas(eventosEnRango),
+    dispositivosDistribucion: calcularDistribucion(eventosEnRango, 'dispositivo')
   };
 
   const alertasFiltradas = alertas
     .filter(a => filtroCategoria === 'all' || a.categoria === filtroCategoria)
     .filter(a => filtroSeveridad === 'all' || a.severidad === filtroSeveridad)
     .sort((a, b) => (b.prioridad_score || 0) - (a.prioridad_score || 0));
+
+  // Suscripciones en tiempo real para refrescar tarjetas
+  useEffect(() => {
+    const un1 = base44.entities.AnalyticsEvent.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['analytics_events'] });
+    });
+    const un2 = base44.entities.SystemAlert.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['system_alerts'] });
+    });
+    return () => { try { un1 && un1(); } catch {} try { un2 && un2(); } catch {} };
+  }, [queryClient]);
 
   if (alertasLoading || eventosLoading || analysisLoading) {
     return <div className="p-6 text-center">Cargando dashboard...</div>;
@@ -83,11 +109,16 @@ export default function AnalyticsDashboard() {
             <h1 className="text-4xl font-bold text-slate-900">📊 Centro de Análisis Integral</h1>
             <p className="text-slate-600">Monitor en tiempo real de errores, rendimiento, usuarios, pagos y más</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-1 bg-white border rounded-lg p-1">
+              <Button size="sm" variant={timeRange==='24h'?'default':'ghost'} onClick={()=>setTimeRange('24h')}>24h</Button>
+              <Button size="sm" variant={timeRange==='7d'?'default':'ghost'} onClick={()=>setTimeRange('7d')}>7d</Button>
+            </div>
+            <span className="text-xs text-slate-500 hidden md:inline">{lastUpdated ? `Actualizado ${lastUpdated.toLocaleTimeString()}` : ''}</span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.location.reload()}
+              onClick={() => { refetchEventos(); refetchAnalysis(); queryClient.invalidateQueries({queryKey:['system_alerts']}); }}
               className="flex items-center gap-1"
             >
               <RefreshCw className="w-4 h-4" />
@@ -97,7 +128,7 @@ export default function AnalyticsDashboard() {
               variant="outline"
               size="sm"
               onClick={async () => {
-                const response = await base44.functions.invoke('analyticsReportGenerator', { format: 'pdf' });
+                const response = await base44.functions.invoke('analyticsReportGenerator', { format: 'pdf', range: timeRange });
                 const blob = new Blob([response.data], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -115,7 +146,7 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* KPI CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <KPICard
           icon={<AlertCircle className="w-6 h-6" />}
           titulo="Alertas Críticas"
@@ -130,13 +161,13 @@ export default function AnalyticsDashboard() {
         />
         <KPICard
           icon={<Zap className="w-6 h-6" />}
-          titulo="Errores Hoy"
+          titulo={`Errores (${timeRange})`}
           valor={metricas.erroresHoy}
           color="yellow"
         />
         <KPICard
           icon={<Users className="w-6 h-6" />}
-          titulo="Usuarios Activos"
+          titulo={`Usuarios Activos (${timeRange})`}
           valor={metricas.usuariosActivos}
           color="blue"
         />
@@ -146,6 +177,22 @@ export default function AnalyticsDashboard() {
           valor={alertasTotal.length}
           color="purple"
         />
+        {typeof comprehensiveAnalysis?.stripe?.stats?.payments_success === 'number' && (
+          <KPICard
+            icon={<CreditCard className="w-6 h-6" />}
+            titulo="Pagos OK (Stripe)"
+            valor={comprehensiveAnalysis.stripe.stats.payments_success}
+            color="green"
+          />
+        )}
+        {typeof comprehensiveAnalysis?.stripe?.stats?.payments_failed === 'number' && (
+          <KPICard
+            icon={<CreditCard className="w-6 h-6" />}
+            titulo="Pagos Fallidos (Stripe)"
+            valor={comprehensiveAnalysis.stripe.stats.payments_failed}
+            color="red"
+          />
+        )}
       </div>
 
       {/* ANÁLISIS POR MÓDULO */}
@@ -437,13 +484,14 @@ function KPICard({ icon, titulo, valor, color }) {
     orange: 'bg-orange-50 text-orange-600 border-orange-200',
     yellow: 'bg-yellow-50 text-yellow-600 border-yellow-200',
     blue: 'bg-blue-50 text-blue-600 border-blue-200',
-    purple: 'bg-purple-50 text-purple-600 border-purple-200'
+    purple: 'bg-purple-50 text-purple-600 border-purple-200',
+    green: 'bg-green-50 text-green-600 border-green-200'
   };
 
   return (
     <motion.div
       whileHover={{ scale: 1.05 }}
-      className={`${colorClasses[color]} border-2 p-4 rounded-lg`}
+      className={`${colorClasses[color] || colorClasses.blue} border-2 p-4 rounded-lg`}
     >
       <div className="flex items-center justify-between">
         <div>
