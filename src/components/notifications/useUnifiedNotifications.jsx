@@ -262,7 +262,7 @@ export function useUnifiedNotifications(user, options = {}) {
           return { ...prev, adminConversations: updated };
         });
       });
-      unsubscribers.push(unsubAdminConv);
+      unsubscribers.push(() => unsubAdminConv());
     }
 
     // App Notifications (para fallback de badges, incluido Staff)
