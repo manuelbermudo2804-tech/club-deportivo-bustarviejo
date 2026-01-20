@@ -41,6 +41,29 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
     return unsub;
   }, [chatType, load]);
 
+  // Escucha el bus global unificado para STAFF y actualiza la burbuja al instante
+  useEffect(() => {
+    if (chatType !== 'staff') return;
+    const handler = (e) => {
+      try {
+        const detail = e?.detail;
+        if (!detail || typeof detail.unreadStaffMessages !== 'number') return;
+        setData((prev) => ({ ...prev, total: detail.unreadStaffMessages }));
+      } catch {}
+    };
+    // Sincronización inicial desde estado global si existe
+    try {
+      if (typeof window !== 'undefined' && window.__BASE44_UNIFIED_NOTIFICATIONS_STATE) {
+        const s = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE;
+        if (typeof s.unreadStaffMessages === 'number') {
+          setData((prev) => ({ ...prev, total: s.unreadStaffMessages }));
+        }
+      }
+    } catch {}
+    window.addEventListener('b44_unified_notifications_updated', handler);
+    return () => window.removeEventListener('b44_unified_notifications_updated', handler);
+  }, [chatType]);
+
   const markRead = useCallback(async (conversationId) => {
     await base44.functions.invoke('chatMarkRead', { chatType, conversationId });
     await load();
