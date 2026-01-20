@@ -104,18 +104,12 @@ Deno.serve(async (req) => {
                 
                 <div class="benefits">
                   <ul>
-                    <li>✅ <strong>Acceso a eventos y partidos</strong> con preferencia en entradas</li>
-                    <li>✅ <strong>Descuentos exclusivos</strong> en comercios colaboradores</li>
-                    <li>✅ <strong>Participación en actividades</strong> del club</li>
-                    <li>✅ <strong>Carnet digital de socio</strong> con beneficios especiales</li>
+                    <li>✅ <strong>Apoyo directo al club</strong> y a nuestros deportistas</li>
+                    <li>✅ <strong>Participación en actividades</strong> especiales</li>
                     <li>✅ <strong>Comunicación directa</strong> con la junta directiva</li>
+                    <li>✅ <strong>Sentido de pertenencia</strong> a nuestra comunidad deportiva</li>
                   </ul>
                 </div>
-              </div>
-
-              <div class="section">
-                <h2>📱 Tu Carnet de Socio</h2>
-                <p>Accede a tu carnet digital desde la app del club en cualquier momento. Úsalo en comercios colaboradores para disfrutar de tus descuentos exclusivos.</p>
               </div>
 
               <div class="section">
