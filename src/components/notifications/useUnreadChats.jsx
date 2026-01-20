@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import { useStaffCounters } from "../chats/useChatCounters";
 
 // Unifica contadores de chats para todos los roles
 // Devuelve { total, items: [{source, label, count, link, subtitle?}] }
@@ -17,26 +18,8 @@ export default function useUnreadChats(enabled = true) {
   const isPlayer = user?.es_jugador === true || user?.tipo_panel === "jugador_adulto";
   const isFamily = !!user && !isAdmin && !isCoach && !isCoordinator && !isPlayer;
 
-  // Staff messages - Real-time
-  const [staffMessages, setStaffMessages] = useState([]);
-
-  useEffect(() => {
-    if (!enabled || !user || (!isAdmin && !isCoach && !isCoordinator)) return;
-
-    const loadInitial = async () => {
-      const messages = await base44.entities.StaffMessage.list("-created_date", 100);
-      setStaffMessages(messages);
-    };
-    loadInitial();
-
-    const unsubscribe = base44.entities.StaffMessage.subscribe((event) => {
-      if (event.type === 'create') setStaffMessages(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setStaffMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
-      else if (event.type === 'delete') setStaffMessages(prev => prev.filter(m => m.id !== event.id));
-    });
-
-    return unsubscribe;
-  }, [enabled, user, isAdmin, isCoach, isCoordinator]);
+  // Staff counters via ChatCounter (lighter, avoids rate limits)
+  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
 
   // Conversaciones de Coordinador - Real-time
   const [coordConvs, setCoordConvs] = useState([]);
@@ -144,11 +127,9 @@ export default function useUnreadChats(enabled = true) {
 
     const results = [];
 
-    // 1) Staff
+    // 1) Staff (usar contadores para minimizar llamadas)
     if (isAdmin || isCoach || isCoordinator) {
-      const staffUnread = staffMessages.filter(
-        (m) => m.autor_email !== user.email && (!m.leido_por || !m.leido_por.some((lp) => lp.email === user.email))
-      ).length;
+      const staffUnread = staffTotal || 0;
       if (staffUnread > 0) {
         results.push({ source: "staff", label: "Staff", count: staffUnread, link: "StaffChat" });
       }

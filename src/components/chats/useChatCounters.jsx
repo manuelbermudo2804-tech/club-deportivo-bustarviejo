@@ -41,7 +41,7 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
     return unsub;
   }, [chatType, load]);
 
-  // Escucha el bus global unificado para STAFF y actualiza la burbuja al instante
+  // Escucha el bus global unificado para STAFF y actualiza la burbuja al instante (evita relistar y rate limit)
   useEffect(() => {
     if (chatType !== 'staff') return;
     const handler = (e) => {
