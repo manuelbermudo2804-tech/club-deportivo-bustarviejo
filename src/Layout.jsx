@@ -564,7 +564,7 @@ export default function Layout({ children, currentPageName }) {
   const { total: adminTotal } = useAdminCounters({ refetchOnFocus: true });
   const unreadCoachChat = coachTotal;
   const unreadCoordinatorChat = coordTotal;
-  const unreadStaffChat = staffTotal;
+  const unreadStaffChat = notifications.unreadStaffMessages ?? staffTotal;
   const unreadPrivateChat = privateTotal;
   const unreadFamilyChat = familyTotal;
   const unreadAdminMessagesCount = adminTotal;

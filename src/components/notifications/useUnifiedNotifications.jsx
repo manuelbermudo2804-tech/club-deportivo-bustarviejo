@@ -642,15 +642,11 @@ export function useUnifiedNotifications(user, options = {}) {
           const soyCoord = user.es_coordinador === true;
           const soyCoach = user.es_entrenador === true;
           const soyAdmin = user.role === 'admin';
-          if (
-            (soyCoord && !destinatarios.includes('coordinator')) &&
-            (soyCoach && !destinatarios.includes('coach')) &&
-            (soyAdmin && !destinatarios.includes('admin'))
-          ) {
-            return; // no es para mi rol
-          }
-          // Si destinatarios existe pero no coincide ninguno de mis roles, salir
-          if (!soyCoord && !soyCoach && !soyAdmin) return;
+          const autorizado =
+            (soyCoord && destinatarios.includes('coordinator')) ||
+            (soyCoach && destinatarios.includes('coach')) ||
+            (soyAdmin && destinatarios.includes('admin'));
+          if (!autorizado) return; // no es para mi rol
         }
         const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
         if (!isUnread) return;
