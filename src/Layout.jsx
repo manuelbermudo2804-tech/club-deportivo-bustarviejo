@@ -1202,10 +1202,10 @@ export default function Layout({ children, currentPageName }) {
     // 📊 INICIO Y FINANZAS
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0, highlight: true },
 
     // 💬 CHATS Y COMUNICACIÓN
     { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
+    { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert, badge: unresolvedAdminChats > 0 ? unresolvedAdminChats : null, urgentBadge: unresolvedAdminChats > 0 },
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: unreadStaffChat > 0 ? unreadStaffChat : null },
     { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: unreadCoordinatorChat > 0 ? unreadCoordinatorChat : null },
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: unreadFamilyChat > 0 ? unreadFamilyChat : null },
