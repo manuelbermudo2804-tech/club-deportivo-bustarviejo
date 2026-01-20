@@ -333,7 +333,7 @@ export function useUnifiedNotifications(user, options = {}) {
         return { ...prev, convocatorias: updated };
       });
     });
-    unsubscribers.push(unsubConvocatorias);
+    unsubscribers.push(() => unsubConvocatorias());
 
     // ===== PAGOS ===== (solo para admin/tesorero, para reducir carga)
     if (user.role === 'admin' || user.es_tesorero) {
