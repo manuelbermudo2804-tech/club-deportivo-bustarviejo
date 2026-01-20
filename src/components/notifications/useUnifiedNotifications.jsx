@@ -188,19 +188,21 @@ export function useUnifiedNotifications(user, options = {}) {
       setTimeout(() => run(loadChatMsgs), 300);
       // Throttle chat subscription updates
       let lastChatUpdate = 0;
-      const unsubChatMsg = base44.entities.ChatMessage.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-        const now = Date.now();
-        if (now - lastChatUpdate < 2000) return; // throttle 1 per 2s
-        lastChatUpdate = now;
-        setRawData(prev => {
-          let updated = [...prev.chatMessages];
-          if (event.type === 'create') updated = [event.data, ...updated];
-          else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
-          else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
-          return { ...prev, chatMessages: updated };
+      const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
+        globalThrottler.execute(() => {
+          const now = Date.now();
+          if (now - lastChatUpdate < 2000) return; // throttle 1 per 2s
+          lastChatUpdate = now;
+          setRawData(prev => {
+            let updated = [...prev.chatMessages];
+            if (event.type === 'create') updated = [event.data, ...updated];
+            else if (event.type === 'update') updated = updated.map(m => m.id === event.id ? event.data : m);
+            else if (event.type === 'delete') updated = updated.filter(m => m.id !== event.id);
+            return { ...prev, chatMessages: updated };
+          });
         });
       });
-      unsubscribers.push(() => unsubChatMsg());
+      unsubscribers.push(unsubChatMsg);
     }
 
     // Staff Messages (only for staff roles, unless test mode)
@@ -226,13 +228,15 @@ export function useUnifiedNotifications(user, options = {}) {
         staffQueue = [];
         staffFlushTimer = null;
       };
-      const unsubStaffMsg = base44.entities.StaffMessage.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-        staffQueue.push(event);
-        if (!staffFlushTimer) {
-          staffFlushTimer = setTimeout(flushStaffQueue, 250);
-        }
+      const unsubStaffMsg = base44.entities.StaffMessage.subscribe((event) => {
+        globalThrottler.execute(() => {
+          staffQueue.push(event);
+          if (!staffFlushTimer) {
+            staffFlushTimer = setTimeout(flushStaffQueue, 250);
+          }
+        });
       });
-      unsubscribers.push(() => unsubStaffMsg());
+      unsubscribers.push(unsubStaffMsg);
     }
 
     // Admin Conversations (skip for staff unless admin)
@@ -250,19 +254,21 @@ export function useUnifiedNotifications(user, options = {}) {
     setTimeout(() => run(loadAdminConvs), 400);
     if (user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero)) {
       let lastAdminConvUpdate = 0;
-      const unsubAdminConv = base44.entities.AdminConversation.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-        const now = Date.now();
-        if (now - lastAdminConvUpdate < 1000) return;
-        lastAdminConvUpdate = now;
-        setRawData(prev => {
-          let updated = [...prev.adminConversations];
-          if (event.type === 'create') updated = [event.data, ...updated];
-          else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
-          else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
-          return { ...prev, adminConversations: updated };
+      const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
+        globalThrottler.execute(() => {
+          const now = Date.now();
+          if (now - lastAdminConvUpdate < 1000) return;
+          lastAdminConvUpdate = now;
+          setRawData(prev => {
+            let updated = [...prev.adminConversations];
+            if (event.type === 'create') updated = [event.data, ...updated];
+            else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+            else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+            return { ...prev, adminConversations: updated };
+          });
         });
       });
-      unsubscribers.push(() => unsubAdminConv());
+      unsubscribers.push(unsubAdminConv);
     }
 
     // App Notifications (para fallback de badges, incluido Staff)
@@ -300,19 +306,21 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(() => run(loadPrivateConvs), 600);
     let lastPrivateConvUpdate = 0;
-    const unsubPrivateConv = base44.entities.PrivateConversation.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-      const now = Date.now();
-      if (now - lastPrivateConvUpdate < 1000) return;
-      lastPrivateConvUpdate = now;
-      setRawData(prev => {
-        let updated = [...prev.privateConversations];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
-        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
-        return { ...prev, privateConversations: updated };
+    const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
+      globalThrottler.execute(() => {
+        const now = Date.now();
+        if (now - lastPrivateConvUpdate < 1000) return;
+        lastPrivateConvUpdate = now;
+        setRawData(prev => {
+          let updated = [...prev.privateConversations];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+          else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+          return { ...prev, privateConversations: updated };
+        });
       });
     });
-    unsubscribers.push(() => unsubPrivateConv());
+    unsubscribers.push(unsubPrivateConv);
 
     // ===== CONVOCATORIAS =====
     const loadConvocatorias = async () => {
@@ -321,19 +329,21 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(() => run(loadConvocatorias), 700);
     let lastCallupsUpdate = 0;
-    const unsubConvocatorias = base44.entities.Convocatoria.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-      const now = Date.now();
-      if (now - lastCallupsUpdate < 1000) return;
-      lastCallupsUpdate = now;
-      setRawData(prev => {
-        let updated = [...prev.convocatorias];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
-        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
-        return { ...prev, convocatorias: updated };
+    const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
+      globalThrottler.execute(() => {
+        const now = Date.now();
+        if (now - lastCallupsUpdate < 1000) return;
+        lastCallupsUpdate = now;
+        setRawData(prev => {
+          let updated = [...prev.convocatorias];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+          else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+          return { ...prev, convocatorias: updated };
+        });
       });
     });
-    unsubscribers.push(() => unsubConvocatorias());
+    unsubscribers.push(unsubConvocatorias);
 
     // ===== PAGOS ===== (solo para admin/tesorero, para reducir carga)
     if (user.role === 'admin' || user.es_tesorero) {
@@ -343,19 +353,21 @@ export function useUnifiedNotifications(user, options = {}) {
       };
       setTimeout(() => run(loadPayments), 800);
       let lastPaymentsUpdate = 0;
-      const unsubPayments = base44.entities.Payment.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-        const now = Date.now();
-        if (now - lastPaymentsUpdate < 1000) return;
-        lastPaymentsUpdate = now;
-        setRawData(prev => {
-          let updated = [...prev.payments];
-          if (event.type === 'create') updated = [event.data, ...updated];
-          else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
-          else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
-          return { ...prev, payments: updated };
+      const unsubPayments = base44.entities.Payment.subscribe((event) => {
+        globalThrottler.execute(() => {
+          const now = Date.now();
+          if (now - lastPaymentsUpdate < 1000) return;
+          lastPaymentsUpdate = now;
+          setRawData(prev => {
+            let updated = [...prev.payments];
+            if (event.type === 'create') updated = [event.data, ...updated];
+            else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
+            else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
+            return { ...prev, payments: updated };
+          });
         });
       });
-      unsubscribers.push(() => unsubPayments());
+      unsubscribers.push(unsubPayments);
     }
 
     // ===== JUGADORES =====
@@ -373,19 +385,21 @@ export function useUnifiedNotifications(user, options = {}) {
     setTimeout(() => run(loadPlayers), 900);
     if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
       let lastPlayersUpdate = 0;
-      const unsubPlayers = base44.entities.Player.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-        const now = Date.now();
-        if (now - lastPlayersUpdate < 1500) return;
-        lastPlayersUpdate = now;
-        setRawData(prev => {
-          let updated = [...prev.players];
-          if (event.type === 'create') updated = [event.data, ...updated];
-          else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
-          else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
-          return { ...prev, players: updated };
+      const unsubPlayers = base44.entities.Player.subscribe((event) => {
+        globalThrottler.execute(() => {
+          const now = Date.now();
+          if (now - lastPlayersUpdate < 1500) return;
+          lastPlayersUpdate = now;
+          setRawData(prev => {
+            let updated = [...prev.players];
+            if (event.type === 'create') updated = [event.data, ...updated];
+            else if (event.type === 'update') updated = updated.map(p => p.id === event.id ? event.data : p);
+            else if (event.type === 'delete') updated = updated.filter(p => p.id !== event.id);
+            return { ...prev, players: updated };
+          });
         });
       });
-      unsubscribers.push(() => unsubPlayers());
+      unsubscribers.push(unsubPlayers);
     }
 
     // ===== ANUNCIOS =====
@@ -395,19 +409,21 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(() => run(loadAnnouncements), 1000);
     let lastAnnouncementsUpdate = 0;
-    const unsubAnnouncements = base44.entities.Announcement.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-      const now = Date.now();
-      if (now - lastAnnouncementsUpdate < 1000) return;
-      lastAnnouncementsUpdate = now;
-      setRawData(prev => {
-        let updated = [...prev.announcements];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(a => a.id === event.id ? event.data : a);
-        else if (event.type === 'delete') updated = updated.filter(a => a.id !== event.id);
-        return { ...prev, announcements: updated };
+    const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
+      globalThrottler.execute(() => {
+        const now = Date.now();
+        if (now - lastAnnouncementsUpdate < 1000) return;
+        lastAnnouncementsUpdate = now;
+        setRawData(prev => {
+          let updated = [...prev.announcements];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(a => a.id === event.id ? event.data : a);
+          else if (event.type === 'delete') updated = updated.filter(a => a.id !== event.id);
+          return { ...prev, announcements: updated };
+        });
       });
     });
-    unsubscribers.push(() => unsubAnnouncements());
+    unsubscribers.push(unsubAnnouncements);
 
     // ===== ADMIN ONLY =====
     if (user.role === 'admin') {
@@ -430,37 +446,47 @@ export function useUnifiedNotifications(user, options = {}) {
       };
       setTimeout(() => run(loadInvitations), 1100);
       
-      const unsubInv = base44.entities.InvitationRequest.subscribe(globalThrottler.execute.bind(globalThrottler, () => {
-        base44.entities.InvitationRequest.filter({ estado: "Pendiente" }).then(inv => {
-          setRawData(prev => ({ ...prev, invitations: inv }));
-        });
-      });
-      const unsubSecInv = base44.entities.SecondParentInvitation.subscribe(globalThrottler.execute.bind(globalThrottler, () => {
-        base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }).then(sec => {
-          setRawData(prev => ({ ...prev, secondParentInvitations: sec }));
-        });
-      });
-      const unsubClothing = base44.entities.ClothingOrder.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
-        setRawData(prev => {
-          let updated = [...prev.clothingOrders];
-          if (event.type === 'create') updated = [event.data, ...updated];
-          else if (event.type === 'update') updated = updated.map(o => o.id === event.id ? event.data : o);
-          else if (event.type === 'delete') updated = updated.filter(o => o.id !== event.id);
-          return { ...prev, clothingOrders: updated };
-        });
-      });
-      const unsubLottery = base44.entities.LotteryOrder.subscribe(globalThrottler.execute.bind(globalThrottler, () => {
-        base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }).then(orders => {
-          setRawData(prev => ({ ...prev, lotteryOrders: orders }));
-        });
-      });
-      const unsubMembers = base44.entities.ClubMember.subscribe(globalThrottler.execute.bind(globalThrottler, () => {
-        base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }).then(members => {
-          setRawData(prev => ({ ...prev, clubMembers: members }));
-        });
-      });
-      
-      unsubscribers.push(unsubInv, unsubSecInv, unsubClothing, unsubLottery, unsubMembers);
+      const unsubInv = base44.entities.InvitationRequest.subscribe(() => {
+                    globalThrottler.execute(() => {
+                      base44.entities.InvitationRequest.filter({ estado: "Pendiente" }).then(inv => {
+                        setRawData(prev => ({ ...prev, invitations: inv }));
+                      });
+                    });
+                  });
+      const unsubSecInv = base44.entities.SecondParentInvitation.subscribe(() => {
+                    globalThrottler.execute(() => {
+                      base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }).then(sec => {
+                        setRawData(prev => ({ ...prev, secondParentInvitations: sec }));
+                      });
+                    });
+                  });
+      const unsubClothing = base44.entities.ClothingOrder.subscribe((event) => {
+                    globalThrottler.execute(() => {
+                      setRawData(prev => {
+                        let updated = [...prev.clothingOrders];
+                        if (event.type === 'create') updated = [event.data, ...updated];
+                        else if (event.type === 'update') updated = updated.map(o => o.id === event.id ? event.data : o);
+                        else if (event.type === 'delete') updated = updated.filter(o => o.id !== event.id);
+                        return { ...prev, clothingOrders: updated };
+                      });
+                    });
+                  });
+      const unsubLottery = base44.entities.LotteryOrder.subscribe(() => {
+                    globalThrottler.execute(() => {
+                      base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }).then(orders => {
+                        setRawData(prev => ({ ...prev, lotteryOrders: orders }));
+                      });
+                    });
+                  });
+      const unsubMembers = base44.entities.ClubMember.subscribe(() => {
+                    globalThrottler.execute(() => {
+                      base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }).then(members => {
+                        setRawData(prev => ({ ...prev, clubMembers: members }));
+                      });
+                    });
+                  });
+
+                  unsubscribers.push(unsubInv, unsubSecInv, unsubClothing, unsubLottery, unsubMembers);
     }
 
     // ===== ENTRENADORES/COORDINADORES =====
