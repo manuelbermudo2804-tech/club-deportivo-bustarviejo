@@ -30,6 +30,7 @@ import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import PendingTasksBar from "../components/notifications/PendingTasksBar";
+import PendingPaymentsCard from "../components/payments/PendingPaymentsCard";
 
 export default function CoordinatorDashboard() {
   const queryClient = useQueryClient();
@@ -476,7 +477,12 @@ export default function CoordinatorDashboard() {
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
         <CoordinatorClassificationsMatchesBanner />
 
-        {/* AlertCenter - Dual si tiene hijos, solo coordinador si no */}
+        {/* Pagos Pendientes compacto (si también es padre) */}
+        {hasPlayers && parentStats?.pendingPayments > 0 && (
+          <PendingPaymentsCard count={parentStats.pendingPayments} to={createPageUrl('ParentPayments')} />
+        )}
+
+        {/* AlertCenter - Dual si tiene hijos, solo coordinador si no */
         {hasPlayers ? (
           <CoordinatorAlertCenter 
             pendingCallupsParent={parentStats.pendingCallups}

@@ -20,6 +20,7 @@ import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } 
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import PendingTasksBar from "../components/notifications/PendingTasksBar";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
+import PendingPaymentsCard from "../components/payments/PendingPaymentsCard";
 
 
 // Componente para compartir Fútbol Femenino (sin referidos)
