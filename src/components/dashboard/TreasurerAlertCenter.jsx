@@ -28,17 +28,7 @@ export default function TreasurerAlertCenter({
       <CardContent className="p-0">
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:divide-x divide-orange-200">
           {/* Columna Izquierda - Tareas como Padre */}
-          <div className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-lg">👨‍👩‍👧</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-blue-900">Mis Tareas como Padre</h3>
-                <p className="text-xs text-blue-700">Gestión familiar</p>
-              </div>
-            </div>
-            
+          <RoleAlertBlock color="blue" icon="👨‍👩‍👧" title="Mis Tareas como Padre" subtitle="Gestión familiar">
             <AlertCenter 
               pendingCallups={pendingCallupsParent}
               pendingPayments={pendingPaymentsParent}
@@ -55,7 +45,7 @@ export default function TreasurerAlertCenter({
               userEmail={userEmail}
               userSports={myPlayersSports}
             />
-          </div>
+          </RoleAlertBlock>
 
           {/* Columna Derecha - Tareas como Tesorero */}
           <div className="p-4 border-t lg:border-t-0 border-orange-200">
