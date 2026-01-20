@@ -2409,8 +2409,8 @@ export default function Layout({ children, currentPageName }) {
         )}
 
         {/* Banner de Patrocinadores - Footer fijo */}
-        {sponsorBannerVisible && !isMemberPaid && (
-          <div className="lg:ml-72 fixed bottom-0 left-0 right-0 z-40">
+        {sponsorBannerVisible && (
+          <div className={`lg:ml-72 fixed left-0 right-0 z-40 ${programaSociosActivo && isMemberPaid ? 'bottom-24 lg:bottom-20' : 'bottom-0'}`}>
             <Suspense fallback={null}><SponsorBanner /></Suspense>
           </div>
         )}
