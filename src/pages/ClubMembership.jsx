@@ -638,6 +638,10 @@ export default function ClubMembership() {
           <div className="flex items-center justify-center min-h-[40vh]">
             <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
+        ) : isPublicAccess && !seasonConfig ? (
+          <div className="flex items-center justify-center min-h-[40vh]">
+            <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+          </div>
         ) : (
           <div className="space-y-6 min-h-screen">
         {showSuccess && (
