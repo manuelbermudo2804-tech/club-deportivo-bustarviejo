@@ -250,7 +250,7 @@ export function useUnifiedNotifications(user, options = {}) {
     setTimeout(() => run(loadAdminConvs), 400);
     if (user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero)) {
       let lastAdminConvUpdate = 0;
-      const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
+      const unsubAdminConv = base44.entities.AdminConversation.subscribe(globalThrottler.execute.bind(globalThrottler, (event) => {
         const now = Date.now();
         if (now - lastAdminConvUpdate < 1000) return;
         lastAdminConvUpdate = now;
