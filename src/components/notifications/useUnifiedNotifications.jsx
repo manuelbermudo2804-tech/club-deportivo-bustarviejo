@@ -407,7 +407,7 @@ export function useUnifiedNotifications(user, options = {}) {
         return { ...prev, announcements: updated };
       });
     });
-    unsubscribers.push(unsubAnnouncements);
+    unsubscribers.push(() => unsubAnnouncements());
 
     // ===== ADMIN ONLY =====
     if (user.role === 'admin') {
