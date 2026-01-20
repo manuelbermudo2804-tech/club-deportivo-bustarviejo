@@ -27,16 +27,6 @@ export default function CoordinatorAlertCenter({
   // Usuario actual (para saber si también es entrenador)
   const { data: meUser } = useQuery({ queryKey: ['me-coordinator-alertcenter'], queryFn: () => base44.auth.me() });
 
-  // Contar mensajes de familias no leídos (para coordinador/entrenador)
-  const { data: chatMessages = [] } = useQuery({
-    queryKey: ['coordinator-chatmessages-count'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date', 500),
-    enabled: !!userEmail,
-    refetchInterval: 15000,
-  });
-  const unreadForCoordinatorCount = chatMessages.filter(m => 
-    m.tipo === 'padre_a_grupo' && (!m.leido_por || !m.leido_por.some(lp => lp.email === userEmail))
-  ).length;
 
   return (
     <Card className="border-2 border-orange-200 bg-white shadow-lg overflow-hidden">
@@ -68,7 +58,6 @@ export default function CoordinatorAlertCenter({
               <AlertCenter 
                 pendingCallupResponses={pendingCallupResponsesCoordinator}
                 pendingMatchObservations={pendingMatchObservations}
-                unreadCoordinatorMessages={unreadForCoordinatorCount}
                 isAdmin={false}
                 isCoach={meUser?.es_entrenador === true}
                 isCoordinator={true}
