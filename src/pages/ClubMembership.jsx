@@ -167,7 +167,7 @@ export default function ClubMembership() {
     return () => clearTimeout(t);
   }, [isCheckingAuth]);
 
-  const { data: myMemberships = [], isLoading } = useQuery({
+  const { data: myMemberships = [] } = useQuery({
     queryKey: ['myMemberships', user?.email],
     queryFn: async () => {
       try {
@@ -177,9 +177,10 @@ export default function ClubMembership() {
         return [];
       }
     },
-    enabled: !!user?.email,
-    staleTime: 600000, // 10 min
+    enabled: Boolean(user?.email && !isPublicAccess),
+    staleTime: 600000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   const { data: seasonConfig } = useQuery({
@@ -193,9 +194,10 @@ export default function ClubMembership() {
         return null;
       }
     },
-    enabled: Boolean(!isCheckingAuth),
-    staleTime: 600000, // 10 min
+    enabled: Boolean(!isCheckingAuth && !isPublicAccess),
+    staleTime: 600000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   const { data: allMemberships = [] } = useQuery({
@@ -208,9 +210,10 @@ export default function ClubMembership() {
         return [];
       }
     },
-    enabled: Boolean(!isCheckingAuth && seasonConfig?.temporada),
-    staleTime: 600000, // 10 min
+    enabled: Boolean(seasonConfig?.temporada && user?.email),
+    staleTime: 600000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Detectar si el email ya fue socio en temporadas anteriores (para auto-marcar como renovación)
@@ -244,9 +247,10 @@ export default function ClubMembership() {
         return [];
       }
     },
-    enabled: Boolean(user?.email),
+    enabled: Boolean(user?.email && !isPublicAccess),
     staleTime: 120000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Detectar referidos históricos (que no renovaron) - Lazy load
