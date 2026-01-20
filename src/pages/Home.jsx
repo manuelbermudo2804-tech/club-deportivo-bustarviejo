@@ -18,7 +18,7 @@ import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton
 import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import PaymentApprovalNotifier from "../components/payments/PaymentApprovalNotifier";
-import PendingTasksBar from "../components/notifications/PendingTasksBar";
+
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
 
@@ -1265,7 +1265,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
-      <PendingTasksBar notifications={{ ...notifications, role: user?.role, isCoordinator, isCoach }} />
+
       <PaymentApprovalNotifier isAdmin={isAdmin} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />

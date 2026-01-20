@@ -29,7 +29,7 @@ import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCent
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
-import PendingTasksBar from "../components/notifications/PendingTasksBar";
+
 
 export default function CoordinatorDashboard() {
   const queryClient = useQueryClient();
@@ -381,7 +381,7 @@ export default function CoordinatorDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <PendingTasksBar notifications={{ ...notifications, role: user?.role, isCoordinator: true, isCoach: user?.es_entrenador }} />
+
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
         

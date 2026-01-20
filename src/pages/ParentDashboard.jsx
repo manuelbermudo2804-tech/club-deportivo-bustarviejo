@@ -18,7 +18,7 @@ import ClassificationsAndMatchesBanner from "../components/dashboard/Classificat
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
-import PendingTasksBar from "../components/notifications/PendingTasksBar";
+
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import PendingPaymentsCard from "../components/payments/PendingPaymentsCard";
 
@@ -434,7 +434,7 @@ export default function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <PendingTasksBar notifications={{ ...notifications, role: user?.role }} />
+
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
 
