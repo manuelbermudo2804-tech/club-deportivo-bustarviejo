@@ -630,20 +630,22 @@ export default function ClubMembership() {
     );
   }
 
+  if (isCheckingAuth || (isPublicAccess && !seasonConfig)) {
+    return (
+      <>
+        <InvitationPWAGuide />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <InvitationPWAGuide />
       <div className="p-4 lg:p-6 max-w-4xl mx-auto">
-        {isCheckingAuth ? (
-          <div className="flex items-center justify-center min-h-[40vh]">
-            <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-          </div>
-        ) : isPublicAccess && !seasonConfig ? (
-          <div className="flex items-center justify-center min-h-[40vh]">
-            <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-          </div>
-        ) : (
-          <div className="space-y-6 min-h-screen">
+        <div className="space-y-6 min-h-screen">
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center relative" onClick={(e)=>e.stopPropagation()}>
