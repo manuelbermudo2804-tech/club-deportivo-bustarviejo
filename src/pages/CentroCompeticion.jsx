@@ -502,6 +502,35 @@ export default function CentroCompeticion() {
             </div>
             <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
 
+            {/* URLs GUARDADAS - SIEMPRE VISIBLES */}
+            <div className="bg-slate-50 rounded-xl border p-3 space-y-2">
+              <p className="text-xs font-semibold text-slate-700 mb-2">🔗 URLs Guardadas para {category}</p>
+              <div className="grid gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-600 w-24">Resultados:</span>
+                  {resultsUrl ? (
+                    <div className="flex-1 flex items-center gap-2">
+                      <code className="text-xs bg-white px-2 py-1 rounded border flex-1 truncate" title={resultsUrl}>{resultsUrl}</code>
+                      <Button size="sm" variant="outline" onClick={() => window.open(resultsUrl, '_blank')} className="h-7">Abrir</Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">Sin URL guardada</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-600 w-24">Goleadores:</span>
+                  {scorersUrl ? (
+                    <div className="flex-1 flex items-center gap-2">
+                      <code className="text-xs bg-white px-2 py-1 rounded border flex-1 truncate" title={scorersUrl}>{scorersUrl}</code>
+                      <Button size="sm" variant="outline" onClick={() => window.open(scorersUrl, '_blank')} className="h-7">Abrir</Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">Sin URL guardada</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Checklist Lunes (integrado) */}
             <div className="bg-slate-50 rounded-xl p-3 border">
               <div className="flex items-center justify-between gap-2">
