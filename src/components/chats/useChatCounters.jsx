@@ -75,6 +75,7 @@ export function useChatCounters(chatType, { refetchOnFocus = true } = {}) {
       subscribe(base44.entities.ChatMessage);
     } else if (chatType === 'coordinator') {
       subscribe(base44.entities.CoordinatorMessage);
+      subscribe(base44.entities.CoordinatorConversation);
       subscribe(base44.entities.ChatMessage);
     } else if (chatType === 'family') {
       // Familias reciben de ChatMessage (entrenador/coordinador a grupo)

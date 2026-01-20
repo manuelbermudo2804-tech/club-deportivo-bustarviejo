@@ -204,6 +204,7 @@ export default function NotificationCenter() {
     (isCoordinator && (notifications?.unreadCoordinatorMessages || 0) > 0) ? { source: 'coordinator', label: 'Familias', count: notifications.unreadCoordinatorMessages, link: 'CoordinatorChat' } : null,
     (isCoach && (notifications?.unreadFamilyMessages || 0) > 0) ? { source: 'families', label: 'Familias', count: notifications.unreadFamilyMessages, link: 'CoachParentChat' } : null,
     (isAdmin && (notifications?.unreadAdminMessages || 0) > 0) ? { source: 'admin', label: 'Administrador', count: notifications.unreadAdminMessages, link: 'AdminChat' } : null,
+    (isFamily && (notifications?.unreadCoordinatorMessages || 0) > 0) ? { source: 'coordinator', label: 'Coordinador', count: notifications.unreadCoordinatorMessages, link: 'ParentCoordinatorChat' } : null,
     (isFamily && (notifications?.unreadCoachMessages || 0) > 0) ? { source: 'coach', label: 'Entrenador', count: notifications.unreadCoachMessages, link: 'ParentCoachChat' } : null,
     (isFamily && (notifications?.unreadPrivateMessages || 0) > 0) ? { source: 'private', label: 'Mensajes del Club', count: notifications.unreadPrivateMessages, link: 'ParentSystemMessages' } : null,
     (isFamily && (notifications?.unreadAdminMessages || 0) > 0) ? { source: 'admin', label: 'Administrador', count: notifications.unreadAdminMessages, link: 'ParentAdminChat' } : null,
