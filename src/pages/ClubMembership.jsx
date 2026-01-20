@@ -210,10 +210,11 @@ export default function ClubMembership() {
         return [];
       }
     },
-    enabled: Boolean(seasonConfig?.temporada && user?.email),
-    staleTime: 600000,
+    enabled: Boolean(seasonConfig?.temporada && (user?.email || showForm)),
+    staleTime: 1800000,
     refetchOnWindowFocus: false,
     retry: 1,
+    keepPreviousData: true,
   });
 
   // Detectar si el email ya fue socio en temporadas anteriores (para auto-marcar como renovación)
