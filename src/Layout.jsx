@@ -2306,7 +2306,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
 
-        <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
+        <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${(sponsorBannerVisible || (programaSociosActivo && isMemberPaid)) ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
 
           {/* Widget de cumpleaños hoy */}
           {!isAdmin && isLoading === false && (
