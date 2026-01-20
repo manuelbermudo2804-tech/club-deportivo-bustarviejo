@@ -1406,8 +1406,7 @@ export default function ClubMembership() {
         </Card>
       )}
       </div>
-      )}
       </div>
-    </>
-  );
-}
+      </>
+      );
+      }
