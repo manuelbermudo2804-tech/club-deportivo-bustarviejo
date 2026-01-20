@@ -180,20 +180,16 @@ Deno.serve(async (req) => {
       }, { status: response.status });
     }
 
-    console.log('[sendMembershipWelcome] ✅ Email de bienvenida enviado correctamente');
+    console.log('[sendMembershipWelcome] ✅ Email de bienvenida enviado correctamente a:', finalEmail);
     
-    // Marcar en el registro que se envió el email de bienvenida
+    // Marcar en el registro que se envió el email de bienvenida (solo si hay acceso al service role)
     try {
-      const members = await base44.asServiceRole.entities.ClubMember.filter({ 
-        id: member_id 
+      const base44Service = base44.asServiceRole || base44;
+      await base44Service.entities.ClubMember.update(finalMemberId, {
+        email_bienvenida_enviado: true,
+        fecha_email_bienvenida: new Date().toISOString()
       });
-      
-      if (members.length > 0) {
-        await base44.asServiceRole.entities.ClubMember.update(member_id, {
-          email_bienvenida_enviado: true,
-          fecha_email_bienvenida: new Date().toISOString()
-        });
-      }
+      console.log('[sendMembershipWelcome] ✅ Flag actualizado en ClubMember');
     } catch (updateError) {
       console.log('[sendMembershipWelcome] ℹ️ Info: No se pudo actualizar flag de email:', updateError.message);
     }
