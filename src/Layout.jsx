@@ -1327,33 +1327,45 @@ export default function Layout({ children, currentPageName }) {
 
 
   const coordinatorNavigationItems = [
-                  // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
-                  ...(programaSociosActivo && isMemberPaid ? [{ 
-                    title: "🎫 MI CARNET DE SOCIO", 
-                    url: createPageUrl("MemberCardDisplay"), 
-                    icon: Users,
-                    highlight: true
-                  }] : []),
+                // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
+                ...(programaSociosActivo && isMemberPaid ? [{ 
+                  title: "🎫 MI CARNET DE SOCIO", 
+                  url: createPageUrl("MemberCardDisplay"), 
+                  icon: Users,
+                  highlight: true
+                }] : []),
 
-                  // 🏠 INICIO
-                  { title: "🏠 Inicio", url: createPageUrl("CoordinatorDashboard"), icon: Home },
+                // 🏠 INICIO
+                { title: "🏠 Inicio", url: createPageUrl("CoordinatorDashboard"), icon: Home },
 
-      // 💬 CHATS
-      { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-      { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell },
-      { title: "👨‍👩‍👧 Chat Familias", url: createPageUrl("CoordinatorFamilyChat"), icon: MessageCircle },
-      ...(user?.es_entrenador ? [{ title: "⚽ Chat Entrenador", url: createPageUrl("CoachParentChat"), icon: MessageCircle }] : []),
-      { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
+    // 💬 CHATS
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
+    { title: "💬 Chat Familias", url: createPageUrl("FamilyChats"), icon: MessageCircle },
+    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
 
-      // ⚽ GESTIÓN DEPORTIVA (si es también entrenador)
-      ...(user?.es_entrenador ? [{ title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 }] : []),
-      ...(user?.es_entrenador ? [{ title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 }] : []),
-      ...(user?.es_entrenador ? [{ title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users }] : []),
-      ...(user?.es_entrenador ? [{ title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText }] : []),
-      ...(user?.es_entrenador ? [{ title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar }] : []),
-      ...(user?.es_entrenador ? [{ title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3, badge: pendingMatchObservations > 0 ? pendingMatchObservations : null, urgentBadge: pendingMatchObservations > 0 }] : []),
-      ...(user?.puede_gestionar_firmas && user?.es_entrenador ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
-      ...(user?.es_entrenador ? [{ title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star }] : []),
+      // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
+      { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
+      { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
+      { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
+      { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
+      { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
+      { title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3, badge: pendingMatchObservations > 0 ? pendingMatchObservations : null, urgentBadge: pendingMatchObservations > 0 },
+      ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
+
+      // 📊 REPORTES
+      { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
+
+      // 📅 CALENDARIO
+      { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+
+      // 👤 PERFIL
+      { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
+
+      // 📢 INFORMACIÓN
+      { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
+      { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+      { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+      { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
       // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
       ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
@@ -1362,14 +1374,7 @@ export default function Layout({ children, currentPageName }) {
       ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
       ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText }] : []),
       ...(hasPlayers ? [{ title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
-      ...(loteriaVisible && hasPlayers ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
-
-      // 📅 INFORMACIÓN GENERAL
-      { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-      { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
-      { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
-      { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-      { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+      ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
       // 🎫 SOCIO
       { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
