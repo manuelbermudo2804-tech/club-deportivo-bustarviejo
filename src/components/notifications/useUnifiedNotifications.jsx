@@ -613,33 +613,41 @@ export function useUnifiedNotifications(user, options = {}) {
       });
     }
 
-    // Families (para coach/coordinator)
+    // Families - SEPARADO por tipo de chat (coordinador vs entrenador)
+    let unreadCoordinatorForStaff = 0;
+    let unreadCoachForStaff = 0;
+
+    if (user.es_coordinador && rawData.coordinatorConversations.length > 0) {
+      rawData.coordinatorConversations.forEach(conv => {
+        const c = (conv.no_leidos_coordinador || 0);
+        unreadCoordinatorForStaff += c;
+      });
+    }
+
+    if (user.es_entrenador && rawData.coachConversations.length > 0) {
+      rawData.coachConversations
+        .filter(conv => conv.entrenador_email === user.email)
+        .forEach(conv => { 
+          const c = (conv.no_leidos_entrenador || 0);
+          unreadCoachForStaff += c;
+        });
+    }
+
+    // Mensajes de grupo ChatMessage (padre_a_grupo)
     if ((user.es_entrenador || user.es_coordinador) && rawData.chatMessages.length > 0) {
-      // 1) Mensajes de familias en chats de grupo
       rawData.chatMessages.forEach(msg => {
         if (msg.tipo === 'padre_a_grupo' &&
             (coachCategories.includes(msg.deporte) || coachCategories.includes(msg.grupo_id)) &&
             (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
-          unreadFamilies++;
+          unreadCoachForStaff++;
           const key = msg.grupo_id || msg.deporte || 'general';
           breakdown.coachGroupForCoach[key] = (breakdown.coachGroupForCoach[key] || 0) + 1;
         }
       });
-
-      // 2) Conversaciones directas con Coordinador (contadores propios)
-      if (user.es_coordinador && rawData.coordinatorConversations.length > 0) {
-        rawData.coordinatorConversations.forEach(conv => {
-          unreadFamilies += (conv.no_leidos_coordinador || 0);
-        });
-      }
-
-      // 3) Conversaciones directas con Entrenador (si también es entrenador)
-      if (user.es_entrenador && rawData.coachConversations.length > 0) {
-        rawData.coachConversations
-          .filter(conv => conv.entrenador_email === user.email)
-          .forEach(conv => { unreadFamilies += (conv.no_leidos_entrenador || 0); });
-      }
     }
+
+    // LEGACY: suma total (mantener compatibilidad)
+    unreadFamilies = unreadCoordinatorForStaff + unreadCoachForStaff;
 
     // Staff - contar no leídos para Alert Center y tabs
     if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && rawData.staffMessages.length > 0) {
@@ -818,7 +826,9 @@ export function useUnifiedNotifications(user, options = {}) {
       unreadStaffMessages: unreadStaff, // legacy; UI usa ChatCounter
       unreadAdminMessages: unreadAdmin,
       unreadPrivateMessages: unreadPrivate,
-      unreadFamilyMessages: unreadFamilies,
+      unreadFamilyMessages: unreadFamilies, // legacy suma
+      unreadCoordinatorForStaff, // NUEVO: solo coordinador
+      unreadCoachForStaff,       // NUEVO: solo entrenador
       pendingCallups,
       pendingCallupResponses,
       pendingPayments,

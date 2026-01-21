@@ -41,16 +41,16 @@ export default function FamilyChats() {
     const init = () => {
       try {
         const s = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE || {};
-        setCoordUnreadCount(Number(s.unreadCoordinatorMessages || 0));
-        setCoachUnreadCount(Number(s.unreadFamilyMessages || 0));
+        setCoordUnreadCount(Number(s.unreadCoordinatorForStaff || 0));
+        setCoachUnreadCount(Number(s.unreadCoachForStaff || 0));
       } catch {}
     };
     init();
     const handler = (e) => {
       try {
         const d = e?.detail || {};
-        setCoordUnreadCount(Number(d.unreadCoordinatorMessages || 0));
-        setCoachUnreadCount(Number(d.unreadFamilyMessages || 0));
+        setCoordUnreadCount(Number(d.unreadCoordinatorForStaff || 0));
+        setCoachUnreadCount(Number(d.unreadCoachForStaff || 0));
       } catch {}
     };
     window.addEventListener('b44_unified_notifications_updated', handler);
