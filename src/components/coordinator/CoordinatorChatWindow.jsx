@@ -481,7 +481,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     await base44.entities.CoordinatorConversation.update(conversation.id, {
       prioritaria: !conversation.prioritaria
     });
-    queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
     toast.success(conversation.prioritaria ? "Prioridad removida" : "Marcada como prioritaria");
   };
 
@@ -489,7 +488,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     await base44.entities.CoordinatorConversation.update(conversation.id, {
       etiqueta: label
     });
-    queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
     toast.success("Etiqueta actualizada");
   };
 
@@ -498,7 +496,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const sendMessageMutation = useMutation({
     onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: ['coordinatorMessages'] });
+      await queryClient.cancelQueries({ queryKey: ['coordinatorMessages', conversation?.id] });
       
       const previousMessages = queryClient.getQueryData(['coordinatorMessages', conversation?.id]);
       
@@ -730,7 +728,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
       toast.success("Mensaje editado");
     },
   });
@@ -743,7 +741,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
       toast.success("Mensaje eliminado");
     },
   });
@@ -768,7 +766,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
       toast.success("Voto registrado");
     },
   });
@@ -782,7 +780,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
       toast.success("Mensaje desanclado");
     },
   });
@@ -796,7 +794,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
       toast.success("Mensaje anclado");
     },
   });
