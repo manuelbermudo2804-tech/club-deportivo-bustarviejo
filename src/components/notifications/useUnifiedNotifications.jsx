@@ -9,8 +9,8 @@ import { globalThrottler, retryWithBackoff } from "../utils/requestThrottler";
  * - Actualización instantánea
  */
 export function useUnifiedNotifications(user, options = {}) {
-  // DESACTIVAR COMPLETAMENTE para usuarios normales (solo admin/coordinador/entrenador)
-  const shouldBeActive = user?.role === 'admin' || user?.es_coordinador === true || user?.es_entrenador === true;
+  // Activar para TODOS los usuarios para que vean notificaciones
+  const shouldBeActive = !!user;
   
   const [notifications, setNotifications] = useState({
     // CHATS (mantenidos para compatibilidad visual; la fuente real vendrá de ChatCounter en UI)
