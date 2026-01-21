@@ -159,47 +159,43 @@ export default function CoordinatorDashboard() {
               </div>
             </div>
             
-            <div className="grid gap-4 grid-cols-2">
-              <Link to={createPageUrl("Chatbot")}>
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl px-5 py-5 text-white hover:scale-105 transition-all shadow-lg relative flex flex-col items-start justify-center min-h-[120px]">
-                  <p className="text-4xl font-bold mb-2">🤖</p>
-                  <p className="text-base font-bold">Asistente</p>
-                  <p className="text-xs text-indigo-100">Consulta IA</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              <Link to={createPageUrl("Chatbot")} className="relative flex-1">
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                  <p className="text-sm font-bold mb-1 text-center">🤖 Asistente</p>
+                  <p className="text-xs text-indigo-100 leading-tight text-center">Consulta IA</p>
                 </div>
               </Link>
 
-              <Link to={createPageUrl("CoordinatorChat")}>
-                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl px-5 py-5 text-white hover:scale-105 transition-all shadow-lg relative flex flex-col items-start justify-center min-h-[120px]">
+              <Link to={createPageUrl("CoordinatorChat")} className="relative flex-1">
+                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                    {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
-                     <div className="absolute -top-2 -right-2 w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                       <span className="text-purple-700 text-xs font-bold">{notifications.unreadCoordinatorForStaff}</span>
+                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                       <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorForStaff}</span>
                      </div>
                    )}
-                   <p className="text-4xl font-bold mb-2">🔔</p>
-                   <p className="text-base font-bold">Mensajes</p>
-                   <p className="text-xs text-purple-100">Del Club</p>
+                   <p className="text-sm font-bold mb-1 text-center">💬 Mensajes</p>
+                   <p className="text-xs text-purple-100 leading-tight text-center">Del Club</p>
                 </div>
               </Link>
 
-              <Link to={createPageUrl("CoordinatorChat")}>
-                <div className="bg-gradient-to-br from-teal-600 to-teal-700 rounded-2xl px-5 py-5 text-white hover:scale-105 transition-all shadow-lg relative flex flex-col items-start justify-center min-h-[120px]">
-                   <p className="text-4xl font-bold mb-2">🎓</p>
-                   <p className="text-base font-bold">Coordinador</p>
-                   <p className="text-xs text-teal-100">Consultas deportivas</p>
+              <Link to={createPageUrl("CoordinatorChat")} className="relative flex-1">
+                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                   <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
+                   <p className="text-xs text-cyan-100 leading-tight text-center">Consultas deportivas</p>
                 </div>
               </Link>
 
               {user?.es_entrenador && (
-                <Link to={createPageUrl("CoachParentChat")}>
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl px-5 py-5 text-white hover:scale-105 transition-all shadow-lg relative flex flex-col items-start justify-center min-h-[120px]">
+                <Link to={createPageUrl("CoachParentChat")} className="relative flex-1">
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                      {(notifications?.unreadCoachForStaff || 0) > 0 && (
-                       <div className="absolute -top-2 -right-2 w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                         <span className="text-blue-700 text-xs font-bold">{notifications.unreadCoachForStaff}</span>
+                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                         <span className="text-white text-xs font-bold">{notifications.unreadCoachForStaff}</span>
                        </div>
                      )}
-                     <p className="text-4xl font-bold mb-2">⚽</p>
-                     <p className="text-base font-bold">Entrenador</p>
-                     <p className="text-xs text-blue-100">Chat del equipo</p>
+                     <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
+                     <p className="text-xs text-blue-100 leading-tight text-center">Chat del equipo</p>
                   </div>
                 </Link>
               )}
