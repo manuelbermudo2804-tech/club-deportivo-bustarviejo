@@ -899,7 +899,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden min-h-0">
+    <div className="flex flex-col h-full w-full overflow-hidden">
       <audio 
         ref={audioRef} 
         onEnded={() => setPlayingAudio(null)}
@@ -911,7 +911,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       <audio ref={notificationSoundRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZizUIGGS57OihUBILUKXh8raFHwU5jtX0z3k" />
 
       {/* Header mínimo */}
-      <div className="p-1.5 bg-white border-b flex-shrink-0">
+      <div className="p-1.5 bg-white border-b flex-shrink-0 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="font-bold text-xs text-slate-900 truncate">{conversation.padre_nombre}</h2>
@@ -1138,7 +1138,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {/* Input */}
-      <div className="p-2 bg-white border-t flex-shrink-0">
+      <div className="p-2 bg-white border-t flex-shrink-0 sticky bottom-0 z-20">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-1">
             {attachments.map((file, idx) => (
