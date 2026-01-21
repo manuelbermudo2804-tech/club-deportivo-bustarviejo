@@ -34,6 +34,7 @@ import CoordinatorSettings from './pages/CoordinatorSettings';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
 import DirectMessages from './pages/DirectMessages';
 import DocumentManagement from './pages/DocumentManagement';
+import EmailTemplates from './pages/EmailTemplates';
 import EventManagement from './pages/EventManagement';
 import ExerciseLibrary from './pages/ExerciseLibrary';
 import ExtraCharges from './pages/ExtraCharges';
@@ -101,7 +102,6 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import EmailTemplates from './pages/EmailTemplates';
 import __Layout from './Layout.jsx';
 
 
@@ -142,6 +142,7 @@ export const PAGES = {
     "CustomPaymentPlans": CustomPaymentPlans,
     "DirectMessages": DirectMessages,
     "DocumentManagement": DocumentManagement,
+    "EmailTemplates": EmailTemplates,
     "EventManagement": EventManagement,
     "ExerciseLibrary": ExerciseLibrary,
     "ExtraCharges": ExtraCharges,
@@ -209,7 +210,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "EmailTemplates": EmailTemplates,
 }
 
 export const pagesConfig = {

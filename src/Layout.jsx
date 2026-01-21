@@ -866,7 +866,8 @@ export default function Layout({ children, currentPageName }) {
           console.log('ℹ️ [LAYOUT] Verificación segundo progenitor fallida:', e);
         }
 
-        // (Eliminado) Doble verificación de segundo progenitor para evitar llamadas duplicadas
+        // Desactivar analytics temporalmente por errores de CORS
+        // Comentado para evitar spam de errores en consola
 
         // DETECCIÓN DE JUGADOR +18
         // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
