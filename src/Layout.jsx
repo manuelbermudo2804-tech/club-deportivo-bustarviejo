@@ -1566,118 +1566,118 @@ export default function Layout({ children, currentPageName }) {
     }, 250);
   };
 
+  // TODOS los useEffect DEBEN estar aquí ANTES de cualquier return
+  useEffect(() => {
+      if (!user) return;
+
+      // Roles especiales NO pasan por onboarding
+      if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
+                      setOnboardingView('none');
+                      return;
+                    }
+
+                    // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
+
+                    // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor
+                    if (!user.tipo_panel && user.es_segundo_progenitor !== true) {
+                      setOnboardingView('selector');
+                      return;
+                    }
+
+      // 2) Verificar cumpleaños - eliminado temporalmente por problemas de rendimiento
+
+        // 3) Mostrar instrucciones de instalación (tras onboarding o si no se ha completado)
+        const triggerInstall = localStorage.getItem('installPromptAfterOnboarding') === 'true';
+        if (triggerInstall) {
+          setInstallContext('onboarding');
+          setShowInstallInstructions(true);
+          localStorage.removeItem('installPromptAfterOnboarding');
+        } else if (!localStorage.getItem('installCompleted')) {
+          setInstallContext('onboarding');
+          setShowInstallInstructions(true);
+        }
+
+      // 3) Normal - sin onboarding
+      setOnboardingView('none');
+    }, [user]);
+
+    // Activar motores en diferido para evitar ráfaga de llamadas
+    useEffect(() => {
+      if (!isLoading && user) {
+        const id = setTimeout(() => setEnginesReady(true), 1200);
+        return () => clearTimeout(id);
+      }
+    }, [isLoading, user]);
+
+    // Escalonar carga de motores para reducir llamadas concurrentes
+    useEffect(() => {
+      if (!enginesReady) return;
+      const t2 = setTimeout(() => setEnginesStage2Ready(true), 1200);
+      const t3 = setTimeout(() => setEnginesStage3Ready(true), 2500);
+      return () => { clearTimeout(t2); clearTimeout(t3); };
+    }, [enginesReady]);
+
+    // Invitar en el primer arranque desde el icono (PWA)
+    useEffect(() => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      if (isStandalone) {
+        localStorage.setItem('pwaInstalled', 'true');
+        setIsAppInstalled(true);
+      }
+      if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true) {
+        setShowFirstLaunchInvite(true);
+      }
+    }, [user]);
+
   // Flags para manejar páginas públicas sin returns antes de hooks
   const isPublicAnon = isPublicPage && authChecked && !user;
   const isPublicLoading = isPublicPage && !authChecked;
 
-  
+  // AHORA SÍ - todos los returns condicionales DESPUÉS de TODOS los hooks
+  if (isLoading && !isPublicPage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
+          <p className="text-white mt-4 text-sm">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
-    useEffect(() => {
-        if (!user) return;
+  console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
 
-        // Roles especiales NO pasan por onboarding
-        if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) {
-                        setOnboardingView('none');
-                        return;
-                      }
+  // Reubicación de returns: después de declarar todos los hooks
+  if (isPublicLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+      </div>
+    );
+  }
 
-                      // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
+  if (isPublicAnon) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        {children}
+      </div>
+    );
+  }
 
-                      // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor
-                      if (!user.tipo_panel && user.es_segundo_progenitor !== true) {
-                        setOnboardingView('selector');
-                        return;
-                      }
+  if (shouldShowRestricted) {
+    return <RestrictedAccessScreen user={user} restriction={user} />;
+  }
+  if (shouldShowClosed) {
+    return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
+  }
+  if (shouldShowInscriptions) {
+    return <InscriptionPeriodScreen user={user} isAdmin={isAdmin} />;
+  }
+  if (shouldShowVacation) {
+    return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
+  }
 
-        // 2) Verificar cumpleaños - eliminado temporalmente por problemas de rendimiento
-
-          // 3) Mostrar instrucciones de instalación (tras onboarding o si no se ha completado)
-          const triggerInstall = localStorage.getItem('installPromptAfterOnboarding') === 'true';
-          if (triggerInstall) {
-            setInstallContext('onboarding');
-            setShowInstallInstructions(true);
-            localStorage.removeItem('installPromptAfterOnboarding');
-          } else if (!localStorage.getItem('installCompleted')) {
-            setInstallContext('onboarding');
-            setShowInstallInstructions(true);
-          }
-
-        // 3) Normal - sin onboarding
-        setOnboardingView('none');
-      }, [user]);
-
-      // Activar motores en diferido para evitar ráfaga de llamadas
-      useEffect(() => {
-        if (!isLoading && user) {
-          const id = setTimeout(() => setEnginesReady(true), 1200);
-          return () => clearTimeout(id);
-        }
-      }, [isLoading, user]);
-
-      // Escalonar carga de motores para reducir llamadas concurrentes
-      useEffect(() => {
-        if (!enginesReady) return;
-        const t2 = setTimeout(() => setEnginesStage2Ready(true), 1200);
-        const t3 = setTimeout(() => setEnginesStage3Ready(true), 2500);
-        return () => { clearTimeout(t2); clearTimeout(t3); };
-      }, [enginesReady]);
-
-      // Invitar en el primer arranque desde el icono (PWA)
-      useEffect(() => {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        if (isStandalone) {
-          localStorage.setItem('pwaInstalled', 'true');
-          setIsAppInstalled(true);
-        }
-        if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true) {
-          setShowFirstLaunchInvite(true);
-        }
-      }, [user]);
-
-      if (isLoading && !isPublicPage) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
-              <p className="text-white mt-4 text-sm">Cargando...</p>
-            </div>
-          </div>
-        );
-      }
-
-      console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
-
-      // Reubicación de returns: después de declarar todos los hooks
-      if (isPublicLoading) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-          </div>
-        );
-      }
-
-      if (isPublicAnon) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-            {children}
-          </div>
-        );
-      }
-
-      if (shouldShowRestricted) {
-        return <RestrictedAccessScreen user={user} restriction={user} />;
-      }
-      if (shouldShowClosed) {
-        return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
-      }
-      if (shouldShowInscriptions) {
-        return <InscriptionPeriodScreen user={user} isAdmin={isAdmin} />;
-      }
-      if (shouldShowVacation) {
-        return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
-      }
-
-      const renderOnboarding = () => {
+  const renderOnboarding = () => {
         switch (onboardingView) {
           case 'selector':
             return (
