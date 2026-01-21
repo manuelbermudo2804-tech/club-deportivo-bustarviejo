@@ -611,15 +611,12 @@ const alerts = [];
   };
 
   if (visibleAlerts.length === 0) {
-    // Mostrar barra vacía en el panel de entrenador para que siempre exista el "Alert Center"
-    if (isCoach) {
-      return (
-        <Card className="border-orange-200 shadow-lg overflow-hidden">
-          <CardContent className="p-3 text-sm text-slate-600">Sin tareas pendientes</CardContent>
-        </Card>
-      );
-    }
-    return null;
+    // Mostrar barra vacía SIEMPRE (para padres, entrenadores, etc.)
+    return (
+      <Card className="border-orange-200 shadow-lg overflow-hidden">
+        <CardContent className="p-3 text-sm text-slate-600 text-center">✅ Todo al día</CardContent>
+      </Card>
+    );
   }
 
   return (
