@@ -2017,7 +2017,7 @@ export default function Layout({ children, currentPageName }) {
                                           <CallupSoundNotifier user={user} />
                                           <AnnouncementSoundNotifier user={user} />
                                           <PaymentSoundNotifier user={user} />
-                                          <ChatToasts />
+                                          {/* <ChatToasts /> - Desactivado */}
                                         </Suspense>
                                       )}
 
