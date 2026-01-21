@@ -598,11 +598,6 @@ export function useUnifiedNotifications(user, options = {}) {
     });
 
     // === ENTRENADOR - FAMILIAS (mensajes de grupo ChatMessage) ===
-    const myCategories = [...new Set(rawData.players
-      .filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email)
-      .map(p => p.categoria_principal || p.deporte))];
-    const coachCategories = user.categorias_entrena || [];
-
     rawData.chatMessages.forEach(msg => {
       // Para familias: mensajes del entrenador
       if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && 
