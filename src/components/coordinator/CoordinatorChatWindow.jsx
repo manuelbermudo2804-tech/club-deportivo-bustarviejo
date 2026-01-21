@@ -193,6 +193,17 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
           queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
         }
+
+        // Marcar AppNotifications como vistas
+        const enlace = isCoordinator ? "ParentCoordinatorChat" : "FamilyChats";
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: user?.email,
+          enlace: enlace,
+          vista: false
+        });
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+        }
       } catch (error) {
         console.log("Error marking as read:", error);
         markedAsReadRef.current = false;
