@@ -1267,21 +1267,21 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   const coachNavigationItems = [
-                  // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
-                  ...(programaSociosActivo && isMemberPaid ? [{ 
-                    title: "🎫 MI CARNET DE SOCIO", 
-                    url: createPageUrl("MemberCardDisplay"), 
-                    icon: Users,
-                    highlight: true
-                  }] : []),
+                // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
+                ...(programaSociosActivo && isMemberPaid ? [{ 
+                  title: "🎫 MI CARNET DE SOCIO", 
+                  url: createPageUrl("MemberCardDisplay"), 
+                  icon: Users,
+                  highlight: true
+                }] : []),
 
-                  // 🏠 INICIO
-                  { title: "🏠 Inicio", url: createPageUrl("CoachDashboard"), icon: Home },
+                // 🏠 INICIO
+                { title: "🏠 Inicio", url: createPageUrl("CoachDashboard"), icon: Home },
 
       // 💬 COMUNICACIÓN (uso diario)
       { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
       { title: "💬 Chat con Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle },
-      { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle },
+      { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
@@ -1341,7 +1341,7 @@ export default function Layout({ children, currentPageName }) {
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💬 Chat Familias", url: createPageUrl("FamilyChats"), icon: MessageCircle },
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle },
+    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
