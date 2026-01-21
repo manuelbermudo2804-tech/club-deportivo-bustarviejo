@@ -1280,7 +1280,7 @@ export default function Layout({ children, currentPageName }) {
 
       // 💬 COMUNICACIÓN (uso diario)
       { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-      { title: "💬 Chat con Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle },
+      { title: "💬 Chat con Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: notifications.unreadCoachForStaff || 0, urgentBadge: (notifications.unreadCoachForStaff || 0) > 0 },
       { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
@@ -1340,7 +1340,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "💬 Chat Familias", url: createPageUrl("FamilyChats"), icon: MessageCircle, badge: (notifications?.unreadCoordinatorForStaff || 0) + (notifications?.unreadCoachForStaff || 0) || 0 },
+    { title: "💬 Chat Familias", url: createPageUrl("FamilyChats"), icon: MessageCircle, badge: notifications.unreadCoordinatorForStaff || 0, urgentBadge: (notifications.unreadCoordinatorForStaff || 0) > 0 },
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
