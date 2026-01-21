@@ -1340,7 +1340,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "💬 Chat Familias", url: createPageUrl("FamilyChats"), icon: MessageCircle, badge: notifications.unreadFamilyMessages || 0 },
+    { title: "💬 Chat Familias", url: createPageUrl("FamilyChats"), icon: MessageCircle, badge: (notifications?.unreadCoordinatorForStaff || 0) + (notifications?.unreadCoachForStaff || 0) || 0 },
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
@@ -1400,9 +1400,9 @@ export default function Layout({ children, currentPageName }) {
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell },
-    { title: "🎓 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: notifications.unreadCoordinatorMessages || 0 },
+    { title: "🎓 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: notifications.unreadCoordinatorMessages || 0, urgentBadge: (notifications.unreadCoordinatorMessages || 0) > 0 },
 
-    { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: notifications.unreadCoachMessages || 0 },
+    { title: "⚽ Chat Entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: notifications.unreadCoachMessages || 0, urgentBadge: (notifications.unreadCoachMessages || 0) > 0 },
     ...(hasActiveAdminConversation ? [{ title: "🛡️ Chat Administrador", url: createPageUrl("ParentAdminChat"), icon: ShieldAlert }] : []),
 
     // ⚽ ACCIONES URGENTES
