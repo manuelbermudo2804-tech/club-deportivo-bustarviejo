@@ -57,7 +57,7 @@ export default function ParentCoordinatorChat() {
       if (conversations.length > 0) {
         setConversation(conversations[0]);
       } else {
-        // Crear conversación nueva
+        // Crear conversación nueva - obtener email del coordinador (en el futuro esto será dinámico)
         const newConv = await base44.entities.CoordinatorConversation.create({
           padre_email: currentUser.email,
           padre_nombre: currentUser.full_name,
