@@ -180,9 +180,10 @@ export default function ClubMembership() {
     queryKey: ['myMemberships', user?.email],
     queryFn: async () => {
       try {
+        console.log('📊 [ClubMembership] Query myMemberships ejecutándose...');
         return user ? await base44.entities.ClubMember.filter({ email: user.email }) : [];
       } catch (error) {
-        console.error("Error loading my memberships:", error);
+        console.error("❌ [ClubMembership] Error loading my memberships:", error);
         return [];
       }
     },
@@ -217,9 +218,12 @@ export default function ClubMembership() {
     queryKey: ['allMemberships'],
     queryFn: async () => {
       try {
-        return await base44.entities.ClubMember.list();
+        console.log('📊 [ClubMembership] Query allMemberships ejecutándose...');
+        const result = await base44.entities.ClubMember.list();
+        console.log('✅ [ClubMembership] allMemberships obtenido:', result?.length, 'socios');
+        return result;
       } catch (error) {
-        console.error("Error loading memberships:", error);
+        console.error("❌ [ClubMembership] Error loading memberships:", error);
         return [];
       }
     },
@@ -253,11 +257,14 @@ export default function ClubMembership() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       try {
+        console.log('📊 [ClubMembership] Query myPlayers ejecutándose...');
         if (!user) return [];
         const allPlayers = await base44.entities.Player.list();
-        return allPlayers.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
+        const filtered = allPlayers.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
+        console.log('✅ [ClubMembership] myPlayers obtenido:', filtered?.length, 'jugadores');
+        return filtered;
       } catch (error) {
-        console.error("Error loading my players:", error);
+        console.error("❌ [ClubMembership] Error loading my players:", error);
         return [];
       }
     },
