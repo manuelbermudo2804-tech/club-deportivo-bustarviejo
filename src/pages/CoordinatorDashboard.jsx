@@ -161,8 +161,9 @@ export default function CoordinatorDashboard() {
             
             <div className={`grid gap-3 ${user?.es_entrenador ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <Link to={createPageUrl("Chatbot")} className="flex-1">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  <p className="text-sm font-bold text-center mb-1">🤖 Asistente</p>
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-4 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[100px]">
+                  <p className="text-lg font-bold text-center mb-1">🤖</p>
+                  <p className="text-sm font-bold text-center">Asistente</p>
                   <p className="text-xs text-indigo-100 text-center">Consulta IA</p>
                 </div>
               </Link>
