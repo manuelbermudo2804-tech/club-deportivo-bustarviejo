@@ -43,6 +43,10 @@ export default function CoordinatorDashboard() {
   // ÚNICA fuente de verdad para TODAS las notificaciones
   const { notifications } = useUnifiedNotifications(user);
 
+  // TODOS los contadores vienen de useUnifiedNotifications
+  const unreadFamilyMessages = notifications?.unreadFamilyMessages || 0;
+  const unreadStaffMessages = notifications?.unreadStaffMessages || 0;
+
   // Fetch data SOLO para stats visuales (NO para contadores de notificaciones)
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
@@ -59,9 +63,6 @@ export default function CoordinatorDashboard() {
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
-
-  // ÚNICA fuente de verdad para TODAS las notificaciones
-  const { notifications } = useUnifiedNotifications(user);
 
   const { data: buttonConfigs = [] } = useQuery({
     queryKey: ['dashboardButtonConfig', user?.email],
@@ -96,27 +97,6 @@ export default function CoordinatorDashboard() {
       queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
       toast.success("✅ Configuración guardada");
     },
-  });
-
-  // TODOS los contadores vienen de useUnifiedNotifications
-  const unreadFamilyMessages = notifications?.unreadFamilyMessages || 0;
-  const unreadStaffMessages = notifications?.unreadStaffMessages || 0;
-
-  // Fetch SOLO para stats visuales
-  const { data: allPlayers = [] } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
-    enabled: !!user,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: allEvents = [] } = useQuery({
-    queryKey: ['events'],
-    queryFn: () => base44.entities.Event.list('-fecha', 200),
-    enabled: !!user,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
   });
 
   // Stats globales (SOLO visuales)
