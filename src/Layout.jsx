@@ -2117,16 +2117,27 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
                 {/* Botón Feedback móvil - para TODOS */}
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setShowFeedback(true);
-                  }}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg mb-4"
-                >
-                  <MessageCircle className="w-6 h-6 flex-shrink-0" />
-                  <span className="font-bold text-base flex-1">💬 Suggerencias y Bugs</span>
-                </button>
+                {isAdmin ? (
+                  <Link
+                    to={createPageUrl("FeedbackManagement")}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg mb-4"
+                  >
+                    <MessageCircle className="w-6 h-6 flex-shrink-0" />
+                    <span className="font-bold text-base flex-1">💬 Ver Feedback Usuarios</span>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setShowFeedback(true);
+                    }}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg mb-4"
+                  >
+                    <MessageCircle className="w-6 h-6 flex-shrink-0" />
+                    <span className="font-bold text-base flex-1">💬 Suggerencias y Bugs</span>
+                  </button>
+                )}
 
                 {/* Botón Instalar App al principio del menú móvil - solo si no está instalada */}
                 {!isAppInstalled && (
@@ -2230,13 +2241,23 @@ export default function Layout({ children, currentPageName }) {
 
           <div className="p-4 space-y-2">
                     {/* Botón de Feedback - para TODOS */}
-                    <button
-                      onClick={() => setShowFeedback(true)}
-                      className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all shadow-md mb-2"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="font-bold text-sm">💬 Suggerencias y Bugs</span>
-                    </button>
+                    {isAdmin ? (
+                      <Link
+                        to={createPageUrl("FeedbackManagement")}
+                        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all shadow-md mb-2"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        <span className="font-bold text-sm">💬 Ver Feedback Usuarios</span>
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => setShowFeedback(true)}
+                        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all shadow-md mb-2"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        <span className="font-bold text-sm">💬 Suggerencias y Bugs</span>
+                      </button>
+                    )}
 
                     {navigationItems.map((item) => {
                       if (item.section) {
