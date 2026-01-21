@@ -163,7 +163,7 @@ export default function CoordinatorDashboard() {
               <Link to={createPageUrl("Chatbot")} className="flex-1">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                   <p className="text-base font-bold mb-0.5">🤖</p>
-                  <p className="text-[10px] font-bold text-center">Asistente</p>
+                  <p className="text-xs font-bold text-center">Asistente</p>
                 </div>
               </Link>
 
@@ -175,8 +175,8 @@ export default function CoordinatorDashboard() {
                      </div>
                    )}
                    <p className="text-base font-bold mb-0.5">💬</p>
-                   <p className="text-[10px] font-bold text-center">Familias</p>
-                   <p className="text-[8px] text-blue-100 text-center">Coord</p>
+                   <p className="text-xs font-bold text-center">Familias</p>
+                   <p className="text-[9px] text-blue-100 text-center">Coord</p>
                 </div>
               </Link>
 
@@ -189,8 +189,8 @@ export default function CoordinatorDashboard() {
                        </div>
                      )}
                      <p className="text-base font-bold mb-0.5">⚽</p>
-                     <p className="text-[10px] font-bold text-center">Familias</p>
-                     <p className="text-[8px] text-red-100 text-center">Entrena</p>
+                     <p className="text-xs font-bold text-center">Familias</p>
+                     <p className="text-[9px] text-red-100 text-center">Entrena</p>
                   </div>
                 </Link>
               )}
@@ -203,8 +203,8 @@ export default function CoordinatorDashboard() {
                     </div>
                   )}
                   <p className="text-base font-bold mb-0.5">💼</p>
-                  <p className="text-[10px] font-bold text-center">Staff</p>
-                  <p className="text-[8px] text-slate-100 text-center">Interno</p>
+                  <p className="text-xs font-bold text-center">Staff</p>
+                  <p className="text-[9px] text-slate-100 text-center">Interno</p>
                 </div>
               </Link>
             </div>
