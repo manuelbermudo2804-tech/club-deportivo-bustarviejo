@@ -92,7 +92,6 @@ import RenewalDashboard from './pages/RenewalDashboard';
 import Schedules from './pages/Schedules';
 import SeasonManagement from './pages/SeasonManagement';
 import Sponsorships from './pages/Sponsorships';
-import StaffChat from './pages/StaffChat';
 import Store from './pages/Store';
 import Surveys from './pages/Surveys';
 import TacticsBoard from './pages/TacticsBoard';
@@ -102,6 +101,7 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
+import StaffChat from './pages/StaffChat';
 import __Layout from './Layout.jsx';
 
 
@@ -200,7 +200,6 @@ export const PAGES = {
     "Schedules": Schedules,
     "SeasonManagement": SeasonManagement,
     "Sponsorships": Sponsorships,
-    "StaffChat": StaffChat,
     "Store": Store,
     "Surveys": Surveys,
     "TacticsBoard": TacticsBoard,
@@ -210,6 +209,7 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
+    "StaffChat": StaffChat,
 }
 
 export const pagesConfig = {

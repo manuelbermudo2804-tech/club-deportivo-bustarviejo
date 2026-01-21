@@ -606,7 +606,7 @@ export default function ParentCoachChat() {
                           {msg.reacciones?.length > 0 && (
                             <div className="flex gap-1 mt-2 flex-wrap">
                               {msg.reacciones.map((r, idx) => (
-                                <span key={idx} className="text-base" title={r.user_nombre}>
+                                <span key={idx} className="text-2xl" title={r.user_nombre}>
                                   {r.emoji}
                                 </span>
                               ))}
@@ -707,7 +707,7 @@ export default function ParentCoachChat() {
                     handleSend();
                   }
                 }}
-                className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
+                className="flex-1 min-h-[52px] max-h-32 resize-none text-base py-3 px-3"
                 rows={1}
               />
               <Button 
