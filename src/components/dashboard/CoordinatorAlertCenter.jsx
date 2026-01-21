@@ -35,12 +35,12 @@ export default function CoordinatorAlertCenter({ user }) {
                 paymentsInReview={notifications.paymentsInReview || 0}
                 overduePayments={notifications.overduePayments || 0}
                 pendingSignatures={notifications.pendingSignatures || 0}
-                unreadPrivateMessages={notifications.unreadPrivateMessages || 0}
-                unreadCoordinatorMessages={notifications.unreadCoordinatorMessages || 0}
-                unreadCoachMessages={notifications.unreadCoachMessages || 0}
-                unreadAdminMessages={notifications.unreadAdminMessages || 0}
-                hasActiveAdminChat={notifications.hasActiveAdminConversation || false}
-                unreadStaffMessages={notifications.unreadStaffMessages || 0}
+                unreadPrivateMessages={0}
+                unreadCoordinatorMessages={0}
+                unreadCoachMessages={0}
+                unreadAdminMessages={0}
+                hasActiveAdminChat={false}
+                unreadStaffMessages={0}
                 isAdmin={false}
                 isCoach={false}
                 isParent={true}
@@ -56,8 +56,8 @@ export default function CoordinatorAlertCenter({ user }) {
               <AlertCenter 
                 pendingCallupResponses={notifications.pendingCallupResponses || 0}
                 pendingMatchObservations={notifications.pendingMatchObservations || 0}
-                unreadCoordinatorMessages={notifications.unreadFamilyMessages || 0}
-                unreadStaffMessages={notifications.unreadStaffMessages || 0}
+                unreadCoordinatorMessages={0}
+                unreadStaffMessages={0}
                 isAdmin={false}
                 isCoach={user?.es_entrenador === true}
                 isCoordinator={true}

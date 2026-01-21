@@ -450,11 +450,7 @@ export default function ParentDashboard() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                  <p className="text-xs text-purple-700">
-                    {(unreadPrivateMessages + unreadCoordinatorMessages + unreadCoachMessages) > 0 
-                      ? `${unreadPrivateMessages + unreadCoordinatorMessages + unreadCoachMessages} mensaje${(unreadPrivateMessages + unreadCoordinatorMessages + unreadCoachMessages) > 1 ? 's' : ''} nuevo${(unreadPrivateMessages + unreadCoordinatorMessages + unreadCoachMessages) > 1 ? 's' : ''}`
-                      : 'Chats con el club'}
-                  </p>
+                  <p className="text-xs text-purple-700">Chats con el club</p>
                 </div>
               </div>
               
@@ -471,11 +467,6 @@ export default function ParentDashboard() {
 
                 <Link to={createPageUrl("ParentSystemMessages")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {unreadPrivateMessages > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{unreadPrivateMessages}</span>
-                      </div>
-                    )}
                     <p className="text-sm font-bold mb-1 text-center">🔔 Mensajes</p>
                     <p className="text-xs text-purple-100 leading-tight text-center">Del Club</p>
                   </div>
@@ -483,11 +474,6 @@ export default function ParentDashboard() {
 
                 <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {unreadCoordinatorMessages > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{unreadCoordinatorMessages}</span>
-                      </div>
-                    )}
                     <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
                     <p className="text-xs text-cyan-100 leading-tight text-center">Consultas deportivas</p>
                   </div>
@@ -495,11 +481,6 @@ export default function ParentDashboard() {
                 
                 <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {unreadCoachMessages > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{unreadCoachMessages}</span>
-                      </div>
-                    )}
                     <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
                     <p className="text-xs text-blue-100 leading-tight text-center">Chat del equipo</p>
                   </div>
@@ -577,10 +558,6 @@ export default function ParentDashboard() {
                 upcomingEvents={0}
                 overduePayments={pagosVencidos}
                 newGalleryPhotos={0}
-                unreadPrivateMessages={unreadPrivateMessages}
-                unreadCoordinatorMessages={unreadCoordinatorMessages}
-                unreadCoachMessages={unreadCoachMessages}
-                unreadAdminMessages={unreadAdminMessages}
                 hasActiveAdminChat={hasActiveAdminChat}
                 isAdmin={false}
                 isCoach={false}

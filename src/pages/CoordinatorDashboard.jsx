@@ -43,9 +43,7 @@ export default function CoordinatorDashboard() {
   // ÚNICA fuente de verdad para TODAS las notificaciones
   const { notifications } = useUnifiedNotifications(user);
 
-  // CONTADORES CORRECTOS para coordinador
-  const unreadFamilyMessages = notifications?.unreadCoordinatorForStaff || 0; // Mensajes DE familias AL coordinador
-  const unreadStaffMessages = notifications?.unreadStaffMessages || 0;        // Chat staff interno
+  // Contadores de chat eliminados - se recrearán desde cero
 
   // Fetch data SOLO para stats visuales (NO para contadores de notificaciones)
   const { data: allPlayers = [] } = useQuery({
@@ -175,11 +173,6 @@ export default function CoordinatorDashboard() {
 
               <Link to={createPageUrl("FamilyChats")} className="flex-1">
                 <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  {unreadFamilyMessages > 0 && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{unreadFamilyMessages}</span>
-                    </div>
-                  )}
                   <p className="text-sm font-bold text-center mb-1">💬 Familias</p>
                   <p className="text-xs text-green-100 text-center">Coordinador + Entrenador</p>
                 </div>
@@ -187,11 +180,6 @@ export default function CoordinatorDashboard() {
 
               <Link to={createPageUrl("StaffChat")} className="flex-1">
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  {unreadStaffMessages > 0 && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{unreadStaffMessages}</span>
-                    </div>
-                  )}
                   <p className="text-sm font-bold text-center mb-1">💼 Staff</p>
                   <p className="text-xs text-slate-100 text-center">Interno</p>
                 </div>
