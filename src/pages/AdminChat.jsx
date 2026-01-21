@@ -50,7 +50,7 @@ export default function AdminChat() {
     });
     
     return unsub;
-  }, [user, queryClient]);
+  }, [user]);
 
   const archiveMutation = useMutation({
     mutationFn: async (conversationId) => {
@@ -83,15 +83,20 @@ export default function AdminChat() {
     },
   });
 
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="p-6 text-center">
-        <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4" />
-        <p className="text-slate-600 font-semibold">Solo administradores pueden acceder</p>
-      </div>
-    );
-  }
 
+
+  // Al abrir una conversación, poner a cero el contador del admin inmediatamente
+  useEffect(() => {
+    if (!selectedConversation?.id) return;
+    if ((selectedConversation.no_leidos_admin || 0) > 0) {
+      base44.entities.AdminConversation.update(selectedConversation.id, {
+        no_leidos_admin: 0,
+        last_read_admin_at: new Date().toISOString()
+      });
+    }
+  }, [selectedConversation?.id]);
+
+  // AHORA SÍ - cálculos y variables derivadas DESPUÉS de todos los hooks
   const activeConversations = conversations.filter(c => !c.archivada && !c.resuelta);
   const archivedConversations = conversations.filter(c => c.archivada || c.resuelta);
 
@@ -115,18 +120,17 @@ export default function AdminChat() {
 
   const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_admin || 0), 0);
 
-  // Al abrir una conversación, poner a cero el contador del admin inmediatamente
-  useEffect(() => {
-    if (!selectedConversation?.id) return;
-    if ((selectedConversation.no_leidos_admin || 0) > 0) {
-      base44.entities.AdminConversation.update(selectedConversation.id, {
-        no_leidos_admin: 0,
-        last_read_admin_at: new Date().toISOString()
-      });
-    }
-  }, [selectedConversation?.id, selectedConversation?.no_leidos_admin]);
+  // Return condicional DESPUÉS de todos los hooks
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="p-6 text-center">
+        <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4" />
+        <p className="text-slate-600 font-semibold">Solo administradores pueden acceder</p>
+      </div>
+    );
+  }
 
-   return (
+  return (
     <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-110px)] flex">
       {/* Sidebar de conversaciones */}
       <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} lg:w-96 flex-col border-r bg-white overflow-hidden`}>
