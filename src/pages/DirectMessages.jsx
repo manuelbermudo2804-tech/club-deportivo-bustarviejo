@@ -421,10 +421,6 @@ export default function DirectMessages() {
                         messageText={mensaje}
                       />
                       
-                      <FileAttachmentButton
-                        onFileUploaded={(attachment) => setAttachments([...attachments, attachment])}
-                        disabled={sendMessageMutation.isPending}
-                      />
                       <div className="flex-1">
                         <Input
                           value={mensaje}
