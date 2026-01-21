@@ -607,8 +607,7 @@ export default function ClubMembership() {
   };
 
 
-  const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
-  const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
+  // TODOS los hooks DEBEN estar ANTES de cualquier return condicional
   const formRef = useRef(null);
 
   // Scroll automático al formulario cuando se abre
@@ -645,22 +644,29 @@ export default function ClubMembership() {
     } catch {}
   }, []);
 
-   if (loadingRenewal) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-      </div>
-    );
-  }
+  // Cálculos derivados DESPUÉS de todos los hooks
+  const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
+  const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
 
+  // AHORA SÍ, returns condicionales DESPUÉS de TODOS los hooks
   console.log('📊 [ClubMembership] Estado antes de render:', {
     isCheckingAuth,
     isPublicAccess,
     hasSeasonConfig: !!seasonConfig,
     hasUser: !!user,
     showForm,
-    isRenewal
+    isRenewal,
+    loadingRenewal
   });
+
+  if (loadingRenewal) {
+    console.log('⏳ [ClubMembership] Mostrando loading (renewal)...');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+      </div>
+    );
+  }
 
   if (isCheckingAuth || (isPublicAccess && !seasonConfig)) {
     console.log('⏳ [ClubMembership] Mostrando LOADING...');
