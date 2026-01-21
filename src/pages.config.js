@@ -90,10 +90,10 @@ import ReferralManagement from './pages/ReferralManagement';
 import Reminders from './pages/Reminders';
 import RenewalDashboard from './pages/RenewalDashboard';
 import Schedules from './pages/Schedules';
-import Store from './pages/Store';
 import SeasonManagement from './pages/SeasonManagement';
 import Sponsorships from './pages/Sponsorships';
 import StaffChat from './pages/StaffChat';
+import Store from './pages/Store';
 import Surveys from './pages/Surveys';
 import TacticsBoard from './pages/TacticsBoard';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
@@ -198,10 +198,10 @@ export const PAGES = {
     "Reminders": Reminders,
     "RenewalDashboard": RenewalDashboard,
     "Schedules": Schedules,
-    "Store": Store,
     "SeasonManagement": SeasonManagement,
     "Sponsorships": Sponsorships,
     "StaffChat": StaffChat,
+    "Store": Store,
     "Surveys": Surveys,
     "TacticsBoard": TacticsBoard,
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,

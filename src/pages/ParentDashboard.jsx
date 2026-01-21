@@ -532,47 +532,51 @@ export default function ParentDashboard() {
         )}
 
 
-        {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
-         {(() => {
-           const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
-           return (
-             <AlertCenter 
-                 pendingCallups={notifications?.pendingCallups || pendingCallups}
-                 pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
-                   if (!d.publicado || !d.requiere_firma) return false;
-                   const isRelevant = d.tipo_destinatario === "individual" 
-                     ? myPlayers.some(p => d.jugadores_destino?.includes(p.id))
-                     : (d.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === d.categoria_destino));
-                   if (!isRelevant) return false;
-                   return myPlayers.some(player => {
-                     const isRelevantForPlayer = d.tipo_destinatario === "individual" 
-                       ? d.jugadores_destino?.includes(player.id)
-                       : (d.categoria_destino === "Todos" || player.deporte === d.categoria_destino);
-                     if (!isRelevantForPlayer) return false;
-                     const firma = d.firmas?.find(f => f.jugador_id === player.id);
-                     return firma && !firma.firmado && !firma.confirmado_firma_externa;
-                   });
-                 }).length : 0}
-                 pendingPayments={pagosPendientes}
-                 paymentsInReview={pagosRevision}
-                 pendingSurveys={activeSurveys.length}
-                 pendingSignatures={pendingFederationSignatures}
-                 upcomingEvents={0}
-                 overduePayments={pagosVencidos}
-                 newGalleryPhotos={0}
-                 hasActiveAdminChat={notifications?.hasActiveAdminConversation || hasActiveAdminChat}
-                 unreadCoordinatorMessages={notifications?.unreadCoordinatorMessages || 0}
-                 unreadCoachMessages={notifications?.unreadCoachMessages || 0}
-                 unreadPrivateMessages={notifications?.unreadPrivateMessages || 0}
-                 unreadAdminMessages={notifications?.unreadAdminMessages || 0}
-                 isAdmin={false}
-                 isCoach={false}
-                 isParent={true}
-                 userEmail={user?.email}
-                 userSports={myPlayersSports}
-               />
-             );
-         })()}
+        {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - SIEMPRE VISIBLE */}
+        <AlertCenter 
+            pendingCallups={notifications?.pendingCallups || pendingCallups}
+            pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
+              if (!d.publicado || !d.requiere_firma) return false;
+              const isRelevant = d.tipo_destinatario === "individual" 
+                ? myPlayers.some(p => d.jugadores_destino?.includes(p.id))
+                : (d.categoria_destino === "Todos" || myPlayers.some(p => p.deporte === d.categoria_destino));
+              if (!isRelevant) return false;
+              return myPlayers.some(player => {
+                const isRelevantForPlayer = d.tipo_destinatario === "individual" 
+                  ? d.jugadores_destino?.includes(player.id)
+                  : (d.categoria_destino === "Todos" || player.deporte === d.categoria_destino);
+                if (!isRelevantForPlayer) return false;
+                const firma = d.firmas?.find(f => f.jugador_id === player.id);
+                return firma && !firma.firmado && !firma.confirmado_firma_externa;
+              });
+            }).length : 0}
+            pendingPayments={(() => {
+              const { pendingPayments } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
+              return pendingPayments;
+            })()}
+            paymentsInReview={(() => {
+              const { paymentsInReview } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
+              return paymentsInReview;
+            })()}
+            overduePayments={(() => {
+              const { overduePayments } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
+              return overduePayments;
+            })()}
+            pendingSurveys={activeSurveys.length}
+            pendingSignatures={pendingFederationSignatures}
+            upcomingEvents={0}
+            newGalleryPhotos={0}
+            hasActiveAdminChat={notifications?.hasActiveAdminConversation || hasActiveAdminChat}
+            unreadCoordinatorMessages={notifications?.unreadCoordinatorMessages || 0}
+            unreadCoachMessages={notifications?.unreadCoachMessages || 0}
+            unreadPrivateMessages={notifications?.unreadPrivateMessages || 0}
+            unreadAdminMessages={notifications?.unreadAdminMessages || 0}
+            isAdmin={false}
+            isCoach={false}
+            isParent={true}
+            userEmail={user?.email}
+            userSports={myPlayersSports}
+          />
 
 
 
