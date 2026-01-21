@@ -159,7 +159,7 @@ export default function CoordinatorDashboard() {
               </div>
             </div>
             
-            <div className="grid gap-3 grid-cols-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
               <Link to={createPageUrl("Chatbot")} className="flex-1">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl px-6 py-3 text-white hover:scale-105 transition-all shadow-lg relative flex items-center justify-center gap-3">
                   <p className="text-xl font-bold">🤖</p>
