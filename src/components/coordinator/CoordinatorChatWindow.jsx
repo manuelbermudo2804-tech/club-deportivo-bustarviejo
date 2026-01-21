@@ -1018,22 +1018,22 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 </div>
                 
                 {msg.audio_url ? (
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      size="sm" 
-                      variant={isMine ? "secondary" : "outline"}
-                      onClick={() => togglePlayAudio(msg.audio_url)}
-                    >
-                      {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    </Button>
-                    <span className="text-sm">{msg.audio_duracion}s</span>
-                  </div>
-                ) : (
-                  <p className="text-xs sm:text-sm whitespace-pre-wrap">
-                    {msg.mensaje}
-                    {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
-                  </p>
-                )}
+                   <div className="flex items-center gap-2">
+                     <Button 
+                       size="sm" 
+                       variant={isMine ? "secondary" : "outline"}
+                       onClick={() => togglePlayAudio(msg.audio_url)}
+                     >
+                       {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                     </Button>
+                     <span className="text-sm">{msg.audio_duracion}s</span>
+                   </div>
+                 ) : (
+                   <p className="text-base sm:text-lg whitespace-pre-wrap">
+                     {msg.mensaje}
+                     {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
+                   </p>
+                 )}
 
                 {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
                 {msg.encuesta && (
