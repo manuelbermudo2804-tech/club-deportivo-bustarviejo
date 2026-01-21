@@ -104,11 +104,12 @@ export default function ParentCoachChat() {
   const getUnreadCountByCategory = (categoria) => {
     if (!user) return 0;
     const grupo_id = categoria.toLowerCase().replace(/\s+/g, '_');
-    
+
     return allChatMessages.filter(m => 
       m.grupo_id === grupo_id &&
       m.tipo === "entrenador_a_grupo" &&
       (!m.destinatario_email || m.destinatario_email === user.email) &&
+      !m.leido &&  // ✅ Cambiar: mirar el campo leido directo
       (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
     ).length;
   };
