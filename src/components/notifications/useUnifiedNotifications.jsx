@@ -676,9 +676,6 @@ export function useUnifiedNotifications(user, options = {}) {
       });
     }
 
-    // APP NOTIFICATIONS (fallback/visual - mensajes que llegan al notificador)
-    const appNotificationsCount = (rawData.appNotifications || []).filter(n => !n.vista).length;
-
     // CONVOCATORIAS
     const today = new Date();
     today.setHours(0, 0, 0, 0);
