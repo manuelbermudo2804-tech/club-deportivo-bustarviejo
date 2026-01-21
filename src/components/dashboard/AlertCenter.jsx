@@ -179,7 +179,12 @@ const alerts = [];
     }
   }
 
-  // Alertas de chats ELIMINADAS - se recrearán desde cero
+  // ===== ALERTAS DE CHATS COMPLETAMENTE ELIMINADAS =====
+  // Las notificaciones de chat ahora se gestionan exclusivamente en:
+  // 1. Badges del menú lateral (Layout.js)
+  // 2. Burbujas de los banners de mensajes (dashboards)
+  // NO deben aparecer aquí para evitar duplicación
+
   // Alertas para padres
   if (isParent) {
     // ALERTA CRÍTICA DE ADMIN (prioridad máxima) - MOSTRAR SIEMPRE si hay chat activo
