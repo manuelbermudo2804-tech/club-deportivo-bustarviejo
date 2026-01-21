@@ -533,13 +533,10 @@ export default function ParentDashboard() {
 
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - Todo en un solo banner */}
-        {playersLoading ? (
-          <DashboardCardSkeleton />
-        ) : (
-          (() => {
-            const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
-            return (
-              <AlertCenter 
+        {(() => {
+          const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
+          return (
+            <AlertCenter 
                 pendingCallups={pendingCallups}
                 pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
                   if (!d.publicado || !d.requiere_firma) return false;
@@ -571,8 +568,7 @@ export default function ParentDashboard() {
                 userSports={myPlayersSports}
               />
             );
-          })()
-        )}
+        })()}
 
 
 

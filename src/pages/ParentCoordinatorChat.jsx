@@ -80,23 +80,17 @@ export default function ParentCoordinatorChat() {
         setTermsAccepted(true);
       }
 
-      // Marcar notificaciones de coordinador como vistas
-      const notifications = await base44.entities.AppNotification.filter({ 
-        usuario_email: currentUser.email,
-        enlace: "ParentCoordinatorChat",
-        vista: false
-      });
-      
-      for (const notif of notifications) {
-        await base44.entities.AppNotification.update(notif.id, {
-          vista: true,
-          fecha_vista: new Date().toISOString()
+      // Marcar AppNotifications como vistas (copiado de StaffChat)
+      try {
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: currentUser.email,
+          enlace: "ParentCoordinatorChat",
+          vista: false
         });
-      }
-      
-      if (notifications.length > 0) {
-        queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
-      }
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+        }
+      } catch {}
       
       // Marcar mensajes del coordinador como leídos
       const allMessages = await base44.entities.CoordinatorMessage.filter({ conversacion_id: newConv.id || conversations[0]?.id });
