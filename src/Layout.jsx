@@ -679,12 +679,9 @@ export default function Layout({ children, currentPageName }) {
   // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
 
   // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation, PWA aliases)
-  const lowerPath = location.pathname.toLowerCase();
-  const isPublicPage = lowerPath.includes('clubmembership') || 
-                               lowerPath.includes('validateadmininvitation') ||
-                               lowerPath.includes('pwaentry');
   const [authChecked, setAuthChecked] = useState(false);
   const fetchUserOnceRef = useRef(false);
+  const isPublicPageRef = useRef(false);
 
   // Redirigir alias de PWA a la ruta canónica
   useEffect(() => {
@@ -727,6 +724,14 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     if (fetchUserOnceRef.current) return;
     fetchUserOnceRef.current = true;
+    
+    // Calcular isPublicPage UNA SOLA VEZ y guardar en ref
+    const lowerPath = location.pathname.toLowerCase();
+    const isPublicPage = lowerPath.includes('clubmembership') || 
+                         lowerPath.includes('validateadmininvitation') ||
+                         lowerPath.includes('pwaentry');
+    isPublicPageRef.current = isPublicPage;
+    
     const fetchUser = async () => {
                         console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
                         try {
@@ -1173,7 +1178,7 @@ export default function Layout({ children, currentPageName }) {
                     }
                   };
                   fetchUser();
-                }, [isPublicPage]);
+                }, []);
 
   // useEffect de redirección ELIMINADO - causaba loops infinitos de React #310
 
@@ -1630,6 +1635,7 @@ export default function Layout({ children, currentPageName }) {
     }, [user]);
 
   // Flags para manejar páginas públicas sin returns antes de hooks
+  const isPublicPage = isPublicPageRef.current;
   const isPublicAnon = isPublicPage && authChecked && !user;
   const isPublicLoading = isPublicPage && !authChecked;
 
