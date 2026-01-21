@@ -893,7 +893,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   // NO mostrar el texto cuando hay encuesta
                   null
                 ) : (
-                  <p className="text-2xl sm:text-3xl whitespace-pre-wrap leading-relaxed">
+                  <p className="text-lg sm:text-xl whitespace-pre-wrap leading-relaxed">
                     {msg.mensaje}
                     {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
                   </p>
