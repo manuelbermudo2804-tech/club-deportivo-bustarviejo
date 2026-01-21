@@ -148,18 +148,18 @@ export default function CoordinatorDashboard() {
 
         {/* Banner de Chats - FUENTE ÚNICA */}
         <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-5">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                <p className="text-xs text-purple-700">Comunicación con familias y staff</p>
+                <h3 className="font-bold text-lg text-purple-900">💬 Mensajes</h3>
+                <p className="text-sm text-purple-700">Comunicación con familias y staff</p>
               </div>
             </div>
             
-            <div className={`grid gap-2 ${user?.es_entrenador ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <div className={`grid gap-3 ${user?.es_entrenador ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <Link to={createPageUrl("Chatbot")} className="flex-1">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
                   <p className="text-sm font-bold text-center mb-1">🤖 Asistente</p>
