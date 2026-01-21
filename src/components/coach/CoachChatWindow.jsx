@@ -17,7 +17,6 @@ import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
 import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
-import ChatActionMenu from "../chat/ChatActionMenu";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -1091,21 +1090,17 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
             messageText={messageText}
           />
           
-          <ChatActionMenu
-            onFileClick={() => fileInputRef.current?.click()}
-            onCameraClick={() => cameraInputRef.current?.click()}
-            onAudioClick={recording ? stopRecording : startRecording}
-            onLocationClick={() => setShowLocationDialog(true)}
-            onPollClick={() => setShowPollDialog(true)}
-            onExerciseClick={() => setShowExerciseShare(true)}
-            uploading={uploading}
-            isRecording={recording}
-            showCamera={true}
-            showAudio={true}
-            showLocation={true}
-            showPoll={true}
-            showExercise={true}
-          />
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => setShowExerciseShare(true)}
+            className="h-11 w-11 bg-orange-50 hover:bg-orange-100 border-orange-200 flex-shrink-0"
+            title="Compartir ejercicio"
+          >
+            <Dumbbell className="w-5 h-5 text-orange-600" />
+          </Button>
+
+          <ChatInputActions
             onFileClick={() => fileInputRef.current?.click()}
             onCameraClick={() => cameraInputRef.current?.click()}
             onAudioClick={recording ? stopRecording : startRecording}

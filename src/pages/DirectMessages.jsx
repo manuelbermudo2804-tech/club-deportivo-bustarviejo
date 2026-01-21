@@ -16,7 +16,6 @@ import { createPageUrl } from "@/utils";
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 import EmojiPicker from "../components/chat/EmojiPicker";
-import ChatActionMenu from "../components/chat/ChatActionMenu";
 
 export default function DirectMessages() {
   const [user, setUser] = useState(null);
@@ -421,6 +420,10 @@ export default function DirectMessages() {
                         messageText={mensaje}
                       />
                       
+                      <FileAttachmentButton
+                        onFileUploaded={(attachment) => setAttachments([...attachments, attachment])}
+                        disabled={sendMessageMutation.isPending}
+                      />
                       <div className="flex-1">
                         <Input
                           value={mensaje}

@@ -14,7 +14,6 @@ import LocationMessage from "../components/chat/LocationMessage";
 import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinatorButton";
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 import EmojiPicker from "../components/chat/EmojiPicker";
-import ChatActionMenu from "../components/chat/ChatActionMenu";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
@@ -711,7 +710,6 @@ export default function ParentCoachChat() {
                 className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
                 rows={1}
               />
-              
               <Button 
                 onClick={handleSend} 
                 disabled={!messageText.trim()} 
