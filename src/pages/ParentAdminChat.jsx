@@ -303,7 +303,7 @@ export default function ParentAdminChat() {
                     {isMine ? user.full_name : '🛡️ Administrador del Club'}
                   </p>
 
-                  <p className="text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                  <p className="text-xl sm:text-2xl whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
 
                   {msg.archivos_adjuntos?.length > 0 && (
                     <div className="mt-2 space-y-1">
