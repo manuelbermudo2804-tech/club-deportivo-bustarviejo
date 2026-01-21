@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 const CUOTA_SOCIO = 25;
 
 export default function ClubMembership() {
+  console.log('🎫 [ClubMembership] ===== COMPONENTE MONTADO/RENDERIZADO =====');
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [uploadingJustificante, setUploadingJustificante] = useState(false);
@@ -127,30 +128,38 @@ export default function ClubMembership() {
   }, [isCheckingAuth, user]);
 
   useEffect(() => {
+    console.log('🔍 [ClubMembership] useEffect FETCH USER iniciado');
     const fetchUser = async () => {
       try {
+        console.log('🔐 [ClubMembership] Verificando autenticación...');
         const isAuthenticated = await base44.auth.isAuthenticated();
+        console.log('🔐 [ClubMembership] isAuthenticated:', isAuthenticated);
+        
         if (isAuthenticated) {
           try {
+            console.log('👤 [ClubMembership] Obteniendo datos de usuario...');
             const currentUser = await base44.auth.me();
+            console.log('✅ [ClubMembership] Usuario obtenido:', currentUser?.email);
             setUser(currentUser);
           } catch (userError) {
             // Token existe pero usuario no está en BD - acceso público
-            console.log("Usuario con token pero no en BD, acceso público");
+            console.log("⚠️ [ClubMembership] Usuario con token pero no en BD, acceso público");
             setUser(null);
             setIsPublicAccess(true);
           }
         } else {
           // No autenticado - marcar como acceso público
+          console.log("👤 [ClubMembership] No autenticado - modo público");
           setUser(null);
           setIsPublicAccess(true);
         }
       } catch (error) {
         // Error general - permitir acceso público
-        console.log("Error auth, permitiendo acceso público:", error);
+        console.log("❌ [ClubMembership] Error auth, permitiendo acceso público:", error);
         setUser(null);
         setIsPublicAccess(true);
       } finally {
+        console.log('🏁 [ClubMembership] setIsCheckingAuth(false)');
         setIsCheckingAuth(false);
       }
     };
@@ -187,10 +196,13 @@ export default function ClubMembership() {
     queryKey: ['seasonConfig'],
     queryFn: async () => {
       try {
+        console.log('⚙️ [ClubMembership] Obteniendo SeasonConfig...');
         const configs = await base44.entities.SeasonConfig.list();
-        return configs.find(c => c.activa === true);
+        const active = configs.find(c => c.activa === true);
+        console.log('✅ [ClubMembership] SeasonConfig obtenido:', active?.temporada);
+        return active;
       } catch (error) {
-        console.error("Error loading season config:", error);
+        console.error("❌ [ClubMembership] Error loading season config:", error);
         return null;
       }
     },
@@ -634,7 +646,17 @@ export default function ClubMembership() {
     );
   }
 
+  console.log('📊 [ClubMembership] Estado antes de render:', {
+    isCheckingAuth,
+    isPublicAccess,
+    hasSeasonConfig: !!seasonConfig,
+    hasUser: !!user,
+    showForm,
+    isRenewal
+  });
+
   if (isCheckingAuth || (isPublicAccess && !seasonConfig)) {
+    console.log('⏳ [ClubMembership] Mostrando LOADING...');
     return (
       <>
         <InvitationPWAGuide />
@@ -645,6 +667,7 @@ export default function ClubMembership() {
     );
   }
 
+  console.log('✅ [ClubMembership] Renderizando página COMPLETA');
   return (
     <>
       <InvitationPWAGuide />
