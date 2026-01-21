@@ -474,6 +474,11 @@ export default function ParentDashboard() {
 
                 <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
+                    {(notifications?.unreadCoordinatorMessages || 0) > 0 && (
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                        <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorMessages}</span>
+                      </div>
+                    )}
                     <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
                     <p className="text-xs text-cyan-100 leading-tight text-center">Consultas deportivas</p>
                   </div>
