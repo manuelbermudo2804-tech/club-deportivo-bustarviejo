@@ -1,40 +1,39 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { jsPDF } from 'npm:jspdf@2.5.2';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
     
-    if (!user || user.role !== "admin") {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    // No verificar usuario - esto se llama automáticamente cuando se marca como Pagado
     const { paymentId } = await req.json();
     
     if (!paymentId) {
       return Response.json({ error: 'Payment ID is required' }, { status: 400 });
     }
 
-    // Obtener el pago
-    const payments = await base44.asServiceRole.entities.Payment.list();
-    const payment = payments.find(p => p.id === paymentId);
+    console.log('📄 [generatePaymentReceipt] Iniciando para paymentId:', paymentId);
     
+    // Obtener el pago directamente
+    const payment = await base44.asServiceRole.entities.Payment.get(paymentId);
     if (!payment) {
+      console.error('❌ [generatePaymentReceipt] Pago no encontrado:', paymentId);
       return Response.json({ error: 'Payment not found' }, { status: 404 });
     }
+    console.log('✅ [generatePaymentReceipt] Pago encontrado:', payment.jugador_nombre);
 
     // Obtener el jugador
-    const players = await base44.asServiceRole.entities.Player.list();
-    const player = players.find(p => p.id === payment.jugador_id);
-    
+    const player = await base44.asServiceRole.entities.Player.get(payment.jugador_id);
     if (!player) {
+      console.error('❌ [generatePaymentReceipt] Jugador no encontrado:', payment.jugador_id);
       return Response.json({ error: 'Player not found' }, { status: 404 });
     }
+    console.log('✅ [generatePaymentReceipt] Jugador encontrado:', player.nombre);
 
     // Obtener la configuración de la temporada
     const configs = await base44.asServiceRole.entities.SeasonConfig.list();
     const activeConfig = configs.find(c => c.activa === true);
+    console.log('✅ [generatePaymentReceipt] Config encontrada:', activeConfig?.temporada);
 
     // Generar el PDF del recibo
     const doc = new jsPDF();
@@ -139,21 +138,28 @@ Deno.serve(async (req) => {
     currentY += 4;
     doc.text('Este recibo ha sido generado automáticamente', 105, currentY, { align: 'center' });
     
-    // Convertir el PDF a base64 para enviarlo como adjunto
-    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    console.log('📝 [generatePaymentReceipt] PDF generado, subiendo a almacenamiento...');
     
-    // También subir a almacenamiento para guardar la URL
-    const pdfBlob = doc.output('blob');
+    // Convertir a ArrayBuffer para upload
+    const pdfArrayBuffer = doc.output('arraybuffer');
+    const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+    
+    // Subir el PDF
     const uploadResponse = await base44.asServiceRole.integrations.Core.UploadFile({
       file: pdfBlob
     });
     
     const reciboUrl = uploadResponse.file_url;
+    console.log('✅ [generatePaymentReceipt] PDF subido:', reciboUrl);
     
     // Actualizar el pago con la URL del recibo
     await base44.asServiceRole.entities.Payment.update(paymentId, {
       recibo_url: reciboUrl
     });
+    console.log('✅ [generatePaymentReceipt] Pago actualizado con recibo_url');
+    
+    // Convertir el PDF a base64 para enviarlo como adjunto por email
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
     
     // Enviar el recibo por email con PDF adjunto usando función personalizada
     const emailBody = `
@@ -184,32 +190,35 @@ Deno.serve(async (req) => {
       }]
     };
     
-    // Enviar a padre principal usando función personalizada
+    // Enviar a padre principal
     if (player.email_padre) {
       try {
+        console.log('📧 [generatePaymentReceipt] Enviando a padre:', player.email_padre);
         await base44.asServiceRole.functions.invoke('sendEmail', {
           ...emailWithAttachment,
           to: player.email_padre
         });
-        console.log('✅ Recibo enviado con adjunto a padre:', player.email_padre);
+        console.log('✅ [generatePaymentReceipt] Email enviado a padre');
       } catch (emailError) {
-        console.error('Error enviando email a padre:', emailError);
+        console.error('❌ [generatePaymentReceipt] Error email padre:', emailError);
       }
     }
     
     // Enviar a segundo tutor si existe
     if (player.email_tutor_2) {
       try {
+        console.log('📧 [generatePaymentReceipt] Enviando a tutor 2:', player.email_tutor_2);
         await base44.asServiceRole.functions.invoke('sendEmail', {
           ...emailWithAttachment,
           to: player.email_tutor_2
         });
-        console.log('✅ Recibo enviado con adjunto a tutor 2:', player.email_tutor_2);
+        console.log('✅ [generatePaymentReceipt] Email enviado a tutor 2');
       } catch (emailError) {
-        console.error('Error enviando email a tutor 2:', emailError);
+        console.error('❌ [generatePaymentReceipt] Error email tutor 2:', emailError);
       }
     }
     
+    console.log('✅ [generatePaymentReceipt] PROCESO COMPLETO - Recibo generado y enviado');
     return Response.json({
       success: true,
       recibo_url: reciboUrl,
@@ -217,7 +226,7 @@ Deno.serve(async (req) => {
     });
     
   } catch (error) {
-    console.error('Error generating receipt:', error);
+    console.error('❌ [generatePaymentReceipt] ERROR:', error);
     return Response.json({ 
       error: error.message || 'Error generating receipt' 
     }, { status: 500 });
