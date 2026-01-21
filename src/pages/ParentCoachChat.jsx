@@ -13,6 +13,7 @@ import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinatorButton";
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
+import EmojiPicker from "../components/chat/EmojiPicker";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
@@ -691,6 +692,11 @@ export default function ParentCoachChat() {
 
           <div className="p-2 bg-white border-t flex-shrink-0">
             <div className="flex gap-2 items-end">
+              <EmojiPicker 
+                onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
+                messageText={messageText}
+              />
+              
               <Textarea
                 placeholder="Escribe tu mensaje..."
                 value={messageText}
