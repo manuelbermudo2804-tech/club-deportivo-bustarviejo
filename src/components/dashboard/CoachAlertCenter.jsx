@@ -33,9 +33,6 @@ export default function CoachAlertCenter({
               paymentsInReview={paymentsInReviewParent}
               overduePayments={overduePaymentsParent}
               pendingSignatures={pendingSignaturesParent}
-              unreadPrivateMessages={unreadPrivateMessages}
-              unreadCoordinatorMessages={unreadCoordinatorMessages}
-              unreadAdminMessages={unreadAdminMessages}
               hasActiveAdminChat={hasActiveAdminChat}
               isAdmin={false}
               isCoach={false}
