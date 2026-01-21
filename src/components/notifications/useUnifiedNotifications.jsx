@@ -9,6 +9,9 @@ import { globalThrottler, retryWithBackoff } from "../utils/requestThrottler";
  * - Actualización instantánea
  */
 export function useUnifiedNotifications(user, options = {}) {
+  // DESACTIVAR COMPLETAMENTE para usuarios normales (solo admin/coordinador/entrenador)
+  const shouldBeActive = user?.role === 'admin' || user?.es_coordinador === true || user?.es_entrenador === true;
+  
   const [notifications, setNotifications] = useState({
     // CHATS (mantenidos para compatibilidad visual; la fuente real vendrá de ChatCounter en UI)
     unreadCoordinatorMessages: 0,
@@ -88,6 +91,12 @@ export function useUnifiedNotifications(user, options = {}) {
 
   useEffect(() => {
     if (!user) return;
+    
+    // DESACTIVAR para usuarios normales (padres sin roles especiales)
+    if (!shouldBeActive) {
+      console.log('🔕 [useUnifiedNotifications] DESACTIVADO para usuario normal - reducir rate limiting');
+      return;
+    }
 
     // Prevent duplicate initialization across mounts (mark primary/secondary)
     if (options?.forceInstance && typeof window !== 'undefined') {
@@ -500,9 +509,9 @@ export function useUnifiedNotifications(user, options = {}) {
       unsubscribers.forEach(unsub => unsub());
       if (!options?.forceInstance && typeof window !== 'undefined' && isPrimaryInstance) {
         window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = false;
-      }
-    };
-  }, [user]);
+        }
+        };
+        }, [user, shouldBeActive]);
 
   // Limpieza automática de notificaciones huérfanas/antiguas (no vistas)
   useEffect(() => {
