@@ -351,7 +351,7 @@ export default function ParentCoordinatorChat() {
         temporada: currentSeason
       });
 
-      // Notificar a coordinadores
+      // Crear AppNotification para el coordinador
       try {
         const allSettings = await base44.entities.CoordinatorSettings.list();
         const coordinatorEmails = Array.from(new Set(allSettings.map(s => s.coordinador_email).filter(Boolean)));
@@ -359,10 +359,10 @@ export default function ParentCoordinatorChat() {
           .filter(email => email !== user.email)
           .map(email => base44.entities.AppNotification.create({
             usuario_email: email,
-            titulo: "Nuevo mensaje de familia",
-            mensaje: `${user.full_name}: ${data.mensaje?.slice(0, 100) || "Mensaje"}`,
-            tipo: "mensaje",
-            prioridad: palabraUrgente ? "urgente" : "importante",
+            titulo: `💬 Mensaje de ${user.full_name}`,
+            mensaje: (data.mensaje || "Mensaje").substring(0, 100) + ((data.mensaje || "").length > 100 ? '...' : ''),
+            tipo: "importante",
+            icono: "💬",
             enlace: "FamilyChats",
             vista: false
           })));
