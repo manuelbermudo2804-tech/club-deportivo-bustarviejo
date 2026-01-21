@@ -155,11 +155,7 @@ export default function CoordinatorDashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                <p className="text-xs text-purple-700">
-                  {unreadFamilyMessages > 0 
-                    ? `${unreadFamilyMessages} mensaje${unreadFamilyMessages > 1 ? 's' : ''} nuevo${unreadFamilyMessages > 1 ? 's' : ''}`
-                    : 'Comunicación'}
-                </p>
+                <p className="text-xs text-purple-700">Comunicación con familias y staff</p>
               </div>
             </div>
             
