@@ -476,34 +476,8 @@ export default function CoordinatorDashboard() {
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
         <CoordinatorClassificationsMatchesBanner />
 
-        {/* AlertCenter - Dual si tiene hijos, solo coordinador si no */}
-        {hasPlayers ? (
-          <CoordinatorAlertCenter 
-            pendingCallupsParent={parentStats.pendingCallups}
-            pendingPaymentsParent={parentStats.pendingPayments}
-            paymentsInReviewParent={parentStats.paymentsInReview}
-            overduePaymentsParent={parentStats.overduePayments}
-            pendingSignaturesParent={parentStats.pendingSignatures}
-            unreadPrivateMessages={0}
-            unreadCoordinatorMessages={parentStats.unreadCoordinator}
-            unreadAdminMessages={parentStats.unreadAdmin}
-            hasActiveAdminChat={parentStats.hasActiveAdminChat}
-            myPlayersSports={myPlayersSports}
-            userEmail={user?.email}
-            pendingCallupResponsesCoordinator={pendingCallupResponses}
-            pendingMatchObservations={pendingMatchObservations}
-            unreadFamilyMessages={unreadFamilyMessages}
-          />
-        ) : (
-          <AlertCenter 
-            pendingCallupResponses={pendingCallupResponses}
-            pendingSurveys={activeSurveys}
-            pendingMatchObservations={pendingMatchObservations}
-            upcomingEvents={upcomingEvents.length}
-            unreadCoordinatorMessages={unreadFamilyMessages}
-            isCoordinator={true}
-          />
-        )}
+        {/* AlertCenter unificado */}
+        <CoordinatorAlertCenter user={user} />
 
         {/* Botón personalizar */}
         <div className="flex justify-end">

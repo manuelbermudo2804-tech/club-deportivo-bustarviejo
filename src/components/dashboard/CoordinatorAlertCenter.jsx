@@ -2,71 +2,68 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import AlertCenter from "./AlertCenter";
 import RoleAlertBlock from "./RoleAlertBlock";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { useStaffCounters, useFamilyCounters } from "../chats/useChatCounters";
+import { useUnifiedNotifications } from "../notifications/useUnifiedNotifications";
 
-export default function CoordinatorAlertCenter({
-  // Stats de PADRE
-  pendingCallupsParent,
-  pendingPaymentsParent,
-  paymentsInReviewParent,
-  overduePaymentsParent,
-  pendingSignaturesParent,
-  unreadPrivateMessages,
-  unreadCoordinatorMessages,
-  unreadAdminMessages,
-  hasActiveAdminChat,
-  myPlayersSports,
-  userEmail,
+export default function CoordinatorAlertCenter({ user }) {
+  // ÚNICA fuente de verdad para todas las notificaciones
+  const { notifications } = useUnifiedNotifications(user);
   
-  // Stats de COORDINADOR
-  pendingCallupResponsesCoordinator,
-  pendingMatchObservations,
-  unreadFamilyMessages,
-}) {
-  // Usuario actual (para saber si también es entrenador)
-  const { data: meUser } = useQuery({ queryKey: ['me-coordinator-alertcenter'], queryFn: () => base44.auth.me() });
-  // Unificar contadores con la misma fuente que entrenador (burbujas y alertas)
-  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
-  const { total: familyTotal } = useFamilyCounters({ refetchOnFocus: true });
+  console.log('🎓 [CoordinatorAlertCenter] Renderizando con notifications:', notifications);
 
 
+  const hasParentTasks = user?.tiene_hijos_jugando === true;
+  
+  // Extraer contadores sanitizados del hook unificado
+  const parentPendingCallups = hasParentTasks ? (notifications.pendingCallups || 0) : 0;
+  const parentPendingPayments = hasParentTasks ? (notifications.pendingPayments || 0) : 0;
+  const parentPaymentsInReview = hasParentTasks ? (notifications.paymentsInReview || 0) : 0;
+  const parentOverduePayments = hasParentTasks ? (notifications.overduePayments || 0) : 0;
+  const parentPendingSignatures = hasParentTasks ? (notifications.pendingSignatures || 0) : 0;
+  const unreadPrivate = hasParentTasks ? (notifications.unreadPrivateMessages || 0) : 0;
+  const hasAdminChat = hasParentTasks ? (notifications.hasActiveAdminConversation || false) : false;
+  
+  const coordPendingResponses = notifications.pendingCallupResponses || 0;
+  const coordPendingObservations = notifications.pendingMatchObservations || 0;
+  const coordUnreadFamily = notifications.unreadFamilyMessages || 0;
+  
   return (
     <Card className="border-2 border-orange-200 bg-white shadow-lg overflow-hidden">
       <CardContent className="p-0">
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:divide-x divide-orange-200">
           {/* Columna Izquierda - Tareas como Padre */}
-          <RoleAlertBlock color="blue" icon="👨‍👩‍👧" title="Mis Tareas como Padre" subtitle="Gestión familiar">
-            <AlertCenter 
-              pendingCallups={pendingCallupsParent}
-              pendingPayments={pendingPaymentsParent}
-              paymentsInReview={paymentsInReviewParent}
-              overduePayments={overduePaymentsParent}
-              pendingSignatures={pendingSignaturesParent}
-              unreadPrivateMessages={unreadPrivateMessages}
-              unreadCoordinatorMessages={unreadCoordinatorMessages}
-              unreadAdminMessages={unreadAdminMessages}
-              hasActiveAdminChat={hasActiveAdminChat}
-              isAdmin={false}
-              isCoach={false}
-              isParent={true}
-              userEmail={userEmail}
-              userSports={myPlayersSports}
-            />
-          </RoleAlertBlock>
+          {hasParentTasks && (
+            <RoleAlertBlock color="blue" icon="👨‍👩‍👧" title="Mis Tareas como Padre" subtitle="Gestión familiar">
+              <AlertCenter 
+                pendingCallups={parentPendingCallups}
+                pendingPayments={parentPendingPayments}
+                paymentsInReview={parentPaymentsInReview}
+                overduePayments={parentOverduePayments}
+                pendingSignatures={parentPendingSignatures}
+                unreadPrivateMessages={unreadPrivate}
+                unreadCoordinatorMessages={0}
+                unreadAdminMessages={0}
+                hasActiveAdminChat={hasAdminChat}
+                isAdmin={false}
+                isCoach={false}
+                isParent={true}
+                userEmail={user?.email}
+                userSports={[]}
+              />
+            </RoleAlertBlock>
+          )}
 
           {/* Columna Derecha - Tareas como Coordinador */}
-          <div className="p-4 border-t lg:border-t-0 border-orange-200">
+          <div className={`p-4 ${hasParentTasks ? 'border-t lg:border-t-0' : ''} border-orange-200`}>
             <RoleAlertBlock color="cyan" icon="🎓" title="Mis Tareas como Coordinador" subtitle="Supervisión general">
               <AlertCenter 
-                pendingCallupResponses={pendingCallupResponsesCoordinator}
-                pendingMatchObservations={pendingMatchObservations}
+                pendingCallupResponses={coordPendingResponses}
+                pendingMatchObservations={coordPendingObservations}
+                unreadCoordinatorMessages={coordUnreadFamily}
                 isAdmin={false}
-                isCoach={meUser?.es_entrenador === true}
+                isCoach={user?.es_entrenador === true}
                 isCoordinator={true}
                 isParent={false}
-                userEmail={userEmail}
+                userEmail={user?.email}
                 userSports={[]}
               />
             </RoleAlertBlock>
