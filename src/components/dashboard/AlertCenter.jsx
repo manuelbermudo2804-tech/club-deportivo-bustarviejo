@@ -184,6 +184,9 @@ const alerts = [];
   // 1. Badges del menú lateral (Layout.js)
   // 2. Burbujas de los banners de mensajes (dashboards)
   // NO deben aparecer aquí para evitar duplicación
+  
+  // CRÍTICO: NO crear alertas de chat aquí - ni coordinator, ni coach, ni staff, ni admin
+  // Ya se gestionan en los badges y burbujas
 
   // Alertas para padres
   if (isParent) {
