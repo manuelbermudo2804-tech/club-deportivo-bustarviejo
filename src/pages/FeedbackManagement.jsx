@@ -32,6 +32,9 @@ export default function FeedbackManagement() {
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [notasAdmin, setNotasAdmin] = useState("");
+  const [showAIAnalysis, setShowAIAnalysis] = useState(false);
+  const [aiAnalysis, setAIAnalysis] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -80,6 +83,84 @@ export default function FeedbackManagement() {
       toast.success("✅ Feedback eliminado");
     },
   });
+
+  const analyzeWithAI = async () => {
+    setLoadingAI(true);
+    try {
+      const feedbackData = feedbacks.map(f => ({
+        tipo: f.tipo,
+        titulo: f.titulo,
+        descripcion: f.descripcion,
+        prioridad: f.prioridad,
+        estado: f.estado,
+        fecha: f.created_date
+      }));
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Eres un consultor experto en análisis de feedback de aplicaciones. Analiza este feedback de usuarios de una app de gestión de club deportivo y proporciona:
+
+1. AGRUPACIÓN DE TEMAS: Agrupa los problemas y sugerencias por temas comunes
+2. PRIORIDADES: Identifica qué cambios deberían hacerse primero
+3. SUGERENCIAS DE MEJORA: Propuestas concretas de cambios que se pueden implementar
+
+Feedback recibido:
+${JSON.stringify(feedbackData, null, 2)}
+
+Proporciona un análisis estructurado, accionable y práctico.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            resumen_ejecutivo: { type: "string" },
+            temas_agrupados: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  tema: { type: "string" },
+                  frecuencia: { type: "number" },
+                  items_relacionados: { 
+                    type: "array",
+                    items: { type: "string" }
+                  },
+                  impacto: { type: "string" }
+                }
+              }
+            },
+            cambios_prioritarios: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  cambio: { type: "string" },
+                  justificacion: { type: "string" },
+                  prioridad: { type: "string" },
+                  esfuerzo_estimado: { type: "string" }
+                }
+              }
+            },
+            sugerencias_implementacion: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  accion: { type: "string" },
+                  beneficio: { type: "string" },
+                  dificultad: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      setAIAnalysis(result);
+      setShowAIAnalysis(true);
+    } catch (error) {
+      toast.error("Error al analizar con IA: " + error.message);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
 
   if (!isAdmin) {
     return (
@@ -254,6 +335,36 @@ export default function FeedbackManagement() {
         </Card>
       )}
 
+      {/* Botón de Análisis con IA */}
+      <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h3 className="font-bold text-purple-900 text-lg mb-1">🤖 Análisis Inteligente con IA</h3>
+              <p className="text-sm text-purple-700">
+                La IA analizará todo el feedback, agrupará por temas comunes y sugerirá mejoras prioritarias
+              </p>
+            </div>
+            <Button
+              onClick={analyzeWithAI}
+              disabled={loadingAI || feedbacks.length === 0}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 ml-4"
+            >
+              {loadingAI ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Analizando...
+                </>
+              ) : (
+                <>
+                  ✨ Analizar con IA
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Filtros */}
       <Card className="border-slate-200">
         <CardHeader>
@@ -352,6 +463,111 @@ export default function FeedbackManagement() {
           ))
         )}
       </div>
+
+      {/* Modal de Análisis IA */}
+      <Dialog open={showAIAnalysis} onOpenChange={setShowAIAnalysis}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>🤖 Análisis Inteligente de Feedback</DialogTitle>
+          </DialogHeader>
+
+          {aiAnalysis && (
+            <div className="space-y-6">
+              {/* Resumen Ejecutivo */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
+                <h3 className="font-bold text-purple-900 mb-2">📋 Resumen Ejecutivo</h3>
+                <p className="text-sm text-slate-700 leading-relaxed">{aiAnalysis.resumen_ejecutivo}</p>
+              </div>
+
+              {/* Temas Agrupados */}
+              <div>
+                <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-orange-600" />
+                  Temas Comunes Identificados
+                </h3>
+                <div className="space-y-3">
+                  {aiAnalysis.temas_agrupados?.map((tema, idx) => (
+                    <Card key={idx} className="border-orange-200">
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-semibold text-slate-900">{tema.tema}</h4>
+                          <Badge className="bg-orange-100 text-orange-800">
+                            {tema.frecuencia} menciones
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-slate-600 mb-2"><strong>Impacto:</strong> {tema.impacto}</p>
+                        <div className="bg-slate-50 rounded-lg p-3">
+                          <p className="text-xs font-semibold text-slate-700 mb-1">Items relacionados:</p>
+                          <ul className="text-xs text-slate-600 list-disc list-inside">
+                            {tema.items_relacionados?.map((item, i) => (
+                              <li key={i}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cambios Prioritarios */}
+              <div>
+                <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  Cambios Prioritarios Recomendados
+                </h3>
+                <div className="space-y-3">
+                  {aiAnalysis.cambios_prioritarios?.map((cambio, idx) => (
+                    <Card key={idx} className="border-green-200">
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="font-semibold text-slate-900 flex-1">{cambio.cambio}</h4>
+                          <div className="flex gap-2">
+                            <Badge className={
+                              cambio.prioridad?.toLowerCase().includes('alta') ? "bg-red-100 text-red-800" :
+                              cambio.prioridad?.toLowerCase().includes('media') ? "bg-yellow-100 text-yellow-800" :
+                              "bg-blue-100 text-blue-800"
+                            }>
+                              {cambio.prioridad}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {cambio.esfuerzo_estimado}
+                            </Badge>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-600">{cambio.justificacion}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sugerencias de Implementación */}
+              <div>
+                <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-yellow-500" />
+                  Sugerencias de Implementación
+                </h3>
+                <div className="space-y-2">
+                  {aiAnalysis.sugerencias_implementacion?.map((sug, idx) => (
+                    <div key={idx} className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <p className="font-semibold text-yellow-900 mb-1">{sug.accion}</p>
+                          <p className="text-sm text-slate-700 mb-2">{sug.beneficio}</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">
+                          {sug.dificultad}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de edición */}
       <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
