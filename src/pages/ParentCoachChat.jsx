@@ -604,9 +604,9 @@ export default function ParentCoachChat() {
                           )}
 
                           {msg.reacciones?.length > 0 && (
-                            <div className="flex gap-1 mt-2 flex-wrap">
+                            <div className="flex gap-2 mt-2 flex-wrap">
                               {msg.reacciones.map((r, idx) => (
-                                <span key={idx} className="text-base" title={r.user_nombre}>
+                                <span key={idx} className="text-5xl" title={r.user_nombre}>
                                   {r.emoji}
                                 </span>
                               ))}

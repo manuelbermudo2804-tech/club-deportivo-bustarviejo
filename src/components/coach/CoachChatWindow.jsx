@@ -943,9 +943,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 )}
 
                 {msg.reacciones?.length > 0 && (
-                  <div className="flex gap-1 mt-2">
+                  <div className="flex gap-2 mt-2">
                     {msg.reacciones.map((r, idx) => (
-                      <span key={idx} className="text-lg" title={r.user_nombre}>
+                      <span key={idx} className="text-5xl" title={r.user_nombre}>
                         {r.emoji}
                       </span>
                     ))}
