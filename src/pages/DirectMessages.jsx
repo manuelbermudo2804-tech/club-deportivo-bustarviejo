@@ -16,6 +16,7 @@ import { createPageUrl } from "@/utils";
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 import EmojiPicker from "../components/chat/EmojiPicker";
+import ChatActionMenu from "../components/chat/ChatActionMenu";
 
 export default function DirectMessages() {
   const [user, setUser] = useState(null);

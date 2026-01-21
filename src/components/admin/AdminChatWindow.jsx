@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Textarea as TextareaUI } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import EmojiPicker from "../chat/EmojiPicker";
+import ChatActionMenu from "../chat/ChatActionMenu";
 
 export default function AdminChatWindow({ conversation, user, onClose, onMarkResolved }) {
   const [messageText, setMessageText] = useState("");
@@ -526,17 +527,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
             />
             
             <div className="flex gap-1 justify-center">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="h-8 px-3 text-xs"
-              >
-                <Paperclip className="w-3 h-3 mr-1" />
-                Archivo
-              </Button>
-              <Button 
+               <Button 
                 onClick={handleSendInternalNote}
                 disabled={!messageText.trim()}
                 size="sm"
@@ -553,6 +544,11 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
               <EmojiPicker 
                 onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
                 messageText={messageText}
+              />
+              
+              <ChatActionMenu
+                onFileClick={() => fileInputRef.current?.click()}
+                uploading={uploading}
               />
               
               <Textarea

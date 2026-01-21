@@ -17,6 +17,7 @@ import ChatMessageActions from "../components/chat/ChatMessageActions";
 import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import EmojiPicker from "../components/chat/EmojiPicker";
+import ChatActionMenu from "../components/chat/ChatActionMenu";
 import SearchFilters from "../components/chat/SearchFilters";
 import SocialLinks from "../components/SocialLinks";
 import { sendWithQueue } from "../components/utils/messageQueue";

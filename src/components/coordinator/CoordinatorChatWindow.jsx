@@ -21,6 +21,7 @@ import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
 import EscalateToAdminButton from "./EscalateToAdminButton";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
+import ChatActionMenu from "../chat/ChatActionMenu";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
@@ -1238,7 +1239,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           />
           
           {isCoordinator && (
-            <ChatInputActions
+            <ChatActionMenu
               onFileClick={() => fileInputRef.current?.click()}
               onCameraClick={() => cameraInputRef.current?.click()}
               onAudioClick={recording ? stopRecording : startRecording}
