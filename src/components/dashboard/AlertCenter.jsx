@@ -619,9 +619,30 @@ const alerts = [];
     );
   }
 
+  // Determinar el título del rol
+  let rolTitle = "";
+  if (isAdmin) {
+    rolTitle = "Administrador";
+  } else if (isCoordinator) {
+    rolTitle = "Coordinador Deportivo";
+  } else if (isCoach) {
+    rolTitle = "Entrenador";
+  } else if (isTreasurer) {
+    rolTitle = "Tesorero";
+  } else if (isParent) {
+    rolTitle = "Familia";
+  }
+
   return (
     <Card className="border-orange-200 shadow-lg overflow-hidden">
       <CardContent className="p-3">
+        {rolTitle && (
+          <div className="mb-3 pb-3 border-b border-orange-200">
+            <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+              Mis tareas como {rolTitle}
+            </p>
+          </div>
+        )}
         <div className="space-y-2">
           {visibleAlerts.map((alert) => (
             <Link
