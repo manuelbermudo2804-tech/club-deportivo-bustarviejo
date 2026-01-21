@@ -167,12 +167,17 @@ export default function CoordinatorDashboard() {
                 </div>
               </Link>
 
-              <Link to={createPageUrl("FamilyChats")} className="flex-1">
+              <Link to={createPageUrl("FamilyChats")} className="flex-1 relative">
                 <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
                   {(notifications?.unreadFamilyMessages || 0) > 0 && (
-                    <div className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadFamilyMessages}</span>
-                    </div>
+                    <>
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                        <span className="text-white text-xs font-bold">{notifications.unreadFamilyMessages}</span>
+                      </div>
+                      <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                        <span className="text-white text-xs font-bold">{notifications.unreadFamilyMessages}</span>
+                      </div>
+                    </>
                   )}
                   <p className="text-sm font-bold text-center mb-1">💬 Familias</p>
                   <p className="text-xs text-green-100 text-center">Coordinador + Entrenador</p>
