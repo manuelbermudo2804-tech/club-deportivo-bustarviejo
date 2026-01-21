@@ -159,7 +159,7 @@ export default function CoordinatorDashboard() {
               </div>
             </div>
             
-            <div className={`grid gap-3 ${user?.es_entrenador ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <div className="grid gap-3 grid-cols-4">
               <Link to={createPageUrl("Chatbot")} className="flex-1">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-4 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[100px]">
                   <p className="text-lg font-bold text-center mb-1">🤖</p>
