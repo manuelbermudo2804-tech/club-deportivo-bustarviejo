@@ -159,7 +159,7 @@ export default function CoordinatorDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-3 gap-2">
+            <div className={`grid gap-2 ${user?.es_entrenador ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <Link to={createPageUrl("Chatbot")} className="flex-1">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
                   <p className="text-sm font-bold text-center mb-1">🤖 Asistente</p>
@@ -167,22 +167,31 @@ export default function CoordinatorDashboard() {
                 </div>
               </Link>
 
-              <Link to={createPageUrl("FamilyChats")} className="flex-1">
-                <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
-                    <div className="absolute -top-2 -left-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorForStaff}</span>
-                    </div>
-                  )}
-                  {(notifications?.unreadCoachForStaff || 0) > 0 && (
-                    <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadCoachForStaff}</span>
-                    </div>
-                  )}
-                  <p className="text-sm font-bold text-center mb-1">💬 Familias</p>
-                  <p className="text-xs text-green-100 text-center">Coordinador + Entrenador</p>
+              <Link to={createPageUrl("CoordinatorChat")} className="flex-1">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
+                   {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
+                     <div className="absolute -top-2 -left-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                       <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorForStaff}</span>
+                     </div>
+                   )}
+                   <p className="text-sm font-bold text-center mb-1">💬 Familias</p>
+                   <p className="text-xs text-blue-100 text-center">Coordinador</p>
                 </div>
               </Link>
+
+              {user?.es_entrenador && (
+                <Link to={createPageUrl("CoachParentChat")} className="flex-1">
+                  <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
+                     {(notifications?.unreadCoachForStaff || 0) > 0 && (
+                       <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                         <span className="text-white text-xs font-bold">{notifications.unreadCoachForStaff}</span>
+                       </div>
+                     )}
+                     <p className="text-sm font-bold text-center mb-1">⚽ Familias</p>
+                     <p className="text-xs text-red-100 text-center">Entrenador</p>
+                  </div>
+                </Link>
+              )}
 
               <Link to={createPageUrl("StaffChat")} className="flex-1">
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
