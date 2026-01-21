@@ -1203,7 +1203,7 @@ export default function Layout({ children, currentPageName }) {
     // 💬 CHATS Y COMUNICACIÓN
     { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
     { title: "🛡️ Conversaciones Críticas", url: createPageUrl("AdminChat"), icon: ShieldAlert },
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle },
+    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
     { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle },
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle },
     { title: "✉️ Mensajes Directos", url: createPageUrl("DirectMessages"), icon: MessageCircle },
