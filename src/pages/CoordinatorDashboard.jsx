@@ -14,7 +14,6 @@ import { useUnifiedNotifications } from "../components/notifications/useUnifiedN
 import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
-import PendingTasksBar from "../components/notifications/PendingTasksBar";
 
 
 export default function CoordinatorDashboard() {
@@ -124,8 +123,6 @@ export default function CoordinatorDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
-        
-        <PendingTasksBar notifications={notifications} forceShow={true} />
         
         {/* Header */}
 
