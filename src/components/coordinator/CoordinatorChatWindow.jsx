@@ -20,6 +20,7 @@ import ChatInputActions from "../chat/ChatInputActions";
 import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
 import EscalateToAdminButton from "./EscalateToAdminButton";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
+import EmojiPicker from "../chat/EmojiPicker";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
@@ -1229,6 +1230,11 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             className="hidden" 
             onChange={handleCameraCapture} 
             disabled={uploading} 
+          />
+          
+          <EmojiPicker 
+            onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
+            messageText={messageText}
           />
           
           {isCoordinator && (

@@ -12,6 +12,7 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Textarea as TextareaUI } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import EmojiPicker from "../chat/EmojiPicker";
 
 export default function AdminChatWindow({ conversation, user, onClose, onMarkResolved }) {
   const [messageText, setMessageText] = useState("");
@@ -549,6 +550,11 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
             </div>
 
             <div className="flex gap-2 items-end">
+              <EmojiPicker 
+                onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
+                messageText={messageText}
+              />
+              
               <Textarea
                 placeholder="Escribe tu mensaje..."
                 value={messageText}

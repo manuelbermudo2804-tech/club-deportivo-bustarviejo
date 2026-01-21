@@ -16,6 +16,7 @@ import LocationMessage from "../chat/LocationMessage";
 import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
 import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
+import EmojiPicker from "../chat/EmojiPicker";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -1082,6 +1083,11 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
             className="hidden" 
             onChange={handleCameraCapture} 
             disabled={uploading} 
+          />
+          
+          <EmojiPicker 
+            onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
+            messageText={messageText}
           />
           
           <Button

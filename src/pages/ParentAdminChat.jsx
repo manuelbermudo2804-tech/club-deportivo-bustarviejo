@@ -12,6 +12,7 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { sendWithQueue } from "../components/utils/messageQueue";
 import { markAdminConversationAsRead } from "../components/utils/markAsRead";
+import EmojiPicker from "../components/chat/EmojiPicker";
 
 export default function ParentAdminChat() {
   const [user, setUser] = useState(null);
@@ -393,6 +394,11 @@ export default function ParentAdminChat() {
               </div>
 
               <div className="flex gap-2 items-end">
+                <EmojiPicker 
+                  onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
+                  messageText={messageText}
+                />
+                
                 <Textarea
                   placeholder="Escribe tu mensaje..."
                   value={messageText}
