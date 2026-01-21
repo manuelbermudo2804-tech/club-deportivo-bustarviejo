@@ -31,6 +31,10 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 
+// CRÍTICO: Este componente NO debe mostrar alertas de CHATS
+// Solo: convocatorias, pagos, firmas, eventos, encuestas, etc.
+// Los chats se gestionan en badges del menú + burbujas de dashboard
+
 export default function AlertCenter({ 
   pendingCallups = 0,
   pendingDocuments = 0,
