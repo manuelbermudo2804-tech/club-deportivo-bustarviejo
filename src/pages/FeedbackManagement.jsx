@@ -97,16 +97,35 @@ export default function FeedbackManagement() {
       }));
 
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Eres un consultor experto en análisis de feedback de aplicaciones. Analiza este feedback de usuarios de una app de gestión de club deportivo y proporciona:
+        prompt: `Eres un consultor experto en análisis de feedback de aplicaciones. Analiza este feedback de usuarios de una app de gestión de club deportivo construida en Base44 y proporciona:
 
 1. AGRUPACIÓN DE TEMAS: Agrupa los problemas y sugerencias por temas comunes
 2. PRIORIDADES: Identifica qué cambios deberían hacerse primero
 3. SUGERENCIAS DE MEJORA: Propuestas concretas de cambios que se pueden implementar
 
+IMPORTANTE - CAPACIDADES DE BASE44 (solo sugiere cambios que puedan implementarse):
+✅ PUEDE HACER:
+- Entities (base de datos con subscripciones real-time)
+- Backend Functions (Deno/TypeScript serverless)
+- Integrations: SendEmail, InvokeLLM (IA), UploadFile, GenerateImage, ExtractDataFromUploadedFile
+- App Connectors OAuth (Google Calendar, Drive, Sheets, Slack, Notion, etc.)
+- React frontend con Tailwind CSS, shadcn/ui components
+- Calendarios, eventos, convocatorias, pagos, chats, encuestas, galería de fotos
+- Notificaciones por email
+- Exports a PDF, Excel, imágenes
+- Formularios dinámicos, drag & drop
+
+❌ NO PUEDE HACER:
+- Notificaciones push móviles nativas
+- Apps móviles nativas (solo PWA web)
+- Frameworks distintos de React (no Next.js, no Vue, no Angular)
+- Backend en Python, PHP, etc (solo Deno/TypeScript)
+- Base de datos SQL directa (usa entidades JSON schema)
+
 Feedback recibido:
 ${JSON.stringify(feedbackData, null, 2)}
 
-Proporciona un análisis estructurado, accionable y práctico.`,
+Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada que Base44 no pueda hacer.`,
         response_json_schema: {
           type: "object",
           properties: {
