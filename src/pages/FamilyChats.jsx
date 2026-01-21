@@ -30,32 +30,9 @@ export default function FamilyChats() {
     fetchUser();
   }, []);
 
-  // Contadores con estado (escuchan sistema unificado)
-  const [coordUnreadCount, setCoordUnreadCount] = useState(0);
-  const [coachUnreadCount, setCoachUnreadCount] = useState(0);
   const [activeTab, setActiveTab] = useState('coordinador');
   const [coordinatorKey, setCoordinatorKey] = useState(0);
   const [coachKey, setCoachKey] = useState(0);
-
-  useEffect(() => {
-    const init = () => {
-      try {
-        const s = window.__BASE44_UNIFIED_NOTIFICATIONS_STATE || {};
-        setCoordUnreadCount(Number(s.unreadCoordinatorForStaff || 0));
-        setCoachUnreadCount(Number(s.unreadCoachForStaff || 0));
-      } catch {}
-    };
-    init();
-    const handler = (e) => {
-      try {
-        const d = e?.detail || {};
-        setCoordUnreadCount(Number(d.unreadCoordinatorForStaff || 0));
-        setCoachUnreadCount(Number(d.unreadCoachForStaff || 0));
-      } catch {}
-    };
-    window.addEventListener('b44_unified_notifications_updated', handler);
-    return () => window.removeEventListener('b44_unified_notifications_updated', handler);
-  }, []);
 
   return (
     <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
@@ -64,16 +41,10 @@ export default function FamilyChats() {
           <TabsList className="w-full">
             <TabsTrigger value="coordinador" className="flex-1 relative">
               🏟️ Coordinador
-              {coordUnreadCount > 0 && (
-                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{coordUnreadCount}</Badge>
-              )}
             </TabsTrigger>
 
             <TabsTrigger value="entrenador" className="flex-1 relative">
               ⚽ Entrenador
-              {coachUnreadCount > 0 && (
-                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{coachUnreadCount}</Badge>
-              )}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -97,8 +68,6 @@ export default function FamilyChats() {
         </TabsContent>
 
          <TabsContent value="entrenador" className="relative flex-1 mt-0 overflow-hidden">
-           <BubbleBadge title="Nuevos mensajes de familias (Coordinador)" color="blue" position="left" count={coordUnreadCount} onClick={() => setActiveTab('coordinador')} />
-           <BubbleBadge title="Nuevos mensajes (Entrenador)" color="red" position="right" count={coachUnreadCount} onClick={() => setActiveTab('entrenador')} />
            {activeTab === 'entrenador' ? (
              <>
                {loading ? (
