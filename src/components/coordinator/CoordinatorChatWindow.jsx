@@ -122,7 +122,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         if ((conversation[field] || 0) > 0) {
           await base44.entities.CoordinatorConversation.update(conversation.id, { [field]: 0 });
         }
-        await queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
       } catch {}
     })();
   }, [messages, conversation?.id, isCoordinator]);
@@ -190,7 +189,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             });
           }
 
-          queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
           queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
         }
 
@@ -680,7 +678,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       // Refetch INMEDIATO sin esperar
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
-        queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
         queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
       ]);
     },
