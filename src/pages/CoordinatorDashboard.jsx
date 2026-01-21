@@ -159,52 +159,52 @@ export default function CoordinatorDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 lg:gap-2">
               <Link to={createPageUrl("Chatbot")} className="flex-1">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[90px]">
-                  <p className="text-lg font-bold mb-1">🤖</p>
-                  <p className="text-xs font-bold text-center">Asistente</p>
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
+                  <p className="text-base font-bold mb-0.5">🤖</p>
+                  <p className="text-[10px] font-bold text-center">Asistente</p>
                 </div>
               </Link>
 
               <Link to={createPageUrl("CoordinatorChat")} className="flex-1">
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[90px]">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                    {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
-                     <div className="absolute -top-2 -left-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                       <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorForStaff}</span>
+                     <div className="absolute -top-2 -left-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                       <span className="text-white text-[10px] font-bold">{notifications.unreadCoordinatorForStaff}</span>
                      </div>
                    )}
-                   <p className="text-lg font-bold mb-1">💬</p>
-                   <p className="text-xs font-bold text-center">Familias</p>
-                   <p className="text-[10px] text-blue-100 text-center">Coordinador</p>
+                   <p className="text-base font-bold mb-0.5">💬</p>
+                   <p className="text-[10px] font-bold text-center">Familias</p>
+                   <p className="text-[8px] text-blue-100 text-center">Coord</p>
                 </div>
               </Link>
 
               {user?.es_entrenador && (
                 <Link to={createPageUrl("CoachParentChat")} className="flex-1">
-                  <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[90px]">
+                  <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                      {(notifications?.unreadCoachForStaff || 0) > 0 && (
-                       <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                         <span className="text-white text-xs font-bold">{notifications.unreadCoachForStaff}</span>
+                       <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                         <span className="text-white text-[10px] font-bold">{notifications.unreadCoachForStaff}</span>
                        </div>
                      )}
-                     <p className="text-lg font-bold mb-1">⚽</p>
-                     <p className="text-xs font-bold text-center">Familias</p>
-                     <p className="text-[10px] text-red-100 text-center">Entrenador</p>
+                     <p className="text-base font-bold mb-0.5">⚽</p>
+                     <p className="text-[10px] font-bold text-center">Familias</p>
+                     <p className="text-[8px] text-red-100 text-center">Entrena</p>
                   </div>
                 </Link>
               )}
 
               <Link to={createPageUrl("StaffChat")} className="flex-1">
-                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[90px]">
+                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                   {(notifications?.unreadStaffMessages || 0) > 0 && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadStaffMessages}</span>
+                    <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <span className="text-white text-[10px] font-bold">{notifications.unreadStaffMessages}</span>
                     </div>
                   )}
-                  <p className="text-lg font-bold mb-1">💼</p>
-                  <p className="text-xs font-bold text-center">Staff</p>
-                  <p className="text-[10px] text-slate-100 text-center">Interno</p>
+                  <p className="text-base font-bold mb-0.5">💼</p>
+                  <p className="text-[10px] font-bold text-center">Staff</p>
+                  <p className="text-[8px] text-slate-100 text-center">Interno</p>
                 </div>
               </Link>
             </div>
