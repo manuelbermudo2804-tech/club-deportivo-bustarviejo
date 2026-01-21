@@ -1327,21 +1327,22 @@ export default function Layout({ children, currentPageName }) {
 
 
   const coordinatorNavigationItems = [
-                // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
-                ...(programaSociosActivo && isMemberPaid ? [{ 
-                  title: "🎫 MI CARNET DE SOCIO", 
-                  url: createPageUrl("MemberCardDisplay"), 
-                  icon: Users,
-                  highlight: true
-                }] : []),
+                  // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
+                  ...(programaSociosActivo && isMemberPaid ? [{ 
+                    title: "🎫 MI CARNET DE SOCIO", 
+                    url: createPageUrl("MemberCardDisplay"), 
+                    icon: Users,
+                    highlight: true
+                  }] : []),
 
-                // 🏠 INICIO
-                { title: "🏠 Inicio", url: createPageUrl("CoordinatorDashboard"), icon: Home },
+                  // 🏠 INICIO
+                  { title: "🏠 Inicio", url: createPageUrl("CoordinatorDashboard"), icon: Home },
 
-    // 💬 CHATS
-    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "💬 Chat Familias", url: createPageUrl("FamilyChats"), icon: MessageCircle },
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
+      // 💬 CHATS
+      { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
+      { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell },
+      { title: "👨‍👩‍👧 Chat Familias", url: createPageUrl("CoordinatorFamilyChat"), icon: MessageCircle },
+      { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
 
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
