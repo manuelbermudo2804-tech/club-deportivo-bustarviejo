@@ -20,6 +20,7 @@ import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } 
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
+import PendingTasksBar from "../components/notifications/PendingTasksBar";
 
 
 
@@ -437,6 +438,8 @@ export default function ParentDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
+        
+        <PendingTasksBar notifications={notifications} />
 
         {/* Banner Unificado de Chats */}
         {playersLoading ? (

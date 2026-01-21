@@ -14,6 +14,7 @@ import { useUnifiedNotifications } from "../components/notifications/useUnifiedN
 import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
+import PendingTasksBar from "../components/notifications/PendingTasksBar";
 
 
 export default function CoordinatorDashboard() {
@@ -124,6 +125,8 @@ export default function CoordinatorDashboard() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
         
+        <PendingTasksBar notifications={notifications} forceShow={true} />
+        
         {/* Header */}
 
         {/* Mini KPIs Staff (Coordinador) */}
@@ -169,9 +172,9 @@ export default function CoordinatorDashboard() {
 
               <Link to={createPageUrl("FamilyChats")} className="flex-1">
                 <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  {(notifications?.unreadCoordinatorMessages || 0) > 0 && (
+                  {(notifications?.unreadFamilyMessages || 0) > 0 && (
                     <div className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorMessages}</span>
+                      <span className="text-white text-xs font-bold">{notifications.unreadFamilyMessages}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold text-center mb-1">💬 Familias</p>
