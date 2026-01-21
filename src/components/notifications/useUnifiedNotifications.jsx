@@ -565,7 +565,7 @@ export function useUnifiedNotifications(user, options = {}) {
     };
 
     // Coordinator (para familias): usar counters de la conversación
-    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador) {
+    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && rawData.coordinatorConversations.length > 0) {
       rawData.coordinatorConversations.forEach(conv => {
         if (conv.padre_email === user.email && conv.resuelta !== true) {
           const c = (conv.no_leidos_padre || 0);
@@ -576,7 +576,7 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Coordinator (para coordinadores): mensajes de familias pendientes
-    if (user.es_coordinador) {
+    if (user.es_coordinador && rawData.coordinatorConversations.length > 0) {
       rawData.coordinatorConversations.forEach(conv => {
         const c = (conv.no_leidos_coordinador || 0);
         unreadCoordinator += c;
@@ -585,14 +585,14 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Coach (para entrenadores): mensajes en CoachConversation
-    if (user.es_entrenador) {
+    if (user.es_entrenador && rawData.coachConversations.length > 0) {
       rawData.coachConversations
         .filter(conv => conv.entrenador_email === user.email)
         .forEach(conv => { const c = (conv.no_leidos_entrenador || 0); unreadCoach += c; if (c>0) breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] = (breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] || 0) + c; });
     }
 
     // Coach (ChatMessage tipo entrenador_a_grupo)
-    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador) {
+    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && rawData.chatMessages.length > 0) {
       rawData.chatMessages.forEach(msg => {
         if (msg.tipo === 'entrenador_a_grupo' && 
             (myCategories.includes(msg.deporte) || myCategories.includes(msg.grupo_id)) &&
@@ -605,7 +605,7 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Families (para coach/coordinator)
-    if (user.es_entrenador || user.es_coordinador) {
+    if ((user.es_entrenador || user.es_coordinador) && rawData.chatMessages.length > 0) {
       // 1) Mensajes de familias en chats de grupo
       rawData.chatMessages.forEach(msg => {
         if (msg.tipo === 'padre_a_grupo' &&
@@ -618,14 +618,14 @@ export function useUnifiedNotifications(user, options = {}) {
       });
 
       // 2) Conversaciones directas con Coordinador (contadores propios)
-      if (user.es_coordinador) {
+      if (user.es_coordinador && rawData.coordinatorConversations.length > 0) {
         rawData.coordinatorConversations.forEach(conv => {
           unreadFamilies += (conv.no_leidos_coordinador || 0);
         });
       }
 
       // 3) Conversaciones directas con Entrenador (si también es entrenador)
-      if (user.es_entrenador) {
+      if (user.es_entrenador && rawData.coachConversations.length > 0) {
         rawData.coachConversations
           .filter(conv => conv.entrenador_email === user.email)
           .forEach(conv => { unreadFamilies += (conv.no_leidos_entrenador || 0); });
@@ -633,7 +633,7 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Staff - contar no leídos para Alert Center y tabs
-    if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin')) {
+    if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && rawData.staffMessages.length > 0) {
      rawData.staffMessages.forEach(msg => {
        if (msg.autor_email === user.email) return;
        const destinatarios = Array.isArray(msg.staff_destinatarios) ? msg.staff_destinatarios : null;
@@ -657,7 +657,7 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Admin (para familias): usar counter de conversación
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin' && rawData.adminConversations.length > 0) {
       rawData.adminConversations.forEach(conv => {
         if (conv.padre_email === user.email && conv.resuelta === false) {
           const c = (conv.no_leidos_padre || 0);
@@ -668,17 +668,19 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Private
-    rawData.privateConversations.forEach(conv => {
-      if (conv.participante_familia_email === user.email) {
-        const c = (conv.no_leidos_familia || 0);
-        unreadPrivate += c;
-        if (c>0) breakdown.privateByConv[conv.id] = c;
-      } else if (conv.participante_staff_email === user.email) {
-        const c = (conv.no_leidos_staff || 0);
-        unreadPrivate += c;
-        if (c>0) breakdown.privateByConv[conv.id] = c;
-      }
-    });
+    if (rawData.privateConversations.length > 0) {
+      rawData.privateConversations.forEach(conv => {
+        if (conv.participante_familia_email === user.email) {
+          const c = (conv.no_leidos_familia || 0);
+          unreadPrivate += c;
+          if (c>0) breakdown.privateByConv[conv.id] = c;
+        } else if (conv.participante_staff_email === user.email) {
+          const c = (conv.no_leidos_staff || 0);
+          unreadPrivate += c;
+          if (c>0) breakdown.privateByConv[conv.id] = c;
+        }
+      });
+    }
 
     // CONVOCATORIAS
     const today = new Date();
