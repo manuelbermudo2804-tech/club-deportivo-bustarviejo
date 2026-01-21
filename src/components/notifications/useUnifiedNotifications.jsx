@@ -553,108 +553,86 @@ export function useUnifiedNotifications(user, options = {}) {
 
     const coachCategories = user.categorias_entrena || [];
 
-    // CHATS
-    let unreadCoordinator = 0;
-    let unreadCoach = 0;
-    let unreadStaff = 0; // staff interno
-    const latestByGroup = new Map();
+    // CONTADORES COMPLETAMENTE SEPARADOS POR TIPO
+    let unreadCoordinatorForParent = 0;     // Familia lee mensajes del coordinador
+    let unreadCoordinatorForStaff = 0;      // Coordinador lee mensajes de familias
+    let unreadCoachForParent = 0;           // Familia lee mensajes del entrenador
+    let unreadCoachForStaff = 0;            // Entrenador lee mensajes de familias
+    let unreadStaff = 0;                    // Staff interno (coordinadores/entrenadores/admin)
     let unreadAdmin = 0;
     let unreadPrivate = 0;
-    let unreadFamilies = 0;
 
-    // Desgloses por conversación/grupo (para pestañas y burbujas)
     const breakdown = {
-      coordinatorByConvForCoordinator: {}, // convId -> count (coordinador)
-      coordinatorByConvForParent: {},      // convId -> count (familia)
-      coachGroupForCoach: {},              // grupo_id/deporte -> count (familias->grupo)
-      coachGroupForParent: {},             // grupo_id/deporte -> count (entrenador->grupo)
-      staffByGroup: {},                    // grupo/canal -> count
-      adminByConv: {},                     // convId -> count
-      privateByConv: {},                   // convId -> count por rol
+      coordinatorByConvForCoordinator: {},
+      coordinatorByConvForParent: {},
+      coachGroupForCoach: {},
+      coachGroupForParent: {},
+      staffByGroup: {},
+      adminByConv: {},
+      privateByConv: {},
     };
 
-    // Coordinator (para familias): usar counters de la conversación
-    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && rawData.coordinatorConversations.length > 0) {
-      rawData.coordinatorConversations.forEach(conv => {
-        if (conv.padre_email === user.email && conv.resuelta !== true) {
-          const c = (conv.no_leidos_padre || 0);
-          unreadCoordinator += c;
-          if (c > 0) breakdown.coordinatorByConvForParent[conv.id] = c;
-        }
-      });
-    }
-
-    // Coordinator (para coordinadores): mensajes de familias pendientes
-    if (user.es_coordinador && rawData.coordinatorConversations.length > 0) {
-      rawData.coordinatorConversations.forEach(conv => {
-        const c = (conv.no_leidos_coordinador || 0);
-        unreadCoordinator += c;
-        if (c > 0) breakdown.coordinatorByConvForCoordinator[conv.id] = c;
-      });
-    }
-
-    // Coach (para entrenadores): mensajes en CoachConversation
-    if (user.es_entrenador && rawData.coachConversations.length > 0) {
-      rawData.coachConversations
-        .filter(conv => conv.entrenador_email === user.email)
-        .forEach(conv => { const c = (conv.no_leidos_entrenador || 0); unreadCoach += c; if (c>0) breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] = (breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] || 0) + c; });
-    }
-
-    // Coach (ChatMessage tipo entrenador_a_grupo)
-    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && rawData.chatMessages.length > 0) {
-      rawData.chatMessages.forEach(msg => {
-        if (msg.tipo === 'entrenador_a_grupo' && 
-            (myCategories.includes(msg.deporte) || myCategories.includes(msg.grupo_id)) &&
-            (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
-          unreadCoach++;
-          const key = msg.grupo_id || msg.deporte || 'general';
-          breakdown.coachGroupForParent[key] = (breakdown.coachGroupForParent[key] || 0) + 1;
-        }
-      });
-    }
-
-    // Families - SEPARADO por tipo de chat (coordinador vs entrenador)
-    let unreadCoordinatorForStaff = 0;
-    let unreadCoachForStaff = 0;
-
-    if (user.es_coordinador && rawData.coordinatorConversations.length > 0) {
-      rawData.coordinatorConversations.forEach(conv => {
+    // === COORDINADOR - FAMILIAS ===
+    rawData.coordinatorConversations.forEach(conv => {
+      // Para familias: mensajes del coordinador no leídos
+      if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && conv.padre_email === user.email && conv.resuelta !== true) {
+        const c = (conv.no_leidos_padre || 0);
+        unreadCoordinatorForParent += c;
+        if (c > 0) breakdown.coordinatorByConvForParent[conv.id] = c;
+      }
+      // Para coordinadores: mensajes de familias no leídos
+      if (user.es_coordinador && !conv.archivada) {
         const c = (conv.no_leidos_coordinador || 0);
         unreadCoordinatorForStaff += c;
-      });
-    }
+        if (c > 0) breakdown.coordinatorByConvForCoordinator[conv.id] = c;
+      }
+    });
 
-    if (user.es_entrenador && rawData.coachConversations.length > 0) {
-      rawData.coachConversations
-        .filter(conv => conv.entrenador_email === user.email)
-        .forEach(conv => { 
-          const c = (conv.no_leidos_entrenador || 0);
-          unreadCoachForStaff += c;
-        });
-    }
+    // === ENTRENADOR - FAMILIAS (conversaciones directas) ===
+    rawData.coachConversations.forEach(conv => {
+      if (user.es_entrenador && conv.entrenador_email === user.email) {
+        const c = (conv.no_leidos_entrenador || 0);
+        unreadCoachForStaff += c;
+        if (c > 0) breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] = (breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] || 0) + c;
+      }
+    });
 
-    // Mensajes de grupo ChatMessage (padre_a_grupo)
-    if ((user.es_entrenador || user.es_coordinador) && rawData.chatMessages.length > 0) {
-      rawData.chatMessages.forEach(msg => {
-        if (msg.tipo === 'padre_a_grupo' &&
-            (coachCategories.includes(msg.deporte) || coachCategories.includes(msg.grupo_id)) &&
-            (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
-          unreadCoachForStaff++;
-          const key = msg.grupo_id || msg.deporte || 'general';
-          breakdown.coachGroupForCoach[key] = (breakdown.coachGroupForCoach[key] || 0) + 1;
-        }
-      });
-    }
+    // === ENTRENADOR - FAMILIAS (mensajes de grupo ChatMessage) ===
+    const myCategories = [...new Set(rawData.players
+      .filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email)
+      .map(p => p.categoria_principal || p.deporte))];
+    const coachCategories = user.categorias_entrena || [];
 
-    // LEGACY: suma total (mantener compatibilidad)
-    unreadFamilies = unreadCoordinatorForStaff + unreadCoachForStaff;
+    rawData.chatMessages.forEach(msg => {
+      // Para familias: mensajes del entrenador
+      if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && 
+          msg.tipo === 'entrenador_a_grupo' && 
+          (myCategories.includes(msg.deporte) || myCategories.includes(msg.grupo_id)) &&
+          (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
+        unreadCoachForParent++;
+        const key = msg.grupo_id || msg.deporte || 'general';
+        breakdown.coachGroupForParent[key] = (breakdown.coachGroupForParent[key] || 0) + 1;
+      }
+      
+      // Para entrenadores: mensajes de familias al grupo
+      if ((user.es_entrenador || user.es_coordinador) && 
+          msg.tipo === 'padre_a_grupo' &&
+          (coachCategories.includes(msg.deporte) || coachCategories.includes(msg.grupo_id)) &&
+          (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
+        unreadCoachForStaff++;
+        const key = msg.grupo_id || msg.deporte || 'general';
+        breakdown.coachGroupForCoach[key] = (breakdown.coachGroupForCoach[key] || 0) + 1;
+      }
+    });
 
-    // Staff - contar no leídos para Alert Center y tabs
+    // === STAFF INTERNO (coordinadores/entrenadores/admin) ===
+    // CRÍTICO: NO mezclar con otros contadores
     if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && rawData.staffMessages.length > 0) {
      rawData.staffMessages.forEach(msg => {
+       // Ignorar mis propios mensajes
        if (msg.autor_email === user.email) return;
+       
        const destinatarios = Array.isArray(msg.staff_destinatarios) ? msg.staff_destinatarios : null;
-       // Si no hay destinatarios, tratarlo como mensaje para todo el staff
        let autorizado = true;
        if (destinatarios && destinatarios.length > 0) {
          const soyCoord = user.es_coordinador === true;
@@ -665,8 +643,10 @@ export function useUnifiedNotifications(user, options = {}) {
                      (soyAdmin && destinatarios.includes('admin'));
        }
        if (!autorizado) return;
+       
        const isUnread = !msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email);
        if (!isUnread) return;
+       
        unreadStaff++;
        const key = msg.grupo_id || msg.categoria || 'general';
        breakdown.staffByGroup[key] = (breakdown.staffByGroup[key] || 0) + 1;
@@ -821,14 +801,15 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // ACTUALIZAR ESTADO (y publicar en global para otros consumidores)
     const next = {
-      unreadCoordinatorMessages: unreadCoordinator,
-      unreadCoachMessages: unreadCoach,
-      unreadStaffMessages: unreadStaff, // legacy; UI usa ChatCounter
+      // CHATS - separados por rol y tipo
+      unreadCoordinatorMessages: unreadCoordinatorForParent, // Para familias
+      unreadCoachMessages: unreadCoachForParent,             // Para familias
+      unreadStaffMessages: unreadStaff,                      // Staff interno
       unreadAdminMessages: unreadAdmin,
       unreadPrivateMessages: unreadPrivate,
-      unreadFamilyMessages: unreadFamilies, // legacy suma
-      unreadCoordinatorForStaff, // NUEVO: solo coordinador
-      unreadCoachForStaff,       // NUEVO: solo entrenador
+      unreadFamilyMessages: unreadCoordinatorForStaff + unreadCoachForStaff, // legacy suma
+      unreadCoordinatorForStaff,  // Para coordinadores: mensajes de familias
+      unreadCoachForStaff,         // Para entrenadores: mensajes de familias
       pendingCallups,
       pendingCallupResponses,
       pendingPayments,

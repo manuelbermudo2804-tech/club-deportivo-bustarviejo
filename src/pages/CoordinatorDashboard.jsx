@@ -43,9 +43,9 @@ export default function CoordinatorDashboard() {
   // ÚNICA fuente de verdad para TODAS las notificaciones
   const { notifications } = useUnifiedNotifications(user);
 
-  // TODOS los contadores vienen de useUnifiedNotifications
-  const unreadFamilyMessages = notifications?.unreadFamilyMessages || 0;
-  const unreadStaffMessages = notifications?.unreadStaffMessages || 0;
+  // CONTADORES CORRECTOS para coordinador
+  const unreadFamilyMessages = notifications?.unreadCoordinatorForStaff || 0; // Mensajes DE familias AL coordinador
+  const unreadStaffMessages = notifications?.unreadStaffMessages || 0;        // Chat staff interno
 
   // Fetch data SOLO para stats visuales (NO para contadores de notificaciones)
   const { data: allPlayers = [] } = useQuery({
