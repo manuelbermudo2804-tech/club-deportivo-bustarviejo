@@ -125,7 +125,7 @@ export default function ClubMembership() {
       setInvitadoPor(null);
       setFormData(prev => ({ ...prev, referido_por: "" }));
     }
-  }, [isCheckingAuth, user]);
+  }, [isCheckingAuth]);
 
   useEffect(() => {
     console.log('🔍 [ClubMembership] useEffect FETCH USER iniciado');
@@ -188,8 +188,10 @@ export default function ClubMembership() {
       }
     },
     enabled: Boolean(user?.email && !isPublicAccess),
-    staleTime: 600000,
+    staleTime: Infinity,
+    gcTime: 1800000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 1,
   });
 
@@ -207,11 +209,12 @@ export default function ClubMembership() {
         return null;
       }
     },
-    enabled: Boolean(!isCheckingAuth),
-    staleTime: 1800000,
+    enabled: !isCheckingAuth,
+    staleTime: Infinity,
+    gcTime: 3600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 1,
-    keepPreviousData: true,
   });
 
   const { data: allMemberships = [] } = useQuery({
@@ -227,11 +230,12 @@ export default function ClubMembership() {
         return [];
       }
     },
-    enabled: Boolean(seasonConfig?.temporada && (user?.email || showForm)),
-    staleTime: 1800000,
+    enabled: Boolean(seasonConfig?.temporada),
+    staleTime: Infinity,
+    gcTime: 3600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 1,
-    keepPreviousData: true,
   });
 
   // Detectar si el email ya fue socio en temporadas anteriores (para auto-marcar como renovación)
@@ -269,10 +273,11 @@ export default function ClubMembership() {
       }
     },
     enabled: Boolean(user?.email && !isPublicAccess),
-    staleTime: 600000,
+    staleTime: Infinity,
+    gcTime: 1800000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 1,
-    keepPreviousData: true,
   });
 
   // Detectar referidos históricos (que no renovaron) - Lazy load
@@ -294,10 +299,11 @@ export default function ClubMembership() {
       return historicRefs;
     },
     enabled: Boolean(user?.email && !isPublicAccess && seasonConfig?.temporada && myPlayers.length > 0 && allMemberships.length > 0),
-    staleTime: 1800000,
+    staleTime: Infinity,
+    gcTime: 3600000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 1,
-    keepPreviousData: true,
   });
 
   // Determinar si es un usuario externo (sin autenticación o sin hijos en el club)
