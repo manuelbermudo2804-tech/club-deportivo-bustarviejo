@@ -588,10 +588,7 @@ export function useUnifiedNotifications(user, options = {}) {
       }
     });
 
-    // FALLBACK: Si coordinador tiene AppNotifications de nuevos mensajes, marcar como no leído
-    if (user.es_coordinador && appNotificationsCount > 0) {
-      unreadCoordinatorForStaff = Math.max(unreadCoordinatorForStaff, 1);
-    }
+
 
     // === ENTRENADOR - FAMILIAS (conversaciones directas) ===
     rawData.coachConversations.forEach(conv => {
