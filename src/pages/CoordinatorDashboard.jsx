@@ -6,29 +6,14 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_COORDINATOR_BUTTONS, DEFAULT_COORDINATOR_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/CoordinatorDashboardButtons";
-
-import { 
-  Users, 
-  Calendar, 
-  Trophy,
-  MessageCircle,
-  Sparkles,
-  Bell,
-  AlertCircle,
-  Image,
-  FileText,
-  Megaphone
-} from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import ContactCard from "../components/ContactCard";
 import MiniKPIBanner from "../components/dashboard/MiniKPIBanner";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
-import AlertCenter from "../components/dashboard/AlertCenter";
 import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
-import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 
 
 export default function CoordinatorDashboard() {
@@ -55,9 +40,10 @@ export default function CoordinatorDashboard() {
     fetchUser();
   }, []);
 
+  // ÚNICA fuente de verdad para TODAS las notificaciones
   const { notifications } = useUnifiedNotifications(user);
 
-  // Fetch data
+  // Fetch data SOLO para stats visuales (NO para contadores de notificaciones)
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
@@ -74,76 +60,8 @@ export default function CoordinatorDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: allCallups = [] } = useQuery({
-    queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido', 120),
-    enabled: !!user,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: allStandings = [] } = useQuery({
-    queryKey: ['standings'],
-    queryFn: () => base44.entities.Clasificacion.list('-jornada', 200),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    enabled: !!user,
-  });
-
-  // (legacy) coordinator conversations query not needed for badge; keep for other uses if any
-  const { data: coordinatorConversations = [] } = useQuery({
-    queryKey: ['coordinatorConversations'],
-    queryFn: () => base44.entities.CoordinatorConversation.list(),
-    enabled: false,
-  });
-
-  const { data: allSurveys = [] } = useQuery({
-    queryKey: ['surveys'],
-    queryFn: () => base44.entities.Survey.list('-created_date', 10),
-    enabled: !!user,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: allMatchObservations = [] } = useQuery({
-    queryKey: ['matchObservations'],
-    queryFn: () => base44.entities.MatchObservation.list('-updated_date', 60),
-    enabled: !!user,
-    refetchOnWindowFocus: false,
-    staleTime: 300000,
-  });
-
-  const { data: allPayments = [] } = useQuery({
-    queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list('-created_date', 200),
-    enabled: !!user && hasPlayers,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: allCoordConvs = [] } = useQuery({
-    queryKey: ['coordinatorConversationsAll'],
-    queryFn: () => base44.entities.CoordinatorConversation.list('-updated_date', 100),
-    enabled: !!user && hasPlayers,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-  });
-
-  // (legacy) coach conversations query not needed for badge; keeping other data intact
-  const { data: allCoachConvs = [] } = useQuery({
-    queryKey: ['coachConversations'],
-    queryFn: () => base44.entities.CoachConversation.list(),
-    enabled: false,
-  });
-
-  const { data: allAdminConvs = [] } = useQuery({
-    queryKey: ['adminConversations'],
-    queryFn: () => base44.entities.AdminConversation.list('-updated_date', 100),
-    enabled: !!user && hasPlayers,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-  });
+  // ÚNICA fuente de verdad para TODAS las notificaciones
+  const { notifications } = useUnifiedNotifications(user);
 
   const { data: buttonConfigs = [] } = useQuery({
     queryKey: ['dashboardButtonConfig', user?.email],
@@ -180,145 +98,28 @@ export default function CoordinatorDashboard() {
     },
   });
 
-  // Unread from unified hook (familias → coord + entrenador)
+  // TODOS los contadores vienen de useUnifiedNotifications
   const unreadFamilyMessages = notifications?.unreadFamilyMessages || 0;
-  const unreadStaff = notifications?.unreadStaffMessages || 0;
+  const unreadStaffMessages = notifications?.unreadStaffMessages || 0;
 
-  // Staff unread for badge
-  const { data: staffConversationCoord } = useQuery({
-    queryKey: ['staffConversationCoordinator'],
-    queryFn: async () => {
-      const convs = await base44.entities.StaffConversation.filter({ categoria: 'General' });
-      return convs[0] || null;
-    },
+  // Fetch SOLO para stats visuales
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['players'],
+    queryFn: () => base44.entities.Player.list(),
     enabled: !!user,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
-  const { data: staffMessagesCoord = [] } = useQuery({
-    queryKey: ['staffMessagesCoordinator', staffConversationCoord?.id],
-    queryFn: async () => {
-      if (!staffConversationCoord?.id) return [];
-      return await base44.entities.StaffMessage.filter({ conversacion_id: staffConversationCoord.id }, 'created_date');
-    },
-    enabled: !!user && !!staffConversationCoord?.id,
+  const { data: allEvents = [] } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => base44.entities.Event.list('-fecha', 200),
+    enabled: !!user,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
-  const unreadStaffMessages = React.useMemo(() => {
-    return (staffMessagesCoord || []).filter(m =>
-      m.autor_email !== user?.email && !(m.leido_por || []).some(l => l.email === user?.email)
-    ).length;
-  }, [staffMessagesCoord, user?.email]);
-
-  // Legacy coach unread counter removed (using unified notifications)
-  const unreadCoachMessages = 0;
-
-  // Total mensajes de familias (coordinador + entrenador) - centralizado
-  // (Usamos notifications.unreadFamilyMessages)
-  // const unreadFamilyMessages = unreadCoordinatorMessages + unreadCoachMessages;
-
-  // Convocatorias pendientes de respuesta
-  const pendingCallupResponses = useMemo(() => {
-    let count = 0;
-    allCallups.forEach(callup => {
-      if (!callup.publicada || callup.cerrada) return;
-      callup.jugadores_convocados?.forEach(j => {
-        if (j.confirmacion === "pendiente") count++;
-      });
-    });
-    return count;
-  }, [allCallups]);
-
-  // Observaciones post-partido pendientes
-  const pendingMatchObservations = useMemo(() => {
-    const now = new Date();
-    return allCallups.filter(callup => {
-      if (!callup.publicada || callup.cerrada) return false;
-      const matchDate = new Date(callup.fecha_partido);
-      if (matchDate > now) return false;
-      
-      if (callup.hora_partido) {
-        const [hours, minutes] = callup.hora_partido.split(':').map(Number);
-        const matchStart = new Date(matchDate);
-        matchStart.setHours(hours, minutes, 0, 0);
-        const matchEnd = new Date(matchStart.getTime() + 135 * 60000);
-        if (now < matchEnd) return false;
-      }
-      
-      const hasObservation = allMatchObservations.some(obs =>
-        obs.categoria === callup.categoria &&
-        obs.rival === callup.rival &&
-        obs.fecha_partido === callup.fecha_partido
-      );
-      return !hasObservation;
-    }).length;
-  }, [allCallups, allMatchObservations]);
-
-  // Encuestas activas
-  const activeSurveys = useMemo(() => 
-    allSurveys.filter(s => s.activa && new Date(s.fecha_fin) >= new Date()).length,
-    [allSurveys]
-  );
-
-  // Stats como PADRE (si tiene hijos)
-  const myParentPlayers = useMemo(() => 
-    hasPlayers ? allPlayers.filter(p => 
-      (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo
-    ) : [],
-    [hasPlayers, allPlayers, user?.email]
-  );
-
-  const myPlayersSports = useMemo(() => 
-    [...new Set(myParentPlayers.map(p => p.deporte))],
-    [myParentPlayers]
-  );
-
-  const parentStats = useMemo(() => {
-    if (!hasPlayers) return {};
-
-    const myPlayerIds = myParentPlayers.map(p => p.id);
-
-    const myCallups = allCallups.filter(c => {
-      return c.jugadores_convocados?.some(j => myPlayerIds.includes(j.jugador_id));
-    });
-
-    const pendingCallups = myCallups.filter(c => {
-      return c.jugadores_convocados?.some(j => 
-        myPlayerIds.includes(j.jugador_id) && j.confirmacion === "pendiente"
-      );
-    }).length;
-
-    // Usar helper centralizado
-    const { pendingPayments, overduePayments, paymentsInReview } = calculatePaymentStats(allPayments, myPlayerIds);
-
-    const pendingSignatures = myParentPlayers.filter(p =>
-      (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
-      (p.enlace_firma_tutor && !p.firma_tutor_completada)
-    ).length;
-
-    const myCoordConv = allCoordConvs.find(c => c.padre_email === user?.email);
-    const unreadCoordinator = myCoordConv?.no_leidos_padre || 0;
-
-    const myCoachConv = allCoachConvs.find(c => c.padre_email === user?.email);
-    const unreadCoach = myCoachConv?.no_leidos_padre || 0;
-
-    const myAdminConv = allAdminConvs.find(c => c.padre_email === user?.email && !c.resuelta);
-    const hasActiveAdminChat = !!myAdminConv;
-    const unreadAdmin = myAdminConv?.no_leidos_padre || 0;
-
-    return {
-      pendingCallups,
-      pendingPayments,
-      paymentsInReview,
-      overduePayments,
-      pendingSignatures,
-      unreadCoordinator,
-      unreadCoach,
-      unreadAdmin,
-      hasActiveAdminChat,
-    };
-  }, [hasPlayers, allCallups, allPayments, myParentPlayers, allCoordConvs, allCoachConvs, allAdminConvs, user?.email]);
-
-  // Stats globales
+  // Stats globales (SOLO visuales)
   const stats = useMemo(() => {
     const activePlayers = allPlayers.filter(p => p.activo === true);
     const categories = [...new Set(activePlayers.map(p => p.deporte))].filter(Boolean);
@@ -337,46 +138,6 @@ export default function CoordinatorDashboard() {
     };
   }, [allPlayers, allEvents]);
 
-  // Próximos eventos
-  const upcomingEvents = useMemo(() => {
-    const now = new Date();
-    return allEvents
-      .filter(e => new Date(e.fecha) >= now && e.publicado)
-      .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
-      .slice(0, 5);
-  }, [allEvents]);
-
-  // Próximas convocatorias
-  const upcomingCallups = useMemo(() => {
-    const now = new Date();
-    return allCallups
-      .filter(c => new Date(c.fecha_partido) >= now && c.publicada)
-      .sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido))
-      .slice(0, 5);
-  }, [allCallups]);
-
-  // Clasificaciones por categoría (última jornada)
-  const standingsByCategory = useMemo(() => {
-    const byCategory = {};
-    allStandings.forEach(s => {
-      if (!byCategory[s.categoria]) {
-        byCategory[s.categoria] = [];
-      }
-      byCategory[s.categoria].push(s);
-    });
-    
-    // Ordenar y obtener solo última jornada
-    Object.keys(byCategory).forEach(cat => {
-      const maxJornada = Math.max(...byCategory[cat].map(s => s.jornada));
-      byCategory[cat] = byCategory[cat]
-        .filter(s => s.jornada === maxJornada)
-        .sort((a, b) => a.posicion - b.posicion)
-        .slice(0, 5); // Top 5
-    });
-    
-    return byCategory;
-  }, [allStandings]);
-
 
 
   return (
@@ -389,23 +150,13 @@ export default function CoordinatorDashboard() {
 
         {/* Mini KPIs Staff (Coordinador) */}
         {user && (
-          (() => {
-            const att30 = 0;
-            const attTone = att30 >= 80 ? 'green' : att30 >= 65 ? 'amber' : 'red';
-
-            const pending = (notifications?.pendingCallupResponses ?? pendingCallupResponses) || 0;
-            const pendingTone = pending === 0 ? 'green' : pending <= 10 ? 'amber' : 'red';
-
-            return (
-              <MiniKPIBanner
-                className="mt-1"
-                items={[
-                  { label: 'asistencia 30d', value: `${att30}%`, tone: attTone },
-                  { label: 'respuestas conv.', value: pending, tone: pendingTone },
-                ]}
-              />
-            );
-          })()
+          <MiniKPIBanner
+            className="mt-1"
+            items={[
+              { label: 'asistencia 30d', value: '0%', tone: 'red' },
+              { label: 'respuestas conv.', value: notifications?.pendingCallupResponses || 0, tone: (notifications?.pendingCallupResponses || 0) === 0 ? 'green' : (notifications?.pendingCallupResponses || 0) <= 10 ? 'amber' : 'red' },
+            ]}
+          />
         )}
 
         <div className="text-center lg:text-left">
@@ -417,7 +168,7 @@ export default function CoordinatorDashboard() {
           </p>
         </div>
 
-        {/* Banner de Chats - IDÉNTICO A PARENTDASHBOARD */}
+        {/* Banner de Chats - FUENTE ÚNICA */}
         <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center gap-3 mb-3">
@@ -435,12 +186,8 @@ export default function CoordinatorDashboard() {
             </div>
             
             <div className="grid grid-cols-3 gap-2">
-              {/* Bubble should reflect both coach+coordinator family messages */}
               <Link to={createPageUrl("Chatbot")} className="flex-1">
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col justify-center">
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-                    <Sparkles className="w-3 h-3 text-white" />
-                  </div>
                   <p className="text-sm font-bold text-center mb-1">🤖 Asistente</p>
                   <p className="text-xs text-indigo-100 text-center">Consulta IA</p>
                 </div>

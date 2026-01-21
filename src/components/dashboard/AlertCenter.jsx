@@ -30,8 +30,6 @@ import {
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { useUnifiedNotifications } from "../notifications/useUnifiedNotifications";
-import { useStaffCounters } from "../chats/useChatCounters";
 
 export default function AlertCenter({ 
   pendingCallups = 0,
@@ -60,6 +58,7 @@ export default function AlertCenter({
   hasActiveAdminChat = false,
   pendingMatchObservations = 0,
   unresolvedAdminChats = 0,
+  unreadStaffMessages = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true,
@@ -68,12 +67,8 @@ export default function AlertCenter({
   userEmail = null,
   userSports = []
 }) {
-  // Usuario actual (para unificar origen de notificaciones)
+  // Usuario para queries específicas (NO para contadores - vienen por props)
   const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
-  // Contadores unificados (mismo origen que las burbujas del menú)
-  const { notifications } = useUnifiedNotifications(meUser);
-  // Contador STAFF en tiempo real desde ChatCounter (misma fuente que la burbuja)
-  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: true });
   
   // Real-time subscriptions eliminadas para evitar duplicar cargas (nos apoyamos en useUnifiedNotifications + bus global)
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -96,48 +91,6 @@ useEffect(() => {
 const alerts = [];
 
   const isJuntaUser = meUser?.es_junta === true;
-
-
-  // Cálculo automático de partidos sin registrar (coach)
-  const { data: coachPendingObs = 0 } = useQuery({
-    queryKey: ['coach-pending-match-obs', isCoach ? userEmail : null],
-    enabled: isCoach && !!userEmail,
-    refetchInterval: 30000,
-    queryFn: async () => {
-      try {
-        const allCallups = await base44.entities.Convocatoria.filter({ entrenador_email: userEmail, publicada: true }, '-fecha_partido', 200);
-        const allObservations = await base44.entities.MatchObservation.list('-updated_date', 500);
-        const now = new Date();
-        const count = (allCallups || []).filter(c => {
-          const matchDate = new Date(c.fecha_partido);
-          if (matchDate > now) return false;
-          if (c.hora_partido) {
-            const [h, m] = (c.hora_partido || '00:00').split(':').map(Number);
-            const start = new Date(matchDate);
-            start.setHours(h || 0, m || 0, 0, 0);
-            const end = new Date(start.getTime() + 135 * 60000);
-            if (now < end) return false;
-          } else {
-            const nextDay = new Date(matchDate);
-            nextDay.setDate(nextDay.getDate() + 1);
-            if (now < nextDay) return false;
-          }
-          const hasObservation = (allObservations || []).some(obs =>
-            obs.categoria === c.categoria &&
-            obs.rival === c.rival &&
-            obs.fecha_partido === c.fecha_partido &&
-            obs.entrenador_email === userEmail
-          );
-          return !hasObservation;
-        }).length;
-        return count;
-      } catch {
-        return 0;
-      }
-    }
-  });
-
-  const pendingObs = Math.max(pendingMatchObservations || 0, coachPendingObs || 0);
 
   // Fetch announcements
   const { data: announcements = [] } = useQuery({
@@ -226,14 +179,13 @@ const alerts = [];
     }
   }
 
-  // ALERTAS DE CHATS (mismo criterio que las burbujas del menú)
-  const staffCount = staffTotal || notifications?.unreadStaffMessages || 0;
-  if ((isAdmin || isCoach || isCoordinator) && staffCount > 0) {
+  // ALERTAS DE CHATS (TODOS vienen de props - fuente única)
+  if ((isAdmin || isCoach || isCoordinator) && unreadStaffMessages > 0) {
     alerts.push({
       id: 'staff-chat',
       icon: MessageCircle,
       title: '💼 Chat Interno Staff',
-      description: `${staffCount} mensaje${staffCount > 1 ? 's' : ''} sin leer`,
+      description: `${unreadStaffMessages} mensaje${unreadStaffMessages > 1 ? 's' : ''} sin leer`,
       url: createPageUrl('StaffChat'),
       color: 'bg-purple-600',
       priority: 1,
@@ -241,40 +193,37 @@ const alerts = [];
     });
   }
 
-  const coordCount = notifications?.unreadCoordinatorMessages || 0;
-  if (isCoordinator && coordCount > 0) {
+  if (isCoordinator && unreadCoordinatorMessages > 0) {
     alerts.push({
       id: 'coordinator-chat',
       icon: MessageCircle,
-      title: '💬 Mensajes de Familias',
-      description: `${coordCount} mensaje${coordCount > 1 ? 's' : ''} sin leer`,
-      url: createPageUrl('CoordinatorChat'),
+      title: '💬 Mensajes de Familias (Coordinador)',
+      description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
+      url: createPageUrl('FamilyChats'),
       color: 'bg-cyan-500',
       priority: 1,
       sticky: true,
     });
   }
 
-  const familiesToCoach = notifications?.unreadFamilyMessages || 0;
-  if (isCoach && familiesToCoach > 0) {
+  if (isCoach && unreadCoachMessages > 0) {
     alerts.push({
       id: 'families-chat-coach',
       icon: MessageCircle,
-      title: '👨‍👩‍👧 Mensajes de Familias',
-      description: `${familiesToCoach} mensaje${familiesToCoach > 1 ? 's' : ''} sin leer`,
-      url: createPageUrl('CoachParentChat'),
+      title: '👨‍👩‍👧 Mensajes de Familias (Entrenador)',
+      description: `${unreadCoachMessages} mensaje${unreadCoachMessages > 1 ? 's' : ''} sin leer`,
+      url: createPageUrl('FamilyChats'),
       color: 'bg-blue-600',
       priority: 1,
     });
   }
 
-  const adminCount = notifications?.unreadAdminMessages || 0;
-  if (isAdmin && adminCount > 0) {
+  if (isAdmin && unreadAdminMessages > 0) {
     alerts.push({
       id: 'admin-chat',
       icon: ShieldAlert,
       title: '🛡️ Mensajes del Administrador',
-      description: `${adminCount} mensaje${adminCount > 1 ? 's' : ''} sin leer`,
+      description: `${unreadAdminMessages} mensaje${unreadAdminMessages > 1 ? 's' : ''} sin leer`,
       url: createPageUrl('AdminChat'),
       color: 'bg-red-600',
       priority: 0,
@@ -282,27 +231,24 @@ const alerts = [];
   }
 
   if (isParent && !isAdmin) {
-    const privateCount = notifications?.unreadPrivateMessages || 0;
-    if (privateCount > 0) {
+    if (unreadPrivateMessages > 0) {
       alerts.push({
         id: 'private-messages',
         icon: Bell,
         title: '🔔 Mensajes del Club',
-        description: `${privateCount} mensaje${privateCount > 1 ? 's' : ''} sin leer`,
+        description: `${unreadPrivateMessages} mensaje${unreadPrivateMessages > 1 ? 's' : ''} sin leer`,
         url: createPageUrl('ParentSystemMessages'),
         color: 'bg-purple-500',
         priority: 1,
       });
     }
 
-    // NUEVO: Mensajes del Coordinador para familias
-    const coordinatorToParent = notifications?.unreadCoordinatorMessages || 0;
-    if (coordinatorToParent > 0) {
+    if (unreadCoordinatorMessages > 0) {
       alerts.push({
         id: 'coordinator-chat-parent',
         icon: MessageCircle,
         title: '🎓 Mensajes del Coordinador',
-        description: `${coordinatorToParent} mensaje${coordinatorToParent > 1 ? 's' : ''} sin leer`,
+        description: `${unreadCoordinatorMessages} mensaje${unreadCoordinatorMessages > 1 ? 's' : ''} sin leer`,
         url: createPageUrl('ParentCoordinatorChat'),
         color: 'bg-cyan-500',
         priority: 1,
@@ -310,13 +256,12 @@ const alerts = [];
       });
     }
 
-    const coachToParent = notifications?.unreadCoachMessages || 0;
-    if (coachToParent > 0) {
+    if (unreadCoachMessages > 0) {
       alerts.push({
         id: 'coach-chat-parent',
         icon: MessageCircle,
         title: '⚽ Mensajes del Entrenador',
-        description: `${coachToParent} mensaje${coachToParent > 1 ? 's' : ''} sin leer`,
+        description: `${unreadCoachMessages} mensaje${unreadCoachMessages > 1 ? 's' : ''} sin leer`,
         url: createPageUrl('ParentCoachChat'),
         color: 'bg-blue-500',
         priority: 1,
@@ -402,12 +347,12 @@ const alerts = [];
         priority: 1
       });
     }
-    if (pendingObs > 0) {
+    if (pendingMatchObservations > 0) {
       alerts.push({
         id: "match-observations",
         icon: BarChart3,
         title: "📊 Partidos sin registrar",
-        description: `${pendingObs} partido${pendingObs > 1 ? 's' : ''} pendiente${pendingObs > 1 ? 's' : ''} de observación`,
+        description: `${pendingMatchObservations} partido${pendingMatchObservations > 1 ? 's' : ''} pendiente${pendingMatchObservations > 1 ? 's' : ''} de observación`,
         url: createPageUrl("CoachStandingsAnalysis"),
         color: "bg-red-600",
         priority: 1,
@@ -710,9 +655,8 @@ const alerts = [];
   // Ordenar por prioridad
   alerts.sort((a, b) => a.priority - b.priority);
   const alertsWithKeys = alerts.map((a) => ({ ...a, _key: `${a.id}:${a.description}` }));
-  // Si el contador global ya es 0 para un tipo, no mostrar su alerta (sincroniza con burbuja)
+  // Filtrar solo por dismissed (los contadores ya vienen de fuente única)
   const visibleAlerts = alertsWithKeys.filter((a) => {
-    if (a.id === 'staff-chat' && (notifications?.unreadStaffMessages || 0) === 0) return false;
     return a.sticky || !dismissedAlerts.has(a._key);
   });
 

@@ -1,8 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useStaffCounters, useCoachCounters, useCoordinatorCounters, useFamilyCounters, usePrivateCounters, useAdminCounters } from "../chats/useChatCounters";
-import { MessageCircle, ShieldAlert, Users, Briefcase } from "lucide-react"; // icons kept for future use
 
 const Chip = ({ label, count = 0, color, onClick }) => {
   return (
@@ -19,28 +17,23 @@ const Chip = ({ label, count = 0, color, onClick }) => {
 
 export default function PendingTasksBar({ notifications, forceShow = false }) {
   const navigate = useNavigate();
+  
+  // TODOS los contadores vienen de notifications (fuente única)
+  const coordTotal = notifications?.unreadCoordinatorMessages || 0;
+  const coachTotal = notifications?.unreadCoachMessages || 0;
+  const staffTotal = notifications?.unreadStaffMessages || 0;
+  const adminTotal = notifications?.unreadAdminMessages || 0;
+  const privateTotal = notifications?.unreadPrivateMessages || 0;
+  const familyTotal = notifications?.unreadFamilyMessages || 0;
+
   const role = notifications?.role;
   const isCoordinator = notifications?.isCoordinator;
   const isCoach = notifications?.isCoach;
-
-  console.log('🟢 [PendingTasksBar] Renderizando con:', { role, isCoordinator, isCoach });
-
-  // Counters independientes por chat
-  const { total: staffTotal } = useStaffCounters({ refetchOnFocus: false });
-  const { total: coachTotal } = useCoachCounters({ refetchOnFocus: false });
-  const { total: coordTotal } = useCoordinatorCounters({ refetchOnFocus: false });
-  const { total: familyTotal } = useFamilyCounters({ refetchOnFocus: false });
-  const { total: privateTotal } = usePrivateCounters({ refetchOnFocus: false });
-  const { total: adminTotal } = useAdminCounters({ refetchOnFocus: false });
-
-  console.log('🟢 [PendingTasksBar] Contadores:', { staffTotal, coachTotal, coordTotal, familyTotal, privateTotal, adminTotal });
 
   const total = coordTotal + coachTotal + staffTotal + adminTotal + privateTotal + familyTotal;
   
   // SIEMPRE mostrar para admin, coordinador y entrenador (aunque no haya mensajes)
   const shouldShow = (forceShow === true) || (role === 'admin' || isCoordinator === true || isCoach === true || total > 0);
-  
-  console.log('🟢 [PendingTasksBar] shouldShow:', shouldShow, 'total:', total);
   
   if (!shouldShow) return null;
 

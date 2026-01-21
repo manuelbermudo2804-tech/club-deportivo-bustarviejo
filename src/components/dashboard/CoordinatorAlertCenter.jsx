@@ -13,18 +13,14 @@ export default function CoordinatorAlertCenter({ user }) {
 
   const hasParentTasks = user?.tiene_hijos_jugando === true;
   
-  // Extraer contadores sanitizados del hook unificado
-  const parentPendingCallups = hasParentTasks ? (notifications.pendingCallups || 0) : 0;
-  const parentPendingPayments = hasParentTasks ? (notifications.pendingPayments || 0) : 0;
-  const parentPaymentsInReview = hasParentTasks ? (notifications.paymentsInReview || 0) : 0;
-  const parentOverduePayments = hasParentTasks ? (notifications.overduePayments || 0) : 0;
-  const parentPendingSignatures = hasParentTasks ? (notifications.pendingSignatures || 0) : 0;
-  const unreadPrivate = hasParentTasks ? (notifications.unreadPrivateMessages || 0) : 0;
-  const hasAdminChat = hasParentTasks ? (notifications.hasActiveAdminConversation || false) : false;
-  
-  const coordPendingResponses = notifications.pendingCallupResponses || 0;
-  const coordPendingObservations = notifications.pendingMatchObservations || 0;
-  const coordUnreadFamily = notifications.unreadFamilyMessages || 0;
+  console.log('🎓 [CoordinatorAlertCenter] Datos unificados:', {
+    hasParentTasks,
+    parentCallups: notifications.pendingCallups,
+    coordResponses: notifications.pendingCallupResponses,
+    coordObs: notifications.pendingMatchObservations,
+    familyUnread: notifications.unreadFamilyMessages,
+    staffUnread: notifications.unreadStaffMessages,
+  });
   
   return (
     <Card className="border-2 border-orange-200 bg-white shadow-lg overflow-hidden">
@@ -34,15 +30,17 @@ export default function CoordinatorAlertCenter({ user }) {
           {hasParentTasks && (
             <RoleAlertBlock color="blue" icon="👨‍👩‍👧" title="Mis Tareas como Padre" subtitle="Gestión familiar">
               <AlertCenter 
-                pendingCallups={parentPendingCallups}
-                pendingPayments={parentPendingPayments}
-                paymentsInReview={parentPaymentsInReview}
-                overduePayments={parentOverduePayments}
-                pendingSignatures={parentPendingSignatures}
-                unreadPrivateMessages={unreadPrivate}
-                unreadCoordinatorMessages={0}
-                unreadAdminMessages={0}
-                hasActiveAdminChat={hasAdminChat}
+                pendingCallups={notifications.pendingCallups || 0}
+                pendingPayments={notifications.pendingPayments || 0}
+                paymentsInReview={notifications.paymentsInReview || 0}
+                overduePayments={notifications.overduePayments || 0}
+                pendingSignatures={notifications.pendingSignatures || 0}
+                unreadPrivateMessages={notifications.unreadPrivateMessages || 0}
+                unreadCoordinatorMessages={notifications.unreadCoordinatorMessages || 0}
+                unreadCoachMessages={notifications.unreadCoachMessages || 0}
+                unreadAdminMessages={notifications.unreadAdminMessages || 0}
+                hasActiveAdminChat={notifications.hasActiveAdminConversation || false}
+                unreadStaffMessages={notifications.unreadStaffMessages || 0}
                 isAdmin={false}
                 isCoach={false}
                 isParent={true}
@@ -56,9 +54,10 @@ export default function CoordinatorAlertCenter({ user }) {
           <div className={`p-4 ${hasParentTasks ? 'border-t lg:border-t-0' : ''} border-orange-200`}>
             <RoleAlertBlock color="cyan" icon="🎓" title="Mis Tareas como Coordinador" subtitle="Supervisión general">
               <AlertCenter 
-                pendingCallupResponses={coordPendingResponses}
-                pendingMatchObservations={coordPendingObservations}
-                unreadCoordinatorMessages={coordUnreadFamily}
+                pendingCallupResponses={notifications.pendingCallupResponses || 0}
+                pendingMatchObservations={notifications.pendingMatchObservations || 0}
+                unreadCoordinatorMessages={notifications.unreadFamilyMessages || 0}
+                unreadStaffMessages={notifications.unreadStaffMessages || 0}
                 isAdmin={false}
                 isCoach={user?.es_entrenador === true}
                 isCoordinator={true}
