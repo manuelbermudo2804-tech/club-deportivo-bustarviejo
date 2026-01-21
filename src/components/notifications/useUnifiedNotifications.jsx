@@ -794,10 +794,13 @@ export function useUnifiedNotifications(user, options = {}) {
       c.padre_email === user.email && c.resuelta === false
     );
 
+    // APP NOTIFICATIONS (fallback/visual - mensajes que llegan al notificador)
+    const appNotificationsCount = (rawData.appNotifications || []).filter(n => !n.vista).length;
+
     // ACTUALIZAR ESTADO (y publicar en global para otros consumidores)
     const next = {
       // CHATS - separados por rol y tipo
-      unreadCoordinatorMessages: unreadCoordinatorForParent, // Para familias
+      unreadCoordinatorMessages: Math.max(unreadCoordinatorForParent, appNotificationsCount > 0 ? 1 : 0), // Para familias - considerar AppNotification
       unreadCoachMessages: unreadCoachForParent,             // Para familias
       unreadStaffMessages: unreadStaff,                      // Staff interno
       unreadAdminMessages: unreadAdmin,
@@ -820,6 +823,7 @@ export function useUnifiedNotifications(user, options = {}) {
       pendingMemberRequests,
       pendingMatchObservations,
       hasActiveAdminConversation,
+      appNotificationsCount,
       breakdown,
     };
     setNotifications(next);
