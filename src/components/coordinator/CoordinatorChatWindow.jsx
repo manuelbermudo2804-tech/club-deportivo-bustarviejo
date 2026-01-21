@@ -615,7 +615,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           });
         }
       } else {
-        // Coordinador escribe -> notificar al padre
+        // Coordinador escribe -> notificar al padre Y al admin
         if (conversation.padre_email) {
           await base44.entities.AppNotification.create({
             usuario_email: conversation.padre_email,
@@ -624,6 +624,21 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             tipo: "importante",
             icono: "🎓",
             enlace: "ParentCoordinatorChat",
+            vista: false
+          });
+        }
+
+        // Notificar a admin de nuevo mensaje coordinador
+        const allUsers = await base44.entities.User.list();
+        const admins = allUsers.filter(u => u.role === "admin");
+        for (const admin of admins) {
+          await base44.entities.AppNotification.create({
+            usuario_email: admin.email,
+            titulo: `💬 ${coordinatorUser.full_name} → ${conversation.padre_nombre}`,
+            mensaje: (data.mensaje || "Mensaje").substring(0, 100),
+            tipo: "info",
+            icono: "💬",
+            enlace: "AdminChat",
             vista: false
           });
         }
@@ -673,12 +688,14 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       return newMessage;
     },
     onSuccess: async () => {
-      // Refetch INMEDIATO sin esperar
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
-        queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
-      ]);
-    },
+       // Refetch INMEDIATO sin esperar - SOLO este chat
+       await Promise.all([
+         queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
+         queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
+       ]);
+
+       // NO invalidar appNotifications globales - mantener independencia de burbujas
+     },
   });
 
   const handleSend = () => {
