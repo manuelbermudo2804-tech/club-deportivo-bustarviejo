@@ -98,20 +98,23 @@ Esta situación requiere intervención administrativa urgente.`;
       });
 
       // Notificar a todos los admins
-      const allUsers = await base44.entities.User.list();
-      const admins = allUsers.filter(u => u.role === "admin");
+       const allUsers = await base44.entities.User.list();
+       const admins = allUsers.filter(u => u.role === "admin");
 
-      for (const admin of admins) {
-        await base44.entities.AppNotification.create({
-          usuario_email: admin.email,
-          titulo: `🚨 ESCALACIÓN CRÍTICA - ${motivo}`,
-          mensaje: `El coordinador ${coordinatorUser.full_name} ha escalado la conversación con ${conversation.padre_nombre}. Requiere intervención inmediata.`,
-          tipo: "urgente",
-          icono: "🚨",
-          enlace: "AdminChat",
-          vista: false
-        });
-      }
+       for (const admin of admins) {
+         await base44.entities.AppNotification.create({
+           usuario_email: admin.email,
+           titulo: `🚨 ESCALACIÓN CRÍTICA - ${motivo}`,
+           mensaje: `El coordinador ${coordinatorUser.full_name} ha escalado la conversación con ${conversation.padre_nombre}. Requiere intervención inmediata.`,
+           tipo: "urgente",
+           icono: "🚨",
+           enlace: "AdminChat",
+           vista: false
+         });
+
+         // Bubble notification for admin in dashboard
+         console.log(`📢 AppNotification creada para admin: ${admin.email}`);
+       }
 
       // Notificar al coordinador
       await base44.entities.AppNotification.create({
