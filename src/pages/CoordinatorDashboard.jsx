@@ -161,59 +161,50 @@ export default function CoordinatorDashboard() {
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
               <Link to={createPageUrl("Chatbot")} className="flex-1">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl px-6 py-3 text-white hover:scale-105 transition-all shadow-lg relative flex items-center justify-center gap-3">
-                  <p className="text-xl font-bold">🤖</p>
-                  <div className="text-left">
-                    <p className="text-sm font-bold">Asistente</p>
-                    <p className="text-xs text-indigo-100">Consulta IA</p>
-                  </div>
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[90px]">
+                  <p className="text-lg font-bold mb-1">🤖</p>
+                  <p className="text-xs font-bold text-center">Asistente</p>
                 </div>
               </Link>
 
               <Link to={createPageUrl("CoordinatorChat")} className="flex-1">
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl px-6 py-3 text-white hover:scale-105 transition-all shadow-lg relative flex items-center justify-center gap-3">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[90px]">
                    {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                        <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorForStaff}</span>
                      </div>
                    )}
-                   <p className="text-xl font-bold">💬</p>
-                   <div className="text-left">
-                     <p className="text-sm font-bold">Familias</p>
-                     <p className="text-xs text-blue-100">Coordinador</p>
-                   </div>
+                   <p className="text-lg font-bold mb-1">💬</p>
+                   <p className="text-xs font-bold text-center">Familias</p>
+                   <p className="text-[10px] text-blue-100 text-center">Coordinador</p>
                 </div>
               </Link>
 
               {user?.es_entrenador && (
                 <Link to={createPageUrl("CoachParentChat")} className="flex-1">
-                  <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-2xl px-6 py-3 text-white hover:scale-105 transition-all shadow-lg relative flex items-center justify-center gap-3">
+                  <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[90px]">
                      {(notifications?.unreadCoachForStaff || 0) > 0 && (
                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                          <span className="text-white text-xs font-bold">{notifications.unreadCoachForStaff}</span>
                        </div>
                      )}
-                     <p className="text-xl font-bold">⚽</p>
-                     <div className="text-left">
-                       <p className="text-sm font-bold">Familias</p>
-                       <p className="text-xs text-red-100">Entrenador</p>
-                     </div>
+                     <p className="text-lg font-bold mb-1">⚽</p>
+                     <p className="text-xs font-bold text-center">Familias</p>
+                     <p className="text-[10px] text-red-100 text-center">Entrenador</p>
                   </div>
                 </Link>
               )}
 
               <Link to={createPageUrl("StaffChat")} className="flex-1">
-                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl px-6 py-3 text-white hover:scale-105 transition-all shadow-lg relative flex items-center justify-center gap-3">
+                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[90px]">
                   {(notifications?.unreadStaffMessages || 0) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                       <span className="text-white text-xs font-bold">{notifications.unreadStaffMessages}</span>
                     </div>
                   )}
-                  <p className="text-xl font-bold">💼</p>
-                  <div className="text-left">
-                    <p className="text-sm font-bold">Staff</p>
-                    <p className="text-xs text-slate-100">Interno</p>
-                  </div>
+                  <p className="text-lg font-bold mb-1">💼</p>
+                  <p className="text-xs font-bold text-center">Staff</p>
+                  <p className="text-[10px] text-slate-100 text-center">Interno</p>
                 </div>
               </Link>
             </div>
