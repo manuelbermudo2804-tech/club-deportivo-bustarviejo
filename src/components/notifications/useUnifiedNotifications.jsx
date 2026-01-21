@@ -799,15 +799,23 @@ export function useUnifiedNotifications(user, options = {}) {
     // APP NOTIFICATIONS (fallback/visual - mensajes que llegan al notificador)
     const appNotificationsCount = (rawData.appNotifications || []).filter(n => !n.vista).length;
 
+    // Contar AppNotifications específicas por enlace
+    const appNotifsByLink = {};
+    (rawData.appNotifications || []).forEach(notif => {
+      if (!notif.vista) {
+        appNotifsByLink[notif.enlace] = (appNotifsByLink[notif.enlace] || 0) + 1;
+      }
+    });
+
     // ACTUALIZAR ESTADO (y publicar en global para otros consumidores)
     const next = {
       // CHATS - separados por rol y tipo
-      unreadCoordinatorMessages: Math.max(unreadCoordinatorForParent, appNotificationsCount > 0 ? 1 : 0), // Para familias - considerar AppNotification
+      unreadCoordinatorMessages: Math.max(unreadCoordinatorForParent, appNotifsByLink['ParentCoordinatorChat'] || 0), // Para familias - considerar AppNotification
       unreadCoachMessages: unreadCoachForParent,             // Para familias
       unreadStaffMessages: unreadStaff,                      // Staff interno
       unreadAdminMessages: unreadAdmin,
       unreadPrivateMessages: unreadPrivate,
-      unreadFamilyMessages: unreadCoordinatorForStaff + unreadCoachForStaff, // legacy suma
+      unreadFamilyMessages: Math.max(unreadCoordinatorForStaff, appNotifsByLink['FamilyChats'] || 0) + unreadCoachForStaff, // Considerar AppNotif de FamilyChats
       unreadCoordinatorForStaff,  // Para coordinadores: mensajes de familias
       unreadCoachForStaff,         // Para entrenadores: mensajes de familias
       pendingCallups,
