@@ -50,8 +50,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const [filterType, setFilterType] = useState("all");
   const [filterPerson, setFilterPerson] = useState("all");
   const [filterDate, setFilterDate] = useState("all");
+  const [showScrollButton, setShowScrollButton] = useState(false);
   
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const audioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -960,7 +962,20 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-0.5 bg-slate-50 min-h-0" style={{ fontFamily: 'Roboto, sans-serif' }}>
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-2 sm:p-4 bg-slate-50 min-h-0 relative" 
+        style={{ fontFamily: 'Roboto, sans-serif' }}
+        onScroll={(e) => {
+          const { scrollHeight, scrollTop, clientHeight } = e.target;
+          const isNearBottom = scrollHeight - scrollTop - clientHeight < 60;
+          if (!isNearBottom && !showScrollButton) {
+            setShowScrollButton(true);
+          } else if (isNearBottom && showScrollButton) {
+            setShowScrollButton(false);
+          }
+        }}
+      >
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -973,21 +988,31 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </div>
         )}
 
-        {filteredMessages.map((msg) => {
+        {filteredMessages.map((msg, index) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           const repliedMessage = msg.respuesta_a ? messages.find(m => m.id === msg.respuesta_a) : null;
           
+          // Agrupación inteligente
+          const prevMsg = index > 0 ? filteredMessages[index - 1] : null;
+          const nextMsg = index < filteredMessages.length - 1 ? filteredMessages[index + 1] : null;
+          const prevIsSameUser = prevMsg && prevMsg.autor === msg.autor && !prevMsg.eliminado;
+          const nextIsSameUser = nextMsg && nextMsg.autor === msg.autor && !nextMsg.eliminado;
+          
+          const marginTop = prevIsSameUser ? '1px' : '6px';
+          
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-              <div className={`max-w-[85%] shadow-sm relative`} style={{ 
+            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`} style={{ marginTop }}>
+              <div className={`max-w-[85%] relative`} style={{ 
                 backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
                 borderRadius: isMine ? '7.5px 7.5px 2px 7.5px' : '7.5px 7.5px 7.5px 2px',
-                padding: '6px 7px 14px 9px',
+                padding: '6px 7px 8px 9px',
                 color: '#111111',
                 minHeight: '32px',
                 minWidth: '40px',
                 letterSpacing: '0',
-                fontKerning: 'normal'
+                fontKerning: 'normal',
+                width: 'fit-content',
+                boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
               }}>
                 {msg.mensaje_citado && (
                  <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'border-green-600' : 'bg-slate-100 border-slate-400'}`} style={{ backgroundColor: isMine ? 'rgba(0,0,0,0.05)' : '#f1f5f9' }}>
@@ -1039,15 +1064,46 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                      <span className="text-sm">{msg.audio_duracion}s</span>
                    </div>
                  ) : (
-                   <p className="whitespace-pre-wrap" style={{ 
-                     fontSize: msg.mensaje?.trim().length <= 3 ? '32px' : '15px',
-                     lineHeight: '1.32',
-                     color: '#111111',
-                     wordWrap: 'break-word'
+                   <div style={{ 
+                     display: 'inline-flex',
+                     flexWrap: 'wrap',
+                     alignItems: 'flex-end',
+                     gap: '6px',
+                     width: '100%'
                    }}>
-                     {msg.mensaje}
-                     {msg.editado && <span style={{ fontSize: '11px', opacity: 0.5 }} className="ml-2">(editado)</span>}
-                   </p>
+                     <p className="whitespace-pre-wrap" style={{ 
+                       fontSize: msg.mensaje?.trim().length <= 3 ? '32px' : '15px',
+                       lineHeight: '1.32',
+                       color: '#111111',
+                       wordWrap: 'break-word',
+                       flex: '1 1 auto',
+                       minWidth: 0
+                     }}>
+                       {msg.mensaje}
+                       {msg.editado && <span style={{ fontSize: '11px', opacity: 0.5 }} className="ml-2">(editado)</span>}
+                     </p>
+                     <div style={{ 
+                       flexShrink: 0,
+                       whiteSpace: 'nowrap',
+                       display: 'inline-flex',
+                       alignItems: 'center',
+                       gap: '3px',
+                       paddingLeft: '6px'
+                     }}>
+                       <span style={{ fontSize: '11px', color: '#667781' }}>
+                         {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                       </span>
+                       {isMine && (
+                         <>
+                           {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
+                             <CheckCheck className="w-3 h-3" style={{ color: '#53BDEB' }} />
+                           ) : (
+                             <Check className="w-3 h-3" style={{ color: '#667781' }} />
+                           )}
+                         </>
+                       )}
+                     </div>
+                   </div>
                  )}
 
                 {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
@@ -1148,8 +1204,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         })}
         
         {otherPersonTyping && (
-          <div className="flex justify-start">
-            <div className="bg-white rounded-2xl p-3 shadow-sm">
+          <div className="flex justify-start" style={{ marginTop: '6px' }}>
+            <div className="bg-white rounded-2xl p-3" style={{ boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)' }}>
               <div className="flex gap-1">
                 <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                 <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
@@ -1160,6 +1216,24 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         )}
         
         <div ref={messagesEndRef} />
+        
+        {/* Botón scroll to bottom */}
+        {showScrollButton && (
+          <button
+            onClick={() => {
+              messagesContainerRef.current?.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+              });
+            }}
+            className="fixed bottom-20 right-4 bg-white rounded-full p-3 shadow-lg hover:bg-slate-50 transition-all z-10"
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       {isCoordinator && showQuickReplies && (
