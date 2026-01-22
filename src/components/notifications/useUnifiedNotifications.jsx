@@ -257,7 +257,7 @@ export function useUnifiedNotifications(user, options = {}) {
       }
       setRawData(prev => ({ ...prev, adminConversations: convs }));
     };
-    setTimeout(() => run(loadAdminConvs), 400);
+    setTimeout(() => run(loadAdminConvs), 900);
     if (user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero)) {
       let lastAdminConvUpdate = 0;
       const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
