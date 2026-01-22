@@ -49,6 +49,7 @@ export function useUnifiedNotifications(user, options = {}) {
     
     // OTROS
     hasActiveAdminConversation: false,
+    unreadSystemMessages: 0,
   });
 
   const [rawData, setRawData] = useState({
