@@ -102,17 +102,39 @@ export default function ParentCoachChat() {
     enabled: !!user,
   });
 
+  // Obtener conversaciones entrenador-padre para contar no leídos
+  const { data: coachConversations = [] } = useQuery({
+    queryKey: ['coachConversationsForParent', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.CoachConversation.filter({ 
+        padre_email: user.email 
+      });
+    },
+    enabled: !!user,
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
+  });
+
+  // REAL-TIME: Suscripción a conversaciones del entrenador
+  useEffect(() => {
+    if (!user) return;
+    
+    const unsub = base44.entities.CoachConversation.subscribe((event) => {
+      if (event.data?.padre_email === user.email) {
+        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
+      }
+    });
+    
+    return unsub;
+  }, [user?.email, queryClient]);
+
   const getUnreadCountByCategory = (categoria) => {
     if (!user) return 0;
-    const grupo_id = categoria.toLowerCase().replace(/\s+/g, '_');
-
-    return allChatMessages.filter(m => 
-      m.grupo_id === grupo_id &&
-      m.tipo === "entrenador_a_grupo" &&
-      (!m.destinatario_email || m.destinatario_email === user.email) &&
-      !m.leido &&  // ✅ Cambiar: mirar el campo leido directo
-      (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
-    ).length;
+    
+    // Buscar conversación para esta categoría
+    const conv = coachConversations.find(c => c.categoria === categoria);
+    return conv?.no_leidos_padre || 0;
   };
 
   // Marcar notificaciones Y MENSAJES como leídos inmediatamente al abrir el chat
