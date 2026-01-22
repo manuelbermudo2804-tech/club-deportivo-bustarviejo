@@ -329,7 +329,7 @@ export function useUnifiedNotifications(user, options = {}) {
       const convs = await run(() => base44.entities.Convocatoria.list('-created_date', 30));
       setRawData(prev => ({ ...prev, convocatorias: convs }));
     };
-    setTimeout(() => run(loadConvocatorias), 700);
+    setTimeout(() => run(loadConvocatorias), 1400);
     let lastCallupsUpdate = 0;
     const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
         const now = Date.now();
