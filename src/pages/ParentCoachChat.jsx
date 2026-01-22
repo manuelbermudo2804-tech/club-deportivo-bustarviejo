@@ -406,10 +406,10 @@ export default function ParentCoachChat() {
         ? { encuesta: { ...poll, votos } }
         : { poll: { ...poll, votos } };
 
-      await base44.entities.ChatMessage.update(messageId, updateData);
+      await base44.entities.CoachMessage.update(messageId, updateData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coachMessages'] });
       toast.success("Voto registrado");
     },
   });
