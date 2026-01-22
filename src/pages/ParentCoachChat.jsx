@@ -614,18 +614,18 @@ export default function ParentCoachChat() {
                       {/* Mensaje de texto, audio o archivos */}
                       {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
                         <div className={`max-w-[85%] ${
-                          isMine ? 'bg-green-600 text-white' : 
-                          isCoach ? 'bg-green-100 text-slate-900' : 
-                          'bg-slate-100 text-slate-900'
-                        } ${isMine ? 'rounded-[18px_4px_18px_18px]' : 'rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none relative`}>
-                         <div className="flex items-center gap-1 mb-0.5">
-                            <p className="text-[11px] font-semibold opacity-75">
-                              {isCoach ? '🏃 ' : ''}{msg.autor_nombre}
-                            </p>
-                            {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
-                          </div>
+                          isMine ? 'bg-green-500 text-gray-900' : 
+                          isCoach ? 'bg-gray-100 text-gray-900' : 
+                          'bg-gray-100 text-gray-900'
+                        } rounded-3xl px-4 py-2 shadow-none relative text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
+                         <div className="flex items-center gap-1 mb-1">
+                           <p className="text-xs font-semibold opacity-70">
+                             {isCoach ? '🏃 ' : ''}{msg.autor_nombre}
+                           </p>
+                           {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
+                         </div>
 
-                           {msg.mensaje && <p className="text-[15px] whitespace-pre-wrap leading-tight">{msg.mensaje}</p>}
+                          {msg.mensaje && <p className="text-base whitespace-pre-wrap leading-5">{msg.mensaje}</p>}
 
                           {msg.audio_url && (
                             <div className="flex items-center gap-2 mt-2">
@@ -678,8 +678,8 @@ export default function ParentCoachChat() {
                             </div>
                           )}
 
-                          <div className="flex items-center gap-1 justify-end mt-0.5">
-                            <p className="text-[11px] opacity-70">
+                          <div className="flex items-center gap-1 justify-end mt-1">
+                            <p className="text-xs opacity-60">
                               {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                             </p>
                             <Button
