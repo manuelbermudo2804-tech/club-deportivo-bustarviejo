@@ -637,7 +637,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Messages Area - scrollable */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2 bg-slate-50 min-h-0">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-0 bg-white min-h-0">
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -654,10 +654,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-              <div className={`max-w-[75%] sm:max-w-[60%] rounded-2xl p-2 sm:p-3 ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'}`}>
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <p className="text-[10px] font-semibold opacity-70">
+            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
+              <div className={`max-w-[85%] ${isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none relative`}>
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <p className="text-[11px] font-semibold opacity-75">
                     {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
                   </p>
                   <ChatMessageActions
@@ -686,9 +686,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                     <span className="text-xs">{msg.audio_duracion}s</span>
                   </div>
                 ) : (
-                  <p className="text-xs sm:text-sm">
+                  <p className="text-[15px] leading-tight">
                     {msg.mensaje}
-                    {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
+                    {msg.editado && <span className="text-[11px] opacity-50 ml-1">(editado)</span>}
                   </p>
                 )}
 
@@ -733,14 +733,14 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-[10px] opacity-60">
+                <div className="flex items-center gap-1 justify-end mt-0.5">
+                  <p className="text-[11px] opacity-70">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   {isMine && (
                     <div className="flex items-center">
                       {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
-                        <CheckCheck className="w-3 h-3 text-cyan-200" />
+                        <CheckCheck className="w-3 h-3 text-white opacity-70" />
                       ) : (
                         <Check className="w-3 h-3 opacity-50" />
                       )}

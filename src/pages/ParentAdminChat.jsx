@@ -290,20 +290,20 @@ export default function ParentAdminChat() {
         </div>
 
         {/* Mensajes */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
+        <div className="flex-1 overflow-y-auto p-3 space-y-0 bg-white">
           {messages.map((msg) => {
             const isMine = msg.autor === "padre";
             
             return (
-              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[75%] ${
-                  isMine ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
-                } rounded-2xl p-3 shadow-sm`}>
-                  <p className="text-xs font-semibold opacity-70 mb-1">
+              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
+                <div className={`max-w-[85%] ${
+                  isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'
+                } px-3 py-1.5 shadow-none`}>
+                  <p className="text-[11px] font-semibold opacity-75 mb-0.5">
                     {isMine ? user.full_name : '🛡️ Administrador del Club'}
                   </p>
 
-                  <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '1.125rem' }}>{msg.mensaje}</p>
+                  <p className="text-[15px] whitespace-pre-wrap leading-tight" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px' }}>{msg.mensaje}</p>
 
                   {msg.archivos_adjuntos?.length > 0 && (
                     <div className="mt-2 space-y-1">
@@ -336,7 +336,7 @@ export default function ParentAdminChat() {
                     </div>
                   )}
 
-                  <p className="text-xs opacity-60 mt-1">
+                  <p className="text-[11px] opacity-70 mt-0.5 text-right">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                 </div>

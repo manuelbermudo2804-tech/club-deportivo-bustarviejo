@@ -722,7 +722,7 @@ export default function StaffChat() {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
+          <div className="flex-1 overflow-y-auto p-3 space-y-0 bg-white min-h-0">
             {replyingTo && (
               <div className="sticky top-0 z-10 bg-purple-50 border-l-4 border-purple-500 p-2 rounded flex items-start justify-between">
                 <div className="flex-1">
@@ -764,10 +764,10 @@ export default function StaffChat() {
                       </div>
                     )}
                     
-                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-                      <div className={`max-w-[75%] sm:max-w-[70%] ${
-                        isMine ? 'bg-purple-600 text-white' : 'bg-white text-slate-900 border'
-                      } rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
+                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
+                      <div className={`max-w-[85%] ${
+                        isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'
+                      } px-3 py-1.5 shadow-none relative`}>
                         {msg.mensaje_citado && (
                           <div className={`mb-2 p-2 rounded border-l-2 ${
                             isMine ? 'bg-purple-700 border-purple-400' : 'bg-slate-100 border-slate-400'
@@ -779,15 +779,15 @@ export default function StaffChat() {
                         
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-1">
-                            <p className="text-[10px] sm:text-xs font-semibold opacity-70">
+                            <p className="text-[11px] font-semibold opacity-75">
                               {msg.autor_rol === "coordinador" ? "🎓 " : msg.autor_rol === "admin" ? "👑 " : "🏃 "}
                               {msg.autor_nombre}
                             </p>
                             {msg.autor_rol === "coordinador" && (
-                              <Badge className="text-[10px] bg-cyan-600 px-1 py-0">Coordinador</Badge>
+                              <Badge className="text-[10px] bg-cyan-600 px-1 py-0 h-4">Coordinador</Badge>
                             )}
                             {msg.autor_rol === "admin" && (
-                              <Badge className="text-[10px] bg-orange-600 px-1 py-0">Admin</Badge>
+                              <Badge className="text-[10px] bg-orange-600 px-1 py-0 h-4">Admin</Badge>
                             )}
                           </div>
                           <div className="flex gap-1">
@@ -817,9 +817,9 @@ export default function StaffChat() {
                           </div>
                         </div>
 
-                        <p className="text-xs sm:text-sm whitespace-pre-wrap mt-1" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
+                        <p className="text-[15px] whitespace-pre-wrap leading-tight mt-0.5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px' }}>
                           {msg.mensaje}
-                          {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
+                          {msg.editado && <span className="text-[11px] opacity-50 ml-1">(editado)</span>}
                         </p>
 
                         {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
@@ -878,28 +878,26 @@ export default function StaffChat() {
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between mt-1">
-                          <div className="flex items-center gap-2">
-                            <p className="text-[10px] sm:text-xs opacity-60">
-                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                            </p>
-                            
-                            {/* Doble check visual - solo en mensajes propios */}
-                            {isMine && (
-                              <div className="flex items-center">
-                                {msg.leido_por?.length > 1 ? (
-                                  <CheckCheck className="w-3 h-3 text-cyan-400" />
-                                ) : (
-                                  <Check className="w-3 h-3 opacity-50" />
-                                )}
-                              </div>
-                            )}
-                          </div>
+                        <div className="flex items-center gap-1 justify-end mt-0.5">
+                          <p className="text-[11px] opacity-70">
+                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                          </p>
+                          
+                          {/* Doble check visual - solo en mensajes propios */}
+                          {isMine && (
+                            <div className="flex items-center">
+                              {msg.leido_por?.length > 1 ? (
+                                <CheckCheck className="w-3 h-3 text-white opacity-70" />
+                              ) : (
+                                <Check className="w-3 h-3 opacity-50" />
+                              )}
+                            </div>
+                          )}
                           
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
+                            className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`}
                             onClick={() => setShowReactions(msg.id)}
                           >
                             <Smile className="w-3 h-3" />

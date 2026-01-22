@@ -399,24 +399,24 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
           const isInternalNote = msg.es_nota_interna;
           
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[75%] ${
-                isInternalNote ? 'bg-yellow-50 text-yellow-900 border-2 border-yellow-300' :
-                isMine ? 'bg-red-600 text-white' : 
-                'bg-white text-slate-900 border'
-              } rounded-2xl p-3 shadow-sm`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-xs font-semibold opacity-70">
+            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
+              <div className={`max-w-[85%] ${
+                isInternalNote ? 'bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-2xl' :
+                isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 
+                'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'
+              } px-3 py-1.5 shadow-none`}>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-[11px] font-semibold opacity-75">
                     {isInternalNote ? '📝 Nota Interna' : 
                      isMine ? '🛡️ Administrador' : 
                      msg.autor_nombre}
                   </p>
                   {isInternalNote && (
-                    <Badge className="text-xs bg-yellow-500">Solo visible para admins</Badge>
+                    <Badge className="text-[10px] bg-yellow-500 px-1 py-0 h-4">Solo visible para admins</Badge>
                   )}
                 </div>
 
-                <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '1.125rem' }}>{msg.mensaje}</p>
+                <p className="text-[15px] whitespace-pre-wrap leading-tight" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px' }}>{msg.mensaje}</p>
 
                 {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
@@ -459,15 +459,15 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-xs opacity-60">
+                <div className="flex items-center gap-1 justify-end mt-0.5">
+                  <p className="text-[11px] opacity-70">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   {!isInternalNote && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
+                      className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`}
                       onClick={() => setShowReactions(msg.id)}
                     >
                       <Smile className="w-3 h-3" />

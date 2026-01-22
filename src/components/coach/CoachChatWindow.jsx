@@ -799,7 +799,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       />
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 min-h-0">
+      <div className="flex-1 overflow-y-auto p-3 space-y-0 bg-white min-h-0">
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -819,10 +819,10 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           const isCoachMsg = msg.tipo === "entrenador_a_grupo";
           
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-              <div className={`max-w-[75%] ${
-                isMine ? 'bg-green-600 text-white' : 'bg-white text-slate-900 border'
-              } rounded-2xl p-3 shadow-sm relative`}>
+            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
+              <div className={`max-w-[85%] ${
+                isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'
+              } px-3 py-1.5 shadow-none relative`}>
                 {msg.mensaje_citado && (
                   <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-green-700 border-green-400' : 'bg-slate-100 border-slate-400'}`}>
                     <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
@@ -830,8 +830,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   </div>
                 )}
                 
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-xs font-semibold opacity-70">
+                <div className="flex items-start justify-between gap-2 mb-0.5">
+                  <p className="text-[11px] font-semibold opacity-75">
                     {isCoachMsg ? '🏃 ' : ''}{msg.remitente_nombre}
                   </p>
                   {isMine && (
@@ -894,9 +894,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   // NO mostrar el texto cuando hay encuesta
                   null
                 ) : (
-                  <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '1.125rem' }}>
+                  <p className="text-[15px] whitespace-pre-wrap leading-tight" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px' }}>
                     {msg.mensaje}
-                    {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
+                    {msg.editado && <span className="text-[11px] opacity-50 ml-1">(editado)</span>}
                   </p>
                 )}
 
@@ -953,28 +953,26 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mt-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs opacity-60">
-                      {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                    </p>
-                    
-                    {/* Doble check visual - solo en mensajes propios */}
-                    {isMine && (
-                      <div className="flex items-center">
-                        {msg.leido_por && msg.leido_por.length > 0 ? (
-                          <CheckCheck className="w-3 h-3 text-cyan-400" />
-                        ) : (
-                          <Check className="w-3 h-3 opacity-50" />
-                        )}
-                      </div>
-                    )}
-                  </div>
+                <div className="flex items-center gap-1 justify-end mt-0.5">
+                  <p className="text-[11px] opacity-70">
+                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                  </p>
+                  
+                  {/* Doble check visual - solo en mensajes propios */}
+                  {isMine && (
+                    <div className="flex items-center">
+                      {msg.leido_por && msg.leido_por.length > 0 ? (
+                        <CheckCheck className="w-3 h-3 text-white opacity-70" />
+                      ) : (
+                        <Check className="w-3 h-3 opacity-50" />
+                      )}
+                    </div>
+                  )}
                   
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                    className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`}
                     onClick={() => setShowReactions(msg.id)}
                   >
                     <Smile className="w-3 h-3" />
