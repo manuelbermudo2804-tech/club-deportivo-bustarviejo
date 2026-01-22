@@ -297,13 +297,13 @@ export default function ParentAdminChat() {
             return (
               <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
                 <div className={`max-w-[85%] ${
-                  isMine ? 'bg-blue-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-red-600 text-white rounded-[4px_18px_18px_18px]'
-                } px-3 py-1.5 shadow-none`}>
-                  <p className="text-[11px] font-semibold opacity-75 mb-0.5">
+                  isMine ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
+                } rounded-3xl px-4 py-2 shadow-none text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
+                  <p className="text-xs font-semibold opacity-70 mb-1">
                     {isMine ? user.full_name : '🛡️ Administrador del Club'}
                   </p>
 
-                  <p className="text-[15px] whitespace-pre-wrap leading-tight" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px' }}>{msg.mensaje}</p>
+                  <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>{msg.mensaje}</p>
 
                   {msg.archivos_adjuntos?.length > 0 && (
                     <div className="mt-2 space-y-1">
@@ -336,7 +336,7 @@ export default function ParentAdminChat() {
                     </div>
                   )}
 
-                  <p className="text-[11px] opacity-70 mt-0.5 text-right">
+                  <p className="text-xs opacity-60 mt-1 text-right">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                 </div>
