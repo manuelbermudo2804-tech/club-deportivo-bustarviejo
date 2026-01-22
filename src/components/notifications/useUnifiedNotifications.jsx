@@ -818,6 +818,7 @@ export function useUnifiedNotifications(user, options = {}) {
       unreadStaffMessages: unreadStaff,                      // Staff interno
       unreadAdminMessages: unreadAdmin,
       unreadPrivateMessages: unreadPrivate,
+      unreadSystemMessages,                                  // System messages for parents
       unreadFamilyMessages: Math.max(unreadCoordinatorForStaff, appNotifsByLink['FamilyChats'] || 0) + unreadCoachForStaff, // Considerar AppNotif de FamilyChats
       unreadCoordinatorForStaff,  // Para coordinadores: mensajes de familias
       unreadCoachForStaff,         // Para entrenadores: mensajes de familias
