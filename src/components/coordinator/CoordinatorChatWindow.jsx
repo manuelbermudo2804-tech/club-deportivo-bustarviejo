@@ -973,169 +973,176 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </div>
         )}
 
-        {filteredMessages.map((msg) => {
+        {filteredMessages.map((msg, idx) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           const repliedMessage = msg.respuesta_a ? messages.find(m => m.id === msg.respuesta_a) : null;
+          const showDateSeparator = idx === 0 || 
+            new Date(filteredMessages[idx - 1].created_date).toDateString() !== new Date(msg.created_date).toDateString();
+          const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
           
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-              <div className={`max-w-[75%] sm:max-w-[70%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'} rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
-                {msg.mensaje_citado && (
-                  <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-cyan-700 border-cyan-400' : 'bg-slate-100 border-slate-400'}`}>
-                    <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
-                    <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
+            <React.Fragment key={msg.id}>
+              {showDateSeparator && (
+                <div className="flex justify-center my-4">
+                  <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">
+                    {dateLabel}
                   </div>
-                )}
-                
-                <div className="flex items-start justify-between gap-2">
-                <p className="text-[10px] sm:text-xs font-semibold opacity-70 flex-1">
-                  {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
-                </p>
-                <div className="flex gap-1">
-                  {isMine && isCoordinator && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                      onClick={() => msg.anclado ? unpinMessageMutation.mutate(msg.id) : pinMessageMutation.mutate(msg.id)}
-                      title={msg.anclado ? "Desanclar" : "Anclar mensaje"}
-                    >
-                      <Pin className={`w-3 h-3 ${msg.anclado ? 'text-yellow-600 fill-yellow-600' : ''}`} />
-                    </Button>
+                </div>
+              )}
+              <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
+                <div className={`max-w-[75%] sm:max-w-[70%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'} rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
+                  {msg.mensaje_citado && (
+                    <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-cyan-700 border-cyan-400' : 'bg-slate-100 border-slate-400'}`}>
+                      <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
+                      <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
+                    </div>
                   )}
-                  <ChatMessageActions
-                    message={msg}
-                    isMine={isMine}
-                    isStaff={isCoordinator}
-                    onReply={(m) => setReplyingTo(m)}
-                    onEdit={(m) => {
-                      setEditingMessage(m);
-                      setMessageText(m.mensaje);
-                    }}
-                    onDelete={(m) => deleteMessageMutation.mutate(m.id)}
-                    onForward={(m) => setForwardingMessage(m)}
-                  />
-                </div>
-                </div>
-                
-                {msg.audio_url ? (
-                   <div className="flex items-center gap-2">
-                     <Button 
-                       size="sm" 
-                       variant={isMine ? "secondary" : "outline"}
-                       onClick={() => togglePlayAudio(msg.audio_url)}
-                     >
-                       {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                     </Button>
-                     <span className="text-sm">{msg.audio_duracion}s</span>
-                   </div>
-                 ) : (
-                   <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '1.125rem' }}>
-                     {msg.mensaje}
-                     {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
-                   </p>
-                 )}
-
-                {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
-                {msg.encuesta && (
-                  <PollMessage 
-                    encuesta={msg.encuesta} 
-                    messageId={msg.id}
-                    userEmail={user.email}
-                    userName={user.full_name}
-                    onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
-                    isCreator={msg.autor_email === user.email}
-                  />
-                )}
-
-                {msg.archivos_adjuntos?.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {msg.archivos_adjuntos.map((file, idx) => (
-                      file.tipo?.startsWith('image/') ? (
-                        <img 
-                          key={idx}
-                          src={file.url} 
-                          alt={file.nombre}
-                          loading="lazy"
-                          className="rounded cursor-pointer max-w-full h-auto bg-slate-200"
-                          onClick={() => setShowImagePreview(file.url)}
-                        />
-                      ) : (
-                        <a
-                          key={idx}
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-cyan-700' : 'bg-slate-100'}`}
-                        >
-                          <FileText className="w-3 h-3" />
-                          <span className="flex-1 truncate">{file.nombre}</span>
-                          <Download className="w-3 h-3" />
-                        </a>
-                      )
-                    ))}
-                  </div>
-                )}
-
-                {/* Reacciones */}
-                {msg.reacciones?.length > 0 && (
-                  <div className="flex gap-2 mt-2">
-                    {msg.reacciones.map((r, idx) => (
-                      <span key={idx} className="text-5xl" title={r.user_nombre}>
-                        {r.emoji}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-[10px] sm:text-xs opacity-60">
-                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                  </p>
                   
-                  <div className="flex items-center gap-2">
-                    {/* Confirmación de lectura (doble check) */}
-                    {isMine && (
-                      <div className="flex items-center gap-1">
-                        {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
-                          <CheckCheck className="w-4 h-4 text-cyan-400" />
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-[10px] sm:text-xs font-semibold opacity-70 flex-1">
+                      {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
+                    </p>
+                    <div className="flex gap-1">
+                      {isMine && isCoordinator && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                          onClick={() => msg.anclado ? unpinMessageMutation.mutate(msg.id) : pinMessageMutation.mutate(msg.id)}
+                          title={msg.anclado ? "Desanclar" : "Anclar mensaje"}
+                        >
+                          <Pin className={`w-3 h-3 ${msg.anclado ? 'text-yellow-600 fill-yellow-600' : ''}`} />
+                        </Button>
+                      )}
+                      <ChatMessageActions
+                        message={msg}
+                        isMine={isMine}
+                        isStaff={isCoordinator}
+                        onReply={(m) => setReplyingTo(m)}
+                        onEdit={(m) => {
+                          setEditingMessage(m);
+                          setMessageText(m.mensaje);
+                        }}
+                        onDelete={(m) => deleteMessageMutation.mutate(m.id)}
+                        onForward={(m) => setForwardingMessage(m)}
+                      />
+                    </div>
+                  </div>
+                  
+                  {msg.audio_url ? (
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant={isMine ? "secondary" : "outline"}
+                        onClick={() => togglePlayAudio(msg.audio_url)}
+                      >
+                        {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </Button>
+                      <span className="text-sm">{msg.audio_duracion}s</span>
+                    </div>
+                  ) : (
+                    <p className="text-xs sm:text-sm whitespace-pre-wrap mt-1" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
+                      {msg.mensaje}
+                      {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
+                    </p>
+                  )}
+
+                  {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
+                  {msg.encuesta && (
+                    <PollMessage 
+                      encuesta={msg.encuesta} 
+                      messageId={msg.id}
+                      userEmail={user.email}
+                      userName={user.full_name}
+                      onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
+                      isCreator={msg.autor_email === user.email}
+                    />
+                  )}
+
+                  {msg.archivos_adjuntos?.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {msg.archivos_adjuntos.map((file, idx) => (
+                        file.tipo?.startsWith('image/') ? (
+                          <img 
+                            key={idx}
+                            src={file.url} 
+                            alt={file.nombre}
+                            loading="lazy"
+                            className="rounded cursor-pointer max-w-full h-auto bg-slate-200 hover:opacity-80"
+                            onClick={() => setShowImagePreview(file.url)}
+                          />
                         ) : (
-                          <Check className="w-4 h-4 opacity-50" />
-                        )}
-                      </div>
-                    )}
+                          <a
+                            key={idx}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-cyan-700' : 'bg-slate-100'}`}
+                          >
+                            <FileText className="w-3 h-3" />
+                            <span className="flex-1 truncate">{file.nombre}</span>
+                            <Download className="w-3 h-3" />
+                          </a>
+                        )
+                      ))}
+                    </div>
+                  )}
+
+                  {msg.reacciones?.length > 0 && (
+                    <div className="flex gap-1 mt-2 flex-wrap">
+                      {msg.reacciones.map((r, idx) => (
+                        <span key={idx} className="text-base" title={r.user_nombre}>
+                          {r.emoji}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[10px] sm:text-xs opacity-60">
+                        {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                      </p>
+                      {isMine && (
+                        <div className="flex items-center">
+                          {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
+                            <CheckCheck className="w-3 h-3 text-cyan-400" />
+                          ) : (
+                            <Check className="w-3 h-3 opacity-50" />
+                          )}
+                        </div>
+                      )}
+                    </div>
                     
-                    {/* Botón de reacciones */}
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                      className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
                       onClick={() => setShowReactions(msg.id)}
                     >
                       <Smile className="w-3 h-3" />
                     </Button>
                   </div>
-                </div>
 
-                {/* Selector de reacciones */}
-                {showReactions === msg.id && (
-                  <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-lg p-2 flex gap-2 z-10">
-                    {REACTIONS.map(emoji => (
-                      <button
-                        key={emoji}
-                        onClick={() => addReaction(msg.id, emoji)}
-                        className="text-2xl hover:scale-125 transition-transform"
-                      >
-                        {emoji}
+                  {showReactions === msg.id && (
+                    <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-xl p-2 flex gap-2 z-10 border">
+                      {REACTIONS.map(emoji => (
+                        <button
+                          key={emoji}
+                          onClick={() => addReaction(msg.id, emoji)}
+                          className="text-2xl hover:scale-125 transition-transform"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                      <button onClick={() => setShowReactions(null)} className="ml-2 text-slate-400 hover:text-slate-600">
+                        <X className="w-4 h-4" />
                       </button>
-                    ))}
-                    <button onClick={() => setShowReactions(null)} className="ml-2">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </React.Fragment>
           );
         })}
         
