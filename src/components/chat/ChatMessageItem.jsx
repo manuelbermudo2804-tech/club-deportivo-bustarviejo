@@ -11,14 +11,14 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
   const isSystem = message.tipo === "sistema";
 
   return (
-    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[75%] sm:max-w-[70%] ${
-        isMine ? 'bg-slate-700 text-white' : 
-        isBot ? 'bg-blue-500 text-white border-2 border-blue-300' :
-        isCoach ? 'bg-green-600 text-white' : 
+    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
+      <div className={`max-w-[85%] ${
+        isMine ? 'bg-green-600 text-white' : 
+        isBot ? 'bg-blue-100 text-blue-900 border-2 border-blue-300' :
+        isCoach ? 'bg-green-100 text-slate-900' : 
         isSystem ? 'bg-orange-100 text-orange-900 border-2 border-orange-300' :
-        'bg-white text-slate-900 border'
-      } rounded-2xl p-2 sm:p-3 shadow-sm`}>
+        'bg-slate-100 text-slate-900'
+      } ${isMine ? 'rounded-[18px_4px_18px_18px]' : 'rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none`}>
         {showSenderName && (
           <div className="flex items-center gap-1 sm:gap-2 mb-1 flex-wrap">
             <p className="text-[10px] sm:text-xs font-semibold opacity-70">
