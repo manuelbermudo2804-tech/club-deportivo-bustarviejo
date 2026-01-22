@@ -89,18 +89,20 @@ export default function ParentCoachChat() {
 
   // REAL-TIME: Suscripción a mensajes del entrenador
   useEffect(() => {
-    if (!selectedCategory || !user) return;
+    if (!selectedCategory || !user || coachConversations.length === 0) return;
     
-    const unsub = base44.entities.ChatMessage.subscribe((event) => {
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      if (event.data?.grupo_id === grupo_id) {
-        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory, user.email] });
-        queryClient.invalidateQueries({ queryKey: ['allCoachGroupMessages'] });
+    const conv = coachConversations.find(c => c.categoria === selectedCategory);
+    if (!conv) return;
+    
+    const unsub = base44.entities.CoachMessage.subscribe((event) => {
+      if (event.data?.conversacion_id === conv.id) {
+        queryClient.invalidateQueries({ queryKey: ['coachMessages', selectedCategory, user.email] });
+        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
       }
     });
     
     return unsub;
-  }, [selectedCategory, user, queryClient]);
+  }, [selectedCategory, user?.email, coachConversations, queryClient]);
 
 
 
