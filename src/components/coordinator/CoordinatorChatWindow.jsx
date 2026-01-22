@@ -655,7 +655,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
-              <div className={`max-w-[85%] ${isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none relative`}>
+              <div className={`max-w-[85%] ${isMine ? 'bg-cyan-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none relative`}>
                 <div className="flex items-center justify-between gap-2 mb-0.5">
                   <p className="text-[11px] font-semibold opacity-75">
                     {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}

@@ -297,7 +297,7 @@ export default function ParentAdminChat() {
             return (
               <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
                 <div className={`max-w-[85%] ${
-                  isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'
+                  isMine ? 'bg-blue-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-red-600 text-white rounded-[4px_18px_18px_18px]'
                 } px-3 py-1.5 shadow-none`}>
                   <p className="text-[11px] font-semibold opacity-75 mb-0.5">
                     {isMine ? user.full_name : '🛡️ Administrador del Club'}

@@ -821,7 +821,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
               <div className={`max-w-[85%] ${
-                isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'
+                isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-white text-slate-900 rounded-[4px_18px_18px_18px] border'
               } px-3 py-1.5 shadow-none relative`}>
                 {msg.mensaje_citado && (
                   <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-green-700 border-green-400' : 'bg-slate-100 border-slate-400'}`}>

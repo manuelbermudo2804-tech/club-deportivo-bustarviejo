@@ -402,7 +402,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
               <div className={`max-w-[85%] ${
                 isInternalNote ? 'bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-2xl' :
-                isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 
+                isMine ? 'bg-red-600 text-white rounded-[18px_4px_18px_18px]' : 
                 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'
               } px-3 py-1.5 shadow-none`}>
                 <div className="flex items-center gap-2 mb-0.5">
