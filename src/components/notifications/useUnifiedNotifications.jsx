@@ -403,7 +403,7 @@ export function useUnifiedNotifications(user, options = {}) {
       const anns = await run(() => base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 20));
       setRawData(prev => ({ ...prev, announcements: anns }));
     };
-    setTimeout(() => run(loadAnnouncements), 1000);
+    setTimeout(() => run(loadAnnouncements), 2000);
     let lastAnnouncementsUpdate = 0;
     const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
         const now = Date.now();
