@@ -1203,7 +1203,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         </CardContent>
       </Card>
 
-      {/* Diálogo de ubicación */}
+      {/* Diálogo de ubicación */}}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
         <DialogContent>
           <DialogHeader>
