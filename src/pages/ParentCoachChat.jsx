@@ -677,14 +677,14 @@ export default function ParentCoachChat() {
                             </div>
                           )}
 
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-xs opacity-60">
+                          <div className="flex items-center gap-1 justify-end mt-0.5">
+                            <p className="text-[11px] opacity-70">
                               {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                             </p>
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="opacity-50 hover:opacity-100 h-6 w-6 p-0"
+                              className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`}
                               onClick={() => setShowReactions(msg.id)}
                             >
                               <Smile className="w-3 h-3" />
