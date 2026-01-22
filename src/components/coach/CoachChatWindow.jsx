@@ -1065,7 +1065,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           </div>
         )}
 
-        <div className="flex gap-2 items-end">
+        <div className="flex flex-col gap-2">
           <input 
             ref={fileInputRef}
             type="file" 
@@ -1085,61 +1085,65 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
             disabled={uploading} 
           />
           
-          <EmojiPicker 
-            onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
-            messageText={messageText}
-          />
-          
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={() => setShowExerciseShare(true)}
-            className="h-11 w-11 bg-orange-50 hover:bg-orange-100 border-orange-200 flex-shrink-0"
-            title="Compartir ejercicio"
-          >
-            <Dumbbell className="w-5 h-5 text-orange-600" />
-          </Button>
+          <div className="flex gap-2 items-center">
+            <EmojiPicker 
+              onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
+              messageText={messageText}
+            />
+            
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => setShowExerciseShare(true)}
+              className="h-11 w-11 bg-orange-50 hover:bg-orange-100 border-orange-200 flex-shrink-0"
+              title="Compartir ejercicio"
+            >
+              <Dumbbell className="w-5 h-5 text-orange-600" />
+            </Button>
 
-          <ChatInputActions
-            onFileClick={() => fileInputRef.current?.click()}
-            onCameraClick={() => cameraInputRef.current?.click()}
-            onAudioClick={recording ? stopRecording : startRecording}
-            onLocationClick={() => setShowLocationDialog(true)}
-            onPollClick={() => setShowPollDialog(true)}
-            uploading={uploading}
-            isRecording={recording}
-            showCamera={true}
-            showAudio={true}
-            showLocation={true}
-            showPoll={true}
-            showQuickReplies={false}
-          />
+            <ChatInputActions
+              onFileClick={() => fileInputRef.current?.click()}
+              onCameraClick={() => cameraInputRef.current?.click()}
+              onAudioClick={recording ? stopRecording : startRecording}
+              onLocationClick={() => setShowLocationDialog(true)}
+              onPollClick={() => setShowPollDialog(true)}
+              uploading={uploading}
+              isRecording={recording}
+              showCamera={true}
+              showAudio={true}
+              showLocation={true}
+              showPoll={true}
+              showQuickReplies={false}
+            />
+          </div>
 
-          <Textarea
-            placeholder="Escribe..."
-            value={messageText}
-            onChange={(e) => {
-              setMessageText(e.target.value);
-              handleTyping();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
-            rows={1}
-          />
+          <div className="flex gap-2 items-end">
+            <Textarea
+              placeholder="Escribe..."
+              value={messageText}
+              onChange={(e) => {
+                setMessageText(e.target.value);
+                handleTyping();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              className="flex-1 min-h-[56px] max-h-40 resize-none text-base py-3 px-4"
+              rows={2}
+            />
 
-          <Button 
-            onClick={handleSend} 
-            disabled={!messageText.trim() && attachments.length === 0}
-            size="icon"
-            className="h-11 w-11 bg-green-600 hover:bg-green-700 p-0 flex-shrink-0 rounded-full"
-          >
-            <Send className="w-5 h-5" />
-          </Button>
+            <Button 
+              onClick={handleSend} 
+              disabled={!messageText.trim() && attachments.length === 0}
+              size="icon"
+              className="h-14 w-14 bg-green-600 hover:bg-green-700 p-0 flex-shrink-0 rounded-full"
+            >
+              <Send className="w-6 h-6" />
+            </Button>
+          </div>
         </div>
       </div>
 
