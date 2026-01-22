@@ -166,13 +166,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     ? conversationState?.padre_escribiendo 
     : conversationState?.coordinador_escribiendo;
 
-  // Scroll automático cuando cambian los mensajes o el indicador de escritura
+  // Auto-scroll al final (estilo StaffChat)
   useEffect(() => {
-    const last = messages[messages.length - 1];
-    const smooth = !!(last && last.autor_email !== user?.email);
-    // Forzar scroll tras el render
-    requestAnimationFrame(() => scrollToBottom(smooth));
-  }, [messages, otherPersonTyping, user?.email]);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [messages.length]);
 
   // Marcar como leído cuando abre la conversación
   const markedAsReadRef = useRef(false);
@@ -535,7 +534,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       
       // Actualizar inmediatamente
       queryClient.setQueryData(['coordinatorMessages', conversation?.id], [...previousMessages, optimisticMessage]);
-      requestAnimationFrame(() => scrollToBottom(false));
+                  requestAnimationFrame(() => {
+                    messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+                  });
       
       return { previousMessages };
     },
@@ -710,11 +711,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     onSuccess: async () => {
        // Refetch INMEDIATO sin esperar - SOLO este chat
        await Promise.all([
-         queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
-         queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
-       ]);
-       // Asegurar scroll tras recibir confirmación
-       requestAnimationFrame(() => scrollToBottom(true));
+              queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
+              queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
+            ]);
+            // Asegurar scroll tras recibir confirmación
+            requestAnimationFrame(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            });
 
        // NO invalidar appNotifications globales - mantener independencia de burbujas
      },
