@@ -238,18 +238,38 @@ export default function ParentCoachChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (mensaje) => {
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      // Buscar conversación para esta categoría
+      let conv = coachConversations.find(c => c.categoria === selectedCategory);
       
-      const newMessage = await base44.entities.ChatMessage.create({
-        grupo_id,
-        deporte: selectedCategory,
-        tipo: "padre_a_grupo",
-        remitente_email: user.email,
-        remitente_nombre: user.full_name,
+      // Si no existe, crearla
+      if (!conv) {
+        conv = await base44.entities.CoachConversation.create({
+          padre_email: user.email,
+          padre_nombre: user.full_name,
+          categoria: selectedCategory,
+          jugadores_asociados: myPlayers
+            .filter(p => p.deporte === selectedCategory)
+            .map(p => ({
+              jugador_id: p.id,
+              jugador_nombre: p.nombre
+            })),
+          no_leidos_padre: 0,
+          no_leidos_entrenador: 0
+        });
+        // Refrescar conversaciones locales
+        await queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
+      }
+      
+      const newMessage = await base44.entities.CoachMessage.create({
+        conversacion_id: conv.id,
+        autor: "padre",
+        autor_email: user.email,
+        autor_nombre: user.full_name,
         mensaje: mensaje,
-        archivos_adjuntos: [],
-        prioridad: "Normal",
-        leido: false
+        adjuntos: [],
+        leido_padre: true,
+        leido_entrenador: false,
+        fecha_leido_padre: new Date().toISOString()
       });
 
       const allCoachSettings = await base44.entities.CoachSettings.list();
