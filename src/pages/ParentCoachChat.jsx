@@ -301,19 +301,27 @@ export default function ParentCoachChat() {
       const settings = allCoachSettings.find(s => 
         s.categorias_entrena?.includes(selectedCategory)
       );
+
+      const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
       
       if (settings?.modo_ausente === true && settings?.mensaje_ausente) {
-        await base44.entities.ChatMessage.create({
-          grupo_id,
-          deporte: selectedCategory,
-          tipo: "entrenador_a_grupo",
-          remitente_email: "sistema@entrenador",
-          remitente_nombre: "🤖 Entrenador (automático)",
+        await base44.entities.CoachMessage.create({
+          conversacion_id: conv.id,
+          autor: "entrenador",
+          autor_email: "sistema@entrenador",
+          autor_nombre: "🤖 Entrenador (automático)",
           mensaje: settings.mensaje_ausente,
-          archivos_adjuntos: [],
-          prioridad: "Normal",
-          leido: false
+          adjuntos: [],
+          leido_padre: false,
+          leido_entrenador: true,
+          fecha_leido_entrenador: new Date().toISOString()
         });
+        
+        // Incrementar contador de no leídos para el padre
+        await base44.entities.CoachConversation.update(conv.id, {
+          no_leidos_padre: (conv.no_leidos_padre || 0) + 1
+        });
+        
         return;
       }
 
@@ -326,16 +334,21 @@ export default function ParentCoachChat() {
         const isWithinHours = currentTime >= settings.horario_inicio && currentTime <= settings.horario_fin;
 
         if (!isWorkingDay || !isWithinHours) {
-          await base44.entities.ChatMessage.create({
-            grupo_id,
-            deporte: selectedCategory,
-            tipo: "entrenador_a_grupo",
-            remitente_email: "sistema@entrenador",
-            remitente_nombre: "🤖 Entrenador (automático)",
+          await base44.entities.CoachMessage.create({
+            conversacion_id: conv.id,
+            autor: "entrenador",
+            autor_email: "sistema@entrenador",
+            autor_nombre: "🤖 Entrenador (automático)",
             mensaje: settings.mensaje_fuera_horario || "Tu mensaje ha sido recibido. El entrenador te responderá en su horario laboral.",
-            archivos_adjuntos: [],
-            prioridad: "Normal",
-            leido: false
+            adjuntos: [],
+            leido_padre: false,
+            leido_entrenador: true,
+            fecha_leido_entrenador: new Date().toISOString()
+          });
+          
+          // Incrementar contador de no leídos para el padre
+          await base44.entities.CoachConversation.update(conv.id, {
+            no_leidos_padre: (conv.no_leidos_padre || 0) + 1
           });
         }
       }
