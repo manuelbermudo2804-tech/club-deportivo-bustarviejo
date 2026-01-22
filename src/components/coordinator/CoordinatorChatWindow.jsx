@@ -960,7 +960,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 pb-28 space-y-2 bg-slate-50 min-h-0">
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -1173,29 +1173,31 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         </div>
       )}
 
-      <WhatsAppInputBar
-        messageText={messageText}
-        setMessageText={setMessageText}
-        onSend={handleSend}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        recording={recording}
-        audioBlob={audioBlob}
-        onStartRecording={startRecording}
-        onStopRecording={stopRecording}
-        onSendAudio={sendAudio}
-        onCancelAudio={cancelAudio}
-        audioDuration={audioDuration}
-        uploading={uploading}
-        onFileUpload={handleFileUpload}
-        onCameraCapture={handleCameraCapture}
-        onLocationClick={() => setShowLocationDialog(true)}
-        onPollClick={() => setShowPollDialog(true)}
-        onExerciseClick={isCoordinator ? () => setShowQuickReplies(!showQuickReplies) : null}
-        showExercise={false}
-        placeholder="Escribe un mensaje..."
-        onTyping={handleTyping}
-      />
+      <div className="sticky bottom-0 z-30 bg-white">
+        <WhatsAppInputBar
+          messageText={messageText}
+          setMessageText={setMessageText}
+          onSend={handleSend}
+          attachments={attachments}
+          setAttachments={setAttachments}
+          recording={recording}
+          audioBlob={audioBlob}
+          onStartRecording={startRecording}
+          onStopRecording={stopRecording}
+          onSendAudio={sendAudio}
+          onCancelAudio={cancelAudio}
+          audioDuration={audioDuration}
+          uploading={uploading}
+          onFileUpload={handleFileUpload}
+          onCameraCapture={handleCameraCapture}
+          onLocationClick={() => setShowLocationDialog(true)}
+          onPollClick={() => setShowPollDialog(true)}
+          onExerciseClick={isCoordinator ? () => setShowQuickReplies(!showQuickReplies) : null}
+          showExercise={false}
+          placeholder="Escribe un mensaje..."
+          onTyping={handleTyping}
+        />
+      </div>
 
       {/* Diálogo de ubicación */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
