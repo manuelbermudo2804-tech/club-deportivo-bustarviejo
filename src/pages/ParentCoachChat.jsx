@@ -377,6 +377,7 @@ export default function ParentCoachChat() {
       toast.error("Error al enviar mensaje");
     },
     onSuccess: async () => {
+      setMessageText("");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['coachMessages'] }),
         queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user?.email] }),
