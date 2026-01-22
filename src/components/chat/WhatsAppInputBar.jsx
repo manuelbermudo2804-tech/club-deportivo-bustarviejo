@@ -121,7 +121,7 @@ export default function WhatsAppInputBar({
   };
 
   return (
-    <div className="p-2 bg-white border-t flex-shrink-0">
+    <div className="p-2 bg-white flex-shrink-0">
       <input 
         ref={fileInputRef}
         type="file" 
