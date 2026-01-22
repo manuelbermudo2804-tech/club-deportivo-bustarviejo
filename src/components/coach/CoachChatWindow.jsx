@@ -821,8 +821,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
               <div className={`max-w-[85%] ${
-                isMine ? 'bg-green-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-white text-slate-900 rounded-[4px_18px_18px_18px] border'
-              } px-3 py-1.5 shadow-none relative`}>
+                isMine ? 'bg-green-500 text-gray-900' : 'bg-gray-100 text-gray-900 border'
+              } rounded-3xl px-4 py-2 shadow-none relative text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
                 {msg.mensaje_citado && (
                   <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-green-700 border-green-400' : 'bg-slate-100 border-slate-400'}`}>
                     <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
@@ -830,8 +830,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   </div>
                 )}
                 
-                <div className="flex items-start justify-between gap-2 mb-0.5">
-                  <p className="text-[11px] font-semibold opacity-75">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="text-xs font-semibold opacity-70">
                     {isCoachMsg ? '🏃 ' : ''}{msg.remitente_nombre}
                   </p>
                   {isMine && (
@@ -894,11 +894,11 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   // NO mostrar el texto cuando hay encuesta
                   null
                 ) : (
-                  <p className="text-[15px] whitespace-pre-wrap leading-tight" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px' }}>
-                    {msg.mensaje}
-                    {msg.editado && <span className="text-[11px] opacity-50 ml-1">(editado)</span>}
-                  </p>
-                )}
+                   <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
+                     {msg.mensaje}
+                     {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
+                   </p>
+                 )}
 
                 {/* Archivos ANTES de la encuesta */}
                 {msg.archivos_adjuntos?.length > 0 && (
@@ -953,8 +953,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   </div>
                 )}
 
-                <div className="flex items-center gap-1 justify-end mt-0.5">
-                  <p className="text-[11px] opacity-70">
+                <div className="flex items-center gap-1 justify-end mt-1">
+                  <p className="text-xs opacity-60">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   

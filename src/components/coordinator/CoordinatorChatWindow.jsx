@@ -655,9 +655,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
-              <div className={`max-w-[85%] ${isMine ? 'bg-cyan-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none relative`}>
-                <div className="flex items-center justify-between gap-2 mb-0.5">
-                  <p className="text-[11px] font-semibold opacity-75">
+              <div className={`max-w-[85%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-900'} rounded-3xl px-4 py-2 shadow-none relative text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <p className="text-xs font-semibold opacity-70">
                     {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
                   </p>
                   <ChatMessageActions
@@ -674,23 +674,23 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 </div>
 
                 {msg.audio_url ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <Button 
-                      size="sm" 
-                      variant={isMine ? "secondary" : "outline"}
-                      onClick={() => togglePlayAudio(msg.audio_url)}
-                      className="h-7"
-                    >
-                      {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                    </Button>
-                    <span className="text-xs">{msg.audio_duracion}s</span>
-                  </div>
-                ) : (
-                  <p className="text-[15px] leading-tight">
-                    {msg.mensaje}
-                    {msg.editado && <span className="text-[11px] opacity-50 ml-1">(editado)</span>}
-                  </p>
-                )}
+                   <div className="flex items-center gap-2 mt-1">
+                     <Button 
+                       size="sm" 
+                       variant={isMine ? "secondary" : "outline"}
+                       onClick={() => togglePlayAudio(msg.audio_url)}
+                       className="h-7"
+                     >
+                       {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                     </Button>
+                     <span className="text-xs">{msg.audio_duracion}s</span>
+                   </div>
+                 ) : (
+                   <p className="text-base leading-5">
+                     {msg.mensaje}
+                     {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
+                   </p>
+                 )}
 
                 {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
                 
@@ -733,8 +733,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                   </div>
                 )}
 
-                <div className="flex items-center gap-1 justify-end mt-0.5">
-                  <p className="text-[11px] opacity-70">
+                <div className="flex items-center gap-1 justify-end mt-1">
+                  <p className="text-xs opacity-60">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   {isMine && (

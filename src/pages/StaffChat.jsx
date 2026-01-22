@@ -766,8 +766,8 @@ export default function StaffChat() {
                     
                     <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
                       <div className={`max-w-[85%] ${
-                        isMine ? 'bg-purple-600 text-white rounded-[18px_4px_18px_18px]' : 'bg-white text-slate-900 rounded-[4px_18px_18px_18px] border'
-                      } px-3 py-1.5 shadow-none relative`}>
+                        isMine ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-900 border'
+                      } rounded-3xl px-4 py-2 shadow-none relative text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
                         {msg.mensaje_citado && (
                           <div className={`mb-2 p-2 rounded border-l-2 ${
                             isMine ? 'bg-purple-700 border-purple-400' : 'bg-slate-100 border-slate-400'
@@ -779,7 +779,7 @@ export default function StaffChat() {
                         
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-1">
-                            <p className="text-[11px] font-semibold opacity-75">
+                            <p className="text-xs font-semibold opacity-70">
                               {msg.autor_rol === "coordinador" ? "🎓 " : msg.autor_rol === "admin" ? "👑 " : "🏃 "}
                               {msg.autor_nombre}
                             </p>
@@ -817,9 +817,9 @@ export default function StaffChat() {
                           </div>
                         </div>
 
-                        <p className="text-[15px] whitespace-pre-wrap leading-tight mt-0.5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px' }}>
+                        <p className="text-base whitespace-pre-wrap leading-5 mt-1" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
                           {msg.mensaje}
-                          {msg.editado && <span className="text-[11px] opacity-50 ml-1">(editado)</span>}
+                          {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
                         </p>
 
                         {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
@@ -878,8 +878,8 @@ export default function StaffChat() {
                           </div>
                         )}
 
-                        <div className="flex items-center gap-1 justify-end mt-0.5">
-                          <p className="text-[11px] opacity-70">
+                        <div className="flex items-center gap-1 justify-end mt-1">
+                          <p className="text-xs opacity-60">
                             {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                           </p>
                           

@@ -401,12 +401,12 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
               <div className={`max-w-[85%] ${
-                isInternalNote ? 'bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-2xl' :
-                isMine ? 'bg-red-600 text-white rounded-[18px_4px_18px_18px]' : 
-                'bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px]'
-              } px-3 py-1.5 shadow-none`}>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-[11px] font-semibold opacity-75">
+                isInternalNote ? 'bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-3xl' :
+                isMine ? 'bg-red-600 text-white' : 
+                'bg-gray-100 text-gray-900'
+              } rounded-3xl px-4 py-2 shadow-none text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-xs font-semibold opacity-70">
                     {isInternalNote ? '📝 Nota Interna' : 
                      isMine ? '🛡️ Administrador' : 
                      msg.autor_nombre}
@@ -416,7 +416,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                   )}
                 </div>
 
-                <p className="text-[15px] whitespace-pre-wrap leading-tight" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px' }}>{msg.mensaje}</p>
+                <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>{msg.mensaje}</p>
 
                 {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
@@ -459,8 +459,8 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                   </div>
                 )}
 
-                <div className="flex items-center gap-1 justify-end mt-0.5">
-                  <p className="text-[11px] opacity-70">
+                <div className="flex items-center gap-1 justify-end mt-1">
+                  <p className="text-xs opacity-60">
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   {!isInternalNote && (
