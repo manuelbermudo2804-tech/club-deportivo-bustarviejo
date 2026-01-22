@@ -354,35 +354,37 @@ export default function ParentCoachChat() {
       }
     },
     onMutate: async (newMensaje) => {
-      await queryClient.cancelQueries({ queryKey: ['coachGroupMessages'] });
+      await queryClient.cancelQueries({ queryKey: ['coachMessages'] });
       
-      const previousMessages = queryClient.getQueryData(['coachGroupMessages', selectedCategory, user?.email]);
+      const previousMessages = queryClient.getQueryData(['coachMessages', selectedCategory, user?.email]);
       
+      const conv = coachConversations.find(c => c.categoria === selectedCategory);
       const optimisticMessage = {
         id: 'temp-' + Date.now(),
-        grupo_id: selectedCategory.toLowerCase().replace(/\s+/g, '_'),
-        tipo: "padre_a_grupo",
-        remitente_email: user.email,
-        remitente_nombre: user.full_name,
+        conversacion_id: conv?.id,
+        autor: "padre",
+        autor_email: user.email,
+        autor_nombre: user.full_name,
         mensaje: newMensaje,
         created_date: new Date().toISOString(),
-        leido: false,
-        archivos_adjuntos: []
+        leido_padre: true,
+        leido_entrenador: false,
+        adjuntos: []
       };
       
-      queryClient.setQueryData(['coachGroupMessages', selectedCategory, user?.email], old => [...(old || []), optimisticMessage]);
+      queryClient.setQueryData(['coachMessages', selectedCategory, user?.email], old => [...(old || []), optimisticMessage]);
       
       return { previousMessages };
     },
     onError: (err, newMensaje, context) => {
-      queryClient.setQueryData(['coachGroupMessages', selectedCategory, user?.email], context.previousMessages);
+      queryClient.setQueryData(['coachMessages', selectedCategory, user?.email], context.previousMessages);
       toast.error("Error al enviar mensaje");
     },
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
-        queryClient.invalidateQueries({ queryKey: ['allCoachGroupMessages'] }),
-        queryClient.refetchQueries({ queryKey: ['coachGroupMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['coachMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user?.email] }),
+        queryClient.refetchQueries({ queryKey: ['coachMessages'] }),
       ]);
     },
   });
