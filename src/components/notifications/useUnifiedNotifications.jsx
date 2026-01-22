@@ -662,12 +662,14 @@ export function useUnifiedNotifications(user, options = {}) {
       });
     }
 
-    // Private
+    // Private (System Messages for Parents)
+    let unreadSystemMessages = 0;
     if (rawData.privateConversations.length > 0) {
       rawData.privateConversations.forEach(conv => {
         if (conv.participante_familia_email === user.email) {
           const c = (conv.no_leidos_familia || 0);
           unreadPrivate += c;
+          unreadSystemMessages += c; // System messages counter
           if (c>0) breakdown.privateByConv[conv.id] = c;
         } else if (conv.participante_staff_email === user.email) {
           const c = (conv.no_leidos_staff || 0);
