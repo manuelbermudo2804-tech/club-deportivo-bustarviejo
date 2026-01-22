@@ -204,6 +204,12 @@
     background: linear-gradient(145deg, #334155 0%, #2d3a4d 100%) !important;
   }
 
+  /* WhatsApp chat selection */
+  ::selection {
+    background: rgba(0, 132, 255, 0.25);
+    color: inherit;
+  }
+
   /* Textos en modo oscuro - mejor contraste */
   body.theme-dark .text-slate-900,
   body.theme-dark .text-slate-800 {

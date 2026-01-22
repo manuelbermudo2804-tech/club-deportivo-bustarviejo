@@ -979,11 +979,15 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-              <div className={`max-w-[85%] ${isMine ? 'text-slate-900' : 'bg-white text-slate-900'} shadow-sm relative`} style={{ 
+              <div className={`max-w-[85%] shadow-sm relative`} style={{ 
                 backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
-                borderRadius: '7.5px',
-                padding: '6px 7px 8px 9px',
-                color: '#111111'
+                borderRadius: isMine ? '7.5px 7.5px 2px 7.5px' : '7.5px 7.5px 7.5px 2px',
+                padding: '6px 7px 14px 9px',
+                color: '#111111',
+                minHeight: '32px',
+                minWidth: '40px',
+                letterSpacing: '0',
+                fontKerning: 'normal'
               }}>
                 {msg.mensaje_citado && (
                  <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'border-green-600' : 'bg-slate-100 border-slate-400'}`} style={{ backgroundColor: isMine ? 'rgba(0,0,0,0.05)' : '#f1f5f9' }}>
@@ -1104,7 +1108,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mt-1">
+                <div className="flex items-center gap-1" style={{ position: 'absolute', bottom: '4px', right: '6px' }}>
                   <p style={{ fontSize: '11px', color: '#667781' }}>
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
