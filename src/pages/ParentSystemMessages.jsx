@@ -238,13 +238,13 @@ export default function ParentSystemMessages() {
                       )}
                       
                       <div className="flex justify-start mb-1">
-                        <div className="max-w-[85%] bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px] px-3 py-1.5 shadow-none">
+                        <div className="max-w-[85%] bg-gray-100 text-gray-900 rounded-3xl px-4 py-2 shadow-none font-roboto text-sm leading-relaxed" style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="text-[11px] font-semibold opacity-75">
+                            <p className="text-xs font-semibold opacity-70">
                               {isSystem ? '🤖 Sistema de Recordatorios' : msg.remitente_nombre}
                             </p>
                           </div>
-                          <p className="text-[15px] whitespace-pre-wrap leading-tight">{msg.mensaje}</p>
+                          <p className="text-base whitespace-pre-wrap leading-5">{msg.mensaje}</p>
                           
                           {msg.archivos_adjuntos?.length > 0 && (
                             <div className="mt-2 space-y-1">
@@ -262,8 +262,8 @@ export default function ParentSystemMessages() {
                             </div>
                           )}
                           
-                          <div className="flex items-center gap-1 justify-end mt-0.5">
-                            <p className="text-[11px] opacity-70">
+                          <div className="flex items-center gap-1 justify-end mt-1">
+                            <p className="text-xs opacity-60">
                               {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                             </p>
                           </div>

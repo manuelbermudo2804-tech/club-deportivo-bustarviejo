@@ -608,9 +608,9 @@ export default function ParentCoordinatorChat() {
                 
                 return (
                   <div key={msg.id} className={`flex ${isPadre ? 'justify-end' : 'justify-start'} mb-1`}>
-                    <div className={`max-w-[85%] ${isPadre ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-900'} ${isPadre ? 'rounded-[18px_4px_18px_18px]' : 'rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none`}>
-                      <p className="text-[11px] font-semibold mb-0.5 opacity-75">{msg.autor_nombre}</p>
-                      <p className="text-[15px] whitespace-pre-wrap leading-tight" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>{msg.mensaje}</p>
+                    <div className={`max-w-[85%] ${isPadre ? 'bg-green-500 text-gray-900' : 'bg-gray-100 text-gray-900'} ${isPadre ? 'rounded-3xl' : 'rounded-3xl'} px-4 py-2 shadow-none font-roboto text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
+                      <p className="text-xs font-semibold mb-1 opacity-70">{msg.autor_nombre}</p>
+                      <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>{msg.mensaje}</p>
                       {(msg.archivos_adjuntos || msg.adjuntos)?.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {(msg.archivos_adjuntos || msg.adjuntos).map((file, idx) => (
@@ -638,8 +638,8 @@ export default function ParentCoordinatorChat() {
                           ))}
                         </div>
                       )}
-                      <div className="flex items-center gap-1 justify-end mt-0.5">
-                        <p className="text-[11px] opacity-70">
+                      <div className="flex items-center gap-1 justify-end mt-1">
+                        <p className="text-xs opacity-60">
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </p>
                         {isPadre && (
