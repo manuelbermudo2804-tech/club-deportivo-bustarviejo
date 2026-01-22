@@ -64,16 +64,16 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
           </div>
         )}
         
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-[10px] sm:text-xs opacity-60">
+        <div className="flex items-center gap-1 justify-end mt-0.5">
+          <p className="text-[11px] opacity-70">
             {format(new Date(message.created_date), "HH:mm", { locale: es })}
           </p>
           
           {/* Doble check visual - solo en mensajes propios */}
           {showReadStatus && isMine && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center">
               {message.leido_por && message.leido_por.length > 0 ? (
-                <CheckCheck className="w-3 h-3 text-cyan-400" />
+                <CheckCheck className="w-3 h-3 text-white opacity-70" />
               ) : (
                 <Check className="w-3 h-3 opacity-50" />
               )}
