@@ -17,6 +17,7 @@ import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
 import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
+import WhatsAppInputBar from "../chat/WhatsAppInputBar";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -1016,136 +1017,29 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-2 bg-white border-t flex-shrink-0">
-        {attachments.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1">
-            {attachments.map((file, idx) => (
-              <div key={idx} className="relative">
-                {file.tipo?.startsWith('image/') ? (
-                  <div className="relative">
-                    <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
-                    <button 
-                      onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
-                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-1">
-                    <FileText className="w-3 h-3" />
-                    <span className="truncate max-w-[100px]">{file.nombre}</span>
-                    <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {recording && (
-          <div className="mb-2 flex items-center gap-2 bg-red-50 rounded-lg p-2 border-2 border-red-300 animate-pulse">
-            <Mic className="w-4 h-4 text-red-600 animate-pulse" />
-            <span className="text-sm flex-1 text-red-700 font-semibold">🔴 Grabando...</span>
-            <Button size="sm" onClick={stopRecording} className="h-7 bg-red-600 hover:bg-red-700">
-              Detener
-            </Button>
-          </div>
-        )}
-
-        {audioBlob && (
-          <div className="mb-2 flex items-center gap-2 bg-green-50 rounded-lg p-2">
-            <Mic className="w-4 h-4 text-green-600" />
-            <span className="text-sm flex-1">Audio {audioDuration}s</span>
-            <Button size="sm" onClick={sendAudio} className="h-7">Enviar</Button>
-            <Button size="sm" variant="outline" onClick={cancelAudio} className="h-7">✕</Button>
-          </div>
-        )}
-
-        <div className="flex flex-col gap-2">
-          <input 
-            ref={fileInputRef}
-            type="file" 
-            multiple 
-            accept="*/*"
-            className="hidden" 
-            onChange={handleFileUpload} 
-            disabled={uploading} 
-          />
-          <input 
-            ref={cameraInputRef}
-            type="file" 
-            accept="image/*" 
-            capture="environment" 
-            className="hidden" 
-            onChange={handleCameraCapture} 
-            disabled={uploading} 
-          />
-          
-          <div className="flex gap-2 items-center">
-            <EmojiPicker 
-              onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
-              messageText={messageText}
-            />
-            
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={() => setShowExerciseShare(true)}
-              className="h-11 w-11 bg-orange-50 hover:bg-orange-100 border-orange-200 flex-shrink-0"
-              title="Compartir ejercicio"
-            >
-              <Dumbbell className="w-5 h-5 text-orange-600" />
-            </Button>
-
-            <ChatInputActions
-              onFileClick={() => fileInputRef.current?.click()}
-              onCameraClick={() => cameraInputRef.current?.click()}
-              onAudioClick={recording ? stopRecording : startRecording}
-              onLocationClick={() => setShowLocationDialog(true)}
-              onPollClick={() => setShowPollDialog(true)}
-              uploading={uploading}
-              isRecording={recording}
-              showCamera={true}
-              showAudio={true}
-              showLocation={true}
-              showPoll={true}
-              showQuickReplies={false}
-            />
-          </div>
-
-          <div className="flex gap-2 items-end">
-            <Textarea
-              placeholder="Escribe..."
-              value={messageText}
-              onChange={(e) => {
-                setMessageText(e.target.value);
-                handleTyping();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              className="flex-1 min-h-[56px] max-h-40 resize-none text-base py-3 px-4"
-              rows={2}
-            />
-
-            <Button 
-              onClick={handleSend} 
-              disabled={!messageText.trim() && attachments.length === 0}
-              size="icon"
-              className="h-14 w-14 bg-green-600 hover:bg-green-700 p-0 flex-shrink-0 rounded-full"
-            >
-              <Send className="w-6 h-6" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      <WhatsAppInputBar
+        messageText={messageText}
+        setMessageText={setMessageText}
+        onSend={handleSend}
+        attachments={attachments}
+        setAttachments={setAttachments}
+        recording={recording}
+        audioBlob={audioBlob}
+        onStartRecording={startRecording}
+        onStopRecording={stopRecording}
+        onSendAudio={sendAudio}
+        onCancelAudio={cancelAudio}
+        audioDuration={audioDuration}
+        uploading={uploading}
+        onFileUpload={handleFileUpload}
+        onCameraCapture={handleCameraCapture}
+        onLocationClick={() => setShowLocationDialog(true)}
+        onPollClick={() => setShowPollDialog(true)}
+        onExerciseClick={() => setShowExerciseShare(true)}
+        showExercise={true}
+        placeholder="Escribe un mensaje..."
+        onTyping={handleTyping}
+      />
 
       {/* Dialogs */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
