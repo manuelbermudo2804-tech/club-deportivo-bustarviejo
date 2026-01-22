@@ -1213,7 +1213,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         </div>
       )}
 
-      <div className="flex-shrink-0">
+      <div className="sticky bottom-0 bg-white z-10 flex-shrink-0">
         <WhatsAppInputBar
         messageText={messageText}
         setMessageText={setMessageText}

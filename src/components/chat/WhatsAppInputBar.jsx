@@ -212,9 +212,9 @@ export default function WhatsAppInputBar({
                 handleSend();
               }
             }}
-            className="w-full resize-none outline-none text-base bg-transparent max-h-[120px] overflow-y-auto"
+            className="w-full resize-none outline-none bg-transparent max-h-[120px] overflow-y-auto"
             rows={1}
-            style={{ minHeight: '24px' }}
+            style={{ minHeight: '24px', fontSize: '15px', lineHeight: '1.32' }}
           />
         </div>
 
