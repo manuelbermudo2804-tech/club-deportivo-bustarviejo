@@ -351,7 +351,7 @@ export function useUnifiedNotifications(user, options = {}) {
         const pays = await run(() => base44.entities.Payment.list('-created_date', 30));
         setRawData(prev => ({ ...prev, payments: pays }));
       };
-      setTimeout(() => run(loadPayments), 800);
+      setTimeout(() => run(loadPayments), 1600);
       let lastPaymentsUpdate = 0;
       const unsubPayments = base44.entities.Payment.subscribe((event) => {
           const now = Date.now();
