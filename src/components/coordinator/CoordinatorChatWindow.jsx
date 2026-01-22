@@ -64,6 +64,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
+  // Auto-scroll helper
+  const scrollToBottom = (smooth = false) => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+  };
+
   const isCoordinator = user.es_coordinador || user.role === "admin";
 
   const { data: coordinatorSettings } = useQuery({
@@ -161,11 +168,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   // Scroll automático cuando cambian los mensajes o el indicador de escritura
   useEffect(() => {
-    if (messagesEndRef.current) {
-      // Scroll inmediato sin animación para mensajes propios, smooth para otros
-      const behavior = messages.length > 0 && messages[messages.length - 1]?.autor_email === user?.email ? "auto" : "smooth";
-      messagesEndRef.current.scrollIntoView({ behavior, block: "end" });
-    }
+    const last = messages[messages.length - 1];
+    const smooth = !!(last && last.autor_email !== user?.email);
+    // Forzar scroll tras el render
+    requestAnimationFrame(() => scrollToBottom(smooth));
   }, [messages, otherPersonTyping, user?.email]);
 
   // Marcar como leído cuando abre la conversación
@@ -529,6 +535,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       
       // Actualizar inmediatamente
       queryClient.setQueryData(['coordinatorMessages', conversation?.id], [...previousMessages, optimisticMessage]);
+      requestAnimationFrame(() => scrollToBottom(false));
       
       return { previousMessages };
     },
@@ -706,6 +713,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
          queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
          queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
        ]);
+       // Asegurar scroll tras recibir confirmación
+       requestAnimationFrame(() => scrollToBottom(true));
 
        // NO invalidar appNotifications globales - mantener independencia de burbujas
      },
@@ -974,7 +983,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       {/* Mensajes - contenedor que hace scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 bg-slate-50 pb-28" 
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 bg-slate-50 pb-36" 
         style={{ fontFamily: 'Roboto, sans-serif' }}
         onScroll={(e) => {
           const { scrollHeight, scrollTop, clientHeight } = e.target;
@@ -1133,14 +1142,15 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                    {msg.archivos_adjuntos.map((file, idx) => (
                      file.tipo?.startsWith('image/') ? (
                        <img 
-                         key={idx}
-                         src={file.url} 
-                         alt={file.nombre}
-                         loading="lazy"
-                         className="cursor-pointer max-w-full h-auto bg-slate-200"
-                         style={{ borderRadius: '7.5px' }}
-                         onClick={() => setShowImagePreview(file.url)}
-                       />
+                                                      key={idx}
+                                                      src={file.url} 
+                                                      alt={file.nombre}
+                                                      loading="lazy"
+                                                      className="cursor-pointer max-w-full h-auto bg-slate-200"
+                                                      style={{ borderRadius: '7.5px' }}
+                                                      onClick={() => setShowImagePreview(file.url)}
+                                                      onLoad={() => scrollToBottom(true)}
+                                                    />
                      ) : (
                        <a
                          key={idx}
