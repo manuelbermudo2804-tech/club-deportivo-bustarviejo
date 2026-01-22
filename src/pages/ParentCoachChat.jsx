@@ -94,13 +94,7 @@ export default function ParentCoachChat() {
     return unsub;
   }, [selectedCategory, user, queryClient]);
 
-  // Obtener todos los mensajes para contar sin leer por categoría
-  const { data: allChatMessages = [] } = useQuery({
-    queryKey: ['allCoachGroupMessages'],
-    queryFn: () => base44.entities.ChatMessage.list(),
-    refetchInterval: 2000,
-    enabled: !!user,
-  });
+
 
   // Obtener conversaciones entrenador-padre para contar no leídos
   const { data: coachConversations = [] } = useQuery({
