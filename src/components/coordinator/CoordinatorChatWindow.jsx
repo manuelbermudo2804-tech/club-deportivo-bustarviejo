@@ -987,7 +987,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       <div 
         ref={messagesContainerRef}
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 pb-24 bg-slate-50" 
-        style={{ fontFamily: 'Roboto, sans-serif', paddingBottom: '90px' }}
+        style={{ fontFamily: 'Roboto, sans-serif', paddingBottom: '110px' }}
         onScroll={(e) => {
           const { scrollHeight, scrollTop, clientHeight } = e.target;
           const isNearBottom = scrollHeight - scrollTop - clientHeight < 60;
