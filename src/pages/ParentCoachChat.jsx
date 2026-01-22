@@ -622,13 +622,13 @@ export default function ParentCoachChat() {
                           'bg-white text-slate-900 border'
                         } rounded-2xl p-3 shadow-sm relative`}>
                          <div className="flex items-center gap-2 mb-1">
-                           <p className="text-xs font-semibold opacity-70">
-                             {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
-                           </p>
-                           {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
-                         </div>
+                            <p className="text-xs font-semibold opacity-70">
+                              {isCoach ? '🏃 ' : ''}{msg.autor_nombre}
+                            </p>
+                            {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                          </div>
 
-                          {msg.mensaje && <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>}
+                           {msg.mensaje && <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>}
 
                           {msg.audio_url && (
                             <div className="flex items-center gap-2 mt-2">
