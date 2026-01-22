@@ -66,47 +66,7 @@ export default function ParentCoachChat() {
     }
   }, [selectedCategory]);
 
-  const { data: messages = [] } = useQuery({
-    queryKey: ['coachMessages', selectedCategory, user?.email],
-    queryFn: async () => {
-      if (!selectedCategory || !user) return [];
-      
-      // Buscar conversación para esta categoría
-      const conv = coachConversations.find(c => c.categoria === selectedCategory);
-      if (!conv) return [];
-      
-      // Obtener mensajes de esa conversación
-      const allMessages = await base44.entities.CoachMessage.filter({ 
-        conversacion_id: conv.id 
-      }, 'created_date');
-      
-      return allMessages;
-    },
-    refetchInterval: 1000,
-    refetchOnWindowFocus: true,
-    enabled: !!selectedCategory && !!user && coachConversations.length > 0,
-  });
-
-  // REAL-TIME: Suscripción a mensajes del entrenador
-  useEffect(() => {
-    if (!selectedCategory || !user || coachConversations.length === 0) return;
-    
-    const conv = coachConversations.find(c => c.categoria === selectedCategory);
-    if (!conv) return;
-    
-    const unsub = base44.entities.CoachMessage.subscribe((event) => {
-      if (event.data?.conversacion_id === conv.id) {
-        queryClient.invalidateQueries({ queryKey: ['coachMessages', selectedCategory, user.email] });
-        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
-      }
-    });
-    
-    return unsub;
-  }, [selectedCategory, user?.email, coachConversations, queryClient]);
-
-
-
-  // Obtener conversaciones entrenador-padre para contar no leídos
+  // Obtener conversaciones entrenador-padre para contar no leídos (DECLARAR PRIMERO)
   const { data: coachConversations = [] } = useQuery({
     queryKey: ['coachConversationsForParent', user?.email],
     queryFn: async () => {
