@@ -416,7 +416,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                   )}
                 </div>
 
-                <p className="text-2xl sm:text-3xl whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
+                <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
 
                 {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">

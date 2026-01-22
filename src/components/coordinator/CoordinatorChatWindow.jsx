@@ -1029,7 +1029,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                      <span className="text-sm">{msg.audio_duracion}s</span>
                    </div>
                  ) : (
-                   <p className="text-2xl sm:text-3xl whitespace-pre-wrap leading-relaxed">
+                   <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed">
                      {msg.mensaje}
                      {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
                    </p>
