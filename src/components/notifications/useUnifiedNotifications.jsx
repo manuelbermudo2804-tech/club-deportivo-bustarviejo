@@ -280,7 +280,7 @@ export function useUnifiedNotifications(user, options = {}) {
       const notifs = await run(() => base44.entities.AppNotification.filter({ usuario_email: user.email, vista: false }));
       setRawData(prev => ({ ...prev, appNotifications: notifs }));
     };
-    setTimeout(() => run(loadAppNotifs), 500);
+    setTimeout(() => run(loadAppNotifs), 1100);
     let lastAppNotifUpdate = 0;
     const unsubAppNotif = base44.entities.AppNotification.subscribe((event) => {
       const now = Date.now();
