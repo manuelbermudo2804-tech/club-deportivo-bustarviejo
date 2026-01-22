@@ -489,7 +489,7 @@ export function useUnifiedNotifications(user, options = {}) {
         const obs = await run(() => base44.entities.MatchObservation.list('-updated_date', 40));
         setRawData(prev => ({ ...prev, matchObservations: obs }));
       };
-      setTimeout(() => run(loadObservations), 1200);
+      setTimeout(() => run(loadObservations), 2400);
       let lastObsUpdate = 0;
       const unsubObs = base44.entities.MatchObservation.subscribe((event) => {
         const now = Date.now();
