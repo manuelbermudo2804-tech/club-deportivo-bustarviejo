@@ -617,14 +617,14 @@ export default function ParentCoachChat() {
                           isCoach ? 'bg-green-100 text-slate-900' : 
                           'bg-slate-100 text-slate-900'
                         } ${isMine ? 'rounded-[18px_4px_18px_18px]' : 'rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none relative`}>
-                         <div className="flex items-center gap-2 mb-1">
-                            <p className="text-xs font-semibold opacity-70">
+                         <div className="flex items-center gap-1 mb-0.5">
+                            <p className="text-[11px] font-semibold opacity-75">
                               {isCoach ? '🏃 ' : ''}{msg.autor_nombre}
                             </p>
-                            {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
+                            {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                           </div>
 
-                           {msg.mensaje && <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>}
+                           {msg.mensaje && <p className="text-[15px] whitespace-pre-wrap leading-tight">{msg.mensaje}</p>}
 
                           {msg.audio_url && (
                             <div className="flex items-center gap-2 mt-2">
