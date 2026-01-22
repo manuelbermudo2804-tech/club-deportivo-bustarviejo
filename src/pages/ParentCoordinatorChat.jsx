@@ -638,16 +638,16 @@ export default function ParentCoordinatorChat() {
                           ))}
                         </div>
                       )}
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-[10px] sm:text-xs opacity-60">
+                      <div className="flex items-center gap-1 justify-end mt-0.5">
+                        <p className="text-[11px] opacity-70">
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </p>
                         {isPadre && (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center">
                             {msg.leido_coordinador ? (
-                              <CheckCheck className="w-4 h-4 text-cyan-400" />
+                              <CheckCheck className="w-3 h-3 text-white opacity-70" />
                             ) : (
-                              <Check className="w-4 h-4 opacity-50" />
+                              <Check className="w-3 h-3 opacity-50" />
                             )}
                           </div>
                         )}
