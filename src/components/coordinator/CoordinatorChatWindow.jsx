@@ -162,9 +162,11 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   // Scroll automático cuando cambian los mensajes o el indicador de escritura
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      // Scroll inmediato sin animación para mensajes propios, smooth para otros
+      const behavior = messages.length > 0 && messages[messages.length - 1]?.autor_email === user?.email ? "auto" : "smooth";
+      messagesEndRef.current.scrollIntoView({ behavior, block: "end" });
     }
-  }, [messages, otherPersonTyping]);
+  }, [messages, otherPersonTyping, user?.email]);
 
   // Marcar como leído cuando abre la conversación
   const markedAsReadRef = useRef(false);
@@ -500,10 +502,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const sendMessageMutation = useMutation({
     onMutate: async (data) => {
+      // Cancelar cualquier refetch en progreso
       await queryClient.cancelQueries({ queryKey: ['coordinatorMessages', conversation?.id] });
       
-      const previousMessages = queryClient.getQueryData(['coordinatorMessages', conversation?.id]);
+      const previousMessages = queryClient.getQueryData(['coordinatorMessages', conversation?.id]) || [];
       
+      // Crear mensaje optimista
       const optimisticMessage = {
         id: 'temp-' + Date.now(),
         conversacion_id: conversation.id,
@@ -518,10 +522,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         encuesta: data.encuesta,
         ubicacion: data.ubicacion,
         audio_url: data.audio_url,
-        audio_duracion: data.audio_duracion
+        audio_duracion: data.audio_duracion,
+        respuesta_a: data.respuesta_a,
+        mensaje_citado: data.mensaje_citado
       };
       
-      queryClient.setQueryData(['coordinatorMessages', conversation?.id], old => [...(old || []), optimisticMessage]);
+      // Actualizar inmediatamente
+      queryClient.setQueryData(['coordinatorMessages', conversation?.id], [...previousMessages, optimisticMessage]);
       
       return { previousMessages };
     },
@@ -718,10 +725,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       const textToSend = messageText;
       const attachToSend = [...attachments];
       
-      // Limpiar inmediatamente
-      setMessageText("");
-      setAttachments([]);
-      
       const messageData = { 
         mensaje: textToSend, 
         archivos_adjuntos: attachToSend 
@@ -735,7 +738,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         };
       }
       
+      // Enviar PRIMERO (para actualización optimista)
       sendMessageMutation.mutate(messageData);
+      
+      // Limpiar DESPUÉS (para que la UI responda inmediatamente)
+      setMessageText("");
+      setAttachments([]);
       setReplyingTo(null);
     }
   };
