@@ -438,7 +438,7 @@ export function useUnifiedNotifications(user, options = {}) {
           clubMembers: members
         }));
       };
-      setTimeout(() => run(loadInvitations), 1100);
+      setTimeout(() => run(loadInvitations), 2200);
       
       const unsubInv = base44.entities.InvitationRequest.subscribe(() => {
                     globalThrottler.execute(() => {
