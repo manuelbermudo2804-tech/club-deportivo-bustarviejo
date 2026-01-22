@@ -1113,28 +1113,16 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   
-                  <div className="flex items-center gap-2">
-                    {/* Confirmación de lectura (doble check) */}
-                    {isMine && (
-                      <div className="flex items-center gap-1">
-                        {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
-                          <CheckCheck className="w-4 h-4 text-cyan-400" />
-                        ) : (
-                          <Check className="w-4 h-4 opacity-50" />
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Botón de reacciones */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                      onClick={() => setShowReactions(msg.id)}
-                    >
-                      <Smile className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  {isMine && (
+                   <>
+                     {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
+                       <CheckCheck className="w-3 h-3" style={{ color: '#53BDEB' }} />
+                     ) : (
+                       <Check className="w-3 h-3" style={{ color: '#667781' }} />
+                     )}
+                   </>
+                  )}
+
                 </div>
 
                 {/* Selector de reacciones */}
