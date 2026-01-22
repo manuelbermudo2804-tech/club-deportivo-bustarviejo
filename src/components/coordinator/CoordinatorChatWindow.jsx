@@ -639,20 +639,22 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           });
         }
 
-        // Notificar a admin de nuevo mensaje coordinador
-        const allUsers = await base44.entities.User.list();
-        const admins = allUsers.filter(u => u.role === "admin");
-        for (const admin of admins) {
-          await base44.entities.AppNotification.create({
-            usuario_email: admin.email,
-            titulo: `💬 ${user.full_name || 'Coordinador'} → ${conversation.padre_nombre}`,
-            mensaje: (data.mensaje || "Mensaje").substring(0, 100),
-            tipo: "info",
-            icono: "💬",
-            enlace: "AdminChat",
-            vista: false
-          });
-        }
+        // Notificar a admin de nuevo mensaje coordinador (no bloquear envío si falla)
+        try {
+          const allUsers = await base44.entities.User.list();
+          const admins = allUsers.filter(u => u.role === "admin");
+          for (const admin of admins) {
+            await base44.entities.AppNotification.create({
+              usuario_email: admin.email,
+              titulo: `💬 ${user.full_name || 'Coordinador'} → ${conversation.padre_nombre}`,
+              mensaje: (data.mensaje || "Mensaje").substring(0, 100),
+              tipo: "info",
+              icono: "💬",
+              enlace: "AdminChat",
+              vista: false
+            });
+          }
+        } catch (_) {}
       }
 
       if (shouldSendAutoReply) {
