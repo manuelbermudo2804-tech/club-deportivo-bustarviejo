@@ -610,7 +610,7 @@ export default function ParentCoordinatorChat() {
                   <div key={msg.id} className={`flex ${isPadre ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] sm:max-w-[70%] ${isPadre ? 'bg-slate-800 text-white' : 'bg-white text-slate-900 border'} rounded-2xl p-2 sm:p-3 shadow-sm`}>
                       <p className="text-[10px] sm:text-xs font-semibold mb-1 opacity-70">{msg.autor_nombre}</p>
-                      <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.mensaje}</p>
+                      <p className="text-xs sm:text-sm whitespace-pre-wrap" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>{msg.mensaje}</p>
                       {(msg.archivos_adjuntos || msg.adjuntos)?.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {(msg.archivos_adjuntos || msg.adjuntos).map((file, idx) => (

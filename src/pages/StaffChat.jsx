@@ -817,7 +817,7 @@ export default function StaffChat() {
                           </div>
                         </div>
 
-                        <p className="text-xs sm:text-sm whitespace-pre-wrap mt-1">
+                        <p className="text-xs sm:text-sm whitespace-pre-wrap mt-1" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
                           {msg.mensaje}
                           {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
                         </p>
