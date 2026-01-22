@@ -262,16 +262,10 @@ export default function ParentSystemMessages() {
                             </div>
                           )}
                           
-                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
-                            <p className="text-xs opacity-75">
+                          <div className="flex items-center gap-1 justify-end mt-0.5">
+                            <p className="text-[11px] opacity-70">
                               {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                             </p>
-                            {msg.leido && (
-                              <div className="flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3 opacity-75" />
-                                <span className="text-xs opacity-75">Leído</span>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
