@@ -986,7 +986,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       {/* Mensajes - contenedor que hace scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 bg-slate-50" 
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 pb-24 bg-slate-50" 
         style={{ fontFamily: 'Roboto, sans-serif' }}
         onScroll={(e) => {
           const { scrollHeight, scrollTop, clientHeight } = e.target;
@@ -1225,7 +1225,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {/* Barra de entrada FIJA - fuera del scroll */}
-      <div className="flex-shrink-0 bg-white border-t">
+      <div className="relative z-10 flex-shrink-0 bg-white border-t">
         {isCoordinator && showQuickReplies && (
           <div className="px-2 pt-2">
             <CoordinatorQuickReplies 
