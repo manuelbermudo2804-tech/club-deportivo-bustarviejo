@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -927,32 +928,34 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
       <audio ref={notificationSoundRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZizUIGGS57OihUBILUKXh8raFHwU5jtX0z3k" />
 
-      {/* Header mínimo */}
-      <div className="p-1.5 bg-white border-b flex-shrink-0 sticky top-0 z-20">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <h2 className="font-bold text-xs text-slate-900 truncate">{conversation.padre_nombre}</h2>
-            <p className="text-xs text-slate-500 truncate">
-              {conversation.jugadores_asociados?.map(j => j.jugador_nombre).join(', ')}
-            </p>
+      <Card className="border-purple-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-2 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <MessageCircle className="w-4 h-4" />
+              {conversation.padre_nombre}
+            </CardTitle>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {conversation.prioritaria && <Star className="w-3 h-3 text-orange-500 fill-orange-500" />}
+              {isCoordinator && (
+                <EscalateToAdminButton 
+                  conversation={conversation}
+                  recentMessages={messages}
+                  coordinatorUser={user}
+                />
+              )}
+              <Button variant="ghost" size="sm" onClick={onClose} className="h-7 w-7 p-0 lg:hidden">
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {conversation.prioritaria && <Star className="w-3 h-3 text-orange-500 fill-orange-500" />}
-            {isCoordinator && (
-              <EscalateToAdminButton 
-                conversation={conversation}
-                recentMessages={messages}
-                coordinatorUser={user}
-              />
-            )}
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-7 w-7 p-0 lg:hidden">
-              <X className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
-      </div>
+          <p className="text-[11px] text-white/80 truncate">
+            {conversation.jugadores_asociados?.map(j => j.jugador_nombre).join(', ')}
+          </p>
+        </CardHeader>
 
-      {/* Mensajes Anclados */}
+        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
+          {/* Mensajes Anclados */}
       <PinnedMessagesBanner 
         pinnedMessages={pinnedMessages}
         onUnpin={(id) => unpinMessageMutation.mutate(id)}
@@ -1197,7 +1200,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         onTyping={handleTyping}
       />
 
-      {/* Diálogo de ubicación */}
+        </CardContent>
+      </Card>
+
+      {/* Diálogo de ubicación */
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
         <DialogContent>
           <DialogHeader>
