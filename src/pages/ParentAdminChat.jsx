@@ -369,59 +369,28 @@ export default function ParentAdminChat() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <input 
-                ref={fileInputRef}
-                type="file" 
-                multiple 
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                className="hidden" 
-                onChange={handleFileUpload} 
-                disabled={uploading} 
-              />
-              
-              <div className="flex justify-center">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="h-8 px-3 text-xs"
-                >
-                  <Paperclip className="w-3 h-3 mr-1" />
-                  Adjuntar archivo
-                </Button>
-              </div>
-
-              <div className="flex gap-2 items-end">
-                <EmojiPicker 
-                  onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
-                  messageText={messageText}
-                />
-                
-                <Textarea
-                  placeholder="Escribe tu mensaje..."
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
-                  rows={1}
-                />
-
-                <Button 
-                  onClick={handleSend} 
-                  disabled={!messageText.trim() && attachments.length === 0}
-                  className="bg-red-600 hover:bg-red-700 h-11 w-11 p-0 flex-shrink-0 rounded-full"
-                >
-                  <Send className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
+            <WhatsAppInputBar
+              messageText={messageText}
+              setMessageText={setMessageText}
+              onSend={handleSend}
+              attachments={attachments}
+              setAttachments={setAttachments}
+              recording={false}
+              audioBlob={null}
+              onStartRecording={() => {}}
+              onStopRecording={() => {}}
+              onSendAudio={() => {}}
+              onCancelAudio={() => {}}
+              audioDuration={0}
+              uploading={uploading}
+              onFileUpload={handleFileUpload}
+              onCameraCapture={() => {}}
+              onLocationClick={() => {}}
+              onPollClick={() => {}}
+              showExercise={false}
+              placeholder="Escribe tu mensaje..."
+              onTyping={null}
+            />
           </div>
         ) : (
           <div className="p-4 bg-green-50 border-t">
