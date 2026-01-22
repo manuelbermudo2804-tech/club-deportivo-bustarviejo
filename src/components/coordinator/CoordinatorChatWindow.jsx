@@ -1163,41 +1163,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                     ))}
                   </div>
                 )}
-
-                <div className="flex items-center gap-1" style={{ position: 'absolute', bottom: '4px', right: '6px' }}>
-                  <p style={{ fontSize: '11px', color: '#667781' }}>
-                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                  </p>
-                  
-                  {isMine && (
-                   <>
-                     {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
-                       <CheckCheck className="w-3 h-3" style={{ color: '#53BDEB' }} />
-                     ) : (
-                       <Check className="w-3 h-3" style={{ color: '#667781' }} />
-                     )}
-                   </>
-                  )}
-
-                </div>
-
-                {/* Selector de reacciones */}
-                {showReactions === msg.id && (
-                  <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-lg p-2 flex gap-2 z-10">
-                    {REACTIONS.map(emoji => (
-                      <button
-                        key={emoji}
-                        onClick={() => addReaction(msg.id, emoji)}
-                        className="text-2xl hover:scale-125 transition-transform"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                    <button onClick={() => setShowReactions(null)} className="ml-2">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           );
