@@ -20,16 +20,16 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
         'bg-slate-100 text-slate-900'
       } ${isMine ? 'rounded-[18px_4px_18px_18px]' : 'rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none`}>
         {showSenderName && (
-          <div className="flex items-center gap-1 sm:gap-2 mb-1 flex-wrap">
-            <p className="text-[10px] sm:text-xs font-semibold opacity-70">
+          <div className="flex items-center gap-1 mb-0.5">
+            <p className="text-[11px] font-semibold opacity-75">
               {isBot ? '🤖 ' : isCoach ? '🏃 ' : isSystem ? '📢 ' : ''}{message.remitente_nombre}
             </p>
-            {isBot && <Badge className="text-[10px] sm:text-xs bg-blue-400 px-1 py-0">Asistente IA</Badge>}
-            {isCoach && !isBot && <Badge className="text-[10px] sm:text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
-            {isSystem && <Badge className="text-[10px] sm:text-xs bg-orange-500 px-1 py-0">Sistema</Badge>}
+            {isBot && <Badge className="text-[10px] bg-blue-400 px-1 py-0 h-4">Bot</Badge>}
+            {isCoach && !isBot && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
+            {isSystem && <Badge className="text-[10px] bg-orange-500 px-1 py-0 h-4">Sistema</Badge>}
           </div>
         )}
-        <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.mensaje}</p>
+        <p className="text-[15px] whitespace-pre-wrap leading-tight">{message.mensaje}</p>
 
         {message.archivos_adjuntos?.length > 0 && (
           <div className="mt-2 space-y-1">
