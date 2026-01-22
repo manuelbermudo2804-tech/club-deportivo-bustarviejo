@@ -560,7 +560,7 @@ export default function ParentCoachChat() {
                            {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                          </div>
 
-                          {msg.mensaje && <p className="text-lg sm:text-xl whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>}
+                          {msg.mensaje && <p className="text-2xl sm:text-3xl whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>}
 
                           {msg.audio_url && (
                             <div className="flex items-center gap-2 mt-2">
