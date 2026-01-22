@@ -67,16 +67,24 @@ export default function ParentCoachChat() {
   }, [selectedCategory]);
 
   const { data: messages = [] } = useQuery({
-    queryKey: ['coachGroupMessages', selectedCategory, user?.email],
+    queryKey: ['coachMessages', selectedCategory, user?.email],
     queryFn: async () => {
       if (!selectedCategory || !user) return [];
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      const allMessages = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
-      return allMessages.filter(msg => !msg.destinatario_email || msg.destinatario_email === user.email);
+      
+      // Buscar conversación para esta categoría
+      const conv = coachConversations.find(c => c.categoria === selectedCategory);
+      if (!conv) return [];
+      
+      // Obtener mensajes de esa conversación
+      const allMessages = await base44.entities.CoachMessage.filter({ 
+        conversacion_id: conv.id 
+      }, 'created_date');
+      
+      return allMessages;
     },
     refetchInterval: 1000,
     refetchOnWindowFocus: true,
-    enabled: !!selectedCategory && !!user,
+    enabled: !!selectedCategory && !!user && coachConversations.length > 0,
   });
 
   // REAL-TIME: Suscripción a mensajes del entrenador
