@@ -272,6 +272,15 @@ export default function ParentCoachChat() {
         fecha_leido_padre: new Date().toISOString()
       });
 
+      // Incrementar contador de no leídos para el entrenador
+      const updatedConv = await base44.entities.CoachConversation.update(conv.id, {
+        ultimo_mensaje: mensaje,
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_autor: "padre",
+        no_leidos_entrenador: (conv.no_leidos_entrenador || 0) + 1
+      });
+
+      // Notificar al entrenador
       const allCoachSettings = await base44.entities.CoachSettings.list();
       const coachesForCategory = allCoachSettings.filter(s => 
         s.categorias_entrena?.includes(selectedCategory)
