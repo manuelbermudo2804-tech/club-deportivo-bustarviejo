@@ -813,12 +813,12 @@ export function useUnifiedNotifications(user, options = {}) {
     // ACTUALIZAR ESTADO (y publicar en global para otros consumidores)
     const next = {
       // CHATS - separados por rol y tipo
-      unreadCoordinatorMessages: Math.max(unreadCoordinatorForParent, appNotifsByLink['ParentCoordinatorChat'] || 0), // Para familias - considerar AppNotification
-      unreadCoachMessages: unreadCoachForParent,             // Para familias
+      unreadCoordinatorMessages: Math.max(unreadCoordinatorForParent, appNotifsByLink['ParentCoordinatorChat'] || 0), // Para familias
+      unreadCoachMessages: Math.max(unreadCoachForParent, appNotifsByLink['ParentCoachChat'] || 0), // Para familias - considerar AppNotification
       unreadStaffMessages: unreadStaff,                      // Staff interno
       unreadAdminMessages: unreadAdmin,
       unreadPrivateMessages: unreadPrivate,
-      unreadSystemMessages,                                  // System messages for parents
+      unreadSystemMessages: Math.max(unreadSystemMessages, appNotifsByLink['ParentSystemMessages'] || 0), // System messages for parents
       unreadFamilyMessages: Math.max(unreadCoordinatorForStaff, appNotifsByLink['FamilyChats'] || 0) + unreadCoachForStaff, // Considerar AppNotif de FamilyChats
       unreadCoordinatorForStaff,  // Para coordinadores: mensajes de familias
       unreadCoachForStaff,         // Para entrenadores: mensajes de familias
