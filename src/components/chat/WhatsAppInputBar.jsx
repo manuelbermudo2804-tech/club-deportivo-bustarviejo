@@ -121,7 +121,7 @@ export default function WhatsAppInputBar({
   };
 
   return (
-    <div className="p-2 bg-white flex-shrink-0">
+    <div className="p-2 bg-white border-t flex-shrink-0">
       <input 
         ref={fileInputRef}
         type="file" 
@@ -212,9 +212,9 @@ export default function WhatsAppInputBar({
                 handleSend();
               }
             }}
-            className="w-full resize-none outline-none bg-transparent max-h-[120px] overflow-y-auto"
+            className="w-full resize-none outline-none text-base bg-transparent max-h-[120px] overflow-y-auto"
             rows={1}
-            style={{ minHeight: '24px', fontSize: '15px', lineHeight: '1.32' }}
+            style={{ minHeight: '24px' }}
           />
         </div>
 

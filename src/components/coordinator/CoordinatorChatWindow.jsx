@@ -50,10 +50,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const [filterType, setFilterType] = useState("all");
   const [filterPerson, setFilterPerson] = useState("all");
   const [filterDate, setFilterDate] = useState("all");
-  const [showScrollButton, setShowScrollButton] = useState(false);
   
   const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
   const audioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -63,13 +61,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const notificationSoundRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
-
-  // Auto-scroll helper
-  const scrollToBottom = (smooth = false) => {
-    const el = messagesContainerRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
-  };
 
   const isCoordinator = user.es_coordinador || user.role === "admin";
 
@@ -166,12 +157,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     ? conversationState?.padre_escribiendo 
     : conversationState?.coordinador_escribiendo;
 
-  // Auto-scroll al final (estilo StaffChat)
+  // Scroll automático cuando cambian los mensajes o el indicador de escritura
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [messages.length]);
+  }, [messages, otherPersonTyping]);
 
   // Marcar como leído cuando abre la conversación
   const markedAsReadRef = useRef(false);
@@ -507,12 +498,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const sendMessageMutation = useMutation({
     onMutate: async (data) => {
-      // Cancelar cualquier refetch en progreso
       await queryClient.cancelQueries({ queryKey: ['coordinatorMessages', conversation?.id] });
       
-      const previousMessages = queryClient.getQueryData(['coordinatorMessages', conversation?.id]) || [];
+      const previousMessages = queryClient.getQueryData(['coordinatorMessages', conversation?.id]);
       
-      // Crear mensaje optimista
       const optimisticMessage = {
         id: 'temp-' + Date.now(),
         conversacion_id: conversation.id,
@@ -527,16 +516,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         encuesta: data.encuesta,
         ubicacion: data.ubicacion,
         audio_url: data.audio_url,
-        audio_duracion: data.audio_duracion,
-        respuesta_a: data.respuesta_a,
-        mensaje_citado: data.mensaje_citado
+        audio_duracion: data.audio_duracion
       };
       
-      // Actualizar inmediatamente
-      queryClient.setQueryData(['coordinatorMessages', conversation?.id], [...previousMessages, optimisticMessage]);
-                  requestAnimationFrame(() => {
-                    messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
-                  });
+      queryClient.setQueryData(['coordinatorMessages', conversation?.id], old => [...(old || []), optimisticMessage]);
       
       return { previousMessages };
     },
@@ -647,22 +630,20 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           });
         }
 
-        // Notificar a admin de nuevo mensaje coordinador (no bloquear envío si falla)
-        try {
-          const allUsers = await base44.entities.User.list();
-          const admins = allUsers.filter(u => u.role === "admin");
-          for (const admin of admins) {
-            await base44.entities.AppNotification.create({
-              usuario_email: admin.email,
-              titulo: `💬 ${user.full_name || 'Coordinador'} → ${conversation.padre_nombre}`,
-              mensaje: (data.mensaje || "Mensaje").substring(0, 100),
-              tipo: "info",
-              icono: "💬",
-              enlace: "AdminChat",
-              vista: false
-            });
-          }
-        } catch (_) {}
+        // Notificar a admin de nuevo mensaje coordinador
+        const allUsers = await base44.entities.User.list();
+        const admins = allUsers.filter(u => u.role === "admin");
+        for (const admin of admins) {
+          await base44.entities.AppNotification.create({
+            usuario_email: admin.email,
+            titulo: `💬 ${coordinatorUser.full_name} → ${conversation.padre_nombre}`,
+            mensaje: (data.mensaje || "Mensaje").substring(0, 100),
+            tipo: "info",
+            icono: "💬",
+            enlace: "AdminChat",
+            vista: false
+          });
+        }
       }
 
       if (shouldSendAutoReply) {
@@ -711,13 +692,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     onSuccess: async () => {
        // Refetch INMEDIATO sin esperar - SOLO este chat
        await Promise.all([
-              queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
-              queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
-            ]);
-            // Asegurar scroll tras recibir confirmación
-            requestAnimationFrame(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            });
+         queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
+         queryClient.refetchQueries({ queryKey: ['coordinatorMessages', conversation.id] }),
+       ]);
 
        // NO invalidar appNotifications globales - mantener independencia de burbujas
      },
@@ -739,6 +716,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       const textToSend = messageText;
       const attachToSend = [...attachments];
       
+      // Limpiar inmediatamente
+      setMessageText("");
+      setAttachments([]);
+      
       const messageData = { 
         mensaje: textToSend, 
         archivos_adjuntos: attachToSend 
@@ -752,12 +733,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         };
       }
       
-      // Enviar PRIMERO (para actualización optimista)
       sendMessageMutation.mutate(messageData);
-      
-      // Limpiar DESPUÉS (para que la UI responda inmediatamente)
-      setMessageText("");
-      setAttachments([]);
       setReplyingTo(null);
     }
   };
@@ -940,7 +916,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }
 
   return (
-    <div className="relative flex flex-col h-full w-full overflow-hidden min-h-0">
+    <div className="flex flex-col h-full w-full overflow-hidden">
       <audio 
         ref={audioRef} 
         onEnded={() => setPlayingAudio(null)}
@@ -952,7 +928,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       <audio ref={notificationSoundRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZizUIGGS57OihUBILUKXh8raFHwU5jtX0z3k" />
 
       {/* Header mínimo */}
-      <div className="p-1.5 bg-white border-b flex-shrink-0">
+      <div className="p-1.5 bg-white border-b flex-shrink-0 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="font-bold text-xs text-slate-900 truncate">{conversation.padre_nombre}</h2>
@@ -983,21 +959,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         canUnpin={isCoordinator}
       />
 
-      {/* Mensajes - contenedor que hace scroll */}
-      <div 
-        ref={messagesContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 pb-24 bg-slate-50" 
-        style={{ fontFamily: 'Roboto, sans-serif', paddingBottom: '110px' }}
-        onScroll={(e) => {
-          const { scrollHeight, scrollTop, clientHeight } = e.target;
-          const isNearBottom = scrollHeight - scrollTop - clientHeight < 60;
-          if (!isNearBottom && !showScrollButton) {
-            setShowScrollButton(true);
-          } else if (isNearBottom && showScrollButton) {
-            setShowScrollButton(false);
-          }
-        }}
-      >
+      {/* Mensajes */}
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -1010,41 +973,22 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </div>
         )}
 
-        {filteredMessages.map((msg, index) => {
+        {filteredMessages.map((msg) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           const repliedMessage = msg.respuesta_a ? messages.find(m => m.id === msg.respuesta_a) : null;
           
-          // Agrupación inteligente
-          const prevMsg = index > 0 ? filteredMessages[index - 1] : null;
-          const nextMsg = index < filteredMessages.length - 1 ? filteredMessages[index + 1] : null;
-          const prevIsSameUser = prevMsg && prevMsg.autor === msg.autor && !prevMsg.eliminado;
-          const nextIsSameUser = nextMsg && nextMsg.autor === msg.autor && !nextMsg.eliminado;
-          
-          const marginTop = prevIsSameUser ? '1px' : '6px';
-          
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`} style={{ marginTop }}>
-              <div className={`max-w-[85%] relative`} style={{ 
-                backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
-                borderRadius: isMine ? '7.5px 7.5px 2px 7.5px' : '7.5px 7.5px 7.5px 2px',
-                padding: '6px 7px 8px 9px',
-                color: '#111111',
-                minHeight: '32px',
-                minWidth: '40px',
-                letterSpacing: '0',
-                fontKerning: 'normal',
-                width: 'fit-content',
-                boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
-              }}>
+            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
+              <div className={`max-w-[75%] sm:max-w-[70%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'} rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
                 {msg.mensaje_citado && (
-                 <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'border-green-600' : 'bg-slate-100 border-slate-400'}`} style={{ backgroundColor: isMine ? 'rgba(0,0,0,0.05)' : '#f1f5f9' }}>
-                   <p style={{ fontSize: '11px', opacity: 0.7 }}>{msg.mensaje_citado.autor_nombre}</p>
-                   <p style={{ fontSize: '11px', fontStyle: 'italic' }} className="truncate">{msg.mensaje_citado.mensaje}</p>
-                 </div>
+                  <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-cyan-700 border-cyan-400' : 'bg-slate-100 border-slate-400'}`}>
+                    <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
+                    <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
+                  </div>
                 )}
                 
                 <div className="flex items-start justify-between gap-2">
-                <p style={{ fontSize: '13px', fontWeight: 500, opacity: 0.7 }} className="flex-1">
+                <p className="text-[10px] sm:text-xs font-semibold opacity-70 flex-1">
                   {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
                 </p>
                 <div className="flex gap-1">
@@ -1086,46 +1030,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                      <span className="text-sm">{msg.audio_duracion}s</span>
                    </div>
                  ) : (
-                   <div style={{ 
-                     display: 'inline-flex',
-                     flexWrap: 'wrap',
-                     alignItems: 'flex-end',
-                     gap: '6px',
-                     width: '100%'
-                   }}>
-                     <p className="whitespace-pre-wrap" style={{ 
-                       fontSize: msg.mensaje?.trim().length <= 3 ? '32px' : '15px',
-                       lineHeight: '1.32',
-                       color: '#111111',
-                       wordWrap: 'break-word',
-                       flex: '1 1 auto',
-                       minWidth: 0
-                     }}>
-                       {msg.mensaje}
-                       {msg.editado && <span style={{ fontSize: '11px', opacity: 0.5 }} className="ml-2">(editado)</span>}
-                     </p>
-                     <div style={{ 
-                       flexShrink: 0,
-                       whiteSpace: 'nowrap',
-                       display: 'inline-flex',
-                       alignItems: 'center',
-                       gap: '3px',
-                       paddingLeft: '6px'
-                     }}>
-                       <span style={{ fontSize: '11px', color: '#667781' }}>
-                         {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                       </span>
-                       {isMine && (
-                         <>
-                           {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
-                             <CheckCheck className="w-3 h-3" style={{ color: '#53BDEB' }} />
-                           ) : (
-                             <Check className="w-3 h-3" style={{ color: '#667781' }} />
-                           )}
-                         </>
-                       )}
-                     </div>
-                   </div>
+                   <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '1.125rem' }}>
+                     {msg.mensaje}
+                     {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
+                   </p>
                  )}
 
                 {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
@@ -1141,39 +1049,32 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 )}
 
                 {msg.archivos_adjuntos?.length > 0 && (
-                 <div className="mt-2 space-y-1">
-                   {msg.archivos_adjuntos.map((file, idx) => (
-                     file.tipo?.startsWith('image/') ? (
-                       <img 
-                                                      key={idx}
-                                                      src={file.url} 
-                                                      alt={file.nombre}
-                                                      loading="lazy"
-                                                      className="cursor-pointer max-w-full h-auto bg-slate-200"
-                                                      style={{ borderRadius: '7.5px' }}
-                                                      onClick={() => setShowImagePreview(file.url)}
-                                                      onLoad={() => scrollToBottom(true)}
-                                                    />
-                     ) : (
-                       <a
-                         key={idx}
-                         href={file.url}
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="flex items-center gap-2 p-2"
-                         style={{ 
-                           fontSize: '11px',
-                           borderRadius: '7.5px',
-                           backgroundColor: isMine ? 'rgba(0,0,0,0.05)' : '#f1f5f9'
-                         }}
-                       >
-                         <FileText className="w-3 h-3" />
-                         <span className="flex-1 truncate">{file.nombre}</span>
-                         <Download className="w-3 h-3" />
-                       </a>
-                     )
-                   ))}
-                 </div>
+                  <div className="mt-2 space-y-1">
+                    {msg.archivos_adjuntos.map((file, idx) => (
+                      file.tipo?.startsWith('image/') ? (
+                        <img 
+                          key={idx}
+                          src={file.url} 
+                          alt={file.nombre}
+                          loading="lazy"
+                          className="rounded cursor-pointer max-w-full h-auto bg-slate-200"
+                          onClick={() => setShowImagePreview(file.url)}
+                        />
+                      ) : (
+                        <a
+                          key={idx}
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-cyan-700' : 'bg-slate-100'}`}
+                        >
+                          <FileText className="w-3 h-3" />
+                          <span className="flex-1 truncate">{file.nombre}</span>
+                          <Download className="w-3 h-3" />
+                        </a>
+                      )
+                    ))}
+                  </div>
                 )}
 
                 {/* Reacciones */}
@@ -1186,14 +1087,61 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                     ))}
                   </div>
                 )}
+
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-[10px] sm:text-xs opacity-60">
+                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                  </p>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* Confirmación de lectura (doble check) */}
+                    {isMine && (
+                      <div className="flex items-center gap-1">
+                        {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
+                          <CheckCheck className="w-4 h-4 text-cyan-400" />
+                        ) : (
+                          <Check className="w-4 h-4 opacity-50" />
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Botón de reacciones */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                      onClick={() => setShowReactions(msg.id)}
+                    >
+                      <Smile className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Selector de reacciones */}
+                {showReactions === msg.id && (
+                  <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-lg p-2 flex gap-2 z-10">
+                    {REACTIONS.map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => addReaction(msg.id, emoji)}
+                        className="text-2xl hover:scale-125 transition-transform"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                    <button onClick={() => setShowReactions(null)} className="ml-2">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
         
         {otherPersonTyping && (
-          <div className="flex justify-start" style={{ marginTop: '6px' }}>
-            <div className="bg-white rounded-2xl p-3" style={{ boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)' }}>
+          <div className="flex justify-start">
+            <div className="bg-white rounded-2xl p-3 shadow-sm">
               <div className="flex gap-1">
                 <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                 <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
@@ -1204,64 +1152,43 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         )}
         
         <div ref={messagesEndRef} />
-        
-        {/* Botón scroll to bottom */}
-        {showScrollButton && (
-          <button
-            onClick={() => {
-              messagesContainerRef.current?.scrollTo({
-                top: messagesContainerRef.current.scrollHeight,
-                behavior: 'smooth'
-              });
+      </div>
+
+      {isCoordinator && showQuickReplies && (
+        <div className="px-2">
+          <CoordinatorQuickReplies 
+            onSelect={(text) => {
+              setMessageText(text);
+              setShowQuickReplies(false);
             }}
-            className="fixed bottom-20 right-4 bg-white rounded-full p-3 shadow-lg hover:bg-slate-50 transition-all z-10"
-            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M19 12l-7 7-7-7"/>
-            </svg>
-          </button>
-        )}
-      </div>
+            user={user}
+          />
+        </div>
+      )}
 
-      {/* Barra de entrada FIJA - fuera del scroll */}
-      <div className="sticky bottom-0 z-20 flex-shrink-0 bg-white border-t">
-        {isCoordinator && showQuickReplies && (
-          <div className="px-2 pt-2">
-            <CoordinatorQuickReplies 
-              onSelect={(text) => {
-                setMessageText(text);
-                setShowQuickReplies(false);
-              }}
-              user={user}
-            />
-          </div>
-        )}
-
-        <WhatsAppInputBar
-          messageText={messageText}
-          setMessageText={setMessageText}
-          onSend={handleSend}
-          attachments={attachments}
-          setAttachments={setAttachments}
-          recording={recording}
-          audioBlob={audioBlob}
-          onStartRecording={startRecording}
-          onStopRecording={stopRecording}
-          onSendAudio={sendAudio}
-          onCancelAudio={cancelAudio}
-          audioDuration={audioDuration}
-          uploading={uploading}
-          onFileUpload={handleFileUpload}
-          onCameraCapture={handleCameraCapture}
-          onLocationClick={() => setShowLocationDialog(true)}
-          onPollClick={() => setShowPollDialog(true)}
-          onExerciseClick={isCoordinator ? () => setShowQuickReplies(!showQuickReplies) : null}
-          showExercise={false}
-          placeholder="Escribe tu mensaje..."
-          onTyping={handleTyping}
-        />
-      </div>
+      <WhatsAppInputBar
+        messageText={messageText}
+        setMessageText={setMessageText}
+        onSend={handleSend}
+        attachments={attachments}
+        setAttachments={setAttachments}
+        recording={recording}
+        audioBlob={audioBlob}
+        onStartRecording={startRecording}
+        onStopRecording={stopRecording}
+        onSendAudio={sendAudio}
+        onCancelAudio={cancelAudio}
+        audioDuration={audioDuration}
+        uploading={uploading}
+        onFileUpload={handleFileUpload}
+        onCameraCapture={handleCameraCapture}
+        onLocationClick={() => setShowLocationDialog(true)}
+        onPollClick={() => setShowPollDialog(true)}
+        onExerciseClick={isCoordinator ? () => setShowQuickReplies(!showQuickReplies) : null}
+        showExercise={false}
+        placeholder="Escribe tu mensaje..."
+        onTyping={handleTyping}
+      />
 
       {/* Diálogo de ubicación */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
