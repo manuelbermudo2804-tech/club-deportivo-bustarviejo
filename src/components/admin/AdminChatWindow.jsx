@@ -28,8 +28,6 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
-  const messagesContainerRef = useRef(null);
-  const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Helper para añadir reacciones
   const addReaction = async (messageId, emoji) => {
@@ -82,32 +80,10 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   }, [conversation?.id, queryClient]);
 
   useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
-    
-    if (isNearBottom && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
-      setShowScrollButton(!isNearBottom);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  };
 
   // Marcar como leído
   const markedAsReadRef = useRef(false);
@@ -417,34 +393,18 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
       </div>
 
       {/* Mensajes */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 bg-slate-50 relative" style={{ fontFamily: 'Roboto, sans-serif' }}>
-        {messages.map((msg, index) => {
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
+        {messages.map((msg) => {
           const isMine = msg.autor === "admin";
           const isInternalNote = msg.es_nota_interna;
           
-          const prevMsg = messages[index - 1];
-          const nextMsg = messages[index + 1];
-          const prevIsSameAuthor = prevMsg && prevMsg.autor === msg.autor && !prevMsg.es_nota_interna === !isInternalNote;
-          const nextIsSameAuthor = nextMsg && nextMsg.autor === msg.autor && !nextMsg.es_nota_interna === !isInternalNote;
-          
-          const marginTop = prevIsSameAuthor ? '1px' : '6px';
-          const marginBottom = nextIsSameAuthor ? '1px' : '6px';
-          
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`} style={{ marginTop, marginBottom }}>
-              <div className={`max-w-[85%] relative`} style={{
-                backgroundColor: isInternalNote ? '#FFFBEB' : isMine ? '#DCF8C6' : '#FFFFFF',
-                borderRadius: isMine ? '7.5px 7.5px 2px 7.5px' : '7.5px 7.5px 7.5px 2px',
-                padding: '6px 7px 8px 9px',
-                color: '#111111',
-                minHeight: '32px',
-                minWidth: '40px',
-                letterSpacing: '0',
-                fontKerning: 'normal',
-                width: 'fit-content',
-                boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)',
-                border: isInternalNote ? '2px solid #FDE047' : 'none'
-              }}>
+            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[75%] ${
+                isInternalNote ? 'bg-yellow-50 text-yellow-900 border-2 border-yellow-300' :
+                isMine ? 'bg-red-600 text-white' : 
+                'bg-white text-slate-900 border'
+              } rounded-2xl p-3 shadow-sm`}>
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-xs font-semibold opacity-70">
                     {isInternalNote ? '📝 Nota Interna' : 
@@ -456,23 +416,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                   )}
                 </div>
 
-                <div style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: '6px', width: '100%' }}>
-                  <p className="whitespace-pre-wrap" style={{ 
-                    fontSize: msg.mensaje?.trim().length <= 3 ? '32px' : '15px',
-                    lineHeight: '1.32',
-                    color: '#111111',
-                    wordWrap: 'break-word',
-                    flex: '1 1 auto',
-                    minWidth: 0
-                  }}>
-                    {msg.mensaje}
-                  </p>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0, whiteSpace: 'nowrap', marginLeft: '4px' }}>
-                    <span style={{ fontSize: '11px', color: '#667781' }}>
-                      {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                    </span>
-                  </div>
-                </div>
+                <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '1.125rem' }}>{msg.mensaje}</p>
 
                 {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
@@ -515,7 +459,10 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                   </div>
                 )}
 
-                <div className="flex items-center justify-end mt-1">
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs opacity-60">
+                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                  </p>
                   {!isInternalNote && (
                     <Button
                       size="sm"
@@ -549,18 +496,6 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
           );
         })}
         <div ref={messagesEndRef} />
-        
-        {showScrollButton && (
-          <button
-            onClick={scrollToBottom}
-            className="absolute bottom-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-slate-50 transition-all z-10"
-            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M7 10L12 15L17 10" stroke="#667781" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        )}
       </div>
 
       {/* Input */}

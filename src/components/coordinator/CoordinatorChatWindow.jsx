@@ -61,8 +61,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const notificationSoundRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
-  const messagesContainerRef = useRef(null);
-  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const isCoordinator = user.es_coordinador || user.role === "admin";
 
@@ -161,33 +159,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   // Scroll automático cuando cambian los mensajes o el indicador de escritura
   useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
-    
-    if (isNearBottom && messagesEndRef.current) {
+    if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [messages, otherPersonTyping]);
-
-  // Detectar scroll para mostrar botón
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
-      setShowScrollButton(!isNearBottom);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  };
 
   // Marcar como leído cuando abre la conversación
   const markedAsReadRef = useRef(false);
@@ -985,7 +960,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Mensajes */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-2 sm:p-4 bg-slate-50 min-h-0 relative" style={{ fontFamily: 'Roboto, sans-serif' }}>
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-0.5 bg-slate-50 min-h-0" style={{ fontFamily: 'Roboto, sans-serif' }}>
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -998,32 +973,21 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </div>
         )}
 
-        {filteredMessages.map((msg, index) => {
+        {filteredMessages.map((msg) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           const repliedMessage = msg.respuesta_a ? messages.find(m => m.id === msg.respuesta_a) : null;
           
-          // Agrupación: determinar si el mensaje anterior es del mismo autor
-          const prevMsg = filteredMessages[index - 1];
-          const nextMsg = filteredMessages[index + 1];
-          const prevIsSameAuthor = prevMsg && prevMsg.autor === msg.autor && !prevMsg.eliminado;
-          const nextIsSameAuthor = nextMsg && nextMsg.autor === msg.autor && !nextMsg.eliminado;
-          
-          const marginTop = prevIsSameAuthor ? '1px' : '6px';
-          const marginBottom = nextIsSameAuthor ? '1px' : '6px';
-          
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`} style={{ marginTop, marginBottom }}>
-              <div className={`max-w-[85%] relative`} style={{ 
+            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
+              <div className={`max-w-[85%] shadow-sm relative`} style={{ 
                 backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
                 borderRadius: isMine ? '7.5px 7.5px 2px 7.5px' : '7.5px 7.5px 7.5px 2px',
-                padding: '6px 7px 8px 9px',
+                padding: '6px 7px 14px 9px',
                 color: '#111111',
                 minHeight: '32px',
                 minWidth: '40px',
                 letterSpacing: '0',
-                fontKerning: 'normal',
-                width: 'fit-content',
-                boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
+                fontKerning: 'normal'
               }}>
                 {msg.mensaje_citado && (
                  <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'border-green-600' : 'bg-slate-100 border-slate-400'}`} style={{ backgroundColor: isMine ? 'rgba(0,0,0,0.05)' : '#f1f5f9' }}>
@@ -1075,33 +1039,15 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                      <span className="text-sm">{msg.audio_duracion}s</span>
                    </div>
                  ) : (
-                   <div style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: '6px', width: '100%' }}>
-                     <p className="whitespace-pre-wrap" style={{ 
-                       fontSize: msg.mensaje?.trim().length <= 3 ? '32px' : '15px',
-                       lineHeight: '1.32',
-                       color: '#111111',
-                       wordWrap: 'break-word',
-                       flex: '1 1 auto',
-                       minWidth: 0
-                     }}>
-                       {msg.mensaje}
-                       {msg.editado && <span style={{ fontSize: '11px', opacity: 0.5 }} className="ml-2">(editado)</span>}
-                     </p>
-                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0, whiteSpace: 'nowrap', marginLeft: '4px' }}>
-                       <span style={{ fontSize: '11px', color: '#667781' }}>
-                         {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                       </span>
-                       {isMine && (
-                         <>
-                           {(isCoordinator ? msg.leido_padre : msg.leido_coordinador) ? (
-                             <CheckCheck className="w-3 h-3" style={{ color: '#53BDEB' }} />
-                           ) : (
-                             <Check className="w-3 h-3" style={{ color: '#667781' }} />
-                           )}
-                         </>
-                       )}
-                     </div>
-                   </div>
+                   <p className="whitespace-pre-wrap" style={{ 
+                     fontSize: msg.mensaje?.trim().length <= 3 ? '32px' : '15px',
+                     lineHeight: '1.32',
+                     color: '#111111',
+                     wordWrap: 'break-word'
+                   }}>
+                     {msg.mensaje}
+                     {msg.editado && <span style={{ fontSize: '11px', opacity: 0.5 }} className="ml-2">(editado)</span>}
+                   </p>
                  )}
 
                 {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
@@ -1214,19 +1160,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         )}
         
         <div ref={messagesEndRef} />
-        
-        {/* Botón scroll-to-bottom */}
-        {showScrollButton && (
-          <button
-            onClick={scrollToBottom}
-            className="absolute bottom-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-slate-50 transition-all z-10"
-            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M7 10L12 15L17 10" stroke="#667781" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        )}
       </div>
 
       {isCoordinator && showQuickReplies && (
