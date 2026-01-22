@@ -609,14 +609,14 @@ export default function ParentCoachChat() {
                       </div>
                     )}
                     
-                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} mb-1`}>
                       {/* Mensaje de texto, audio o archivos */}
                       {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
-                        <div className={`max-w-[75%] ${
-                          isMine ? 'bg-slate-700 text-white' : 
-                          isCoach ? 'bg-green-600 text-white' : 
-                          'bg-white text-slate-900 border'
-                        } rounded-2xl p-3 shadow-sm relative`}>
+                        <div className={`max-w-[85%] ${
+                          isMine ? 'bg-green-600 text-white' : 
+                          isCoach ? 'bg-green-100 text-slate-900' : 
+                          'bg-slate-100 text-slate-900'
+                        } ${isMine ? 'rounded-[18px_4px_18px_18px]' : 'rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none relative`}>
                          <div className="flex items-center gap-2 mb-1">
                             <p className="text-xs font-semibold opacity-70">
                               {isCoach ? '🏃 ' : ''}{msg.autor_nombre}
