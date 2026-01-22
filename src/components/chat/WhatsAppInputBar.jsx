@@ -46,8 +46,8 @@ function AttachmentMenu({
             className="fixed inset-0 z-40" 
             onClick={() => setOpen(false)}
           />
-          <div className="absolute bottom-full mb-2 left-0 bg-white rounded-3xl shadow-2xl p-4 z-50 border-2 border-slate-200 min-w-[280px]">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="absolute bottom-full mb-2 left-0 bg-white rounded-3xl shadow-2xl p-4 z-50 border-2 border-slate-200 w-[340px]">
+            <div className="grid grid-cols-4 gap-3">
               {options.map((opt, idx) => (
                 <button
                   key={idx}
@@ -55,12 +55,12 @@ function AttachmentMenu({
                     opt.onClick();
                     setOpen(false);
                   }}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
+                  className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
                 >
-                  <div className={`w-14 h-14 rounded-full ${opt.bg} flex items-center justify-center shadow-sm`}>
-                    <opt.icon className={`w-7 h-7 ${opt.color}`} />
+                  <div className={`w-12 h-12 rounded-full ${opt.bg} flex items-center justify-center shadow-sm`}>
+                    <opt.icon className={`w-6 h-6 ${opt.color}`} />
                   </div>
-                  <span className="text-sm font-medium text-slate-700 leading-tight text-center">{opt.label}</span>
+                  <span className="text-xs font-medium text-slate-700 leading-tight text-center">{opt.label}</span>
                 </button>
               ))}
             </div>
