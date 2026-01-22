@@ -46,7 +46,7 @@ function AttachmentMenu({
             className="fixed inset-0 z-40" 
             onClick={() => setOpen(false)}
           />
-          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white rounded-3xl shadow-2xl p-4 z-50 border-2 border-slate-200 w-[340px]">
+          <div className="fixed bottom-[70px] left-1/2 -translate-x-1/2 bg-white rounded-3xl shadow-2xl p-4 z-50 border-2 border-slate-200 w-[340px]">
             <div className="grid grid-cols-4 gap-3">
               {options.map((opt, idx) => (
                 <button
