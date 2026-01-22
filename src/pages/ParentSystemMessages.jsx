@@ -237,22 +237,14 @@ export default function ParentSystemMessages() {
                         </div>
                       )}
                       
-                      <div className="flex justify-start">
-                        <div className="max-w-[85%] bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl p-3 shadow-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                              <Bell className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-semibold">
-                                {isSystem ? '🤖 Sistema de Recordatorios' : msg.remitente_nombre}
-                              </p>
-                              {isSystem && (
-                                <p className="text-xs opacity-75">Administración CD Bustarviejo</p>
-                              )}
-                            </div>
+                      <div className="flex justify-start mb-1">
+                        <div className="max-w-[85%] bg-slate-100 text-slate-900 rounded-[4px_18px_18px_18px] px-3 py-1.5 shadow-none">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-[11px] font-semibold opacity-75">
+                              {isSystem ? '🤖 Sistema de Recordatorios' : msg.remitente_nombre}
+                            </p>
                           </div>
-                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
+                          <p className="text-[15px] whitespace-pre-wrap leading-tight">{msg.mensaje}</p>
                           
                           {msg.archivos_adjuntos?.length > 0 && (
                             <div className="mt-2 space-y-1">
