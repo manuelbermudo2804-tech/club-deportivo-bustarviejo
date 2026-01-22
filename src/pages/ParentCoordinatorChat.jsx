@@ -15,6 +15,8 @@ import { Textarea as DialogTextarea } from "@/components/ui/textarea";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
+import WhatsAppInputBar from "../components/chat/WhatsAppInputBar";
+import EmojiPicker from "../components/chat/EmojiPicker";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -658,10 +660,9 @@ export default function ParentCoordinatorChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div className="p-2 sm:p-4 bg-white border-t flex-shrink-0">
-            {user?.chat_bloqueado && (
-              <Alert className="mb-2 bg-red-50 border-red-300">
+          {user?.chat_bloqueado && (
+            <div className="px-2 pb-2">
+              <Alert className="bg-red-50 border-red-300">
                 <AlertDescription className="text-red-800 text-sm">
                   🚫 <strong>Tu acceso al chat ha sido restringido</strong>
                   {user?.motivo_bloqueo_chat && <><br />Motivo: {user.motivo_bloqueo_chat}</>}
@@ -669,82 +670,31 @@ export default function ParentCoordinatorChat() {
                   <span className="text-xs">Contacta con el administrador del club para más información.</span>
                 </AlertDescription>
               </Alert>
-            )}
-            {attachments.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-1 sm:gap-2">
-                {attachments.map((file, idx) => (
-                  <div key={idx} className="relative">
-                    {file.tipo?.startsWith('image/') ? (
-                      <div className="relative">
-                        <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
-                        <button 
-                          onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-2">
-                        <FileText className="w-3 h-3" />
-                        <span className="truncate max-w-[150px]">{file.nombre}</span>
-                        <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="space-y-2">
-              <input 
-                ref={fileInputRef}
-                type="file" 
-                multiple 
-                accept="*/*" 
-                className="hidden" 
-                onChange={handleFileUpload} 
-                disabled={uploading} 
-              />
-
-              <div className="flex justify-center">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="h-8 px-3 text-xs"
-                >
-                  <Paperclip className="w-3 h-3 mr-1" />
-                  Adjuntar archivo
-                </Button>
-              </div>
-
-              <div className="flex gap-2 items-end">
-                <Textarea
-                  placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
-                  value={messageText}
-                  onChange={(e) => {
-                    setMessageText(e.target.value);
-                    handleTyping();
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  className="flex-1 min-h-[44px] max-h-32 resize-none text-base"
-                  rows={1}
-                  disabled={user?.chat_bloqueado}
-                />
-                <Button onClick={handleSend} disabled={!messageText.trim() && attachments.length === 0 || user?.chat_bloqueado} className="bg-cyan-600 hover:bg-cyan-700 h-12 w-12 lg:h-10 lg:w-10 p-0 flex-shrink-0">
-                  <Send className="w-5 h-5" />
-                </Button>
-              </div>
             </div>
-          </div>
+          )}
+
+          <WhatsAppInputBar
+            messageText={messageText}
+            setMessageText={setMessageText}
+            onSend={handleSend}
+            attachments={attachments}
+            setAttachments={setAttachments}
+            recording={false}
+            audioBlob={null}
+            onStartRecording={() => {}}
+            onStopRecording={() => {}}
+            onSendAudio={() => {}}
+            onCancelAudio={() => {}}
+            audioDuration={0}
+            uploading={uploading}
+            onFileUpload={handleFileUpload}
+            onCameraCapture={() => {}}
+            onLocationClick={() => {}}
+            onPollClick={() => {}}
+            showExercise={false}
+            placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
+            onTyping={handleTyping}
+          />
         </CardContent>
       </Card>
 

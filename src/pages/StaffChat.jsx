@@ -21,6 +21,7 @@ import SearchFilters from "../components/chat/SearchFilters";
 import SocialLinks from "../components/SocialLinks";
 import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
+import WhatsAppInputBar from "../components/chat/WhatsAppInputBar";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -930,9 +931,9 @@ export default function StaffChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-2 bg-white border-t flex-shrink-0">
-            {showQuickReplies && (
-              <div className="mb-2 flex flex-wrap gap-2 p-2 bg-slate-50 rounded-lg">
+          {showQuickReplies && (
+            <div className="px-2 pb-2">
+              <div className="flex flex-wrap gap-2 p-2 bg-slate-50 rounded-lg">
                 {QUICK_REPLIES.map((reply, idx) => (
                   <button
                     key={idx}
@@ -946,91 +947,32 @@ export default function StaffChat() {
                   </button>
                 ))}
               </div>
-            )}
-
-            {attachments.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-1 sm:gap-2">
-                {attachments.map((file, idx) => (
-                  <div key={idx} className="relative">
-                    {file.tipo?.startsWith('image/') ? (
-                      <div className="relative">
-                        <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
-                        <button 
-                          onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-2">
-                        <FileText className="w-3 h-3" />
-                        <span className="truncate max-w-[150px]">{file.nombre}</span>
-                        <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex gap-1 sm:gap-2 items-end">
-              <input 
-                ref={fileInputRef}
-                type="file" 
-                multiple 
-                accept="*/*" 
-                className="hidden" 
-                onChange={handleFileUpload} 
-                disabled={uploading} 
-              />
-              <input 
-                ref={cameraInputRef}
-                type="file" 
-                accept="image/*" 
-                capture="environment" 
-                className="hidden" 
-                onChange={handleCameraCapture} 
-                disabled={uploading} 
-              />
-              
-              <ChatInputActions
-                onFileClick={() => fileInputRef.current?.click()}
-                onCameraClick={() => cameraInputRef.current?.click()}
-                onAudioClick={() => {}}
-                onLocationClick={() => setShowLocationDialog(true)}
-                onPollClick={() => setShowPollDialog(true)}
-                onQuickRepliesClick={() => setShowQuickReplies(!showQuickReplies)}
-                uploading={uploading}
-                isRecording={false}
-                showAudio={false}
-              />
-
-              <Textarea
-                placeholder="Escribe..."
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                className="flex-1 min-h-[44px] max-h-32 resize-none text-base"
-                rows={1}
-              />
-
-              <Button 
-                onClick={handleSend} 
-                disabled={!messageText.trim() && attachments.length === 0}
-                className="bg-purple-600 hover:bg-purple-700 h-11 w-11 p-0 flex-shrink-0 rounded-full"
-              >
-                <Send className="w-5 h-5" />
-              </Button>
             </div>
-          </div>
+          )}
+
+          <WhatsAppInputBar
+            messageText={messageText}
+            setMessageText={setMessageText}
+            onSend={handleSend}
+            attachments={attachments}
+            setAttachments={setAttachments}
+            recording={false}
+            audioBlob={null}
+            onStartRecording={() => {}}
+            onStopRecording={() => {}}
+            onSendAudio={() => {}}
+            onCancelAudio={() => {}}
+            audioDuration={0}
+            uploading={uploading}
+            onFileUpload={handleFileUpload}
+            onCameraCapture={handleCameraCapture}
+            onLocationClick={() => setShowLocationDialog(true)}
+            onPollClick={() => setShowPollDialog(true)}
+            onExerciseClick={() => setShowQuickReplies(!showQuickReplies)}
+            showExercise={false}
+            placeholder="Escribe un mensaje..."
+            onTyping={null}
+          />
         </CardContent>
       </Card>
 
