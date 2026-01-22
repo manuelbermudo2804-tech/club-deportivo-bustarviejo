@@ -589,8 +589,8 @@ export default function ParentCoachChat() {
                   month: 'long'
                 });
 
-                const isMine = msg.remitente_email === user.email;
-                const isCoach = msg.tipo === "entrenador_a_grupo";
+                const isMine = msg.autor === "padre";
+                const isCoach = msg.autor === "entrenador";
 
                 // Debug logs
                 if (msg.encuesta || msg.poll || msg.ubicacion) {
