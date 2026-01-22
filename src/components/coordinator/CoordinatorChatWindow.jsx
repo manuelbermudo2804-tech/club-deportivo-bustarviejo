@@ -1202,7 +1202,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {isCoordinator && showQuickReplies && (
-        <div className="px-2">
+        <div className="px-2 flex-shrink-0">
           <CoordinatorQuickReplies 
             onSelect={(text) => {
               setMessageText(text);
@@ -1213,7 +1213,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         </div>
       )}
 
-      <WhatsAppInputBar
+      <div className="flex-shrink-0">
+        <WhatsAppInputBar
         messageText={messageText}
         setMessageText={setMessageText}
         onSend={handleSend}
@@ -1236,6 +1237,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         placeholder="Escribe tu mensaje..."
         onTyping={handleTyping}
       />
+      </div>
 
       {/* Diálogo de ubicación */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
