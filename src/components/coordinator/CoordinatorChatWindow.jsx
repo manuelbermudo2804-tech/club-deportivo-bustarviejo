@@ -1225,7 +1225,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {/* Barra de entrada FIJA - fuera del scroll */}
-      <div className="relative z-10 flex-shrink-0 bg-white border-t">
+      <div className="sticky bottom-0 z-20 flex-shrink-0 bg-white border-t">
         {isCoordinator && showQuickReplies && (
           <div className="px-2 pt-2">
             <CoordinatorQuickReplies 
