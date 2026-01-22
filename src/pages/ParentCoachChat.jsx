@@ -432,11 +432,11 @@ export default function ParentCoachChat() {
       }];
     }
 
-    await base44.entities.ChatMessage.update(messageId, {
+    await base44.entities.CoachMessage.update(messageId, {
       reacciones: newReactions
     });
 
-    queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
+    queryClient.invalidateQueries({ queryKey: ['coachMessages'] });
     setShowReactions(null);
   };
 
