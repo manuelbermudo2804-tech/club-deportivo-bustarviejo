@@ -298,7 +298,7 @@ export function useUnifiedNotifications(user, options = {}) {
     });
     unsubscribers.push(unsubAppNotif);
 
-    // Private Conversations
+    // Private Conversations (System Messages)
     const loadPrivateConvs = async () => {
       let convs = [];
       if (options?.testModeLoadAll) {
