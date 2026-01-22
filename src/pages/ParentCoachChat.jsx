@@ -30,6 +30,8 @@ export default function ParentCoachChat() {
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const queryClient = useQueryClient();
+  const messagesContainerRef = useRef(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 
@@ -182,10 +184,32 @@ export default function ParentCoachChat() {
     : messages;
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+    
+    if (isNearBottom && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [messages]);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+      setShowScrollButton(!isNearBottom);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
 
 
 
@@ -497,7 +521,7 @@ export default function ParentCoachChat() {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 min-h-0">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 bg-slate-50 min-h-0 relative" style={{ fontFamily: 'Roboto, sans-serif' }}>
             {selectedCategory && getUnreadCountByCategory(selectedCategory) > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs px-3 py-2 rounded-lg">
                 Tienes {getUnreadCountByCategory(selectedCategory)} mensajes nuevos en {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
@@ -523,6 +547,14 @@ export default function ParentCoachChat() {
 
                 const isMine = msg.remitente_email === user.email;
                 const isCoach = msg.tipo === "entrenador_a_grupo";
+                
+                const prevMsg = filteredMessages[idx - 1];
+                const nextMsg = filteredMessages[idx + 1];
+                const prevIsSameAuthor = prevMsg && prevMsg.remitente_email === msg.remitente_email && !prevMsg.eliminado;
+                const nextIsSameAuthor = nextMsg && nextMsg.remitente_email === msg.remitente_email && !nextMsg.eliminado;
+                
+                const marginTop = prevIsSameAuthor ? '1px' : '6px';
+                const marginBottom = nextIsSameAuthor ? '1px' : '6px';
 
                 // Debug logs
                 if (msg.encuesta || msg.poll || msg.ubicacion) {
@@ -538,21 +570,36 @@ export default function ParentCoachChat() {
                 return (
                   <React.Fragment key={msg.id}>
                     {showDateSeparator && (
-                      <div className="flex justify-center my-4">
-                        <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">
+                      <div className="flex justify-center my-2">
+                        <div style={{ 
+                          backgroundColor: 'rgba(255,255,255,0.85)',
+                          padding: '4px 12px',
+                          borderRadius: '7px',
+                          margin: '10px auto',
+                          width: 'fit-content',
+                          fontSize: '11px',
+                          color: '#667781'
+                        }}>
                           {dateLabel}
                         </div>
                       </div>
                     )}
                     
-                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`} style={{ marginTop, marginBottom }}>
                       {/* Mensaje de texto, audio o archivos */}
                       {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
-                        <div className={`max-w-[75%] ${
-                          isMine ? 'bg-slate-700 text-white' : 
-                          isCoach ? 'bg-green-600 text-white' : 
-                          'bg-white text-slate-900 border'
-                        } rounded-2xl p-3 shadow-sm relative`}>
+                        <div className={`max-w-[85%] relative`} style={{
+                          backgroundColor: isMine ? '#DCF8C6' : isCoach ? '#FFFFFF' : '#FFFFFF',
+                          borderRadius: isMine ? '7.5px 7.5px 2px 7.5px' : '7.5px 7.5px 7.5px 2px',
+                          padding: '6px 7px 8px 9px',
+                          color: '#111111',
+                          minHeight: '32px',
+                          minWidth: '40px',
+                          letterSpacing: '0',
+                          fontKerning: 'normal',
+                          width: 'fit-content',
+                          boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
+                        }}>
                          <div className="flex items-center gap-2 mb-1">
                            <p className="text-xs font-semibold opacity-70">
                              {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
@@ -560,7 +607,25 @@ export default function ParentCoachChat() {
                            {isCoach && <Badge className="text-xs bg-green-500 px-1 py-0">Entrenador</Badge>}
                          </div>
 
-                          {msg.mensaje && <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>}
+                          {msg.mensaje && (
+                            <div style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: '6px', width: '100%' }}>
+                              <p className="whitespace-pre-wrap" style={{ 
+                                fontSize: msg.mensaje?.trim().length <= 3 ? '32px' : '15px',
+                                lineHeight: '1.32',
+                                color: '#111111',
+                                wordWrap: 'break-word',
+                                flex: '1 1 auto',
+                                minWidth: 0
+                              }}>
+                                {msg.mensaje}
+                              </p>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0, whiteSpace: 'nowrap', marginLeft: '4px' }}>
+                                <span style={{ fontSize: '11px', color: '#667781' }}>
+                                  {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                                </span>
+                              </div>
+                            </div>
+                          )}
 
                           {msg.audio_url && (
                             <div className="flex items-center gap-2 mt-2">
@@ -613,10 +678,7 @@ export default function ParentCoachChat() {
                             </div>
                           )}
 
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-xs opacity-60">
-                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                            </p>
+                          <div className="flex items-center justify-end mt-1">
                             <Button
                               size="sm"
                               variant="ghost"
@@ -688,6 +750,18 @@ export default function ParentCoachChat() {
               })
             )}
             <div ref={messagesEndRef} />
+            
+            {showScrollButton && (
+              <button
+                onClick={scrollToBottom}
+                className="absolute bottom-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-slate-50 transition-all z-10"
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 10L12 15L17 10" stroke="#667781" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            )}
           </div>
 
           <div className="p-2 bg-white border-t flex-shrink-0">
