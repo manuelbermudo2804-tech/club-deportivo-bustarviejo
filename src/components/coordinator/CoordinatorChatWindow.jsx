@@ -926,7 +926,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden min-h-0">
+    <div className="relative flex flex-col h-full w-full overflow-hidden min-h-0">
       <audio 
         ref={audioRef} 
         onEnded={() => setPlayingAudio(null)}
@@ -972,7 +972,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       {/* Mensajes - contenedor que hace scroll */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 bg-slate-50 pb-20" 
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 bg-slate-50 pb-28" 
         style={{ fontFamily: 'Roboto, sans-serif' }}
         onScroll={(e) => {
           const { scrollHeight, scrollTop, clientHeight } = e.target;
@@ -1210,7 +1210,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {/* Barra de entrada FIJA - fuera del scroll */}
-      <div className="flex-shrink-0 bg-white border-t">
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t z-20">
         {isCoordinator && showQuickReplies && (
           <div className="px-2 pt-2">
             <CoordinatorQuickReplies 
