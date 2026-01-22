@@ -195,7 +195,7 @@ export function useUnifiedNotifications(user, options = {}) {
         const msgs = await run(() => base44.entities.ChatMessage.list('-created_date', 15));
         setRawData(prev => ({ ...prev, chatMessages: msgs }));
       };
-      setTimeout(() => run(loadChatMsgs), 300);
+      setTimeout(() => run(loadChatMsgs), 500);
       // Throttle chat subscription updates
       let lastChatUpdate = 0;
       const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
