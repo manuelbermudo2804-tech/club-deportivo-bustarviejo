@@ -118,7 +118,7 @@ export default function EmojiPicker({ onEmojiSelect, messageText = "" }) {
                     <button
                       key={idx}
                       onClick={() => handleEmojiSelect(emoji)}
-                      className="text-xl hover:bg-slate-100 rounded px-2 py-1 transition-colors"
+                      className="text-3xl hover:bg-slate-100 rounded-lg p-2 transition-all active:scale-95"
                     >
                       {emoji}
                     </button>
@@ -137,7 +137,7 @@ export default function EmojiPicker({ onEmojiSelect, messageText = "" }) {
                       <button
                         key={idx}
                         onClick={() => handleEmojiSelect(emoji)}
-                        className="text-lg hover:bg-slate-100 rounded px-2 py-1 transition-colors"
+                        className="text-3xl hover:bg-slate-100 rounded-lg p-2 transition-all active:scale-95"
                         title={emoji}
                       >
                         {emoji}
