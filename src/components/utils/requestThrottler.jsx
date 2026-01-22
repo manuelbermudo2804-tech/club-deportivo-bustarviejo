@@ -4,7 +4,7 @@
  */
 
 class RequestThrottler {
-  constructor(maxConcurrent = 2, delayMs = 150) {
+  constructor(maxConcurrent = 1, delayMs = 200) {
     this.maxConcurrent = maxConcurrent;
     this.delayMs = delayMs;
     this.queue = [];
@@ -14,7 +14,7 @@ class RequestThrottler {
   async execute(fn) {
     // Si estamos en el límite, esperar
     while (this.active >= this.maxConcurrent) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     this.active++;
@@ -28,7 +28,7 @@ class RequestThrottler {
   }
 }
 
-export const globalThrottler = new RequestThrottler(2, 120);
+export const globalThrottler = new RequestThrottler(1, 200);
 
 /**
  * Debounce para funciones que se llaman múltiples veces rápido
