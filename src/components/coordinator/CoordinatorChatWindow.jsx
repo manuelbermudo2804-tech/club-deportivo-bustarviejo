@@ -960,7 +960,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-0.5 bg-slate-50 min-h-0" style={{ fontFamily: 'Roboto, sans-serif' }}>
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -979,16 +979,21 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group`}>
-              <div className={`max-w-[75%] sm:max-w-[70%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-white text-slate-900'} rounded-2xl p-2 sm:p-3 shadow-sm relative`}>
+              <div className={`max-w-[85%] ${isMine ? 'text-slate-900' : 'bg-white text-slate-900'} shadow-sm relative`} style={{ 
+                backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
+                borderRadius: '7.5px',
+                padding: '6px 7px 8px 9px',
+                color: '#111111'
+              }}>
                 {msg.mensaje_citado && (
-                  <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-cyan-700 border-cyan-400' : 'bg-slate-100 border-slate-400'}`}>
-                    <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
-                    <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
-                  </div>
+                 <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'border-green-600' : 'bg-slate-100 border-slate-400'}`} style={{ backgroundColor: isMine ? 'rgba(0,0,0,0.05)' : '#f1f5f9' }}>
+                   <p style={{ fontSize: '11px', opacity: 0.7 }}>{msg.mensaje_citado.autor_nombre}</p>
+                   <p style={{ fontSize: '11px', fontStyle: 'italic' }} className="truncate">{msg.mensaje_citado.mensaje}</p>
+                 </div>
                 )}
                 
                 <div className="flex items-start justify-between gap-2">
-                <p className="text-[10px] sm:text-xs font-semibold opacity-70 flex-1">
+                <p style={{ fontSize: '13px', fontWeight: 500, opacity: 0.7 }} className="flex-1">
                   {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
                 </p>
                 <div className="flex gap-1">
@@ -1030,9 +1035,14 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                      <span className="text-sm">{msg.audio_duracion}s</span>
                    </div>
                  ) : (
-                   <p className="text-base sm:text-lg whitespace-pre-wrap leading-relaxed" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '1.125rem' }}>
+                   <p className="whitespace-pre-wrap" style={{ 
+                     fontSize: msg.mensaje?.trim().length <= 3 ? '32px' : '15px',
+                     lineHeight: '1.32',
+                     color: '#111111',
+                     wordWrap: 'break-word'
+                   }}>
                      {msg.mensaje}
-                     {msg.editado && <span className="text-xs opacity-50 ml-2">(editado)</span>}
+                     {msg.editado && <span style={{ fontSize: '11px', opacity: 0.5 }} className="ml-2">(editado)</span>}
                    </p>
                  )}
 
@@ -1049,32 +1059,38 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 )}
 
                 {msg.archivos_adjuntos?.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {msg.archivos_adjuntos.map((file, idx) => (
-                      file.tipo?.startsWith('image/') ? (
-                        <img 
-                          key={idx}
-                          src={file.url} 
-                          alt={file.nombre}
-                          loading="lazy"
-                          className="rounded cursor-pointer max-w-full h-auto bg-slate-200"
-                          onClick={() => setShowImagePreview(file.url)}
-                        />
-                      ) : (
-                        <a
-                          key={idx}
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-cyan-700' : 'bg-slate-100'}`}
-                        >
-                          <FileText className="w-3 h-3" />
-                          <span className="flex-1 truncate">{file.nombre}</span>
-                          <Download className="w-3 h-3" />
-                        </a>
-                      )
-                    ))}
-                  </div>
+                 <div className="mt-2 space-y-1">
+                   {msg.archivos_adjuntos.map((file, idx) => (
+                     file.tipo?.startsWith('image/') ? (
+                       <img 
+                         key={idx}
+                         src={file.url} 
+                         alt={file.nombre}
+                         loading="lazy"
+                         className="cursor-pointer max-w-full h-auto bg-slate-200"
+                         style={{ borderRadius: '7.5px' }}
+                         onClick={() => setShowImagePreview(file.url)}
+                       />
+                     ) : (
+                       <a
+                         key={idx}
+                         href={file.url}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="flex items-center gap-2 p-2"
+                         style={{ 
+                           fontSize: '11px',
+                           borderRadius: '7.5px',
+                           backgroundColor: isMine ? 'rgba(0,0,0,0.05)' : '#f1f5f9'
+                         }}
+                       >
+                         <FileText className="w-3 h-3" />
+                         <span className="flex-1 truncate">{file.nombre}</span>
+                         <Download className="w-3 h-3" />
+                       </a>
+                     )
+                   ))}
+                 </div>
                 )}
 
                 {/* Reacciones */}
@@ -1089,7 +1105,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 )}
 
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-[10px] sm:text-xs opacity-60">
+                  <p style={{ fontSize: '11px', color: '#667781' }}>
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   
