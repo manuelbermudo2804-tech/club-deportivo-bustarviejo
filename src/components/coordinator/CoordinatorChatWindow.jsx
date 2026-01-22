@@ -645,7 +645,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         for (const admin of admins) {
           await base44.entities.AppNotification.create({
             usuario_email: admin.email,
-            titulo: `💬 ${coordinatorUser.full_name} → ${conversation.padre_nombre}`,
+            titulo: `💬 ${user.full_name || 'Coordinador'} → ${conversation.padre_nombre}`,
             mensaje: (data.mensaje || "Mensaje").substring(0, 100),
             tipo: "info",
             icono: "💬",
