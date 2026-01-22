@@ -595,7 +595,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-white">
+    <div className="absolute inset-0 flex flex-col bg-white overflow-hidden">
       <audio 
         ref={audioRef} 
         onEnded={() => setPlayingAudio(null)}
@@ -636,8 +636,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         canUnpin={isCoordinator}
       />
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50">
+      {/* Messages Area - scrollable */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-2 bg-slate-50 min-h-0">
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -769,7 +769,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       {/* Quick Replies */}
       {isCoordinator && showQuickReplies && (
-        <div className="px-3 py-2 border-t">
+        <div className="px-3 py-2 border-t bg-white flex-shrink-0">
           <CoordinatorQuickReplies 
             onSelect={(text) => {
               setMessageText(text);
@@ -780,8 +780,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         </div>
       )}
 
-      {/* Input Bar */}
-      <div className="flex-shrink-0 border-t bg-white">
+      {/* Input Bar - Fixed */}
+      <div className="border-t bg-white flex-shrink-0">
         <WhatsAppInputBar
           messageText={messageText}
           setMessageText={setMessageText}
