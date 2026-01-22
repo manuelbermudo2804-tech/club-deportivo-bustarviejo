@@ -131,38 +131,36 @@ export default function ParentCoachChat() {
     return conv?.no_leidos_padre || 0;
   };
 
-  // Marcar notificaciones Y MENSAJES como leídos inmediatamente al abrir el chat
+  // Marcar mensajes del entrenador como leídos + actualizar contador en CoachConversation
   useEffect(() => {
-    if (!user || !selectedCategory || messages.length === 0) return;
+    if (!user || !selectedCategory || messages.length === 0 || coachConversations.length === 0) return;
 
     const markAsRead = async () => {
       try {
-        const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-        
+        const conv = coachConversations.find(c => c.categoria === selectedCategory);
+        if (!conv) return;
+
         // 1. Marcar MENSAJES del entrenador como leídos
         const unreadCoachMessages = messages.filter(m => 
           m.tipo === "entrenador_a_grupo" && 
-          !m.leido &&
-          m.grupo_id === grupo_id
+          (!m.leido_padre || m.leido_padre === false)
         );
         
         for (const msg of unreadCoachMessages) {
-          const leidoPor = msg.leido_por || [];
-          if (!leidoPor.some(l => l.email === user.email)) {
-            leidoPor.push({
-              email: user.email,
-              nombre: user.full_name,
-              fecha: new Date().toISOString()
-            });
-          }
-          
-          await base44.entities.ChatMessage.update(msg.id, {
-            leido: true,
-            leido_por: leidoPor
+          await base44.entities.CoachMessage.update(msg.id, {
+            leido_padre: true,
+            fecha_leido_padre: new Date().toISOString()
           });
         }
         
-        // 2. Marcar AppNotifications como vistas
+        // 2. Decrementar contador en CoachConversation
+        if ((conv.no_leidos_padre || 0) > 0) {
+          await base44.entities.CoachConversation.update(conv.id, {
+            no_leidos_padre: 0
+          });
+        }
+        
+        // 3. Marcar AppNotifications como vistas
         const notifications = await base44.entities.AppNotification.filter({ 
           usuario_email: user.email,
           enlace: "ParentCoachChat",
@@ -176,13 +174,13 @@ export default function ParentCoachChat() {
           });
         }
         
-        // 3. Invalidar queries GLOBALES para actualizar el dashboard
+        // 4. Invalidar queries para actualizar en tiempo real
         if (unreadCoachMessages.length > 0 || notifications.length > 0) {
           await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] }),
             queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
-            queryClient.invalidateQueries({ queryKey: ['chatMessages'] }),
+            queryClient.refetchQueries({ queryKey: ['coachConversationsForParent', user.email] }),
             queryClient.refetchQueries({ queryKey: ['appNotifications'] }),
-            queryClient.refetchQueries({ queryKey: ['chatMessages'] }),
           ]);
         }
       } catch (error) {
@@ -191,7 +189,7 @@ export default function ParentCoachChat() {
     };
 
     markAsRead();
-  }, [user, selectedCategory, messages.length]);
+  }, [user?.email, selectedCategory, messages.length, coachConversations, queryClient]);
 
   const filteredMessages = searchTerm 
     ? messages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
