@@ -317,8 +317,30 @@ export default function WhatsAppInputBar({
         <div className="mb-2 flex items-center gap-2 bg-green-50 rounded-lg p-3 border-2 border-green-300">
           <Mic className="w-5 h-5 text-green-600" />
           <span className="text-sm flex-1 font-medium">🎤 Audio {audioDuration}s</span>
-          <Button size="sm" onClick={onSendAudio} className="h-8 bg-green-600">Enviar</Button>
-          <Button size="sm" variant="outline" onClick={onCancelAudio} className="h-8">✕</Button>
+          <Button 
+            size="sm" 
+            onClick={async () => {
+              setSendingAudio(true);
+              try {
+                await onSendAudio();
+              } finally {
+                setSendingAudio(false);
+              }
+            }} 
+            disabled={sendingAudio}
+            className={`h-8 ${sendingAudio ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-600'}`}
+          >
+            {sendingAudio ? '⏳' : 'Enviar'}
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={onCancelAudio} 
+            disabled={sendingAudio}
+            className="h-8"
+          >
+            ✕
+          </Button>
         </div>
       )}
 
