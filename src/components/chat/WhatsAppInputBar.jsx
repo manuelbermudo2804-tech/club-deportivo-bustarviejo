@@ -106,6 +106,9 @@ export default function WhatsAppInputBar({
   // Preview de imagen ANTES de enviar
   const [imagePreview, setImagePreview] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
+  
+  // Estado para envío de audio
+  const [sendingAudio, setSendingAudio] = useState(false);
 
   // Sincronizar con prop externa SOLO cuando está vacía (para edición)
   useEffect(() => {
