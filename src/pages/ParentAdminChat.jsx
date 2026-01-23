@@ -332,7 +332,7 @@ export default function ParentAdminChat() {
                             src={file.url} 
                             alt={file.nombre}
                             loading="lazy"
-                            className="rounded cursor-pointer max-w-full h-auto bg-slate-200"
+                            className="rounded cursor-pointer max-w-full h-auto bg-slate-100"
                             onClick={() => setShowImagePreview(file.url)}
                           />
                         ) : (

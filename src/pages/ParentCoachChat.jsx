@@ -679,17 +679,18 @@ export default function ParentCoachChat() {
                           )}
 
                           {msg.archivos_adjuntos?.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              {msg.archivos_adjuntos.map((file, idx) => (
-                                file.tipo?.startsWith('image/') ? (
-                                  <img 
-                                    key={idx}
-                                    src={file.url} 
-                                    alt={file.nombre}
-                                    className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain"
-                                    onClick={() => setShowImagePreview(file.url)}
-                                  />
-                                ) : (
+                           <div className="mt-2 space-y-1">
+                             {msg.archivos_adjuntos.map((file, idx) => (
+                               file.tipo?.startsWith('image/') ? (
+                                 <img 
+                                   key={idx}
+                                   src={file.url} 
+                                   alt={file.nombre}
+                                   loading="lazy"
+                                   className="rounded cursor-pointer max-w-full h-auto max-h-64 object-contain bg-slate-100"
+                                   onClick={() => setShowImagePreview(file.url)}
+                                 />
+                               ) : (
                                   <a
                                     key={idx}
                                     href={file.url}

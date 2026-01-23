@@ -618,7 +618,8 @@ export default function ParentCoordinatorChat() {
                                 key={idx}
                                 src={file.url}
                                 alt={file.nombre}
-                                className="rounded cursor-pointer max-w-full h-auto hover:opacity-80"
+                                loading="lazy"
+                                className="rounded cursor-pointer max-w-full h-auto hover:opacity-80 bg-slate-100"
                                 onClick={() => setShowImagePreview(file.url)}
                               />
                             ) : (
