@@ -107,7 +107,7 @@ export default function ParentCoachChat() {
       
       return allMessages;
     },
-    refetchInterval: 1000,
+    refetchInterval: false,
     refetchOnWindowFocus: true,
     enabled: !!selectedCategory && !!user && coachConversations.length > 0,
   });
