@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Send, Mic, Pause, X, Play, Smile } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
 import { toast } from "sonner";
+import { useAudioRecording } from "./useAudioRecording";
 
 export default function ParentChatInput({
   onSendMessage,
@@ -12,14 +13,19 @@ export default function ParentChatInput({
   onSendAudio
 }) {
   const [localText, setLocalText] = useState("");
-  const [recording, setRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(0);
   const [playingAudio, setPlayingAudio] = useState(null);
+  const {
+    isRecording,
+    audioBlob,
+    audioDuration,
+    isUploading,
+    startRecording,
+    stopRecording,
+    cancelAudio,
+    uploadAudio
+  } = useAudioRecording();
   
   const textareaRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
   const audioRef = useRef(null);
 
   const handleSend = useCallback(async () => {
@@ -32,15 +38,12 @@ export default function ParentChatInput({
     };
 
     // Si hay audio pendiente, subirlo primero
-    if (audioBlob && onSendAudio) {
-      try {
-        const audioData = await onSendAudio(audioBlob, audioDuration);
-        if (audioData) {
-          messageData.audio_url = audioData.audio_url;
-          messageData.audio_duracion = audioData.audio_duracion;
-        }
-      } catch (error) {
-        toast.error('Error al enviar el audio');
+    if (audioBlob) {
+      const audioData = await uploadAudio();
+      if (audioData) {
+        messageData.audio_url = audioData.audio_url;
+        messageData.audio_duracion = audioData.audio_duracion;
+      } else {
         return;
       }
     }
@@ -48,62 +51,13 @@ export default function ParentChatInput({
     onSendMessage(messageData);
     
     setLocalText("");
-    setAudioBlob(null);
-    setAudioDuration(0);
+    cancelAudio();
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [localText, audioBlob, audioDuration, onSendMessage, onSendAudio]);
+  }, [localText, audioBlob, onSendMessage, uploadAudio, cancelAudio]);
 
-  const startRecording = async () => {
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast.error("Tu navegador no soporta grabación de audio");
-        return;
-      }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      const startTime = Date.now();
-      toast.success("🎤 Grabando audio...", { duration: 1000 });
-
-      mediaRecorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioDuration(duration);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setRecording(true);
-    } catch (error) {
-      if (error.name === 'NotAllowedError') {
-        toast.error("Debes permitir el acceso al micrófono en tu navegador");
-      } else {
-        toast.error("Error al acceder al micrófono");
-      }
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
-  };
-
-  const cancelAudio = () => {
-    setAudioBlob(null);
-    setAudioDuration(0);
-  };
 
   const togglePlayAudio = async () => {
     if (!audioBlob) return;
@@ -125,6 +79,8 @@ export default function ParentChatInput({
       setPlayingAudio(null);
     }
   };
+
+  const isLoading = uploading || isUploading;
 
   const handleTextChange = (e) => {
     const newValue = e.target.value;
@@ -186,17 +142,17 @@ export default function ParentChatInput({
         {/* Micrófono */}
         <Button
           size="icon"
-          onClick={recording ? stopRecording : startRecording}
+          onClick={isRecording ? stopRecording : startRecording}
           className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
-          disabled={audioBlob}
+          disabled={audioBlob || isLoading}
         >
-          {recording ? <Pause className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+          {isRecording ? <Pause className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
         </Button>
 
         {/* Enviar */}
         <Button 
           onClick={handleSend} 
-          disabled={(!localText.trim() && !audioBlob) || uploading}
+          disabled={(!localText.trim() && !audioBlob) || isLoading}
           size="icon"
           className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
         >
