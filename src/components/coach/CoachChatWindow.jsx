@@ -1176,6 +1176,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         onLocationClick={() => setShowLocationDialog(true)}
         onPollClick={() => setShowPollDialog(true)}
         onExerciseClick={() => setShowExerciseShare(true)}
+        onSendAudio={sendAudio}
         uploading={uploading}
         placeholder="Escribe un mensaje..."
       />
