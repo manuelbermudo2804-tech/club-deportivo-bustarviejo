@@ -5,6 +5,7 @@ import { Send, Smile, Paperclip, Camera, MapPin, BarChart3, Dumbbell, Mic, Pause
 import EmojiPicker from "./EmojiPicker";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
+import ImagePreviewModal from "./ImagePreviewModal";
 
 // Menú "+" tipo WhatsApp
 function AttachmentMenu({ 
@@ -101,6 +102,10 @@ export default function WhatsAppInputBar({
   // INPUT 100% LOCAL - nunca se sobrescribe desde fuera
   const [localText, setLocalText] = useState("");
   const localTextRef = useRef("");
+  
+  // Preview de imagen ANTES de enviar
+  const [imagePreview, setImagePreview] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
 
   // Sincronizar con prop externa SOLO cuando está vacía (para edición)
   useEffect(() => {
@@ -153,15 +158,105 @@ export default function WhatsAppInputBar({
     }
   };
 
+  // Manejo de preview para cámara y galería
+  const handleCameraWithPreview = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+      setPreviewFile(file);
+      // Resetear input
+      if (cameraInputRef.current) cameraInputRef.current.value = "";
+    }
+  };
+
+  const handleGalleryWithPreview = (e) => {
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    
+    if (imageFiles.length > 0) {
+      // Mostrar preview del PRIMER archivo imagen
+      const firstImage = imageFiles[0];
+      const url = URL.createObjectURL(firstImage);
+      setImagePreview(url);
+      setPreviewFile(firstImage);
+      
+      // Pasar archivos no-imagen al handler original
+      const nonImageFiles = files.filter(f => !f.type.startsWith('image/'));
+      if (nonImageFiles.length > 0) {
+        const evt = new Event('change', { bubbles: true });
+        Object.defineProperty(evt, 'target', {
+          writable: false,
+          value: { files: nonImageFiles }
+        });
+        onFileUpload(evt);
+      }
+      
+      // Resetear input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImagePreviewConfirm = async () => {
+    if (!previewFile) return;
+
+    try {
+      // Crear evento simulado con el archivo
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(previewFile);
+      
+      const evt = new Event('change', { bubbles: true });
+      Object.defineProperty(evt, 'target', {
+        writable: false,
+        value: { files: dataTransfer.files }
+      });
+
+      // Pasar al handler original (cámara o galería)
+      // Pero como queremos que se agregue a attachments, llamamos directamente
+      const result = await onCameraCapture(evt);
+      if (result) {
+        setAttachments(prev => [...prev, result]);
+      }
+
+      // Cerrar preview
+      setImagePreview(null);
+      setPreviewFile(null);
+    } catch (error) {
+      console.error('Error al procesar imagen:', error);
+      toast.error('Error al procesar la imagen');
+      setImagePreview(null);
+      setPreviewFile(null);
+    }
+  };
+
+  const handleImagePreviewCancel = () => {
+    setImagePreview(null);
+    setPreviewFile(null);
+    // Limpiar inputs
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   return (
     <div className="p-2 bg-white border-t flex-shrink-0">
+      {/* Modal de preview de imagen */}
+      {imagePreview && (
+        <ImagePreviewModal
+          imageFile={previewFile}
+          imageUrl={imagePreview}
+          onConfirm={handleImagePreviewConfirm}
+          onCancel={handleImagePreviewCancel}
+          uploading={uploading}
+        />
+      )}
+
       <input 
         ref={fileInputRef}
         type="file" 
         multiple 
         accept="*/*"
         className="hidden" 
-        onChange={onFileUpload}
+        onChange={handleGalleryWithPreview}
         disabled={uploading} 
       />
       <input 
@@ -170,7 +265,7 @@ export default function WhatsAppInputBar({
         accept="image/*" 
         capture="environment" 
         className="hidden" 
-        onChange={onCameraCapture}
+        onChange={handleCameraWithPreview}
         disabled={uploading} 
       />
 
