@@ -30,26 +30,40 @@ export default function AdminChatInput({
     uploadAudio
   } = useAudioRecording();
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     if (!localText.trim() && localAttachments.length === 0 && !audioBlob) return;
+    
+    setIsUploading(true);
     
     const messageData = {
       mensaje: localText,
       adjuntos: [...localAttachments],
-      audio_blob: audioBlob,
-      audio_duracion: audioDuration
+      audio_url: null,
+      audio_duracion: 0
     };
+
+    // Si hay audio pendiente, subirlo primero
+    if (audioBlob) {
+      const audioData = await uploadAudio();
+      if (audioData) {
+        messageData.audio_url = audioData.audio_url;
+        messageData.audio_duracion = audioData.audio_duracion;
+      } else {
+        setIsUploading(false);
+        return;
+      }
+    }
     
     onSendMessage(messageData);
     
     setLocalText("");
     setLocalAttachments([]);
-    setAudioBlob(null);
-    setAudioDuration(0);
+    cancelAudio();
+    setIsUploading(false);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage]);
+  }, [localText, localAttachments, audioBlob, onSendMessage, uploadAudio, cancelAudio]);
 
   const handleSendNote = useCallback(() => {
     if (!localText.trim()) return;
