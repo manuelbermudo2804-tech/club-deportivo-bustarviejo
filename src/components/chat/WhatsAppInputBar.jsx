@@ -323,8 +323,11 @@ export default function WhatsAppInputBar({
               setSendingAudio(true);
               try {
                 console.log('🎤 Enviando audio...');
-                await onSendAudio?.();
-                console.log('✅ Audio enviado');
+                const audioData = await onSendAudio?.(audioBlob, audioDuration);
+                console.log('✅ Audio enviado:', audioData);
+                if (audioData) {
+                  onCancelAudio?.();
+                }
               } catch (err) {
                 console.error('❌ Error enviando audio:', err);
               } finally {
