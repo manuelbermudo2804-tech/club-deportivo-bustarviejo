@@ -562,17 +562,27 @@ export default function StaffChat() {
 
   const handleSend = () => {
     if (editingMessage) {
+      const textToSend = messageText;
+      setMessageText("");
       setEditingMessage(null);
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: messageText
+        mensaje: textToSend
       });
     } else {
       if (!messageText.trim() && attachments.length === 0) return;
       
+      // Guardar antes de limpiar
+      const textToSend = messageText;
+      const attachToSend = [...attachments];
+      
+      // Limpiar inmediatamente
+      setMessageText("");
+      setAttachments([]);
+      
       const messageData = { 
-        mensaje: messageText, 
-        adjuntos: [...attachments] 
+        mensaje: textToSend, 
+        adjuntos: attachToSend 
       };
       
       if (replyingTo) {
@@ -583,8 +593,16 @@ export default function StaffChat() {
         };
       }
       
-      sendMessageMutation.mutate(messageData);
-      setAttachments([]);
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        // Cola offline
+        sendWithQueue('staff', sendStaffMessageCore, messageData, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['staffMessages', conversation.id] });
+          }
+        });
+      } else {
+        sendMessageMutation.mutate(messageData);
+      }
       setReplyingTo(null);
     }
   };

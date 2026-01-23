@@ -75,7 +75,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       const data = await base44.entities.CoordinatorConversation.filter({ id: conversation.id });
       return data[0];
     },
-    refetchInterval: 5000,
+    refetchInterval: 2000,
     enabled: !!conversation?.id,
   });
 
