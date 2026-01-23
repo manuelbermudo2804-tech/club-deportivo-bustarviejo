@@ -38,15 +38,17 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
           <div className="mt-2 space-y-1">
             {message.archivos_adjuntos.map((file, idx) => (
               file.tipo?.startsWith('audio/') ? (
-                <audio key={idx} controls className="max-w-full">
-                  <source src={file.url} type={file.tipo} />
-                </audio>
+                <div key={idx} className="w-full">
+                  <audio controls className="w-full max-w-[280px]" style={{ aspectRatio: '16/9' }}>
+                    <source src={file.url} type={file.tipo} />
+                  </audio>
+                </div>
               ) : file.tipo?.startsWith('image/') ? (
                 <img 
                   key={idx}
                   src={file.url}
                   alt={file.nombre}
-                  className="rounded max-w-full h-auto"
+                  className="rounded-lg max-w-[280px] h-auto"
                 />
               ) : (
                 <a
