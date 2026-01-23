@@ -112,11 +112,21 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
   const anyoneTyping = chatState?.padre_escribiendo;
 
+  // Scroll inteligente tipo WhatsApp
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setIsScrolledToBottom(atBottom);
+  };
+
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (isScrolledToBottom && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      setNewMessageCount(0);
+    } else if (!isScrolledToBottom && messages.length > 0) {
+      setNewMessageCount(prev => prev + 1);
     }
-  }, [messages, anyoneTyping]);
+  }, [messages, isScrolledToBottom, anyoneTyping]);
 
   // Marcar como leídos los mensajes de familias al abrir la categoría (simétrico a familias viendo mensajes del entrenador)
   useEffect(() => {
