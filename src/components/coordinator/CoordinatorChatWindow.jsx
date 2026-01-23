@@ -16,13 +16,11 @@ import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
 import EscalateToAdminButton from "./EscalateToAdminButton";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
-import WhatsAppInputBar from "../chat/WhatsAppInputBar";
+import CoordinatorChatInput from "../chat/CoordinatorChatInput";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
 export default function CoordinatorChatWindow({ conversation, user, onClose }) {
-  const [messageText, setMessageText] = useState("");
-  const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
@@ -171,11 +169,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         });
       }
       if (uploaded.length > 0) {
-        setAttachments([...attachments, ...uploaded]);
         toast.success("Archivos adjuntados");
+        return uploaded;
       }
+      return [];
     } catch (error) {
       toast.error("Error al subir archivos");
+      return [];
     } finally {
       setUploading(false);
     }
@@ -183,21 +183,23 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const handleCameraCapture = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) return null;
     
     setUploading(true);
     try {
       const compressedFile = await compressImage(file);
       const { file_url } = await base44.integrations.Core.UploadFile({ file: compressedFile });
-      setAttachments([...attachments, {
+      const fileObj = {
         url: file_url,
         nombre: file.name,
         tipo: file.type,
         tamano: file.size
-      }]);
+      };
       toast.success("Foto capturada");
+      return fileObj;
     } catch (error) {
       toast.error("Error al capturar foto");
+      return null;
     } finally {
       setUploading(false);
     }
@@ -371,11 +373,11 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   };
 
   const sendMessageMutation = useMutation({
-    onError: (err, data, context) => {
+    onError: (err, messageData, context) => {
       toast.error("Error al enviar mensaje");
     },
-    mutationFn: async (data) => {
-      if (!conversation?.id || !user?.email || !data.mensaje?.trim()) {
+    mutationFn: async (messageData) => {
+      if (!conversation?.id || !user?.email || !messageData.mensaje?.trim()) {
         throw new Error("Datos obligatorios faltantes");
       }
 
@@ -384,25 +386,25 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         autor: isCoordinator ? "coordinador" : "padre",
         autor_email: user.email,
         autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
-        mensaje: data.mensaje.trim(),
+        mensaje: messageData.mensaje.trim(),
         leido_coordinador: isCoordinator,
         leido_padre: !isCoordinator,
-        archivos_adjuntos: data.archivos_adjuntos || []
+        archivos_adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || []
       };
 
-      if (data.audio_url) {
-        messagePayload.audio_url = data.audio_url;
-        messagePayload.audio_duracion = data.audio_duracion || 0;
+      if (messageData.audio_url) {
+        messagePayload.audio_url = messageData.audio_url;
+        messagePayload.audio_duracion = messageData.audio_duracion || 0;
       }
-      if (data.encuesta) {
-        messagePayload.encuesta = data.encuesta;
+      if (messageData.encuesta) {
+        messagePayload.encuesta = messageData.encuesta;
       }
-      if (data.ubicacion) {
-        messagePayload.ubicacion = data.ubicacion;
+      if (messageData.ubicacion) {
+        messagePayload.ubicacion = messageData.ubicacion;
       }
-      if (data.respuesta_a) {
-        messagePayload.respuesta_a = data.respuesta_a;
-        messagePayload.mensaje_citado = data.mensaje_citado;
+      if (messageData.respuesta_a) {
+        messagePayload.respuesta_a = messageData.respuesta_a;
+        messagePayload.mensaje_citado = messageData.mensaje_citado;
       }
 
       const newMessage = await base44.entities.CoordinatorMessage.create(messagePayload);
@@ -411,7 +413,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       const fieldEscribiendo = isCoordinator ? 'coordinador_escribiendo' : 'padre_escribiendo';
 
       await base44.entities.CoordinatorConversation.update(conversation.id, {
-        ultimo_mensaje: data.mensaje,
+        ultimo_mensaje: messageData.mensaje,
         ultimo_mensaje_fecha: new Date().toISOString(),
         ultimo_mensaje_autor: isCoordinator ? "coordinador" : "padre",
         [fieldNoLeidos]: (conversation[fieldNoLeidos] || 0) + 1,
@@ -423,7 +425,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         await base44.entities.AppNotification.create({
           usuario_email: conversation.coordinador_email,
           titulo: `💬 Mensaje de ${user.full_name}`,
-          mensaje: (data.mensaje || "Mensaje").substring(0, 100),
+          mensaje: (messageData.mensaje || "Mensaje").substring(0, 100),
           tipo: "importante",
           icono: "💬",
           enlace: "FamilyChats",
@@ -433,7 +435,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         await base44.entities.AppNotification.create({
           usuario_email: conversation.padre_email,
           titulo: `🎓 Mensaje del Coordinador`,
-          mensaje: (data.mensaje || "Mensaje").substring(0, 100),
+          mensaje: (messageData.mensaje || "Mensaje").substring(0, 100),
           tipo: "importante",
           icono: "🎓",
           enlace: "ParentCoordinatorChat",
@@ -448,37 +450,26 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     },
   });
 
-  const handleSend = (textFromInput) => {
-    const finalText = textFromInput || messageText;
-    
+  const handleSendMessage = (messageData) => {
     if (editingMessage) {
       setEditingMessage(null);
-      setMessageText("");
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: finalText
+        mensaje: messageData.mensaje
       });
-    } else {
-      if (!finalText.trim() && attachments.length === 0) return;
-      
-      const messageData = { 
-        mensaje: finalText, 
-        archivos_adjuntos: [...attachments] 
-      };
-      
-      if (replyingTo) {
-        messageData.respuesta_a = replyingTo.id;
-        messageData.mensaje_citado = {
-          autor_nombre: replyingTo.autor_nombre,
-          mensaje: replyingTo.mensaje.substring(0, 100)
-        };
-      }
-      
-      sendMessageMutation.mutate(messageData);
-      setMessageText("");
-      setAttachments([]);
-      setReplyingTo(null);
+      return;
     }
+    
+    if (replyingTo) {
+      messageData.respuesta_a = replyingTo.id;
+      messageData.mensaje_citado = {
+        autor_nombre: replyingTo.autor_nombre,
+        mensaje: replyingTo.mensaje.substring(0, 100)
+      };
+    }
+    
+    sendMessageMutation.mutate(messageData);
+    setReplyingTo(null);
   };
 
   const editMessageMutation = useMutation({
@@ -643,7 +634,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                     onReply={(m) => setReplyingTo(m)}
                     onEdit={(m) => {
                       setEditingMessage(m);
-                      setMessageText(m.mensaje);
+                      toast.info("Edición próximamente");
                     }}
                     onDelete={(m) => deleteMessageMutation.mutate(m.id)}
                   />
@@ -743,42 +734,16 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Replies */}
-      {isCoordinator && showQuickReplies && (
-        <div className="px-3 py-2 border-t bg-white flex-shrink-0">
-          <CoordinatorQuickReplies 
-            onSelect={(text) => {
-              setMessageText(text);
-              setShowQuickReplies(false);
-            }}
-            user={user}
-          />
-        </div>
-      )}
-
-      {/* Input Bar - Fixed */}
+      {/* Input Bar - Aislado */}
       <div className="border-t bg-white flex-shrink-0">
-        <WhatsAppInputBar
-          messageText={messageText}
-          setMessageText={setMessageText}
-          onSend={handleSend}
-          attachments={attachments}
-          setAttachments={setAttachments}
-          recording={recording}
-          audioBlob={audioBlob}
-          onStartRecording={startRecording}
-          onStopRecording={stopRecording}
-          onSendAudio={sendAudio}
-          onCancelAudio={cancelAudio}
-          audioDuration={audioDuration}
-          uploading={uploading}
+        <CoordinatorChatInput
+          onSendMessage={handleSendMessage}
           onFileUpload={handleFileUpload}
           onCameraCapture={handleCameraCapture}
           onLocationClick={() => setShowLocationDialog(true)}
           onPollClick={() => setShowPollDialog(true)}
-          onExerciseClick={isCoordinator ? () => setShowQuickReplies(!showQuickReplies) : null}
+          uploading={uploading}
           placeholder="Escribe un mensaje..."
-          onTyping={handleTyping}
         />
       </div>
 

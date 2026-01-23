@@ -12,12 +12,10 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { sendWithQueue } from "../components/utils/messageQueue";
 import { markAdminConversationAsRead } from "../components/utils/markAsRead";
-import EmojiPicker from "../components/chat/EmojiPicker";
+import ParentChatInput from "../components/chat/ParentChatInput";
 
 export default function ParentAdminChat() {
   const [user, setUser] = useState(null);
-  const [messageText, setMessageText] = useState("");
-  const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(null);
   const messagesEndRef = useRef(null);
@@ -172,36 +170,26 @@ export default function ParentAdminChat() {
           tipo: file.type
         });
       }
-      setAttachments([...attachments, ...uploaded]);
       toast.success("Archivos adjuntados");
+      return uploaded;
     } catch (error) {
       toast.error("Error al subir archivos");
+      return [];
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSend = async (textFromInput) => {
-    const finalText = textFromInput || messageText;
-    if (!finalText.trim() && attachments.length === 0) return;
-    
-    const dataToSend = { 
-      mensaje: finalText, 
-      archivos_adjuntos: [...attachments] 
-    };
-    
-    setMessageText("");
-    setAttachments([]);
-    
+  const handleSendMessage = async (messageData) => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      sendWithQueue('admin', sendAdminMessageCore, dataToSend, {
+      sendWithQueue('admin', sendAdminMessageCore, messageData, {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['parentAdminMessages', conversation.id] });
           queryClient.invalidateQueries({ queryKey: ['parentAdminConversation'] });
         }
       });
     } else {
-      sendMessageMutation.mutate(dataToSend);
+      sendMessageMutation.mutate(messageData);
     }
   };
 
@@ -352,48 +340,19 @@ export default function ParentAdminChat() {
 
         {/* Input */}
         {!conversation.resuelta ? (
-          <div className="p-2 bg-white border-t flex-shrink-0 space-y-2">
-            <Alert className="bg-blue-50 border-blue-200">
-              <AlertDescription className="text-blue-800 text-xs">
-                💡 Contacto directo con dirección del club. Mantén un tono respetuoso.
-              </AlertDescription>
-            </Alert>
-
-            {attachments.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {attachments.map((file, idx) => (
-                  <div key={idx} className="bg-slate-100 rounded px-3 py-1 text-xs flex items-center gap-2">
-                    <FileText className="w-3 h-3" />
-                    <span className="truncate max-w-[150px]">{file.nombre}</span>
-                    <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}>
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <WhatsAppInputBar
-              messageText={messageText}
-              setMessageText={setMessageText}
-              onSend={handleSend}
-              attachments={attachments}
-              setAttachments={setAttachments}
-              recording={false}
-              audioBlob={null}
-              onStartRecording={() => {}}
-              onStopRecording={() => {}}
-              onSendAudio={() => {}}
-              onCancelAudio={() => {}}
-              audioDuration={0}
-              uploading={uploading}
+          <div className="flex-shrink-0">
+            <div className="px-2 pt-2">
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertDescription className="text-blue-800 text-xs">
+                  💡 Contacto directo con dirección del club. Mantén un tono respetuoso.
+                </AlertDescription>
+              </Alert>
+            </div>
+            <ParentChatInput
+              onSendMessage={handleSendMessage}
               onFileUpload={handleFileUpload}
-              onCameraCapture={() => {}}
-              onLocationClick={() => {}}
-              onPollClick={() => {}}
-              showExercise={false}
+              uploading={uploading}
               placeholder="Escribe tu mensaje..."
-              onTyping={null}
             />
           </div>
         ) : (

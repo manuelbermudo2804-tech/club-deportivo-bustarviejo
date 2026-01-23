@@ -15,14 +15,11 @@ import { Textarea as DialogTextarea } from "@/components/ui/textarea";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
-import WhatsAppInputBar from "../components/chat/WhatsAppInputBar";
-import EmojiPicker from "../components/chat/EmojiPicker";
+import ParentChatInput from "../components/chat/ParentChatInput";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
-  const [messageText, setMessageText] = useState("");
-  const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
@@ -196,8 +193,6 @@ export default function ParentCoordinatorChat() {
     try {
       const uploaded = [];
       for (const file of files) {
-
-        
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         uploaded.push({
           url: file_url,
@@ -207,11 +202,13 @@ export default function ParentCoordinatorChat() {
         });
       }
       if (uploaded.length > 0) {
-        setAttachments([...attachments, ...uploaded]);
         toast.success("Documentos adjuntados");
+        return uploaded;
       }
+      return [];
     } catch (error) {
       toast.error("Error al subir archivos");
+      return [];
     } finally {
       setUploading(false);
     }
@@ -239,19 +236,19 @@ export default function ParentCoordinatorChat() {
   const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || m.adjuntos || []);
 
   const sendMessageMutation = useMutation({
-    onError: (err, data, context) => {
+    onError: (err, messageData, context) => {
       if (!err.message?.includes("lenguaje inapropiado")) {
         toast.error("Error al enviar mensaje");
       }
     },
-    mutationFn: async (data) => {
+    mutationFn: async (messageData) => {
       const palabrasProhibidas = [
         "idiota", "estupido", "estúpido", "imbecil", "imbécil", "tonto", 
         "basura", "mierda", "maldito", "puto", "puta", "joder", "coño",
         "gilipollas", "capullo", "hijo de", "desgraciado", "inutil", "inútil"
       ];
       
-      const mensajeLower = data.mensaje.toLowerCase();
+      const mensajeLower = messageData.mensaje.toLowerCase();
       const palabraEncontrada = palabrasProhibidas.find(p => mensajeLower.includes(p));
       
       if (palabraEncontrada) {
@@ -286,8 +283,8 @@ export default function ParentCoordinatorChat() {
         autor: "padre",
         autor_email: user.email,
         autor_nombre: user.full_name,
-        mensaje: data.mensaje,
-        archivos_adjuntos: data.archivos_adjuntos || [],
+        mensaje: messageData.mensaje,
+        archivos_adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || [],
         leido_padre: true,
         leido_coordinador: false,
         fecha_leido_padre: new Date().toISOString()
@@ -297,7 +294,7 @@ export default function ParentCoordinatorChat() {
 
       // Marcar conversación como prioritaria si contiene palabra urgente
       const updateData = {
-        ultimo_mensaje: data.mensaje,
+        ultimo_mensaje: messageData.mensaje,
         ultimo_mensaje_fecha: new Date().toISOString(),
         ultimo_mensaje_autor: "padre",
         no_leidos_coordinador: (conversation.no_leidos_coordinador || 0) + 1,
@@ -339,7 +336,7 @@ export default function ParentCoordinatorChat() {
           .map(email => base44.entities.AppNotification.create({
             usuario_email: email,
             titulo: `💬 Mensaje de ${user.full_name}`,
-            mensaje: (data.mensaje || "Mensaje").substring(0, 100) + ((data.mensaje || "").length > 100 ? '...' : ''),
+            mensaje: (messageData.mensaje || "Mensaje").substring(0, 100) + ((messageData.mensaje || "").length > 100 ? '...' : ''),
             tipo: "importante",
             icono: "💬",
             enlace: "FamilyChats",
@@ -432,7 +429,7 @@ export default function ParentCoordinatorChat() {
     }
   });
 
-  const handleSend = (textFromInput) => {
+  const handleSendMessage = (messageData) => {
     if (!termsAccepted) {
       toast.error("Debes aceptar las condiciones de uso antes de enviar mensajes");
       setShowTermsDialog(true);
@@ -444,15 +441,7 @@ export default function ParentCoordinatorChat() {
       return;
     }
     
-    const finalText = textFromInput || messageText;
-    if (!finalText.trim() && attachments.length === 0) return;
-    
-    sendMessageMutation.mutate({ 
-      mensaje: finalText, 
-      archivos_adjuntos: [...attachments] 
-    });
-    setMessageText("");
-    setAttachments([]);
+    sendMessageMutation.mutate(messageData);
   };
 
   const addReaction = async (messageId, emoji) => {
@@ -659,27 +648,11 @@ export default function ParentCoordinatorChat() {
             </div>
           )}
 
-          <WhatsAppInputBar
-            messageText={messageText}
-            setMessageText={setMessageText}
-            onSend={handleSend}
-            attachments={attachments}
-            setAttachments={setAttachments}
-            recording={false}
-            audioBlob={null}
-            onStartRecording={() => {}}
-            onStopRecording={() => {}}
-            onSendAudio={() => {}}
-            onCancelAudio={() => {}}
-            audioDuration={0}
-            uploading={uploading}
+          <ParentChatInput
+            onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}
-            onCameraCapture={() => {}}
-            onLocationClick={() => {}}
-            onPollClick={() => {}}
-            showExercise={false}
+            uploading={uploading}
             placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
-            onTyping={handleTyping}
           />
         </CardContent>
       </Card>
