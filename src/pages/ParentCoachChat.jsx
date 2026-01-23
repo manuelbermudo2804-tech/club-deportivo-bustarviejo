@@ -259,7 +259,29 @@ export default function ParentCoachChat() {
   const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
   const sendMessageMutation = useMutation({
-    onError: () => {
+    onMutate: async (messageData) => {
+      await queryClient.cancelQueries({ queryKey: ['coachMessages', selectedCategory, user?.email] });
+      const previousMessages = queryClient.getQueryData(['coachMessages', selectedCategory, user?.email]);
+      
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        mensaje: messageData.mensaje,
+        autor: "padre",
+        autor_email: user.email,
+        autor_nombre: user.full_name,
+        adjuntos: messageData.adjuntos || [],
+        created_date: new Date().toISOString(),
+        leido_padre: true,
+        leido_entrenador: false,
+      };
+      
+      queryClient.setQueryData(['coachMessages', selectedCategory, user?.email], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages };
+    },
+    onError: (err, vars, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['coachMessages', selectedCategory, user?.email], context.previousMessages);
+      }
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {

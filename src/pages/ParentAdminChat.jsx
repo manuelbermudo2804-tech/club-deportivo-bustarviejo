@@ -146,6 +146,31 @@ export default function ParentAdminChat() {
   };
 
   const sendMessageMutation = useMutation({
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['parentAdminMessages', conversation?.id] });
+      const previousMessages = queryClient.getQueryData(['parentAdminMessages', conversation?.id]);
+      
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        mensaje: data.mensaje,
+        autor: "padre",
+        autor_email: user.email,
+        autor_nombre: user.full_name,
+        archivos_adjuntos: data.archivos_adjuntos || [],
+        created_date: new Date().toISOString(),
+        leido_padre: true,
+        leido_admin: false,
+      };
+      
+      queryClient.setQueryData(['parentAdminMessages', conversation?.id], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages };
+    },
+    onError: (err, vars, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['parentAdminMessages', conversation?.id], context.previousMessages);
+      }
+      toast.error("Error al enviar mensaje");
+    },
     mutationFn: async (data) => {
       return await sendAdminMessageCore(data);
     },

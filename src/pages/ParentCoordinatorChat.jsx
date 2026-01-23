@@ -237,7 +237,29 @@ export default function ParentCoordinatorChat() {
   const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || m.adjuntos || []);
 
   const sendMessageMutation = useMutation({
+    onMutate: async (messageData) => {
+      await queryClient.cancelQueries({ queryKey: ['parentCoordinatorMessages', conversation?.id] });
+      const previousMessages = queryClient.getQueryData(['parentCoordinatorMessages', conversation?.id]);
+      
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        mensaje: messageData.mensaje,
+        autor: "padre",
+        autor_email: user.email,
+        autor_nombre: user.full_name,
+        archivos_adjuntos: messageData.adjuntos || [],
+        created_date: new Date().toISOString(),
+        leido_padre: true,
+        leido_coordinador: false,
+      };
+      
+      queryClient.setQueryData(['parentCoordinatorMessages', conversation?.id], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages };
+    },
     onError: (err, messageData, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['parentCoordinatorMessages', conversation?.id], context.previousMessages);
+      }
       if (!err.message?.includes("lenguaje inapropiado")) {
         toast.error("Error al enviar mensaje");
       }
