@@ -753,16 +753,17 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       {/* Input Bar - Aislado */}
       <div className="border-t bg-white flex-shrink-0">
-        <CoordinatorChatInput
-          onSendMessage={handleSendMessage}
-          onFileUpload={handleFileUpload}
-          onCameraCapture={handleCameraCapture}
-          onLocationClick={() => setShowLocationDialog(true)}
-          onPollClick={() => setShowPollDialog(true)}
-          uploading={uploading}
-          placeholder="Escribe un mensaje..."
-        />
-      </div>
+         <CoordinatorChatInput
+           onSendMessage={handleSendMessage}
+           onSendAudio={sendAudio}
+           onFileUpload={handleFileUpload}
+           onCameraCapture={handleCameraCapture}
+           onLocationClick={() => setShowLocationDialog(true)}
+           onPollClick={() => setShowPollDialog(true)}
+           uploading={uploading}
+           placeholder="Escribe un mensaje..."
+         />
+       </div>
 
       {/* Location Dialog */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>

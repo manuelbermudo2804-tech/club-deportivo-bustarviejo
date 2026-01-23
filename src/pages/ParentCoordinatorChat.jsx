@@ -293,6 +293,17 @@ export default function ParentCoordinatorChat() {
       const palabrasUrgentes = ["urgente", "grave", "lesión", "lesion", "accidente", "hospital", "ambulancia", "emergencia"];
       const palabraUrgente = palabrasUrgentes.find(p => mensajeLower.includes(p));
       
+      // Si hay audio pendiente, subir primero
+      let audioUrl = null;
+      let audioDuration = 0;
+      if (messageData.audio_blob) {
+        const audioData = await handleSendAudio(messageData.audio_blob, messageData.audio_duracion);
+        if (audioData) {
+          audioUrl = audioData.audio_url;
+          audioDuration = audioData.audio_duracion;
+        }
+      }
+
       const newMessage = await base44.entities.CoordinatorMessage.create({
         conversacion_id: conversation.id,
         autor: "padre",
@@ -668,10 +679,11 @@ export default function ParentCoordinatorChat() {
           )}
 
           <ParentChatInput
-            onSendMessage={handleSendMessage}
-            uploading={uploading}
-            placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
-          />
+             onSendMessage={handleSendMessage}
+             onSendAudio={handleSendAudio}
+             uploading={uploading}
+             placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
+           />
         </CardContent>
       </Card>
 
