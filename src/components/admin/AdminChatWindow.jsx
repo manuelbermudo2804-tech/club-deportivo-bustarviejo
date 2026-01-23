@@ -21,7 +21,11 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [showContextDialog, setShowContextDialog] = useState(false);
   const [showReactions, setShowReactions] = useState(null);
+  const [playingAudio, setPlayingAudio] = useState(null);
   const messagesEndRef = useRef(null);
+  const audioRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
@@ -137,6 +141,41 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
     }
   };
 
+  const handleSendAudio = async (audioBlob, audioDuration) => {
+    if (!audioBlob) return;
+    try {
+      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      sendMessageMutation.mutate({ 
+        mensaje: "🎤 Audio", 
+        audio_url: file_url,
+        audio_duracion: audioDuration,
+        adjuntos: []
+      });
+    } catch (error) {
+      toast.error("Error al enviar el audio");
+    }
+  };
+
+  const togglePlayAudio = async (audioUrl) => {
+    try {
+      if (playingAudio === audioUrl) {
+        audioRef.current?.pause();
+        setPlayingAudio(null);
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = audioUrl;
+          await audioRef.current.play();
+          setPlayingAudio(audioUrl);
+        }
+      }
+    } catch (error) {
+      setPlayingAudio(null);
+      toast.error("Error al reproducir el audio");
+    }
+  };
+
   const sendMessageMutation = useMutation({
     onError: (err, messageData, context) => {
       toast.error("Error al enviar mensaje");
@@ -210,6 +249,14 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      <audio 
+        ref={audioRef} 
+        onEnded={() => setPlayingAudio(null)}
+        onError={() => {
+          setPlayingAudio(null);
+          toast.error("Error al cargar el audio");
+        }}
+      />
       {/* Preview de imagen */}
       {showImagePreview && (
         <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4" onClick={() => setShowImagePreview(null)}>
@@ -378,7 +425,19 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                   )}
                 </div>
 
-                <p style={{fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{msg.mensaje}</p>
+                {msg.audio_url ? (
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => togglePlayAudio(msg.audio_url)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/20"
+                    >
+                      {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
+                    <span className="text-sm">🎤 {msg.audio_duracion}s</span>
+                  </div>
+                ) : (
+                  <p style={{fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{msg.mensaje}</p>
+                )}
 
                 {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
@@ -466,6 +525,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
           onSendMessage={handleSendMessage}
           onSendInternalNote={handleSendInternalNote}
           onFileUpload={handleFileUpload}
+          onSendAudio={handleSendAudio}
           uploading={uploading}
         />
       )}
