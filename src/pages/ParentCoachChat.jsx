@@ -274,11 +274,16 @@ export default function ParentCoachChat() {
           s.categorias_entrena?.includes(selectedCategory)
         );
         
+        // VALIDACIÓN: Si no hay entrenador asignado, no crear conversación
+        if (!relevantSettings?.entrenador_email || !relevantSettings?.entrenador_nombre) {
+          throw new Error(`No hay entrenador asignado para ${selectedCategory}. Contacta con el coordinador o administrador.`);
+        }
+        
         conv = await base44.entities.CoachConversation.create({
           padre_email: user.email,
           padre_nombre: user.full_name,
-          entrenador_email: relevantSettings?.entrenador_email || 'sin-asignar@club.com',
-          entrenador_nombre: relevantSettings?.entrenador_nombre || 'Entrenador',
+          entrenador_email: relevantSettings.entrenador_email,
+          entrenador_nombre: relevantSettings.entrenador_nombre,
           categoria: selectedCategory,
           jugadores_asociados: myPlayers
             .filter(p => p.deporte === selectedCategory)
