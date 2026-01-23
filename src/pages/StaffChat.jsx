@@ -798,9 +798,9 @@ export default function StaffChat() {
                           </div>
                         </div>
 
-                        <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>
+                        <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
                           {msg.mensaje}
-                          {msg.editado && <span className="text-xs ml-1" style={{color: '#667781'}}>(editado)</span>}
+                          {msg.editado && <span className="text-xs ml-1 opacity-60">(editado)</span>}
                         </p>
 
                         {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
@@ -860,7 +860,7 @@ export default function StaffChat() {
                         )}
 
                         <div className="flex items-center gap-1 justify-end mt-1">
-                          <p className="text-xs opacity-60">
+                          <p style={{fontSize: '11px', opacity: 0.6}}>
                             {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                           </p>
                           
