@@ -77,14 +77,14 @@ export default function CoordinatorChatInput({
       onSend={handleSend}
       attachments={localAttachments}
       setAttachments={setLocalAttachments}
-      recording={recording}
+      recording={isRecording}
       audioBlob={audioBlob}
       onStartRecording={startRecording}
       onStopRecording={stopRecording}
-      onSendAudio={sendAudioWrapper}
-      onCancelAudio={() => { setAudioBlob(null); setAudioDuration(0); }}
+      onUploadAudio={uploadAudio}
+      onCancelAudio={cancelAudio}
       audioDuration={audioDuration}
-      uploading={uploading}
+      uploading={uploading || isUploading}
       onFileUpload={handleFileUploadLocal}
       onCameraCapture={handleCameraCaptureLocal}
       onLocationClick={onLocationClick}
