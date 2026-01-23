@@ -294,7 +294,7 @@ export default function WhatsAppInputBar({
             {/* Botón Enviar - REEMPLAZA al micrófono cuando hay texto */}
             <Button 
               onClick={handleSend}
-              disabled={!messageText.trim() && attachments.length === 0}
+              disabled={!localText.trim() && attachments.length === 0}
               size="icon"
               className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
             >
