@@ -82,7 +82,7 @@ export default function WhatsAppInputBar({
   audioBlob = null,
   onStartRecording,
   onStopRecording,
-  onSendAudio,
+  onUploadAudio,
   onCancelAudio,
   audioDuration = 0,
   uploading = false,
@@ -108,7 +108,7 @@ export default function WhatsAppInputBar({
   const [previewFile, setPreviewFile] = useState(null);
   
   // Estado para envío de audio
-  const [sendingAudio, setSendingAudio] = useState(false);
+  const [isSendingAudio, setIsSendingAudio] = useState(false);
 
   // Sincronizar con prop externa SOLO cuando está vacía (para edición)
   useEffect(() => {
@@ -320,30 +320,28 @@ export default function WhatsAppInputBar({
           <Button 
             size="sm" 
             onClick={async () => {
-              setSendingAudio(true);
+              setIsSendingAudio(true);
               try {
-                console.log('🎤 Enviando audio...');
-                const audioData = await onSendAudio?.(audioBlob, audioDuration);
-                console.log('✅ Audio enviado:', audioData);
+                const audioData = await onUploadAudio?.();
                 if (audioData) {
                   onCancelAudio?.();
                 }
               } catch (err) {
-                console.error('❌ Error enviando audio:', err);
+                console.error('Error sending audio:', err);
               } finally {
-                setSendingAudio(false);
+                setIsSendingAudio(false);
               }
             }} 
-            disabled={sendingAudio}
-            className={`h-8 ${sendingAudio ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-600'}`}
+            disabled={isSendingAudio || uploading}
+            className={`h-8 ${isSendingAudio || uploading ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-600'}`}
           >
-            {sendingAudio ? '⏳' : 'Enviar'}
+            {isSendingAudio || uploading ? '⏳' : 'Enviar'}
           </Button>
           <Button 
             size="sm" 
             variant="outline" 
             onClick={onCancelAudio} 
-            disabled={sendingAudio}
+            disabled={isSendingAudio || uploading}
             className="h-8"
           >
             ✕

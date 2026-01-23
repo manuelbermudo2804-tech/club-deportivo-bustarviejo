@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import WhatsAppInputBar from "./WhatsAppInputBar";
+import { useAudioRecording } from "./useAudioRecording";
 
 /**
  * Input de chat 100% aislado e independiente
@@ -22,11 +23,16 @@ export default function StaffChatInput({
   // Estado 100% local - nunca se sobrescribe desde fuera
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
-  const [recording, setRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(0);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+  const {
+    isRecording,
+    audioBlob,
+    audioDuration,
+    isUploading,
+    startRecording,
+    stopRecording,
+    cancelAudio,
+    uploadAudio
+  } = useAudioRecording();
 
   // Enviar mensaje - llama al callback del padre y limpia
   const handleSend = useCallback(async (textFromInput) => {
@@ -65,45 +71,7 @@ export default function StaffChatInput({
     setAudioDuration(0);
   }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage, onSendAudio]);
 
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-      const startTime = Date.now();
 
-      mediaRecorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioDuration(duration);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setRecording(true);
-    } catch (error) {
-      console.error('Error recording:', error);
-    }
-  }, []);
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
-  }, [recording]);
-
-  const sendAudioWrapper = useCallback(async (blob, duration) => {
-    if (blob && onSendAudio) {
-      return await onSendAudio(blob, duration);
-    }
-  }, [onSendAudio]);
 
   // Upload de archivos - gestiona localmente
   const handleFileUploadLocal = useCallback(async (e) => {
@@ -128,14 +96,14 @@ export default function StaffChatInput({
       onSend={handleSend}
       attachments={localAttachments}
       setAttachments={setLocalAttachments}
-      recording={recording}
+      recording={isRecording}
       audioBlob={audioBlob}
       onStartRecording={startRecording}
       onStopRecording={stopRecording}
-      onSendAudio={sendAudioWrapper}
-      onCancelAudio={() => { setAudioBlob(null); setAudioDuration(0); }}
+      onUploadAudio={uploadAudio}
+      onCancelAudio={cancelAudio}
       audioDuration={audioDuration}
-      uploading={uploading}
+      uploading={uploading || isUploading}
       onFileUpload={handleFileUploadLocal}
       onCameraCapture={handleCameraCaptureLocal}
       onLocationClick={onLocationClick}

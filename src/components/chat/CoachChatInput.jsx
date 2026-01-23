@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
 import WhatsAppInputBar from "./WhatsAppInputBar";
+import { useAudioRecording } from "./useAudioRecording";
 
 export default function CoachChatInput({
   onSendMessage,
@@ -14,11 +15,16 @@ export default function CoachChatInput({
 }) {
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
-  const [recording, setRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(0);
-  const mediaRecorderRef = React.useRef(null);
-  const audioChunksRef = React.useRef([]);
+  const {
+    isRecording,
+    audioBlob,
+    audioDuration,
+    isUploading,
+    startRecording,
+    stopRecording,
+    cancelAudio,
+    uploadAudio
+  } = useAudioRecording();
 
   const handleSend = useCallback(async (textFromInput) => {
     const text = textFromInput || localText;
@@ -33,15 +39,12 @@ export default function CoachChatInput({
     };
 
     // Si hay audio pendiente, subirlo primero
-    if (audioBlob && onSendAudio) {
-      try {
-        const audioData = await onSendAudio(audioBlob, audioDuration);
-        if (audioData) {
-          messageData.audio_url = audioData.audio_url;
-          messageData.audio_duracion = audioData.audio_duracion;
-        }
-      } catch (error) {
-        console.error('Error enviando audio:', error);
+    if (audioBlob) {
+      const audioData = await uploadAudio();
+      if (audioData) {
+        messageData.audio_url = audioData.audio_url;
+        messageData.audio_duracion = audioData.audio_duracion;
+      } else {
         return;
       }
     }
@@ -50,49 +53,10 @@ export default function CoachChatInput({
     
     setLocalText("");
     setLocalAttachments([]);
-    setAudioBlob(null);
-    setAudioDuration(0);
-  }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage, onSendAudio]);
+    cancelAudio();
+  }, [localText, localAttachments, audioBlob, onSendMessage, uploadAudio, cancelAudio]);
 
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-      const startTime = Date.now();
 
-      mediaRecorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioDuration(duration);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setRecording(true);
-    } catch (error) {
-      console.error('Error recording:', error);
-    }
-  }, []);
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
-  }, [recording]);
-
-  const sendAudioWrapper = useCallback(async (blob, duration) => {
-    if (blob && onSendAudio) {
-      return await onSendAudio(blob, duration);
-    }
-  }, [onSendAudio]);
 
   const handleFileUploadLocal = useCallback(async (e) => {
     const result = await onFileUpload(e);
@@ -115,14 +79,14 @@ export default function CoachChatInput({
       onSend={handleSend}
       attachments={localAttachments}
       setAttachments={setLocalAttachments}
-      recording={recording}
+      recording={isRecording}
       audioBlob={audioBlob}
       onStartRecording={startRecording}
       onStopRecording={stopRecording}
-      onSendAudio={sendAudioWrapper}
-      onCancelAudio={() => { setAudioBlob(null); setAudioDuration(0); }}
+      onUploadAudio={uploadAudio}
+      onCancelAudio={cancelAudio}
       audioDuration={audioDuration}
-      uploading={uploading}
+      uploading={uploading || isUploading}
       onFileUpload={handleFileUploadLocal}
       onCameraCapture={handleCameraCaptureLocal}
       onLocationClick={onLocationClick}
