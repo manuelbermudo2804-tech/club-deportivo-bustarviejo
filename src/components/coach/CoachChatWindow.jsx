@@ -384,15 +384,24 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      sendMessageMutation.mutate({ 
-        mensaje: "🎤 Audio", 
-        audio_url: file_url,
-        audio_duracion: audioDuration,
-        archivos_adjuntos: []
+      await new Promise((resolve, reject) => {
+        sendMessageMutation.mutate(
+          { 
+            mensaje: "🎤 Audio", 
+            audio_url: file_url,
+            audio_duracion: audioDuration,
+            archivos_adjuntos: []
+          },
+          {
+            onSuccess: resolve,
+            onError: reject
+          }
+        );
       });
       
       cancelAudio();
     } catch (error) {
+      console.error("Error al enviar audio:", error);
       toast.error("Error al enviar el audio");
     }
   };
