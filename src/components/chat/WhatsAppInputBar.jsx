@@ -322,7 +322,11 @@ export default function WhatsAppInputBar({
             onClick={async () => {
               setSendingAudio(true);
               try {
-                await onSendAudio();
+                console.log('🎤 Enviando audio...');
+                await onSendAudio?.();
+                console.log('✅ Audio enviado');
+              } catch (err) {
+                console.error('❌ Error enviando audio:', err);
               } finally {
                 setSendingAudio(false);
               }
