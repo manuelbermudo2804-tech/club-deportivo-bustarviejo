@@ -171,7 +171,8 @@ export default function ParentCoordinatorChat() {
       const data = await base44.entities.CoordinatorConversation.filter({ id: conversation.id });
       return data[0];
     },
-    refetchInterval: 2000,
+    refetchInterval: false,
+    staleTime: 300000,
     enabled: !!conversation?.id,
   });
 
