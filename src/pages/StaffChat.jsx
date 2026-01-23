@@ -461,21 +461,23 @@ export default function StaffChat() {
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
-      const autorRol = user.role === "admin" ? "admin" : user.es_coordinador ? "coordinador" : "entrenador";
-      
-      const newMessage = await base44.entities.StaffMessage.create({
-        conversacion_id: conversation.id,
-        autor_email: user.email,
-        autor_nombre: user.full_name,
-        autor_rol: autorRol,
-        mensaje: messageData.mensaje,
-        adjuntos: messageData.adjuntos,
-        encuesta: messageData.encuesta,
-        ubicacion: messageData.ubicacion,
-        respuesta_a: messageData.respuesta_a,
-        mensaje_citado: messageData.mensaje_citado,
-        leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }]
-      });
+       const autorRol = user.role === "admin" ? "admin" : user.es_coordinador ? "coordinador" : "entrenador";
+
+       const newMessage = await base44.entities.StaffMessage.create({
+         conversacion_id: conversation.id,
+         autor_email: user.email,
+         autor_nombre: user.full_name,
+         autor_rol: autorRol,
+         mensaje: messageData.mensaje,
+         audio_url: messageData.audio_url,
+         audio_duracion: messageData.audio_duracion,
+         adjuntos: messageData.adjuntos,
+         encuesta: messageData.encuesta,
+         ubicacion: messageData.ubicacion,
+         respuesta_a: messageData.respuesta_a,
+         mensaje_citado: messageData.mensaje_citado,
+         leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }]
+       });
 
       await base44.entities.StaffConversation.update(conversation.id, {
         ultimo_mensaje: messageData.mensaje,
