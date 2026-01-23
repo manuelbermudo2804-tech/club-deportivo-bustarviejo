@@ -74,9 +74,13 @@ export default function CoachChatInput({
 
   const sendAudioWrapper = useCallback(async () => {
     if (audioBlob && onSendAudio) {
-      await onSendAudio(audioBlob, audioDuration);
-      setAudioBlob(null);
-      setAudioDuration(0);
+      try {
+        await onSendAudio();
+        setAudioBlob(null);
+        setAudioDuration(0);
+      } catch (error) {
+        console.error('Error sending audio:', error);
+      }
     }
   }, [audioBlob, audioDuration, onSendAudio]);
 
