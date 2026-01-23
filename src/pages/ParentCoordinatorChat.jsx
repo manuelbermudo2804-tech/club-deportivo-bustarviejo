@@ -239,31 +239,8 @@ export default function ParentCoordinatorChat() {
   const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || m.adjuntos || []);
 
   const sendMessageMutation = useMutation({
-    onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: ['parentCoordinatorMessages'] });
-      
-      const previousMessages = queryClient.getQueryData(['parentCoordinatorMessages', conversation?.id]);
-      
-      const optimisticMessage = {
-        id: 'temp-' + Date.now(),
-        conversacion_id: conversation.id,
-        autor: "padre",
-        autor_email: user.email,
-        autor_nombre: user.full_name,
-        mensaje: data.mensaje,
-        created_date: new Date().toISOString(),
-        leido_coordinador: false,
-        leido_padre: true,
-        archivos_adjuntos: data.archivos_adjuntos || []
-      };
-      
-      queryClient.setQueryData(['parentCoordinatorMessages', conversation?.id], old => [...(old || []), optimisticMessage]);
-      
-      return { previousMessages };
-    },
     onError: (err, data, context) => {
       if (!err.message?.includes("lenguaje inapropiado")) {
-        queryClient.setQueryData(['parentCoordinatorMessages', conversation?.id], context.previousMessages);
         toast.error("Error al enviar mensaje");
       }
     },
@@ -595,7 +572,7 @@ export default function ParentCoordinatorChat() {
 
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 bg-slate-50 min-h-0">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
                     {!messages || messages.length === 0 ? (
                       <div className="text-center py-8">
                         <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
@@ -608,9 +585,21 @@ export default function ParentCoordinatorChat() {
                 
                 return (
                   <div key={msg.id} className={`flex ${isPadre ? 'justify-end' : 'justify-start'} mb-1`}>
-                    <div className={`max-w-[85%] ${isPadre ? 'bg-green-500 text-gray-900' : 'bg-gray-100 text-gray-900'} ${isPadre ? 'rounded-3xl' : 'rounded-3xl'} px-4 py-2 shadow-none font-roboto text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
-                      <p className="text-xs font-semibold mb-1 opacity-70">{msg.autor_nombre}</p>
-                      <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>{msg.mensaje}</p>
+                    <div className="max-w-[85%] px-3 py-2 relative" style={{
+                      backgroundColor: isPadre ? '#DCF8C6' : '#FFFFFF',
+                      color: '#000000',
+                      borderRadius: '7.5px',
+                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                      fontSize: '14.2px',
+                      lineHeight: '19px',
+                      boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
+                    }}>
+                      {!isPadre && (
+                        <p className="text-xs font-medium mb-1" style={{color: '#0891B2'}}>
+                          🎓 {msg.autor_nombre}
+                        </p>
+                      )}
+                      <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined}}>{msg.mensaje}</p>
                       {(msg.archivos_adjuntos || msg.adjuntos)?.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {(msg.archivos_adjuntos || msg.adjuntos).map((file, idx) => (
@@ -639,7 +628,7 @@ export default function ParentCoordinatorChat() {
                         </div>
                       )}
                       <div className="flex items-center gap-1 justify-end mt-1">
-                        <p className="text-xs opacity-60">
+                        <p className="text-[11px]" style={{color: '#667781'}}>
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </p>
                         {isPadre && (

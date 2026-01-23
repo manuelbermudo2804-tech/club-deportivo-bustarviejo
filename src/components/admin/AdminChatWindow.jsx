@@ -138,31 +138,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   };
 
   const sendMessageMutation = useMutation({
-    onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: ['adminMessages'] });
-      
-      const previousMessages = queryClient.getQueryData(['adminMessages', conversation?.id]);
-      
-      const optimisticMessage = {
-        id: 'temp-' + Date.now(),
-        conversacion_id: conversation.id,
-        autor: "admin",
-        autor_email: user.email,
-        autor_nombre: user.full_name,
-        mensaje: data.mensaje,
-        created_date: new Date().toISOString(),
-        leido_admin: true,
-        leido_padre: false,
-        archivos_adjuntos: data.adjuntos || [],
-        es_nota_interna: data.es_nota_interna || false
-      };
-      
-      queryClient.setQueryData(['adminMessages', conversation?.id], old => [...(old || []), optimisticMessage]);
-      
-      return { previousMessages };
-    },
     onError: (err, data, context) => {
-      queryClient.setQueryData(['adminMessages', conversation?.id], context.previousMessages);
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (data) => {

@@ -233,6 +233,9 @@ export default function ParentCoachChat() {
   const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
   const sendMessageMutation = useMutation({
+    onError: () => {
+      toast.error("Error al enviar mensaje");
+    },
     mutationFn: async (mensaje) => {
       // Buscar conversación para esta categoría
       let conv = coachConversations.find(c => c.categoria === selectedCategory);
@@ -349,33 +352,6 @@ export default function ParentCoachChat() {
         }
       }
     },
-    onMutate: async (newMensaje) => {
-      await queryClient.cancelQueries({ queryKey: ['coachMessages'] });
-      
-      const previousMessages = queryClient.getQueryData(['coachMessages', selectedCategory, user?.email]);
-      
-      const conv = coachConversations.find(c => c.categoria === selectedCategory);
-      const optimisticMessage = {
-        id: 'temp-' + Date.now(),
-        conversacion_id: conv?.id,
-        autor: "padre",
-        autor_email: user.email,
-        autor_nombre: user.full_name,
-        mensaje: newMensaje,
-        created_date: new Date().toISOString(),
-        leido_padre: true,
-        leido_entrenador: false,
-        adjuntos: []
-      };
-      
-      queryClient.setQueryData(['coachMessages', selectedCategory, user?.email], old => [...(old || []), optimisticMessage]);
-      
-      return { previousMessages };
-    },
-    onError: (err, newMensaje, context) => {
-      queryClient.setQueryData(['coachMessages', selectedCategory, user?.email], context.previousMessages);
-      toast.error("Error al enviar mensaje");
-    },
     onSuccess: async () => {
       setMessageText("");
       await Promise.all([
@@ -440,8 +416,8 @@ export default function ParentCoachChat() {
   const handleSend = () => {
     if (!messageText.trim()) return;
     const textToSend = messageText;
-    setMessageText(""); // Limpiar inmediatamente
     sendMessageMutation.mutate(textToSend);
+    setMessageText(""); // Limpiar DESPUÉS de llamar mutate
   };
 
   const togglePlayAudio = (audioUrl) => {

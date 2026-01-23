@@ -492,33 +492,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   });
 
   const sendMessageMutation = useMutation({
-    onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: ['coachGroupMessages'] });
-      
-      const previousMessages = queryClient.getQueryData(['coachGroupMessages', selectedCategory]);
-      
-      const optimisticMessage = {
-        id: 'temp-' + Date.now(),
-        grupo_id: selectedCategory.toLowerCase().replace(/\s+/g, '_'),
-        tipo: "entrenador_a_grupo",
-        remitente_email: user.email,
-        remitente_nombre: user.full_name,
-        mensaje: data.mensaje,
-        created_date: new Date().toISOString(),
-        leido: false,
-        archivos_adjuntos: data.archivos_adjuntos || [],
-        encuesta: data.encuesta,
-        ubicacion: data.ubicacion,
-        audio_url: data.audio_url,
-        audio_duracion: data.audio_duracion
-      };
-      
-      queryClient.setQueryData(['coachGroupMessages', selectedCategory], old => [...(old || []), optimisticMessage]);
-      
-      return { previousMessages };
-    },
     onError: (err, data, context) => {
-      queryClient.setQueryData(['coachGroupMessages', selectedCategory], context.previousMessages);
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (data) => {

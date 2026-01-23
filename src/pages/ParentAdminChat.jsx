@@ -154,9 +154,7 @@ export default function ParentAdminChat() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parentAdminMessages'] });
       queryClient.invalidateQueries({ queryKey: ['parentAdminConversation'] });
-      setMessageText("");
-      setAttachments([]);
-      toast.success("Mensaje enviado al administrador");
+      toast.success("Mensaje enviado");
     },
   });
 
@@ -290,20 +288,28 @@ export default function ParentAdminChat() {
         </div>
 
         {/* Mensajes */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-0 bg-white">
+        <div className="flex-1 overflow-y-auto p-3 space-y-0" style={{backgroundColor: '#E5DDD5'}}>
           {messages.map((msg) => {
             const isMine = msg.autor === "padre";
             
             return (
               <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
-                <div className={`max-w-[85%] ${
-                  isMine ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
-                } rounded-3xl px-4 py-2 shadow-none text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
-                  <p className="text-xs font-semibold opacity-70 mb-1">
-                    {isMine ? user.full_name : '🛡️ Administrador del Club'}
-                  </p>
+                <div className="max-w-[85%] px-3 py-2 relative" style={{
+                  backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
+                  color: '#000000',
+                  borderRadius: '7.5px',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  fontSize: '14.2px',
+                  lineHeight: '19px',
+                  boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
+                }}>
+                  {!isMine && (
+                    <p className="text-xs font-medium mb-1" style={{color: '#DC2626'}}>
+                      🛡️ Administrador
+                    </p>
+                  )}
 
-                  <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>{msg.mensaje}</p>
+                  <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined}}>{msg.mensaje}</p>
 
                   {msg.archivos_adjuntos?.length > 0 && (
                     <div className="mt-2 space-y-1">
@@ -336,7 +342,7 @@ export default function ParentAdminChat() {
                     </div>
                   )}
 
-                  <p className="text-xs opacity-60 mt-1 text-right">
+                  <p className="text-[11px] mt-1 text-right" style={{color: '#667781'}}>
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                 </div>
