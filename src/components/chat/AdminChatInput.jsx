@@ -111,7 +111,7 @@ export default function AdminChatInput({
                 handleSend();
               }
             }}
-            className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
+            className="flex-1 min-h-[44px] max-h-32 resize-none text-sm py-3 px-3"
             rows={1}
           />
 
