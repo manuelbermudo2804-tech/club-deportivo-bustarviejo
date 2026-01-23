@@ -5,14 +5,14 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import EmojiScaler from "./EmojiScaler";
 
-export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true, showReadStatus = false }) {
+export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true, showReadStatus = false, isGroupStart = true, marginTop = '12px' }) {
   const isMine = message.remitente_email === currentUserEmail;
   const isCoach = message.tipo === "entrenador_a_grupo";
   const isBot = message.es_respuesta_bot === true;
   const isSystem = message.tipo === "sistema";
 
   return (
-    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
+    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`} style={{ marginTop }}>
       <div className={`max-w-[85%] ${
         isMine ? 'bg-green-600 text-white' : 
         isBot ? 'bg-blue-100 text-blue-900 border-2 border-blue-300' :
