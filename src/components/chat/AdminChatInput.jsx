@@ -14,16 +14,21 @@ export default function AdminChatInput({
 }) {
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
-  const [recording, setRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(0);
-  const [playingAudio, setPlayingAudio] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   const fileInputRef = React.useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const audioRef = useRef(null);
   const textareaRef = useRef(null);
+
+  const {
+    isRecording,
+    audioBlob,
+    audioDuration,
+    isUploading: audioIsUploading,
+    startRecording,
+    stopRecording,
+    cancelAudio,
+    uploadAudio
+  } = useAudioRecording();
 
   const handleSend = useCallback(() => {
     if (!localText.trim() && localAttachments.length === 0 && !audioBlob) return;
