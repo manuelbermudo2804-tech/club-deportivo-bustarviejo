@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, MessageCircle, Users, Search, X, FileText, Download, Image as ImageIcon, Play, Pause, Smile } from "lucide-react";
+import { MessageCircle, Users, Search, X, FileText, Download, Play, Pause, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -33,25 +33,21 @@ export default function ParentCoachChat() {
   const audioRef = useRef(null);
   const queryClient = useQueryClient();
 
-  const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    setUploading(true);
+  const handleSendAudio = async (audioBlob, duration) => {
+    if (!audioBlob) return;
 
+    setUploading(true);
     try {
-      const uploaded = [];
-      for (const file of files) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: file.type
-        });
-      }
-      toast.success("Archivos adjuntados");
-      return uploaded;
+      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      return {
+        audio_url: file_url,
+        audio_duracion: duration
+      };
     } catch (error) {
-      toast.error("Error al subir archivos");
-      return [];
+      toast.error("Error al enviar el audio");
+      return null;
     } finally {
       setUploading(false);
     }
@@ -285,8 +281,19 @@ export default function ParentCoachChat() {
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
-      // Buscar conversación para esta categoría
-      let conv = coachConversations.find(c => c.categoria === selectedCategory);
+       // Si hay audio pendiente, subir primero
+       let audioUrl = null;
+       let audioDuration = 0;
+       if (messageData.audio_blob) {
+         const audioData = await handleSendAudio(messageData.audio_blob, messageData.audio_duracion);
+         if (audioData) {
+           audioUrl = audioData.audio_url;
+           audioDuration = audioData.audio_duracion;
+         }
+       }
+
+       // Buscar conversación para esta categoría
+       let conv = coachConversations.find(c => c.categoria === selectedCategory);
       
       // Si no existe, crearla
       if (!conv) {
@@ -326,6 +333,8 @@ export default function ParentCoachChat() {
         autor_email: user.email,
         autor_nombre: user.full_name,
         mensaje: messageData.mensaje,
+        audio_url: audioUrl,
+        audio_duracion: audioDuration,
         adjuntos: messageData.adjuntos || [],
         leido_padre: true,
         leido_entrenador: false,
@@ -796,7 +805,6 @@ export default function ParentCoachChat() {
 
           <ParentChatInput
             onSendMessage={handleSendMessage}
-            onFileUpload={handleFileUpload}
             uploading={uploading}
             placeholder="Escribe tu mensaje..."
           />
