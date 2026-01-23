@@ -1,9 +1,11 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Send, Edit, X, FileText, Mic, Pause, Play } from "lucide-react";
+import { Send, Edit, X, FileText } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
+import AudioRecordingBar from "./AudioRecordingBar";
 import { toast } from "sonner";
+import { useAudioRecording } from "./useAudioRecording";
 
 export default function AdminChatInput({
   onSendMessage,
