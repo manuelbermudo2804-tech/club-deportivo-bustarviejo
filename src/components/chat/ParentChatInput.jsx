@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
+import ImageMessageUpload from "./ImageMessageUpload";
 
 export default function ParentChatInput({
   onSendMessage,
@@ -11,24 +12,40 @@ export default function ParentChatInput({
 }) {
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
+  const [pendingImages, setPendingImages] = useState([]);
+  const [uploadedImages, setUploadedImages] = useState([]);
   const fileInputRef = React.useRef(null);
 
   const handleSend = useCallback(() => {
-    if (!localText.trim() && localAttachments.length === 0) return;
+    if (!localText.trim() && localAttachments.length === 0 && uploadedImages.length === 0) return;
     
     onSendMessage({
       mensaje: localText,
-      adjuntos: [...localAttachments]
+      adjuntos: [...localAttachments, ...uploadedImages]
     });
     
     setLocalText("");
     setLocalAttachments([]);
-  }, [localText, localAttachments, onSendMessage]);
+    setUploadedImages([]);
+    setPendingImages([]);
+  }, [localText, localAttachments, uploadedImages, onSendMessage]);
 
   const handleFileUploadLocal = useCallback(async (e) => {
-    const result = await onFileUpload(e);
-    if (result && result.length > 0) {
-      setLocalAttachments(prev => [...prev, ...result]);
+    const files = Array.from(e.target.files);
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    const otherFiles = files.filter(f => !f.type.startsWith('image/'));
+
+    // Imágenes: preview inmediato + subida background
+    if (imageFiles.length > 0) {
+      setPendingImages(prev => [...prev, ...imageFiles]);
+    }
+
+    // Otros archivos: subida tradicional
+    if (otherFiles.length > 0) {
+      const result = await onFileUpload({ target: { files: otherFiles } });
+      if (result && result.length > 0) {
+        setLocalAttachments(prev => [...prev, ...result]);
+      }
     }
   }, [onFileUpload]);
 
@@ -44,29 +61,33 @@ export default function ParentChatInput({
         disabled={uploading} 
       />
 
+      {/* Previews de imágenes subiendo */}
+      {pendingImages.length > 0 && (
+        <div className="mb-2 grid grid-cols-3 gap-2">
+          {pendingImages.map((file, idx) => (
+            <ImageMessageUpload
+              key={idx}
+              file={file}
+              onUploadComplete={(uploaded) => {
+                setUploadedImages(prev => [...prev, uploaded]);
+                setPendingImages(prev => prev.filter((_, i) => i !== idx));
+              }}
+              onRemove={() => setPendingImages(prev => prev.filter((_, i) => i !== idx))}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Archivos no-imagen ya subidos */}
       {localAttachments.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {localAttachments.map((file, idx) => (
-            <div key={idx} className="relative">
-              {file.tipo?.startsWith('image/') ? (
-                <div className="relative">
-                  <img src={file.url} alt="" className="w-16 h-16 object-cover rounded" />
-                  <button 
-                    onClick={() => setLocalAttachments(localAttachments.filter((_, i) => i !== idx))}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <div className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-1">
-                  <FileText className="w-3 h-3" />
-                  <span className="truncate max-w-[100px]">{file.nombre}</span>
-                  <button onClick={() => setLocalAttachments(localAttachments.filter((_, i) => i !== idx))}>
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
+            <div key={idx} className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-1">
+              <FileText className="w-3 h-3" />
+              <span className="truncate max-w-[100px]">{file.nombre}</span>
+              <button onClick={() => setLocalAttachments(localAttachments.filter((_, i) => i !== idx))}>
+                <X className="w-3 h-3" />
+              </button>
             </div>
           ))}
         </div>
@@ -99,7 +120,7 @@ export default function ParentChatInput({
 
         <Button 
           onClick={handleSend} 
-          disabled={(!localText.trim() && localAttachments.length === 0) || uploading}
+          disabled={(!localText.trim() && localAttachments.length === 0 && uploadedImages.length === 0) || uploading}
           className="h-10 w-10 p-0 flex-shrink-0 rounded-full"
         >
           <Send className="w-5 h-5" />
