@@ -13,14 +13,14 @@ import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinatorButton";
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
-import EmojiPicker from "../components/chat/EmojiPicker";
+import ParentChatInput from "../components/chat/ParentChatInput";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [messageText, setMessageText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(null);
@@ -232,11 +232,35 @@ export default function ParentCoachChat() {
 
   const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    setUploading(true);
+
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push({
+          url: file_url,
+          nombre: file.name,
+          tipo: file.type
+        });
+      }
+      toast.success("Archivos adjuntados");
+      return uploaded;
+    } catch (error) {
+      toast.error("Error al subir archivos");
+      return [];
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const sendMessageMutation = useMutation({
     onError: () => {
       toast.error("Error al enviar mensaje");
     },
-    mutationFn: async (mensaje) => {
+    mutationFn: async (messageData) => {
       // Buscar conversación para esta categoría
       let conv = coachConversations.find(c => c.categoria === selectedCategory);
       
@@ -264,8 +288,8 @@ export default function ParentCoachChat() {
         autor: "padre",
         autor_email: user.email,
         autor_nombre: user.full_name,
-        mensaje: mensaje,
-        adjuntos: [],
+        mensaje: messageData.mensaje,
+        adjuntos: messageData.adjuntos || [],
         leido_padre: true,
         leido_entrenador: false,
         fecha_leido_padre: new Date().toISOString()
@@ -273,7 +297,7 @@ export default function ParentCoachChat() {
 
       // Incrementar contador de no leídos para el entrenador
       const updatedConv = await base44.entities.CoachConversation.update(conv.id, {
-        ultimo_mensaje: mensaje,
+        ultimo_mensaje: messageData.mensaje,
         ultimo_mensaje_fecha: new Date().toISOString(),
         ultimo_mensaje_autor: "padre",
         no_leidos_entrenador: (conv.no_leidos_entrenador || 0) + 1
@@ -289,7 +313,7 @@ export default function ParentCoachChat() {
         await base44.entities.AppNotification.create({
           usuario_email: coachSetting.entrenador_email,
           titulo: `⚽ Nuevo mensaje en ${selectedCategory}`,
-          mensaje: `${user.full_name}: ${mensaje.substring(0, 100)}${mensaje.length > 100 ? '...' : ''}`,
+          mensaje: `${user.full_name}: ${messageData.mensaje.substring(0, 100)}${messageData.mensaje.length > 100 ? '...' : ''}`,
           tipo: "importante",
           icono: "⚽",
           enlace: "CoachParentChat",
@@ -353,7 +377,6 @@ export default function ParentCoachChat() {
       }
     },
     onSuccess: async () => {
-      setMessageText("");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['coachMessages'] }),
         queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user?.email] }),
@@ -413,11 +436,8 @@ export default function ParentCoachChat() {
     setShowReactions(null);
   };
 
-  const handleSend = (textFromInput) => {
-    const finalText = textFromInput || messageText;
-    if (!finalText.trim()) return;
-    sendMessageMutation.mutate(finalText);
-    setMessageText("");
+  const handleSendMessage = (messageData) => {
+    sendMessageMutation.mutate(messageData);
   };
 
   const togglePlayAudio = (audioUrl) => {
@@ -733,35 +753,12 @@ export default function ParentCoachChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-2 bg-white border-t flex-shrink-0">
-            <div className="flex gap-2 items-end">
-              <EmojiPicker 
-                onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
-                messageText={messageText}
-              />
-              
-              <Textarea
-                placeholder="Escribe tu mensaje..."
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                className="flex-1 min-h-[44px] max-h-32 resize-none text-base py-3 px-3"
-                rows={1}
-              />
-              <Button 
-                onClick={handleSend} 
-                disabled={!messageText.trim()} 
-                className="bg-blue-600 hover:bg-blue-700 h-11 w-11 p-0 flex-shrink-0 rounded-full"
-              >
-                <Send className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
+          <ParentChatInput
+            onSendMessage={handleSendMessage}
+            onFileUpload={handleFileUpload}
+            uploading={uploading}
+            placeholder="Escribe tu mensaje..."
+          />
         </CardContent>
       </Card>
       </div>

@@ -17,14 +17,12 @@ import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
 import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
-import WhatsAppInputBar from "../chat/WhatsAppInputBar";
+import CoachChatInput from "../chat/CoachChatInput";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 export default function CoachChatWindow({ selectedCategory, user, allPlayers }) {
-  const [messageText, setMessageText] = useState("");
-  const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
@@ -244,11 +242,13 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         });
       }
       if (uploaded.length > 0) {
-        setAttachments([...attachments, ...uploaded]);
         toast.success("Archivos adjuntados");
+        return uploaded;
       }
+      return [];
     } catch (error) {
       toast.error("Error al subir archivos");
+      return [];
     } finally {
       setUploading(false);
     }
@@ -256,21 +256,23 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
   const handleCameraCapture = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) return null;
     
     setUploading(true);
     try {
       const compressedFile = await compressImage(file);
       const { file_url } = await base44.integrations.Core.UploadFile({ file: compressedFile });
-      setAttachments([...attachments, {
+      const fileObj = {
         url: file_url,
         nombre: file.name,
         tipo: file.type,
         tamano: file.size
-      }]);
+      };
       toast.success("Foto capturada");
+      return fileObj;
     } catch (error) {
       toast.error("Error al capturar foto");
+      return null;
     } finally {
       setUploading(false);
     }
@@ -476,21 +478,21 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         tipo: "entrenador_a_grupo",
         remitente_email: user.email,
         remitente_nombre: user.full_name,
-        mensaje: data.mensaje,
-        audio_url: data.audio_url,
-        audio_duracion: data.audio_duracion,
-        archivos_adjuntos: data.archivos_adjuntos || [],
-        encuesta: data.encuesta,
-        ubicacion: data.ubicacion,
-        respuesta_a: data.respuesta_a,
-        mensaje_citado: data.mensaje_citado,
+        mensaje: messageData.mensaje,
+        audio_url: messageData.audio_url,
+        audio_duracion: messageData.audio_duracion,
+        archivos_adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || [],
+        encuesta: messageData.encuesta,
+        ubicacion: messageData.ubicacion,
+        respuesta_a: messageData.respuesta_a,
+        mensaje_citado: messageData.mensaje_citado,
         prioridad: "Normal",
         leido: false,
         reacciones: []
       });
 
       // Si hay imágenes, guardarlas automáticamente en la galería
-      const imageFiles = (data.archivos_adjuntos || []).filter(f => f.tipo?.startsWith('image/'));
+      const imageFiles = (messageData.adjuntos || messageData.archivos_adjuntos || []).filter(f => f.tipo?.startsWith('image/'));
       if (imageFiles.length > 0) {
         try {
           const allGalleries = await base44.entities.PhotoGallery.filter({ categoria: selectedCategory });
@@ -498,7 +500,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           
           const galleryPhotos = imageFiles.map(img => ({
             url: img.url,
-            descripcion: data.mensaje || "Compartida desde el chat",
+            descripcion: messageData.mensaje || "Compartida desde el chat",
             jugadores_etiquetados: []
           }));
 
@@ -543,7 +545,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         await base44.entities.AppNotification.create({
           usuario_email: email,
           titulo: `⚽ ${categoryShort}: Nuevo mensaje`,
-          mensaje: `${data.mensaje.substring(0, 100)}${data.mensaje.length > 100 ? '...' : ''}`,
+          mensaje: `${messageData.mensaje.substring(0, 100)}${messageData.mensaje.length > 100 ? '...' : ''}`,
           tipo: "importante",
           icono: "⚽",
           enlace: "ParentCoachChat",
@@ -553,7 +555,6 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       return newMessage;
     },
     onSuccess: async () => {
-      // Refetch INMEDIATO sin esperar
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
         queryClient.invalidateQueries({ queryKey: ['photoGalleries'] }),
@@ -563,36 +564,25 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     },
   });
 
-  const handleSend = (textFromInput) => {
-    const finalText = textFromInput || messageText;
-    
+  const handleSendMessage = (messageData) => {
     if (editingMessage) {
       setEditingMessage(null);
-      setMessageText("");
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: finalText
+        mensaje: messageData.mensaje
       });
-    } else {
-      if (!finalText.trim() && attachments.length === 0) return;
-      
-      const messageData = { 
-        mensaje: finalText, 
-        archivos_adjuntos: [...attachments] 
-      };
-      
-      if (replyingTo) {
-        messageData.respuesta_a = replyingTo.id;
-        messageData.mensaje_citado = {
-          autor_nombre: replyingTo.remitente_nombre,
-          mensaje: replyingTo.mensaje.substring(0, 100)
-        };
-      }
-      
-      sendMessageMutation.mutate(messageData);
-      setMessageText("");
-      setAttachments([]);
+      return;
     }
+    
+    if (replyingTo) {
+      messageData.respuesta_a = replyingTo.id;
+      messageData.mensaje_citado = {
+        autor_nombre: replyingTo.remitente_nombre,
+        mensaje: replyingTo.mensaje.substring(0, 100)
+      };
+    }
+    
+    sendMessageMutation.mutate(messageData);
   };
 
   const editMessageMutation = useMutation({
@@ -794,7 +784,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                         className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
                         onClick={() => {
                           setEditingMessage(msg);
-                          setMessageText(msg.mensaje);
+                          toast.info("Edición próximamente");
                         }}
                       >
                         <Edit className="w-3 h-3" />
@@ -958,28 +948,15 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         <div ref={messagesEndRef} />
       </div>
 
-      <WhatsAppInputBar
-        messageText={messageText}
-        setMessageText={setMessageText}
-        onSend={handleSend}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        recording={recording}
-        audioBlob={audioBlob}
-        onStartRecording={startRecording}
-        onStopRecording={stopRecording}
-        onSendAudio={sendAudio}
-        onCancelAudio={cancelAudio}
-        audioDuration={audioDuration}
-        uploading={uploading}
+      <CoachChatInput
+        onSendMessage={handleSendMessage}
         onFileUpload={handleFileUpload}
         onCameraCapture={handleCameraCapture}
         onLocationClick={() => setShowLocationDialog(true)}
         onPollClick={() => setShowPollDialog(true)}
         onExerciseClick={() => setShowExerciseShare(true)}
-        showExercise={true}
+        uploading={uploading}
         placeholder="Escribe un mensaje..."
-        onTyping={handleTyping}
       />
 
       {/* Dialogs */}
