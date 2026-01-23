@@ -345,7 +345,7 @@ export default function WhatsAppInputBar({
                 handleSend();
               }
             }}
-            className="w-full resize-none outline-none text-base bg-transparent max-h-[120px] overflow-y-auto"
+            className="w-full resize-none outline-none text-sm bg-transparent max-h-[120px] overflow-y-auto"
             rows={1}
             style={{ minHeight: '24px' }}
           />
