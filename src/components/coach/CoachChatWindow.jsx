@@ -731,19 +731,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       />
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
-        {replyingTo && (
-          <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-xs font-semibold text-blue-900">Respondiendo a {replyingTo.remitente_nombre}</p>
-              <p className="text-xs text-blue-700 truncate">{replyingTo.mensaje}</p>
-            </div>
-            <Button size="sm" variant="ghost" onClick={() => setReplyingTo(null)}>
-              <X className="w-3 h-3" />
-            </Button>
-          </div>
-        )}
-
+      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
+...
         {messages.map((msg) => {
           if (msg.eliminado) return null;
           
@@ -751,9 +740,14 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           const isCoachMsg = msg.tipo === "entrenador_a_grupo";
           
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
-              <div className={`max-w-[85%] text-gray-900 rounded-[7px_7px_7px_7px] px-3 py-2 relative text-[15px] leading-[1.4]`} style={{
+            <div key={msg.id} className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
+              <div className={`max-w-[72%] rounded-2xl px-3 py-2 relative`} style={{
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '15px',
+                lineHeight: '1.4',
+                fontWeight: 400,
+                wordWrap: 'break-word',
+                whiteSpace: 'pre-wrap',
                 backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
                 boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
               }}>
@@ -828,7 +822,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   // NO mostrar el texto cuando hay encuesta
                   null
                 ) : (
-                   <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
+                   <p style={{fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
                      {msg.mensaje}
                      {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
                    </p>
@@ -888,7 +882,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 )}
 
                 <div className="flex items-center gap-1 justify-end mt-1">
-                  <p className="text-xs opacity-60">
+                  <p style={{fontSize: '11px', opacity: 0.6}}>
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   

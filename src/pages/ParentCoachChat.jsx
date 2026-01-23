@@ -573,7 +573,7 @@ export default function ParentCoachChat() {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-0 bg-white min-h-0">
+          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 bg-white min-h-0">
             {selectedCategory && getUnreadCountByCategory(selectedCategory) > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs px-3 py-2 rounded-lg">
                 Tienes {getUnreadCountByCategory(selectedCategory)} mensajes nuevos en {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
@@ -621,13 +621,16 @@ export default function ParentCoachChat() {
                       </div>
                     )}
                     
-                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} mb-1`}>
+                    <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} mb-1.5`}>
                       {/* Mensaje de texto, audio o archivos */}
                       {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
-                        <div className={`max-w-[85%] ${
-                          isMine ? 'text-gray-900' : 'text-gray-900'
-                        } rounded-[7px_7px_7px_7px] px-3 py-2 relative text-[15px] leading-[1.4]`} style={{
+                        <div className={`max-w-[72%] rounded-2xl px-3 py-2 relative`} style={{
                           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                          fontSize: '15px',
+                          lineHeight: '1.4',
+                          fontWeight: 400,
+                          wordWrap: 'break-word',
+                          whiteSpace: 'pre-wrap',
                           backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
                           boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                         }}>
@@ -638,7 +641,7 @@ export default function ParentCoachChat() {
                            {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                          </div>
 
-                          {msg.mensaje && <p className="text-base whitespace-pre-wrap leading-5">{msg.mensaje}</p>}
+                          {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{msg.mensaje}</p>}
 
                           {msg.audio_url && (
                             <div className="flex items-center gap-2 mt-2">
@@ -692,7 +695,7 @@ export default function ParentCoachChat() {
                           )}
 
                           <div className="flex items-center gap-1 justify-end mt-1">
-                            <p className="text-xs opacity-60">
+                            <p style={{fontSize: '11px', opacity: 0.6}}>
                               {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                             </p>
                             <Button

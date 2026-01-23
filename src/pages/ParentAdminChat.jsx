@@ -274,19 +274,20 @@ export default function ParentAdminChat() {
         </div>
 
         {/* Mensajes */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-0" style={{backgroundColor: '#E5DDD5'}}>
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0" style={{backgroundColor: '#E5DDD5'}}>
           {messages.map((msg) => {
             const isMine = msg.autor === "padre";
             
             return (
-              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
-                <div className="max-w-[85%] px-3 py-2 relative" style={{
+              <div key={msg.id} className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} mb-1.5`}>
+                <div className="max-w-[72%] px-3 py-2 relative rounded-2xl" style={{
                   backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
-                  color: '#000000',
-                  borderRadius: '7.5px',
                   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '14.2px',
-                  lineHeight: '19px',
+                  fontSize: '15px',
+                  lineHeight: '1.4',
+                  fontWeight: 400,
+                  wordWrap: 'break-word',
+                  whiteSpace: 'pre-wrap',
                   boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                 }}>
                   {!isMine && (
@@ -295,7 +296,7 @@ export default function ParentAdminChat() {
                     </p>
                   )}
 
-                  <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>{msg.mensaje}</p>
+                  <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{msg.mensaje}</p>
 
                   {msg.archivos_adjuntos?.length > 0 && (
                     <div className="mt-2 space-y-1">
@@ -328,7 +329,7 @@ export default function ParentAdminChat() {
                     </div>
                   )}
 
-                  <p className="text-[11px] mt-1 text-right" style={{color: '#667781'}}>
+                  <p className="mt-1 text-right" style={{fontSize: '11px', opacity: 0.6}}>
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                 </div>

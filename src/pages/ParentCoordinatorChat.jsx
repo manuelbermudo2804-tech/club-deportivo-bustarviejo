@@ -559,7 +559,7 @@ export default function ParentCoordinatorChat() {
 
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
+          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
                     {!messages || messages.length === 0 ? (
                       <div className="text-center py-8">
                         <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
@@ -571,14 +571,15 @@ export default function ParentCoordinatorChat() {
                 const isImage = (msg.archivos_adjuntos || msg.adjuntos)?.some(f => f.tipo?.startsWith('image/'));
                 
                 return (
-                  <div key={msg.id} className={`flex ${isPadre ? 'justify-end' : 'justify-start'} mb-1`}>
-                    <div className="max-w-[85%] px-3 py-2 relative" style={{
+                  <div key={msg.id} className={`flex ${isPadre ? 'justify-end mr-2' : 'justify-start ml-2'} mb-1.5`}>
+                    <div className="max-w-[72%] px-3 py-2 relative rounded-2xl" style={{
                       backgroundColor: isPadre ? '#DCF8C6' : '#FFFFFF',
-                      color: '#000000',
-                      borderRadius: '7.5px',
                       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                      fontSize: '14.2px',
-                      lineHeight: '19px',
+                      fontSize: '15px',
+                      lineHeight: '1.4',
+                      fontWeight: 400,
+                      wordWrap: 'break-word',
+                      whiteSpace: 'pre-wrap',
                       boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                     }}>
                       {!isPadre && (
@@ -586,7 +587,7 @@ export default function ParentCoordinatorChat() {
                           🎓 {msg.autor_nombre}
                         </p>
                       )}
-                      <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>{msg.mensaje}</p>
+                      <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{msg.mensaje}</p>
                       {(msg.archivos_adjuntos || msg.adjuntos)?.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {(msg.archivos_adjuntos || msg.adjuntos).map((file, idx) => (
