@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
 import WhatsAppInputBar from "./WhatsAppInputBar";
+import { useAudioRecording } from "./useAudioRecording";
 
 export default function CoordinatorChatInput({
   onSendMessage,
@@ -13,11 +14,17 @@ export default function CoordinatorChatInput({
 }) {
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
-  const [recording, setRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(0);
-  const mediaRecorderRef = React.useRef(null);
-  const audioChunksRef = React.useRef([]);
+
+  const {
+    isRecording,
+    audioBlob,
+    audioDuration,
+    isUploading,
+    startRecording,
+    stopRecording,
+    cancelAudio,
+    uploadAudio
+  } = useAudioRecording();
 
   const handleSend = useCallback((textFromInput) => {
     const text = textFromInput || localText;
