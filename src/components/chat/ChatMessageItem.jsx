@@ -30,7 +30,9 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
             {isSystem && <Badge className="text-[10px] bg-orange-500 px-1 py-0 h-4">Sistema</Badge>}
           </div>
         )}
-        <p className="text-[15px] whitespace-pre-wrap leading-tight">{message.mensaje}</p>
+        <p className="text-[15px] whitespace-pre-wrap leading-tight">
+          <EmojiScaler content={message.mensaje} />
+        </p>
 
         {message.archivos_adjuntos?.length > 0 && (
           <div className="mt-2 space-y-1">
