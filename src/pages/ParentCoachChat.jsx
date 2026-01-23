@@ -15,6 +15,8 @@ import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinat
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 import ParentChatInput from "../components/chat/ParentChatInput";
 
+const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
+
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
@@ -31,7 +33,29 @@ export default function ParentCoachChat() {
   const audioRef = useRef(null);
   const queryClient = useQueryClient();
 
-  const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    setUploading(true);
+
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push({
+          url: file_url,
+          nombre: file.name,
+          tipo: file.type
+        });
+      }
+      toast.success("Archivos adjuntados");
+      return uploaded;
+    } catch (error) {
+      toast.error("Error al subir archivos");
+      return [];
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
