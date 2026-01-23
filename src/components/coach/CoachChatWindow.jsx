@@ -43,6 +43,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   const [locationAddress, setLocationAddress] = useState("");
   const [showParticipants, setShowParticipants] = useState(false);
   const [showExerciseShare, setShowExerciseShare] = useState(false);
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+  const [newMessageCount, setNewMessageCount] = useState(0);
   
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
@@ -51,6 +53,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: coachSettings } = useQuery({
