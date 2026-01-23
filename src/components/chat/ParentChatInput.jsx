@@ -183,6 +183,7 @@ export default function ParentChatInput({
           <Send className="w-5 h-5" />
         </Button>
       </div>
+      )}
     </div>
   );
 }
