@@ -123,7 +123,8 @@ export default function ParentCoordinatorChat() {
     enabled: !!conversation?.id,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: 30000,
+    gcTime: 300000,
   });
 
   // Auto-marcar como leídos los mensajes del coordinador cuando el padre tiene el chat abierto
@@ -144,8 +145,10 @@ export default function ParentCoordinatorChat() {
         if ((conversation.no_leidos_padre || 0) > 0) {
           await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_padre: 0 });
         }
-        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] });
-        queryClient.invalidateQueries({ queryKey: ['coordinatorConversationState', conversation.id] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
+          queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
+        ]);
       } catch {}
     })();
   }, [messages, conversation?.id, user?.email]);
@@ -156,18 +159,7 @@ export default function ParentCoordinatorChat() {
     
     const unsub = base44.entities.CoordinatorMessage.subscribe((event) => {
       if (event.data?.conversacion_id === conversation.id) {
-        queryClient.setQueryData(['parentCoordinatorMessages', conversation.id], (old) => {
-          if (!old) return [event.data];
-          if (event.type === 'delete') return old.filter(m => m.id !== event.data.id);
-          const idx = old.findIndex(m => m.id === event.data.id);
-          if (idx >= 0) {
-            const updated = [...old];
-            updated[idx] = event.data;
-            return updated;
-          }
-          return [...old, event.data].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-        });
-        queryClient.invalidateQueries({ queryKey: ['coordinatorConversationState', conversation.id] });
+        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] });
       }
     });
     
@@ -182,9 +174,7 @@ export default function ParentCoordinatorChat() {
       const data = await base44.entities.CoordinatorConversation.filter({ id: conversation.id });
       return data[0];
     },
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    refetchInterval: 2000,
     enabled: !!conversation?.id,
   });
 
@@ -434,8 +424,11 @@ export default function ParentCoordinatorChat() {
       return newMessage;
     },
     onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation?.id] });
-      queryClient.invalidateQueries({ queryKey: ['coordinatorConversationState', conversation?.id] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
+        queryClient.refetchQueries({ queryKey: ['parentCoordinatorMessages'] }),
+      ]);
     }
   });
 

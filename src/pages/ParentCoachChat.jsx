@@ -76,9 +76,8 @@ export default function ParentCoachChat() {
       });
     },
     enabled: !!user,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   });
 
   // REAL-TIME: Suscripción a conversaciones del entrenador
@@ -87,16 +86,7 @@ export default function ParentCoachChat() {
     
     const unsub = base44.entities.CoachConversation.subscribe((event) => {
       if (event.data?.padre_email === user.email) {
-        queryClient.setQueryData(['coachConversationsForParent', user.email], (old) => {
-          if (!old) return [event.data];
-          const idx = old.findIndex(c => c.id === event.data.id);
-          if (idx >= 0) {
-            const updated = [...old];
-            updated[idx] = event.data;
-            return updated;
-          }
-          return [...old, event.data];
-        });
+        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
       }
     });
     
@@ -117,9 +107,8 @@ export default function ParentCoachChat() {
       
       return allMessages;
     },
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    refetchInterval: 1000,
+    refetchOnWindowFocus: true,
     enabled: !!selectedCategory && !!user && coachConversations.length > 0,
   });
 
@@ -132,17 +121,8 @@ export default function ParentCoachChat() {
     
     const unsub = base44.entities.CoachMessage.subscribe((event) => {
       if (event.data?.conversacion_id === conv.id) {
-        queryClient.setQueryData(['coachMessages', selectedCategory, user.email], (old) => {
-          if (!old) return [event.data];
-          if (event.type === 'delete') return old.filter(m => m.id !== event.data.id);
-          const idx = old.findIndex(m => m.id === event.data.id);
-          if (idx >= 0) {
-            const updated = [...old];
-            updated[idx] = event.data;
-            return updated;
-          }
-          return [...old, event.data].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-        });
+        queryClient.invalidateQueries({ queryKey: ['coachMessages', selectedCategory, user.email] });
+        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
       }
     });
     
@@ -202,7 +182,12 @@ export default function ParentCoachChat() {
         
         // 4. Invalidar queries para actualizar en tiempo real
         if (unreadCoachMessages.length > 0 || notifications.length > 0) {
-          queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] }),
+            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
+            queryClient.refetchQueries({ queryKey: ['coachConversationsForParent', user.email] }),
+            queryClient.refetchQueries({ queryKey: ['appNotifications'] }),
+          ]);
         }
       } catch (error) {
         console.error("Error marking as read:", error);
@@ -368,8 +353,12 @@ export default function ParentCoachChat() {
       }
     },
     onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['coachMessages', selectedCategory, user?.email] });
-      queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user?.email] });
+      setMessageText("");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['coachMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user?.email] }),
+        queryClient.refetchQueries({ queryKey: ['coachMessages'] }),
+      ]);
     },
   });
 
@@ -547,7 +536,7 @@ export default function ParentCoachChat() {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
+          <div className="flex-1 overflow-y-auto p-3 space-y-0 bg-white min-h-0">
             {selectedCategory && getUnreadCountByCategory(selectedCategory) > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs px-3 py-2 rounded-lg">
                 Tienes {getUnreadCountByCategory(selectedCategory)} mensajes nuevos en {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
@@ -612,7 +601,7 @@ export default function ParentCoachChat() {
                            {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                          </div>
 
-                          {msg.mensaje && <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>{msg.mensaje}</p>}
+                          {msg.mensaje && <p className="text-base whitespace-pre-wrap leading-5">{msg.mensaje}</p>}
 
                           {msg.audio_url && (
                             <div className="flex items-center gap-2 mt-2">
