@@ -599,7 +599,7 @@ export default function ParentCoordinatorChat() {
                           🎓 {msg.autor_nombre}
                         </p>
                       )}
-                      <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined}}>{msg.mensaje}</p>
+                      <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>{msg.mensaje}</p>
                       {(msg.archivos_adjuntos || msg.adjuntos)?.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {(msg.archivos_adjuntos || msg.adjuntos).map((file, idx) => (

@@ -819,9 +819,9 @@ export default function StaffChat() {
                           </div>
                         </div>
 
-                        <p className="text-base whitespace-pre-wrap leading-5 mt-1" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
+                        <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>
                           {msg.mensaje}
-                          {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
+                          {msg.editado && <span className="text-xs ml-1" style={{color: '#667781'}}>(editado)</span>}
                         </p>
 
                         {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
