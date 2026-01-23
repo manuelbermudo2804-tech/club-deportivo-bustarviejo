@@ -21,7 +21,7 @@ import SearchFilters from "../components/chat/SearchFilters";
 import SocialLinks from "../components/SocialLinks";
 import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
-import WhatsAppInputBar from "../components/chat/WhatsAppInputBar";
+import StaffChatInput from "../components/chat/StaffChatInput";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -34,8 +34,6 @@ const QUICK_REPLIES = [
 export default function StaffChat() {
   const [user, setUser] = useState(null);
   const [isStaff, setIsStaff] = useState(false);
-  const [messageText, setMessageText] = useState("");
-  const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -291,11 +289,13 @@ export default function StaffChat() {
         });
       }
       if (uploaded.length > 0) {
-        setAttachments([...attachments, ...uploaded]);
         toast.success("Archivos adjuntados");
+        return uploaded; // Retornar para que el input los gestione
       }
+      return [];
     } catch (error) {
       toast.error("Error al subir archivos");
+      return [];
     } finally {
       setUploading(false);
     }
@@ -303,20 +303,22 @@ export default function StaffChat() {
 
   const handleCameraCapture = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) return null;
     
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setAttachments([...attachments, {
+      const fileObj = {
         url: file_url,
         nombre: file.name,
         tipo: file.type,
         tamano: file.size
-      }]);
+      };
       toast.success("Foto capturada");
+      return fileObj; // Retornar para que el input lo gestione
     } catch (error) {
       toast.error("Error al capturar foto");
+      return null;
     } finally {
       setUploading(false);
     }
@@ -377,7 +379,7 @@ export default function StaffChat() {
   };
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (messageData) => {
       const autorRol = user.role === "admin" ? "admin" : user.es_coordinador ? "coordinador" : "entrenador";
       
       const newMessage = await base44.entities.StaffMessage.create({
@@ -385,17 +387,17 @@ export default function StaffChat() {
         autor_email: user.email,
         autor_nombre: user.full_name,
         autor_rol: autorRol,
-        mensaje: data.mensaje,
-        adjuntos: data.adjuntos,
-        encuesta: data.encuesta,
-        ubicacion: data.ubicacion,
-        respuesta_a: data.respuesta_a,
-        mensaje_citado: data.mensaje_citado,
+        mensaje: messageData.mensaje,
+        adjuntos: messageData.adjuntos,
+        encuesta: messageData.encuesta,
+        ubicacion: messageData.ubicacion,
+        respuesta_a: messageData.respuesta_a,
+        mensaje_citado: messageData.mensaje_citado,
         leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }]
       });
 
       await base44.entities.StaffConversation.update(conversation.id, {
-        ultimo_mensaje: data.mensaje,
+        ultimo_mensaje: messageData.mensaje,
         ultimo_mensaje_fecha: new Date().toISOString(),
         ultimo_mensaje_autor: user.full_name
       });
@@ -404,7 +406,7 @@ export default function StaffChat() {
       try {
         const notifPayload = {
           titulo: "Nuevo mensaje en Staff",
-          mensaje: (data.mensaje || "Archivo/acción en el chat").slice(0, 120),
+          mensaje: (messageData.mensaje || "Archivo/acción en el chat").slice(0, 120),
           tipo: "mensaje",
           prioridad: "importante",
           enlace: "StaffChat",
@@ -560,37 +562,28 @@ export default function StaffChat() {
     },
   });
 
-  const handleSend = (textFromInput) => {
-    const finalText = textFromInput || messageText;
-    
+  // Callback que recibe el mensaje del input aislado
+  const handleSendMessage = (messageData) => {
     if (editingMessage) {
       setEditingMessage(null);
-      setMessageText("");
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: finalText
+        mensaje: messageData.mensaje
       });
-    } else {
-      if (!finalText.trim() && attachments.length === 0) return;
-      
-      const messageData = { 
-        mensaje: finalText, 
-        adjuntos: [...attachments] 
-      };
-      
-      if (replyingTo) {
-        messageData.respuesta_a = replyingTo.id;
-        messageData.mensaje_citado = {
-          autor_nombre: replyingTo.autor_nombre,
-          mensaje: replyingTo.mensaje.substring(0, 100)
-        };
-      }
-      
-      sendMessageMutation.mutate(messageData);
-      setMessageText("");
-      setAttachments([]);
-      setReplyingTo(null);
+      return;
     }
+    
+    // Agregar respuesta si aplica
+    if (replyingTo) {
+      messageData.respuesta_a = replyingTo.id;
+      messageData.mensaje_citado = {
+        autor_nombre: replyingTo.autor_nombre,
+        mensaje: replyingTo.mensaje.substring(0, 100)
+      };
+    }
+    
+    sendMessageMutation.mutate(messageData);
+    setReplyingTo(null);
   };
 
   if (!isStaff) {
@@ -797,7 +790,7 @@ export default function StaffChat() {
                               onReply={(m) => setReplyingTo(m)}
                               onEdit={(m) => {
                                 setEditingMessage(m);
-                                setMessageText(m.mensaje);
+                                toast.info("Edición de mensajes desde el input próximamente");
                               }}
                               onDelete={(m) => deleteMessageMutation.mutate(m.id)}
                               onForward={(m) => {}}
@@ -917,47 +910,16 @@ export default function StaffChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {showQuickReplies && (
-            <div className="px-2 pb-2">
-              <div className="flex flex-wrap gap-2 p-2 bg-slate-50 rounded-lg">
-                {QUICK_REPLIES.map((reply, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setMessageText(reply);
-                      setShowQuickReplies(false);
-                    }}
-                    className="text-xs px-3 py-1.5 bg-white border rounded-lg hover:bg-slate-100"
-                  >
-                    {reply}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <WhatsAppInputBar
-            messageText={messageText}
-            setMessageText={setMessageText}
-            onSend={handleSend}
-            attachments={attachments}
-            setAttachments={setAttachments}
-            recording={false}
-            audioBlob={null}
-            onStartRecording={() => {}}
-            onStopRecording={() => {}}
-            onSendAudio={() => {}}
-            onCancelAudio={() => {}}
-            audioDuration={0}
-            uploading={uploading}
+          <StaffChatInput
+            onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}
             onCameraCapture={handleCameraCapture}
             onLocationClick={() => setShowLocationDialog(true)}
             onPollClick={() => setShowPollDialog(true)}
             onExerciseClick={() => setShowQuickReplies(!showQuickReplies)}
+            uploading={uploading}
             showExercise={false}
             placeholder="Escribe un mensaje..."
-            onTyping={null}
           />
         </CardContent>
       </Card>
