@@ -747,9 +747,38 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       />
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
-...
-        {messages.map((msg) => {
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0 relative" 
+        style={{backgroundColor: '#E5DDD5'}}
+        onScroll={handleScroll}
+      >
+        {/* Botón "Nuevo mensaje" */}
+        {!isScrolledToBottom && newMessageCount > 0 && (
+          <NewMessageButton 
+            onClick={() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+              setNewMessageCount(0);
+            }}
+            unreadCount={newMessageCount}
+          />
+        )}
+
+        {/* Renderizar mensajes con separadores de día y agrupación */}
+        {groupConsecutiveMessages(messages.filter(m => !m.eliminado)).map((msg, idx, arr) => {
+          const prevMsg = idx > 0 ? arr[idx - 1] : null;
+          const showDateSeparator = !prevMsg || !isSameDay(new Date(prevMsg.created_date), new Date(msg.created_date));
+
+          return (
+            <div key={msg.id}>
+              {showDateSeparator && <DateSeparator date={msg.created_date} />}
+              {renderMessage(msg, idx, arr)}
+            </div>
+          );
+        })}
+
+        {/* Old map - keep as fallback */}
+        {false && messages.map((msg) => {
           if (msg.eliminado) return null;
           
           const isMine = msg.remitente_email === user?.email;
