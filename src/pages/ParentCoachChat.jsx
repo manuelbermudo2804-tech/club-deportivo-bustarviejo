@@ -100,8 +100,9 @@ export default function ParentCoachChat() {
       });
     },
     enabled: !!user,
-    refetchInterval: 2000,
-    refetchOnWindowFocus: true,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 60000,
   });
 
   // REAL-TIME: Suscripción a conversaciones del entrenador
@@ -131,8 +132,9 @@ export default function ParentCoachChat() {
       
       return allMessages;
     },
-    refetchInterval: 1000,
-    refetchOnWindowFocus: true,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: 60000,
     enabled: !!selectedCategory && !!user && coachConversations.length > 0,
   });
 

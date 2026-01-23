@@ -99,7 +99,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       const logs = await base44.entities.CoachChatLog.filter({ grupo_id });
       return logs[0] || null;
     },
-    refetchInterval: 2000,
+    refetchInterval: false,
+    staleTime: 60000,
     enabled: !!selectedCategory,
   });
 

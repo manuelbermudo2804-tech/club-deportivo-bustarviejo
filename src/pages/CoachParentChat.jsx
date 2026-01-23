@@ -43,11 +43,11 @@ export default function CoachParentChat({ embedded = false }) {
   // Contar mensajes no leídos por categoría (desde ChatMessage)
   const { data: messages = [] } = useQuery({
     queryKey: ['coachGroupMessagesAll'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date', 1000),
+    queryFn: () => base44.entities.ChatMessage.list('-created_date', 100),
     initialData: [],
-    staleTime: 20000,
-    refetchInterval: 2000,
-    refetchOnWindowFocus: true,
+    staleTime: 60000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
