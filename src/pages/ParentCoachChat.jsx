@@ -256,30 +256,6 @@ export default function ParentCoachChat() {
 
   const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
-  const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    setUploading(true);
-
-    try {
-      const uploaded = [];
-      for (const file of files) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: file.type
-        });
-      }
-      toast.success("Archivos adjuntados");
-      return uploaded;
-    } catch (error) {
-      toast.error("Error al subir archivos");
-      return [];
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const sendMessageMutation = useMutation({
     onError: () => {
       toast.error("Error al enviar mensaje");
