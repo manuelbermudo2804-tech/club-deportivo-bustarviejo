@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
-import ImageMessageUpload from "./ImageMessageUpload";
+import ImagePreviewModal from "./ImagePreviewModal";
 
 export default function ParentChatInput({
   onSendMessage,
@@ -12,71 +12,118 @@ export default function ParentChatInput({
 }) {
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
-  const [pendingImages, setPendingImages] = useState([]);
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
   const fileInputRef = React.useRef(null);
+  const cameraInputRef = React.useRef(null);
 
   const handleSend = useCallback(() => {
-    if (!localText.trim() && localAttachments.length === 0 && uploadedImages.length === 0) return;
+    if (!localText.trim() && localAttachments.length === 0) return;
     
     onSendMessage({
       mensaje: localText,
-      adjuntos: [...localAttachments, ...uploadedImages]
+      adjuntos: [...localAttachments]
     });
     
     setLocalText("");
     setLocalAttachments([]);
-    setUploadedImages([]);
-    setPendingImages([]);
-  }, [localText, localAttachments, uploadedImages, onSendMessage]);
+  }, [localText, localAttachments, onSendMessage]);
 
-  const handleFileUploadLocal = useCallback(async (e) => {
-    const files = Array.from(e.target.files);
+  const handleFileUploadLocal = useCallback((e) => {
+    const files = Array.from(e.target.files || []);
     const imageFiles = files.filter(f => f.type.startsWith('image/'));
     const otherFiles = files.filter(f => !f.type.startsWith('image/'));
 
-    // Imágenes: preview inmediato + subida background
+    // Mostrar preview del PRIMER imagen
     if (imageFiles.length > 0) {
-      setPendingImages(prev => [...prev, ...imageFiles]);
-    }
-
-    // Otros archivos: subida tradicional
-    if (otherFiles.length > 0) {
-      const result = await onFileUpload({ target: { files: otherFiles } });
-      if (result && result.length > 0) {
-        setLocalAttachments(prev => [...prev, ...result]);
+      const url = URL.createObjectURL(imageFiles[0]);
+      setImagePreview(url);
+      setPreviewFile(imageFiles[0]);
+      
+      // Pasar otros archivos al handler original
+      if (otherFiles.length > 0) {
+        const evt = new Event('change', { bubbles: true });
+        Object.defineProperty(evt, 'target', {
+          writable: false,
+          value: { files: otherFiles }
+        });
+        onFileUpload(evt);
       }
+      
+      // Resetear input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } else if (otherFiles.length > 0) {
+      // Solo otros archivos, sin imágenes
+      onFileUpload(e);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [onFileUpload]);
 
+  const handleImagePreviewConfirm = useCallback(async () => {
+    if (!previewFile) return;
+
+    try {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(previewFile);
+      
+      const evt = new Event('change', { bubbles: true });
+      Object.defineProperty(evt, 'target', {
+        writable: false,
+        value: { files: dataTransfer.files }
+      });
+
+      const result = await onFileUpload(evt);
+      if (result && result.length > 0) {
+        setLocalAttachments(prev => [...prev, ...result]);
+      }
+
+      setImagePreview(null);
+      setPreviewFile(null);
+    } catch (error) {
+      console.error('Error al procesar imagen:', error);
+      setImagePreview(null);
+      setPreviewFile(null);
+    }
+  }, [previewFile, onFileUpload]);
+
+  const handleImagePreviewCancel = useCallback(() => {
+    setImagePreview(null);
+    setPreviewFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
+
   return (
     <div className="p-3 bg-white border-t flex-shrink-0">
+      {/* Modal de preview de imagen */}
+      {imagePreview && (
+        <ImagePreviewModal
+          imageFile={previewFile}
+          imageUrl={imagePreview}
+          onConfirm={handleImagePreviewConfirm}
+          onCancel={handleImagePreviewCancel}
+          uploading={uploading}
+        />
+      )}
+
       <input 
         ref={fileInputRef}
         type="file" 
         multiple 
-        accept="image/*,application/pdf,.doc,.docx"
+        accept="*/*"
         className="hidden" 
         onChange={handleFileUploadLocal} 
         disabled={uploading} 
       />
-
-      {/* Previews de imágenes subiendo */}
-      {pendingImages.length > 0 && (
-        <div className="mb-2 grid grid-cols-3 gap-2">
-          {pendingImages.map((file, idx) => (
-            <ImageMessageUpload
-              key={idx}
-              file={file}
-              onUploadComplete={(uploaded) => {
-                setUploadedImages(prev => [...prev, uploaded]);
-                setPendingImages(prev => prev.filter((_, i) => i !== idx));
-              }}
-              onRemove={() => setPendingImages(prev => prev.filter((_, i) => i !== idx))}
-            />
-          ))}
-        </div>
-      )}
+      
+      <input 
+        ref={cameraInputRef}
+        type="file" 
+        accept="image/*" 
+        capture="environment" 
+        className="hidden" 
+        onChange={handleFileUploadLocal}
+        disabled={uploading} 
+      />
 
       {/* Archivos no-imagen ya subidos */}
       {localAttachments.length > 0 && (
@@ -104,6 +151,16 @@ export default function ParentChatInput({
           <Paperclip className="w-5 h-5 text-slate-600" />
         </Button>
 
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => cameraInputRef.current?.click()}
+          disabled={uploading}
+          className="h-10 w-10 flex-shrink-0"
+        >
+          <ImageIcon className="w-5 h-5 text-slate-600" />
+        </Button>
+
         <Textarea
           placeholder={placeholder}
           value={localText}
@@ -120,7 +177,7 @@ export default function ParentChatInput({
 
         <Button 
           onClick={handleSend} 
-          disabled={(!localText.trim() && localAttachments.length === 0 && uploadedImages.length === 0) || uploading}
+          disabled={(!localText.trim() && localAttachments.length === 0) || uploading}
           className="h-10 w-10 p-0 flex-shrink-0 rounded-full"
         >
           <Send className="w-5 h-5" />
