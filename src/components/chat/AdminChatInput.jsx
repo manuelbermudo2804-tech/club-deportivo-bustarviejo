@@ -101,8 +101,6 @@ export default function AdminChatInput({
 
   return (
     <div className="p-3 bg-white border-t flex-shrink-0 space-y-2">
-      <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
-
       {/* Attachments preview */}
       {localAttachments.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -118,15 +116,20 @@ export default function AdminChatInput({
         </div>
       )}
 
-      {/* Audio pendiente */}
-      {audioBlob && (
-        <div className="flex items-center gap-2 bg-green-50 rounded-lg p-2 border-2 border-green-300">
-          <Mic className="w-4 h-4 text-green-600" />
-          <span className="text-xs flex-1 font-medium">🎤 {audioDuration}s</span>
-          <Button size="sm" onClick={togglePlayAudio} className="h-7 bg-green-600 text-xs">
-            {playingAudio === 'pending' ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-          </Button>
-          <Button size="sm" variant="outline" onClick={cancelAudio} className="h-7 text-xs">✕</Button>
+      {/* Audio Recording Bar - estilo WhatsApp */}
+      {(isRecording || audioBlob) && (
+        <div className="mb-2">
+          <AudioRecordingBar
+            isRecording={isRecording}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            audioBlob={audioBlob}
+            audioDuration={audioDuration}
+            onSendAudio={handleSend}
+            onCancelAudio={cancelAudio}
+            uploading={isUploading || audioIsUploading}
+            disabled={isUploading || audioIsUploading}
+          />
         </div>
       )}
 
