@@ -145,15 +145,18 @@ export default function ParentChatInput({
           />
         </div>
 
-        {/* Micrófono */}
-        <Button
-          size="icon"
-          onClick={isRecording ? stopRecording : startRecording}
-          className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
+        {/* Micrófono - componente mejorado */}
+        <AudioRecordingBar
+          isRecording={isRecording}
+          onStartRecording={startRecording}
+          onStopRecording={stopRecording}
+          audioBlob={audioBlob}
+          audioDuration={audioDuration}
+          onSendAudio={handleSend}
+          onCancelAudio={cancelAudio}
+          uploading={isLoading}
           disabled={audioBlob || isLoading}
-        >
-          {isRecording ? <Pause className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-        </Button>
+        />
 
         {/* Enviar */}
         <Button 
