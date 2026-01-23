@@ -102,35 +102,38 @@ export default function ImageMessageUpload({ file, onUploadComplete, onRemove })
       />
       
       {status === 'uploading' && (
-        <div className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-white animate-spin" />
-        </div>
-      )}
-      
-      {status === 'error' && (
-        <div className="absolute inset-0 bg-red-500/80 rounded-xl flex items-center justify-center">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={retry}
-            className="text-white hover:bg-white/20"
-          >
-            <RefreshCw className="w-5 h-5 mr-2" />
-            Reintentar
-          </Button>
-        </div>
-      )}
-      
-      {onRemove && status === 'uploading' && (
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={onRemove}
-          className="absolute top-1 right-1 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      )}
+         <div className="absolute inset-0 bg-black/30 rounded-xl flex items-center justify-center">
+           <div className="text-center">
+             <Loader2 className="w-6 h-6 text-white animate-spin mx-auto mb-2" />
+             <p className="text-white text-xs">Subiendo...</p>
+           </div>
+         </div>
+       )}
+
+       {status === 'error' && (
+         <div className="absolute inset-0 bg-orange-500/80 rounded-xl flex items-center justify-center">
+           <Button
+             size="sm"
+             variant="ghost"
+             onClick={retry}
+             className="text-white hover:bg-white/20 text-xs gap-1"
+           >
+             <RefreshCw className="w-4 h-4" />
+             Reintentar
+           </Button>
+         </div>
+       )}
+
+       {onRemove && (
+         <Button
+           size="icon"
+           variant="ghost"
+           onClick={onRemove}
+           className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-5 h-5 p-0 rounded-full"
+         >
+           <X className="w-3 h-3" />
+         </Button>
+       )}
     </div>
   );
 }
