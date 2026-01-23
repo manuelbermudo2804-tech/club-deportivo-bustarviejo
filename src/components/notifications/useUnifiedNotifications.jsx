@@ -552,11 +552,11 @@ export function useUnifiedNotifications(user, options = {}) {
   useEffect(() => {
     if (!user) return;
 
-    const myPlayerIds = rawData.players
+    const myPlayerIds = (rawData.players || [])
       .filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email)
       .map(p => p.id);
     
-    const myCategories = [...new Set(rawData.players
+    const myCategories = [...new Set((rawData.players || [])
       .filter(p => myPlayerIds.includes(p.id))
       .map(p => p.categoria_principal || p.deporte))];
 
@@ -582,7 +582,7 @@ export function useUnifiedNotifications(user, options = {}) {
     };
 
     // === COORDINADOR - FAMILIAS ===
-    rawData.coordinatorConversations.forEach(conv => {
+    (rawData.coordinatorConversations || []).forEach(conv => {
       // Para familias: mensajes del coordinador no leídos
       if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && conv.padre_email === user.email && conv.resuelta !== true) {
         const c = (conv.no_leidos_padre || 0);
@@ -600,7 +600,7 @@ export function useUnifiedNotifications(user, options = {}) {
 
 
     // === ENTRENADOR - FAMILIAS (conversaciones directas CoachConversation) ===
-    rawData.coachConversations.forEach(conv => {
+    (rawData.coachConversations || []).forEach(conv => {
       // Para entrenadores: mensajes de familias
       if (user.es_entrenador && conv.entrenador_email === user.email) {
         const c = (conv.no_leidos_entrenador || 0);
@@ -616,7 +616,7 @@ export function useUnifiedNotifications(user, options = {}) {
     });
 
     // === ENTRENADOR - FAMILIAS (mensajes de grupo ChatMessage) ===
-    rawData.chatMessages.forEach(msg => {
+    (rawData.chatMessages || []).forEach(msg => {
       // Para familias: mensajes del entrenador
       if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && 
           msg.tipo === 'entrenador_a_grupo' && 
@@ -640,8 +640,8 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // === STAFF INTERNO (coordinadores/entrenadores/admin) ===
     // CRÍTICO: NO mezclar con otros contadores
-    if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && rawData.staffMessages.length > 0) {
-     rawData.staffMessages.forEach(msg => {
+    if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && (rawData.staffMessages || []).length > 0) {
+     (rawData.staffMessages || []).forEach(msg => {
        // Ignorar mis propios mensajes
        if (msg.autor_email === user.email) return;
        
@@ -667,8 +667,8 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Admin (para familias): usar counter de conversación
-    if (user.role !== 'admin' && rawData.adminConversations.length > 0) {
-      rawData.adminConversations.forEach(conv => {
+    if (user.role !== 'admin' && (rawData.adminConversations || []).length > 0) {
+      (rawData.adminConversations || []).forEach(conv => {
         if (conv.padre_email === user.email && conv.resuelta === false) {
           const c = (conv.no_leidos_padre || 0);
           unreadAdmin += c;
@@ -679,8 +679,8 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // Private (System Messages for Parents)
     let unreadSystemMessages = 0;
-    if (rawData.privateConversations.length > 0) {
-      rawData.privateConversations.forEach(conv => {
+    if ((rawData.privateConversations || []).length > 0) {
+      (rawData.privateConversations || []).forEach(conv => {
         if (conv.participante_familia_email === user.email) {
           const c = (conv.no_leidos_familia || 0);
           unreadPrivate += c;
@@ -702,7 +702,7 @@ export function useUnifiedNotifications(user, options = {}) {
     let pendingCallups = 0;
     let pendingCallupResponses = 0;
 
-    rawData.convocatorias.forEach(callup => {
+    (rawData.convocatorias || []).forEach(callup => {
       if (!callup.publicada || callup.cerrada) return;
       if (callup.fecha_partido < todayStr) return;
 
@@ -721,7 +721,7 @@ export function useUnifiedNotifications(user, options = {}) {
     });
 
     // PAGOS
-    const myPayments = rawData.payments.filter(p => myPlayerIds.includes(p.jugador_id) && p.is_deleted !== true);
+    const myPayments = (rawData.payments || []).filter(p => myPlayerIds.includes(p.jugador_id) && p.is_deleted !== true);
     const pendingPayments = myPayments.filter(p => p.estado === 'Pendiente').length;
     const paymentsInReview = myPayments.filter(p => p.estado === 'En revisión').length;
     
@@ -735,7 +735,7 @@ export function useUnifiedNotifications(user, options = {}) {
     });
 
     // FIRMAS
-    const myActivePlayers = rawData.players.filter(p => myPlayerIds.includes(p.id) && p.activo === true);
+    const myActivePlayers = (rawData.players || []).filter(p => myPlayerIds.includes(p.id) && p.activo === true);
     const pendingSignatures = myActivePlayers.filter(p => 
       (p.enlace_firma_jugador && !p.firma_jugador_completada) ||
       (p.enlace_firma_tutor && !p.firma_tutor_completada)
@@ -743,7 +743,7 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // ANUNCIOS
     const now = new Date();
-    const unreadAnnouncements = rawData.announcements.filter(ann => {
+    const unreadAnnouncements = (rawData.announcements || []).filter(ann => {
       if (!ann.publicado) return false;
       if (ann.tipo_caducidad === "horas" && ann.fecha_caducidad_calculada) {
         if (now > new Date(ann.fecha_caducidad_calculada)) return false;
@@ -765,18 +765,18 @@ export function useUnifiedNotifications(user, options = {}) {
     let pendingMemberRequests = 0;
 
     if (user.role === 'admin') {
-      unresolvedAdminChats = rawData.adminConversations.filter(c => c.resuelta === false).length;
-      playersNeedingReview = rawData.players.filter(p => p.categoria_requiere_revision === true).length;
-      pendingInvitations = rawData.invitations.length + rawData.secondParentInvitations.length;
-      pendingClothingOrders = rawData.clothingOrders.filter(o => o.estado === 'Pendiente' || o.estado === 'En revisión').length;
-      pendingLotteryOrders = rawData.lotteryOrders.length;
-      pendingMemberRequests = rawData.clubMembers.length;
+      unresolvedAdminChats = (rawData.adminConversations || []).filter(c => c.resuelta === false).length;
+      playersNeedingReview = (rawData.players || []).filter(p => p.categoria_requiere_revision === true).length;
+      pendingInvitations = (rawData.invitations || []).length + (rawData.secondParentInvitations || []).length;
+      pendingClothingOrders = (rawData.clothingOrders || []).filter(o => o.estado === 'Pendiente' || o.estado === 'En revisión').length;
+      pendingLotteryOrders = (rawData.lotteryOrders || []).length;
+      pendingMemberRequests = (rawData.clubMembers || []).length;
     }
 
     // OBSERVACIONES DE PARTIDOS
     let pendingMatchObservations = 0;
     if (user.es_entrenador || user.es_coordinador) {
-      const myCallups = rawData.convocatorias.filter(c => c.entrenador_email === user.email && c.publicada);
+      const myCallups = (rawData.convocatorias || []).filter(c => c.entrenador_email === user.email && c.publicada);
       const now = new Date();
       
       myCallups.forEach(callup => {
@@ -798,7 +798,7 @@ export function useUnifiedNotifications(user, options = {}) {
 
         if (!matchEnded) return;
 
-        const hasObservation = rawData.matchObservations.some(obs =>
+        const hasObservation = (rawData.matchObservations || []).some(obs =>
           obs.categoria === callup.categoria &&
           obs.rival === callup.rival &&
           obs.fecha_partido === callup.fecha_partido &&
@@ -810,7 +810,7 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // CONVERSACIÓN ACTIVA CON ADMIN
-    const hasActiveAdminConversation = rawData.adminConversations.some(c => 
+    const hasActiveAdminConversation = (rawData.adminConversations || []).some(c => 
       c.padre_email === user.email && c.resuelta === false
     );
 
