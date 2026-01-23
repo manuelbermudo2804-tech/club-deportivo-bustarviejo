@@ -197,7 +197,7 @@ export default function ParentChatInput({
               handleSend();
             }
           }}
-          className="flex-1 min-h-[40px] max-h-32 resize-none"
+          className="flex-1 min-h-[40px] max-h-32 resize-none text-sm"
           rows={1}
         />
 
