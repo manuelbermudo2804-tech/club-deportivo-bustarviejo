@@ -302,25 +302,16 @@ export default function WhatsAppInputBar({
         </div>
       )}
 
-      {/* Recording indicator */}
-      {recording && (
-        <div className="mb-2 flex items-center gap-2 bg-red-50 rounded-lg p-3 border-2 border-red-300 animate-pulse">
-          <Mic className="w-5 h-5 text-red-600 animate-pulse" />
-          <span className="text-sm flex-1 text-red-700 font-semibold">🔴 Grabando...</span>
-          <Button size="sm" onClick={onStopRecording} className="h-8 bg-red-600 hover:bg-red-700">
-            Detener
-          </Button>
-        </div>
-      )}
-
-      {/* Audio preview */}
-      {audioBlob && (
-        <div className="mb-2 flex items-center gap-2 bg-green-50 rounded-lg p-3 border-2 border-green-300">
-          <Mic className="w-5 h-5 text-green-600" />
-          <span className="text-sm flex-1 font-medium">🎤 Audio {audioDuration}s</span>
-          <Button 
-            size="sm" 
-            onClick={async () => {
+      {/* Audio Recording Bar - estilo WhatsApp */}
+      {(recording || audioBlob) && (
+        <div className="mb-2">
+          <AudioRecordingBar
+            isRecording={recording}
+            onStartRecording={onStartRecording}
+            onStopRecording={onStopRecording}
+            audioBlob={audioBlob}
+            audioDuration={audioDuration}
+            onSendAudio={async () => {
               setIsSendingAudio(true);
               try {
                 const audioData = await onUploadAudio?.();
@@ -329,24 +320,15 @@ export default function WhatsAppInputBar({
                 }
               } catch (err) {
                 console.error('Error sending audio:', err);
+                toast.error('Error al enviar audio');
               } finally {
                 setIsSendingAudio(false);
               }
-            }} 
+            }}
+            onCancelAudio={onCancelAudio}
+            uploading={isSendingAudio || uploading}
             disabled={isSendingAudio || uploading}
-            className={`h-8 ${isSendingAudio || uploading ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-600'}`}
-          >
-            {isSendingAudio || uploading ? '⏳' : 'Enviar'}
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={onCancelAudio} 
-            disabled={isSendingAudio || uploading}
-            className="h-8"
-          >
-            ✕
-          </Button>
+          />
         </div>
       )}
 
