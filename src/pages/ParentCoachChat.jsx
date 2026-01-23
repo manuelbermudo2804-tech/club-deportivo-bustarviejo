@@ -268,9 +268,17 @@ export default function ParentCoachChat() {
       
       // Si no existe, crearla
       if (!conv) {
+        // Buscar settings del entrenador de esta categoría
+        const allCoachSettings = await base44.entities.CoachSettings.list();
+        const relevantSettings = allCoachSettings.find(s => 
+          s.categorias_entrena?.includes(selectedCategory)
+        );
+        
         conv = await base44.entities.CoachConversation.create({
           padre_email: user.email,
           padre_nombre: user.full_name,
+          entrenador_email: relevantSettings?.entrenador_email || 'sin-asignar@club.com',
+          entrenador_nombre: relevantSettings?.entrenador_nombre || 'Entrenador',
           categoria: selectedCategory,
           jugadores_asociados: myPlayers
             .filter(p => p.deporte === selectedCategory)
