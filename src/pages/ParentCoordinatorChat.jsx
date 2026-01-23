@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, Image as ImageIcon, Camera, AlertTriangle, Smile } from "lucide-react";
+import { X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, AlertTriangle, Smile } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -187,29 +187,21 @@ export default function ParentCoordinatorChat() {
 
 
 
-  const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    setUploading(true);
+  const handleSendAudio = async (audioBlob, duration) => {
+    if (!audioBlob) return null;
 
+    setUploading(true);
     try {
-      const uploaded = [];
-      for (const file of files) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: file.type,
-          tamano: file.size
-        });
-      }
-      if (uploaded.length > 0) {
-        toast.success("Documentos adjuntados");
-        return uploaded;
-      }
-      return [];
+      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      return {
+        audio_url: file_url,
+        audio_duracion: duration
+      };
     } catch (error) {
-      toast.error("Error al subir archivos");
-      return [];
+      toast.error("Error al enviar el audio");
+      return null;
     } finally {
       setUploading(false);
     }
@@ -307,6 +299,8 @@ export default function ParentCoordinatorChat() {
         autor_email: user.email,
         autor_nombre: user.full_name,
         mensaje: messageData.mensaje,
+        audio_url: audioUrl,
+        audio_duracion: audioDuration,
         archivos_adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || [],
         leido_padre: true,
         leido_coordinador: false,
@@ -675,7 +669,6 @@ export default function ParentCoordinatorChat() {
 
           <ParentChatInput
             onSendMessage={handleSendMessage}
-            onFileUpload={handleFileUpload}
             uploading={uploading}
             placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
           />
