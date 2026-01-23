@@ -1,45 +1,25 @@
-import React from 'react';
+import React from "react";
 
-/**
- * Renderiza emojis con scaling exacto tipo WhatsApp
- * - 1 emoji: ~32px
- * - 2 emojis: ~28px
- * - 3 emojis: ~24px
- * - 4+ emojis: texto normal
- */
-export default function EmojiScaler({ content }) {
-  // Detectar si es solo emojis
-  const emojiRegex = /^[\p{Emoji_Presentation}\p{Extended_Pictographic}]+$/u;
-  
-  if (!emojiRegex.test(content)) {
-    // No es solo emojis, retornar contenido normal
-    return <span>{content}</span>;
-  }
-  
-  // Contar emojis
-  const emojiArray = Array.from(content);
-  const emojiCount = emojiArray.length;
-  
-  // Determinar tamaño
-  let fontSize;
-  switch (emojiCount) {
-    case 1:
-      fontSize = '32px';
-      break;
-    case 2:
-      fontSize = '28px';
-      break;
-    case 3:
-      fontSize = '24px';
-      break;
-    default:
-      // 4+ emojis: tamaño normal
-      return <span>{content}</span>;
-  }
-  
+export default function EmojiScaler({ reactions }) {
+  if (!reactions || reactions.length === 0) return null;
+
+  // Calcular tamaño según cantidad de emojis
+  const getEmojiSize = (count) => {
+    if (count === 1) return "text-4xl"; // ~32px
+    if (count === 2) return "text-3xl"; // ~28px
+    if (count === 3) return "text-2xl"; // ~24px
+    return "text-base"; // 4+ = tamaño normal
+  };
+
+  const emojiSize = getEmojiSize(reactions.length);
+
   return (
-    <span style={{ fontSize, lineHeight: '1.4', display: 'inline-block' }}>
-      {content}
-    </span>
+    <div className={`flex gap-1 mt-2 flex-wrap ${emojiSize}`}>
+      {reactions.map((r, idx) => (
+        <span key={idx} title={r.user_nombre || r.nombre || r.usuario_nombre || r.email || ""}>
+          {r.emoji}
+        </span>
+      ))}
+    </div>
   );
 }

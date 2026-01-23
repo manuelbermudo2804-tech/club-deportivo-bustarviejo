@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Textarea as TextareaUI } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import AdminChatInput from "../chat/AdminChatInput";
+import EmojiScaler from "../chat/EmojiScaler";
 
 export default function AdminChatWindow({ conversation, user, onClose, onMarkResolved }) {
   const [uploading, setUploading] = useState(false);
@@ -471,13 +472,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                 )}
 
                 {msg.reacciones?.length > 0 && (
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    {msg.reacciones.map((r, idx) => (
-                      <span key={idx} className="text-5xl" title={r.nombre}>
-                        {r.emoji}
-                      </span>
-                    ))}
-                  </div>
+                  <EmojiScaler reactions={msg.reacciones} />
                 )}
 
                 <div className="flex items-center gap-1 justify-end mt-1">

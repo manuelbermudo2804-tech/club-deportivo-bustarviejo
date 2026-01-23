@@ -24,6 +24,7 @@ import SocialLinks from "../components/SocialLinks";
 import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
 import StaffChatInput from "../components/chat/StaffChatInput";
+import EmojiScaler from "../components/chat/EmojiScaler";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -959,13 +960,7 @@ export default function StaffChat() {
                         )}
 
                         {msg.reacciones?.length > 0 && (
-                          <div className="flex gap-1 mt-2 flex-wrap">
-                            {msg.reacciones.map((r, idx) => (
-                              <span key={idx} className="text-base" title={r.nombre}>
-                                {r.emoji}
-                              </span>
-                            ))}
-                          </div>
+                          <EmojiScaler reactions={msg.reacciones} />
                         )}
 
                         <div className="flex items-center gap-1 justify-end mt-1">

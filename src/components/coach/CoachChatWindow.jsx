@@ -18,6 +18,7 @@ import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
 import CoachChatInput from "../chat/CoachChatInput";
+import EmojiScaler from "../chat/EmojiScaler";
 import DateSeparator from "../chat/DateSeparator";
 import NewMessageButton from "../chat/NewMessageButton";
 import { groupConsecutiveMessages } from "../chat/MessageGrouping";
@@ -917,13 +918,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 )}
 
                 {msg.reacciones?.length > 0 && (
-                  <div className="flex gap-2 mt-2">
-                    {msg.reacciones.map((r, idx) => (
-                      <span key={idx} className="text-5xl" title={r.user_nombre}>
-                        {r.emoji}
-                      </span>
-                    ))}
-                  </div>
+                  <EmojiScaler reactions={msg.reacciones} />
                 )}
 
                 <div className="flex items-center gap-1 justify-end mt-1">

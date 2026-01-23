@@ -17,6 +17,7 @@ import EscalateToAdminButton from "./EscalateToAdminButton";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
 import CoordinatorChatInput from "../chat/CoordinatorChatInput";
+import EmojiScaler from "../chat/EmojiScaler";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
