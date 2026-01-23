@@ -6,6 +6,7 @@ import EmojiPicker from "./EmojiPicker";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import ImagePreviewModal from "./ImagePreviewModal";
+import AudioRecordingBar from "./AudioRecordingBar";
 
 // Menú "+" tipo WhatsApp
 function AttachmentMenu({ 
