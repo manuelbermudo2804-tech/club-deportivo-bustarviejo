@@ -1,216 +1,199 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Send, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
-import ImagePreviewModal from "./ImagePreviewModal";
+import { Send, Mic, Pause, X, Play, Smile } from "lucide-react";
+import EmojiPicker from "./EmojiPicker";
+import { toast } from "sonner";
 
 export default function ParentChatInput({
   onSendMessage,
-  onFileUpload,
   uploading,
   placeholder = "Escribe tu mensaje..."
 }) {
   const [localText, setLocalText] = useState("");
-  const [localAttachments, setLocalAttachments] = useState([]);
-  const [pendingImages, setPendingImages] = useState([]);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [previewFile, setPreviewFile] = useState(null);
-  const fileInputRef = React.useRef(null);
-  const cameraInputRef = React.useRef(null);
+  const [recording, setRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [playingAudio, setPlayingAudio] = useState(null);
+  
+  const textareaRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const audioRef = useRef(null);
 
-  const handleSend = useCallback(async () => {
-    if (!localText.trim() && localAttachments.length === 0 && pendingImages.length === 0) return;
+  const handleSend = useCallback(() => {
+    if (!localText.trim() && !audioBlob) return;
     
-    let allAttachments = [...localAttachments];
-    
-    // Subir imágenes pendientes AHORA (antes de enviar)
-    if (pendingImages.length > 0) {
-      const dataTransfer = new DataTransfer();
-      pendingImages.forEach(file => dataTransfer.items.add(file));
-      
-      const evt = new Event('change', { bubbles: true });
-      Object.defineProperty(evt, 'target', {
-        writable: false,
-        value: { files: dataTransfer.files }
-      });
-      
-      const uploadedImages = await onFileUpload(evt);
-      if (uploadedImages && uploadedImages.length > 0) {
-        allAttachments = [...allAttachments, ...uploadedImages];
-      }
+    const messageData = {
+      mensaje: localText,
+      audio_url: null,
+      audio_duracion: 0
+    };
+
+    // Si hay audio pendiente, enviarlo primero
+    if (audioBlob) {
+      messageData.audio_blob = audioBlob;
+      messageData.audio_duracion = audioDuration;
     }
     
-    onSendMessage({
-      mensaje: localText,
-      adjuntos: allAttachments
-    });
+    onSendMessage(messageData);
     
     setLocalText("");
-    setLocalAttachments([]);
-    setPendingImages([]);
-  }, [localText, localAttachments, pendingImages, onSendMessage, onFileUpload]);
-
-  const handleFileUploadLocal = useCallback((e) => {
-    const files = Array.from(e.target.files || []);
-    const imageFiles = files.filter(f => f.type.startsWith('image/'));
-    const otherFiles = files.filter(f => !f.type.startsWith('image/'));
-
-    // Mostrar preview del PRIMER imagen
-    if (imageFiles.length > 0) {
-      const url = URL.createObjectURL(imageFiles[0]);
-      setImagePreview(url);
-      setPreviewFile(imageFiles[0]);
-      
-      // Pasar otros archivos al handler original
-      if (otherFiles.length > 0) {
-        const evt = new Event('change', { bubbles: true });
-        Object.defineProperty(evt, 'target', {
-          writable: false,
-          value: { files: otherFiles }
-        });
-        onFileUpload(evt);
-      }
-      
-      // Resetear input
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    } else if (otherFiles.length > 0) {
-      // Solo otros archivos, sin imágenes
-      onFileUpload(e);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    setAudioBlob(null);
+    setAudioDuration(0);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
     }
-  }, [onFileUpload]);
+  }, [localText, audioBlob, audioDuration, onSendMessage]);
 
-  const handleImagePreviewConfirm = useCallback(() => {
-    if (!previewFile) return;
+  const startRecording = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Tu navegador no soporta grabación de audio");
+        return;
+      }
 
-    // Solo agregar a pendingImages, SIN subir todavía
-    setPendingImages(prev => [...prev, previewFile]);
-    setImagePreview(null);
-    setPreviewFile(null);
-  }, [previewFile]);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-  const handleImagePreviewCancel = useCallback(() => {
-    setImagePreview(null);
-    setPreviewFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }, []);
+      const startTime = Date.now();
+      toast.success("🎤 Grabando audio...", { duration: 1000 });
+
+      mediaRecorder.ondataavailable = (e) => {
+        audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const duration = Math.floor((Date.now() - startTime) / 1000);
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        setAudioDuration(duration);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setRecording(true);
+    } catch (error) {
+      if (error.name === 'NotAllowedError') {
+        toast.error("Debes permitir el acceso al micrófono en tu navegador");
+      } else {
+        toast.error("Error al acceder al micrófono");
+      }
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+    }
+  };
+
+  const cancelAudio = () => {
+    setAudioBlob(null);
+    setAudioDuration(0);
+  };
+
+  const togglePlayAudio = async () => {
+    if (!audioBlob) return;
+
+    try {
+      if (playingAudio === 'pending') {
+        audioRef.current?.pause();
+        setPlayingAudio(null);
+      } else {
+        const url = URL.createObjectURL(audioBlob);
+        if (audioRef.current) {
+          audioRef.current.src = url;
+          await audioRef.current.play();
+          setPlayingAudio('pending');
+        }
+      }
+    } catch (error) {
+      toast.error("Error al reproducir el audio");
+      setPlayingAudio(null);
+    }
+  };
+
+  const handleTextChange = (e) => {
+    const newValue = e.target.value;
+    setLocalText(newValue);
+    
+    // Auto-resize
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+    }
+  };
 
   return (
-    <div className="p-3 bg-white border-t flex-shrink-0">
-      {/* Modal de preview de imagen */}
-      {imagePreview && (
-        <ImagePreviewModal
-          imageFile={previewFile}
-          imageUrl={imagePreview}
-          onConfirm={handleImagePreviewConfirm}
-          onCancel={handleImagePreviewCancel}
-          uploading={uploading}
-        />
+    <div className="p-2 bg-white border-t flex-shrink-0">
+      <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
+
+      {/* Audio pendiente */}
+      {audioBlob && (
+        <div className="mb-2 flex items-center gap-2 bg-green-50 rounded-lg p-3 border-2 border-green-300">
+          <Mic className="w-5 h-5 text-green-600" />
+          <span className="text-sm flex-1 font-medium">🎤 Audio {audioDuration}s</span>
+          <Button size="sm" onClick={togglePlayAudio} className="h-8 bg-green-600">
+            {playingAudio === 'pending' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </Button>
+          <Button size="sm" variant="outline" onClick={cancelAudio} className="h-8">✕</Button>
+        </div>
       )}
 
-      <input 
-        ref={fileInputRef}
-        type="file" 
-        multiple 
-        accept="*/*"
-        className="hidden" 
-        onChange={handleFileUploadLocal} 
-        disabled={uploading} 
-      />
-      
-      <input 
-        ref={cameraInputRef}
-        type="file" 
-        accept="image/*" 
-        capture="environment" 
-        className="hidden" 
-        onChange={handleFileUploadLocal}
-        disabled={uploading} 
-      />
-
-      {!imagePreview && (
-        <>
-          {/* Imágenes pendientes (preview confirmado pero no subidas) */}
-          {pendingImages.length > 0 && (
-            <div className="mb-2 grid grid-cols-3 gap-2">
-              {pendingImages.map((file, idx) => (
-                <div key={idx} className="relative group">
-                  <img 
-                    src={URL.createObjectURL(file)} 
-                    alt={file.name}
-                    className="w-20 h-20 rounded object-cover bg-slate-200"
-                  />
-                  <button 
-                    onClick={() => setPendingImages(prev => prev.filter((_, i) => i !== idx))}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Archivos no-imagen ya subidos */}
-          {localAttachments.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {localAttachments.map((file, idx) => (
-                <div key={idx} className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-1">
-                  <FileText className="w-3 h-3" />
-                  <span className="truncate max-w-[100px]">{file.nombre}</span>
-                  <button onClick={() => setLocalAttachments(localAttachments.filter((_, i) => i !== idx))}>
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex gap-2 items-end">
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="h-10 w-10 flex-shrink-0"
-        >
-          <Paperclip className="w-5 h-5 text-slate-600" />
-        </Button>
-
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => cameraInputRef.current?.click()}
-          disabled={uploading}
-          className="h-10 w-10 flex-shrink-0"
-        >
-          <ImageIcon className="w-5 h-5 text-slate-600" />
-        </Button>
-
-        <Textarea
-          placeholder={placeholder}
-          value={localText}
-          onChange={(e) => setLocalText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
+      {/* Input bar */}
+      <div className="flex gap-2 items-end">
+        {/* Emoji picker */}
+        <EmojiPicker 
+          onEmojiSelect={(emoji) => {
+            const newValue = localText + emoji;
+            setLocalText(newValue);
           }}
-          className="flex-1 min-h-[40px] max-h-32 resize-none text-sm"
-          rows={1}
+          messageText={localText}
         />
 
+        {/* Input */}
+        <div className="flex-1 bg-white border rounded-3xl px-4 py-2 min-h-[44px] flex items-center">
+          <textarea
+            ref={textareaRef}
+            placeholder={placeholder}
+            value={localText}
+            onChange={handleTextChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            className="w-full resize-none outline-none text-sm bg-transparent max-h-[120px] overflow-y-auto"
+            rows={1}
+            style={{ minHeight: '24px' }}
+          />
+        </div>
+
+        {/* Micrófono */}
+        <Button
+          size="icon"
+          onClick={recording ? stopRecording : startRecording}
+          className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
+          disabled={audioBlob}
+        >
+          {recording ? <Pause className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+        </Button>
+
+        {/* Enviar */}
         <Button 
           onClick={handleSend} 
-          disabled={(!localText.trim() && localAttachments.length === 0 && pendingImages.length === 0) || uploading}
-          className="h-10 w-10 p-0 flex-shrink-0 rounded-full"
+          disabled={(!localText.trim() && !audioBlob) || uploading}
+          size="icon"
+          className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
         >
           <Send className="w-5 h-5" />
         </Button>
-          </div>
-        </>
-      )}
+      </div>
     </div>
   );
 }
