@@ -190,15 +190,18 @@ export default function AdminChatInput({
             />
           </div>
 
-          {/* Micrófono */}
-          <Button
-            size="icon"
-            onClick={recording ? stopRecording : startRecording}
-            className="h-10 w-10 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
-            disabled={audioBlob}
-          >
-            {recording ? <Pause className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-          </Button>
+          {/* Micrófono - componente mejorado */}
+          <AudioRecordingBar
+            isRecording={isRecording}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            audioBlob={audioBlob}
+            audioDuration={audioDuration}
+            onSendAudio={handleSend}
+            onCancelAudio={cancelAudio}
+            uploading={isUploading || audioIsUploading}
+            disabled={audioBlob || isUploading || audioIsUploading}
+          />
 
           <Button 
             onClick={handleSend} 
