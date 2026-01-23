@@ -132,31 +132,35 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // ===== CHATS =====
     
-    // Coordinator Conversations
-    const loadCoordConvs = async () => {
-      let convs = [];
-      if (options?.testModeLoadAll) {
-        convs = await run(() => base44.entities.CoordinatorConversation.list('-updated_date', 30));
-      } else if (user?.es_coordinador) {
-        convs = await run(() => base44.entities.CoordinatorConversation.list('-updated_date', 30));
-      } else {
-        convs = await run(() => base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 30));
-      }
-      setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
-    };
+    // Coordinator Conversations - solo si necesario
+    const shouldLoadCoord = user?.es_coordinador || (!user.es_entrenador && !user.es_tesorero && user.role !== 'admin') || options?.testModeLoadAll;
+    if (shouldLoadCoord) {
+      const loadCoordConvs = async () => {
+        let convs = [];
+        if (options?.testModeLoadAll || user?.es_coordinador) {
+          convs = await run(() => base44.entities.CoordinatorConversation.list('-updated_date', 30));
+        } else {
+          convs = await run(() => base44.entities.CoordinatorConversation.filter({ padre_email: user?.email }, '-updated_date', 30));
+        }
+        setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
+      };
+      setTimeout(() => run(loadCoordConvs), 100);
+    }
 
-    // Coach Conversations
-    const loadCoachConvs = async () => {
-      let convs = [];
-      if (options?.testModeLoadAll) {
-        convs = await run(() => base44.entities.CoachConversation.list('-updated_date', 30));
-      } else {
-        convs = await run(() => base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 40));
-      }
-      setRawData(prev => ({ ...prev, coachConversations: convs }));
-    };
-    setTimeout(() => run(loadCoordConvs), 100);
-    if (user.es_entrenador || options?.includeCoachConvs) setTimeout(() => run(loadCoachConvs), 300);
+    // Coach Conversations - solo si es entrenador o tiene jugadores
+    const shouldLoadCoach = user.es_entrenador || options?.includeCoachConvs || options?.testModeLoadAll;
+    if (shouldLoadCoach) {
+      const loadCoachConvs = async () => {
+        let convs = [];
+        if (options?.testModeLoadAll) {
+          convs = await run(() => base44.entities.CoachConversation.list('-updated_date', 30));
+        } else {
+          convs = await run(() => base44.entities.CoachConversation.filter({ entrenador_email: user?.email }, '-updated_date', 40));
+        }
+        setRawData(prev => ({ ...prev, coachConversations: convs }));
+      };
+      setTimeout(() => run(loadCoachConvs), 300);
+    }
     let lastCoordConvUpdate = 0;
     const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
       const now = Date.now();
@@ -189,8 +193,9 @@ export function useUnifiedNotifications(user, options = {}) {
       unsubscribers.push(unsubCoachConv);
     }
 
-    // Chat Messages (skip for pure admins, unless test mode)
-    if (options?.testModeLoadAll || user.role !== 'admin') {
+    // Chat Messages (skip for pure admins without coach role, unless test mode)
+    const shouldLoadChatMsgs = options?.testModeLoadAll || user.role !== 'admin' || user.es_entrenador;
+    if (shouldLoadChatMsgs) {
       const loadChatMsgs = async () => {
         const msgs = await run(() => base44.entities.ChatMessage.list('-created_date', 15));
         setRawData(prev => ({ ...prev, chatMessages: msgs }));
@@ -214,7 +219,8 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // Staff Messages (only for staff roles, unless test mode)
-    if (options?.testModeLoadAll || user.es_entrenador || user.es_coordinador || user.role === 'admin') {
+    const shouldLoadStaff = options?.testModeLoadAll || user.es_entrenador || user.es_coordinador || user.es_tesorero || user.role === 'admin';
+    if (shouldLoadStaff) {
       const loadStaffMsgs = async () => {
         const msgs = await run(() => base44.entities.StaffMessage.list('-created_date', 40));
         setRawData(prev => ({ ...prev, staffMessages: msgs }));
@@ -245,19 +251,20 @@ export function useUnifiedNotifications(user, options = {}) {
       unsubscribers.push(unsubStaffMsg);
     }
 
-    // Admin Conversations (skip for staff unless admin)
-    const loadAdminConvs = async () => {
-      let convs = [];
-      if (options?.testModeLoadAll || user?.role === 'admin') {
-        convs = await run(() => base44.entities.AdminConversation.list('-updated_date', 30));
-      } else if (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
-        convs = await run(() => base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 30));
-      } else {
-        return;
-      }
-      setRawData(prev => ({ ...prev, adminConversations: convs }));
-    };
-    setTimeout(() => run(loadAdminConvs), 4500);
+    // Admin Conversations - solo si es admin o familia normal
+    const shouldLoadAdmin = user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero) || options?.testModeLoadAll;
+    if (shouldLoadAdmin) {
+      const loadAdminConvs = async () => {
+        let convs = [];
+        if (options?.testModeLoadAll || user?.role === 'admin') {
+          convs = await run(() => base44.entities.AdminConversation.list('-updated_date', 30));
+        } else {
+          convs = await run(() => base44.entities.AdminConversation.filter({ padre_email: user?.email }, '-updated_date', 30));
+        }
+        setRawData(prev => ({ ...prev, adminConversations: convs }));
+      };
+      setTimeout(() => run(loadAdminConvs), 4500);
+    }
     if (user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero)) {
       let lastAdminConvUpdate = 0;
       const unsubAdminConv = base44.entities.AdminConversation.subscribe((event) => {
