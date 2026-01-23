@@ -26,65 +26,35 @@ export default function CoordinatorChatInput({
     uploadAudio
   } = useAudioRecording();
 
-  const handleSend = useCallback((textFromInput) => {
+  const handleSend = useCallback(async (textFromInput) => {
     const text = textFromInput || localText;
     
     if (!text.trim() && localAttachments.length === 0 && !audioBlob) return;
     
-    onSendMessage({
+    const messageData = {
       mensaje: text,
       adjuntos: [...localAttachments],
-      audio_blob: audioBlob,
-      audio_duracion: audioDuration
-    });
+      audio_url: null,
+      audio_duracion: 0
+    };
+
+    // Si hay audio pendiente, subirlo primero
+    if (audioBlob) {
+      const audioData = await uploadAudio();
+      if (audioData) {
+        messageData.audio_url = audioData.audio_url;
+        messageData.audio_duracion = audioData.audio_duracion;
+      } else {
+        return;
+      }
+    }
+    
+    onSendMessage(messageData);
     
     setLocalText("");
     setLocalAttachments([]);
-    setAudioBlob(null);
-    setAudioDuration(0);
-  }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage]);
-
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-      const startTime = Date.now();
-
-      mediaRecorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioDuration(duration);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setRecording(true);
-    } catch (error) {
-      console.error('Error recording:', error);
-    }
-  }, []);
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
-  }, [recording]);
-
-  const sendAudioWrapper = useCallback(async () => {
-    if (audioBlob && onSendAudio) {
-      await onSendAudio(audioBlob, audioDuration);
-      setAudioBlob(null);
-      setAudioDuration(0);
-    }
-  }, [audioBlob, audioDuration, onSendAudio]);
+    cancelAudio();
+  }, [localText, localAttachments, audioBlob, onSendMessage, uploadAudio, cancelAudio]);
 
   const handleFileUploadLocal = useCallback(async (e) => {
     const result = await onFileUpload(e);
