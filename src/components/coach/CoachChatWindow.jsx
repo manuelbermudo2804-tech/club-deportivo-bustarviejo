@@ -175,36 +175,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   }, [user, selectedCategory, messages.length]);
 
   const handleTyping = async () => {
-    if (!selectedCategory) return;
-    
-    const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-    
-    clearTimeout(typingTimeoutRef.current);
-    
-    const existingLog = await base44.entities.CoachChatLog.filter({ grupo_id });
-    if (existingLog.length > 0) {
-      await base44.entities.CoachChatLog.update(existingLog[0].id, {
-        entrenador_escribiendo: true,
-        ultima_actividad_escribiendo: new Date().toISOString()
-      });
-    } else {
-      await base44.entities.CoachChatLog.create({
-        grupo_id,
-        categoria: selectedCategory,
-        entrenador_escribiendo: true,
-        padre_escribiendo: false,
-        ultima_actividad_escribiendo: new Date().toISOString()
-      });
-    }
-
-    typingTimeoutRef.current = setTimeout(async () => {
-      const log = await base44.entities.CoachChatLog.filter({ grupo_id });
-      if (log.length > 0) {
-        await base44.entities.CoachChatLog.update(log[0].id, {
-          entrenador_escribiendo: false
-        });
-      }
-    }, 3000);
+    // Typing indicator desactivado temporalmente - causaba errores de schema
+    return;
   };
 
   const compressImage = (file) => {
