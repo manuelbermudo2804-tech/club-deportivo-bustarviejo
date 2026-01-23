@@ -464,10 +464,10 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   });
 
   const sendMessageMutation = useMutation({
-    onError: (err, data, context) => {
+    onError: (err, messageData, context) => {
       toast.error("Error al enviar mensaje");
     },
-    mutationFn: async (data) => {
+    mutationFn: async (messageData) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       
       const newMessage = await base44.entities.ChatMessage.create({
