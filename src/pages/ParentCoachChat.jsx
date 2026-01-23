@@ -87,14 +87,14 @@ export default function ParentCoachChat() {
     }
   }, [selectedCategory]);
 
-  // Obtener conversaciones entrenador-padre para contar no leídos (DECLARAR PRIMERO)
-  const { data: coachConversations = [] } = useQuery({
-    queryKey: ['coachConversationsForParent', user?.email],
+  // Obtener todos los mensajes del chat entrenador-familias
+  const { data: messages = [] } = useQuery({
+    queryKey: ['coachParentChatMessages'],
     queryFn: async () => {
       if (!user) return [];
-      return await base44.entities.CoachConversation.filter({ 
-        padre_email: user.email 
-      });
+      return await base44.entities.ChatMessage.filter({
+        tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] }
+      }, '-created_date');
     },
     enabled: !!user,
     refetchInterval: false,
@@ -102,114 +102,52 @@ export default function ParentCoachChat() {
     staleTime: 60000,
   });
 
-  // REAL-TIME: Suscripción a conversaciones del entrenador
+  // REAL-TIME: Suscripción a mensajes
   useEffect(() => {
     if (!user) return;
     
-    const unsub = base44.entities.CoachConversation.subscribe((event) => {
-      if (event.data?.padre_email === user.email) {
-        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
+    const unsub = base44.entities.ChatMessage.subscribe((event) => {
+      if (event.data?.tipo === 'padre_a_grupo' || event.data?.tipo === 'entrenador_a_grupo') {
+        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
       }
     });
     
     return unsub;
   }, [user?.email, queryClient]);
 
-  const { data: messages = [] } = useQuery({
-    queryKey: ['coachMessages', selectedCategory, user?.email],
-    queryFn: async () => {
-      if (!selectedCategory || !user) return [];
-      
-      const conv = coachConversations.find(c => c.categoria === selectedCategory);
-      if (!conv) return [];
-      
-      const allMessages = await base44.entities.CoachMessage.filter({ 
-        conversacion_id: conv.id 
-      }, 'created_date');
-      
-      return allMessages;
-    },
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    staleTime: 60000,
-    enabled: !!selectedCategory && !!user && coachConversations.length > 0,
-  });
-
-  // REAL-TIME: Suscripción a mensajes del entrenador
-  useEffect(() => {
-    if (!selectedCategory || !user || coachConversations.length === 0) return;
-    
-    const conv = coachConversations.find(c => c.categoria === selectedCategory);
-    if (!conv) return;
-    
-    const unsub = base44.entities.CoachMessage.subscribe((event) => {
-      if (event.data?.conversacion_id === conv.id) {
-        queryClient.invalidateQueries({ queryKey: ['coachMessages', selectedCategory, user.email] });
-        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
-      }
-    });
-    
-    return unsub;
-  }, [selectedCategory, user?.email, coachConversations, queryClient]);
-
   const getUnreadCountByCategory = (categoria) => {
     if (!user) return 0;
     
-    // Buscar conversación para esta categoría
-    const conv = coachConversations.find(c => c.categoria === categoria);
-    return conv?.no_leidos_padre || 0;
+    const categoryKey = categoria.toLowerCase().replace(/\s+/g, '_');
+    return messages.filter(m => 
+      (m.grupo_id === categoryKey || m.deporte === categoria) &&
+      (m.tipo === 'entrenador_a_grupo' || m.tipo === 'padre_a_grupo') &&
+      (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
+    ).length;
   };
 
-  // Marcar mensajes del entrenador como leídos + actualizar contador en CoachConversation
+  // Marcar mensajes como leídos cuando se abre la categoría
   useEffect(() => {
-    if (!user || !selectedCategory || messages.length === 0 || coachConversations.length === 0) return;
+    if (!user || !selectedCategory || messages.length === 0) return;
 
     const markAsRead = async () => {
       try {
-        const conv = coachConversations.find(c => c.categoria === selectedCategory);
-        if (!conv) return;
-
-        // 1. Marcar MENSAJES del entrenador como leídos
-        const unreadCoachMessages = messages.filter(m => 
-          m.tipo === "entrenador_a_grupo" && 
-          (!m.leido_padre || m.leido_padre === false)
+        const categoryKey = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+        const unreadMessages = messages.filter(m => 
+          (m.grupo_id === categoryKey || m.deporte === selectedCategory) &&
+          (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
         );
         
-        for (const msg of unreadCoachMessages) {
-          await base44.entities.CoachMessage.update(msg.id, {
-            leido_padre: true,
-            fecha_leido_padre: new Date().toISOString()
-          });
+        for (const msg of unreadMessages) {
+          const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
+          leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
+          await base44.entities.ChatMessage.update(msg.id, { leido: true, leido_por: leidoPor });
         }
         
-        // 2. Decrementar contador en CoachConversation
-        if ((conv.no_leidos_padre || 0) > 0) {
-          await base44.entities.CoachConversation.update(conv.id, {
-            no_leidos_padre: 0
-          });
-        }
-        
-        // 3. Marcar AppNotifications como vistas
-        const notifications = await base44.entities.AppNotification.filter({ 
-          usuario_email: user.email,
-          enlace: "ParentCoachChat",
-          vista: false
-        });
-        
-        for (const notif of notifications) {
-          await base44.entities.AppNotification.update(notif.id, {
-            vista: true,
-            fecha_vista: new Date().toISOString()
-          });
-        }
-        
-        // 4. Invalidar queries para actualizar en tiempo real
-        if (unreadCoachMessages.length > 0 || notifications.length > 0) {
+        if (unreadMessages.length > 0) {
           await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] }),
-            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
-            queryClient.refetchQueries({ queryKey: ['coachConversationsForParent', user.email] }),
-            queryClient.refetchQueries({ queryKey: ['appNotifications'] }),
+            queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] }),
+            queryClient.refetchQueries({ queryKey: ['coachParentChatMessages'] }),
           ]);
         }
       } catch (error) {
@@ -218,11 +156,19 @@ export default function ParentCoachChat() {
     };
 
     markAsRead();
-  }, [user?.email, selectedCategory, messages.length, coachConversations, queryClient]);
+  }, [user?.email, selectedCategory, messages.length, queryClient]);
+
+  const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
+  const categoryMessages = selectedCategory
+    ? messages.filter(m => 
+        (m.grupo_id === categoryKey || m.deporte === selectedCategory) &&
+        (m.tipo === 'padre_a_grupo' || m.tipo === 'entrenador_a_grupo')
+      )
+    : [];
 
   const filteredMessages = searchTerm 
-    ? messages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
-    : messages;
+    ? categoryMessages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : categoryMessages;
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -257,177 +203,65 @@ export default function ParentCoachChat() {
 
   const sendMessageMutation = useMutation({
     onMutate: async (messageData) => {
-      await queryClient.cancelQueries({ queryKey: ['coachMessages', selectedCategory, user?.email] });
-      const previousMessages = queryClient.getQueryData(['coachMessages', selectedCategory, user?.email]);
-      
+      await queryClient.cancelQueries({ queryKey: ['coachParentChatMessages'] });
+      const previousMessages = queryClient.getQueryData(['coachParentChatMessages']);
+
+      const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
       const optimisticMessage = {
         id: `temp-${Date.now()}`,
         mensaje: messageData.mensaje,
-        autor: "padre",
-        autor_email: user.email,
-        autor_nombre: user.full_name,
+        tipo: "padre_a_grupo",
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
         adjuntos: messageData.adjuntos || [],
+        archivos_adjuntos: messageData.adjuntos || [],
+        audio_url: null,
+        audio_duracion: 0,
         created_date: new Date().toISOString(),
-        leido_padre: true,
-        leido_entrenador: false,
+        grupo_id: categoryKey,
+        deporte: selectedCategory,
+        leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
       };
-      
-      queryClient.setQueryData(['coachMessages', selectedCategory, user?.email], (old = []) => [...old, optimisticMessage]);
+
+      queryClient.setQueryData(['coachParentChatMessages'], (old = []) => [...old, optimisticMessage]);
       return { previousMessages };
     },
     onError: (err, vars, context) => {
       if (context?.previousMessages) {
-        queryClient.setQueryData(['coachMessages', selectedCategory, user?.email], context.previousMessages);
+        queryClient.setQueryData(['coachParentChatMessages'], context.previousMessages);
       }
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
-       // Si hay audio pendiente, subir primero
+       // Subir audio si existe
        let audioUrl = null;
        let audioDuration = 0;
-       if (messageData.audio_blob) {
-         const audioData = await handleSendAudio(messageData.audio_blob, messageData.audio_duracion);
-         if (audioData) {
-           audioUrl = audioData.audio_url;
-           audioDuration = audioData.audio_duracion;
-         }
+       if (messageData.audio_url) {
+         audioUrl = messageData.audio_url;
+         audioDuration = messageData.audio_duracion || 0;
        }
 
-       // Buscar conversación para esta categoría
-       let conv = coachConversations.find(c => c.categoria === selectedCategory);
-      
-      // Si no existe, crearla
-      if (!conv) {
-        // Buscar settings del entrenador de esta categoría
-        const allCoachSettings = await base44.entities.CoachSettings.list();
-        const relevantSettings = allCoachSettings.find(s => 
-          s.categorias_entrena?.includes(selectedCategory)
-        );
-        
-        // VALIDACIÓN: Si no hay entrenador asignado, no crear conversación
-        if (!relevantSettings?.entrenador_email || !relevantSettings?.entrenador_nombre) {
-          throw new Error(`No hay entrenador asignado para ${selectedCategory}. Contacta con el coordinador o administrador.`);
-        }
-        
-        conv = await base44.entities.CoachConversation.create({
-          padre_email: user.email,
-          padre_nombre: user.full_name,
-          entrenador_email: relevantSettings.entrenador_email,
-          entrenador_nombre: relevantSettings.entrenador_nombre,
-          categoria: selectedCategory,
-          jugadores_asociados: myPlayers
-            .filter(p => p.deporte === selectedCategory)
-            .map(p => ({
-              jugador_id: p.id,
-              jugador_nombre: p.nombre
-            })),
-          no_leidos_padre: 0,
-          no_leidos_entrenador: 0
-        });
-        // Refrescar conversaciones locales
-        await queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user.email] });
-      }
-      
-      const newMessage = await base44.entities.CoachMessage.create({
-        conversacion_id: conv.id,
-        autor: "padre",
-        autor_email: user.email,
-        autor_nombre: user.full_name,
-        mensaje: messageData.mensaje,
-        audio_url: audioUrl,
-        audio_duracion: audioDuration,
-        adjuntos: messageData.adjuntos || [],
-        leido_padre: true,
-        leido_entrenador: false,
-        fecha_leido_padre: new Date().toISOString()
-      });
+       const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
 
-      // Incrementar contador de no leídos para el entrenador
-      const updatedConv = await base44.entities.CoachConversation.update(conv.id, {
-        ultimo_mensaje: messageData.mensaje,
-        ultimo_mensaje_fecha: new Date().toISOString(),
-        ultimo_mensaje_autor: "padre",
-        no_leidos_entrenador: (conv.no_leidos_entrenador || 0) + 1
-      });
+       const newMessage = await base44.entities.ChatMessage.create({
+         tipo: "padre_a_grupo",
+         remitente_email: user.email,
+         remitente_nombre: user.full_name,
+         mensaje: messageData.mensaje,
+         audio_url: audioUrl,
+         audio_duracion: audioDuration,
+         archivos_adjuntos: messageData.adjuntos || [],
+         grupo_id: categoryKey,
+         deporte: selectedCategory,
+         leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
+       });
 
-      // Notificar al entrenador
-      const allCoachSettings = await base44.entities.CoachSettings.list();
-      const coachesForCategory = allCoachSettings.filter(s => 
-        s.categorias_entrena?.includes(selectedCategory)
-      );
-      
-      for (const coachSetting of coachesForCategory) {
-        await base44.entities.AppNotification.create({
-          usuario_email: coachSetting.entrenador_email,
-          titulo: `⚽ Nuevo mensaje en ${selectedCategory}`,
-          mensaje: `${user.full_name}: ${messageData.mensaje.substring(0, 100)}${messageData.mensaje.length > 100 ? '...' : ''}`,
-          tipo: "importante",
-          icono: "⚽",
-          enlace: "CoachParentChat",
-          vista: false
-        });
-      }
-
-      const settings = allCoachSettings.find(s => 
-        s.categorias_entrena?.includes(selectedCategory)
-      );
-
-      const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-      
-      if (settings?.modo_ausente === true && settings?.mensaje_ausente) {
-        await base44.entities.CoachMessage.create({
-          conversacion_id: conv.id,
-          autor: "entrenador",
-          autor_email: "sistema@entrenador",
-          autor_nombre: "🤖 Entrenador (automático)",
-          mensaje: settings.mensaje_ausente,
-          adjuntos: [],
-          leido_padre: false,
-          leido_entrenador: true,
-          fecha_leido_entrenador: new Date().toISOString()
-        });
-        
-        // Incrementar contador de no leídos para el padre
-        await base44.entities.CoachConversation.update(conv.id, {
-          no_leidos_padre: (conv.no_leidos_padre || 0) + 1
-        });
-        
-        return;
-      }
-
-      if (settings?.horario_laboral_activo === true && settings?.horario_inicio && settings?.horario_fin && settings?.dias_laborales?.length > 0) {
-        const now = new Date();
-        const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
-        const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-        const isWorkingDay = settings.dias_laborales.includes(dayName);
-        const isWithinHours = currentTime >= settings.horario_inicio && currentTime <= settings.horario_fin;
-
-        if (!isWorkingDay || !isWithinHours) {
-          await base44.entities.CoachMessage.create({
-            conversacion_id: conv.id,
-            autor: "entrenador",
-            autor_email: "sistema@entrenador",
-            autor_nombre: "🤖 Entrenador (automático)",
-            mensaje: settings.mensaje_fuera_horario || "Tu mensaje ha sido recibido. El entrenador te responderá en su horario laboral.",
-            adjuntos: [],
-            leido_padre: false,
-            leido_entrenador: true,
-            fecha_leido_entrenador: new Date().toISOString()
-          });
-          
-          // Incrementar contador de no leídos para el padre
-          await base44.entities.CoachConversation.update(conv.id, {
-            no_leidos_padre: (conv.no_leidos_padre || 0) + 1
-          });
-        }
-      }
+       return newMessage;
     },
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['coachMessages'] }),
-        queryClient.invalidateQueries({ queryKey: ['coachConversationsForParent', user?.email] }),
-        queryClient.refetchQueries({ queryKey: ['coachMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] }),
+        queryClient.refetchQueries({ queryKey: ['coachParentChatMessages'] }),
       ]);
     },
   });
@@ -449,10 +283,10 @@ export default function ParentCoachChat() {
         ? { encuesta: { ...poll, votos } }
         : { poll: { ...poll, votos } };
 
-      await base44.entities.CoachMessage.update(messageId, updateData);
+      await base44.entities.ChatMessage.update(messageId, updateData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coachMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
       toast.success("Voto registrado");
     },
   });
@@ -475,11 +309,11 @@ export default function ParentCoachChat() {
       }];
     }
 
-    await base44.entities.CoachMessage.update(messageId, {
+    await base44.entities.ChatMessage.update(messageId, {
       reacciones: newReactions
     });
 
-    queryClient.invalidateQueries({ queryKey: ['coachMessages'] });
+    queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
     setShowReactions(null);
   };
 
@@ -629,8 +463,8 @@ export default function ParentCoachChat() {
                   month: 'long'
                 });
 
-                const isMine = msg.autor === "padre";
-                const isCoach = msg.autor === "entrenador";
+                const isMine = msg.remitente_email === user.email;
+                const isCoach = msg.tipo === "entrenador_a_grupo";
 
                 // Debug logs
                 if (msg.encuesta || msg.poll || msg.ubicacion) {
@@ -668,7 +502,7 @@ export default function ParentCoachChat() {
                         }}>
                          <div className="flex items-center gap-1 mb-1">
                            <p className="text-xs font-semibold opacity-70">
-                             {isCoach ? '🏃 ' : ''}{msg.autor_nombre}
+                             {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
                            </p>
                            {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                          </div>
@@ -714,7 +548,7 @@ export default function ParentCoachChat() {
                                   </a>
                                 )
                               ))}
-                            </div>
+                           </div>
                           )}
 
                           {msg.reacciones?.length > 0 && (
