@@ -5,6 +5,7 @@ import { Send, Mic, Pause, X, Play, Smile } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
 import { toast } from "sonner";
 import { useAudioRecording } from "./useAudioRecording";
+import AudioRecordingBar from "./AudioRecordingBar";
 
 export default function ParentChatInput({
   onSendMessage,
