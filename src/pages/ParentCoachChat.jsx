@@ -413,11 +413,9 @@ export default function ParentCoachChat() {
     setShowReactions(null);
   };
 
-  const handleSend = (texto) => {
-    const textoFinal = texto || messageText;
-    if (!textoFinal.trim()) return;
-    sendMessageMutation.mutate(textoFinal);
-    setMessageText("");
+  const handleSend = () => {
+    if (!messageText.trim()) return;
+    sendMessageMutation.mutate(messageText);
   };
 
   const togglePlayAudio = (audioUrl) => {

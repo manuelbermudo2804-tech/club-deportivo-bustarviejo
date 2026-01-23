@@ -432,7 +432,7 @@ export default function ParentCoordinatorChat() {
     }
   });
 
-  const handleSend = (texto) => {
+  const handleSend = () => {
     if (!termsAccepted) {
       toast.error("Debes aceptar las condiciones de uso antes de enviar mensajes");
       setShowTermsDialog(true);
@@ -444,14 +444,12 @@ export default function ParentCoordinatorChat() {
       return;
     }
     
-    const textoFinal = texto || messageText;
-    if (!textoFinal.trim() && attachments.length === 0) return;
+    if (!messageText.trim() && attachments.length === 0) return;
     
     sendMessageMutation.mutate({ 
-      mensaje: textoFinal, 
+      mensaje: messageText, 
       archivos_adjuntos: [...attachments] 
     });
-    setMessageText("");
     setAttachments([]);
   };
 

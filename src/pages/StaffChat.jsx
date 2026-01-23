@@ -560,21 +560,18 @@ export default function StaffChat() {
     },
   });
 
-  const handleSend = (texto) => {
+  const handleSend = () => {
     if (editingMessage) {
       setEditingMessage(null);
-      const textoFinal = texto || messageText;
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: textoFinal
+        mensaje: messageText
       });
-      setMessageText("");
     } else {
-      const textoFinal = texto || messageText;
-      if (!textoFinal.trim() && attachments.length === 0) return;
+      if (!messageText.trim() && attachments.length === 0) return;
       
       const messageData = { 
-        mensaje: textoFinal, 
+        mensaje: messageText, 
         adjuntos: [...attachments] 
       };
       
@@ -587,7 +584,6 @@ export default function StaffChat() {
       }
       
       sendMessageMutation.mutate(messageData);
-      setMessageText("");
       setAttachments([]);
       setReplyingTo(null);
     }
