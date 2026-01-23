@@ -60,7 +60,8 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
       if (!conversation?.id) return [];
       return await base44.entities.AdminMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
-    refetchInterval: 3000,
+    refetchInterval: false,
+    staleTime: 60000,
     enabled: !!conversation?.id,
   });
 

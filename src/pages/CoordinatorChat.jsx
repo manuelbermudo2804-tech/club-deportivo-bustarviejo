@@ -49,7 +49,8 @@ export default function CoordinatorChat({ embedded = false }) {
       return await base44.entities.CoordinatorConversation.list('-ultimo_mensaje_fecha');
     },
     enabled: isCoordinator,
-    refetchInterval: 5000,
+    refetchInterval: false,
+    staleTime: 60000,
   });
 
   // REAL-TIME: Suscripción a conversaciones
