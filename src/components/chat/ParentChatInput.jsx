@@ -98,15 +98,20 @@ export default function ParentChatInput({
     <div className="p-2 bg-white border-t flex-shrink-0">
       <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
 
-      {/* Audio pendiente */}
-      {audioBlob && (
-        <div className="mb-2 flex items-center gap-2 bg-green-50 rounded-lg p-3 border-2 border-green-300">
-          <Mic className="w-5 h-5 text-green-600" />
-          <span className="text-sm flex-1 font-medium">🎤 Audio {audioDuration}s</span>
-          <Button size="sm" onClick={togglePlayAudio} className="h-8 bg-green-600">
-            {playingAudio === 'pending' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          </Button>
-          <Button size="sm" variant="outline" onClick={cancelAudio} className="h-8">✕</Button>
+      {/* Audio Recording Bar - estilo WhatsApp */}
+      {(isRecording || audioBlob) && (
+        <div className="mb-2">
+          <AudioRecordingBar
+            isRecording={isRecording}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+            audioBlob={audioBlob}
+            audioDuration={audioDuration}
+            onSendAudio={handleSend}
+            onCancelAudio={cancelAudio}
+            uploading={isUploading}
+            disabled={isUploading}
+          />
         </div>
       )}
 
