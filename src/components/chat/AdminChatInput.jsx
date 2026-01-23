@@ -88,66 +88,7 @@ export default function AdminChatInput({
     setLocalAttachments(prev => [...prev, ...simpleFiles]);
   }, []);
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
 
-      const startTime = Date.now();
-      toast.success("🎤 Grabando...", { duration: 1000 });
-
-      mediaRecorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioDuration(duration);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setRecording(true);
-    } catch (error) {
-      toast.error("Error al acceder al micrófono");
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
-  };
-
-  const cancelAudio = () => {
-    setAudioBlob(null);
-    setAudioDuration(0);
-  };
-
-  const togglePlayAudio = async () => {
-    if (!audioBlob) return;
-    try {
-      if (playingAudio === 'pending') {
-        audioRef.current?.pause();
-        setPlayingAudio(null);
-      } else {
-        const url = URL.createObjectURL(audioBlob);
-        if (audioRef.current) {
-          audioRef.current.src = url;
-          await audioRef.current.play();
-          setPlayingAudio('pending');
-        }
-      }
-    } catch (error) {
-      toast.error("Error al reproducir el audio");
-      setPlayingAudio(null);
-    }
-  };
 
   const handleTextChange = (e) => {
     const newValue = e.target.value;
