@@ -448,18 +448,21 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     },
   });
 
-  const handleSend = () => {
+  const handleSend = (texto) => {
     if (editingMessage) {
       setEditingMessage(null);
+      const textoFinal = texto || messageText;
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: messageText
+        mensaje: textoFinal
       });
+      setMessageText("");
     } else {
-      if (!messageText.trim() && attachments.length === 0) return;
+      const textoFinal = texto || messageText;
+      if (!textoFinal.trim() && attachments.length === 0) return;
       
       const messageData = { 
-        mensaje: messageText, 
+        mensaje: textoFinal, 
         archivos_adjuntos: [...attachments] 
       };
       
@@ -472,6 +475,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       }
       
       sendMessageMutation.mutate(messageData);
+      setMessageText("");
       setAttachments([]);
       setReplyingTo(null);
     }

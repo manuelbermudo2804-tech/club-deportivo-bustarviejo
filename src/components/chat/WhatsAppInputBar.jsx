@@ -115,14 +115,9 @@ export default function WhatsAppInputBar({
   const handleSend = () => {
     if (!localText.trim() && attachments.length === 0) return;
     
-    // Notificar al padre con el texto
-    if (externalSetMessageText) {
-      externalSetMessageText(localText);
-    }
+    const textoAEnviar = localText;
     
-    onSend();
-    
-    // Limpiar input local
+    // Limpiar input local PRIMERO
     setLocalText("");
     localTextRef.current = "";
     
@@ -130,6 +125,9 @@ export default function WhatsAppInputBar({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
+    
+    // ENVIAR con el texto guardado
+    onSend(textoAEnviar);
   };
 
   const handleTextChange = (e) => {
