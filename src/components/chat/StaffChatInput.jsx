@@ -67,8 +67,7 @@ export default function StaffChatInput({
     // Limpiar estado local inmediatamente
     setLocalText("");
     setLocalAttachments([]);
-    setAudioBlob(null);
-    setAudioDuration(0);
+    cancelAudio();
   }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage, onSendAudio]);
 
 
