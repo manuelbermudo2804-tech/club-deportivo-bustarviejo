@@ -125,22 +125,24 @@ export default function ParentChatInput({
         disabled={uploading} 
       />
 
-      {/* Archivos no-imagen ya subidos */}
-      {localAttachments.length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-2">
-          {localAttachments.map((file, idx) => (
-            <div key={idx} className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-1">
-              <FileText className="w-3 h-3" />
-              <span className="truncate max-w-[100px]">{file.nombre}</span>
-              <button onClick={() => setLocalAttachments(localAttachments.filter((_, i) => i !== idx))}>
-                <X className="w-3 h-3" />
-              </button>
+      {!imagePreview && (
+        <>
+          {/* Archivos no-imagen ya subidos */}
+          {localAttachments.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {localAttachments.map((file, idx) => (
+                <div key={idx} className="bg-slate-100 rounded px-2 py-1 text-xs flex items-center gap-1">
+                  <FileText className="w-3 h-3" />
+                  <span className="truncate max-w-[100px]">{file.nombre}</span>
+                  <button onClick={() => setLocalAttachments(localAttachments.filter((_, i) => i !== idx))}>
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      <div className="flex gap-2 items-end">
+          <div className="flex gap-2 items-end">
         <Button
           size="icon"
           variant="ghost"
@@ -182,7 +184,8 @@ export default function ParentChatInput({
         >
           <Send className="w-5 h-5" />
         </Button>
-      </div>
+          </div>
+        </>
       )}
     </div>
   );
