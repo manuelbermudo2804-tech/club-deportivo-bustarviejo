@@ -722,7 +722,7 @@ export default function StaffChat() {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-0 min-h-0" style={{backgroundColor: '#ECE5DD'}}>
+          <div className="flex-1 overflow-y-auto p-3 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
             {replyingTo && (
               <div className="sticky top-0 z-10 bg-purple-50 border-l-4 border-purple-500 p-2 rounded flex items-start justify-between">
                 <div className="flex-1">
@@ -765,13 +765,10 @@ export default function StaffChat() {
                     )}
                     
                     <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
-                      <div className="max-w-[85%] px-3 py-2 shadow-sm relative" style={{
-                        backgroundColor: isMine ? '#E9D5FF' : '#FFFFFF',
-                        color: '#000000',
-                        borderRadius: isMine ? '7.5px 7.5px 0px 7.5px' : '7.5px 7.5px 7.5px 0px',
+                      <div className={`max-w-[85%] text-gray-900 rounded-[7px_7px_7px_7px] px-3 py-2 relative text-[15px] leading-[1.4]`} style={{
                         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                        fontSize: '14.2px',
-                        lineHeight: '19px'
+                        backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
+                        boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                       }}>
                         {msg.mensaje_citado && (
                           <div className={`mb-2 p-2 rounded border-l-2 ${
@@ -783,13 +780,11 @@ export default function StaffChat() {
                         )}
                         
                         <div className="flex items-start justify-between gap-2">
-                          {!isMine && (
-                            <p className="text-xs font-medium mb-1" style={{color: msg.autor_rol === "admin" ? '#DC2626' : msg.autor_rol === "coordinador" ? '#0891B2' : '#128C7E'}}>
+                          <div className="flex items-center gap-1">
+                            <p className="text-xs font-semibold opacity-70">
                               {msg.autor_rol === "coordinador" ? "🎓 " : msg.autor_rol === "admin" ? "👑 " : "🏃 "}
                               {msg.autor_nombre}
                             </p>
-                          )}
-                          <div className="flex items-center gap-1">
                             {msg.autor_rol === "coordinador" && (
                               <Badge className="text-[10px] bg-cyan-600 px-1 py-0 h-4">Coordinador</Badge>
                             )}
@@ -824,9 +819,9 @@ export default function StaffChat() {
                           </div>
                         </div>
 
-                        <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined}}>
+                        <p className="text-base whitespace-pre-wrap leading-5 mt-1" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
                           {msg.mensaje}
-                          {msg.editado && <span className="text-xs ml-1" style={{color: '#667781'}}>(editado)</span>}
+                          {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
                         </p>
 
                         {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
@@ -886,7 +881,7 @@ export default function StaffChat() {
                         )}
 
                         <div className="flex items-center gap-1 justify-end mt-1">
-                          <p className="text-[11px]" style={{color: '#667781'}}>
+                          <p className="text-xs opacity-60">
                             {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                           </p>
                           
