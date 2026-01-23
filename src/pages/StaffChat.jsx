@@ -743,9 +743,14 @@ export default function StaffChat() {
                       </div>
                     )}
                     
-                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
-                      <div className={`max-w-[85%] text-gray-900 rounded-[7px_7px_7px_7px] px-3 py-2 relative text-[15px] leading-[1.4]`} style={{
+                    <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
+                      <div className={`max-w-[72%] rounded-2xl px-3 py-2 relative`} style={{
                         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                        fontSize: '15px',
+                        lineHeight: '1.4',
+                        fontWeight: 400,
+                        wordWrap: 'break-word',
+                        whiteSpace: 'pre-wrap',
                         backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
                         boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                       }}>
