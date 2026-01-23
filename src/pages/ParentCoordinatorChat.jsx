@@ -439,7 +439,6 @@ export default function ParentCoordinatorChat() {
       return;
     }
     
-    // VERIFICAR SI EL USUARIO ESTÁ BLOQUEADO
     if (user?.chat_bloqueado === true) {
       toast.error("🚫 Tu acceso al chat ha sido restringido por el administrador.");
       return;
@@ -447,15 +446,11 @@ export default function ParentCoordinatorChat() {
     
     if (!messageText.trim() && attachments.length === 0) return;
     
-    // Guardar antes de limpiar
-    const textToSend = messageText;
-    const attachToSend = [...attachments];
-    
-    // Limpiar inmediatamente
-    setMessageText("");
+    sendMessageMutation.mutate({ 
+      mensaje: messageText, 
+      archivos_adjuntos: [...attachments] 
+    });
     setAttachments([]);
-    
-    sendMessageMutation.mutate({ mensaje: textToSend, archivos_adjuntos: attachToSend });
   };
 
   const addReaction = async (messageId, emoji) => {

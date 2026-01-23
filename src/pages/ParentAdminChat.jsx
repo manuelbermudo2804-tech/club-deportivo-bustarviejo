@@ -184,17 +184,13 @@ export default function ParentAdminChat() {
   const handleSend = async () => {
     if (!messageText.trim() && attachments.length === 0) return;
     
-    // Guardar los datos antes de limpiar
     const dataToSend = { 
       mensaje: messageText, 
-      archivos_adjuntos: attachments 
+      archivos_adjuntos: [...attachments] 
     };
     
-    // Limpiar inmediatamente para mejor UX
-    setMessageText("");
     setAttachments([]);
     
-    // Enviar (robusto)
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       sendWithQueue('admin', sendAdminMessageCore, dataToSend, {
         onSuccess: () => {

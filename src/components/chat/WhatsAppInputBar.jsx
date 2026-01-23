@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Smile, Paperclip, Camera, MapPin, BarChart3, Dumbbell, Mic, Pause, X, FileText } from "lucide-react";
@@ -72,8 +72,8 @@ function AttachmentMenu({
 }
 
 export default function WhatsAppInputBar({
-  messageText,
-  setMessageText,
+  messageText: externalMessageText,
+  setMessageText: externalSetMessageText,
   onSend,
   attachments = [],
   setAttachments,
@@ -97,12 +97,35 @@ export default function WhatsAppInputBar({
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const textareaRef = useRef(null);
+  
+  // INPUT 100% LOCAL - nunca se sobrescribe desde fuera
+  const [localText, setLocalText] = useState("");
+  const localTextRef = useRef("");
 
-  const hasText = messageText.trim().length > 0;
+  // Sincronizar con prop externa SOLO cuando está vacía (para edición)
+  useEffect(() => {
+    if (externalMessageText && !localTextRef.current) {
+      setLocalText(externalMessageText);
+      localTextRef.current = externalMessageText;
+    }
+  }, [externalMessageText]);
+
+  const hasText = localText.trim().length > 0;
 
   const handleSend = () => {
-    if (!messageText.trim() && attachments.length === 0) return;
+    if (!localText.trim() && attachments.length === 0) return;
+    
+    // Notificar al padre con el texto
+    if (externalSetMessageText) {
+      externalSetMessageText(localText);
+    }
+    
     onSend();
+    
+    // Limpiar input local
+    setLocalText("");
+    localTextRef.current = "";
+    
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -110,7 +133,15 @@ export default function WhatsAppInputBar({
   };
 
   const handleTextChange = (e) => {
-    setMessageText(e.target.value);
+    const newValue = e.target.value;
+    setLocalText(newValue);
+    localTextRef.current = newValue;
+    
+    // Sincronizar con padre (para persistencia)
+    if (externalSetMessageText) {
+      externalSetMessageText(newValue);
+    }
+    
     if (onTyping) onTyping();
     
     // Auto-resize
@@ -195,8 +226,13 @@ export default function WhatsAppInputBar({
       <div className="flex gap-2 items-end">
         {/* Emoji - siempre visible */}
         <EmojiPicker 
-          onEmojiSelect={(emoji) => setMessageText(prev => prev + emoji)}
-          messageText={messageText}
+          onEmojiSelect={(emoji) => {
+            const newValue = localText + emoji;
+            setLocalText(newValue);
+            localTextRef.current = newValue;
+            if (externalSetMessageText) externalSetMessageText(newValue);
+          }}
+          messageText={localText}
         />
 
         {/* Input */}
@@ -204,7 +240,7 @@ export default function WhatsAppInputBar({
           <textarea
             ref={textareaRef}
             placeholder={placeholder}
-            value={messageText}
+            value={localText}
             onChange={handleTextChange}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {

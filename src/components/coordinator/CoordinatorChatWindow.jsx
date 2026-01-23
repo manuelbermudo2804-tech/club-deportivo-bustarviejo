@@ -450,25 +450,17 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const handleSend = () => {
     if (editingMessage) {
-      const textToSend = messageText;
-      setMessageText("");
       setEditingMessage(null);
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: textToSend
+        mensaje: messageText
       });
     } else {
       if (!messageText.trim() && attachments.length === 0) return;
       
-      const textToSend = messageText;
-      const attachToSend = [...attachments];
-      
-      setMessageText("");
-      setAttachments([]);
-      
       const messageData = { 
-        mensaje: textToSend, 
-        archivos_adjuntos: attachToSend 
+        mensaje: messageText, 
+        archivos_adjuntos: [...attachments] 
       };
       
       if (replyingTo) {
@@ -480,6 +472,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       }
       
       sendMessageMutation.mutate(messageData);
+      setAttachments([]);
       setReplyingTo(null);
     }
   };

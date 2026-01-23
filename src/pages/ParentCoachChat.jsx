@@ -415,9 +415,7 @@ export default function ParentCoachChat() {
 
   const handleSend = () => {
     if (!messageText.trim()) return;
-    const textToSend = messageText;
-    sendMessageMutation.mutate(textToSend);
-    setMessageText(""); // Limpiar DESPUÉS de llamar mutate
+    sendMessageMutation.mutate(messageText);
   };
 
   const togglePlayAudio = (audioUrl) => {
