@@ -20,23 +20,39 @@ export default function CoachChatInput({
   const mediaRecorderRef = React.useRef(null);
   const audioChunksRef = React.useRef([]);
 
-  const handleSend = useCallback((textFromInput) => {
+  const handleSend = useCallback(async (textFromInput) => {
     const text = textFromInput || localText;
     
     if (!text.trim() && localAttachments.length === 0 && !audioBlob) return;
     
-    onSendMessage({
+    const messageData = {
       mensaje: text,
       adjuntos: [...localAttachments],
-      audio_blob: audioBlob,
-      audio_duracion: audioDuration
-    });
+      audio_url: null,
+      audio_duracion: 0
+    };
+
+    // Si hay audio pendiente, subirlo primero
+    if (audioBlob && onSendAudio) {
+      try {
+        const audioData = await onSendAudio(audioBlob, audioDuration);
+        if (audioData) {
+          messageData.audio_url = audioData.audio_url;
+          messageData.audio_duracion = audioData.audio_duracion;
+        }
+      } catch (error) {
+        console.error('Error enviando audio:', error);
+        return;
+      }
+    }
+    
+    onSendMessage(messageData);
     
     setLocalText("");
     setLocalAttachments([]);
     setAudioBlob(null);
     setAudioDuration(0);
-  }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage]);
+  }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage, onSendAudio]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -72,17 +88,11 @@ export default function CoachChatInput({
     }
   }, [recording]);
 
-  const sendAudioWrapper = useCallback(async () => {
-    if (audioBlob && onSendAudio) {
-      try {
-        await onSendAudio();
-        setAudioBlob(null);
-        setAudioDuration(0);
-      } catch (error) {
-        console.error('Error sending audio:', error);
-      }
+  const sendAudioWrapper = useCallback(async (blob, duration) => {
+    if (blob && onSendAudio) {
+      return await onSendAudio(blob, duration);
     }
-  }, [audioBlob, audioDuration, onSendAudio]);
+  }, [onSendAudio]);
 
   const handleFileUploadLocal = useCallback(async (e) => {
     const result = await onFileUpload(e);

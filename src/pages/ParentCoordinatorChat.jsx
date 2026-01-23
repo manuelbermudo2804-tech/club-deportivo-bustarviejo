@@ -680,9 +680,9 @@ export default function ParentCoordinatorChat() {
 
           <ParentChatInput
              onSendMessage={handleSendMessage}
-             onSendAudio={handleSendAudio}
              uploading={uploading}
              placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
+             onSendAudio={handleSendAudio}
            />
         </CardContent>
       </Card>

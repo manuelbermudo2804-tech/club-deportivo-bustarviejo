@@ -29,25 +29,41 @@ export default function StaffChatInput({
   const audioChunksRef = useRef([]);
 
   // Enviar mensaje - llama al callback del padre y limpia
-  const handleSend = useCallback((textFromInput) => {
+  const handleSend = useCallback(async (textFromInput) => {
     const text = textFromInput || localText;
     
     if (!text.trim() && localAttachments.length === 0 && !audioBlob) return;
     
-    // Pasar datos al padre
-    onSendMessage({
+    const messageData = {
       mensaje: text,
       adjuntos: [...localAttachments],
-      audio_blob: audioBlob,
-      audio_duracion: audioDuration
-    });
+      audio_url: null,
+      audio_duracion: 0
+    };
+
+    // Si hay audio pendiente, subirlo primero
+    if (audioBlob && onSendAudio) {
+      try {
+        const audioData = await onSendAudio(audioBlob, audioDuration);
+        if (audioData) {
+          messageData.audio_url = audioData.audio_url;
+          messageData.audio_duracion = audioData.audio_duracion;
+        }
+      } catch (error) {
+        console.error('Error enviando audio:', error);
+        return;
+      }
+    }
+    
+    // Pasar datos al padre
+    onSendMessage(messageData);
     
     // Limpiar estado local inmediatamente
     setLocalText("");
     setLocalAttachments([]);
     setAudioBlob(null);
     setAudioDuration(0);
-  }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage]);
+  }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage, onSendAudio]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -83,13 +99,11 @@ export default function StaffChatInput({
     }
   }, [recording]);
 
-  const sendAudioWrapper = useCallback(async () => {
-    if (audioBlob && onSendAudio) {
-      await onSendAudio(audioBlob, audioDuration);
-      setAudioBlob(null);
-      setAudioDuration(0);
+  const sendAudioWrapper = useCallback(async (blob, duration) => {
+    if (blob && onSendAudio) {
+      return await onSendAudio(blob, duration);
     }
-  }, [audioBlob, audioDuration, onSendAudio]);
+  }, [onSendAudio]);
 
   // Upload de archivos - gestiona localmente
   const handleFileUploadLocal = useCallback(async (e) => {

@@ -8,7 +8,8 @@ import { toast } from "sonner";
 export default function ParentChatInput({
   onSendMessage,
   uploading,
-  placeholder = "Escribe tu mensaje..."
+  placeholder = "Escribe tu mensaje...",
+  onSendAudio
 }) {
   const [localText, setLocalText] = useState("");
   const [recording, setRecording] = useState(false);
@@ -21,7 +22,7 @@ export default function ParentChatInput({
   const audioChunksRef = useRef([]);
   const audioRef = useRef(null);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     if (!localText.trim() && !audioBlob) return;
     
     const messageData = {
@@ -30,10 +31,18 @@ export default function ParentChatInput({
       audio_duracion: 0
     };
 
-    // Si hay audio pendiente, enviarlo primero
-    if (audioBlob) {
-      messageData.audio_blob = audioBlob;
-      messageData.audio_duracion = audioDuration;
+    // Si hay audio pendiente, subirlo primero
+    if (audioBlob && onSendAudio) {
+      try {
+        const audioData = await onSendAudio(audioBlob, audioDuration);
+        if (audioData) {
+          messageData.audio_url = audioData.audio_url;
+          messageData.audio_duracion = audioData.audio_duracion;
+        }
+      } catch (error) {
+        toast.error('Error al enviar el audio');
+        return;
+      }
     }
     
     onSendMessage(messageData);
@@ -44,7 +53,7 @@ export default function ParentChatInput({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [localText, audioBlob, audioDuration, onSendMessage]);
+  }, [localText, audioBlob, audioDuration, onSendMessage, onSendAudio]);
 
   const startRecording = async () => {
     try {
