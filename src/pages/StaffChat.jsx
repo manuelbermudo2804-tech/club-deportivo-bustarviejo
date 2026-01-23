@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck, Smile, Pin, Reply, Edit, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import ChatInputActions from "../components/chat/ChatInputActions";
@@ -18,6 +18,8 @@ import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import EmojiPicker from "../components/chat/EmojiPicker";
 import SearchFilters from "../components/chat/SearchFilters";
+import DateSeparator from "../components/chat/DateSeparator";
+import NewMessageButton from "../components/chat/NewMessageButton";
 import SocialLinks from "../components/SocialLinks";
 import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
@@ -69,7 +71,10 @@ export default function StaffChat() {
   const [filterDate, setFilterDate] = useState("all");
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [showReactions, setShowReactions] = useState(null);
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+  const [newMessageCount, setNewMessageCount] = useState(0);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
@@ -200,11 +205,20 @@ export default function StaffChat() {
     return true;
   });
 
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setIsScrolledToBottom(atBottom);
+  };
+
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (isScrolledToBottom && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      setNewMessageCount(0);
+    } else if (!isScrolledToBottom && messages.length > 0) {
+      setNewMessageCount(prev => prev + 1);
     }
-  }, [messages]);
+  }, [messages, isScrolledToBottom]);
 
   // Robust subscriptions: refetch on regain focus/online
   useEffect(() => {
@@ -736,6 +750,17 @@ export default function StaffChat() {
             canUnpin={true}
           />
 
+          {/* Botón "Nuevo mensaje" - después del filtro */}
+          {!isScrolledToBottom && newMessageCount > 0 && (
+            <NewMessageButton 
+              onClick={() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                setNewMessageCount(0);
+              }}
+              unreadCount={newMessageCount}
+            />
+          )}
+
           {showGallery && (
             <div className="p-4 bg-white border-b max-h-[200px] overflow-y-auto flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
@@ -775,7 +800,12 @@ export default function StaffChat() {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
+          <div 
+            ref={messagesContainerRef}
+            className="flex-1 overflow-y-auto p-3 space-y-0 min-h-0 relative" 
+            style={{backgroundColor: '#E5DDD5'}}
+            onScroll={handleScroll}
+          >
             {replyingTo && (
               <div className="sticky top-0 z-10 bg-purple-50 border-l-4 border-purple-500 p-2 rounded flex items-start justify-between">
                 <div className="flex-1">
@@ -796,26 +826,14 @@ export default function StaffChat() {
                 </p>
               </div>
             ) : (
-              filteredMessages.map((msg, idx) => {
+              filteredMessages.map((msg, idx, arr) => {
                 const isMine = msg.autor_email === user.email;
-                const showDateSeparator = idx === 0 || 
-                  new Date(filteredMessages[idx - 1].created_date).toDateString() !== 
-                  new Date(msg.created_date).toDateString();
-                const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long'
-                });
-
+                const prevMsg = idx > 0 ? arr[idx - 1] : null;
+                const showDateSeparator = !prevMsg || !isSameDay(new Date(prevMsg.created_date), new Date(msg.created_date));
+                
                 return (
                   <React.Fragment key={msg.id}>
-                    {showDateSeparator && (
-                      <div className="flex justify-center my-4">
-                        <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">
-                          {dateLabel}
-                        </div>
-                      </div>
-                    )}
+                    {showDateSeparator && <DateSeparator date={msg.created_date} />}
                     
                     <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
                       <div className={`max-w-[72%] rounded-2xl px-3 py-2 relative`} style={{
