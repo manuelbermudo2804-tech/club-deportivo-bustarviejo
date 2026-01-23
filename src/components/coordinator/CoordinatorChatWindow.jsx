@@ -374,7 +374,29 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   };
 
   const sendMessageMutation = useMutation({
+    onMutate: async (messageData) => {
+      await queryClient.cancelQueries({ queryKey: ['coordinatorMessages', conversation?.id] });
+      const previousMessages = queryClient.getQueryData(['coordinatorMessages', conversation?.id]);
+      
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        mensaje: messageData.mensaje,
+        autor: isCoordinator ? "coordinador" : "padre",
+        autor_email: user.email,
+        autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
+        archivos_adjuntos: messageData.adjuntos || [],
+        created_date: new Date().toISOString(),
+        leido_coordinador: isCoordinator,
+        leido_padre: !isCoordinator,
+      };
+      
+      queryClient.setQueryData(['coordinatorMessages', conversation?.id], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages };
+    },
     onError: (err, messageData, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['coordinatorMessages', conversation?.id], context.previousMessages);
+      }
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {

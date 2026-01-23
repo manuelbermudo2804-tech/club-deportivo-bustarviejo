@@ -379,6 +379,33 @@ export default function StaffChat() {
   };
 
   const sendMessageMutation = useMutation({
+    onMutate: async (messageData) => {
+      await queryClient.cancelQueries({ queryKey: ['staffMessages', conversation?.id] });
+      const previousMessages = queryClient.getQueryData(['staffMessages', conversation?.id]);
+      
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        mensaje: messageData.mensaje,
+        autor_email: user.email,
+        autor_nombre: user.full_name || "Staff",
+        archivos_adjuntos: messageData.adjuntos || [],
+        audio_url: messageData.audio_url,
+        audio_duracion: messageData.audio_duracion,
+        encuesta: messageData.encuesta,
+        ubicacion: messageData.ubicacion,
+        created_date: new Date().toISOString(),
+        leido_por: [{ email: user.email, nombre: user.full_name }],
+      };
+      
+      queryClient.setQueryData(['staffMessages', conversation?.id], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages };
+    },
+    onError: (err, messageData, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['staffMessages', conversation?.id], context.previousMessages);
+      }
+      toast.error("Error al enviar mensaje");
+    },
     mutationFn: async (messageData) => {
       const autorRol = user.role === "admin" ? "admin" : user.es_coordinador ? "coordinador" : "entrenador";
       
