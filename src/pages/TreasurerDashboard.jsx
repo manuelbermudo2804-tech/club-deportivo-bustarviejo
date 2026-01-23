@@ -83,9 +83,9 @@ export default function TreasurerDashboard() {
       const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30);
       return allConvs.filter(c => c.participante_familia_email === user?.email);
     },
-    staleTime: 10000,
-    refetchInterval: 15000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
@@ -95,9 +95,9 @@ export default function TreasurerDashboard() {
       const allConvs = await base44.entities.CoordinatorConversation.list();
       return allConvs.filter(c => c.padre_email === user?.email);
     },
-    staleTime: 10000,
-    refetchInterval: 15000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
@@ -107,9 +107,9 @@ export default function TreasurerDashboard() {
       const allConvs = await base44.entities.AdminConversation.list();
       return allConvs.filter(c => c.padre_email === user?.email && !c.resuelta);
     },
-    staleTime: 10000,
-    refetchInterval: 15000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
@@ -121,19 +121,18 @@ export default function TreasurerDashboard() {
       const allMsgs = await base44.entities.ChatMessage.list('-created_date', 50);
       return allMsgs.filter(m => sports.includes(m.deporte) || m.grupo_id === "Coordinación Deportiva");
     },
-    staleTime: 10000,
-    refetchInterval: 15000,
-    refetchOnWindowFocus: true,
+    staleTime: 300000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
     enabled: !!user && myPlayers.length > 0,
   });
 
   const { data: clothingOrders = [] } = useQuery({
     queryKey: ['clothingOrdersHome'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
-    staleTime: 30000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 30000,
+    staleTime: 300000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
