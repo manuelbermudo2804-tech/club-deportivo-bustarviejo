@@ -637,7 +637,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Messages Area - scrollable */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-0 bg-white min-h-0">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-0 min-h-0" style={{backgroundColor: '#ECE5DD'}}>
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -655,11 +655,20 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
-              <div className={`max-w-[85%] ${isMine ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-900'} rounded-3xl px-4 py-2 shadow-none relative text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <p className="text-xs font-semibold opacity-70">
-                    {msg.autor === "coordinador" ? "Coordinador" : msg.autor_nombre}
+              <div className="max-w-[85%] px-3 py-2 shadow-sm relative" style={{
+                backgroundColor: isMine ? '#D1F4FF' : '#FFFFFF',
+                color: '#000000',
+                borderRadius: isMine ? '7.5px 7.5px 0px 7.5px' : '7.5px 7.5px 7.5px 0px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '14.2px',
+                lineHeight: '19px'
+              }}>
+                {!isMine && (
+                  <p className="text-xs font-medium mb-1" style={{color: '#0891B2'}}>
+                    {msg.autor === "coordinador" ? "🎓 Coordinador" : msg.autor_nombre}
                   </p>
+                )}
+                <div className="flex items-center justify-between gap-2">
                   <ChatMessageActions
                     message={msg}
                     isMine={isMine}
@@ -686,9 +695,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                      <span className="text-xs">{msg.audio_duracion}s</span>
                    </div>
                  ) : (
-                   <p className="text-base leading-5">
+                   <p className="whitespace-pre-wrap" style={{color: '#000000'}}>
                      {msg.mensaje}
-                     {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
+                     {msg.editado && <span className="text-xs ml-1" style={{color: '#667781'}}>(editado)</span>}
                    </p>
                  )}
 
@@ -734,7 +743,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 )}
 
                 <div className="flex items-center gap-1 justify-end mt-1">
-                  <p className="text-xs opacity-60">
+                  <p className="text-[11px]" style={{color: '#667781'}}>
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   {isMine && (

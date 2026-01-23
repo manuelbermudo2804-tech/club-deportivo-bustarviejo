@@ -393,30 +393,36 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
       </div>
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{backgroundColor: '#ECE5DD'}}>
         {messages.map((msg) => {
           const isMine = msg.autor === "admin";
           const isInternalNote = msg.es_nota_interna;
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} mb-1`}>
-              <div className={`max-w-[85%] ${
-                isInternalNote ? 'bg-yellow-50 text-yellow-900 border-2 border-yellow-300 rounded-3xl' :
-                isMine ? 'bg-red-600 text-white' : 
-                'bg-gray-100 text-gray-900'
-              } rounded-3xl px-4 py-2 shadow-none text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-xs font-semibold opacity-70">
-                    {isInternalNote ? '📝 Nota Interna' : 
-                     isMine ? '🛡️ Administrador' : 
-                     msg.autor_nombre}
+              <div className={`max-w-[85%] px-3 py-2 shadow-sm relative ${isInternalNote ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`} style={isInternalNote ? {borderRadius: '7.5px'} : {
+                backgroundColor: isMine ? '#FFDEDE' : '#FFFFFF',
+                color: '#000000',
+                borderRadius: isMine ? '7.5px 7.5px 0px 7.5px' : '7.5px 7.5px 7.5px 0px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '14.2px',
+                lineHeight: '19px'
+              }}>
+                {!isMine && !isInternalNote && (
+                  <p className="text-xs font-medium mb-1" style={{color: '#DC2626'}}>
+                    🛡️ {msg.autor_nombre}
                   </p>
-                  {isInternalNote && (
+                )}
+                {isInternalNote && (
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-xs font-semibold text-yellow-900">
+                      📝 Nota Interna
+                    </p>
                     <Badge className="text-[10px] bg-yellow-500 px-1 py-0 h-4">Solo visible para admins</Badge>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>{msg.mensaje}</p>
+                <p className="whitespace-pre-wrap" style={{color: isInternalNote ? '#92400E' : '#000000', fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined}}>{msg.mensaje}</p>
 
                 {msg.archivos_adjuntos?.length > 0 && (
                   <div className="mt-2 space-y-1">
@@ -460,7 +466,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                 )}
 
                 <div className="flex items-center gap-1 justify-end mt-1">
-                  <p className="text-xs opacity-60">
+                  <p className="text-[11px]" style={{color: '#667781'}}>
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   {!isInternalNote && (

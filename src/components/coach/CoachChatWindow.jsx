@@ -799,7 +799,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       />
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-0 bg-white min-h-0">
+      <div className="flex-1 overflow-y-auto p-3 space-y-0 min-h-0" style={{backgroundColor: '#ECE5DD'}}>
         {replyingTo && (
           <div className="sticky top-0 z-10 bg-blue-50 border-l-4 border-blue-500 p-2 rounded flex items-start justify-between">
             <div className="flex-1">
@@ -820,9 +820,14 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           
           return (
             <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} group mb-1`}>
-              <div className={`max-w-[85%] ${
-                isMine ? 'bg-green-500 text-gray-900' : 'bg-gray-100 text-gray-900 border'
-              } rounded-3xl px-4 py-2 shadow-none relative text-sm leading-relaxed`} style={{fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, sans-serif'}}>
+              <div className="max-w-[85%] px-3 py-2 shadow-sm relative" style={{
+                backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
+                color: '#000000',
+                borderRadius: isMine ? '7.5px 7.5px 0px 7.5px' : '7.5px 7.5px 7.5px 0px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '14.2px',
+                lineHeight: '19px'
+              }}>
                 {msg.mensaje_citado && (
                   <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-green-700 border-green-400' : 'bg-slate-100 border-slate-400'}`}>
                     <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
@@ -830,10 +835,12 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   </div>
                 )}
                 
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-xs font-semibold opacity-70">
+                {!isMine && (
+                  <p className="text-xs font-medium mb-1" style={{color: '#667781'}}>
                     {isCoachMsg ? '🏃 ' : ''}{msg.remitente_nombre}
                   </p>
+                )}
+                <div className="flex items-start justify-between gap-2">
                   {isMine && (
                     <div className="flex gap-1">
                       <Button
@@ -894,9 +901,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   // NO mostrar el texto cuando hay encuesta
                   null
                 ) : (
-                   <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
+                   <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined}}>
                      {msg.mensaje}
-                     {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
+                     {msg.editado && <span className="text-xs ml-1" style={{color: '#667781'}}>(editado)</span>}
                    </p>
                  )}
 
@@ -954,7 +961,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                 )}
 
                 <div className="flex items-center gap-1 justify-end mt-1">
-                  <p className="text-xs opacity-60">
+                  <p className="text-[11px]" style={{color: '#667781'}}>
                     {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   
