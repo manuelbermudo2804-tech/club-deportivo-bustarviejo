@@ -602,7 +602,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       {/* Messages Area - scrollable */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
-...
         {messages.map((msg, idx) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           
@@ -636,9 +635,18 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 </div>
 
                 {msg.audio_url ? (
-                  <div className="flex items-center gap-2 mt-1">
-                ...
-                ) : (
+                   <div className="flex items-center gap-2 mt-1">
+                     <Button 
+                       size="sm" 
+                       variant={isMine ? "secondary" : "outline"}
+                       onClick={() => togglePlayAudio(msg.audio_url)}
+                       className="h-7"
+                     >
+                       {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                     </Button>
+                     <span className="text-xs">{msg.audio_duracion}s</span>
+                   </div>
+                 ) : (
                   <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
                     {msg.mensaje}
                     {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
