@@ -389,14 +389,31 @@ export default function WhatsAppInputBar({
               <Camera className="w-5 h-5 text-slate-600" />
             </Button>
 
-            {/* Micrófono */}
-            <Button
-              size="icon"
-              onClick={recording ? onStopRecording : onStartRecording}
-              className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
-            >
-              {recording ? <Pause className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-            </Button>
+            {/* Micrófono - componente mejorado */}
+            <AudioRecordingBar
+              isRecording={recording}
+              onStartRecording={onStartRecording}
+              onStopRecording={onStopRecording}
+              audioBlob={audioBlob}
+              audioDuration={audioDuration}
+              onSendAudio={async () => {
+                setIsSendingAudio(true);
+                try {
+                  const audioData = await onUploadAudio?.();
+                  if (audioData) {
+                    onCancelAudio?.();
+                  }
+                } catch (err) {
+                  console.error('Error sending audio:', err);
+                  toast.error('Error al enviar audio');
+                } finally {
+                  setIsSendingAudio(false);
+                }
+              }}
+              onCancelAudio={onCancelAudio}
+              uploading={isSendingAudio || uploading}
+              disabled={audioBlob || isSendingAudio || uploading}
+            />
           </>
         ) : (
           <>
