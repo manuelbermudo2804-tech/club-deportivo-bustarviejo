@@ -799,10 +799,11 @@ export default function ParentCoachChat() {
           </div>
 
           <ParentChatInput
-            onSendMessage={handleSendMessage}
-            uploading={uploading}
-            placeholder="Escribe tu mensaje..."
-          />
+             onSendMessage={handleSendMessage}
+             uploading={uploading}
+             placeholder="Escribe tu mensaje..."
+             onSendAudio={handleSendAudio}
+           />
         </CardContent>
       </Card>
       </div>

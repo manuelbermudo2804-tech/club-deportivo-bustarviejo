@@ -345,18 +345,21 @@ export default function StaffChat() {
 
   const handleSendAudio = async (audioBlob, audioDuration) => {
     if (!audioBlob) return;
+    
+    setUploading(true);
     try {
       const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      sendMessageMutation.mutate({ 
-        mensaje: "🎤 Audio", 
+      return {
         audio_url: file_url,
-        audio_duracion: audioDuration,
-        adjuntos: []
-      });
+        audio_duracion: audioDuration
+      };
     } catch (error) {
       toast.error("Error al enviar el audio");
+      return null;
+    } finally {
+      setUploading(false);
     }
   };
 
