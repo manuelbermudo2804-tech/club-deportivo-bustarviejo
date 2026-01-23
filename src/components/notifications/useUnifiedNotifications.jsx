@@ -145,6 +145,22 @@ export function useUnifiedNotifications(user, options = {}) {
         setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
       };
       setTimeout(() => run(loadCoordConvs), 100);
+    
+      // Suscripción SOLO si cargamos datos
+      let lastCoordConvUpdate = 0;
+      const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
+        const now = Date.now();
+        if (now - lastCoordConvUpdate < 2000) return; // Throttle aumentado a 2s
+        lastCoordConvUpdate = now;
+        setRawData(prev => {
+          let updated = [...prev.coordinatorConversations];
+          if (event.type === 'create') updated = [event.data, ...updated];
+          else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
+          else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
+          return { ...prev, coordinatorConversations: updated };
+        });
+      });
+      unsubscribers.push(unsubCoordConv);
     }
 
     // Coach Conversations - solo si es entrenador o tiene jugadores
@@ -160,27 +176,12 @@ export function useUnifiedNotifications(user, options = {}) {
         setRawData(prev => ({ ...prev, coachConversations: convs }));
       };
       setTimeout(() => run(loadCoachConvs), 300);
-    }
-    let lastCoordConvUpdate = 0;
-    const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
-      const now = Date.now();
-      if (now - lastCoordConvUpdate < 1000) return;
-      lastCoordConvUpdate = now;
-      setRawData(prev => {
-        let updated = [...prev.coordinatorConversations];
-        if (event.type === 'create') updated = [event.data, ...updated];
-        else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
-        else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
-        return { ...prev, coordinatorConversations: updated };
-      });
-    });
-    unsubscribers.push(unsubCoordConv);
-
-    if (user.es_entrenador || options?.includeCoachConvs || (!user.es_coordinador && user.role !== 'admin')) {
+    
+      // Suscripción SOLO si cargamos datos
       let lastCoachConvUpdate = 0;
       const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
         const now = Date.now();
-        if (now - lastCoachConvUpdate < 1000) return;
+        if (now - lastCoachConvUpdate < 2000) return; // Throttle aumentado a 2s
         lastCoachConvUpdate = now;
         setRawData(prev => {
           let updated = [...prev.coachConversations];
