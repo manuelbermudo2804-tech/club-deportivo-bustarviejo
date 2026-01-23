@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Download, Check, CheckCheck } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import EmojiScaler from "./EmojiScaler";
 
 export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true, showReadStatus = false }) {
   const isMine = message.remitente_email === currentUserEmail;
