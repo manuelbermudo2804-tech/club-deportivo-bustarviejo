@@ -111,6 +111,7 @@ export default function WhatsAppInputBar({
   }, [externalMessageText]);
 
   const hasText = localText.trim().length > 0;
+  const hasContent = hasText || attachments.length > 0;
 
   const handleSend = () => {
     if (!localText.trim() && attachments.length === 0) return;
@@ -256,7 +257,7 @@ export default function WhatsAppInputBar({
         </div>
 
         {/* Botones dinámicos - COMO WHATSAPP */}
-        {!hasText ? (
+        {!hasContent ? (
           <>
             {/* Menú "+" */}
             <AttachmentMenu
@@ -291,7 +292,7 @@ export default function WhatsAppInputBar({
           </>
         ) : (
           <>
-            {/* Botón Enviar - REEMPLAZA al micrófono cuando hay texto */}
+            {/* Botón Enviar - aparece cuando hay texto O fotos */}
             <Button 
               onClick={handleSend}
               disabled={!localText.trim() && attachments.length === 0}
