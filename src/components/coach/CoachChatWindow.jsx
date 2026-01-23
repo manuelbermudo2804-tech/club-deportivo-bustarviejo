@@ -86,7 +86,18 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     const unsub = base44.entities.ChatMessage.subscribe((event) => {
       const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
       if (event.data?.grupo_id === grupo_id || selectedCategory === "Todas las categorías") {
-        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
+        queryClient.setQueryData(['coachGroupMessages', selectedCategory], (old) => {
+          if (!old) return [event.data];
+          if (event.type === 'delete') return old.filter(m => m.id !== event.data.id);
+          const idx = old.findIndex(m => m.id === event.data.id);
+          if (idx >= 0) {
+            const updated = [...old];
+            updated[idx] = event.data;
+            return updated;
+          }
+          return [...old, event.data].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        });
+        queryClient.invalidateQueries({ queryKey: ['coachChatState', selectedCategory] });
       }
     });
     
@@ -101,7 +112,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       const logs = await base44.entities.CoachChatLog.filter({ grupo_id });
       return logs[0] || null;
     },
-    refetchInterval: 2000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
     enabled: !!selectedCategory,
   });
 
@@ -581,12 +594,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       return newMessage;
     },
     onSuccess: async () => {
-      // Refetch INMEDIATO sin esperar
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
-        queryClient.invalidateQueries({ queryKey: ['photoGalleries'] }),
-        queryClient.refetchQueries({ queryKey: ['coachGroupMessages'] }),
-      ]);
+      queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
+      queryClient.invalidateQueries({ queryKey: ['coachChatState', selectedCategory] });
       setReplyingTo(null);
     },
   });
@@ -858,14 +867,13 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                     <span className="text-sm">🎤 {msg.audio_duracion}s</span>
                   </div>
                 ) : msg.encuesta ? (
-                  // NO mostrar el texto cuando hay encuesta
                   null
                 ) : (
-                   <p className="text-base whitespace-pre-wrap leading-5" style={{ fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : undefined }}>
-                     {msg.mensaje}
-                     {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
-                   </p>
-                 )}
+                  <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>
+                    {msg.mensaje}
+                    {msg.editado && <span className="text-xs ml-1" style={{color: '#667781'}}>(editado)</span>}
+                  </p>
+                )}
 
                 {/* Archivos ANTES de la encuesta */}
                 {msg.archivos_adjuntos?.length > 0 && (

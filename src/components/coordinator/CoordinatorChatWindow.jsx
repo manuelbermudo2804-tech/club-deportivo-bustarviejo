@@ -56,13 +56,27 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
     enabled: !!conversation?.id,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
   });
 
   useEffect(() => {
     if (!conversation?.id) return;
     const unsub = base44.entities.CoordinatorMessage.subscribe((event) => {
       if (event.data?.conversacion_id === conversation.id) {
-        queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
+        queryClient.setQueryData(['coordinatorMessages', conversation.id], (old) => {
+          if (!old) return [event.data];
+          if (event.type === 'delete') return old.filter(m => m.id !== event.data.id);
+          const idx = old.findIndex(m => m.id === event.data.id);
+          if (idx >= 0) {
+            const updated = [...old];
+            updated[idx] = event.data;
+            return updated;
+          }
+          return [...old, event.data].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        });
+        queryClient.invalidateQueries({ queryKey: ['coordinatorConversationState', conversation.id] });
       }
     });
     return unsub;
@@ -75,7 +89,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       const data = await base44.entities.CoordinatorConversation.filter({ id: conversation.id });
       return data[0];
     },
-    refetchInterval: 2000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
     enabled: !!conversation?.id,
   });
 
@@ -646,23 +662,23 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 </div>
 
                 {msg.audio_url ? (
-                   <div className="flex items-center gap-2 mt-1">
-                     <Button 
-                       size="sm" 
-                       variant={isMine ? "secondary" : "outline"}
-                       onClick={() => togglePlayAudio(msg.audio_url)}
-                       className="h-7"
-                     >
-                       {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                     </Button>
-                     <span className="text-xs">{msg.audio_duracion}s</span>
-                   </div>
-                 ) : (
-                   <p className="text-base leading-5">
-                     {msg.mensaje}
-                     {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
-                   </p>
-                 )}
+                  <div className="flex items-center gap-2 mt-1">
+                    <Button 
+                      size="sm" 
+                      variant={isMine ? "secondary" : "outline"}
+                      onClick={() => togglePlayAudio(msg.audio_url)}
+                      className="h-7"
+                    >
+                      {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                    </Button>
+                    <span className="text-xs">{msg.audio_duracion}s</span>
+                  </div>
+                ) : (
+                  <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>
+                    {msg.mensaje}
+                    {msg.editado && <span className="text-xs ml-1" style={{color: '#667781'}}>(editado)</span>}
+                  </p>
+                )}
 
                 {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
                 

@@ -44,8 +44,7 @@ export default function ParentAdminChat() {
     enabled: !!user,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: 30000,
-    gcTime: 300000,
+    staleTime: Infinity,
   });
 
   const { data: messages = [] } = useQuery({
@@ -59,8 +58,7 @@ export default function ParentAdminChat() {
     },
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: 30000,
-    gcTime: 300000,
+    staleTime: Infinity,
     enabled: !!conversation?.id,
   });
 
@@ -70,8 +68,17 @@ export default function ParentAdminChat() {
     
     const unsub = base44.entities.AdminMessage.subscribe((event) => {
       if (event.data?.conversacion_id === conversation.id && !event.data?.es_nota_interna) {
-        queryClient.invalidateQueries({ queryKey: ['parentAdminMessages', conversation.id] });
-        queryClient.invalidateQueries({ queryKey: ['parentAdminConversation'] });
+        queryClient.setQueryData(['parentAdminMessages', conversation.id], (old) => {
+          if (!old) return [event.data];
+          if (event.type === 'delete') return old.filter(m => m.id !== event.data.id);
+          const idx = old.findIndex(m => m.id === event.data.id);
+          if (idx >= 0) {
+            const updated = [...old];
+            updated[idx] = event.data;
+            return updated;
+          }
+          return [...old, event.data].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        });
       }
     });
     
