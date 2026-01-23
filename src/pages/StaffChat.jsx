@@ -39,6 +39,10 @@ export default function StaffChat() {
   const [showParticipants, setShowParticipants] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [playingAudio, setPlayingAudio] = useState(null);
+  const audioRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   // Contador global estable (evita parpadeo)
   const { total: staffCounterTotal, markRead: markReadCounter } = useStaffCounters({ refetchOnFocus: true });
   // Contador independiente (ChatCounter)
@@ -321,6 +325,41 @@ export default function StaffChat() {
       return null;
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleSendAudio = async (audioBlob, audioDuration) => {
+    if (!audioBlob) return;
+    try {
+      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      sendMessageMutation.mutate({ 
+        mensaje: "🎤 Audio", 
+        audio_url: file_url,
+        audio_duracion: audioDuration,
+        adjuntos: []
+      });
+    } catch (error) {
+      toast.error("Error al enviar el audio");
+    }
+  };
+
+  const togglePlayAudio = async (audioUrl) => {
+    try {
+      if (playingAudio === audioUrl) {
+        audioRef.current?.pause();
+        setPlayingAudio(null);
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = audioUrl;
+          await audioRef.current.play();
+          setPlayingAudio(audioUrl);
+        }
+      }
+    } catch (error) {
+      setPlayingAudio(null);
+      toast.error("Error al reproducir el audio");
     }
   };
 
@@ -634,6 +673,14 @@ export default function StaffChat() {
 
   return (
     <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
+      <audio 
+        ref={audioRef} 
+        onEnded={() => setPlayingAudio(null)}
+        onError={() => {
+          setPlayingAudio(null);
+          toast.error("Error al cargar el audio");
+        }}
+      />
       <Card className="border-purple-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-2 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -830,10 +877,22 @@ export default function StaffChat() {
                           </div>
                         </div>
 
-                        <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                          {msg.mensaje}
-                          {msg.editado && <span className="text-xs ml-1 opacity-60">(editado)</span>}
-                        </p>
+                        {msg.audio_url ? (
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => togglePlayAudio(msg.audio_url)}
+                              className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/20"
+                            >
+                              {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                            </button>
+                            <span className="text-sm">🎤 {msg.audio_duracion}s</span>
+                          </div>
+                        ) : (
+                          <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                            {msg.mensaje}
+                            {msg.editado && <span className="text-xs ml-1 opacity-60">(editado)</span>}
+                          </p>
+                        )}
 
                         {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
                         {msg.encuesta && (
@@ -949,6 +1008,7 @@ export default function StaffChat() {
             onLocationClick={() => setShowLocationDialog(true)}
             onPollClick={() => setShowPollDialog(true)}
             onExerciseClick={() => setShowQuickReplies(!showQuickReplies)}
+            onSendAudio={handleSendAudio}
             uploading={uploading}
             showExercise={false}
             placeholder="Escribe un mensaje..."
