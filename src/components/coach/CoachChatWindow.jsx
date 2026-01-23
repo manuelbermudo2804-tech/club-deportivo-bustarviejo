@@ -591,18 +591,21 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     },
   });
 
-  const handleSend = () => {
+  const handleSend = (textFromInput) => {
+    const finalText = textFromInput || messageText;
+    
     if (editingMessage) {
       setEditingMessage(null);
+      setMessageText("");
       editMessageMutation.mutate({
         id: editingMessage.id,
-        mensaje: messageText
+        mensaje: finalText
       });
     } else {
-      if (!messageText.trim() && attachments.length === 0) return;
+      if (!finalText.trim() && attachments.length === 0) return;
       
       const messageData = { 
-        mensaje: messageText, 
+        mensaje: finalText, 
         archivos_adjuntos: [...attachments] 
       };
       
@@ -615,6 +618,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       }
       
       sendMessageMutation.mutate(messageData);
+      setMessageText("");
       setAttachments([]);
     }
   };

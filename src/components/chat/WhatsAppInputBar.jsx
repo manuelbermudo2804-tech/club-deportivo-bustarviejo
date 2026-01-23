@@ -115,16 +115,17 @@ export default function WhatsAppInputBar({
   const handleSend = () => {
     if (!localText.trim() && attachments.length === 0) return;
     
-    // Notificar al padre con el texto
-    if (externalSetMessageText) {
-      externalSetMessageText(localText);
-    }
-    
-    onSend();
+    // Pasar el texto actual al callback del padre
+    onSend(localText);
     
     // Limpiar input local
     setLocalText("");
     localTextRef.current = "";
+    
+    // Limpiar también el externo si existe
+    if (externalSetMessageText) {
+      externalSetMessageText("");
+    }
     
     // Reset textarea height
     if (textareaRef.current) {

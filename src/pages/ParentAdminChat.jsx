@@ -181,14 +181,16 @@ export default function ParentAdminChat() {
     }
   };
 
-  const handleSend = async () => {
-    if (!messageText.trim() && attachments.length === 0) return;
+  const handleSend = async (textFromInput) => {
+    const finalText = textFromInput || messageText;
+    if (!finalText.trim() && attachments.length === 0) return;
     
     const dataToSend = { 
-      mensaje: messageText, 
+      mensaje: finalText, 
       archivos_adjuntos: [...attachments] 
     };
     
+    setMessageText("");
     setAttachments([]);
     
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
