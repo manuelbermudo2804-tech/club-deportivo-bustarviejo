@@ -91,11 +91,18 @@ export default function CoachParentChat({ embedded = false }) {
       (m.grupo_id === grupo_id || m.deporte === selectedCategory) &&
       (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
     );
+    
+    if (unread.length === 0) return;
+    
     (async () => {
-      for (const msg of unread) {
-        const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
-        leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-        await base44.entities.ChatMessage.update(msg.id, { leido: true, leido_por: leidoPor });
+      try {
+        for (const msg of unread.slice(0, 10)) {
+          const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
+          leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
+          await base44.entities.ChatMessage.update(msg.id, { leido: true, leido_por: leidoPor });
+        }
+      } catch (e) {
+        console.log('Error marcando mensajes como leídos:', e);
       }
     })();
   }, [selectedCategory, messages, user]);
