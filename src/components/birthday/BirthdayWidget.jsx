@@ -18,7 +18,7 @@ export default function BirthdayWidget() {
         const todayMDKey = `${month}-${day}`;
 
         // Buscar en BirthdayLog registros de hoy
-        const logs = await base44.asServiceRole.entities.BirthdayLog.filter({
+        const logs = await base44.entities.BirthdayLog.filter({
           email_enviado: true
         });
 
