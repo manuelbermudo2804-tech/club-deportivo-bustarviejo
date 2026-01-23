@@ -172,7 +172,7 @@ export function useUnifiedNotifications(user, options = {}) {
     });
     unsubscribers.push(unsubCoordConv);
 
-    if (user.es_entrenador || options?.includeCoachConvs) {
+    if (user.es_entrenador || options?.includeCoachConvs || (!user.es_coordinador && user.role !== 'admin')) {
       let lastCoachConvUpdate = 0;
       const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
         const now = Date.now();
@@ -591,12 +591,19 @@ export function useUnifiedNotifications(user, options = {}) {
 
 
 
-    // === ENTRENADOR - FAMILIAS (conversaciones directas) ===
+    // === ENTRENADOR - FAMILIAS (conversaciones directas CoachConversation) ===
     rawData.coachConversations.forEach(conv => {
+      // Para entrenadores: mensajes de familias
       if (user.es_entrenador && conv.entrenador_email === user.email) {
         const c = (conv.no_leidos_entrenador || 0);
         unreadCoachForStaff += c;
         if (c > 0) breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] = (breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] || 0) + c;
+      }
+      // Para familias: mensajes del entrenador en CoachConversation
+      if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin' && conv.padre_email === user.email) {
+        const c = (conv.no_leidos_padre || 0);
+        unreadCoachForParent += c;
+        if (c > 0) breakdown.coachGroupForParent[conv.categoria || 'general'] = (breakdown.coachGroupForParent[conv.categoria || 'general'] || 0) + c;
       }
     });
 
