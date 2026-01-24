@@ -152,7 +152,6 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
         </form>
       </DialogContent>
     </Dialog>
-    </>
 
     <Dialog open={showSuccess} onOpenChange={(v) => {
       if (!v) { setShowSuccess(false); onOpenChange(false); }
