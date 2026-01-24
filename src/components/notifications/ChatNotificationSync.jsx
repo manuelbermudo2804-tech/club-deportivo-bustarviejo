@@ -52,6 +52,21 @@ export function ChatNotificationSync({ user }) {
         }
       });
       unsubscribers.push(unsubCoordMsg);
+
+      // Backup: escuchar updates de CoordinatorConversation.no_leidos_coordinador (más confiable)
+      const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
+        if (event.type === 'update' && event.data) {
+          const oldCount = event.old_data?.no_leidos_coordinador || 0;
+          const newCount = event.data.no_leidos_coordinador || 0;
+          if (newCount > oldCount) {
+            const delta = newCount - oldCount;
+            for (let i = 0; i < delta; i++) {
+              UnifiedChatNotificationStore.increment(user.email, 'coordinator');
+            }
+          }
+        }
+      });
+      unsubscribers.push(unsubCoordConv);
     }
 
     // Para familias: mensajes DEL coordinador
