@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 export default function FeedbackModal({ open, onOpenChange, user, currentPage }) {
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     tipo: "sugerencia",
     titulo: "",
@@ -19,6 +20,7 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
     nombre: user?.full_name || "",
     pagina: currentPage || "",
   });
+  const isValid = formData.titulo.trim() && formData.descripcion.trim();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
     setLoading(true);
     try {
       await base44.entities.Feedback.create(formData);
-      toast.success("✅ ¡Gracias por tu feedback! Nos ayuda a mejorar");
+      setShowSuccess(true);
       setFormData({
         tipo: "sugerencia",
         titulo: "",
@@ -40,7 +42,6 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
         nombre: user?.full_name || "",
         pagina: currentPage || "",
       });
-      onOpenChange(false);
     } catch (error) {
       toast.error("Error al enviar feedback: " + error.message);
     } finally {
@@ -148,6 +149,25 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
             </Button>
           </div>
         </form>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={showSuccess} onOpenChange={(v) => {
+      if (!v) { setShowSuccess(false); onOpenChange(false); }
+    }}>
+      <DialogContent className="max-w-sm text-center">
+        <DialogHeader>
+          <DialogTitle>¡Gracias por tu mensaje!</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-slate-600">
+          Hemos recibido tus sugerencias/bugs. Te avisaremos si necesitamos más datos.
+        </p>
+        <Button
+          onClick={() => { setShowSuccess(false); onOpenChange(false); }}
+          className="w-full bg-green-600 hover:bg-green-700 mt-3"
+        >
+          Entendido
+        </Button>
       </DialogContent>
     </Dialog>
   );
