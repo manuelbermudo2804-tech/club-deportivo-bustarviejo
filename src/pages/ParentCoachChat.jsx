@@ -131,11 +131,14 @@ export default function ParentCoachChat() {
 
     const markAsRead = async () => {
       try {
-        const categoryKey = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-        const unreadMessages = messages.filter(m => 
-          (m.grupo_id === categoryKey || m.deporte === selectedCategory) &&
-          (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
-        );
+        const categoryKey = toGroupId(selectedCategory || "");
+        const normSel = normalizeCategory(selectedCategory || "");
+        const unreadMessages = messages.filter(m => {
+          const normMsgCat = normalizeCategory(m.deporte || "");
+          const matchGroup = m.grupo_id === categoryKey;
+          const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
+          return (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
+        });
         
         for (const msg of unreadMessages) {
           const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
@@ -175,7 +178,7 @@ export default function ParentCoachChat() {
     markAsRead();
   }, [user?.email, selectedCategory, messages.length, queryClient]);
 
-  const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
+  const categoryKey = toGroupId(selectedCategory || "");
   const categoryMessages = selectedCategory
     ? messages.filter(m => {
         const normMsgCat = normalizeCategory(m.deporte || "");
@@ -226,7 +229,7 @@ export default function ParentCoachChat() {
       await queryClient.cancelQueries({ queryKey: ['coachParentChatMessages'] });
       const previousMessages = queryClient.getQueryData(['coachParentChatMessages']);
 
-      const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
+      const categoryKey = toGroupId(selectedCategory || "");
       const optimisticMessage = {
         id: `temp-${Date.now()}`,
         mensaje: messageData.mensaje,
