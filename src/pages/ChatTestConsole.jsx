@@ -352,9 +352,10 @@ export default function ChatTestConsole() {
   const sendParentToCoordinator = async () => {
     setBusy('p2coord'); setStatus(null);
     try {
-      if (!parentEmail) throw new Error('Falta email de familia');
+      if (!parentEmail || !coordEmail) throw new Error('Falta email de familia o coordinador');
       const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
       const conv = convs[0] || (await base44.entities.CoordinatorConversation.create({ padre_email: parentEmail, padre_nombre: "Familia Test", no_leidos_coordinador: 0, no_leidos_padre: 0, archivada: false }));
+      const nowIso = new Date().toISOString();
       await base44.entities.CoordinatorMessage.create({
         conversacion_id: conv.id,
         autor: "padre",
@@ -364,7 +365,14 @@ export default function ChatTestConsole() {
         leido_padre: true,
         leido_coordinador: false,
       });
-      await base44.entities.CoordinatorConversation.update(conv.id, { ultimo_mensaje: "Nuevo mensaje (familia)", ultimo_mensaje_autor: "padre", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_coordinador: (conv.no_leidos_coordinador || 0) + 1 });
+      // CRÍTICO: Marcar coordinador como NO leído para que vea burbuja roja
+      await base44.entities.CoordinatorConversation.update(conv.id, { 
+        ultimo_mensaje: "Nuevo mensaje (familia)", 
+        ultimo_mensaje_autor: "padre", 
+        ultimo_mensaje_fecha: nowIso,
+        no_leidos_coordinador: (conv.no_leidos_coordinador || 0) + 1,
+        ultimo_leido_coordinador_fecha: null  // Reset para que sea "nuevo"
+      });
       setStatus('✅ Enviado: Familia→Coordinador');
     } catch (e) {
       setStatus(`❌ Familia→Coordinador: ${e?.message || e}`);
