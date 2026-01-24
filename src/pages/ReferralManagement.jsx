@@ -174,10 +174,18 @@ export default function ReferralManagement() {
     }
   });
 
-  // Usuarios con referidos
+  // Usuarios con referidos (contar desde ReferralReward)
   const usersWithReferrals = users
-    .filter(u => (u.referrals_count || 0) > 0)
-    .sort((a, b) => (b.referrals_count || 0) - (a.referrals_count || 0));
+    .map(u => {
+      const userReferrals = referralRewards.filter(r => r.referrer_email === u.email && r.temporada === seasonConfig?.temporada);
+      return {
+        ...u,
+        referrals_count: userReferrals.length,
+        clothing_credit_balance: userReferrals.reduce((sum, r) => sum + (r.clothing_credit_earned || 0), 0)
+      };
+    })
+    .filter(u => u.referrals_count > 0)
+    .sort((a, b) => b.referrals_count - a.referrals_count);
 
   // Filtrar por búsqueda
   const filteredUsers = usersWithReferrals.filter(u => 
