@@ -234,7 +234,7 @@ export default function QuickMatchObservationForm({
         </DialogHeader>
         <p className="text-sm text-slate-600">Tu observación post‑partido se ha guardado correctamente.</p>
         <DialogFooter>
-          <Button onClick={() => { setSuccessOpen(false); onCancel && onCancel(); }} className="bg-green-600 hover:bg-green-700">Listo</Button>
+          <Button onClick={() => { setSuccessOpen(false); dirtyRef.current = false; onCancel && onCancel(); }} className="bg-green-600 hover:bg-green-700">Listo</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
