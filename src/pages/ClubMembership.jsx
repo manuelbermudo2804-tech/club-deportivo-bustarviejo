@@ -411,6 +411,8 @@ export default function ClubMembership() {
           console.log("📊 Referrer final:", referrer ? `${referrer.full_name} (${referrer.email})` : "NINGUNO");
           
           if (referrer) {
+            // Guardar referidor en la ficha del socio
+            try { await base44.entities.ClubMember.update(membership.id, { referido_por: referrer.full_name, referido_por_email: referrer.email }); } catch {}
             // Verificar que el referrer no haya alcanzado el máximo de 15 referidos
             const currentCount = referrer.referrals_count || 0;
             if (currentCount >= 15) {
