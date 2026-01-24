@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageCircle, Search, Archive, ArchiveRestore, Users, Filter, Star, Settings } from "lucide-react";
+import { MessageCircle, Search, Archive, ArchiveRestore, Users, Filter, Star, Settings, ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
@@ -15,8 +16,9 @@ import SocialLinks from "../components/SocialLinks";
 import CoordinatorAwayMode from "../components/coordinator/CoordinatorAwayMode";
 
 export default function CoordinatorChat({ embedded = false }) {
-  const [user, setUser] = useState(null);
-  const [isCoordinator, setIsCoordinator] = useState(false);
+  const navigate = useNavigate();
+   const [user, setUser] = useState(null);
+   const [isCoordinator, setIsCoordinator] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -138,6 +140,15 @@ export default function CoordinatorChat({ embedded = false }) {
           <div className="flex items-center justify-between mb-2">
             <div>
               <h1 className="text-sm font-bold flex items-center gap-1.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(-1)}
+                  className="text-white hover:bg-white/20 h-7 w-7 p-0"
+                  title="Volver atrás"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
                 <MessageCircle className="w-4 h-4" />
                 Chat Coordinador
               </h1>
