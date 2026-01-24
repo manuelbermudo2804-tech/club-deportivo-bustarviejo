@@ -4,48 +4,54 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, ShieldAlert, Users, Bell, Rocket, Mail, RefreshCw } from "lucide-react";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
+import { Input } from "@/components/ui/input";
+import { MessageCircle, ShieldAlert, Users, Bell, Rocket, Mail } from "lucide-react";
+import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
-function LiveChatCounters({ userEmail, role }) {
-  const [counts, setCounts] = useState({});
-
-  useEffect(() => {
-    if (!userEmail) return;
-    UnifiedChatNotificationStore.initUser(userEmail);
-    const unsub = UnifiedChatNotificationStore.subscribe(userEmail, (state) => {
-      setCounts(state);
-    });
-    return unsub;
-  }, [userEmail]);
-
+function BubbleRow({ role, notifications }) {
   const items = (() => {
-    if (role === 'staff') {
+    if (role === 'admin') {
       return [
-        { key: 'staff', label: 'Staff', value: counts.staff, Icon: Users },
-        { key: 'coord', label: 'Coord→Fam', value: counts.coordinator, Icon: MessageCircle },
-        { key: 'coach', label: 'Coach→Fam', value: counts.coach, Icon: MessageCircle },
+        { key: 'crit', label: 'Críticos', value: notifications.unresolvedAdminChats, Icon: ShieldAlert },
+        { key: 'staff', label: 'Staff', value: notifications.unreadStaffMessages, Icon: Users },
+        { key: 'pago', label: 'Pagos', value: notifications.paymentsInReview, Icon: Bell },
+        { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
       ];
     }
-    if (role === 'family') {
+    if (role === 'coordinator') {
       return [
-        { key: 'system', label: 'Sistema', value: counts.systemMessages, Icon: Mail },
-        { key: 'coord', label: 'Coordinador', value: counts.coordinatorForFamily, Icon: MessageCircle },
-        { key: 'coach', label: 'Entrenador', value: counts.coachForFamily, Icon: MessageCircle },
+        { key: 'fam', label: 'Familias', value: notifications.unreadFamilyMessages, Icon: MessageCircle },
+        { key: 'staff', label: 'Staff', value: notifications.unreadStaffMessages, Icon: Users },
+        { key: 'resp', label: 'Respuestas', value: notifications.pendingCallupResponses, Icon: Bell },
+        { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
       ];
     }
-    return [];
+    if (role === 'coach') {
+      return [
+        { key: 'fam', label: 'Familias', value: notifications.unreadFamilyMessages, Icon: MessageCircle },
+        { key: 'resp', label: 'Respuestas', value: notifications.pendingCallupResponses, Icon: Bell },
+        { key: 'obs', label: 'Obs.', value: notifications.pendingMatchObservations, Icon: ShieldAlert },
+        { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
+      ];
+    }
+    // familia
+    return [
+      { key: 'coach', label: 'Entrenador', value: notifications.unreadCoachMessages, Icon: MessageCircle },
+      { key: 'conv', label: 'Convocatorias', value: notifications.pendingCallups, Icon: Bell },
+      { key: 'priv', label: 'Privados', value: notifications.unreadPrivateMessages, Icon: Mail },
+      { key: 'ann', label: 'Anuncios', value: notifications.unreadAnnouncements, Icon: Bell },
+      { key: 'coord', label: 'Coord.', value: notifications.unreadCoordinatorMessages, Icon: MessageCircle },
+    ];
   })();
-
   return (
-    <div className="flex flex-wrap gap-4 items-center">
+    <div className="flex flex-wrap gap-5 items-center">
       {items.map(({ key, label, value, Icon }) => (
         <div key={key} className="flex flex-col items-center">
           <div className="relative">
             <div className="h-11 w-11 rounded-full bg-white border flex items-center justify-center shadow">
               <Icon className="w-5 h-5 text-slate-700" />
             </div>
-            <span className={`absolute -top-1 -right-1 rounded-full text-[10px] px-1.5 py-0.5 ${(value||0) > 0 ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+            <span className={`absolute -top-1 -right-1 rounded-full text-[10px] px-1.5 py-0.5 ${ (value||0) > 0 ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700' }`}>
               {value || 0}
             </span>
           </div>
@@ -56,9 +62,88 @@ function LiveChatCounters({ userEmail, role }) {
   );
 }
 
+function RoleCounters({ title, notifications }) {
+  const items = [
+    { label: "Staff", value: notifications?.unreadStaffMessages },
+    { label: "Familias→Entrenador", value: notifications?.unreadFamilyMessages },
+    { label: "Entrenador→Familias", value: notifications?.unreadCoachMessages },
+    { label: "Coordinador", value: notifications?.unreadCoordinatorMessages },
+    { label: "Administrador", value: notifications?.unreadAdminMessages },
+    { label: "Privados (Club)", value: notifications?.unreadPrivateMessages },
+  ];
+  const total = items.reduce((s, it) => s + (it.value || 0), 0);
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-sm">
+          <span>{title}</span>
+          <Badge className={total > 0 ? "bg-red-500" : "bg-green-600"}>{total}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-2">
+        {items.map((it) => (
+          <div key={it.label} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2">
+            <span className="text-xs text-slate-600">{it.label}</span>
+            <Badge className={it.value > 0 ? "bg-red-500" : "bg-slate-700"}>{it.value || 0}</Badge>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
-
-
+function AlertPreview({ title, userStub, notifications }) {
+  const items = (() => {
+    if (!userStub) return [];
+    if (userStub.role === 'admin') {
+      return [
+        { label: 'Chats críticos abiertos', value: notifications.unresolvedAdminChats },
+        { label: 'Mensajes Staff', value: notifications.unreadStaffMessages },
+        { label: 'Pagos en revisión', value: notifications.paymentsInReview },
+      ];
+    }
+    if (userStub.es_coordinador) {
+      return [
+        { label: 'Familias (grupo)', value: notifications.unreadFamilyMessages },
+        { label: 'Mensajes Staff', value: notifications.unreadStaffMessages },
+        { label: 'Coord. directos', value: notifications.unreadCoordinatorMessages },
+        { label: 'Respuestas convocatorias', value: notifications.pendingCallupResponses },
+      ];
+    }
+    if (userStub.es_entrenador) {
+      return [
+        { label: 'Familias (grupo)', value: notifications.unreadFamilyMessages },
+        { label: 'Respuestas convocatorias', value: notifications.pendingCallupResponses },
+        { label: 'Observaciones pendientes', value: notifications.pendingMatchObservations },
+      ];
+    }
+    // Familia
+    return [
+      { label: 'Entrenador→grupo', value: notifications.unreadCoachMessages },
+      { label: 'Convocatorias por confirmar', value: notifications.pendingCallups },
+      { label: 'Anuncios sin leer', value: notifications.unreadAnnouncements },
+    ];
+  })();
+  const total = items.reduce((s, it) => s + (it.value || 0), 0);
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-sm">
+          <span>{title}</span>
+          <Badge className={total > 0 ? 'bg-red-500' : 'bg-green-600'}>{total}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-2">
+        {items.map((it) => (
+          <div key={it.label} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2">
+            <span className="text-xs text-slate-600">{it.label}</span>
+            <Badge className={(it.value||0) > 0 ? 'bg-red-500' : 'bg-slate-700'}>{it.value || 0}</Badge>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function ChatTestConsole() {
   const [me, setMe] = useState(null);
@@ -68,9 +153,47 @@ export default function ChatTestConsole() {
   const [coordEmail, setCoordEmail] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [category, setCategory] = useState("");
-  const [busy, setBusy] = useState(null);
+  // Remitente para modo simple
+  const [testSenderRole, setTestSenderRole] = useState("entrenador");
+
+  // UI feedback
+  const [busy, setBusy] = useState(null); // 'staff'|'p2c'|'c2g'|'p2coord'|'admin2fam'|'private'|null
   const [status, setStatus] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [bubbleRole, setBubbleRole] = useState('admin');
+  // Aislamiento de pruebas (fuerza todos los contadores a 0 como base)
+  const [isolateMode, setIsolateMode] = useState(false);
+  const [adminBase, setAdminBase] = useState(null);
+  const [coordBase, setCoordBase] = useState(null);
+  const [coachBase, setCoachBase] = useState(null);
+  const [familyBase, setFamilyBase] = useState(null);
+
+  // Pausar realtime global del resto de la app mientras probamos
+  useEffect(() => {
+    const prev = typeof window !== 'undefined' ? window.__BASE44_PAUSE_REALTIME__ : false;
+    if (typeof window !== 'undefined') window.__BASE44_PAUSE_REALTIME__ = true;
+    return () => { if (typeof window !== 'undefined') window.__BASE44_PAUSE_REALTIME__ = prev || false; };
+  }, []);
+
+  // Impersonaciones ligeras (siempre declarar hooks antes de cualquier return)
+  const asAdmin = me; // admin real
+  const asCoordinator = useMemo(
+    () => ({ email: coordEmail, full_name: "Coord (test)", role: "user", es_coordinador: true }),
+    [coordEmail]
+  );
+  const asCoach = useMemo(
+    () => ({ email: coachEmail, full_name: "Coach (test)", role: "user", es_entrenador: true, categorias_entrena: category ? [category] : [] }),
+    [coachEmail, category]
+  );
+  const asFamily = useMemo(
+    () => ({ email: parentEmail, full_name: "Familia (test)", role: "user" }),
+    [parentEmail]
+  );
+
+  // Unificar: una instancia del hook por rol (evita duplicados y rate limits)
+  const adminN = useUnifiedNotifications(asAdmin, { forceInstance: true, testModeLoadAll: true }).notifications;
+  const coordN = useUnifiedNotifications(asCoordinator, { forceInstance: true, ignorePause: true }).notifications;
+  const coachN = useUnifiedNotifications(asCoach, { forceInstance: true, ignorePause: true }).notifications;
+  const familyN = useUnifiedNotifications(asFamily, { forceInstance: true, ignorePause: true }).notifications;
 
   useEffect(() => {
     (async () => {
@@ -80,6 +203,7 @@ export default function ChatTestConsole() {
       setUsers(allUsers);
       const allPlayers = await base44.entities.Player.list();
       setPlayers(allPlayers);
+      // Defaults
       const coach = allUsers.find((x) => x.es_entrenador === true);
       const coord = allUsers.find((x) => x.es_coordinador === true);
       const anyParent = allPlayers.find((p) => p.email_padre) || {};
@@ -89,23 +213,6 @@ export default function ChatTestConsole() {
       setCategory(allPlayers[0]?.deporte || "Fútbol Alevín (Mixto)");
     })();
   }, []);
-
-  const [staffCounts, setStaffCounts] = useState({});
-  const [familyCounts, setFamilyCounts] = useState({});
-
-  useEffect(() => {
-    if (!coordEmail) return;
-    UnifiedChatNotificationStore.initUser(coordEmail);
-    const unsub = UnifiedChatNotificationStore.subscribe(coordEmail, setStaffCounts);
-    return unsub;
-  }, [coordEmail, refreshKey]);
-
-  useEffect(() => {
-    if (!parentEmail) return;
-    UnifiedChatNotificationStore.initUser(parentEmail);
-    const unsub = UnifiedChatNotificationStore.subscribe(parentEmail, setFamilyCounts);
-    return unsub;
-  }, [parentEmail, refreshKey]);
 
   if (!me) {
     return (
@@ -141,22 +248,56 @@ export default function ChatTestConsole() {
 
   const slug = (str) => (str || "").toLowerCase().replace(/\s+/g, "_");
 
+  // Helpers para modo simple
+  const getSender = () => {
+    if (testSenderRole === 'entrenador' && coachEmail) return { email: coachEmail, nombre: 'Coach Test', rol: 'entrenador' };
+    if (testSenderRole === 'coordinador' && coordEmail) return { email: coordEmail, nombre: 'Coordinador Test', rol: 'coordinador' };
+    return { email: me.email, nombre: me.full_name, rol: 'admin' };
+  };
+
+  // Actions (crear mensajes de prueba)
   const sendStaff = async () => {
     setBusy('staff'); setStatus(null);
     try {
       const convs = await base44.entities.StaffConversation.filter({ categoria: "General" });
-      const conv = convs[0] || (await base44.entities.StaffConversation.create({ nombre: "Test Staff", categoria: "General", participantes: [], activa: true }));
+      const conv = convs[0] || (await base44.entities.StaffConversation.create({ nombre: "Chat Interno Staff", categoria: "General", participantes: [], activa: true }));
+      const s = getSender();
+      const nowIso = new Date().toISOString();
+      // Asegurar participantes (para que el hook los considere)
+      let participantes = Array.isArray(conv.participantes) ? [...conv.participantes] : [];
+      const ensurePart = (email, nombre, rol) => {
+        if (!email) return;
+        if (!participantes.some(p => p.email === email)) participantes.push({ email, nombre: nombre || email, rol });
+      };
+      ensurePart(coachEmail, "Coach Test", "entrenador");
+      ensurePart(coordEmail, "Coordinador Test", "coordinador");
+      // Marcar lectura del remitente en la conversación
+      let last = Array.isArray(conv.last_read_by) ? [...conv.last_read_by] : [];
+      const li = last.findIndex(r => r.email === s.email);
+      if (li >= 0) last[li].fecha = nowIso; else last.push({ email: s.email, fecha: nowIso });
+      await base44.entities.StaffConversation.update(conv.id, { participantes, last_read_by: last });
       await base44.entities.StaffMessage.create({
         conversacion_id: conv.id,
-        autor_email: me.email,
-        autor_nombre: me.full_name,
-        autor_rol: 'admin',
-        mensaje: `Prueba Staff ${new Date().toLocaleTimeString()}`,
-        leido_por: [{ email: me.email, nombre: me.full_name, fecha: new Date().toISOString() }],
+        autor_email: s.email,
+        autor_nombre: s.nombre,
+        autor_rol: s.rol,
+        mensaje: `Prueba staff ${new Date().toLocaleTimeString()}`,
+        leido_por: [{ email: s.email, nombre: s.nombre, fecha: nowIso }],
       });
-      setStatus('✅ Mensaje Staff enviado');
+      // Crear AppNotification para el coordinador (para que aparezca en barra/burbuja)
+      if (coordEmail && coordEmail !== s.email) {
+        await base44.entities.AppNotification.create({
+          usuario_email: coordEmail,
+          titulo: "Nuevo mensaje de Staff",
+          contenido: `De ${s.nombre}`,
+          tipo: "staff",
+          enlace: "StaffChat",
+          vista: false,
+        });
+      }
+      setStatus('✅ Staff: mensaje creado');
     } catch (e) {
-      setStatus(`❌ ${e?.message || e}`);
+      setStatus(`❌ Staff: ${e?.message || e}`);
     } finally {
       setBusy(null);
     }
@@ -286,8 +427,8 @@ export default function ChatTestConsole() {
       const conv = convs[0] || (await base44.entities.PrivateConversation.create({
         participante_familia_email: parentEmail,
         participante_familia_nombre: "Familia Test",
-        participante_staff_email: 'sistema@cdbustarviejo.com',
-        participante_staff_nombre: "Sistema",
+        participante_staff_email: me.email,
+        participante_staff_nombre: me.full_name,
         participante_staff_rol: "admin",
         categoria: category || "General",
         no_leidos_familia: 0,
@@ -295,136 +436,224 @@ export default function ChatTestConsole() {
       }));
       await base44.entities.PrivateMessage.create({
         conversacion_id: conv.id,
-        remitente_email: 'sistema@cdbustarviejo.com',
-        remitente_nombre: "Sistema",
+        remitente_email: me.email,
+        remitente_nombre: me.full_name,
         remitente_tipo: "staff",
-        mensaje: `🤖 Privado del Club ${new Date().toLocaleTimeString()}`,
+        mensaje: `Privado del Club ${new Date().toLocaleTimeString()}`,
         leido: false,
       });
-      await base44.entities.PrivateConversation.update(conv.id, { 
-        ultimo_mensaje: "Privado del Club", 
-        ultimo_mensaje_de: "staff", 
-        ultimo_mensaje_fecha: new Date().toISOString(), 
-        no_leidos_familia: (conv.no_leidos_familia || 0) + 1 
-      });
-      setStatus('✅ Mensaje Privado enviado a Familia');
+      await base44.entities.PrivateConversation.update(conv.id, { ultimo_mensaje: "Privado del Club", ultimo_mensaje_de: "staff", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_familia: (conv.no_leidos_familia || 0) + 1 });
+      setStatus('✅ Enviado: Privado del Club');
     } catch (e) {
-      setStatus(`❌ ${e?.message || e}`);
+      setStatus(`❌ Privado del Club: ${e?.message || e}`);
     } finally {
       setBusy(null);
     }
   };
 
-  const sendCoachConversation = async () => {
-    setBusy('coach1a1'); setStatus(null);
+  // Aislamiento: calcular dif respecto a la línea base
+  const diffCounters = (now = {}, base = {}) => {
+    const out = { ...now };
+    Object.keys(now || {}).forEach(k => {
+      const n = Number(now[k] || 0);
+      const b = Number((base || {})[k] || 0);
+      out[k] = Math.max(0, n - b);
+    });
+    return out;
+  };
+  const dispAdminN = isolateMode && adminBase ? diffCounters(adminN, adminBase) : adminN;
+  const dispCoordN = isolateMode && coordBase ? diffCounters(coordN, coordBase) : coordN;
+  const dispCoachN = isolateMode && coachBase ? diffCounters(coachN, coachBase) : coachN;
+  const dispFamilyN = isolateMode && familyBase ? diffCounters(familyN, familyBase) : familyN;
+
+  const bubbleN = bubbleRole==='admin' ? dispAdminN : bubbleRole==='coordinator' ? dispCoordN : bubbleRole==='coach' ? dispCoachN : dispFamilyN;
+
+  const takeBaseline = () => {
+    setAdminBase(adminN); setCoordBase(coordN); setCoachBase(coachN); setFamilyBase(familyN);
+    setIsolateMode(true); setStatus('🧹 Aislamiento activado: todo a 0');
+  };
+  const clearBaseline = () => { setIsolateMode(false); setAdminBase(null); setCoordBase(null); setCoachBase(null); setFamilyBase(null); setStatus('🔄 Aislamiento desactivado'); };
+
+  // ==== Reset de pruebas ====
+  const resetStaff = async () => {
+    setBusy('reset-staff'); setStatus(null);
     try {
-      if (!coachEmail || !parentEmail) throw new Error('Falta email de entrenador o familia');
-      const convs = await base44.entities.CoachConversation.filter({ 
-        entrenador_email: coachEmail, 
-        padre_email: parentEmail 
-      });
-      const conv = convs[0] || (await base44.entities.CoachConversation.create({
-        entrenador_email: coachEmail,
-        entrenador_nombre: "Coach Test",
-        padre_email: parentEmail,
-        padre_nombre: "Familia Test",
-        categoria: category,
-        no_leidos_entrenador: 0,
-        no_leidos_padre: 0,
-      }));
-      await base44.entities.ChatMessage.create({
-        grupo_id: conv.id,
-        deporte: category,
-        tipo: "padre_a_grupo",
-        remitente_email: parentEmail,
-        remitente_nombre: "Familia Test",
-        destinatario_email: coachEmail,
-        mensaje: `Familia→Entrenador (1-a-1) ${new Date().toLocaleTimeString()}`,
-        leido: false,
-        leido_por: [],
-      });
-      await base44.entities.CoachConversation.update(conv.id, {
-        no_leidos_entrenador: (conv.no_leidos_entrenador || 0) + 1,
-        ultimo_mensaje_fecha: new Date().toISOString()
-      });
-      setStatus('✅ Mensaje enviado a CoachConversation (entrenador debe recibir notificación)');
-    } catch (e) {
-      setStatus(`❌ ${e?.message || e}`);
-    } finally {
-      setBusy(null);
-    }
+      const msgs = await base44.entities.StaffMessage.filter({ created_by: me.email });
+      for (const m of msgs) await base44.entities.StaffMessage.delete(m.id);
+      setStatus('✅ Reset Staff completado');
+    } catch (e) { setStatus(`❌ Reset Staff: ${e?.message || e}`); }
+    finally { setBusy(null); }
   };
 
-  const resetCounters = () => {
-    if (coordEmail) UnifiedChatNotificationStore.clearChatOnly(coordEmail, 'staff');
-    if (coordEmail) UnifiedChatNotificationStore.clearChatOnly(coordEmail, 'coordinator');
-    if (coachEmail) UnifiedChatNotificationStore.clearChatOnly(coachEmail, 'coach');
-    if (parentEmail) UnifiedChatNotificationStore.clearChatOnly(parentEmail, 'systemMessages');
-    if (parentEmail) UnifiedChatNotificationStore.clearChatOnly(parentEmail, 'coordinatorForFamily');
-    if (parentEmail) UnifiedChatNotificationStore.clearChatOnly(parentEmail, 'coachForFamily');
-    setRefreshKey(k => k + 1);
-    setStatus('🧹 Contadores limpiados a 0');
+  const resetParentToCoach = async () => {
+    setBusy('reset-p2c'); setStatus(null);
+    try {
+      // Borra TODOS los mensajes de familias al grupo de la categoría seleccionada
+      const msgs = await base44.entities.ChatMessage.filter({ tipo: 'padre_a_grupo', grupo_id: slug(category) });
+      for (const m of msgs) await base44.entities.ChatMessage.delete(m.id);
+      setStatus('✅ Reset Familia→Entrenador completado');
+    } catch (e) { setStatus(`❌ Reset Familia→Entrenador: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetCoachToGroup = async () => {
+    setBusy('reset-c2g'); setStatus(null);
+    try {
+      // Borra TODOS los mensajes de entrenador al grupo de la categoría seleccionada
+      const msgs = await base44.entities.ChatMessage.filter({ tipo: 'entrenador_a_grupo', grupo_id: slug(category) });
+      for (const m of msgs) await base44.entities.ChatMessage.delete(m.id);
+      setStatus('✅ Reset Entrenador→Grupo completado');
+    } catch (e) { setStatus(`❌ Reset Entrenador→Grupo: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetCoordinatorFamily = async () => {
+    setBusy('reset-coordfam'); setStatus(null);
+    try {
+      const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
+      const conv = convs[0];
+      if (conv) {
+        const msgs = await base44.entities.CoordinatorMessage.filter({ conversacion_id: conv.id });
+        for (const m of msgs) await base44.entities.CoordinatorMessage.delete(m.id);
+        await base44.entities.CoordinatorConversation.update(conv.id, { no_leidos_coordinador: 0, no_leidos_padre: 0 });
+        // Eliminar la conversación para limpiar totalmente contadores/badges
+        await base44.entities.CoordinatorConversation.delete(conv.id);
+      }
+      setStatus('✅ Reset Coordinador↔Familia completado');
+    } catch (e) { setStatus(`❌ Reset Coordinador↔Familia: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetAdminFamily = async () => {
+    setBusy('reset-adminfam'); setStatus(null);
+    try {
+      const convs = await base44.entities.AdminConversation.filter({ padre_email: parentEmail });
+      const conv = convs[0];
+      if (conv) {
+        const msgs = await base44.entities.AdminMessage.filter({ conversacion_id: conv.id });
+        for (const m of msgs) await base44.entities.AdminMessage.delete(m.id);
+        await base44.entities.AdminConversation.update(conv.id, { no_leidos_admin: 0, no_leidos_padre: 0 });
+        // Eliminar conversación para borrar badges de críticos
+        await base44.entities.AdminConversation.delete(conv.id);
+      }
+      setStatus('✅ Reset Admin↔Familia completado');
+    } catch (e) { setStatus(`❌ Reset Admin↔Familia: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  const resetPrivateClub = async () => {
+    setBusy('reset-private'); setStatus(null);
+    try {
+      const convs = await base44.entities.PrivateConversation.filter({ participante_familia_email: parentEmail, participante_staff_email: me.email });
+      const conv = convs[0];
+      if (conv) {
+        const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: conv.id });
+        for (const m of msgs) await base44.entities.PrivateMessage.delete(m.id);
+        await base44.entities.PrivateConversation.update(conv.id, { no_leidos_familia: 0, no_leidos_staff: 0 });
+        await base44.entities.PrivateConversation.delete(conv.id);
+      }
+      setStatus('✅ Reset Privados (Club) completado');
+    } catch (e) { setStatus(`❌ Reset Privados: ${e?.message || e}`); }
+    finally { setBusy(null); }
+  };
+
+  // Marca anuncios como leídos para todos los correos de prueba y pone a cero los contadores de Staff
+  const resetMetaBadges = async () => {
+    const emails = Array.from(new Set([me?.email, coachEmail, coordEmail, parentEmail].filter(Boolean)));
+    const nowIso = new Date().toISOString();
+
+    // Anuncios → marcar como leídos
+    try {
+      const anns = await base44.entities.Announcement.filter({ publicado: true });
+      for (const ann of anns) {
+        const leido = Array.isArray(ann.leido_por) ? [...ann.leido_por] : [];
+        let changed = false;
+        for (const email of emails) {
+          if (!leido.some((x) => x.email === email)) {
+            leido.push({ email, nombre: email, fecha: nowIso });
+            changed = true;
+          }
+        }
+        if (changed) await base44.entities.Announcement.update(ann.id, { leido_por: leido });
+      }
+    } catch (e) {
+      // opcional: ignorar errores de anuncios en reset
+    }
+
+    // Staff → actualizar last_read_by para todos
+    try {
+      const staffConvs = await base44.entities.StaffConversation.list('-updated_date', 50);
+      for (const sc of staffConvs) {
+        let last = Array.isArray(sc.last_read_by) ? [...sc.last_read_by] : [];
+        let changed = false;
+        for (const email of emails) {
+          const idx = last.findIndex((x) => x.email === email);
+          if (idx >= 0) {
+            if (last[idx].fecha !== nowIso) { last[idx].fecha = nowIso; changed = true; }
+          } else {
+            last.push({ email, fecha: nowIso });
+            changed = true;
+          }
+        }
+        if (changed) await base44.entities.StaffConversation.update(sc.id, { last_read_by: last });
+      }
+    } catch (e) {
+      // ignorar errores
+    }
+
+    // Notificaciones de app residuales
+    try {
+      for (const email of emails) {
+        const notifs = await base44.entities.AppNotification.filter({ user_email: email });
+        for (const n of notifs) await base44.entities.AppNotification.delete(n.id);
+      }
+    } catch (e) {
+      // ignorar
+    }
   };
 
   const resetAll = async () => {
-    setBusy('reset'); setStatus('⏳ Limpiando...');
+    setBusy('reset-all'); setStatus('⏳ Reseteando todo...');
     try {
-      const msgs1 = await base44.entities.StaffMessage.filter({ created_by: me.email });
-      for (const m of msgs1) await base44.entities.StaffMessage.delete(m.id);
-      
-      const msgs2 = await base44.entities.ChatMessage.filter({ grupo_id: slug(category) });
-      for (const m of msgs2) await base44.entities.ChatMessage.delete(m.id);
-      
-      const convCoord = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
-      for (const c of convCoord) {
-        const msgs = await base44.entities.CoordinatorMessage.filter({ conversacion_id: c.id });
-        for (const m of msgs) await base44.entities.CoordinatorMessage.delete(m.id);
-        await base44.entities.CoordinatorConversation.delete(c.id);
-      }
-      
-      const convPrivate = await base44.entities.PrivateConversation.filter({ participante_familia_email: parentEmail });
-      for (const c of convPrivate) {
-        const msgs = await base44.entities.PrivateMessage.filter({ conversacion_id: c.id });
-        for (const m of msgs) await base44.entities.PrivateMessage.delete(m.id);
-        await base44.entities.PrivateConversation.delete(c.id);
-      }
-
-      const convCoach = await base44.entities.CoachConversation.filter({ padre_email: parentEmail });
-      for (const c of convCoach) await base44.entities.CoachConversation.delete(c.id);
-
-      resetCounters();
-      setStatus('✅ Todo limpiado');
+      // Primero, poner a cero anuncios/staff/app-notifs para TODOS los roles de prueba
+      await resetMetaBadges();
+      // Ejecutar en serie para evitar picos de carga
+      await resetParentToCoach();
+      await resetCoachToGroup();
+      await resetCoordinatorFamily();
+      await resetAdminFamily();
+      await resetPrivateClub();
+      await resetStaff();
+      // Activar aislamiento con la línea base ya limpia
+      setAdminBase(adminN); setCoordBase(coordN); setCoachBase(coachN); setFamilyBase(familyN); setIsolateMode(true);
+      setStatus('✅ Reset completo');
     } catch (e) {
-      setStatus(`❌ ${e?.message || e}`);
+      setStatus(`❌ Reset general: ${e?.message || e}`);
     } finally {
       setBusy(null);
     }
   };
 
-
-
-  return (
+   return (
     <div className="min-h-screen p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-4xl mx-auto space-y-4">
+      <div className="max-w-6xl mx-auto grid gap-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Rocket className="w-6 h-6 text-orange-600" /> Test de Notificaciones
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Rocket className="w-5 h-5 text-orange-600" /> Consola de Pruebas de Chat (Admin)
           </h1>
-          <Button onClick={() => setRefreshKey(k => k + 1)} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4" />
-          </Button>
+          <Badge className="bg-slate-800 text-white">{me.email}</Badge>
         </div>
 
-        {/* Config */}
+        {/* Configuración de prueba */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">⚙️ Configuración</CardTitle>
+            <CardTitle className="text-sm">Configuración rápida</CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-3">
+          <CardContent className="grid md:grid-cols-4 gap-3">
             <div>
               <div className="text-xs text-slate-500 mb-1">Categoría</div>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Categoría" /></SelectTrigger>
                 <SelectContent>
                   {categories.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -433,9 +662,20 @@ export default function ChatTestConsole() {
               </Select>
             </div>
             <div>
-              <div className="text-xs text-slate-500 mb-1">Coordinador</div>
+              <div className="text-xs text-slate-500 mb-1">Email Entrenador</div>
+              <Select value={coachEmail} onValueChange={setCoachEmail}>
+                <SelectTrigger><SelectValue placeholder="Entrenador" /></SelectTrigger>
+                <SelectContent>
+                  {coachOptions.map((e) => (
+                    <SelectItem key={e} value={e}>{e}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 mb-1">Email Coordinador</div>
               <Select value={coordEmail} onValueChange={setCoordEmail}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Coordinador" /></SelectTrigger>
                 <SelectContent>
                   {coordOptions.map((e) => (
                     <SelectItem key={e} value={e}>{e}</SelectItem>
@@ -444,9 +684,9 @@ export default function ChatTestConsole() {
               </Select>
             </div>
             <div>
-              <div className="text-xs text-slate-500 mb-1">Familia</div>
+              <div className="text-xs text-slate-500 mb-1">Email Familia</div>
               <Select value={parentEmail} onValueChange={setParentEmail}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Familia" /></SelectTrigger>
                 <SelectContent>
                   {parentOptions.map((e) => (
                     <SelectItem key={e} value={e}>{e}</SelectItem>
@@ -457,95 +697,152 @@ export default function ChatTestConsole() {
           </CardContent>
         </Card>
 
-        {/* Contadores en vivo */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">👥 Staff (Coordinador)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LiveChatCounters key={`staff-${coordEmail}-${refreshKey}`} userEmail={coordEmail} role="staff" />
-              <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
-                <div className="bg-slate-50 p-2 rounded">
-                  <span className="text-slate-600">Staff:</span> <Badge>{staffCounts.staff || 0}</Badge>
-                </div>
-                <div className="bg-slate-50 p-2 rounded">
-                  <span className="text-slate-600">Coord→Fam:</span> <Badge>{staffCounts.coordinator || 0}</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">👨‍👩‍👧 Familia</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LiveChatCounters key={`family-${parentEmail}-${refreshKey}`} userEmail={parentEmail} role="family" />
-              <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
-                <div className="bg-slate-50 p-2 rounded">
-                  <span className="text-slate-600">Sistema:</span> <Badge>{familyCounts.systemMessages || 0}</Badge>
-                </div>
-                <div className="bg-slate-50 p-2 rounded">
-                  <span className="text-slate-600">Coord:</span> <Badge>{familyCounts.coordinatorForFamily || 0}</Badge>
-                </div>
-                <div className="bg-slate-50 p-2 rounded">
-                  <span className="text-slate-600">Coach:</span> <Badge>{familyCounts.coachForFamily || 0}</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Modo simple */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Modo simple</CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-2">
+            <div className="md:col-span-3 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-slate-500">Remitente:</span>
+              <Button size="sm" variant={testSenderRole==='entrenador'?'default':'outline'} onClick={()=>setTestSenderRole('entrenador')}>Entrenador</Button>
+              <Button size="sm" variant={testSenderRole==='coordinador'?'default':'outline'} onClick={()=>setTestSenderRole('coordinador')}>Coordinador</Button>
+              <Button size="sm" variant={testSenderRole==='admin'?'default':'outline'} onClick={()=>setTestSenderRole('admin')}>Admin</Button>
+            </div>
+            <Button onClick={sendStaff} className="gap-2">
+              <Users className="w-4 h-4" /> Enviar al Staff (General)
+            </Button>
+            <Button onClick={sendCoachToGroup} className="gap-2">
+              <MessageCircle className="w-4 h-4" /> Entrenador→Grupo
+            </Button>
+            <Button onClick={sendParentToCoach} className="gap-2">
+              <MessageCircle className="w-4 h-4" /> Familia→Entrenador
+            </Button>
+            <Button onClick={sendCoordinatorToFamily} className="gap-2">
+              <MessageCircle className="w-4 h-4" /> Coordinador→Familia
+            </Button>
+            <Button onClick={sendParentToCoordinator} className="gap-2">
+              <MessageCircle className="w-4 h-4" /> Familia→Coordinador
+            </Button>
+            <Button onClick={()=>{ setAdminBase(adminN); setCoordBase(coordN); setCoachBase(coachN); setFamilyBase(familyN); setIsolateMode(true); setStatus('🧹 Aislamiento activado'); }} variant="outline">
+              🧹 Forzar a 0
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Acciones */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">🚀 Enviar Mensajes de Prueba</CardTitle>
+            <CardTitle className="text-sm">Acciones de prueba</CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-2">
+          <CardContent className="grid md:grid-cols-3 gap-2">
             <Button disabled={!!busy} onClick={sendStaff} className="gap-2">
-              <Users className="w-4 h-4" /> Staff (general)
+              {busy==='staff' ? <div className="spinner-elegant" /> : <Users className="w-4 h-4" />} Staff: nuevo mensaje
             </Button>
             <Button disabled={!!busy} onClick={sendParentToCoach} className="gap-2">
-              <MessageCircle className="w-4 h-4" /> Familia→Entrenador (grupo)
+              {busy==='p2c' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Familia→Entrenador
             </Button>
-            <Button disabled={!!busy} onClick={sendCoachConversation} className="gap-2">
-              <MessageCircle className="w-4 h-4" /> Familia→Entrenador (1-a-1)
+            <Button disabled={!!busy} onClick={sendCoachToGroup} className="gap-2">
+              {busy==='c2g' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Entrenador→Grupo
             </Button>
             <Button disabled={!!busy} onClick={sendParentToCoordinator} className="gap-2">
-              <MessageCircle className="w-4 h-4" /> Familia→Coordinador
+              {busy==='p2coord' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Familia→Coordinador
             </Button>
             <Button disabled={!!busy} onClick={sendCoordinatorToFamily} className="gap-2">
-              <MessageCircle className="w-4 h-4" /> Coordinador→Familia
+              {busy==='coord2fam' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Coordinador→Familia
+            </Button>
+            <Button disabled={!!busy} onClick={sendAdminToFamily} className="gap-2">
+              {busy==='admin2fam' ? <div className="spinner-elegant" /> : <ShieldAlert className="w-4 h-4" />} Admin→Familia (crítica)
             </Button>
             <Button disabled={!!busy} onClick={sendPrivateToFamily} className="gap-2">
-              <Mail className="w-4 h-4" /> Sistema→Familia
+              {busy==='private' ? <div className="spinner-elegant" /> : <Mail className="w-4 h-4" />} Privado del Club
             </Button>
+            {status && (
+              <div className="md:col-span-3 text-sm text-slate-600 mt-2">{status}</div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Reset */}
+        {/* Reseteo de pruebas */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">🧹 Limpieza</CardTitle>
+            <CardTitle className="text-sm">Reseteo de pruebas</CardTitle>
           </CardHeader>
-          <CardContent className="flex gap-2">
-            <Button disabled={!!busy} onClick={resetCounters} variant="outline">
-              Poner contadores a 0
+          <CardContent className="grid md:grid-cols-3 gap-2">
+            <div className="md:col-span-3 flex flex-wrap gap-2 mb-1">
+              <Button variant="outline" size="sm" onClick={takeBaseline} disabled={!!busy}>🧹 Forzar a 0 (aislar)</Button>
+              <Button variant="ghost" size="sm" onClick={clearBaseline} disabled={!!busy || !isolateMode}>Salir de aislamiento</Button>
+              {isolateMode && <Badge className="bg-green-600">Aislamiento activo</Badge>}
+            </div>
+            <div className="md:col-span-3 flex flex-wrap gap-2 mb-1">
+              <Button variant="outline" size="sm" onClick={takeBaseline} disabled={!!busy}>🧹 Forzar a 0 (aislar)</Button>
+              <Button variant="ghost" size="sm" onClick={clearBaseline} disabled={!!busy || !isolateMode}>Salir de aislamiento</Button>
+              {isolateMode && <Badge className="bg-green-600">Aislamiento activo</Badge>}
+            </div>
+            <Button disabled={!!busy} onClick={resetStaff} className="gap-2">
+              {busy==='reset-staff' ? <div className="spinner-elegant" /> : <Users className="w-4 h-4" />} Reset Staff
             </Button>
-            <Button disabled={!!busy} onClick={resetAll} variant="destructive">
-              {busy === 'reset' ? '⏳' : '🗑️'} Borrar TODO
+            <Button disabled={!!busy} onClick={resetParentToCoach} className="gap-2">
+              {busy==='reset-p2c' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Reset Familia→Entrenador
+            </Button>
+            <Button disabled={!!busy} onClick={resetCoachToGroup} className="gap-2">
+              {busy==='reset-c2g' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Reset Entrenador→Grupo
+            </Button>
+            <Button disabled={!!busy} onClick={resetCoordinatorFamily} className="gap-2">
+              {busy==='reset-coordfam' ? <div className="spinner-elegant" /> : <MessageCircle className="w-4 h-4" />} Reset Coordinador↔Familia
+            </Button>
+            <Button disabled={!!busy} onClick={resetAdminFamily} className="gap-2">
+              {busy==='reset-adminfam' ? <div className="spinner-elegant" /> : <ShieldAlert className="w-4 h-4" />} Reset Admin↔Familia
+            </Button>
+            <Button disabled={!!busy} onClick={resetPrivateClub} className="gap-2">
+              {busy==='reset-private' ? <div className="spinner-elegant" /> : <Mail className="w-4 h-4" />} Reset Privados (Club)
+            </Button>
+            <Button disabled={!!busy} onClick={resetAll} variant="outline" className="gap-2 md:col-span-3">
+              {busy==='reset-all' ? <div className="spinner-elegant" /> : <Bell className="w-4 h-4" />} Reset TODO
             </Button>
           </CardContent>
         </Card>
 
-        {status && (
-          <Card className="border-blue-300 bg-blue-50">
-            <CardContent className="p-4">
-              <p className="text-sm font-medium">{status}</p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Previsualización de burbujas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Previsualización de burbujas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs text-slate-500">Rol:</span>
+              <Button size="sm" variant={bubbleRole==='admin' ? 'default' : 'outline'} onClick={() => setBubbleRole('admin')}>Admin</Button>
+              <Button size="sm" variant={bubbleRole==='coordinator' ? 'default' : 'outline'} onClick={() => setBubbleRole('coordinator')}>Coordinador</Button>
+              <Button size="sm" variant={bubbleRole==='coach' ? 'default' : 'outline'} onClick={() => setBubbleRole('coach')}>Entrenador</Button>
+              <Button size="sm" variant={bubbleRole==='family' ? 'default' : 'outline'} onClick={() => setBubbleRole('family')}>Familia</Button>
+            </div>
+            <BubbleRow role={bubbleRole} notifications={bubbleN} />
+          </CardContent>
+        </Card>
+
+        {/* Contadores en vivo por rol */}
+        <div className="text-xs text-slate-500 mb-1">Arriba: contadores en vivo por rol. Abajo: previsualización de la barra de tareas.</div>
+        <div className="grid md:grid-cols-4 gap-3">
+          <RoleCounters title="Vista Admin" notifications={dispAdminN} />
+          <RoleCounters title="Vista Coordinador" notifications={dispCoordN} />
+          <RoleCounters title="Vista Entrenador" notifications={dispCoachN} />
+          <RoleCounters title="Vista Familia" notifications={dispFamilyN} />
+        </div>
+
+        {/* Previsualización barra de tareas (AlertCenter) por rol */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Previsualización de barra de tareas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-4 gap-3">
+              <AlertPreview title="Admin" userStub={asAdmin} notifications={dispAdminN} />
+              <AlertPreview title="Coordinador" userStub={asCoordinator} notifications={dispCoordN} />
+              <AlertPreview title="Entrenador" userStub={asCoach} notifications={dispCoachN} />
+              <AlertPreview title="Familia" userStub={asFamily} notifications={dispFamilyN} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
