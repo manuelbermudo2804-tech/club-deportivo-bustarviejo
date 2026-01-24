@@ -617,9 +617,9 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // === ENTRENADOR - FAMILIAS (mensajes de grupo ChatMessage) ===
     (rawData.chatMessages || []).forEach(msg => {
-      // Para familias: SOLO mensajes del entrenador en SUS categorías
+      // Para familias: mensajes del entrenador Y de otros padres en SUS categorías
       if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && 
-          msg.tipo === 'entrenador_a_grupo') {
+          (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo')) {
         // Verificar que el mensaje sea de UNA de mis categorías
         const isMyCategory = myCategories.some(cat => {
           const grupo_id = cat.toLowerCase().replace(/\s+/g, '_');
@@ -627,6 +627,9 @@ export function useUnifiedNotifications(user, options = {}) {
         });
         
         if (!isMyCategory) return; // SKIP si no es mi categoría
+        
+        // SKIP si es mi propio mensaje
+        if (msg.remitente_email === user.email) return;
         
         const isRead = msg.leido_por?.some(lp => lp.email === user.email);
         if (isRead) return; // SKIP si ya lo leí
