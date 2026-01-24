@@ -843,7 +843,199 @@ export default function ChatTestConsole() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
-  );
-}
+
+        {/* TEST INDIVIDUAL POR CHAT */}
+        <ChatTestByType category={category} coachEmail={coachEmail} coordEmail={coordEmail} parentEmail={parentEmail} adminEmail={me.email} />
+        </div>
+        </div>
+        );
+        }
+
+        // Componente para test individual de cada chat
+        function ChatTestByType({ category, coachEmail, coordEmail, parentEmail, adminEmail }) {
+        const [testResults, setTestResults] = useState([]);
+
+        const chats = [
+        {
+        id: 'parentCoachChat',
+        name: '⚽ Chat Equipo (Grupal) - ParentCoachChat',
+        checks: [
+        { id: 'send', label: 'Las familias pueden enviar mensajes' },
+        { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
+        { id: 'see-others', label: 'Ven los mensajes de otros (sin actualizar)' },
+        { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
+        { id: 'lateral', label: 'Notificación en menú lateral' },
+        ],
+        action: async () => {
+        await base44.entities.ChatMessage.create({
+         tipo: "padre_a_grupo",
+         remitente_email: parentEmail,
+         remitente_nombre: "Test Familia",
+         mensaje: `🧪 TEST ParentCoachChat - ${new Date().toLocaleTimeString()}`,
+         grupo_id: category?.toLowerCase().replace(/\s+/g, '_') || 'test',
+         deporte: category || 'Test',
+        });
+        }
+        },
+        {
+        id: 'coachParentChat',
+        name: '👨‍🏫 Chat Familias-Entrenador - CoachParentChat',
+        checks: [
+        { id: 'send', label: 'Los entrenadores pueden enviar mensajes' },
+        { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
+        { id: 'see-others', label: 'Ven los mensajes de familias (sin actualizar)' },
+        { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
+        { id: 'lateral', label: 'Notificación en menú lateral' },
+        ],
+        action: async () => {
+        await base44.entities.ChatMessage.create({
+         tipo: "entrenador_a_grupo",
+         remitente_email: coachEmail,
+         remitente_nombre: "Test Coach",
+         mensaje: `🧪 TEST CoachParentChat - ${new Date().toLocaleTimeString()}`,
+         grupo_id: category?.toLowerCase().replace(/\s+/g, '_') || 'test',
+         deporte: category || 'Test',
+        });
+        }
+        },
+        {
+        id: 'staffChat',
+        name: '💼 Chat Staff Interno - StaffChat',
+        checks: [
+        { id: 'send', label: 'Staff puede enviar mensajes' },
+        { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
+        { id: 'see-others', label: 'Ven los mensajes de otros (sin actualizar)' },
+        { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
+        { id: 'lateral', label: 'Notificación en menú lateral' },
+        ],
+        action: async () => {
+        const convs = await base44.entities.StaffConversation.filter({ categoria: "General" });
+        const conv = convs[0] || await base44.entities.StaffConversation.create({
+         nombre: "Test General",
+         categoria: "General",
+         participantes: [],
+         activa: true,
+        });
+        await base44.entities.StaffMessage.create({
+         conversacion_id: conv.id,
+         autor_email: adminEmail,
+         autor_nombre: "Test Admin",
+         autor_rol: "admin",
+         mensaje: `🧪 TEST StaffChat - ${new Date().toLocaleTimeString()}`,
+        });
+        }
+        },
+        {
+        id: 'parentCoordChat',
+        name: '🎓 Chat Coordinador (1-a-1) - ParentCoordinatorChat',
+        checks: [
+        { id: 'send', label: 'Familias pueden enviar mensajes' },
+        { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
+        { id: 'see-others', label: 'Ven respuestas del coordinador (sin actualizar)' },
+        { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
+        { id: 'lateral', label: 'Notificación en menú lateral' },
+        ],
+        action: async () => {
+        const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
+        const conv = convs[0] || await base44.entities.CoordinatorConversation.create({
+         padre_email: parentEmail,
+         padre_nombre: "Test Familia",
+         no_leidos_coordinador: 0,
+         no_leidos_padre: 0,
+         archivada: false,
+        });
+        await base44.entities.CoordinatorMessage.create({
+         conversacion_id: conv.id,
+         autor: "padre",
+         autor_email: parentEmail,
+         autor_nombre: "Test Familia",
+         mensaje: `🧪 TEST ParentCoordinatorChat - ${new Date().toLocaleTimeString()}`,
+        });
+        }
+        },
+        ];
+
+        const toggleCheck = (chatId, checkId) => {
+        setTestResults(prev => {
+        const key = `${chatId}-${checkId}`;
+        const newResults = { ...prev };
+        newResults[key] = !newResults[key];
+        return newResults;
+        });
+        };
+
+        const reportFail = async (chat, check) => {
+        const message = `❌ [FALLO TEST] Chat: ${chat.name} | Criterio: ${check.label}`;
+
+        // Crear notificación visual en la app
+        await base44.entities.AppNotification.create({
+        usuario_email: adminEmail,
+        titulo: "⚠️ Fallo en Test de Chat",
+        mensaje,
+        tipo: "importante",
+        enlace: "ChatTestConsole",
+        vista: false,
+        });
+
+        alert(`📢 Mensaje creado:\n\n${message}\n\nPuedes verlo en tu panel de notificaciones.`);
+        };
+
+        return (
+        <Card className="border-2 border-blue-400">
+        <CardHeader className="bg-blue-50">
+        <CardTitle className="text-sm flex items-center gap-2">
+         🧪 <span>TEST INDIVIDUAL DE CHATS (Checklist)</span>
+        </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 space-y-4">
+        {chats.map((chat) => (
+         <div key={chat.id} className="border rounded-lg p-4 bg-gradient-to-r from-slate-50 to-blue-50">
+           <div className="flex items-start justify-between mb-3">
+             <h3 className="font-semibold text-sm">{chat.name}</h3>
+             <Button size="sm" onClick={chat.action} className="gap-2">
+               <Rocket className="w-4 h-4" /> Enviar Mensaje TEST
+             </Button>
+           </div>
+
+           <div className="space-y-2">
+             {chat.checks.map((check) => {
+               const key = `${chat.id}-${check.id}`;
+               const checked = testResults[key] || false;
+               return (
+                 <div key={check.id} className="flex items-center gap-3 p-2 bg-white rounded border">
+                   <input
+                     type="checkbox"
+                     checked={checked}
+                     onChange={() => toggleCheck(chat.id, check.id)}
+                     className="w-4 h-4 cursor-pointer"
+                   />
+                   <span className={`flex-1 text-sm ${checked ? 'text-green-700 font-semibold' : 'text-slate-600'}`}>
+                     {check.label}
+                   </span>
+                   {!checked && (
+                     <Button
+                       size="sm"
+                       variant="destructive"
+                       onClick={() => reportFail(chat, check)}
+                       className="text-xs"
+                     >
+                       ❌ Reportar
+                     </Button>
+                   )}
+                   {checked && <span className="text-green-600">✅</span>}
+                 </div>
+               );
+             })}
+           </div>
+
+           <div className="mt-3 flex items-center gap-2">
+             <div className="text-xs text-slate-500">
+               {chat.checks.filter((c) => testResults[`${chat.id}-${c.id}`]).length}/{chat.checks.length} ✅
+             </div>
+           </div>
+         </div>
+        ))}
+        </CardContent>
+        </Card>
+        );
+        }
