@@ -139,7 +139,7 @@ export default function QuickMatchObservationForm({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-xs">Rival <span className="text-red-600">*</span></Label>
-                  <Input value={formData.rival} onChange={(e) => setFormData({ ...formData, rival: e.target.value })} placeholder="CD Rival" className="h-9 bg-slate-100" disabled={!!rival} required />
+                  <Input value={formData.rival} onChange={(e) => markDirty({ ...formData, rival: e.target.value })} placeholder="CD Rival" className="h-9 bg-slate-100" disabled={!!rival} required />
                 </div>
                 <div>
                   <Label className="text-xs">Resultado <span className="text-red-600">*</span></Label>
