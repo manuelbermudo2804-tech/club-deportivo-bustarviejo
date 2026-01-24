@@ -55,6 +55,32 @@ export default function DirectMessages() {
   });
 
   const sendMessageMutation = useMutation({
+    onMutate: async (messageData) => {
+      await queryClient.cancelQueries({ queryKey: ['directMessages'] });
+      const previousMessages = queryClient.getQueryData(['directMessages']);
+      
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        conversacion_id: messageData.conversacion_id,
+        remitente_email: messageData.remitente_email,
+        remitente_nombre: messageData.remitente_nombre,
+        destinatario_email: messageData.destinatario_email,
+        destinatario_nombre: messageData.destinatario_nombre,
+        mensaje: messageData.mensaje,
+        archivos_adjuntos: messageData.archivos_adjuntos || [],
+        created_date: new Date().toISOString(),
+        leido: false,
+      };
+      
+      queryClient.setQueryData(['directMessages'], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages };
+    },
+    onError: (err, vars, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['directMessages'], context.previousMessages);
+      }
+      toast.error("Error al enviar mensaje");
+    },
     mutationFn: async (messageData) => {
       const newMessage = await base44.entities.DirectMessage.create(messageData);
       
@@ -77,8 +103,6 @@ export default function DirectMessages() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['directMessages'] });
-      setMensaje("");
-      setAttachments([]);
       toast.success("Mensaje enviado");
     },
   });
