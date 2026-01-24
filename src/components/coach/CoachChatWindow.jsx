@@ -82,8 +82,14 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         return await base44.entities.ChatMessage.list('-created_date');
       }
 
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      return await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
+      const grupo_id = toGroupId(selectedCategory);
+      // Traer por grupo_id y también por deporte para compatibilidad antigua
+      const byGroup = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
+      const bySport = await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date');
+      const merged = [...byGroup, ...bySport].reduce((acc, m) => {
+        acc[m.id] = m; return acc;
+      }, {});
+      return Object.values(merged).sort((a,b)=>new Date(a.created_date)-new Date(b.created_date));
     },
     refetchInterval: false,
     refetchOnWindowFocus: false,
