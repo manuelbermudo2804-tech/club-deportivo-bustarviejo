@@ -80,6 +80,12 @@ export default function QuickMatchObservationForm({
     }
   };
 
+  // marcar sucio con cada cambio
+  const markDirty = (updater) => {
+    dirtyRef.current = true;
+    setFormData(updater);
+  };
+
   const RatingSelector = ({ label, value, onChange }) => (
     <div>
       <Label className="text-xs text-slate-600 mb-1 block">{label}</Label>
