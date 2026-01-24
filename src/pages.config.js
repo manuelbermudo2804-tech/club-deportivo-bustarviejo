@@ -1,4 +1,3 @@
-import AdminChat from './pages/AdminChat';
 import AdminGallery from './pages/AdminGallery';
 import AdminStats from './pages/AdminStats';
 import Announcements from './pages/Announcements';
@@ -32,7 +31,6 @@ import CoordinatorChat from './pages/CoordinatorChat';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
 import CoordinatorSettings from './pages/CoordinatorSettings';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
-import DirectMessages from './pages/DirectMessages';
 import DocumentManagement from './pages/DocumentManagement';
 import EmailTemplates from './pages/EmailTemplates';
 import EventManagement from './pages/EventManagement';
@@ -59,7 +57,6 @@ import MemberManagement from './pages/MemberManagement';
 import NotificationPreferences from './pages/NotificationPreferences';
 import OrderManagement from './pages/OrderManagement';
 import PWASetup from './pages/PWASetup';
-import ParentAdminChat from './pages/ParentAdminChat';
 import ParentCallups from './pages/ParentCallups';
 import ParentCoachChat from './pages/ParentCoachChat';
 import ParentCoordinatorChat from './pages/ParentCoordinatorChat';
@@ -106,7 +103,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AdminChat": AdminChat,
     "AdminGallery": AdminGallery,
     "AdminStats": AdminStats,
     "Announcements": Announcements,
@@ -140,7 +136,6 @@ export const PAGES = {
     "CoordinatorDashboard": CoordinatorDashboard,
     "CoordinatorSettings": CoordinatorSettings,
     "CustomPaymentPlans": CustomPaymentPlans,
-    "DirectMessages": DirectMessages,
     "DocumentManagement": DocumentManagement,
     "EmailTemplates": EmailTemplates,
     "EventManagement": EventManagement,
@@ -167,7 +162,6 @@ export const PAGES = {
     "NotificationPreferences": NotificationPreferences,
     "OrderManagement": OrderManagement,
     "PWASetup": PWASetup,
-    "ParentAdminChat": ParentAdminChat,
     "ParentCallups": ParentCallups,
     "ParentCoachChat": ParentCoachChat,
     "ParentCoordinatorChat": ParentCoordinatorChat,
