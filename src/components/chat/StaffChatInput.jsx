@@ -34,7 +34,6 @@ export default function StaffChatInput({
     uploadAudio
   } = useAudioRecording();
 
-  // Enviar mensaje - llama al callback del padre y limpia
   const handleSend = useCallback(async (textFromInput) => {
     const text = textFromInput || localText;
     
@@ -47,28 +46,22 @@ export default function StaffChatInput({
       audio_duracion: 0
     };
 
-    // Si hay audio pendiente, subirlo primero
-    if (audioBlob && onSendAudio) {
-      try {
-        const audioData = await onSendAudio(audioBlob, audioDuration);
-        if (audioData) {
-          messageData.audio_url = audioData.audio_url;
-          messageData.audio_duracion = audioData.audio_duracion;
-        }
-      } catch (error) {
-        console.error('Error enviando audio:', error);
+    if (audioBlob) {
+      const audioData = await uploadAudio();
+      if (audioData) {
+        messageData.audio_url = audioData.audio_url;
+        messageData.audio_duracion = audioData.audio_duracion;
+      } else {
         return;
       }
     }
     
-    // Pasar datos al padre
     onSendMessage(messageData);
     
-    // Limpiar estado local inmediatamente
     setLocalText("");
     setLocalAttachments([]);
     cancelAudio();
-  }, [localText, localAttachments, audioBlob, audioDuration, onSendMessage, onSendAudio]);
+  }, [localText, localAttachments, audioBlob, onSendMessage, uploadAudio, cancelAudio]);
 
 
 
