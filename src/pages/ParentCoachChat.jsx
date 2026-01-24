@@ -161,23 +161,10 @@ export default function ParentCoachChat() {
 
   const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
   const categoryMessages = selectedCategory
-    ? messages.filter(m => {
-        const match = (m.grupo_id === categoryKey || m.deporte === selectedCategory) &&
-          (m.tipo === 'padre_a_grupo' || m.tipo === 'entrenador_a_grupo');
-        // DEBUG
-        if (m.tipo === 'padre_a_grupo' || m.tipo === 'entrenador_a_grupo') {
-          console.log(`📊 [ParentCoachChat] Filtrando mensaje:`, {
-            id: m.id,
-            selected: selectedCategory,
-            categoryKey,
-            msg_grupo_id: m.grupo_id,
-            msg_deporte: m.deporte,
-            msg_tipo: m.tipo,
-            match
-          });
-        }
-        return match;
-      })
+    ? messages.filter(m => 
+        (m.grupo_id === categoryKey || m.deporte === selectedCategory) &&
+        (m.tipo === 'padre_a_grupo' || m.tipo === 'entrenador_a_grupo')
+      )
     : [];
 
   const filteredMessages = searchTerm 
@@ -248,12 +235,6 @@ export default function ParentCoachChat() {
     },
     mutationFn: async (messageData) => {
        const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
-       
-       console.log(`💬 [ParentCoachChat] Enviando mensaje:`, {
-         selectedCategory,
-         categoryKey,
-         mensaje: messageData.mensaje.substring(0, 50)
-       });
 
        const newMessage = await base44.entities.ChatMessage.create({
          tipo: "padre_a_grupo",
