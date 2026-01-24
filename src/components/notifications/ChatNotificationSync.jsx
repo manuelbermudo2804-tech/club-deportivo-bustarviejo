@@ -138,37 +138,27 @@ export function ChatNotificationSync({ user }) {
       unsubscribers.push(unsubCoachConv);
     }
 
-    // ===== 4. MENSAJES PRIVADOS DEL CLUB (solo lectura) - CORRECCIÓN #2 =====
-    // Escuchar PrivateMessage directamente (más confiable)
-    const unsubPrivateMsg = base44.entities.PrivateMessage.subscribe((event) => {
-      if (event.type === 'create' && event.data) {
-        // Verificar si es para mí (familia)
-        (async () => {
-          try {
-            const convs = await base44.entities.PrivateConversation.filter({
-              id: event.data.conversacion_id,
-              participante_familia_email: user.email
-            });
-            
-            if (convs.length > 0 && event.data.remitente_tipo === 'staff') {
-              UnifiedChatNotificationStore.increment(user.email, 'systemMessages');
-            }
-          } catch (e) {
-            console.error('❌ Error checking private message:', e);
-          }
-        })();
-      }
-    });
-    unsubscribers.push(unsubPrivateMsg);
-    
-    // Backup: escuchar updates de PrivateConversation.no_leidos_familia
+    // ===== 4. MENSAJES PRIVADOS DEL CLUB - DIRECTO Y CONFIABLE =====
+    // Solo escuchar updates de PrivateConversation.no_leidos_familia (FUENTE ÚNICA DE VERDAD)
     const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
       if (event.type === 'update' && event.data) {
         if (event.data.participante_familia_email === user.email) {
           const oldCount = event.old_data?.no_leidos_familia || 0;
           const newCount = event.data.no_leidos_familia || 0;
+          
+          console.log(`📬 [ChatNotificationSync] PrivateConversation update para ${user.email}:`, {
+            oldCount,
+            newCount,
+            delta: newCount - oldCount
+          });
+          
           if (newCount > oldCount) {
-            UnifiedChatNotificationStore.updateCount(user.email, 'systemMessages', newCount);
+            const delta = newCount - oldCount;
+            // Incrementar por CADA nuevo mensaje no leído
+            for (let i = 0; i < delta; i++) {
+              UnifiedChatNotificationStore.increment(user.email, 'systemMessages');
+            }
+            console.log(`✅ [ChatNotificationSync] systemMessages incrementado x${delta}`);
           }
         }
       }
