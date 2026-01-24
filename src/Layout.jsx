@@ -24,6 +24,8 @@ import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
+import { ChatNotificationSync } from "./components/notifications/ChatNotificationSync";
+import ChatNotificationBubbles from "./components/notifications/ChatNotificationBubbles";
 import { useChatNotificationMenuSidebar } from "./components/notifications/useChatNotificationMenuSidebar";
 
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
@@ -1204,7 +1206,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     
     // 💬 CHATS (destacado al inicio)
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: notifications.unreadStaffMessages || 0 },
+    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
     
     { title: "📧 Emails y Notificaciones", url: createPageUrl("EmailTemplates"), icon: Mail },
 
@@ -1734,10 +1736,7 @@ export default function Layout({ children, currentPageName }) {
     return (
             <SeasonProvider>
             <>
-              {/* Sincronizador de notificaciones de chat en tiempo real */}
               <ChatNotificationSync user={user} />
-
-              {/* Burbujas de notificaciones de chat */}
               <ChatNotificationBubbles 
                 user={user} 
                 isCoordinator={isCoordinator}
