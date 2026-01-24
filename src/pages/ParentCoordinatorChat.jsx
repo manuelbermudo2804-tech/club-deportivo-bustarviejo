@@ -143,22 +143,22 @@ export default function ParentCoordinatorChat() {
             });
           }
         }
-        if ((conversation.no_leidos_padre || 0) > 0) {
-          await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_padre: 0 });
-        }
-        
-        // Marcar AppNotifications como vistas (SOLO ParentCoordinatorChat)
-        const notifs = await base44.entities.AppNotification.filter({
-          usuario_email: user.email,
-          enlace: "ParentCoordinatorChat",
-          vista: false
-        });
-        for (const n of notifs) {
-          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-        }
-        
-        // LIMPIAR SOLO el contador de Coordinador para familias - NO tocar otros chats
-        UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinatorForFamily');
+        if ((conversation.no_leidos_familia || 0) > 0) {
+            await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_familia: 0 });
+          }
+
+          // Marcar AppNotifications como vistas (SOLO ParentCoordinatorChat)
+          const notifs = await base44.entities.AppNotification.filter({
+            usuario_email: user.email,
+            enlace: "ParentCoordinatorChat",
+            vista: false
+          });
+          for (const n of notifs) {
+            await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+          }
+
+          // LIMPIAR SOLO el contador de Coordinador para familias - NO tocar otros chats
+          UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinatorForFamily');
         
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
