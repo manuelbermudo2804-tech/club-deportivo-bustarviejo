@@ -88,7 +88,8 @@ Deno.serve(async (req) => {
                 es_socio_externo: extra.es_socio_externo,
                 metodo_pago: 'Tarjeta',
                 referido_por: extra.referido_por,
-                referido_procesado: !!extra.referido_por
+                referido_por_email: meta.referido_por_email || '',
+                referido_procesado: false
               });
               console.log('[stripeWebhook] ClubMember creado y marcado Pagado:', created.id);
             }
