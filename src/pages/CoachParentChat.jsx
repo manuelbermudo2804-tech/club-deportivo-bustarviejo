@@ -19,6 +19,17 @@ export default function CoachParentChat({ embedded = false }) {
   const [showSettings, setShowSettings] = useState(false);
   const [unreadByCategory, setUnreadByCategory] = useState({});
 
+  // Convertir categoría a group_id (ej: "Fútbol Pre-Benjamín (Mixto)" -> "futbol_pre_benjamin_mixto")
+  const toGroupId = (cat) => {
+   if (!cat) return '';
+   return cat.toLowerCase().replace(/\s+/g, '_').replace(/[()]/g, '').replace(/ó/g, 'o').replace(/á/g, 'a');
+  };
+
+  const normalizeCategory = (cat) => {
+   if (!cat) return '';
+   return cat.toLowerCase().trim().replace(/\s+/g, ' ');
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
