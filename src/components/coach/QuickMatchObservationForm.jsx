@@ -173,7 +173,7 @@ export default function QuickMatchObservationForm({
                 </div>
                 <div>
                   <Label className="text-xs">Goles 2ª Parte</Label>
-                  <Input type="number" min="0" value={formData.goles_segunda_parte} onChange={(e) => setFormData({ ...formData, goles_segunda_parte: e.target.value })} placeholder="0" className="h-9" />
+                  <Input type="number" min="0" value={formData.goles_segunda_parte} onChange={(e) => markDirty({ ...formData, goles_segunda_parte: e.target.value })} placeholder="0" className="h-9" />
                 </div>
               </div>
               <div>
@@ -193,7 +193,7 @@ export default function QuickMatchObservationForm({
                 </div>
                 <div>
                   <Label className="text-xs">Goles 2ª Parte</Label>
-                  <Input type="number" min="0" value={formData.goles_segunda_parte} onChange={(e) => setFormData({ ...formData, goles_segunda_parte: e.target.value })} placeholder="0" className="h-9" />
+                  <Input type="number" min="0" value={formData.goles_segunda_parte} onChange={(e) => markDirty({ ...formData, goles_segunda_parte: e.target.value })} placeholder="0" className="h-9" />
                 </div>
               </div>
               <div className="mt-2">
