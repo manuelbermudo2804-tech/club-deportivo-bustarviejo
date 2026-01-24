@@ -94,8 +94,13 @@ export function ChatNotificationSync({ user }) {
         
         // Para entrenadores: mensajes de padres en SUS categorías
         if (user.es_entrenador && msg.tipo === 'padre_a_grupo') {
-          const coachCats = user.categorias_entrena || [];
-          const isMyCategory = coachCats.includes(msg.deporte) || coachCats.includes(msg.grupo_id);
+          const coachCats = (user.categorias_entrena || []).map(c => ({
+            raw: c,
+            id: (c || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_')
+          }));
+          const msgId = (msg.grupo_id || '').toString();
+          const msgNorm = (msg.deporte || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim();
+          const isMyCategory = coachCats.some(c => c.id === msgId || c.raw === msg.deporte || msgNorm.startsWith(c.raw?.toLowerCase()) );
           
           if (isMyCategory && msg.remitente_email !== user.email) {
             UnifiedChatNotificationStore.increment(user.email, 'coach');
