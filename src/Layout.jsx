@@ -672,8 +672,6 @@ export default function Layout({ children, currentPageName }) {
     }, []);
 
     // Actualización automática con notificación visual
-    const [showUpdateNotification, setShowUpdateNotification] = useState(false);
-
     useEffect(() => {
       if (!('serviceWorker' in navigator)) return;
       let intervalId;
