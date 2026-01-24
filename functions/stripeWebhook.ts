@@ -66,7 +66,8 @@ Deno.serve(async (req) => {
                 estado_pago: 'Pagado',
                 cuota_pagada: amount || 25,
                 fecha_pago: new Date().toISOString().split('T')[0],
-                metodo_pago: 'Tarjeta'
+                metodo_pago: 'Tarjeta',
+                referido_procesado: extra.referido_por ? false : member.referido_procesado
               });
               console.log('[stripeWebhook] ClubMember actualizado como Pagado:', member.id);
             } else {
@@ -86,7 +87,8 @@ Deno.serve(async (req) => {
                 activo: true,
                 es_socio_externo: extra.es_socio_externo,
                 metodo_pago: 'Tarjeta',
-                referido_por: extra.referido_por
+                referido_por: extra.referido_por,
+                referido_procesado: !!extra.referido_por
               });
               console.log('[stripeWebhook] ClubMember creado y marcado Pagado:', created.id);
             }
