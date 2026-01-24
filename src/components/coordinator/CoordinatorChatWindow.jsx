@@ -390,7 +390,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           mensaje: (messageData.mensaje || "Mensaje").substring(0, 100),
           tipo: "importante",
           icono: "💬",
-          enlace: "FamilyChats",
+          enlace: "CoordinatorChat",
           vista: false
         });
       } else if (isCoordinator && conversation.padre_email) {

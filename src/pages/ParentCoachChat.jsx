@@ -123,12 +123,30 @@ export default function ParentCoachChat() {
         for (const msg of unreadMessages) {
           const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
           leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-          await base44.entities.ChatMessage.update(msg.id, { leido: true, leido_por: leidoPor });
+          await base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
         }
         
+        // Marcar SOLO las notificaciones de ParentCoachChat como vistas
         if (unreadMessages.length > 0) {
+          try {
+            const notifs = await base44.entities.AppNotification.filter({
+              usuario_email: user.email,
+              enlace: "ParentCoachChat",
+              vista: false
+            });
+            for (const n of notifs) {
+              await base44.entities.AppNotification.update(n.id, {
+                vista: true,
+                fecha_vista: new Date().toISOString()
+              });
+            }
+          } catch (e) {
+            console.log('Error marcando notificaciones:', e);
+          }
+
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] }),
+            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
             queryClient.refetchQueries({ queryKey: ['coachParentChatMessages'] }),
           ]);
         }
@@ -229,6 +247,30 @@ export default function ParentCoachChat() {
          deporte: selectedCategory,
          leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
        });
+
+       // Obtener entrenadores de esta categoría y crear notificaciones
+       try {
+         const allSettings = await base44.entities.CoachSettings.list();
+         const coachesForCategory = allSettings.filter(s => s.categorias_entrena?.includes(selectedCategory));
+         
+         const categoryShort = selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '');
+         
+         for (const coach of coachesForCategory) {
+           if (coach.entrenador_email && coach.entrenador_email !== user.email) {
+             await base44.entities.AppNotification.create({
+               usuario_email: coach.entrenador_email,
+               titulo: `⚽ ${categoryShort}: Mensaje de ${user.full_name}`,
+               mensaje: `${messageData.mensaje.substring(0, 100)}${messageData.mensaje.length > 100 ? '...' : ''}`,
+               tipo: "importante",
+               icono: "⚽",
+               enlace: "CoachParentChat",
+               vista: false
+             });
+           }
+         }
+       } catch (e) {
+         console.log('Error notificando al entrenador:', e);
+       }
 
        return newMessage;
     },
