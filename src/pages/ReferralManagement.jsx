@@ -207,11 +207,11 @@ export default function ReferralManagement() {
   const totalRaffleEntries = usersWithReferrals.reduce((sum, u) => sum + (u.raffle_entries_total || 0), 0);
   const diamondUsers = usersWithReferrals.filter(u => (u.referrals_count || 0) >= 15).length;
 
-  // Referidos de un usuario específico (solo temporada activa si existe)
+  // Referidos de un usuario específico (desde ReferralHistory)
   const getUserReferrals = (email) => {
     return seasonConfig?.temporada
-      ? referralRewards.filter(r => r.referrer_email === email && r.temporada === seasonConfig.temporada)
-      : referralRewards.filter(r => r.referrer_email === email);
+      ? referralHistory.filter(r => r.referidor_email === email && r.temporada === seasonConfig.temporada)
+      : referralHistory.filter(r => r.referidor_email === email);
   };
 
   // Usuarios elegibles para sorteo (con participaciones)
