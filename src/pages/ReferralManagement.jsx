@@ -73,7 +73,11 @@ export default function ReferralManagement() {
 
   const { data: referralRewards = [], isLoading: loadingRewards } = useQuery({
     queryKey: ['referralRewards'],
-    queryFn: () => base44.entities.ReferralReward.list(),
+    queryFn: async () => {
+      const rewards = await base44.entities.ReferralReward.list();
+      console.log('🎁 ReferralRewards loaded:', rewards.length, rewards);
+      return rewards;
+    },
   });
 
   const { data: seasonConfig } = useQuery({
