@@ -9,7 +9,6 @@ export default function CoachChatInput({
   onLocationClick,
   onPollClick,
   onExerciseClick,
-  onSendAudio,
   uploading,
   placeholder = "Mensaje"
 }) {
@@ -38,7 +37,6 @@ export default function CoachChatInput({
       audio_duracion: 0
     };
 
-    // Si hay audio pendiente, subirlo primero
     if (audioBlob) {
       const audioData = await uploadAudio();
       if (audioData) {
@@ -55,8 +53,6 @@ export default function CoachChatInput({
     setLocalAttachments([]);
     cancelAudio();
   }, [localText, localAttachments, audioBlob, onSendMessage, uploadAudio, cancelAudio]);
-
-
 
   const handleFileUploadLocal = useCallback(async (e) => {
     const result = await onFileUpload(e);

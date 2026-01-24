@@ -8,13 +8,11 @@ export default function CoordinatorChatInput({
   onCameraCapture,
   onLocationClick,
   onPollClick,
-  onSendAudio,
   uploading,
   placeholder = "Mensaje"
 }) {
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
-
   const {
     isRecording,
     audioBlob,
@@ -38,7 +36,6 @@ export default function CoordinatorChatInput({
       audio_duracion: 0
     };
 
-    // Si hay audio pendiente, subirlo primero
     if (audioBlob) {
       const audioData = await uploadAudio();
       if (audioData) {
