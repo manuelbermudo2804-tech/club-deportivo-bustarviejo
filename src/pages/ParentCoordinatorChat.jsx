@@ -424,9 +424,9 @@ export default function ParentCoordinatorChat() {
     },
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] }),
+        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
         queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
-        queryClient.refetchQueries({ queryKey: ['parentCoordinatorMessages'] }),
+        queryClient.refetchQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
       ]);
     }
   });
