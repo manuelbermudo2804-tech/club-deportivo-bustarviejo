@@ -433,7 +433,8 @@ export default function ChatTestConsole() {
     setBusy('private'); setStatus(null);
     try {
       if (!parentEmail) throw new Error('Falta email de familia');
-      const convs = await base44.entities.PrivateConversation.filter({ participante_familia_email: parentEmail });
+      const nowIso = new Date().toISOString();
+      const convs = await base44.entities.PrivateConversation.filter({ participante_familia_email: parentEmail, participante_staff_email: me.email });
       const conv = convs[0] || (await base44.entities.PrivateConversation.create({
         participante_familia_email: parentEmail,
         participante_familia_nombre: "Familia Test",
@@ -452,7 +453,14 @@ export default function ChatTestConsole() {
         mensaje: `Privado del Club ${new Date().toLocaleTimeString()}`,
         leido: false,
       });
-      await base44.entities.PrivateConversation.update(conv.id, { ultimo_mensaje: "Privado del Club", ultimo_mensaje_de: "staff", ultimo_mensaje_fecha: new Date().toISOString(), no_leidos_familia: (conv.no_leidos_familia || 0) + 1 });
+      // CRÍTICO: Marcar familia como NO leída para que vea burbuja roja
+      await base44.entities.PrivateConversation.update(conv.id, { 
+        ultimo_mensaje: "Privado del Club", 
+        ultimo_mensaje_de: "staff", 
+        ultimo_mensaje_fecha: nowIso, 
+        no_leidos_familia: (conv.no_leidos_familia || 0) + 1,
+        ultimo_leido_familia_fecha: null  // Reset para que sea "nuevo"
+      });
       setStatus('✅ Enviado: Privado del Club');
     } catch (e) {
       setStatus(`❌ Privado del Club: ${e?.message || e}`);
