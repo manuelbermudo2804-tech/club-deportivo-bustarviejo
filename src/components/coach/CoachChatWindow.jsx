@@ -447,7 +447,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         respuesta_a: messageData.respuesta_a,
         mensaje_citado: messageData.mensaje_citado,
         prioridad: "Normal",
-        leido: false,
+        leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
         reacciones: []
       });
 
