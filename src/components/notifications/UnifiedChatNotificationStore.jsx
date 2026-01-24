@@ -101,7 +101,9 @@ export const UnifiedChatNotificationStore = {
     if (typeof window !== 'undefined') {
       const state = this.getAll(userEmail);
       window.__BASE44_CHAT_NOTIFICATIONS = state;
-      
+
+      console.log(`📢 [UnifiedChatNotificationStore] Broadcasting para ${userEmail}:`, state);
+
       const event = new CustomEvent('chat_notifications_updated', {
         detail: { userEmail, state }
       });
@@ -118,12 +120,14 @@ export const UnifiedChatNotificationStore = {
         callback(e.detail.state);
       }
     };
-    
+
     if (typeof window !== 'undefined') {
       window.addEventListener('chat_notifications_updated', handler);
-      // Enviar estado inicial
-      callback(this.getAll(userEmail));
-      
+      // CRÍTICO: Enviar estado inicial INMEDIATAMENTE
+      const initialState = this.getAll(userEmail);
+      console.log(`📡 [UnifiedChatNotificationStore] Subscriber inicial para ${userEmail}:`, initialState);
+      callback(initialState);
+
       // Retornar unsubscribe
       return () => {
         window.removeEventListener('chat_notifications_updated', handler);
