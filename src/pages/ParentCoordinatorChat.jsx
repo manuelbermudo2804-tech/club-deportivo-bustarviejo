@@ -190,25 +190,7 @@ export default function ParentCoordinatorChat() {
 
 
 
-  const handleSendAudio = async (audioBlob, duration) => {
-    if (!audioBlob) return null;
 
-    setUploading(true);
-    try {
-      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      return {
-        audio_url: file_url,
-        audio_duracion: duration
-      };
-    } catch (error) {
-      toast.error("Error al enviar el audio");
-      return null;
-    } finally {
-      setUploading(false);
-    }
-  };
 
   // Indicador "escribiendo..."
   const handleTyping = async () => {
@@ -295,17 +277,6 @@ export default function ParentCoordinatorChat() {
 
       const palabrasUrgentes = ["urgente", "grave", "lesión", "lesion", "accidente", "hospital", "ambulancia", "emergencia"];
       const palabraUrgente = palabrasUrgentes.find(p => mensajeLower.includes(p));
-      
-      // Si hay audio pendiente, subir primero
-      let audioUrl = null;
-      let audioDuration = 0;
-      if (messageData.audio_blob) {
-        const audioData = await handleSendAudio(messageData.audio_blob, messageData.audio_duracion);
-        if (audioData) {
-          audioUrl = audioData.audio_url;
-          audioDuration = audioData.audio_duracion;
-        }
-      }
 
       const newMessage = await base44.entities.CoordinatorMessage.create({
         conversacion_id: conversation.id,
@@ -313,8 +284,8 @@ export default function ParentCoordinatorChat() {
         autor_email: user.email,
         autor_nombre: user.full_name,
         mensaje: messageData.mensaje,
-        audio_url: audioUrl,
-        audio_duracion: audioDuration,
+        audio_url: messageData.audio_url,
+        audio_duracion: messageData.audio_duracion,
         archivos_adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || [],
         leido_padre: true,
         leido_coordinador: false,
@@ -721,7 +692,6 @@ export default function ParentCoordinatorChat() {
              onSendMessage={handleSendMessage}
              uploading={uploading}
              placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
-             onSendAudio={handleSendAudio}
            />
         </CardContent>
       </Card>

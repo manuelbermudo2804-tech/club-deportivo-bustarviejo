@@ -34,25 +34,7 @@ export default function ParentCoachChat() {
   const audioRef = useRef(null);
   const queryClient = useQueryClient();
 
-  const handleSendAudio = async (audioBlob, duration) => {
-    if (!audioBlob) return;
 
-    setUploading(true);
-    try {
-      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      return {
-        audio_url: file_url,
-        audio_duracion: duration
-      };
-    } catch (error) {
-      toast.error("Error al enviar el audio");
-      return null;
-    } finally {
-      setUploading(false);
-    }
-  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -233,14 +215,6 @@ export default function ParentCoachChat() {
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
-       // Subir audio si existe
-       let audioUrl = null;
-       let audioDuration = 0;
-       if (messageData.audio_url) {
-         audioUrl = messageData.audio_url;
-         audioDuration = messageData.audio_duracion || 0;
-       }
-
        const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
 
        const newMessage = await base44.entities.ChatMessage.create({
@@ -248,8 +222,8 @@ export default function ParentCoachChat() {
          remitente_email: user.email,
          remitente_nombre: user.full_name,
          mensaje: messageData.mensaje,
-         audio_url: audioUrl,
-         audio_duracion: audioDuration,
+         audio_url: messageData.audio_url,
+         audio_duracion: messageData.audio_duracion,
          archivos_adjuntos: messageData.adjuntos || [],
          grupo_id: categoryKey,
          deporte: selectedCategory,
@@ -507,7 +481,11 @@ export default function ParentCoachChat() {
                            {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                          </div>
 
-                          {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{msg.mensaje}</p>}
+                          {msg.mensaje && (
+                            <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                              <EmojiScaler content={msg.mensaje} />
+                            </p>
+                          )}
 
                           {msg.audio_url && (
                             <div className="flex items-center gap-2 mt-2">
@@ -636,7 +614,6 @@ export default function ParentCoachChat() {
              onSendMessage={handleSendMessage}
              uploading={uploading}
              placeholder="Escribe tu mensaje..."
-             onSendAudio={handleSendAudio}
            />
         </CardContent>
       </Card>
