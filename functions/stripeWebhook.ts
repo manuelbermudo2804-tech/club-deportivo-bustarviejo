@@ -64,11 +64,13 @@ Deno.serve(async (req) => {
             if (existing && existing.length > 0) {
               const member = existing[0];
               await base44.asServiceRole.entities.ClubMember.update(member.id, {
-                estado_pago: 'Pagado',
-                cuota_pagada: amount || 25,
-                fecha_pago: new Date().toISOString().split('T')[0],
-                metodo_pago: 'Tarjeta',
-                referido_procesado: extra.referido_por ? false : member.referido_procesado
+               estado_pago: 'Pagado',
+               cuota_pagada: amount || 25,
+               fecha_pago: new Date().toISOString().split('T')[0],
+               metodo_pago: 'Tarjeta',
+               referido_por: extra.referido_por || member.referido_por,
+               referido_por_email: extra.referido_por_email || member.referido_por_email,
+               referido_procesado: false
               });
               console.log('[stripeWebhook] ClubMember actualizado como Pagado:', member.id);
             } else {
