@@ -214,7 +214,8 @@ const alerts = [];
         description: `${pendingCallups} convocatoria${pendingCallups > 1 ? 's' : ''} por confirmar`,
         url: createPageUrl("ParentCallups"),
         color: "bg-red-500",
-        priority: 2
+        priority: 2,
+        sticky: true // NO se puede descartar hasta confirmar
       });
     }
     if (pendingDocuments > 0) {

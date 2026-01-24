@@ -18,28 +18,36 @@ export function useChatUnreadMarking({
   useEffect(() => {
     if (!conversationId || !userEmail || markedRef.current) return;
 
-    markedRef.current = true;
+    const isNearBottom = () => {
+      try {
+        const dist = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+        return dist < 200; // solo si los últimos mensajes están realmente en pantalla
+      } catch {
+        return false;
+      }
+    };
 
-    const markAsRead = async () => {
+    const markIfVisible = async () => {
+      if (markedRef.current) return;
+      if (document.visibilityState !== 'visible') return;
+      if (!Array.isArray(messages) || messages.length === 0) return;
+
+      const last = messages[messages.length - 1];
+      const lastFromOther = last?.remitente_email && last.remitente_email !== userEmail;
+      if (!lastFromOther) return;
+      if (!isNearBottom()) return; // no marcar si el usuario no está viendo el final del chat
+
       try {
         const noLeidosField = getUnreadField(entityName, userRole);
-        
         if (!noLeidosField) return;
 
-        // Actualizar el contador de la conversación
-        await base44.entities[entityName].update(conversationId, {
-          [noLeidosField]: 0,
-        });
+        markedRef.current = true;
+        await base44.entities[entityName].update(conversationId, { [noLeidosField]: 0 });
 
-        // Invalida queries para que se refresquen
-        queryClient?.invalidateQueries({ 
-          queryKey: [entityName.toLowerCase(), 'list'] 
-        });
-        
+        // Refrescar listas relacionadas
+        queryClient?.invalidateQueries({ queryKey: [entityName.toLowerCase(), 'list'] });
         if (entityName === 'CoordinatorConversation') {
-          queryClient?.invalidateQueries({ 
-            queryKey: ['coordinatorMessages'] 
-          });
+          queryClient?.invalidateQueries({ queryKey: ['coordinatorMessages'] });
         }
       } catch (error) {
         console.log(`Error marking as read in ${entityName}:`, error);
@@ -47,8 +55,20 @@ export function useChatUnreadMarking({
       }
     };
 
-    markAsRead();
-  }, [conversationId, userEmail, entityName, userRole]);
+    const onScroll = () => { markIfVisible(); };
+    const onVis = () => { markIfVisible(); };
+
+    // Intento inmediato al abrir el chat
+    const t = setTimeout(markIfVisible, 100);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('visibilitychange', onVis);
+
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [conversationId, userEmail, entityName, userRole, messages]);
 }
 
 /**

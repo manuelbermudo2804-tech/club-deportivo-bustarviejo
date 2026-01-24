@@ -25,12 +25,14 @@ export default function JuntaKPIDashboard({ incidencias = [] }) {
     initialData: []
   });
 
-  // MOROSIDAD
-  const { morososCount, importePendiente } = useMemo(() => {
-    const pending = payments.filter(p => p.estado !== 'Pagado' && p.estado !== 'Anulado');
+  // COBROS: % cobrado y pagos en revisión
+  const { percentCobrado, pagosEnRevision } = useMemo(() => {
+    const total = payments.length;
+    const pagados = payments.filter(p => p.estado === 'Pagado').length;
+    const enRevision = payments.filter(p => p.estado === 'En revisión').length;
     return {
-      morososCount: pending.length,
-      importePendiente: pending.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0)
+      percentCobrado: total > 0 ? Math.round((pagados / total) * 100) : 0,
+      pagosEnRevision: enRevision
     };
   }, [payments]);
 
@@ -97,26 +99,32 @@ export default function JuntaKPIDashboard({ incidencias = [] }) {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Card className="border bg-white/90">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-slate-500">Morosidad</p>
-              {morososCount > 0 ? <TrendingUp className="w-4 h-4 text-red-500" /> : <TrendingDown className="w-4 h-4 text-green-600" />}
+              <p className="text-xs text-slate-500">Cobrado</p>
+              {percentCobrado >= 85 ? <TrendingUp className="w-4 h-4 text-green-600" /> : <TrendingDown className="w-4 h-4 text-orange-500" />}
             </div>
-            <div className="text-2xl font-bold text-slate-900">{formatCurrency(importePendiente)}</div>
-            <p className="text-xs text-slate-500">{morososCount} pagos pendientes</p>
+            <div className="flex items-baseline gap-2">
+              <div className="text-2xl font-bold text-slate-900">{percentCobrado}%</div>
+              <Badge variant="outline" className="text-xs">Objetivo: 100%</Badge>
+            </div>
+            <div className="mt-2">
+              <Progress value={percentCobrado} />
+            </div>
           </CardContent>
         </Card>
 
         <Card className="border bg-white/90">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-slate-500">Asistencia 30 días</p>
+              <p className="text-xs text-slate-500">Asistencia (30 días)</p>
               <Users className="w-4 h-4 text-slate-400" />
             </div>
             <div className="flex items-baseline gap-2">
               <div className="text-2xl font-bold text-slate-900">{asistencia30d}%</div>
+              <Badge variant="outline" className="text-xs">Objetivo: ≥ 85%</Badge>
               <Badge variant="outline" className="text-xs">7d: {asistencia7d}%</Badge>
             </div>
             <div className="mt-2">
@@ -128,43 +136,17 @@ export default function JuntaKPIDashboard({ incidencias = [] }) {
         <Card className="border bg-white/90">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-slate-500">Incidencias abiertas</p>
+              <p className="text-xs text-slate-500">Pagos en revisión</p>
               <AlertTriangle className="w-4 h-4 text-orange-600" />
             </div>
-            <div className="text-2xl font-bold text-slate-900">{abiertas}</div>
+            <div className="text-2xl font-bold text-slate-900">{pagosEnRevision}</div>
             <div className="text-xs text-slate-600 mt-1 flex gap-2">
-              <Badge className="bg-red-500">SLA vencidas: {vencidasSLA}</Badge>
-              <Badge variant="outline">Próx. 12h: {proximasVencer}</Badge>
+              <Badge variant="outline">Objetivo: 0</Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border bg-white/90">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-slate-500">Resumen semanal</p>
-              <CalendarCheck className="w-4 h-4 text-slate-400" />
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-slate-50 rounded p-2">
-                <p className="text-slate-500">Inc. nuevas</p>
-                <p className="font-bold">{resumen.nuevasInc}</p>
-              </div>
-              <div className="bg-slate-50 rounded p-2">
-                <p className="text-slate-500">Inc. resueltas</p>
-                <p className="font-bold flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-600" /> {resumen.resueltasInc}</p>
-              </div>
-              <div className="bg-slate-50 rounded p-2">
-                <p className="text-slate-500">Pagos ok</p>
-                <p className="font-bold">{resumen.pagosOk}</p>
-              </div>
-              <div className="bg-slate-50 rounded p-2">
-                <p className="text-slate-500">Nuevos pendientes</p>
-                <p className="font-bold">{resumen.pagosNuevosPend}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
 
       <div className="text-xs text-slate-500 flex items-center gap-2">
