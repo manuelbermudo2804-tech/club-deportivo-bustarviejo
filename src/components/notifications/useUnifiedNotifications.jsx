@@ -851,11 +851,11 @@ export function useUnifiedNotifications(user, options = {}) {
       // CHATS - separados por rol y tipo
       unreadCoordinatorMessages: Math.max(unreadCoordinatorForParent, appNotifsByLink['ParentCoordinatorChat'] || 0), // Para familias
       unreadCoachMessages: Math.max(unreadCoachForParent, appNotifsByLink['ParentCoachChat'] || 0), // Para familias - considerar AppNotification
-      unreadStaffMessages: unreadStaff,                      // Staff interno
+      unreadStaffMessages: Math.max(unreadStaff, appNotifsByLink['StaffChat'] || 0),                      // Staff interno
       unreadAdminMessages: unreadAdmin,
-      unreadPrivateMessages: unreadPrivate,
+      unreadPrivateMessages: Math.max(unreadPrivate, appNotifsByLink['ParentSystemMessages'] || 0),
       unreadSystemMessages: Math.max(unreadSystemMessages, appNotifsByLink['ParentSystemMessages'] || 0), // System messages for parents
-      unreadFamilyMessages: Math.max(unreadCoordinatorForStaff, appNotifsByLink['FamilyChats'] || 0) + unreadCoachForStaff, // Considerar AppNotif de FamilyChats
+      unreadFamilyMessages: Math.max(unreadCoordinatorForStaff, appNotifsByLink['CoordinatorChat'] || 0) + Math.max(unreadCoachForStaff, appNotifsByLink['CoachParentChat'] || 0), // Considerar AppNotif de CoordinatorChat y CoachParentChat
       unreadCoordinatorForStaff,  // Para coordinadores: mensajes de familias
       unreadCoachForStaff,         // Para entrenadores: mensajes de familias
       pendingCallups,
