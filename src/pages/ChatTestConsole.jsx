@@ -472,6 +472,17 @@ export default function ChatTestConsole() {
         no_leidos_familia: (conv.no_leidos_familia || 0) + 1,
         ultimo_leido_familia_fecha: null  // Reset para que sea "nuevo"
       });
+      // Crear AppNotification para que salte burbuja roja
+      if (parentEmail && parentEmail !== me.email) {
+        await base44.entities.AppNotification.create({
+          usuario_email: parentEmail,
+          titulo: "Nuevo mensaje del Club",
+          contenido: `De ${me.full_name}`,
+          tipo: "admin",
+          enlace: "ParentSystemMessages",
+          vista: false,
+        });
+      }
       setStatus('✅ Enviado: Privado del Club');
     } catch (e) {
       setStatus(`❌ Privado del Club: ${e?.message || e}`);
