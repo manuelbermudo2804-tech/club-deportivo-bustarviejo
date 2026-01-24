@@ -54,6 +54,7 @@ Deno.serve(async (req) => {
             tipo_inscripcion: meta.tipo_inscripcion || 'Nueva Inscripción',
             es_segundo_progenitor: meta.es_segundo_progenitor === 'true',
             referido_por: meta.referido_por || '',
+            referido_por_email: meta.referido_por_email || '',
             es_socio_externo: meta.es_socio_externo === 'true'
           };
 
