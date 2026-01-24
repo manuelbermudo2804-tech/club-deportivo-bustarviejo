@@ -18,14 +18,12 @@ import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
 import CoordinatorChatInput from "../chat/CoordinatorChatInput";
 import EmojiScaler from "../chat/EmojiScaler";
+import { useAudioRecording } from "../chat/useAudioRecording";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
 export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const [uploading, setUploading] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(0);
   const [playingAudio, setPlayingAudio] = useState(null);
   const [showReactions, setShowReactions] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(null);
@@ -41,8 +39,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
   const typingTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -204,66 +200,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       return null;
     } finally {
       setUploading(false);
-    }
-  };
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      const startTime = Date.now();
-
-      mediaRecorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioDuration(duration);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setRecording(true);
-    } catch (error) {
-      toast.error("Error al acceder al micrófono");
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
-  };
-
-  const cancelAudio = () => {
-    setAudioBlob(null);
-    setAudioDuration(0);
-  };
-
-  const sendAudio = async () => {
-    if (!audioBlob) return;
-
-    try {
-      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      sendMessageMutation.mutate({ 
-        mensaje: "🎤 Audio", 
-        audio_url: file_url,
-        audio_duracion: audioDuration,
-        archivos_adjuntos: []
-      });
-      
-      cancelAudio();
-    } catch (error) {
-      toast.error("Error al enviar el audio");
     }
   };
 
@@ -658,22 +594,22 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 </div>
 
                 {msg.audio_url ? (
-                   <div className="flex items-center gap-2 mt-1">
-                     <Button 
-                       size="sm" 
-                       variant={isMine ? "secondary" : "outline"}
-                       onClick={() => togglePlayAudio(msg.audio_url)}
-                       className="h-7"
-                     >
-                       {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                     </Button>
-                     <span className="text-xs">{msg.audio_duracion}s</span>
-                   </div>
-                 ) : (
-                  <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                    {msg.mensaje}
-                    {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Button 
+                      size="sm" 
+                      variant={isMine ? "secondary" : "outline"}
+                      onClick={() => togglePlayAudio(msg.audio_url)}
+                      className="h-7"
+                    >
+                      {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                    </Button>
+                    <span className="text-xs">{msg.audio_duracion}s</span>
+                  </div>
+                ) : (
+                 <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                   <EmojiScaler content={msg.mensaje} />
+                   {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
+                 </p>
                 )}
 
                 {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
@@ -755,7 +691,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       <div className="border-t bg-white flex-shrink-0">
          <CoordinatorChatInput
            onSendMessage={handleSendMessage}
-           onSendAudio={sendAudio}
            onFileUpload={handleFileUpload}
            onCameraCapture={handleCameraCapture}
            onLocationClick={() => setShowLocationDialog(true)}

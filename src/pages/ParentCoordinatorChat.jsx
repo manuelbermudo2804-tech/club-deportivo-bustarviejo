@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, AlertTriangle, Smile } from "lucide-react";
+import { X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, AlertTriangle, Smile, Play, Pause } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -16,6 +16,7 @@ import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
 import ParentChatInput from "../components/chat/ParentChatInput";
+import EmojiScaler from "../components/chat/EmojiScaler";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -36,6 +37,8 @@ export default function ParentCoordinatorChat() {
   const cameraInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
+  const audioRef = useRef(null);
+  const [playingAudio, setPlayingAudio] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -472,6 +475,24 @@ export default function ParentCoordinatorChat() {
     sendMessageMutation.mutate(messageData);
   };
 
+  const togglePlayAudio = async (audioUrl) => {
+    try {
+      if (playingAudio === audioUrl) {
+        audioRef.current?.pause();
+        setPlayingAudio(null);
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = audioUrl;
+          await audioRef.current.play();
+          setPlayingAudio(audioUrl);
+        }
+      }
+    } catch (error) {
+      setPlayingAudio(null);
+      toast.error("Error al reproducir el audio");
+    }
+  };
+
   const addReaction = async (messageId, emoji) => {
     const message = messages.find(m => m.id === messageId);
     const existingReactions = message.reacciones || [];
@@ -529,6 +550,7 @@ export default function ParentCoordinatorChat() {
 
   return (
     <>
+      <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
       {user && (
         <ChatTermsDialog
           open={showTermsDialog}
@@ -614,7 +636,24 @@ export default function ParentCoordinatorChat() {
                           🎓 {msg.autor_nombre}
                         </p>
                       )}
-                      <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{msg.mensaje}</p>
+                      
+                      {msg.audio_url ? (
+                        <div className="flex items-center gap-2 mt-1">
+                          <Button 
+                            size="sm" 
+                            variant={isPadre ? "secondary" : "outline"}
+                            onClick={() => togglePlayAudio(msg.audio_url)}
+                            className="h-7"
+                          >
+                            {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                          </Button>
+                          <span className="text-xs">{msg.audio_duracion}s</span>
+                        </div>
+                      ) : (
+                        <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                          <EmojiScaler content={msg.mensaje} />
+                        </p>
+                      )}
                       {(msg.archivos_adjuntos || msg.adjuntos)?.length > 0 && (
                         <div className="mt-2 space-y-1">
                           {(msg.archivos_adjuntos || msg.adjuntos).map((file, idx) => (
