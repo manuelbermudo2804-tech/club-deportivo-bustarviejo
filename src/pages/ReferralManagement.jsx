@@ -179,16 +179,17 @@ export default function ReferralManagement() {
     }
   });
 
-  // Usuarios con referidos (contar desde ReferralReward - sin filtrar por temporada si no hay config)
+  // Usuarios con referidos (contar desde ReferralHistory - ÚNICA fuente de verdad)
   const usersWithReferrals = users
     .map(u => {
       const userReferrals = seasonConfig?.temporada 
-        ? referralRewards.filter(r => r.referrer_email === u.email && r.temporada === seasonConfig.temporada)
-        : referralRewards.filter(r => r.referrer_email === u.email);
+        ? referralHistory.filter(r => r.referidor_email === u.email && r.temporada === seasonConfig.temporada)
+        : referralHistory.filter(r => r.referidor_email === u.email);
       return {
         ...u,
         referrals_count: userReferrals.length,
-        clothing_credit_balance: userReferrals.reduce((sum, r) => sum + (r.clothing_credit_earned || 0), 0)
+        clothing_credit_balance: userReferrals.reduce((sum, r) => sum + (r.credito_otorgado || 0), 0),
+        raffle_entries_total: userReferrals.reduce((sum, r) => sum + (r.sorteos_otorgados || 0), 0)
       };
     })
     .filter(u => u.referrals_count > 0)
