@@ -16,6 +16,9 @@ import { createPageUrl } from "@/utils";
 import FileAttachmentButton from "../components/chat/FileAttachmentButton";
 import MessageAttachments from "../components/chat/MessageAttachments";
 import EmojiPicker from "../components/chat/EmojiPicker";
+import { useAudioRecording } from "../components/chat/useAudioRecording";
+import AudioRecordingBar from "../components/chat/AudioRecordingBar";
+import { Mic, Play, Pause } from "lucide-react";
 
 export default function DirectMessages() {
   const [user, setUser] = useState(null);
@@ -23,8 +26,21 @@ export default function DirectMessages() {
   const [mensaje, setMensaje] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [playingAudio, setPlayingAudio] = useState(null);
   const messagesEndRef = useRef(null);
+  const audioRef = useRef(null);
   const queryClient = useQueryClient();
+  
+  const {
+    isRecording,
+    audioBlob,
+    audioDuration,
+    isUploading,
+    startRecording,
+    stopRecording,
+    cancelAudio,
+    uploadAudio
+  } = useAudioRecording();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -68,6 +84,8 @@ export default function DirectMessages() {
         destinatario_nombre: messageData.destinatario_nombre,
         mensaje: messageData.mensaje,
         archivos_adjuntos: messageData.archivos_adjuntos || [],
+        audio_url: messageData.audio_url,
+        audio_duracion: messageData.audio_duracion,
         created_date: new Date().toISOString(),
         leido: false,
       };
@@ -103,7 +121,6 @@ export default function DirectMessages() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['directMessages'] });
-      toast.success("Mensaje enviado");
     },
   });
 
@@ -196,15 +213,15 @@ export default function DirectMessages() {
     }
   }, [selectedConversation, selectedMessages.length]);
 
-  const handleSendMessage = () => {
-    if (!mensaje.trim() && attachments.length === 0) return;
+  const handleSendMessage = async () => {
+    if (!mensaje.trim() && attachments.length === 0 && !audioBlob) return;
 
     const contact = selectedContact;
     if (!contact) return;
 
     const conversacionId = selectedConversation || `${user.email}_${contact.otherUserEmail}_${Date.now()}`;
 
-    sendMessageMutation.mutate({
+    const messageData = {
       conversacion_id: conversacionId,
       remitente_email: user.email,
       remitente_nombre: user.full_name,
@@ -214,7 +231,24 @@ export default function DirectMessages() {
       destinatario_rol: contact.otherUserRole,
       mensaje: mensaje,
       archivos_adjuntos: attachments,
-    });
+      audio_url: null,
+      audio_duracion: 0
+    };
+
+    if (audioBlob) {
+      const audioData = await uploadAudio();
+      if (audioData) {
+        messageData.audio_url = audioData.audio_url;
+        messageData.audio_duracion = audioData.audio_duracion;
+      } else {
+        return;
+      }
+    }
+
+    sendMessageMutation.mutate(messageData);
+    setMensaje("");
+    setAttachments([]);
+    cancelAudio();
   };
 
   const startNewConversation = (contact) => {
@@ -249,8 +283,34 @@ export default function DirectMessages() {
 
   const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
 
+  const togglePlayAudio = async (audioUrl) => {
+    try {
+      if (playingAudio === audioUrl) {
+        audioRef.current?.pause();
+        setPlayingAudio(null);
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = audioUrl;
+          await audioRef.current.play();
+          setPlayingAudio(audioUrl);
+        }
+      }
+    } catch (error) {
+      setPlayingAudio(null);
+      toast.error("Error al reproducir el audio");
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+      <audio 
+        ref={audioRef} 
+        onEnded={() => setPlayingAudio(null)}
+        onError={() => {
+          setPlayingAudio(null);
+          toast.error("Error al cargar el audio");
+        }}
+      />
       <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-4 shadow-lg">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
@@ -409,7 +469,7 @@ export default function DirectMessages() {
                         return (
                           <div
                             key={msg.id}
-                            className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}
+                            className={`flex ${isFromMe ? 'justify-end' : 'justify-start'} mb-1.5`}
                           >
                             <div
                               className={`max-w-[70%] rounded-2xl px-4 py-2 ${
@@ -418,7 +478,20 @@ export default function DirectMessages() {
                                   : 'bg-white border border-slate-200 text-slate-900'
                               }`}
                             >
-                              <p className="text-sm break-words">{msg.mensaje}</p>
+                              {msg.audio_url ? (
+                                <div className="flex items-center gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant={isFromMe ? "secondary" : "outline"}
+                                    onClick={() => togglePlayAudio(msg.audio_url)}
+                                  >
+                                    {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                  </Button>
+                                  <span className="text-sm">🎤 {msg.audio_duracion}s</span>
+                                </div>
+                              ) : (
+                                <p className="text-sm break-words">{msg.mensaje}</p>
+                              )}
                               {msg.archivos_adjuntos && msg.archivos_adjuntos.length > 0 && (
                                 <MessageAttachments attachments={msg.archivos_adjuntos} />
                               )}
@@ -437,44 +510,73 @@ export default function DirectMessages() {
                     <div ref={messagesEndRef} />
                   </CardContent>
 
-                  <div className="border-t border-slate-200 p-4">
-                    <div className="flex items-end gap-2">
-                      <EmojiPicker 
-                        onEmojiSelect={(emoji) => setMensaje(prev => prev + emoji)}
-                        messageText={mensaje}
-                      />
-                      
-                      <FileAttachmentButton
-                        onFileUploaded={(attachment) => setAttachments([...attachments, attachment])}
-                        disabled={sendMessageMutation.isPending}
-                      />
-                      <div className="flex-1">
-                        <Input
-                          value={mensaje}
-                          onChange={(e) => setMensaje(e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendMessage();
-                            }
-                          }}
-                          placeholder="Escribe tu mensaje..."
-                          disabled={sendMessageMutation.isPending}
-                          className="resize-none"
+                  <div className="border-t border-slate-200 bg-white flex-shrink-0">
+                    {(isRecording || audioBlob) && (
+                      <div className="px-4 pt-3">
+                        <AudioRecordingBar
+                          isRecording={isRecording}
+                          audioBlob={audioBlob}
+                          audioDuration={audioDuration}
+                          onStop={stopRecording}
+                          onCancel={cancelAudio}
+                          onPlay={() => {}}
+                          playing={false}
                         />
-                        {attachments.length > 0 && (
-                          <div className="mt-2">
-                            <MessageAttachments attachments={attachments} />
-                          </div>
+                      </div>
+                    )}
+
+                    <div className="p-4">
+                      <div className="flex items-end gap-2">
+                        <EmojiPicker 
+                          onEmojiSelect={(emoji) => setMensaje(prev => prev + emoji)}
+                          messageText={mensaje}
+                        />
+                        
+                        <FileAttachmentButton
+                          onFileUploaded={(attachment) => setAttachments([...attachments, attachment])}
+                          disabled={sendMessageMutation.isPending || isRecording || isUploading}
+                        />
+                        <div className="flex-1">
+                          <Input
+                            value={mensaje}
+                            onChange={(e) => setMensaje(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSendMessage();
+                              }
+                            }}
+                            placeholder="Escribe tu mensaje..."
+                            disabled={sendMessageMutation.isPending || isRecording || isUploading}
+                            className="resize-none"
+                          />
+                          {attachments.length > 0 && (
+                            <div className="mt-2">
+                              <MessageAttachments attachments={attachments} />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {!audioBlob && !mensaje.trim() && attachments.length === 0 ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={isRecording ? stopRecording : startRecording}
+                            disabled={sendMessageMutation.isPending || isUploading}
+                            className={`h-9 w-9 p-0 flex-shrink-0 ${isRecording ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
+                          >
+                            <Mic className="w-5 h-5" />
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={handleSendMessage}
+                            disabled={(!mensaje.trim() && attachments.length === 0 && !audioBlob) || sendMessageMutation.isPending || isRecording || isUploading}
+                            className="bg-orange-600 hover:bg-orange-700 h-9 w-9 p-0 flex-shrink-0"
+                          >
+                            <Send className="w-4 h-4" />
+                          </Button>
                         )}
                       </div>
-                      <Button
-                        onClick={handleSendMessage}
-                        disabled={(!mensaje.trim() && attachments.length === 0) || sendMessageMutation.isPending}
-                        className="bg-orange-600 hover:bg-orange-700"
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
                 </>
