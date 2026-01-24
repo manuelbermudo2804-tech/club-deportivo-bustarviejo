@@ -90,11 +90,14 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     if (!selectedCategory || !messages?.length || !user) return;
     const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-    const unread = messages.filter(m => 
-      m.tipo === 'padre_a_grupo' && 
-      (m.grupo_id === grupo_id || m.deporte === selectedCategory) &&
-      (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
-    );
+    const catId = toGroupId(selectedCategory);
+    const normSel = normalizeCategory(selectedCategory);
+    const unread = messages.filter(m => {
+      const normMsgCat = normalizeCategory(m.deporte || '');
+      const matchGroup = m.grupo_id === catId;
+      const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
+      return m.tipo === 'padre_a_grupo' && (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
+    });
     
     if (unread.length === 0) return;
     
