@@ -59,18 +59,34 @@ Deno.serve(async (req) => {
           };
 
           if (tipo === 'cuota_socio' && email) {
+            // Detectar referidor automático: si viene referido_por_email, buscar ese usuario
+            let referidoPor = extra.referido_por || '';
+            let referidoPorEmail = extra.referido_por_email || '';
+
+            if (!referidoPor && referidoPorEmail) {
+              // Intentar obtener nombre del usuario referidor (para compatibilidad con automático)
+              try {
+                const referrers = await base44.asServiceRole.entities.User.filter({ email: referidoPorEmail });
+                if (referrers && referrers.length > 0) {
+                  referidoPor = referrers[0].full_name || referidoPorEmail;
+                }
+              } catch (e) {
+                referidoPor = referidoPorEmail; // Fallback al email si falla
+              }
+            }
+
             // Buscar socio de la temporada; si no existe, crearlo como externo
             const existing = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
             if (existing && existing.length > 0) {
               const member = existing[0];
               await base44.asServiceRole.entities.ClubMember.update(member.id, {
-               estado_pago: 'Pagado',
-               cuota_pagada: amount || 25,
-               fecha_pago: new Date().toISOString().split('T')[0],
-               metodo_pago: 'Tarjeta',
-               referido_por: extra.referido_por || member.referido_por,
-               referido_por_email: extra.referido_por_email || member.referido_por_email,
-               referido_procesado: false
+                estado_pago: 'Pagado',
+                cuota_pagada: amount || 25,
+                fecha_pago: new Date().toISOString().split('T')[0],
+                metodo_pago: 'Tarjeta',
+                referido_por: referidoPor || member.referido_por,
+                referido_por_email: referidoPorEmail || member.referido_por_email,
+                referido_procesado: (referidoPor || referidoPorEmail) ? false : member.referido_procesado
               });
               console.log('[stripeWebhook] ClubMember actualizado como Pagado:', member.id);
             } else {
@@ -90,9 +106,9 @@ Deno.serve(async (req) => {
                 activo: true,
                 es_socio_externo: extra.es_socio_externo,
                 metodo_pago: 'Tarjeta',
-                referido_por: extra.referido_por,
-                referido_por_email: meta.referido_por_email || '',
-                referido_procesado: false
+                referido_por: referidoPor,
+                referido_por_email: referidoPorEmail,
+                referido_procesado: (referidoPor || referidoPorEmail) ? false : true
               });
               console.log('[stripeWebhook] ClubMember creado y marcado Pagado:', created.id);
             }
