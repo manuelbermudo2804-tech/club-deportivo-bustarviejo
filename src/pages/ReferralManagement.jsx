@@ -531,7 +531,7 @@ export default function ReferralManagement() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-purple-600" />
-                Todos los Registros de Referidos ({referralRewards.length})
+                Todos los Registros de Referidos ({referralRewards.filter(r => r.temporada === seasonConfig?.temporada).length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -556,6 +556,7 @@ export default function ReferralManagement() {
                     </TableHeader>
                     <TableBody>
                       {referralRewards
+                        .filter((r) => r.temporada === seasonConfig?.temporada)
                         .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
                         .map((ref, index) => (
                         <TableRow key={ref.id}>

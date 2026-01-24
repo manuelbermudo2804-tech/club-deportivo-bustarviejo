@@ -31,6 +31,7 @@ export default function ClubMembership() {
     email: "",
     direccion: "",
     municipio: "",
+    fecha_nacimiento: "",
     metodo_pago: "Transferencia",
     justificante_url: "",
     es_segundo_progenitor: false,
@@ -544,6 +545,7 @@ export default function ClubMembership() {
           email: "",
           direccion: "",
           municipio: "",
+          fecha_nacimiento: "",
           metodo_pago: "Transferencia",
           justificante_url: "",
           es_segundo_progenitor: false,
@@ -1171,6 +1173,16 @@ export default function ClubMembership() {
                       onBlur={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="correo@ejemplo.com"
                       required 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fecha_nacimiento">Fecha de nacimiento (opcional)</Label>
+                    <Input 
+                      id="fecha_nacimiento"
+                      name="bday"
+                      type="date"
+                      value={formData.fecha_nacimiento || ""}
+                      onChange={(e) => setFormData({ ...formData, fecha_nacimiento: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
