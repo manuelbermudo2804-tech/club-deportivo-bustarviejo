@@ -143,7 +143,7 @@ export default function QuickMatchObservationForm({
                 </div>
                 <div>
                   <Label className="text-xs">Resultado <span className="text-red-600">*</span></Label>
-                  <Input value={formData.resultado} onChange={(e) => setFormData({ ...formData, resultado: e.target.value })} placeholder="2-1 (V)" className="h-9" required />
+                  <Input value={formData.resultado} onChange={(e) => markDirty({ ...formData, resultado: e.target.value })} placeholder="2-1 (V)" className="h-9" required />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
