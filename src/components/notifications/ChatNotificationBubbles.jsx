@@ -19,7 +19,7 @@ export default function ChatNotificationBubbles({ user, isCoordinator, isCoach, 
   if (!user) return null;
 
   return (
-    <div className="fixed top-[52px] lg:top-4 left-4 right-4 lg:left-auto lg:right-4 z-40 flex gap-2 flex-wrap justify-end pointer-events-none">
+    <div className="fixed top-[60px] lg:top-4 left-2 right-2 lg:left-auto lg:right-4 z-40 flex gap-1 lg:gap-2 flex-wrap justify-start lg:justify-end pointer-events-none lg:flex-nowrap overflow-x-auto">
       {/* STAFF (interno) */}
       {(isAdmin || isCoach || isCoordinator) && bubbles.staffBubble > 0 && (
         <Link to={createPageUrl('StaffChat')} className="pointer-events-auto">
