@@ -142,13 +142,13 @@ export function ChatNotificationSync({ user }) {
         if (event.data.participante_familia_email === user.email) {
           const oldCount = event.old_data?.no_leidos_familia || 0;
           const newCount = event.data.no_leidos_familia || 0;
-          
+
           console.log(`📬 [ChatNotificationSync] PrivateConversation update para ${user.email}:`, {
             oldCount,
             newCount,
             delta: newCount - oldCount
           });
-          
+
           if (newCount > oldCount) {
             const delta = newCount - oldCount;
             // Incrementar por CADA nuevo mensaje no leído
@@ -161,6 +161,22 @@ export function ChatNotificationSync({ user }) {
       }
     });
     unsubscribers.push(unsubPrivateConv);
+
+    // FALLBACK INSTANTÁNEO: si llega un PrivateMessage del club, incrementa sin esperar al update de la conversación
+    const unsubPrivateMsg = base44.entities.PrivateMessage.subscribe((event) => {
+      if (event.type === 'create' && event.data?.remitente_tipo === 'staff') {
+        const convId = event.data.conversacion_id;
+        if (convId) {
+          base44.entities.PrivateConversation.filter({ id: convId }).then((res) => {
+            const conv = res?.[0];
+            if (conv?.participante_familia_email === user.email) {
+              UnifiedChatNotificationStore.increment(user.email, 'systemMessages');
+            }
+          }).catch(() => {});
+        }
+      }
+    });
+    unsubscribers.push(unsubPrivateMsg);
 
     return () => {
       unsubscribers.forEach(unsub => {
