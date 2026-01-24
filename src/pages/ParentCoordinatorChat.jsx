@@ -343,7 +343,7 @@ export default function ParentCoordinatorChat() {
             mensaje: (messageData.mensaje || "Mensaje").substring(0, 100) + ((messageData.mensaje || "").length > 100 ? '...' : ''),
             tipo: "importante",
             icono: "💬",
-            enlace: "FamilyChats",
+            enlace: "CoordinatorChat",
             vista: false
           })));
       } catch (_) {}
