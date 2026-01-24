@@ -88,9 +88,12 @@ export default function ParentCoachChat() {
     queryKey: ['coachParentChatMessages'],
     queryFn: async () => {
       if (!user) return [];
-      return await base44.entities.ChatMessage.filter({
-        tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] }
-      }, 'created_date');
+      const [byType, byMine] = await Promise.all([
+        base44.entities.ChatMessage.filter({ tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } }, 'created_date'),
+        base44.entities.ChatMessage.filter({ remitente_email: user.email }, 'created_date')
+      ]);
+      const merged = [...byType, ...byMine].reduce((acc, m) => { acc[m.id] = m; return acc; }, {});
+      return Object.values(merged).sort((a,b)=>new Date(a.created_date)-new Date(b.created_date));
     },
     enabled: !!user,
     refetchInterval: false,
