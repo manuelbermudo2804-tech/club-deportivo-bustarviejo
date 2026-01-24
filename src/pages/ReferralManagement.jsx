@@ -191,9 +191,9 @@ export default function ReferralManagement() {
   const totalRaffleEntries = usersWithReferrals.reduce((sum, u) => sum + (u.raffle_entries_total || 0), 0);
   const diamondUsers = usersWithReferrals.filter(u => (u.referrals_count || 0) >= 15).length;
 
-  // Referidos de un usuario específico
+  // Referidos de un usuario específico (solo temporada activa)
   const getUserReferrals = (email) => {
-    return referralRewards.filter(r => r.referrer_email === email);
+    return referralRewards.filter(r => r.referrer_email === email && r.temporada === seasonConfig?.temporada);
   };
 
   // Usuarios elegibles para sorteo (con participaciones)
