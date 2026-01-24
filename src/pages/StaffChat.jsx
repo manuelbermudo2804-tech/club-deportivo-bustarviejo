@@ -428,6 +428,7 @@ export default function StaffChat() {
         autor_email: user.email,
         autor_nombre: user.full_name || "Staff",
         archivos_adjuntos: messageData.adjuntos || [],
+        adjuntos: messageData.adjuntos || [],
         audio_url: messageData.audio_url,
         audio_duracion: messageData.audio_duracion,
         encuesta: messageData.encuesta,
@@ -894,10 +895,10 @@ export default function StaffChat() {
                             <span className="text-sm">🎤 {msg.audio_duracion}s</span>
                           </div>
                         ) : (
-                          <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                            {msg.mensaje}
-                            {msg.editado && <span className="text-xs ml-1 opacity-60">(editado)</span>}
-                          </p>
+                         <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                           <EmojiScaler content={msg.mensaje} />
+                           {msg.editado && <span className="text-xs ml-1 opacity-60">(editado)</span>}
+                         </p>
                         )}
 
                         {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}

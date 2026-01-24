@@ -225,6 +225,8 @@ export default function ParentCoordinatorChat() {
         autor_email: user.email,
         autor_nombre: user.full_name,
         archivos_adjuntos: messageData.adjuntos || [],
+        audio_url: messageData.audio_url,
+        audio_duracion: messageData.audio_duracion,
         created_date: new Date().toISOString(),
         leido_padre: true,
         leido_coordinador: false,

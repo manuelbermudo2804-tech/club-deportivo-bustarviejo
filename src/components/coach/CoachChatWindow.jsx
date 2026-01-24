@@ -401,7 +401,32 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   });
 
   const sendMessageMutation = useMutation({
+    onMutate: async (messageData) => {
+      await queryClient.cancelQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
+      const previousMessages = queryClient.getQueryData(['coachGroupMessages', selectedCategory]);
+      
+      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        mensaje: messageData.mensaje,
+        tipo: "entrenador_a_grupo",
+        remitente_email: user.email,
+        remitente_nombre: user.full_name,
+        archivos_adjuntos: messageData.adjuntos || [],
+        audio_url: messageData.audio_url,
+        audio_duracion: messageData.audio_duracion,
+        created_date: new Date().toISOString(),
+        grupo_id,
+        deporte: selectedCategory,
+      };
+      
+      queryClient.setQueryData(['coachGroupMessages', selectedCategory], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages };
+    },
     onError: (err, messageData, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['coachGroupMessages', selectedCategory], context.previousMessages);
+      }
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {

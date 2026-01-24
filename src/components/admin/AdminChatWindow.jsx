@@ -142,22 +142,7 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
     }
   };
 
-  const handleSendAudio = async (audioBlob, audioDuration) => {
-    if (!audioBlob) return;
-    try {
-      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      sendMessageMutation.mutate({ 
-        mensaje: "🎤 Audio", 
-        audio_url: file_url,
-        audio_duracion: audioDuration,
-        adjuntos: []
-      });
-    } catch (error) {
-      toast.error("Error al enviar el audio");
-    }
-  };
+
 
   const togglePlayAudio = async (audioUrl) => {
     try {
@@ -178,7 +163,31 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
   };
 
   const sendMessageMutation = useMutation({
+    onMutate: async (messageData) => {
+      await queryClient.cancelQueries({ queryKey: ['adminMessages', conversation?.id] });
+      const previousMessages = queryClient.getQueryData(['adminMessages', conversation?.id]);
+      
+      const optimisticMessage = {
+        id: `temp-${Date.now()}`,
+        mensaje: messageData.mensaje,
+        autor: "admin",
+        autor_email: user.email,
+        autor_nombre: user.full_name,
+        archivos_adjuntos: messageData.adjuntos || [],
+        audio_url: messageData.audio_url,
+        audio_duracion: messageData.audio_duracion,
+        es_nota_interna: messageData.es_nota_interna || false,
+        created_date: new Date().toISOString(),
+        leido_admin: true,
+      };
+      
+      queryClient.setQueryData(['adminMessages', conversation?.id], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages };
+    },
     onError: (err, messageData, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['adminMessages', conversation?.id], context.previousMessages);
+      }
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
@@ -188,6 +197,8 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
         autor_email: user.email,
         autor_nombre: user.full_name,
         mensaje: messageData.mensaje,
+        audio_url: messageData.audio_url,
+        audio_duracion: messageData.audio_duracion,
         archivos_adjuntos: messageData.adjuntos,
         es_nota_interna: messageData.es_nota_interna || false,
         leido_admin: true,
