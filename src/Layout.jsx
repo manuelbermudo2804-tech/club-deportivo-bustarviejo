@@ -589,6 +589,7 @@ export default function Layout({ children, currentPageName }) {
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
   const [showBirthdayModal, setShowBirthdayModal] = useState(null);
+  const [showUpdateNotification, setShowUpdateNotification] = useState(false);
 
   const [installContext, setInstallContext] = useState('manual');
 
