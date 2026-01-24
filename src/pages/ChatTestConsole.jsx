@@ -1035,7 +1035,7 @@ export default function ChatTestConsole() {
         await base44.entities.AppNotification.create({
         usuario_email: adminEmail,
         titulo: "⚠️ Fallo en Test de Chat",
-        mensaje,
+        mensaje: message,
         tipo: "importante",
         enlace: "ChatTestConsole",
         vista: false,
