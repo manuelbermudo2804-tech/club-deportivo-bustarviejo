@@ -373,6 +373,17 @@ export default function ChatTestConsole() {
         no_leidos_coordinador: (conv.no_leidos_coordinador || 0) + 1,
         ultimo_leido_coordinador_fecha: null  // Reset para que sea "nuevo"
       });
+      // Crear AppNotification para que aparezca en burbuja (igual que Staff)
+      if (coordEmail && coordEmail !== parentEmail) {
+        await base44.entities.AppNotification.create({
+          usuario_email: coordEmail,
+          titulo: "Nuevo mensaje de Familia",
+          contenido: `De ${parentEmail}`,
+          tipo: "coordinator",
+          enlace: "CoordinatorChat",
+          vista: false,
+        });
+      }
       setStatus('✅ Enviado: Familia→Coordinador');
     } catch (e) {
       setStatus(`❌ Familia→Coordinador: ${e?.message || e}`);
