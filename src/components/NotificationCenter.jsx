@@ -193,21 +193,26 @@ export default function NotificationCenter() {
   const chatUnread = (
     (notifications?.unreadStaffMessages || 0) +
     (notifications?.unreadCoordinatorMessages || 0) +
-    (notifications?.unreadAdminMessages || 0) +
-    (notifications?.unreadPrivateMessages || 0) +
     (notifications?.unreadCoachMessages || 0) +
-    (notifications?.unreadFamilyMessages || 0)
+    (notifications?.unreadSystemMessages || 0) +
+    (notifications?.unreadCoordinatorForStaff || 0) +
+    (notifications?.unreadCoachForStaff || 0)
   );
 
   const chatItems = [
+    // STAFF - para admin/coordinadores/entrenadores
     ((isAdmin || isCoach || isCoordinator) && (notifications?.unreadStaffMessages || 0) > 0) ? { source: 'staff', label: 'Chat Staff', count: notifications.unreadStaffMessages, link: 'StaffChat' } : null,
-    (isCoordinator && (notifications?.unreadCoordinatorMessages || 0) > 0) ? { source: 'coordinator', label: 'Familias', count: notifications.unreadCoordinatorMessages, link: 'CoordinatorChat' } : null,
-    (isCoach && (notifications?.unreadFamilyMessages || 0) > 0) ? { source: 'families', label: 'Familias', count: notifications.unreadFamilyMessages, link: 'CoachParentChat' } : null,
-    (isAdmin && (notifications?.unreadAdminMessages || 0) > 0) ? { source: 'admin', label: 'Administrador', count: notifications.unreadAdminMessages, link: 'AdminChat' } : null,
-    (isFamily && (notifications?.unreadCoordinatorMessages || 0) > 0) ? { source: 'coordinator', label: 'Coordinador', count: notifications.unreadCoordinatorMessages, link: 'ParentCoordinatorChat' } : null,
-    (isFamily && (notifications?.unreadCoachMessages || 0) > 0) ? { source: 'coach', label: 'Entrenador', count: notifications.unreadCoachMessages, link: 'ParentCoachChat' } : null,
-    (isFamily && (notifications?.unreadPrivateMessages || 0) > 0) ? { source: 'private', label: 'Mensajes del Club', count: notifications.unreadPrivateMessages, link: 'ParentSystemMessages' } : null,
-    (isFamily && (notifications?.unreadAdminMessages || 0) > 0) ? { source: 'admin', label: 'Administrador', count: notifications.unreadAdminMessages, link: 'ParentAdminChat' } : null,
+    
+    // COORDINADOR - para familias (mensajes del coordinador) y coordinadores (mensajes de familias)
+    (isCoordinator && (notifications?.unreadCoordinatorForStaff || 0) > 0) ? { source: 'coordinator', label: 'Familias - Coordinador', count: notifications.unreadCoordinatorForStaff, link: 'CoordinatorChat' } : null,
+    (isFamily && (notifications?.unreadCoordinatorMessages || 0) > 0) ? { source: 'coordinator', label: 'Coordinador (1-a-1)', count: notifications.unreadCoordinatorMessages, link: 'ParentCoordinatorChat' } : null,
+    
+    // ENTRENADOR - para familias (mensajes del entrenador) y entrenadores (mensajes de familias)
+    (isCoach && (notifications?.unreadCoachForStaff || 0) > 0) ? { source: 'coach', label: 'Familias - Entrenador', count: notifications.unreadCoachForStaff, link: 'CoachParentChat' } : null,
+    (isFamily && (notifications?.unreadCoachMessages || 0) > 0) ? { source: 'coach', label: 'Chat Equipo (Grupal)', count: notifications.unreadCoachMessages, link: 'ParentCoachChat' } : null,
+    
+    // SYSTEM MESSAGES - solo para familias
+    (isFamily && (notifications?.unreadSystemMessages || 0) > 0) ? { source: 'system', label: 'Mensajes del Club', count: notifications.unreadSystemMessages, link: 'ParentSystemMessages' } : null,
   ].filter(Boolean);
 
   const markMessageAsReadMutation = useMutation({
