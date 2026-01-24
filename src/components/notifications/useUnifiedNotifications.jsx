@@ -617,21 +617,39 @@ export function useUnifiedNotifications(user, options = {}) {
 
     // === ENTRENADOR - FAMILIAS (mensajes de grupo ChatMessage) ===
     (rawData.chatMessages || []).forEach(msg => {
-      // Para familias: mensajes del entrenador
+      // Para familias: SOLO mensajes del entrenador en SUS categorías
       if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && 
-          msg.tipo === 'entrenador_a_grupo' && 
-          (myCategories.includes(msg.deporte) || myCategories.includes(msg.grupo_id)) &&
-          (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
+          msg.tipo === 'entrenador_a_grupo') {
+        // Verificar que el mensaje sea de UNA de mis categorías
+        const isMyCategory = myCategories.some(cat => {
+          const grupo_id = cat.toLowerCase().replace(/\s+/g, '_');
+          return msg.deporte === cat || msg.grupo_id === grupo_id;
+        });
+        
+        if (!isMyCategory) return; // SKIP si no es mi categoría
+        
+        const isRead = msg.leido_por?.some(lp => lp.email === user.email);
+        if (isRead) return; // SKIP si ya lo leí
+        
         unreadCoachForParent++;
         const key = msg.grupo_id || msg.deporte || 'general';
         breakdown.coachGroupForParent[key] = (breakdown.coachGroupForParent[key] || 0) + 1;
       }
       
-      // Para entrenadores: mensajes de familias al grupo
+      // Para entrenadores: SOLO mensajes de familias en MIS categorías
       if ((user.es_entrenador || user.es_coordinador) && 
-          msg.tipo === 'padre_a_grupo' &&
-          (coachCategories.includes(msg.deporte) || coachCategories.includes(msg.grupo_id)) &&
-          (!msg.leido_por || !msg.leido_por.some(lp => lp.email === user.email))) {
+          msg.tipo === 'padre_a_grupo') {
+        // Verificar que el mensaje sea de UNA de mis categorías de entrenador
+        const isMyCoachCategory = coachCategories.some(cat => {
+          const grupo_id = cat.toLowerCase().replace(/\s+/g, '_');
+          return msg.deporte === cat || msg.grupo_id === grupo_id;
+        });
+        
+        if (!isMyCoachCategory) return; // SKIP si no entreno esta categoría
+        
+        const isRead = msg.leido_por?.some(lp => lp.email === user.email);
+        if (isRead) return; // SKIP si ya lo leí
+        
         unreadCoachForStaff++;
         const key = msg.grupo_id || msg.deporte || 'general';
         breakdown.coachGroupForCoach[key] = (breakdown.coachGroupForCoach[key] || 0) + 1;
