@@ -22,6 +22,7 @@ import EmojiScaler from "../chat/EmojiScaler";
 import DateSeparator from "../chat/DateSeparator";
 import NewMessageButton from "../chat/NewMessageButton";
 import { groupConsecutiveMessages } from "../chat/MessageGrouping";
+import { UnifiedChatNotificationStore } from "../notifications/UnifiedChatNotificationStore";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -124,7 +125,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     }
   }, [messages, isScrolledToBottom, anyoneTyping]);
 
-  // Marcar como leídos los mensajes de familias al abrir la categoría (simétrico a familias viendo mensajes del entrenador)
+  // Marcar como leídos los mensajes de familias - SISTEMA UNIFICADO
   useEffect(() => {
     if (!user || !selectedCategory || messages.length === 0) return;
     const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
@@ -170,6 +171,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
               fecha_vista: new Date().toISOString(),
             });
           }
+          
+          // LIMPIAR SOLO el contador de este chat - NO tocar otros
+          UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
 
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),

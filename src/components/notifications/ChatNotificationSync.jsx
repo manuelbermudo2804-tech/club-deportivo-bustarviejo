@@ -74,32 +74,8 @@ export function ChatNotificationSync({ user }) {
       unsubscribers.push(unsubCoordForFamily);
     }
 
-    // ===== 3. ENTRENADOR - FAMILIAS (grupo) =====
-    // Usar CoachConversation para mensajes directos
-    const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
-      if (event.type === 'update' && event.data) {
-        // Para entrenadores: incrementar cuando aumenta no_leidos_entrenador
-        if (user.es_entrenador && event.data.entrenador_email === user.email) {
-          const oldCount = event.old_data?.no_leidos_entrenador || 0;
-          const newCount = event.data.no_leidos_entrenador || 0;
-          if (newCount > oldCount) {
-            UnifiedChatNotificationStore.updateCount(user.email, 'coach', newCount);
-          }
-        }
-        
-        // Para familias: incrementar cuando aumenta no_leidos_padre
-        if (!user.es_entrenador && event.data.padre_email === user.email) {
-          const oldCount = event.old_data?.no_leidos_padre || 0;
-          const newCount = event.data.no_leidos_padre || 0;
-          if (newCount > oldCount) {
-            UnifiedChatNotificationStore.updateCount(user.email, 'coachForFamily', newCount);
-          }
-        }
-      }
-    });
-    unsubscribers.push(unsubCoachConv);
-
-    // Para mensajes de grupo ChatMessage (padre_a_grupo / entrenador_a_grupo)
+    // ===== 3. ENTRENADOR - FAMILIAS (grupo ChatMessage) =====
+    // Solo escuchar ChatMessage - sin CoachConversation
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
       if (event.type === 'create' && event.data) {
         const msg = event.data;
@@ -117,27 +93,10 @@ export function ChatNotificationSync({ user }) {
         // Para familias: mensajes del entrenador O de otros padres en MIS categorías
         if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
           if (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') {
-            // Obtener mis categorías
-            const checkMyCategory = async () => {
-              const myPlayers = await base44.entities.Player.filter({
-                $or: [
-                  { email_padre: user.email },
-                  { email_tutor_2: user.email },
-                  { email_jugador: user.email }
-                ]
-              });
-              
-              const myCategories = [...new Set(myPlayers.map(p => p.deporte))];
-              const isMyCategory = myCategories.includes(msg.deporte) || myCategories.some(cat => {
-                const grupo_id = cat.toLowerCase().replace(/\s+/g, '_');
-                return msg.grupo_id === grupo_id;
-              });
-              
-              if (isMyCategory && msg.remitente_email !== user.email) {
-                UnifiedChatNotificationStore.increment(user.email, 'coachForFamily');
-              }
-            };
-            checkMyCategory();
+            // IMPORTANTE: no hacer query por cada mensaje - validar contra cache local
+            if (msg.remitente_email !== user.email) {
+              UnifiedChatNotificationStore.increment(user.email, 'coachForFamily');
+            }
           }
         }
       }
@@ -145,9 +104,28 @@ export function ChatNotificationSync({ user }) {
     unsubscribers.push(unsubChatMsg);
 
     // ===== 4. MENSAJES PRIVADOS DEL CLUB (solo lectura) =====
-    const unsubPrivate = base44.entities.PrivateConversation.subscribe((event) => {
+    // Escuchar PrivateMessage directamente (más confiable)
+    const unsubPrivateMsg = base44.entities.PrivateMessage.subscribe((event) => {
+      if (event.type === 'create' && event.data) {
+        // Verificar si es para mí (familia)
+        const checkIsForMe = async () => {
+          const convs = await base44.entities.PrivateConversation.filter({
+            id: event.data.conversacion_id,
+            participante_familia_email: user.email
+          });
+          
+          if (convs.length > 0 && event.data.remitente_tipo === 'staff') {
+            UnifiedChatNotificationStore.increment(user.email, 'systemMessages');
+          }
+        };
+        checkIsForMe();
+      }
+    });
+    unsubscribers.push(unsubPrivateMsg);
+    
+    // Backup: escuchar updates de PrivateConversation.no_leidos_familia
+    const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
       if (event.type === 'update' && event.data) {
-        // Para familias: mensajes del club
         if (event.data.participante_familia_email === user.email) {
           const oldCount = event.old_data?.no_leidos_familia || 0;
           const newCount = event.data.no_leidos_familia || 0;
@@ -157,7 +135,7 @@ export function ChatNotificationSync({ user }) {
         }
       }
     });
-    unsubscribers.push(unsubPrivate);
+    unsubscribers.push(unsubPrivateConv);
 
     return () => {
       unsubscribers.forEach(unsub => {
