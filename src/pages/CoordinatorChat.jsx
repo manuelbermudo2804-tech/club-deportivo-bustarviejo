@@ -267,30 +267,32 @@ export default function CoordinatorChat({ embedded = false }) {
                   onClick={() => setSelectedConversation(conv)}
                 >
                   <CardContent className="p-3">
-                    <div className="flex items-start justify-between mb-1">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-bold text-sm text-slate-900">{conv.padre_nombre}</p>
-                          {conv.escalada_desde_entrenador && (
-                            <Badge className="bg-orange-100 text-orange-700 text-xs">
-                              ⚽ Escalada desde Entrenador
-                            </Badge>
-                          )}
-                          {conv.prioritaria && <Star className="w-3 h-3 text-orange-500 fill-orange-500" />}
-                          {conv.etiqueta && <Badge variant="outline" className="text-xs">{conv.etiqueta}</Badge>}
-                        </div>
-                        <p className="text-xs text-slate-500">
-                          {conv.jugadores_asociados?.map(j => `${j.jugador_nombre} (${j.categoria})`).join(', ')}
-                        </p>
-                        {conv.escalada_desde_entrenador && (
-                          <p className="text-xs text-orange-600 mt-1">
-                            Escalado por {conv.entrenador_nombre_que_escalo || 'Entrenador'}
-                          </p>
-                        )}
-                      </div>
-                      {conv.no_leidos_coordinador > 0 && (
-                        <Badge className="bg-red-500 text-white">{conv.no_leidos_coordinador}</Badge>
-                      )}
+                    <div className="flex items-center justify-between mb-1 gap-2">
+                      <div className="flex-1 min-w-0">
+                         <div className="flex items-center gap-2 flex-wrap">
+                           <p className="font-bold text-sm text-slate-900 truncate">{conv.padre_nombre}</p>
+                           {conv.escalada_desde_entrenador && (
+                             <Badge className="bg-orange-100 text-orange-700 text-xs flex-shrink-0">
+                               ⚽ Escalada
+                             </Badge>
+                           )}
+                           {conv.prioritaria && <Star className="w-3 h-3 text-orange-500 fill-orange-500 flex-shrink-0" />}
+                         </div>
+                         <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                           {conv.etiqueta && <Badge variant="outline" className="text-xs flex-shrink-0">{conv.etiqueta}</Badge>}
+                           <p className="text-xs text-slate-500 truncate">
+                             {conv.jugadores_asociados?.map(j => `${j.jugador_nombre} (${j.categoria})`).join(', ')}
+                           </p>
+                         </div>
+                         {conv.escalada_desde_entrenador && (
+                           <p className="text-xs text-orange-600 mt-1">
+                             Escalado por {conv.entrenador_nombre_que_escalo || 'Entrenador'}
+                           </p>
+                         )}
+                       </div>
+                       {conv.no_leidos_coordinador > 0 && (
+                         <Badge className="bg-red-500 text-white font-bold text-xs flex-shrink-0 px-2 py-1 rounded-full min-w-6 text-center">{conv.no_leidos_coordinador}</Badge>
+                       )}
                     </div>
                     <p className="text-xs text-slate-600 truncate">{conv.ultimo_mensaje}</p>
                     <div className="flex items-center justify-between mt-1">
