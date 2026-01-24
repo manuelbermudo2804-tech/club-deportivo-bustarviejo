@@ -2068,6 +2068,11 @@ export default function Layout({ children, currentPageName }) {
                    ⚽ {chatMenuCounts.coachForFamilyCount}
                  </div>
                )}
+               {!isAdmin && chatMenuCounts.systemMessagesCount > 0 && (
+                 <div className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg font-bold">
+                   🔔 {chatMenuCounts.systemMessagesCount}
+                 </div>
+               )}
                {isCoordinator && chatMenuCounts.coordinatorCount > 0 && (
                  <div className="px-2 py-1 bg-cyan-500 text-white text-xs rounded-lg font-bold">
                    👨‍👩‍👧 {chatMenuCounts.coordinatorCount}
