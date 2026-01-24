@@ -69,21 +69,18 @@ export function ChatNotificationSync({ user }) {
       unsubscribers.push(unsubCoordConv);
     }
 
-    // Para familias: mensajes DEL coordinador
+    // Para familias: mensajes DEL coordinador - escuchar updates de CoordinatorConversation
     if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
-      const unsubCoordForFamily = base44.entities.CoordinatorMessage.subscribe((event) => {
-        if (event.type === 'create' && event.data?.autor === 'coordinador') {
-          // Verificar que el mensaje sea para MÍ
-          const unsubCheck = async () => {
-            const convs = await base44.entities.CoordinatorConversation.filter({ 
-              id: event.data.conversacion_id,
-              padre_email: user.email 
-            });
-            if (convs.length > 0) {
+      const unsubCoordForFamily = base44.entities.CoordinatorConversation.subscribe((event) => {
+        if (event.type === 'update' && event.data?.padre_email === user.email) {
+          const oldCount = event.old_data?.no_leidos_familia || 0;
+          const newCount = event.data.no_leidos_familia || 0;
+          if (newCount > oldCount) {
+            const delta = newCount - oldCount;
+            for (let i = 0; i < delta; i++) {
               UnifiedChatNotificationStore.increment(user.email, 'coordinatorForFamily');
             }
-          };
-          unsubCheck();
+          }
         }
       });
       unsubscribers.push(unsubCoordForFamily);
