@@ -103,22 +103,45 @@ export function ChatNotificationSync({ user }) {
     });
     unsubscribers.push(unsubChatMsg);
 
-    // ===== 4. MENSAJES PRIVADOS DEL CLUB (solo lectura) =====
+    // ===== 3B. ENTRENADOR - FAMILIAS (CoachConversation 1-a-1) - CORRECCIÓN #1 =====
+    // Para entrenadores: escuchar cambios en no_leidos_entrenador
+    if (user.es_entrenador) {
+      const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
+        if (event.type === 'update' && event.data) {
+          if (event.data.entrenador_email === user.email) {
+            const oldCount = event.old_data?.no_leidos_entrenador || 0;
+            const newCount = event.data.no_leidos_entrenador || 0;
+            if (newCount > oldCount) {
+              const delta = newCount - oldCount;
+              for (let i = 0; i < delta; i++) {
+                UnifiedChatNotificationStore.increment(user.email, 'coach');
+              }
+            }
+          }
+        }
+      });
+      unsubscribers.push(unsubCoachConv);
+    }
+
+    // ===== 4. MENSAJES PRIVADOS DEL CLUB (solo lectura) - CORRECCIÓN #2 =====
     // Escuchar PrivateMessage directamente (más confiable)
     const unsubPrivateMsg = base44.entities.PrivateMessage.subscribe((event) => {
       if (event.type === 'create' && event.data) {
         // Verificar si es para mí (familia)
-        const checkIsForMe = async () => {
-          const convs = await base44.entities.PrivateConversation.filter({
-            id: event.data.conversacion_id,
-            participante_familia_email: user.email
-          });
-          
-          if (convs.length > 0 && event.data.remitente_tipo === 'staff') {
-            UnifiedChatNotificationStore.increment(user.email, 'systemMessages');
+        (async () => {
+          try {
+            const convs = await base44.entities.PrivateConversation.filter({
+              id: event.data.conversacion_id,
+              participante_familia_email: user.email
+            });
+            
+            if (convs.length > 0 && event.data.remitente_tipo === 'staff') {
+              UnifiedChatNotificationStore.increment(user.email, 'systemMessages');
+            }
+          } catch (e) {
+            console.error('❌ Error checking private message:', e);
           }
-        };
-        checkIsForMe();
+        })();
       }
     });
     unsubscribers.push(unsubPrivateMsg);

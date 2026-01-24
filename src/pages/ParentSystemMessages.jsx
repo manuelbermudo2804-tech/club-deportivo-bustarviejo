@@ -7,6 +7,7 @@ import { Bell, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import SocialLinks from "../components/SocialLinks";
+import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function ParentSystemMessages() {
   const [user, setUser] = useState(null);
@@ -109,6 +110,9 @@ export default function ParentSystemMessages() {
             });
           }
         }
+
+        // CORRECCIÓN #3: Sincronizar con UnifiedChatNotificationStore
+        UnifiedChatNotificationStore.clearChatOnly(user.email, 'systemMessages');
       }
 
       // 2. MARCAR NOTIFICACIONES COMO VISTAS
