@@ -582,20 +582,20 @@ export function useUnifiedNotifications(user, options = {}) {
     };
 
     // === COORDINADOR - FAMILIAS ===
-    (rawData.coordinatorConversations || []).forEach(conv => {
-      // Para familias: mensajes del coordinador no leídos
-      if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && conv.padre_email === user.email && conv.resuelta !== true) {
-        const c = (conv.no_leidos_padre || 0);
-        unreadCoordinatorForParent += c;
-        if (c > 0) breakdown.coordinatorByConvForParent[conv.id] = c;
-      }
-      // Para coordinadores: mensajes de familias no leídos
-      if (user.es_coordinador && !conv.archivada) {
-        const c = (conv.no_leidos_coordinador || 0);
-        unreadCoordinatorForStaff += c;
-        if (c > 0) breakdown.coordinatorByConvForCoordinator[conv.id] = c;
-      }
-    });
+     (rawData.coordinatorConversations || []).forEach(conv => {
+       // Para familias: mensajes del coordinador no leídos
+       if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && conv.padre_email === user.email && conv.resuelta !== true) {
+         const c = (conv.no_leidos_padre || 0);
+         unreadCoordinatorForParent += c;
+         if (c > 0) breakdown.coordinatorByConvForParent[conv.id] = c;
+       }
+       // Para coordinadores: mensajes de familias no leídos (SIN filtro archivada)
+       if (user.es_coordinador) {
+         const c = (conv.no_leidos_coordinador || 0);
+         unreadCoordinatorForStaff += c;
+         if (c > 0) breakdown.coordinatorByConvForCoordinator[conv.id] = c;
+       }
+     });
 
 
 
