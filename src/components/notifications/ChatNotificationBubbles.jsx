@@ -54,7 +54,7 @@ export default function ChatNotificationBubbles({ user, isCoordinator, isCoach, 
       {isFamily && bubbles.coordinatorForFamilyBubble > 0 && (
         <Link to={createPageUrl('ParentCoordinatorChat')} className="pointer-events-auto">
           <div className="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-cyan-700 transition-all cursor-pointer">
-            <span className="text-sm font-semibold">🎓 Coordinador</span>
+            <span className="text-xs lg:text-sm font-semibold whitespace-nowrap">🎓 Coord</span>
             <Badge className="bg-white text-cyan-600 font-bold">{bubbles.coordinatorForFamilyBubble}</Badge>
           </div>
         </Link>
