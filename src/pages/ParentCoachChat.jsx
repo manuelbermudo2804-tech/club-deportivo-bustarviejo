@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -291,9 +291,9 @@ export default function ParentCoachChat() {
     setShowReactions(null);
   };
 
-  const handleSendMessage = (messageData) => {
+  const handleSendMessage = useCallback((messageData) => {
     sendMessageMutation.mutate(messageData);
-  };
+  }, [sendMessageMutation]);
 
   const togglePlayAudio = (audioUrl) => {
     if (playingAudio === audioUrl) {
