@@ -660,7 +660,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
               {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
             </h2>
             <p className="text-xs text-green-100">
-              {parentEmails.length} familias
+              Chat Grupal - {parentEmails.length} familias
             </p>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
