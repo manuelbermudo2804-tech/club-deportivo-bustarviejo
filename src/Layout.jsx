@@ -670,34 +670,40 @@ export default function Layout({ children, currentPageName }) {
     };
     }, []);
 
-    // Actualización automática inmediata (PWA/Service Worker)
+    // Actualización automática con notificación visual
+    const [showUpdateNotification, setShowUpdateNotification] = useState(false);
+
     useEffect(() => {
-    if (!('serviceWorker' in navigator)) return;
-    let intervalId;
-    (async () => {
-      try {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (!reg) return;
-        reg.addEventListener('updatefound', () => {
-          const sw = reg.installing;
-          if (!sw) return;
-          sw.addEventListener('statechange', () => {
-            if (sw.state === 'installed' && reg.waiting) {
-              // Activar la nueva versión y recargar inmediatamente
-              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            }
+      if (!('serviceWorker' in navigator)) return;
+      let intervalId;
+      (async () => {
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (!reg) return;
+
+          reg.addEventListener('updatefound', () => {
+            const sw = reg.installing;
+            if (!sw) return;
+            sw.addEventListener('statechange', () => {
+              if (sw.state === 'installed' && reg.waiting) {
+                // Mostrar notificación de actualización disponible
+                setShowUpdateNotification(true);
+              }
+            });
           });
-        });
-        await reg.update();
-        intervalId = window.setInterval(() => reg.update(), 300000); // cada 5 min
-      } catch {}
-    })();
-    const onCtrlChange = () => window.location.reload();
-    navigator.serviceWorker.addEventListener('controllerchange', onCtrlChange);
-    return () => {
-      navigator.serviceWorker.removeEventListener('controllerchange', onCtrlChange);
-      if (intervalId) clearInterval(intervalId);
-    };
+
+          await reg.update();
+          intervalId = window.setInterval(() => reg.update(), 300000); // cada 5 min
+        } catch {}
+      })();
+
+      const onCtrlChange = () => window.location.reload();
+      navigator.serviceWorker.addEventListener('controllerchange', onCtrlChange);
+
+      return () => {
+        navigator.serviceWorker.removeEventListener('controllerchange', onCtrlChange);
+        if (intervalId) clearInterval(intervalId);
+      };
     }, []);
 
     // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
