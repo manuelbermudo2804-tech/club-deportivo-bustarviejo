@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, memo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Smile, Mic, Play, Pause, X } from "lucide-react";
@@ -6,7 +6,7 @@ import EmojiPicker from "./EmojiPicker";
 import AudioRecordingBar from "./AudioRecordingBar";
 import { useAudioRecording } from "./useAudioRecording";
 
-export default function ParentChatInput({ onSendMessage, uploading, placeholder = "Mensaje" }) {
+const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading, placeholder = "Mensaje" }) {
   const [currentMessage, setCurrentMessage] = useState("");
   const textareaRef = useRef(null);
   const audioRef = useRef(null);
@@ -152,4 +152,6 @@ export default function ParentChatInput({ onSendMessage, uploading, placeholder 
       </div>
     </div>
   );
-}
+});
+
+export default ParentChatInput;

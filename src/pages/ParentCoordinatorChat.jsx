@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -433,7 +433,7 @@ export default function ParentCoordinatorChat() {
     }
   });
 
-  const handleSendMessage = (messageData) => {
+  const handleSendMessage = useCallback((messageData) => {
     if (!termsAccepted) {
       toast.error("Debes aceptar las condiciones de uso antes de enviar mensajes");
       setShowTermsDialog(true);
@@ -446,7 +446,7 @@ export default function ParentCoordinatorChat() {
     }
     
     sendMessageMutation.mutate(messageData);
-  };
+  }, [termsAccepted, user?.chat_bloqueado, sendMessageMutation]);
 
   const togglePlayAudio = async (audioUrl) => {
     try {
