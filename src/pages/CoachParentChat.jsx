@@ -5,13 +5,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Settings } from "lucide-react";
+import { MessageCircle, Settings, ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
 
 export default function CoachParentChat({ embedded = false }) {
-  const [user, setUser] = useState(null);
-  const [allPlayers, setAllPlayers] = useState([]);
+  const navigate = useNavigate();
+   const [user, setUser] = useState(null);
+   const [allPlayers, setAllPlayers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [unreadByCategory, setUnreadByCategory] = useState({});
@@ -157,16 +159,25 @@ export default function CoachParentChat({ embedded = false }) {
         </Dialog>
 
         <Card className="h-full flex flex-col overflow-hidden border-green-200 shadow-lg rounded-none">
-          {/* Header con pestañas de categorías */}
-          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
-            <div className="p-2 flex items-center justify-between border-b border-green-500/30">
-              <div>
-                <h1 className="text-base font-bold flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5" />
-                  Chat con Familias
-                </h1>
-              </div>
-              <Button
+           {/* Header con pestañas de categorías */}
+           <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
+             <div className="p-2 flex items-center justify-between border-b border-green-500/30">
+               <div>
+                 <h1 className="text-base font-bold flex items-center gap-2">
+                   <Button
+                     variant="ghost"
+                     size="sm"
+                     onClick={() => navigate(-1)}
+                     className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                     title="Volver atrás"
+                   >
+                     <ChevronLeft className="w-4 h-4" />
+                   </Button>
+                   <MessageCircle className="w-5 h-5" />
+                   Chat con Familias
+                 </h1>
+               </div>
+               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSettings(true)}
@@ -262,16 +273,25 @@ export default function CoachParentChat({ embedded = false }) {
       </Dialog>
 
       <Card className="h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none border-green-200 shadow-lg">
-        {/* Header con pestañas de categorías */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
-          <div className="p-2 flex items-center justify-between border-b border-green-500/30">
-            <div>
-              <h1 className="text-base font-bold flex items-center gap-2">
-                <MessageCircle className="w-5 h-5" />
-                Chat Grupal Equipo
-              </h1>
-            </div>
-            <Button
+         {/* Header con pestañas de categorías */}
+         <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
+           <div className="p-2 flex items-center justify-between border-b border-green-500/30">
+             <div>
+               <h1 className="text-base font-bold flex items-center gap-2">
+                 <Button
+                   variant="ghost"
+                   size="sm"
+                   onClick={() => navigate(-1)}
+                   className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                   title="Volver atrás"
+                 >
+                   <ChevronLeft className="w-4 h-4" />
+                 </Button>
+                 <MessageCircle className="w-5 h-5" />
+                 Chat Grupal Equipo
+               </h1>
+             </div>
+             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowSettings(true)}
