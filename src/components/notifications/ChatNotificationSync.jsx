@@ -45,7 +45,7 @@ export function ChatNotificationSync({ user }) {
 
     // ===== 2. COORDINADOR - FAMILIAS (1-a-1) =====
     // Para coordinadores: mensajes DE familias
-    if (user.es_coordinador) {
+    if (user.es_coordinador || user.role === 'admin') {
       const unsubCoordMsg = base44.entities.CoordinatorMessage.subscribe((event) => {
         if (event.type === 'create' && event.data?.autor === 'padre') {
           UnifiedChatNotificationStore.increment(user.email, 'coordinator');
