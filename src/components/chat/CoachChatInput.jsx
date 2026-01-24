@@ -5,7 +5,7 @@ import { Send, Smile, Paperclip, Camera, MapPin, BarChart3, Dumbbell, X } from "
 import EmojiPicker from "./EmojiPicker";
 import WhatsAppAudioRecorder from "./WhatsAppAudioRecorder";
 
-const StaffChatInput = memo(function StaffChatInput({
+const CoachChatInput = memo(function CoachChatInput({
   onSendMessage,
   onFileUpload,
   onCameraCapture,
@@ -13,8 +13,7 @@ const StaffChatInput = memo(function StaffChatInput({
   onPollClick,
   onExerciseClick,
   uploading,
-  showExercise = false,
-  placeholder = "Escribe un mensaje..."
+  placeholder = "Mensaje"
 }) {
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
@@ -65,7 +64,7 @@ const StaffChatInput = memo(function StaffChatInput({
     { icon: Camera, label: "Cámara", onClick: () => cameraInputRef.current?.click(), color: "text-green-600", bg: "bg-green-50" },
     { icon: MapPin, label: "Ubicación", onClick: onLocationClick, color: "text-orange-600", bg: "bg-orange-50" },
     { icon: BarChart3, label: "Encuesta", onClick: onPollClick, color: "text-purple-600", bg: "bg-purple-50" },
-    ...(showExercise ? [{ icon: Dumbbell, label: "Ejercicios", onClick: onExerciseClick, color: "text-red-600", bg: "bg-red-50" }] : []),
+    { icon: Dumbbell, label: "Ejercicios", onClick: onExerciseClick, color: "text-red-600", bg: "bg-red-50" },
   ];
 
   return (
@@ -198,4 +197,4 @@ const StaffChatInput = memo(function StaffChatInput({
   );
 });
 
-export default StaffChatInput;
+export default CoachChatInput;
