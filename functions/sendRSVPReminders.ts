@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
           if (!preview) {
             await base44.integrations.Core.SendEmail({
               to,
-              subject: `Recordatorio diario: confirma tu asistencia`;
+              subject: `Recordatorio diario: confirma tu asistencia`,
               body: `Hola ${c.usuario_nombre || ''},\n\nTienes una convocatoria pendiente de confirmar: ${e.titulo} (${e.fecha || ''} ${e.hora || ''}).\n\nPor favor, confirma desde la app: https://app.cdbustarviejo.com${'/#' + 'ParentCallups'}\n\nGracias.\nCD Bustarviejo.`
             });
             await base44.asServiceRole.entities.AutomaticReminder.create({
