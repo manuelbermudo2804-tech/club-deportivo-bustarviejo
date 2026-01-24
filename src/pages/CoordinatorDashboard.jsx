@@ -170,7 +170,7 @@ export default function CoordinatorDashboard() {
               <Link to={createPageUrl("CoordinatorChat")} className="flex-1">
                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                    {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
-                     <div className="absolute -top-2 -left-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                     <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                        <span className="text-white text-[10px] font-bold">{notifications.unreadCoordinatorForStaff}</span>
                      </div>
                    )}
