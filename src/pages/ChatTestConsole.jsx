@@ -275,10 +275,8 @@ export default function ChatTestConsole() {
       let last = Array.isArray(conv.last_read_by) ? [...conv.last_read_by] : [];
       const li = last.findIndex(r => r.email === s.email);
       if (li >= 0) last[li].fecha = nowIso; else last.push({ email: s.email, fecha: nowIso });
-      // CRÍTICO: Marcar otros participantes como NO leídos (quitarlos de last_read_by si el remitente es diferente)
-      if (coordEmail && coordEmail !== s.email) {
-        last = last.filter(r => r.email !== coordEmail);
-      }
+      // CRÍTICO: Marcar otros participantes como NO leídos (quitarlos de last_read_by)
+      last = last.filter(r => r.email === s.email);
       await base44.entities.StaffConversation.update(conv.id, { participantes, last_read_by: last });
       await base44.entities.StaffMessage.create({
         conversacion_id: conv.id,
