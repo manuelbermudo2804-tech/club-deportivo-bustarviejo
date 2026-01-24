@@ -171,5 +171,6 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
         </Button>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
