@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck, Smile, Pin, Reply, Edit, Trash2 } from "lucide-react";
+import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck, Smile, Pin, Reply, Edit, Trash2, ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -35,8 +36,9 @@ const QUICK_REPLIES = [
 ];
 
 export default function StaffChat() {
-  const [user, setUser] = useState(null);
-  const [isStaff, setIsStaff] = useState(false);
+  const navigate = useNavigate();
+   const [user, setUser] = useState(null);
+   const [isStaff, setIsStaff] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -686,15 +688,24 @@ export default function StaffChat() {
       />
       <Card className="border-purple-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-2 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <MessageCircle className="w-4 h-4" />
-              💼 Chat Interno Staff
-              {(unreadCount > 0 || staffCounterTotal > 0) && (
-               <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{Math.max(unreadCount, staffCounterTotal)}</Badge>
-              )}
-            </CardTitle>
-            <div className="flex gap-1">
+           <div className="flex items-center justify-between">
+             <CardTitle className="flex items-center gap-2 text-sm">
+               <Button
+                 variant="ghost"
+                 size="sm"
+                 onClick={() => navigate(-1)}
+                 className="text-white hover:bg-white/20 h-8 w-8 p-0 mr-1"
+                 title="Volver atrás"
+               >
+                 <ChevronLeft className="w-4 h-4" />
+               </Button>
+               <MessageCircle className="w-4 h-4" />
+               💼 Chat Interno Staff
+               {(unreadCount > 0 || staffCounterTotal > 0) && (
+                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{Math.max(unreadCount, staffCounterTotal)}</Badge>
+               )}
+             </CardTitle>
+             <div className="flex gap-1">
               <Button
                 variant="ghost"
                 size="sm"
