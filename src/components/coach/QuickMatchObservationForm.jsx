@@ -153,7 +153,7 @@ export default function QuickMatchObservationForm({
                 </div>
                 <div>
                   <Label className="text-xs">Jornada</Label>
-                  <Input type="number" value={formData.jornada} onChange={(e) => setFormData({ ...formData, jornada: e.target.value })} placeholder="5" className="h-9 bg-slate-100" disabled={!!jornada} />
+                  <Input type="number" value={formData.jornada} onChange={(e) => markDirty({ ...formData, jornada: e.target.value })} placeholder="5" className="h-9 bg-slate-100" disabled={!!jornada} />
                 </div>
                 <div>
                   <Label className="text-xs">Temporada</Label>
