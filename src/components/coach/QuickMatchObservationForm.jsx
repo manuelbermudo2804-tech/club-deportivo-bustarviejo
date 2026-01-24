@@ -94,7 +94,7 @@ export default function QuickMatchObservationForm({
           <button
             key={rating}
             type="button"
-            onClick={() => onChange(rating)}
+            onClick={() => { dirtyRef.current = true; onChange(rating); }}
             className={`flex-1 py-2 px-1 text-xs font-semibold rounded transition-colors ${
               value === rating
                 ? 'bg-orange-600 text-white'
