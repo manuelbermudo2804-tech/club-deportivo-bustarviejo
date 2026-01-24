@@ -2049,24 +2049,51 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => { setInstallContext('manual'); setShowInstallInstructions(true); }}
-                className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
-                title="Ver cómo instalar"
-              >
-                <Smartphone className="w-5 h-5" />
-              </button>
-              
-              {enginesReady && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
-              <ThemeToggle />
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-3 text-white hover:bg-white/20 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center relative"
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+               <button
+                 onClick={() => { setInstallContext('manual'); setShowInstallInstructions(true); }}
+                 className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
+                 title="Ver cómo instalar"
+               >
+                 <Smartphone className="w-5 h-5" />
+               </button>
 
-              </button>
-            </div>
+               {/* Badges adicionales para chats en móvil (coordinador y entrenador) */}
+               {!isAdmin && chatMenuCounts.coordinatorForFamilyCount > 0 && (
+                 <div className="px-2 py-1 bg-cyan-500 text-white text-xs rounded-lg font-bold">
+                   💬 {chatMenuCounts.coordinatorForFamilyCount}
+                 </div>
+               )}
+               {!isAdmin && chatMenuCounts.coachForFamilyCount > 0 && (
+                 <div className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg font-bold">
+                   ⚽ {chatMenuCounts.coachForFamilyCount}
+                 </div>
+               )}
+               {isCoordinator && chatMenuCounts.coordinatorCount > 0 && (
+                 <div className="px-2 py-1 bg-cyan-500 text-white text-xs rounded-lg font-bold">
+                   👨‍👩‍👧 {chatMenuCounts.coordinatorCount}
+                 </div>
+               )}
+               {isCoach && chatMenuCounts.coachCount > 0 && (
+                 <div className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg font-bold">
+                   ⚽ {chatMenuCounts.coachCount}
+                 </div>
+               )}
+               {isAdmin && chatMenuCounts.staffCount > 0 && (
+                 <div className="px-2 py-1 bg-purple-500 text-white text-xs rounded-lg font-bold">
+                   💼 {chatMenuCounts.staffCount}
+                 </div>
+               )}
+
+               {enginesReady && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
+               <ThemeToggle />
+               <button
+                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                 className="p-3 text-white hover:bg-white/20 rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center relative"
+               >
+                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+
+               </button>
+             </div>
           </div>
         </header>
 
