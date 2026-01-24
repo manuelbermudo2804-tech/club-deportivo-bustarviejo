@@ -14,6 +14,7 @@ import { useUnifiedNotifications } from "../components/notifications/useUnifiedN
 import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
+import { useChatNotificationBubbles } from "../components/notifications/useChatNotificationBubbles";
 
 
 export default function CoordinatorDashboard() {
@@ -42,6 +43,7 @@ export default function CoordinatorDashboard() {
 
   // ÚNICA fuente de verdad para TODAS las notificaciones
   const { notifications } = useUnifiedNotifications(user);
+  const chatBubbles = useChatNotificationBubbles(user);
 
   // Contadores de chat eliminados - se recrearán desde cero
 
@@ -169,9 +171,9 @@ export default function CoordinatorDashboard() {
 
               <Link to={createPageUrl("CoordinatorChat")} className="flex-1">
                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
-                   {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
+                   {(Math.max(notifications?.unreadCoordinatorForStaff || 0, chatBubbles.coordinatorBubble || 0)) > 0 && (
                      <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                       <span className="text-white text-[10px] font-bold">{notifications.unreadCoordinatorForStaff}</span>
+                       <span className="text-white text-[10px] font-bold">{Math.max(notifications?.unreadCoordinatorForStaff || 0, chatBubbles.coordinatorBubble || 0)}</span>
                      </div>
                    )}
                    <p className="text-base font-bold mb-0.5">💬</p>

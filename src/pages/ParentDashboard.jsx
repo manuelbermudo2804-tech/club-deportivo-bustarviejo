@@ -18,6 +18,7 @@ import ClassificationsAndMatchesBanner from "../components/dashboard/Classificat
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
+import { useChatNotificationBubbles } from "../components/notifications/useChatNotificationBubbles";
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
@@ -75,6 +76,7 @@ export default function ParentDashboard() {
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
   const { notifications } = useUnifiedNotifications(user);
+  const chatBubbles = useChatNotificationBubbles(user);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -467,9 +469,9 @@ export default function ParentDashboard() {
 
                 <Link to={createPageUrl("ParentSystemMessages")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(notifications?.unreadSystemMessages || 0) > 0 && (
+                    {(Math.max(notifications?.unreadSystemMessages || 0, chatBubbles.systemMessagesBubble || 0)) > 0 && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{notifications.unreadSystemMessages}</span>
+                        <span className="text-white text-xs font-bold">{Math.max(notifications?.unreadSystemMessages || 0, chatBubbles.systemMessagesBubble || 0)}</span>
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">🔔 Mensajes</p>
@@ -479,9 +481,9 @@ export default function ParentDashboard() {
 
                 <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(notifications?.unreadCoordinatorMessages || 0) > 0 && (
+                    {(Math.max(notifications?.unreadCoordinatorMessages || 0, chatBubbles.coordinatorForFamilyBubble || 0)) > 0 && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorMessages}</span>
+                        <span className="text-white text-xs font-bold">{Math.max(notifications?.unreadCoordinatorMessages || 0, chatBubbles.coordinatorForFamilyBubble || 0)}</span>
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
@@ -491,9 +493,9 @@ export default function ParentDashboard() {
                 
                 <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(notifications?.unreadCoachMessages || 0) > 0 && (
+                    {(Math.max(notifications?.unreadCoachMessages || 0, chatBubbles.coachForFamilyBubble || 0)) > 0 && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{notifications.unreadCoachMessages}</span>
+                        <span className="text-white text-xs font-bold">{Math.max(notifications?.unreadCoachMessages || 0, chatBubbles.coachForFamilyBubble || 0)}</span>
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
