@@ -10,6 +10,7 @@ import CategoryManagement from './pages/CategoryManagement';
 import CentroCompeticion from './pages/CentroCompeticion';
 import CentroCompeticionTecnico from './pages/CentroCompeticionTecnico';
 import ChatAnalyticsDashboard from './pages/ChatAnalyticsDashboard';
+import ChatNotificationAuditPage from './pages/ChatNotificationAuditPage';
 import ChatTestConsole from './pages/ChatTestConsole';
 import Chatbot from './pages/Chatbot';
 import Clasificaciones from './pages/Clasificaciones';
@@ -99,7 +100,6 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import ChatNotificationAuditPage from './pages/ChatNotificationAuditPage';
 import __Layout from './Layout.jsx';
 
 
@@ -116,6 +116,7 @@ export const PAGES = {
     "CentroCompeticion": CentroCompeticion,
     "CentroCompeticionTecnico": CentroCompeticionTecnico,
     "ChatAnalyticsDashboard": ChatAnalyticsDashboard,
+    "ChatNotificationAuditPage": ChatNotificationAuditPage,
     "ChatTestConsole": ChatTestConsole,
     "Chatbot": Chatbot,
     "Clasificaciones": Clasificaciones,
@@ -205,7 +206,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "ChatNotificationAuditPage": ChatNotificationAuditPage,
 }
 
 export const pagesConfig = {
