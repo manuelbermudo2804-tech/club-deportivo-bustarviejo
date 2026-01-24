@@ -392,7 +392,7 @@ export default function ParentCallups() {
             </Button>
             <Button
               onClick={handleSubmitConfirmation}
-              disabled={updateCallupMutation.isPending || !confirmationData.confirmacion}
+              disabled={updateCallupMutation.isPending || !['asistire','no_asistire','duda'].includes(confirmationData.confirmacion)}
               className="bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {updateCallupMutation.isPending ? (
