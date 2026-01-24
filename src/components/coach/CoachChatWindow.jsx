@@ -27,6 +27,17 @@ import { UnifiedChatNotificationStore } from "../notifications/UnifiedChatNotifi
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
+const normalizeCategory = (s = '') =>
+  s
+    .toString()
+    .replace(/\(.*?\)/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+const toGroupId = (s = '') => normalizeCategory(s).replace(/\s+/g, '_');
+
 export default function CoachChatWindow({ selectedCategory, user, allPlayers }) {
   const [uploading, setUploading] = useState(false);
   const [playingAudio, setPlayingAudio] = useState(null);
