@@ -1,31 +1,20 @@
 import React, { useState, useRef, memo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Send, Smile, Mic, Play, Pause, X } from "lucide-react";
+import { Send, Smile } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
-import AudioRecordingBar from "./AudioRecordingBar";
-import { useAudioRecording } from "./useAudioRecording";
+import WhatsAppAudioButton from "./WhatsAppAudioButton";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 
 const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading, placeholder = "Mensaje" }) {
   const [currentMessage, setCurrentMessage] = useState("");
   const textareaRef = useRef(null);
-  const audioRef = useRef(null);
-  const {
-    isRecording,
-    audioBlob,
-    audioDuration,
-    isUploading,
-    startRecording,
-    stopRecording,
-    cancelAudio,
-    uploadAudio
-  } = useAudioRecording();
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [playingLocalAudio, setPlayingLocalAudio] = useState(false);
 
   const handleSend = async () => {
-    if (!currentMessage.trim() && !audioBlob) return;
+    if (!currentMessage.trim()) return;
 
     const messageData = {
       mensaje: currentMessage,
@@ -34,36 +23,30 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
       audio_duracion: 0
     };
 
-    if (audioBlob) {
-      const audioData = await uploadAudio();
-      if (audioData) {
-        messageData.audio_url = audioData.audio_url;
-        messageData.audio_duracion = audioData.audio_duracion;
-      } else {
-        return;
-      }
-    }
-
     onSendMessage(messageData);
     setCurrentMessage("");
-    cancelAudio();
   };
 
-  const playLocalAudio = () => {
-    if (!audioBlob || !audioRef.current) return;
-    
+  const handleAudioSent = async (audioBlob, duration) => {
     try {
-      if (playingLocalAudio) {
-        audioRef.current.pause();
-        setPlayingLocalAudio(false);
-      } else {
-        audioRef.current.src = URL.createObjectURL(audioBlob);
-        audioRef.current.play();
-        setPlayingLocalAudio(true);
-      }
+      // Subir audio
+      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      // Enviar mensaje con audio
+      const messageData = {
+        mensaje: "",
+        adjuntos: [],
+        audio_url: file_url,
+        audio_duracion: duration
+      };
+
+      onSendMessage(messageData);
+      toast.success('🎤 Audio enviado');
     } catch (error) {
-      console.error("Error playing audio:", error);
-      setPlayingLocalAudio(false);
+      console.error('Error subiendo audio:', error);
+      toast.error('Error al enviar audio');
+      throw error;
     }
   };
 
@@ -76,31 +59,13 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
 
   return (
     <div className="border-t bg-white flex-shrink-0">
-      <audio 
-        ref={audioRef} 
-        onEnded={() => setPlayingLocalAudio(false)}
-        onError={() => setPlayingLocalAudio(false)}
-      />
-
-      {(isRecording || audioBlob) && (
-        <AudioRecordingBar
-          isRecording={isRecording}
-          audioBlob={audioBlob}
-          audioDuration={audioDuration}
-          onStop={stopRecording}
-          onCancel={cancelAudio}
-          onPlay={playLocalAudio}
-          playing={playingLocalAudio}
-        />
-      )}
-
       <div className="p-2 flex items-end gap-2">
         <Button
           size="sm"
           variant="ghost"
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           className="h-9 w-9 p-0 flex-shrink-0"
-          disabled={uploading || isUploading || isRecording}
+          disabled={uploading}
         >
           <Smile className="w-5 h-5 text-slate-600" />
         </Button>
@@ -125,26 +90,21 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm"
-          disabled={uploading || isUploading || isRecording}
+          disabled={uploading}
           rows={1}
         />
 
-        {!audioBlob && !currentMessage.trim() ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={uploading || isUploading}
-            className={`h-9 w-9 p-0 flex-shrink-0 ${isRecording ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
-          >
-            <Mic className="w-5 h-5" />
-          </Button>
+        {!currentMessage.trim() ? (
+          <WhatsAppAudioButton 
+            onAudioSent={handleAudioSent}
+            disabled={uploading}
+          />
         ) : (
           <Button
             size="sm"
             onClick={handleSend}
-            disabled={uploading || isUploading || isRecording || (!currentMessage.trim() && !audioBlob)}
-            className="h-9 w-9 p-0 bg-blue-600 hover:bg-blue-700 flex-shrink-0"
+            disabled={uploading || !currentMessage.trim()}
+            className="h-9 w-9 p-0 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
           >
             <Send className="w-4 h-4" />
           </Button>
