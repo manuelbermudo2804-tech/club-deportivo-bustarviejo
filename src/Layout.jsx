@@ -2083,7 +2083,7 @@ export default function Layout({ children, currentPageName }) {
                    ⚽ {chatMenuCounts.coachCount}
                  </div>
                )}
-               {isAdmin && chatMenuCounts.staffCount > 0 && (
+               {(isCoordinator || isCoach || isAdmin) && chatMenuCounts.staffCount > 0 && (
                  <div className="px-2 py-1 bg-purple-500 text-white text-xs rounded-lg font-bold">
                    💼 {chatMenuCounts.staffCount}
                  </div>
