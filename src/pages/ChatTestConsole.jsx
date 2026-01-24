@@ -853,105 +853,169 @@ export default function ChatTestConsole() {
 
         // Componente para test individual de cada chat
         function ChatTestByType({ category, coachEmail, coordEmail, parentEmail, adminEmail }) {
-        const [testResults, setTestResults] = useState([]);
+          const [testResults, setTestResults] = useState([]);
+          const [testing, setTesting] = useState(null);
 
-        const chats = [
+          const chats = [
+            {
+              id: 'parentCoachChat',
+              name: '⚽ Chat Equipo (Grupal) - ParentCoachChat',
+              checks: [
+                { id: 'send-family', label: '[FAMILIA] Puede enviar mensaje' },
+                { id: 'send-coach', label: '[ENTRENADOR] Puede enviar mensaje' },
+                { id: 'family-sees-own', label: '[FAMILIA] Ve su propio mensaje INMEDIATAMENTE' },
+                { id: 'family-sees-coach', label: '[FAMILIA] Ve mensajes del entrenador (sin actualizar)' },
+                { id: 'coach-sees-own', label: '[ENTRENADOR] Ve su propio mensaje INMEDIATAMENTE' },
+                { id: 'coach-sees-family', label: '[ENTRENADOR] Ve mensajes de familias (sin actualizar)' },
+                { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
+                { id: 'lateral', label: 'Notificación en menú lateral' },
+              ],
+              testBothSides: async () => {
+                const slug = category?.toLowerCase().replace(/\s+/g, '_') || 'test';
+                const timestamp = new Date().toLocaleTimeString();
+
+                // Enviar desde familia
+                await base44.entities.ChatMessage.create({
+                  tipo: "padre_a_grupo",
+                  remitente_email: parentEmail,
+                  remitente_nombre: "Test Familia",
+                  mensaje: `🧪 FAMILIA→GRUPO (${timestamp})`,
+                  grupo_id: slug,
+                  deporte: category || 'Test',
+                });
+
+                // Pequeña pausa para que se procese
+                await new Promise(r => setTimeout(r, 500));
+
+                // Enviar desde entrenador
+                await base44.entities.ChatMessage.create({
+                  tipo: "entrenador_a_grupo",
+                  remitente_email: coachEmail,
+                  remitente_nombre: "Test Coach",
+                  mensaje: `🧪 ENTRENADOR→GRUPO (${timestamp})`,
+                  grupo_id: slug,
+                  deporte: category || 'Test',
+                });
+
+                return `✅ Enviados desde ambos lados`;
+              }
+            },
+            {
+              id: 'coachParentChat',
+              name: '👨‍🏫 Chat Familias-Entrenador - CoachParentChat',
+              checks: [
+                { id: 'send-family', label: '[FAMILIA] Puede enviar mensaje' },
+                { id: 'send-coach', label: '[ENTRENADOR] Puede enviar mensaje' },
+                { id: 'family-sees-own', label: '[FAMILIA] Ve su propio mensaje INMEDIATAMENTE' },
+                { id: 'family-sees-coach', label: '[FAMILIA] Ve mensajes del entrenador (sin actualizar)' },
+                { id: 'coach-sees-own', label: '[ENTRENADOR] Ve su propio mensaje INMEDIATAMENTE' },
+                { id: 'coach-sees-family', label: '[ENTRENADOR] Ve mensajes de familias (sin actualizar)' },
+                { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
+                { id: 'lateral', label: 'Notificación en menú lateral' },
+              ],
+              testBothSides: async () => {
+                const slug = category?.toLowerCase().replace(/\s+/g, '_') || 'test';
+                const timestamp = new Date().toLocaleTimeString();
+
+                // Mismo sistema pero con tipo entrenador/padre
+                await base44.entities.ChatMessage.create({
+                  tipo: "padre_a_grupo",
+                  remitente_email: parentEmail,
+                  remitente_nombre: "Test Familia",
+                  mensaje: `🧪 FAMILIA→GRUPO (${timestamp})`,
+                  grupo_id: slug,
+                  deporte: category || 'Test',
+                });
+
+                await new Promise(r => setTimeout(r, 500));
+
+                await base44.entities.ChatMessage.create({
+                  tipo: "entrenador_a_grupo",
+                  remitente_email: coachEmail,
+                  remitente_nombre: "Test Coach",
+                  mensaje: `🧪 ENTRENADOR→GRUPO (${timestamp})`,
+                  grupo_id: slug,
+                  deporte: category || 'Test',
+                });
+
+                return `✅ Enviados desde ambos lados`;
+              }
+            },
         {
-        id: 'parentCoachChat',
-        name: '⚽ Chat Equipo (Grupal) - ParentCoachChat',
-        checks: [
-        { id: 'send', label: 'Las familias pueden enviar mensajes' },
-        { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
-        { id: 'see-others', label: 'Ven los mensajes de otros (sin actualizar)' },
-        { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
-        { id: 'lateral', label: 'Notificación en menú lateral' },
-        ],
-        action: async () => {
-        await base44.entities.ChatMessage.create({
-         tipo: "padre_a_grupo",
-         remitente_email: parentEmail,
-         remitente_nombre: "Test Familia",
-         mensaje: `🧪 TEST ParentCoachChat - ${new Date().toLocaleTimeString()}`,
-         grupo_id: category?.toLowerCase().replace(/\s+/g, '_') || 'test',
-         deporte: category || 'Test',
-        });
-        }
+          id: 'staffChat',
+          name: '💼 Chat Staff Interno - StaffChat',
+          checks: [
+            { id: 'send', label: '[STAFF] Puede enviar mensajes' },
+            { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
+            { id: 'see-others', label: 'Ven los mensajes de otros (sin actualizar)' },
+            { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
+            { id: 'lateral', label: 'Notificación en menú lateral' },
+          ],
+          testBothSides: async () => {
+            const convs = await base44.entities.StaffConversation.filter({ categoria: "General" });
+            const conv = convs[0] || await base44.entities.StaffConversation.create({
+              nombre: "Test General",
+              categoria: "General",
+              participantes: [],
+              activa: true,
+            });
+            await base44.entities.StaffMessage.create({
+              conversacion_id: conv.id,
+              autor_email: adminEmail,
+              autor_nombre: "Test Admin",
+              autor_rol: "admin",
+              mensaje: `🧪 TEST StaffChat - ${new Date().toLocaleTimeString()}`,
+            });
+            return `✅ Mensaje enviado al chat Staff`;
+          }
         },
         {
-        id: 'coachParentChat',
-        name: '👨‍🏫 Chat Familias-Entrenador - CoachParentChat',
-        checks: [
-        { id: 'send', label: 'Los entrenadores pueden enviar mensajes' },
-        { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
-        { id: 'see-others', label: 'Ven los mensajes de familias (sin actualizar)' },
-        { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
-        { id: 'lateral', label: 'Notificación en menú lateral' },
-        ],
-        action: async () => {
-        await base44.entities.ChatMessage.create({
-         tipo: "entrenador_a_grupo",
-         remitente_email: coachEmail,
-         remitente_nombre: "Test Coach",
-         mensaje: `🧪 TEST CoachParentChat - ${new Date().toLocaleTimeString()}`,
-         grupo_id: category?.toLowerCase().replace(/\s+/g, '_') || 'test',
-         deporte: category || 'Test',
-        });
-        }
-        },
-        {
-        id: 'staffChat',
-        name: '💼 Chat Staff Interno - StaffChat',
-        checks: [
-        { id: 'send', label: 'Staff puede enviar mensajes' },
-        { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
-        { id: 'see-others', label: 'Ven los mensajes de otros (sin actualizar)' },
-        { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
-        { id: 'lateral', label: 'Notificación en menú lateral' },
-        ],
-        action: async () => {
-        const convs = await base44.entities.StaffConversation.filter({ categoria: "General" });
-        const conv = convs[0] || await base44.entities.StaffConversation.create({
-         nombre: "Test General",
-         categoria: "General",
-         participantes: [],
-         activa: true,
-        });
-        await base44.entities.StaffMessage.create({
-         conversacion_id: conv.id,
-         autor_email: adminEmail,
-         autor_nombre: "Test Admin",
-         autor_rol: "admin",
-         mensaje: `🧪 TEST StaffChat - ${new Date().toLocaleTimeString()}`,
-        });
-        }
-        },
-        {
-        id: 'parentCoordChat',
-        name: '🎓 Chat Coordinador (1-a-1) - ParentCoordinatorChat',
-        checks: [
-        { id: 'send', label: 'Familias pueden enviar mensajes' },
-        { id: 'see-own', label: 'Ven sus propios mensajes INMEDIATAMENTE' },
-        { id: 'see-others', label: 'Ven respuestas del coordinador (sin actualizar)' },
-        { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
-        { id: 'lateral', label: 'Notificación en menú lateral' },
-        ],
-        action: async () => {
-        const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
-        const conv = convs[0] || await base44.entities.CoordinatorConversation.create({
-         padre_email: parentEmail,
-         padre_nombre: "Test Familia",
-         no_leidos_coordinador: 0,
-         no_leidos_padre: 0,
-         archivada: false,
-        });
-        await base44.entities.CoordinatorMessage.create({
-         conversacion_id: conv.id,
-         autor: "padre",
-         autor_email: parentEmail,
-         autor_nombre: "Test Familia",
-         mensaje: `🧪 TEST ParentCoordinatorChat - ${new Date().toLocaleTimeString()}`,
-        });
-        }
+          id: 'parentCoordChat',
+          name: '🎓 Chat Coordinador (1-a-1) - ParentCoordinatorChat',
+          checks: [
+            { id: 'send-family', label: '[FAMILIA] Puede enviar mensaje' },
+            { id: 'send-coord', label: '[COORDINADOR] Puede enviar mensaje' },
+            { id: 'family-sees-own', label: '[FAMILIA] Ve su propio mensaje INMEDIATAMENTE' },
+            { id: 'family-sees-coord', label: '[FAMILIA] Ve respuestas del coordinador (sin actualizar)' },
+            { id: 'coord-sees-own', label: '[COORDINADOR] Ve su propio mensaje INMEDIATAMENTE' },
+            { id: 'coord-sees-family', label: '[COORDINADOR] Ve mensajes de familias (sin actualizar)' },
+            { id: 'bubble', label: 'Aparecen burbujas rojas con notificación' },
+            { id: 'lateral', label: 'Notificación en menú lateral' },
+          ],
+          testBothSides: async () => {
+            const convs = await base44.entities.CoordinatorConversation.filter({ padre_email: parentEmail });
+            const conv = convs[0] || await base44.entities.CoordinatorConversation.create({
+              padre_email: parentEmail,
+              padre_nombre: "Test Familia",
+              no_leidos_coordinador: 0,
+              no_leidos_padre: 0,
+              archivada: false,
+            });
+
+            const timestamp = new Date().toLocaleTimeString();
+
+            // Familia envía
+            await base44.entities.CoordinatorMessage.create({
+              conversacion_id: conv.id,
+              autor: "padre",
+              autor_email: parentEmail,
+              autor_nombre: "Test Familia",
+              mensaje: `🧪 FAMILIA→COORD (${timestamp})`,
+            });
+
+            await new Promise(r => setTimeout(r, 500));
+
+            // Coordinador responde
+            await base44.entities.CoordinatorMessage.create({
+              conversacion_id: conv.id,
+              autor: "coordinador",
+              autor_email: coordEmail,
+              autor_nombre: "Test Coord",
+              mensaje: `🧪 COORD→FAMILIA (${timestamp})`,
+            });
+
+            return `✅ Enviados desde ambos lados`;
+          }
         },
         ];
 
@@ -992,8 +1056,23 @@ export default function ChatTestConsole() {
          <div key={chat.id} className="border rounded-lg p-4 bg-gradient-to-r from-slate-50 to-blue-50">
            <div className="flex items-start justify-between mb-3">
              <h3 className="font-semibold text-sm">{chat.name}</h3>
-             <Button size="sm" onClick={chat.action} className="gap-2">
-               <Rocket className="w-4 h-4" /> Enviar Mensaje TEST
+             <Button 
+               size="sm" 
+               onClick={async () => {
+                 setTesting(chat.id);
+                 try {
+                   const result = await chat.testBothSides();
+                   alert(result);
+                 } catch (err) {
+                   alert(`❌ Error: ${err.message}`);
+                 } finally {
+                   setTesting(null);
+                 }
+               }}
+               disabled={!!testing}
+               className="gap-2"
+             >
+               <Rocket className="w-4 h-4" /> {testing === chat.id ? '⏳' : '🧪'} TEST AMBOS LADOS
              </Button>
            </div>
 
