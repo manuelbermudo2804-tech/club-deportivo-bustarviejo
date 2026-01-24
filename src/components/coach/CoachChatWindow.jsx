@@ -28,9 +28,6 @@ const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sáb
 
 export default function CoachChatWindow({ selectedCategory, user, allPlayers }) {
   const [uploading, setUploading] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(0);
   const [playingAudio, setPlayingAudio] = useState(null);
   const [showReactions, setShowReactions] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(null);
@@ -49,8 +46,6 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -317,93 +312,6 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     setPollQuestion("");
     setPollOptions(["", ""]);
     toast.success("Encuesta enviada");
-  };
-
-  const startRecording = async () => {
-    try {
-      console.log('🎤 Solicitando permiso de micrófono...');
-      
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast.error("Tu navegador no soporta grabación de audio");
-        return;
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log('✅ Permiso concedido');
-      
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      const startTime = Date.now();
-      toast.success("🎤 Grabando audio...", { duration: 1000 });
-
-      mediaRecorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-        const duration = Math.floor((Date.now() - startTime) / 1000);
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        setAudioDuration(duration);
-        stream.getTracks().forEach(track => track.stop());
-        console.log('✅ Audio grabado:', duration, 's');
-      };
-
-      mediaRecorder.start();
-      setRecording(true);
-    } catch (error) {
-      console.error('❌ Error al grabar audio:', error);
-      if (error.name === 'NotAllowedError') {
-        toast.error("Debes permitir el acceso al micrófono en tu navegador");
-      } else if (error.name === 'NotFoundError') {
-        toast.error("No se encontró ningún micrófono");
-      } else {
-        toast.error("Error al acceder al micrófono: " + error.message);
-      }
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
-  };
-
-  const cancelAudio = () => {
-    setAudioBlob(null);
-    setAudioDuration(0);
-  };
-
-  const sendAudio = async () => {
-    if (!audioBlob) return;
-
-    try {
-      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      await new Promise((resolve, reject) => {
-        sendMessageMutation.mutate(
-          { 
-            mensaje: "🎤 Audio", 
-            audio_url: file_url,
-            audio_duracion: audioDuration,
-            archivos_adjuntos: []
-          },
-          {
-            onSuccess: resolve,
-            onError: reject
-          }
-        );
-      });
-      
-      cancelAudio();
-    } catch (error) {
-      console.error("Error al enviar audio:", error);
-      toast.error("Error al enviar el audio");
-    }
   };
 
   const togglePlayAudio = async (audioUrl) => {
@@ -1054,11 +962,11 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                   // NO mostrar el texto cuando hay encuesta
                   null
                 ) : (
-                   <p style={{fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                     {msg.mensaje}
-                     {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
-                   </p>
-                 )}
+                  <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                    <EmojiScaler content={msg.mensaje} />
+                    {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
+                  </p>
+                )}
 
                 {/* Archivos ANTES de la encuesta */}
                 {msg.archivos_adjuntos?.length > 0 && (
@@ -1176,7 +1084,6 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         onLocationClick={() => setShowLocationDialog(true)}
         onPollClick={() => setShowPollDialog(true)}
         onExerciseClick={() => setShowExerciseShare(true)}
-        onSendAudio={sendAudio}
         uploading={uploading}
         placeholder="Escribe un mensaje..."
       />

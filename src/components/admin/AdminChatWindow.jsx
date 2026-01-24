@@ -437,7 +437,9 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
                     <span className="text-sm">🎤 {msg.audio_duracion}s</span>
                   </div>
                 ) : (
-                  <p style={{fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>{msg.mensaje}</p>
+                 <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
+                   <EmojiScaler content={msg.mensaje} />
+                 </p>
                 )}
 
                 {msg.archivos_adjuntos?.length > 0 && (
@@ -519,8 +521,6 @@ export default function AdminChatWindow({ conversation, user, onClose, onMarkRes
         <AdminChatInput
           onSendMessage={handleSendMessage}
           onSendInternalNote={handleSendInternalNote}
-          onFileUpload={handleFileUpload}
-          onSendAudio={handleSendAudio}
           uploading={uploading}
         />
       )}
