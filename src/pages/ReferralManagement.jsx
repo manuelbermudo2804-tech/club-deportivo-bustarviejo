@@ -970,8 +970,8 @@ export default function ReferralManagement() {
                       <div className="flex items-center gap-2">
                         <span className="text-lg">#{idx + 1}</span>
                         <div>
-                          <p className="font-medium text-slate-900">{ref.referred_member_name}</p>
-                          <p className="text-xs text-slate-500">{ref.temporada}</p>
+                         <p className="font-medium text-slate-900">{ref.referido_nombre}</p>
+                         <p className="text-xs text-slate-500">{ref.temporada}</p>
                         </div>
                       </div>
                       <div className="text-right text-xs">
