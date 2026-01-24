@@ -24,7 +24,7 @@ export default function ChatNotificationBubbles({ user, isCoordinator, isCoach, 
       {(isAdmin || isCoach || isCoordinator) && bubbles.staffBubble > 0 && (
         <Link to={createPageUrl('StaffChat')} className="pointer-events-auto">
           <div className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-purple-700 transition-all cursor-pointer">
-            <span className="text-sm font-semibold">💼 Staff</span>
+            <span className="text-xs lg:text-sm font-semibold whitespace-nowrap">💼 Staff</span>
             <Badge className="bg-white text-purple-600 font-bold">{bubbles.staffBubble}</Badge>
           </div>
         </Link>
