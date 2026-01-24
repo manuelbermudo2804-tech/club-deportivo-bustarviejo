@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, X, Send, Play, Pause, Lock, ChevronUp } from "lucide-react";
+import { Mic, X, Send, Play, Pause, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
@@ -41,6 +41,49 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     }
   };
 
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    clearInterval(durationIntervalRef.current);
+    stopAllTracks();
+    
+    setRecordingState("idle");
+    setAudioBlob(null);
+    setDuration(0);
+    setSlideOffset({ x: 0, y: 0 });
+  };
+
+  const sendAudio = async () => {
+    if (!audioBlob) return;
+
+    setIsSending(true);
+    try {
+      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      await onAudioSent({
+        audio_url: file_url,
+        audio_duracion: duration
+      });
+
+      // Reset completo
+      setRecordingState("idle");
+      setAudioBlob(null);
+      setDuration(0);
+    } catch (error) {
+      toast.error("Error al enviar audio");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   // INICIAR GRABACIÓN (onPointerDown)
   const handlePointerDown = async (e) => {
     if (disabled || recordingState !== "idle") return;
@@ -54,6 +97,7 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
       const mediaRecorder = new MediaRecorder(stream);
       
       mediaRecorderRef.current = mediaRecorder;
+      mediaRecorderRef.current.stream = stream;
       audioChunksRef.current = [];
       startTimeRef.current = Date.now();
 
@@ -131,20 +175,6 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     setSlideOffset({ x: 0, y: 0 });
   };
 
-  // CANCELAR GRABACIÓN
-  const cancelRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-    clearInterval(durationIntervalRef.current);
-    stopAllTracks();
-    setRecordingState("idle");
-    setAudioBlob(null);
-    setDuration(0);
-    setSlideOffset({ x: 0, y: 0 });
-    toast.info("Audio cancelado");
-  };
-
   // DETENER GRABACIÓN BLOQUEADA (muestra preview)
   const stopLocked = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
@@ -152,32 +182,6 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     }
     clearInterval(durationIntervalRef.current);
     setRecordingState("preview");
-  };
-
-  // ENVIAR AUDIO
-  const sendAudio = async () => {
-    if (!audioBlob) return;
-
-    setIsSending(true);
-    try {
-      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      await onAudioSent({
-        audio_url: file_url,
-        audio_duracion: duration
-      });
-
-      // Reset
-      setRecordingState("idle");
-      setAudioBlob(null);
-      setDuration(0);
-      toast.success("Audio enviado");
-    } catch (error) {
-      toast.error("Error al enviar audio");
-    } finally {
-      setIsSending(false);
-    }
   };
 
   // REPRODUCIR PREVIEW
@@ -197,13 +201,6 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
       toast.error("Error al reproducir audio");
       setIsPlaying(false);
     }
-  };
-
-  // FORMATEAR TIEMPO
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   // ========== RENDERIZADO ==========
@@ -429,43 +426,4 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
       </Button>
     </div>
   );
-
-  // ========== FUNCIONES ==========
-
-  async function sendAudio() {
-    if (!audioBlob) return;
-
-    setIsSending(true);
-    try {
-      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      await onAudioSent({
-        audio_url: file_url,
-        audio_duracion: duration
-      });
-
-      // Reset completo
-      setRecordingState("idle");
-      setAudioBlob(null);
-      setDuration(0);
-    } catch (error) {
-      toast.error("Error al enviar audio");
-    } finally {
-      setIsSending(false);
-    }
-  }
-
-  function cancelRecording() {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-    clearInterval(durationIntervalRef.current);
-    stopAllTracks();
-    
-    setRecordingState("idle");
-    setAudioBlob(null);
-    setDuration(0);
-    setSlideOffset({ x: 0, y: 0 });
-  }
 }
