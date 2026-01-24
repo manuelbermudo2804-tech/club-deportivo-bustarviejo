@@ -90,7 +90,7 @@ export default function ParentCoachChat() {
       if (!user) return [];
       return await base44.entities.ChatMessage.filter({
         tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] }
-      }, '-created_date');
+      }, 'created_date');
     },
     enabled: !!user,
     refetchInterval: false,
