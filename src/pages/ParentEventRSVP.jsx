@@ -408,7 +408,7 @@ export default function ParentEventRSVP() {
                 </Button>
                 <Button 
                   onClick={handleSubmitRSVP}
-                  disabled={updateRSVPMutation.isPending || rsvpData.confirmacion === "pendiente"}
+                  disabled={updateRSVPMutation.isPending || !['asistire','no_asistire','quizas'].includes(rsvpData.confirmacion)}
                 >
                   Confirmar Respuesta
                 </Button>

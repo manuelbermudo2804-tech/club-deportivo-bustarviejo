@@ -66,6 +66,40 @@ export default function CoordinatorAlertCenter({ user }) {
                 userSports={[]}
               />
             </RoleAlertBlock>
+
+            {user?.es_entrenador === true && (
+              <div className="mt-4">
+                <RoleAlertBlock color="blue" icon="🏃" title="Mis Tareas como Entrenador" subtitle="Gestión deportiva">
+                  <AlertCenter 
+                    pendingCallupResponses={notifications.pendingCallupResponses || 0}
+                    pendingMatchObservations={notifications.pendingMatchObservations || 0}
+                    isAdmin={false}
+                    isCoach={true}
+                    isCoordinator={false}
+                    isParent={false}
+                    userEmail={user?.email}
+                    userSports={[]}
+                  />
+                </RoleAlertBlock>
+              </div>
+            )}
+
+            {user?.es_entrenador === true && (
+              <div className="mt-4">
+                <RoleAlertBlock color="blue" icon="🏃" title="Mis Tareas como Entrenador" subtitle="Gestión deportiva">
+                  <AlertCenter 
+                    pendingCallupResponses={notifications.pendingCallupResponses || 0}
+                    pendingMatchObservations={notifications.pendingMatchObservations || 0}
+                    isAdmin={false}
+                    isCoach={true}
+                    isCoordinator={false}
+                    isParent={false}
+                    userEmail={user?.email}
+                    userSports={[]}
+                  />
+                </RoleAlertBlock>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
