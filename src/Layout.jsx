@@ -660,7 +660,7 @@ export default function Layout({ children, currentPageName }) {
     };
     window.addEventListener('unhandledrejection', chunkErrorHandler);
 
-    const savedLang = localStorage.getItem('appLanguage');
+     const savedLang = localStorage.getItem('appLanguage');
     if (savedLang) setCurrentLang(savedLang);
     return () => {
       // Quitar manejadores de recuperación de chunks
@@ -670,7 +670,37 @@ export default function Layout({ children, currentPageName }) {
     };
     }, []);
 
-  // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
+    // Actualización automática inmediata (PWA/Service Worker)
+    useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    let intervalId;
+    (async () => {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) return;
+        reg.addEventListener('updatefound', () => {
+          const sw = reg.installing;
+          if (!sw) return;
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'installed' && reg.waiting) {
+              // Activar la nueva versión y recargar inmediatamente
+              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        });
+        await reg.update();
+        intervalId = window.setInterval(() => reg.update(), 300000); // cada 5 min
+      } catch {}
+    })();
+    const onCtrlChange = () => window.location.reload();
+    navigator.serviceWorker.addEventListener('controllerchange', onCtrlChange);
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onCtrlChange);
+      if (intervalId) clearInterval(intervalId);
+    };
+    }, []);
+
+    // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
 
   // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation, PWA aliases)
   const [authChecked, setAuthChecked] = useState(false);
@@ -1736,6 +1766,7 @@ export default function Layout({ children, currentPageName }) {
     return (
             <SeasonProvider>
             <>
+              <style>{`html, body { overscroll-behavior-y: none; }`}</style>
               <ChatNotificationSync user={user} />
               <ChatNotificationBubbles 
                 user={user} 
