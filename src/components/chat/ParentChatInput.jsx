@@ -3,51 +3,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Smile } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
-import WhatsAppAudioButton from "./WhatsAppAudioButton";
-import { base44 } from "@/api/base44Client";
-import { toast } from "sonner";
+import WhatsAppAudioRecorder from "./WhatsAppAudioRecorder";
 
 const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading, placeholder = "Mensaje" }) {
   const [currentMessage, setCurrentMessage] = useState("");
   const textareaRef = useRef(null);
-
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleSend = async () => {
     if (!currentMessage.trim()) return;
 
-    const messageData = {
+    onSendMessage({
       mensaje: currentMessage,
       adjuntos: [],
       audio_url: null,
       audio_duracion: 0
-    };
-
-    onSendMessage(messageData);
+    });
+    
     setCurrentMessage("");
   };
 
-  const handleAudioSent = async (audioBlob, duration) => {
-    try {
-      // Subir audio
-      const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      // Enviar mensaje con audio
-      const messageData = {
-        mensaje: "",
-        adjuntos: [],
-        audio_url: file_url,
-        audio_duracion: duration
-      };
-
-      onSendMessage(messageData);
-      toast.success('🎤 Audio enviado');
-    } catch (error) {
-      console.error('Error subiendo audio:', error);
-      toast.error('Error al enviar audio');
-      throw error;
-    }
+  const handleAudioSent = async (audioData) => {
+    onSendMessage({
+      mensaje: "",
+      adjuntos: [],
+      audio_url: audioData.audio_url,
+      audio_duracion: audioData.audio_duracion
+    });
   };
 
   const handleKeyDown = (e) => {
@@ -89,24 +71,24 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
           onChange={(e) => setCurrentMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm"
+          className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm rounded-3xl"
           disabled={uploading}
           rows={1}
         />
 
         {!currentMessage.trim() ? (
-          <WhatsAppAudioButton 
+          <WhatsAppAudioRecorder 
             onAudioSent={handleAudioSent}
             disabled={uploading}
           />
         ) : (
           <Button
-            size="sm"
+            size="icon"
             onClick={handleSend}
             disabled={uploading || !currentMessage.trim()}
-            className="h-9 w-9 p-0 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
+            className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5" />
           </Button>
         )}
       </div>

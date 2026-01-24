@@ -1,94 +1,98 @@
-import React, { useState, useCallback } from "react";
-import WhatsAppInputBar from "./WhatsAppInputBar";
-import { useAudioRecording } from "./useAudioRecording";
+import React, { useState, useCallback, memo } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Send, Smile } from "lucide-react";
+import EmojiPicker from "./EmojiPicker";
+import WhatsAppAudioRecorder from "./WhatsAppAudioRecorder";
 
-export default function CoordinatorChatInput({
+const CoordinatorChatInput = memo(function CoordinatorChatInput({
   onSendMessage,
-  onFileUpload,
-  onCameraCapture,
-  onLocationClick,
-  onPollClick,
   uploading,
   placeholder = "Mensaje"
 }) {
   const [localText, setLocalText] = useState("");
-  const [localAttachments, setLocalAttachments] = useState([]);
-  const {
-    isRecording,
-    audioBlob,
-    audioDuration,
-    isUploading,
-    startRecording,
-    stopRecording,
-    cancelAudio,
-    uploadAudio
-  } = useAudioRecording();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const handleSend = useCallback(async (textFromInput) => {
-    const text = textFromInput || localText;
+  const handleSend = useCallback(() => {
+    if (!localText.trim()) return;
     
-    if (!text.trim() && localAttachments.length === 0 && !audioBlob) return;
-    
-    const messageData = {
-      mensaje: text,
-      adjuntos: [...localAttachments],
+    onSendMessage({
+      mensaje: localText,
+      adjuntos: [],
       audio_url: null,
       audio_duracion: 0
-    };
-
-    if (audioBlob) {
-      const audioData = await uploadAudio();
-      if (audioData) {
-        messageData.audio_url = audioData.audio_url;
-        messageData.audio_duracion = audioData.audio_duracion;
-      } else {
-        return;
-      }
-    }
-    
-    onSendMessage(messageData);
+    });
     
     setLocalText("");
-    setLocalAttachments([]);
-    cancelAudio();
-  }, [localText, localAttachments, audioBlob, onSendMessage, uploadAudio, cancelAudio]);
+  }, [localText, onSendMessage]);
 
-  const handleFileUploadLocal = useCallback(async (e) => {
-    const result = await onFileUpload(e);
-    if (result && result.length > 0) {
-      setLocalAttachments(prev => [...prev, ...result]);
-    }
-  }, [onFileUpload]);
-
-  const handleCameraCaptureLocal = useCallback(async (e) => {
-    const result = await onCameraCapture(e);
-    if (result) {
-      setLocalAttachments(prev => [...prev, result]);
-    }
-  }, [onCameraCapture]);
+  const handleAudioSent = useCallback(async (audioData) => {
+    onSendMessage({
+      mensaje: "",
+      adjuntos: [],
+      audio_url: audioData.audio_url,
+      audio_duracion: audioData.audio_duracion
+    });
+  }, [onSendMessage]);
 
   return (
-    <WhatsAppInputBar
-      messageText={localText}
-      setMessageText={setLocalText}
-      onSend={handleSend}
-      attachments={localAttachments}
-      setAttachments={setLocalAttachments}
-      recording={isRecording}
-      audioBlob={audioBlob}
-      onStartRecording={startRecording}
-      onStopRecording={stopRecording}
-      onUploadAudio={uploadAudio}
-      onCancelAudio={cancelAudio}
-      audioDuration={audioDuration}
-      uploading={uploading || isUploading}
-      onFileUpload={handleFileUploadLocal}
-      onCameraCapture={handleCameraCaptureLocal}
-      onLocationClick={onLocationClick}
-      onPollClick={onPollClick}
-      showExercise={false}
-      placeholder={placeholder}
-      onTyping={null}
-    />
+    <div className="border-t bg-white flex-shrink-0 p-2">
+      <div className="flex items-end gap-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          className="h-9 w-9 p-0 flex-shrink-0"
+          disabled={uploading}
+        >
+          <Smile className="w-5 h-5 text-slate-600" />
+        </Button>
+
+        {showEmojiPicker && (
+          <div className="absolute bottom-16 left-4 z-50">
+            <EmojiPicker 
+              onEmojiSelect={(emoji) => {
+                setLocalText(prev => prev + emoji);
+                setShowEmojiPicker(false);
+              }}
+              onClose={() => setShowEmojiPicker(false)}
+            />
+          </div>
+        )}
+
+        <Textarea
+          value={localText}
+          onChange={(e) => setLocalText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+          placeholder={placeholder}
+          className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm rounded-3xl"
+          disabled={uploading}
+          rows={1}
+        />
+
+        {!localText.trim() ? (
+          <WhatsAppAudioRecorder 
+            onAudioSent={handleAudioSent}
+            disabled={uploading}
+          />
+        ) : (
+          <Button
+            size="icon"
+            onClick={handleSend}
+            disabled={uploading}
+            className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
+          >
+            <Send className="w-5 h-5" />
+          </Button>
+        )}
+      </div>
+    </div>
   );
-}
+});
+
+export default CoordinatorChatInput;
