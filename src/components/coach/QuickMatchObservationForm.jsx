@@ -225,7 +225,7 @@ export default function QuickMatchObservationForm({
         </form>
       </CardContent>
     </Card>
-    <Dialog open={successOpen} onOpenChange={() => {}}>
+    <Dialog open={successOpen} onOpenChange={() => {}} modal={true}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-green-700">
