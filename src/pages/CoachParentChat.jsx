@@ -59,7 +59,7 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     if (!messages || !user) return;
 
-    const coachCats = user?.categorias_entrena || [];
+    const coachCatIds = (user?.categorias_entrena || []).map(toGroupId);
     const isAdminUser = user?.role === "admin";
     const unreadCounts = {};
 
@@ -67,14 +67,13 @@ export default function CoachParentChat({ embedded = false }) {
       const catKey = msg.deporte || msg.grupo_id;
       if (!catKey) return;
 
-      // Padres -> Entrenador: badge para entrenador (sin leído por el entrenador)
       if (msg.tipo === 'padre_a_grupo') {
         const isRead = msg.leido_por?.some(lp => lp.email === user.email);
         if (isRead) return;
-        
-        // Admin ve todos, entrenador solo sus categorías
-        if (isAdminUser || coachCats.includes(catKey)) {
-          unreadCounts[catKey] = (unreadCounts[catKey] || 0) + 1;
+        const belongs = isAdminUser || coachCatIds.includes(msg.grupo_id) || coachCatIds.includes(toGroupId(catKey));
+        if (belongs) {
+          const key = msg.deporte || msg.grupo_id;
+          unreadCounts[key] = (unreadCounts[key] || 0) + 1;
         }
       }
     });
