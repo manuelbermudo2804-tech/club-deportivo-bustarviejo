@@ -2397,6 +2397,31 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
 
+        {/* Notificación de nueva versión disponible */}
+        {showUpdateNotification && (
+          <div className="fixed top-[52px] lg:top-0 left-0 right-0 z-[150] bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-3 shadow-lg">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 flex-1">
+                <span className="text-xl">🎉</span>
+                <div>
+                  <p className="font-bold">¡Actualización disponible!</p>
+                  <p className="text-xs opacity-90">Una nueva versión de la app está lista para instalar</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  setShowUpdateNotification(false);
+                  window.location.reload();
+                }}
+                className="bg-white text-green-600 hover:bg-gray-100 font-bold whitespace-nowrap"
+                size="sm"
+              >
+                Actualizar ahora
+              </Button>
+            </div>
+          </div>
+        )}
+
         <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${(sponsorBannerVisible || (programaSociosActivo && isMemberPaid)) ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
 
           {/* Widget de cumpleaños hoy */}
