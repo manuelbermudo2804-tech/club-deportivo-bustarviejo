@@ -43,6 +43,7 @@ export default function QuickMatchObservationForm({
     jornada: jornada || ""
   });
   const [step, setStep] = useState(1);
+  const dirtyRef = useRef(false);
   const [saving, setSaving] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
 
