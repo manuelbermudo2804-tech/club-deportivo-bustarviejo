@@ -74,7 +74,7 @@ export default function ChatNotificationBubbles({ user, isCoordinator, isCoach, 
       {isFamily && bubbles.systemMessagesBubble > 0 && (
         <Link to={createPageUrl('ParentSystemMessages')} className="pointer-events-auto">
           <div className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-orange-700 transition-all cursor-pointer animate-pulse">
-            <span className="text-sm font-semibold">🔔 Club</span>
+            <span className="text-xs lg:text-sm font-semibold whitespace-nowrap">🔔 Club</span>
             <Badge className="bg-white text-orange-600 font-bold">{bubbles.systemMessagesBubble}</Badge>
           </div>
         </Link>
