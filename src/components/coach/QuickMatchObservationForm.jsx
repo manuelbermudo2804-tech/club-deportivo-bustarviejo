@@ -178,7 +178,7 @@ export default function QuickMatchObservationForm({
               </div>
               <div>
                 <Label className="text-xs">Ocasiones Claras de Gol</Label>
-                <Input type="number" min="0" value={formData.ocasiones_claras} onChange={(e) => setFormData({ ...formData, ocasiones_claras: e.target.value })} placeholder="3-4" className="h-9" />
+                <Input type="number" min="0" value={formData.ocasiones_claras} onChange={(e) => markDirty({ ...formData, ocasiones_claras: e.target.value })} placeholder="3-4" className="h-9" />
               </div>
             </>
           )}
@@ -198,7 +198,7 @@ export default function QuickMatchObservationForm({
               </div>
               <div className="mt-2">
                 <Label className="text-xs">Ocasiones Claras de Gol</Label>
-                <Input type="number" min="0" value={formData.ocasiones_claras} onChange={(e) => setFormData({ ...formData, ocasiones_claras: e.target.value })} placeholder="3-4" className="h-9" />
+                <Input type="number" min="0" value={formData.ocasiones_claras} onChange={(e) => markDirty({ ...formData, ocasiones_claras: e.target.value })} placeholder="3-4" className="h-9" />
               </div>
 
               <div className="space-y-2 mt-4">
