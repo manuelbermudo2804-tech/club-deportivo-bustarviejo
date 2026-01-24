@@ -19,6 +19,18 @@ import { UnifiedChatNotificationStore } from "../components/notifications/Unifie
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 
+// Normalización de categorías (ignora paréntesis/acentos y espacios)
+const normalizeCategory = (s = "") =>
+  s
+    .toString()
+    .replace(/\(.*?\)/g, "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+const toGroupId = (s = "") => normalizeCategory(s).replace(/\s+/g, "_");
+
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
@@ -50,7 +62,8 @@ export default function ParentCoachChat() {
         setMyPlayers(players);
         
         if (players.length > 0 && !selectedCategory) {
-          setSelectedCategory(players[0].deporte);
+          const firstCat = players[0].categoria_principal || players[0].deporte;
+          setSelectedCategory(firstCat);
         }
       } catch (error) {
         console.error("Error loading chat:", error);
@@ -100,13 +113,16 @@ export default function ParentCoachChat() {
 
   const getUnreadCountByCategory = (categoria) => {
     if (!user) return 0;
-    
-    const categoryKey = categoria.toLowerCase().replace(/\s+/g, '_');
-    return messages.filter(m => 
-      (m.grupo_id === categoryKey || m.deporte === categoria) &&
-      (m.tipo === 'entrenador_a_grupo' || m.tipo === 'padre_a_grupo') &&
-      (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
-    ).length;
+    const key = toGroupId(categoria);
+    const normCat = normalizeCategory(categoria);
+    return messages.filter(m => {
+      const normMsgCat = normalizeCategory(m.deporte || "");
+      const matchGroup = m.grupo_id && m.grupo_id === key;
+      const matchName = normMsgCat && (normMsgCat === normCat || normMsgCat.startsWith(normCat) || normCat.startsWith(normMsgCat));
+      return (matchGroup || matchName) &&
+        (m.tipo === 'entrenador_a_grupo' || m.tipo === 'padre_a_grupo') &&
+        (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
+    }).length;
   };
 
   // Marcar mensajes como leídos cuando se abre la categoría
@@ -161,10 +177,13 @@ export default function ParentCoachChat() {
 
   const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
   const categoryMessages = selectedCategory
-    ? messages.filter(m => 
-        (m.grupo_id === categoryKey || m.deporte === selectedCategory) &&
-        (m.tipo === 'padre_a_grupo' || m.tipo === 'entrenador_a_grupo')
-      )
+    ? messages.filter(m => {
+        const normMsgCat = normalizeCategory(m.deporte || "");
+        const normSel = normalizeCategory(selectedCategory || "");
+        const matchGroup = m.grupo_id === categoryKey;
+        const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
+        return (matchGroup || matchName) && (m.tipo === 'padre_a_grupo' || m.tipo === 'entrenador_a_grupo');
+      })
     : [];
 
   const filteredMessages = searchTerm 
@@ -175,7 +194,7 @@ export default function ParentCoachChat() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, selectedCategory]);
 
 
 
@@ -234,7 +253,7 @@ export default function ParentCoachChat() {
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
-       const categoryKey = selectedCategory?.toLowerCase().replace(/\s+/g, '_');
+       const categoryKey = toGroupId(selectedCategory || "");
 
        const newMessage = await base44.entities.ChatMessage.create({
          tipo: "padre_a_grupo",
@@ -374,7 +393,12 @@ export default function ParentCoachChat() {
     );
     }
 
-    const categories = [...new Set(myPlayers.map(p => p.deporte))];
+    const categories = Array.from(new Map(
+      myPlayers
+        .map(p => (p.categoria_principal || p.deporte))
+        .filter(Boolean)
+        .map(cat => [normalizeCategory(cat), cat]) // dedup por normalizado, conserva etiqueta original
+    ).values());
 
     return (
     <>
