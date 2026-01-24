@@ -103,7 +103,7 @@ export default function ParentCoachChat() {
     if (!user) return;
     
     const unsub = base44.entities.ChatMessage.subscribe((event) => {
-      if (event.data?.tipo === 'padre_a_grupo' || event.data?.tipo === 'entrenador_a_grupo') {
+      if ((event.data?.tipo === 'padre_a_grupo' || event.data?.tipo === 'entrenador_a_grupo') && event.data?.remitente_email !== user.email) {
         queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
       }
     });
