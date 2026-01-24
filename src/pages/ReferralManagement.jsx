@@ -975,10 +975,10 @@ export default function ReferralManagement() {
                         </div>
                       </div>
                       <div className="text-right text-xs">
-                        <p className="text-green-600">+{ref.clothing_credit_earned || 0}€</p>
-                        {ref.raffle_entries_earned > 0 && (
-                          <p className="text-orange-600">+{ref.raffle_entries_earned} sorteo(s)</p>
-                        )}
+                       <p className="text-green-600">+{ref.credito_otorgado || 0}€</p>
+                       {ref.sorteos_otorgados > 0 && (
+                         <p className="text-orange-600">+{ref.sorteos_otorgados} sorteo(s)</p>
+                       )}
                       </div>
                     </div>
                   ))}
