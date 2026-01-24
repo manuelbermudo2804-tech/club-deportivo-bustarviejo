@@ -424,11 +424,12 @@ export default function StaffChat() {
       await queryClient.cancelQueries({ queryKey: ['staffMessages', conversation?.id] });
       const previousMessages = queryClient.getQueryData(['staffMessages', conversation?.id]);
       
+      const displayName = user.role === "admin" ? "Administrador" : user.full_name || "Staff";
       const optimisticMessage = {
         id: `temp-${Date.now()}`,
         mensaje: messageData.mensaje,
         autor_email: user.email,
-        autor_nombre: user.full_name || "Staff",
+        autor_nombre: displayName,
         archivos_adjuntos: messageData.adjuntos || [],
         adjuntos: messageData.adjuntos || [],
         audio_url: messageData.audio_url,
@@ -450,11 +451,12 @@ export default function StaffChat() {
     },
     mutationFn: async (messageData) => {
        const autorRol = user.role === "admin" ? "admin" : user.es_coordinador ? "coordinador" : "entrenador";
+       const displayName = user.role === "admin" ? "Administrador" : user.full_name;
 
        const newMessage = await base44.entities.StaffMessage.create({
          conversacion_id: conversation.id,
          autor_email: user.email,
-         autor_nombre: user.full_name,
+         autor_nombre: displayName,
          autor_rol: autorRol,
          mensaje: messageData.mensaje,
          audio_url: messageData.audio_url,
