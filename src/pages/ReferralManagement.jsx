@@ -174,10 +174,12 @@ export default function ReferralManagement() {
     }
   });
 
-  // Usuarios con referidos (contar desde ReferralReward)
+  // Usuarios con referidos (contar desde ReferralReward - sin filtrar por temporada si no hay config)
   const usersWithReferrals = users
     .map(u => {
-      const userReferrals = referralRewards.filter(r => r.referrer_email === u.email && r.temporada === seasonConfig?.temporada);
+      const userReferrals = seasonConfig?.temporada 
+        ? referralRewards.filter(r => r.referrer_email === u.email && r.temporada === seasonConfig.temporada)
+        : referralRewards.filter(r => r.referrer_email === u.email);
       return {
         ...u,
         referrals_count: userReferrals.length,
