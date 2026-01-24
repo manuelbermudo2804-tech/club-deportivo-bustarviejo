@@ -132,8 +132,8 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
             </Button>
             <Button
               type="submit"
-              disabled={loading}
-              className="flex-1 bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700 text-white font-bold"
+              disabled={loading || !isValid}
+              className="flex-1 bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700 text-white font-bold disabled:opacity-50"
             >
               {loading ? (
                 <>
