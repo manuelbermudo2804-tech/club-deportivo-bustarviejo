@@ -26,6 +26,7 @@ import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
 import StaffChatInput from "../components/chat/StaffChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
+import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -242,7 +243,7 @@ export default function StaffChat() {
     };
   }, [conversation?.id, queryClient]);
 
-  // Marcar como leído
+  // Marcar como leído AL ABRIR el chat - SISTEMA UNIFICADO
   useEffect(() => {
     if (!conversation || !user || messages.length === 0) return;
 
@@ -252,12 +253,7 @@ export default function StaffChat() {
         !m.leido_por?.some(l => l.email === user.email)
       );
 
-      // Si no hay mensajes nuevos, pero hay AppNotifications no vistas, márcalas igual
-      const hasStaffNotifs = (await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: 'StaffChat', vista: false })).length > 0;
-
-      if (unreadMessages.length === 0 && !hasStaffNotifs) {
-        // Nada que marcar
-      } else {
+      if (unreadMessages.length > 0) {
         const BATCH = 10;
         for (let i = 0; i < unreadMessages.length; i += BATCH) {
           const batch = unreadMessages.slice(i, i + BATCH);
@@ -270,7 +266,7 @@ export default function StaffChat() {
         }
       }
 
-      // Marcar notificaciones del Staff como vistas
+      // Marcar notificaciones del Staff como vistas (SOLO StaffChat)
       try {
         const notifs = await base44.entities.AppNotification.filter({
           usuario_email: user.email,
@@ -281,6 +277,9 @@ export default function StaffChat() {
           await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
         }
       } catch {}
+
+      // LIMPIAR SOLO el contador de Staff - NO tocar otros chats
+      UnifiedChatNotificationStore.clearChatOnly(user.email, 'staff');
 
       // Actualizar contadores independientes
       try { markRead && (await markRead(conversation.id)); } catch {}

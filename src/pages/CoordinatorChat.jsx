@@ -14,6 +14,7 @@ import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorAwayMode from "../components/coordinator/CoordinatorAwayMode";
+import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function CoordinatorChat({ embedded = false }) {
   const navigate = useNavigate();
@@ -66,16 +67,36 @@ export default function CoordinatorChat({ embedded = false }) {
     return unsub;
   }, [isCoordinator, queryClient]);
 
-  // Asegurar orden de hooks: marcar leído debe declararse antes de cualquier return condicional
+  // Marcar como leído AL ABRIR conversación - SISTEMA UNIFICADO
   useEffect(() => {
-    if (!selectedConversation?.id) return;
-    if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
-      base44.entities.CoordinatorConversation.update(selectedConversation.id, {
-        no_leidos_coordinador: 0,
-        last_read_coordinador_at: new Date().toISOString()
-      });
-    }
-  }, [selectedConversation?.id, selectedConversation?.no_leidos_coordinador]);
+    if (!selectedConversation?.id || !user) return;
+    
+    const markRead = async () => {
+      if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
+        await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
+          no_leidos_coordinador: 0,
+          last_read_coordinador_at: new Date().toISOString()
+        });
+      }
+      
+      // Marcar AppNotifications como vistas (SOLO CoordinatorChat)
+      try {
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: user.email,
+          enlace: "CoordinatorChat",
+          vista: false
+        });
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+        }
+      } catch {}
+      
+      // LIMPIAR SOLO el contador de Coordinador - NO tocar otros chats
+      UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
+    };
+    
+    markRead();
+  }, [selectedConversation?.id, selectedConversation?.no_leidos_coordinador, user]);
 
   const archiveMutation = useMutation({
     mutationFn: ({ id, archivada }) => 

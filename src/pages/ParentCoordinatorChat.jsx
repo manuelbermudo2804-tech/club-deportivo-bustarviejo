@@ -17,6 +17,7 @@ import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
+import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -127,7 +128,7 @@ export default function ParentCoordinatorChat() {
     gcTime: 300000,
   });
 
-  // Auto-marcar como leídos los mensajes del coordinador cuando el padre tiene el chat abierto
+  // Auto-marcar como leídos los mensajes del coordinador - SISTEMA UNIFICADO
   useEffect(() => {
     if (!conversation?.id || !user) return;
     const unreadFromCoordinator = messages.filter(m => m.autor === 'coordinador' && !m.leido_padre);
@@ -145,6 +146,20 @@ export default function ParentCoordinatorChat() {
         if ((conversation.no_leidos_padre || 0) > 0) {
           await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_padre: 0 });
         }
+        
+        // Marcar AppNotifications como vistas (SOLO ParentCoordinatorChat)
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: user.email,
+          enlace: "ParentCoordinatorChat",
+          vista: false
+        });
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+        }
+        
+        // LIMPIAR SOLO el contador de Coordinador para familias - NO tocar otros chats
+        UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinatorForFamily');
+        
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
           queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),

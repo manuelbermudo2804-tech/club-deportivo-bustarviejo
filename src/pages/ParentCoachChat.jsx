@@ -15,6 +15,7 @@ import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinat
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
+import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 

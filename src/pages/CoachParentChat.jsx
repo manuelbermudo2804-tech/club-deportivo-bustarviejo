@@ -9,6 +9,7 @@ import { MessageCircle, Settings, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
+import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function CoachParentChat({ embedded = false }) {
   const navigate = useNavigate();
@@ -78,13 +79,14 @@ export default function CoachParentChat({ embedded = false }) {
     setUnreadByCategory(unreadCounts);
   }, [messages, user]);
 
-  // Marcar no leídos de la categoría abierta como leídos (padre_a_grupo) usando leido_por
+  // Marcar no leídos de la categoría abierta como leídos - SISTEMA UNIFICADO
   // Si hay ?category= en la URL, abrir directamente esa pestaña
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const cat = params.get('category');
     if (cat && !selectedCategory) setSelectedCategory(cat);
   }, [selectedCategory]);
+  
   useEffect(() => {
     if (!selectedCategory || !messages?.length || !user) return;
     const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
@@ -101,8 +103,21 @@ export default function CoachParentChat({ embedded = false }) {
         for (const msg of unread.slice(0, 10)) {
           const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
           leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-          await base44.entities.ChatMessage.update(msg.id, { leido: true, leido_por: leidoPor });
+          await base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
         }
+        
+        // Marcar AppNotifications de CoachParentChat como vistas
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: user.email,
+          enlace: "CoachParentChat",
+          vista: false
+        });
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+        }
+        
+        // LIMPIAR SOLO el contador de este chat - NO tocar otros
+        UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
       } catch (e) {
         console.log('Error marcando mensajes como leídos:', e);
       }
