@@ -855,8 +855,19 @@ export default function ChatTestConsole() {
 
         // Componente para test individual de cada chat
         function ChatTestByType({ category, coachEmail, coordEmail, parentEmail, adminEmail }) {
-          const [testResults, setTestResults] = useState([]);
+          const [testResults, setTestResults] = useState(() => {
+            try {
+              return JSON.parse(localStorage.getItem('chatTestResults') || '{}');
+            } catch {
+              return {};
+            }
+          });
           const [testing, setTesting] = useState(null);
+
+          // Guardar en localStorage cuando cambien
+          useEffect(() => {
+            localStorage.setItem('chatTestResults', JSON.stringify(testResults));
+          }, [testResults]);
 
           const chats = [
             {
