@@ -98,17 +98,17 @@ export default function ParentCoordinatorChat() {
       // Marcar mensajes del coordinador como leídos
       const allMessages = await base44.entities.CoordinatorMessage.filter({ conversacion_id: newConv.id || conversations[0]?.id });
       const unreadCoordMessages = allMessages.filter(m => m.autor === "coordinador" && !m.leido_padre);
-      
+
       for (const msg of unreadCoordMessages) {
         await base44.entities.CoordinatorMessage.update(msg.id, {
           leido_padre: true,
           fecha_leido_padre: new Date().toISOString()
         });
       }
-      
-      if ((newConv || conversations[0])?.no_leidos_padre > 0) {
+
+      if ((newConv || conversations[0])?.no_leidos_familia > 0) {
         await base44.entities.CoordinatorConversation.update(newConv?.id || conversations[0]?.id, {
-          no_leidos_padre: 0
+          no_leidos_familia: 0
         });
       }
     };
