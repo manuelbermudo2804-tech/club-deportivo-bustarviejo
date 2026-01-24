@@ -1360,6 +1360,7 @@ export default function ClubMembership() {
                             tipo_inscripcion: formData.tipo_inscripcion,
                             es_segundo_progenitor: formData.es_segundo_progenitor ? 'true' : 'false',
                             referido_por: formData.referido_por || '',
+                            referido_por_email: currentUser?.email || '',
                             es_socio_externo: isExternalUser ? 'true' : 'false',
                             metodo_pago: 'Tarjeta'
                           }
