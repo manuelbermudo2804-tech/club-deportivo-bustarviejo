@@ -16,17 +16,16 @@ Deno.serve(async (req) => {
         Contexto:
         - El usuario "${userName}" quiere invitar a un "${targetType}" (ej: amigo del cole, familiar, vecino, compañero de equipo) a unirse al Club Deportivo Bustarviejo.
         - El club es familiar, divertido, con entrenadores titulados y para todas las edades.
-        - Hay un programa de premios: si se apuntan, ambos ganan premios (ropa gratis, sorteos, etc.).
         
         Instrucciones:
         - El tono debe ser casual, cercano y divertido (usando emojis).
         - Debe sonar natural, como si lo escribiera un amigo, no un robot corporativo.
-        - Debe incluir una llamada a la acción clara.
+        - Debe incluir una llamada a la acción clara para que se animen a unirse.
         - NO incluyas el enlace/link, solo el texto (el enlace se añade después).
-        - Menciona explícitamente que pongan a "${userName}" como quien les invitó para ganar los premios.
         - Longitud máxima: 3-4 frases cortas.
+        - NO menciones premios, regalos ni sorteos.
         
-        Ejemplo de estilo: "¡Hey! Tienes que apuntarte al CD Bustarviejo, el ambiente es brutal y los entrenadores son tops. Además si te apuntas y dices que vas de mi parte, ¡nos regalan ropa a los dos! Vente a probar un día ⚽🔥"
+        Ejemplo de estilo: "¡Hey! Tienes que apuntarte al CD Bustarviejo, el ambiente es brutal y los entrenadores son tops. Es el mejor sitio para hacer deporte y pasarlo bien. ¡Vente a formar parte del equipo! ⚽🔥"
         `;
 
         const response = await base44.integrations.Core.InvokeLLM({
