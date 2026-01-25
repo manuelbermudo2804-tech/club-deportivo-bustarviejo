@@ -781,7 +781,9 @@ export default function Layout({ children, currentPageName }) {
     const lowerPath = location.pathname.toLowerCase();
     const isPublicPage = lowerPath.includes('clubmembership') || 
                          lowerPath.includes('validateadmininvitation') ||
-                         lowerPath.includes('pwaentry');
+                         lowerPath.includes('pwaentry') ||
+                         lowerPath.includes('joinreferral') ||
+                         lowerPath.includes('joinfemenino');
     isPublicPageRef.current = isPublicPage;
     
     const fetchUser = async () => {
