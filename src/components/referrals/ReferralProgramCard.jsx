@@ -36,7 +36,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
   const userRefCode = userEmail ? generateReferralCode(userEmail) : "";
   
   // Enlaces diferenciados
-  const referralLink = userRefCode ? `${window.location.origin}/JoinReferral?ref=${userRefCode}` : "";
+  const referralLink = userRefCode ? `https://alta-socio.vercel.app/alta-socio.html?ref=${userRefCode}` : "https://alta-socio.vercel.app/alta-socio.html";
   const femeninoLink = userRefCode ? `${window.location.origin}/JoinFemenino?ref=${userRefCode}` : "";
   
   // 1. Mensaje Genérico (Programa de Referidos)
