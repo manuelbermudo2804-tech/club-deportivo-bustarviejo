@@ -135,7 +135,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             targetType: targetType
         });
         // Añadir el enlace al final del mensaje generado
-        const fullMessage = `${data.message}\n\n👉 Apúntate aquí: ${femeninoLink || window.location.origin + "/ClubMembership"}`;
+        const fullMessage = `${data.message}\n\n👉 Apúntate aquí: ${referralLink}`;
         setGeneratedMessage(fullMessage);
     } catch (error) {
         toast.error("Error generando mensaje. Inténtalo de nuevo.");
