@@ -131,9 +131,22 @@ Deno.serve(async (req) => {
 
                   // 1. Buscar usuario referidor
                   let referrerUser = null;
+                  // Intentar por email
                   if (refEmail) {
                     const users = await base44.asServiceRole.entities.User.filter({ email: refEmail });
                     referrerUser = users?.[0];
+                  }
+                  
+                  // Si no se encuentra por email y hay nombre, intentar buscar por nombre exacto (para referidos manuales)
+                  if (!referrerUser && !refEmail && refNombre) {
+                    try {
+                        const allUsers = await base44.asServiceRole.entities.User.list();
+                        referrerUser = allUsers.find(u => 
+                            u.full_name?.toLowerCase().trim() === refNombre.toLowerCase().trim() ||
+                            u.email?.toLowerCase().trim() === refNombre.toLowerCase().trim()
+                        );
+                        if (referrerUser) console.log(`[stripeWebhook] Usuario encontrado por nombre: ${referrerUser.full_name}`);
+                    } catch (e) { console.error('Error buscando usuario por nombre:', e); }
                   }
 
                   if (referrerUser) {
