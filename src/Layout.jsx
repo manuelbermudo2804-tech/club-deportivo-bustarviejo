@@ -538,6 +538,37 @@ export default function Layout({ children, currentPageName }) {
   const [onboardingView, setOnboardingView] = useState('loading');
 
   const [isJunta, setIsJunta] = useState(false);
+  const [activeSeasonConfig, setActiveSeasonConfig] = useState(null);
+
+  // Función para recargar la configuración (usada por polling y eventos de visibilidad)
+  const fetchSeasonConfig = async () => {
+    try {
+      // Intentar obtener la configuración activa
+      const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+      const activeConfig = configs[0];
+      
+      if (activeConfig) {
+        setActiveSeasonConfig(activeConfig);
+        setLoteriaVisible(activeConfig.loteria_navidad_abierta === true);
+        setSponsorBannerVisible(activeConfig.mostrar_patrocinadores === true);
+        setProgramaSociosActivo(activeConfig.programa_socios_activo === true);
+        
+        console.log('🔄 [LAYOUT] Configuración de temporada actualizada', {
+          referidos: activeConfig.programa_referidos_activo,
+          socios: activeConfig.programa_socios_activo
+        });
+      }
+    } catch (error) {
+      console.error("Error refreshing season config:", error);
+    }
+  };
+
+  // Polling de configuración: Al montar, al cambiar visibilidad y cada 60s
+  useEffect(() => {
+    fetchSeasonConfig(); // Carga inicial
+    const intervalId = setInterval(fetchSeasonConfig, 60000); // Cada 60s
+    return () => clearInterval(intervalId);
+  }, []);
   
   // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
   const { notifications } = useUnifiedNotifications(user);
@@ -694,7 +725,19 @@ export default function Layout({ children, currentPageName }) {
 
       // 2. Chequeo inteligente al volver a la app (visibilidad)
       const onVisibilityChange = () => {
-        if (document.visibilityState === 'visible') checkForNewVersion();
+        if (document.visibilityState === 'visible') {
+          console.log('👁️ [LAYOUT] App visible - actualizando datos...');
+          checkForNewVersion();
+          fetchSeasonConfig(); // Recargar configuración al volver
+          // Forzar actualización del Service Worker si hay uno esperando
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then(reg => {
+              if (reg?.waiting) {
+                setShowUpdateNotification(true);
+              }
+            });
+          }
+        }
       };
       document.addEventListener('visibilitychange', onVisibilityChange);
 
@@ -1836,9 +1879,9 @@ export default function Layout({ children, currentPageName }) {
     }
 
     return (
-            <SeasonProvider>
+            <SeasonProvider externalConfig={activeSeasonConfig}>
             <>
-              <style>{`html, body { overscroll-behavior-y: none; }`}</style>
+              {/* <style>{`html, body { overscroll-behavior-y: none; }`}</style> */}
               <ChatNotificationSync user={user} />
               <ChatNotificationBubbles 
                 user={user} 
@@ -2489,17 +2532,9 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               </div>
               <Button
-                onClick={async () => {
-                  // Notificar al SW que se active
-                  if ('serviceWorker' in navigator) {
-                    const reg = await navigator.serviceWorker.getRegistration();
-                    if (reg && reg.waiting) {
-                      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-                    }
-                  }
+                onClick={() => {
                   setShowUpdateNotification(false);
-                  // Recargar tras un breve delay para permitir que el SW se active
-                  setTimeout(() => window.location.reload(), 500);
+                  window.location.reload();
                 }}
                 className="bg-white text-green-600 hover:bg-gray-100 font-bold whitespace-nowrap"
                 size="sm"
