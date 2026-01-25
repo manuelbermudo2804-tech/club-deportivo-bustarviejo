@@ -89,6 +89,42 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
   const nextTier = getNextTier();
   const referralsToNext = nextTier ? nextTier - userReferrals : 0;
 
+  // AI Assistant State
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [targetType, setTargetType] = useState("");
+  const [generatedMessage, setGeneratedMessage] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateMessage = async () => {
+    if (!targetType) return;
+    setIsGenerating(true);
+    try {
+        const { data } = await base44.functions.invoke("generateReferralMessage", { 
+            userName: userName || "un socio",
+            targetType: targetType
+        });
+        // Añadir el enlace al final del mensaje generado
+        const fullMessage = `${data.message}\n\n👉 Apúntate aquí: ${femeninoLink || window.location.origin + "/ClubMembership"}`;
+        setGeneratedMessage(fullMessage);
+    } catch (error) {
+        toast.error("Error generando mensaje. Inténtalo de nuevo.");
+    } finally {
+        setIsGenerating(false);
+    }
+  };
+
+  const copyGeneratedMessage = () => {
+    navigator.clipboard.writeText(generatedMessage);
+    toast.success("Mensaje copiado al portapapeles");
+    setShowAiModal(false);
+  };
+
+  const shareGeneratedMessage = () => {
+    const url = `https://wa.me/?text=${encodeURIComponent(generatedMessage)}`;
+    window.open(url, '_blank');
+    setShowAiModal(false);
+  };
+
   return (
     <Card className="border-none shadow-xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 text-white overflow-hidden relative">
       <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 animate-pulse"></div>
