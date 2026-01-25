@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
             es_socio_externo: meta.es_socio_externo === 'true'
           };
 
-          if (tipo === 'cuota_socio' && email) {
+          if ((tipo === 'cuota_socio' || tipo === 'alta_socio_referido') && email) {
             // Detectar referidor automático: si viene referido_por_email, buscar ese usuario
             let referidoPor = extra.referido_por || '';
             let referidoPorEmail = extra.referido_por_email || '';
