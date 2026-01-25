@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
                 municipio: data.municipio,
                 experiencia_previa: data.experiencia_previa || 'Sin experiencia',
                 
-                referido_por_nombre: referrerName || data.referido_por_codigo,
+                referido_por_nombre: referrerName || data.referido_por_manual || data.referido_por_codigo,
                 referido_por_email: referrerEmail,
                 
                 estado: 'Nuevo',
