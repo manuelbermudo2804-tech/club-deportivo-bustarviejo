@@ -966,8 +966,8 @@ export default function ClubMembership() {
         />
       )}
 
-      {/* Invitar familiares y amigos - Visible para todos los usuarios logueados */}
-      {user && (
+      {/* Invitar familiares y amigos - Visible para todos los usuarios logueados y SI el programa está activo */}
+      {user && seasonConfig?.programa_referidos_activo && (
         <Card className="border-none shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
           <CardContent className="pt-6 relative">
