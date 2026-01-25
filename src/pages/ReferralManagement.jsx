@@ -414,6 +414,10 @@ export default function ReferralManagement() {
             <History className="w-4 h-4" />
             Historial
           </TabsTrigger>
+          <TabsTrigger value="analisis" className="gap-2">
+            <Brain className="w-4 h-4" />
+            Análisis IA
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="ranking" className="space-y-6 mt-6">
