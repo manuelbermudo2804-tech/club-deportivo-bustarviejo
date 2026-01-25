@@ -74,8 +74,69 @@ Deno.serve(async (req) => {
         }
 
         if (!referidorEmail) {
-            console.log(`⚠️ No se pudo identificar al referidor "${referidorNombre}" para el socio ${member.nombre_completo}. Se requiere email o nombre exacto.`);
+            console.log(`⚠️ No se pudo identificar al referidor "${referidorNombre}" para el socio ${member.nombre_completo}.`);
             continue;
+        }
+
+        // 1. Obtener usuario referidor para actualizar sus contadores
+        const referrers = await base44.asServiceRole.entities.User.filter({ email: referidorEmail });
+        const referrer = referrers?.[0];
+
+        if (referrer) {
+            // Lógica de premios (replicada de ClubMembership)
+            const currentCount = referrer.referrals_count || 0;
+            const creditEarned = activeConfig.referidos_premio_1 || 5;
+            
+            // Actualizar contadores
+            const newCount = currentCount + 1;
+            let newCredit = (referrer.clothing_credit_balance || 0) + creditEarned;
+            let newRaffles = referrer.raffle_entries_total || 0;
+
+            // Bonus por hitos (3, 5, 10, 15)
+            if (newCount === 3) {
+                newCredit += (activeConfig.referidos_premio_3 || 15) - creditEarned;
+                newRaffles += activeConfig.referidos_sorteo_3 || 1;
+            } else if (newCount === 5) {
+                newCredit += (activeConfig.referidos_premio_5 || 25) - (activeConfig.referidos_premio_3 || 15);
+                newRaffles += (activeConfig.referidos_sorteo_5 || 3) - (activeConfig.referidos_sorteo_3 || 1);
+            } else if (newCount === 10) {
+                newCredit += (activeConfig.referidos_premio_10 || 50) - (activeConfig.referidos_premio_5 || 25);
+                newRaffles += (activeConfig.referidos_sorteo_10 || 5) - (activeConfig.referidos_sorteo_5 || 3);
+            } else if (newCount === 15) {
+                newCredit += (activeConfig.referidos_premio_15 || 50) - (activeConfig.referidos_premio_10 || 50);
+                newRaffles += (activeConfig.referidos_sorteo_15 || 10) - (activeConfig.referidos_sorteo_10 || 5);
+            }
+
+            // Actualizar usuario
+            await base44.asServiceRole.entities.User.update(referrer.id, {
+                referrals_count: newCount,
+                clothing_credit_balance: newCredit,
+                raffle_entries_total: newRaffles
+            });
+
+            // Registrar CreditoRopaHistorico
+            await base44.asServiceRole.entities.CreditoRopaHistorico.create({
+                user_email: referrer.email,
+                user_nombre: referrer.full_name,
+                tipo: "ganado",
+                cantidad: creditEarned,
+                concepto: `Socio referido (automático): ${member.nombre_completo}`,
+                temporada: activeConfig.temporada,
+                referido_nombre: member.nombre_completo,
+                saldo_antes: referrer.clothing_credit_balance || 0,
+                saldo_despues: newCredit,
+                fecha_movimiento: new Date().toISOString()
+            });
+
+            // Registrar ReferralReward
+            await base44.asServiceRole.entities.ReferralReward.create({
+                referrer_email: referrer.email,
+                referrer_name: referrer.full_name,
+                referred_member_id: member.id,
+                referred_member_name: member.nombre_completo,
+                temporada: activeConfig.temporada,
+                clothing_credit_earned: creditEarned
+            });
         }
 
         // Crear ReferralHistory
@@ -92,7 +153,7 @@ Deno.serve(async (req) => {
           fecha_referido: new Date().toISOString()
         });
 
-        // Marcar como procesado Y actualizar datos del referidor si faltaban
+        // Marcar como procesado Y actualizar datos del referidor
         await base44.asServiceRole.entities.ClubMember.update(member.id, {
           referido_procesado: true,
           referido_por: referidorNombre,
