@@ -76,9 +76,12 @@ Deno.serve(async (req) => {
             }
 
             // Buscar socio de la temporada; si no existe, crearlo como externo
+            let targetMemberId = null;
             const existing = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
+            
             if (existing && existing.length > 0) {
               const member = existing[0];
+              targetMemberId = member.id;
               await base44.asServiceRole.entities.ClubMember.update(member.id, {
                 estado_pago: 'Pagado',
                 cuota_pagada: amount || 25,
@@ -86,7 +89,7 @@ Deno.serve(async (req) => {
                 metodo_pago: 'Tarjeta',
                 referido_por: referidoPor || member.referido_por,
                 referido_por_email: referidoPorEmail || member.referido_por_email,
-                referido_procesado: (referidoPor || referidoPorEmail) ? false : member.referido_procesado
+                referido_procesado: false // Marcar false temporalmente para procesar abajo
               });
               console.log('[stripeWebhook] ClubMember actualizado como Pagado:', member.id);
             } else {
@@ -108,9 +111,115 @@ Deno.serve(async (req) => {
                 metodo_pago: 'Tarjeta',
                 referido_por: referidoPor,
                 referido_por_email: referidoPorEmail,
-                referido_procesado: (referidoPor || referidoPorEmail) ? false : true
+                referido_procesado: false
               });
+              targetMemberId = created.id;
               console.log('[stripeWebhook] ClubMember creado y marcado Pagado:', created.id);
+            }
+
+            // --- PROCESAMIENTO INMEDIATO DE REFERIDOS ---
+            if ((referidoPor || referidoPorEmail) && targetMemberId) {
+              try {
+                // Obtener configuración activa
+                const configs = await base44.asServiceRole.entities.SeasonConfig.list();
+                const activeConfig = configs.find(c => c.activa === true);
+
+                if (activeConfig?.programa_referidos_activo) {
+                  const refEmail = referidoPorEmail;
+                  const refNombre = referidoPor || refEmail;
+                  const referidoNombre = name || email;
+
+                  // 1. Buscar usuario referidor
+                  let referrerUser = null;
+                  if (refEmail) {
+                    const users = await base44.asServiceRole.entities.User.filter({ email: refEmail });
+                    referrerUser = users?.[0];
+                  }
+
+                  if (referrerUser) {
+                    // Actualizar contadores del usuario referidor
+                    const currentCount = referrerUser.referrals_count || 0;
+                    const creditEarned = activeConfig.referidos_premio_1 || 5;
+                    
+                    const newCount = currentCount + 1;
+                    let newCredit = (referrerUser.clothing_credit_balance || 0) + creditEarned;
+                    let newRaffles = referrerUser.raffle_entries_total || 0;
+
+                    // Bonus por hitos
+                    if (newCount === 3) {
+                        newCredit += (activeConfig.referidos_premio_3 || 15) - creditEarned;
+                        newRaffles += activeConfig.referidos_sorteo_3 || 1;
+                    } else if (newCount === 5) {
+                        newCredit += (activeConfig.referidos_premio_5 || 25) - (activeConfig.referidos_premio_3 || 15);
+                        newRaffles += (activeConfig.referidos_sorteo_5 || 3) - (activeConfig.referidos_sorteo_3 || 1);
+                    } else if (newCount === 10) {
+                        newCredit += (activeConfig.referidos_premio_10 || 50) - (activeConfig.referidos_premio_5 || 25);
+                        newRaffles += (activeConfig.referidos_sorteo_10 || 5) - (activeConfig.referidos_sorteo_5 || 3);
+                    } else if (newCount === 15) {
+                        newCredit += (activeConfig.referidos_premio_15 || 50) - (activeConfig.referidos_premio_10 || 50);
+                        newRaffles += (activeConfig.referidos_sorteo_15 || 10) - (activeConfig.referidos_sorteo_10 || 5);
+                    }
+
+                    // Guardar actualización de usuario
+                    await base44.asServiceRole.entities.User.update(referrerUser.id, {
+                        referrals_count: newCount,
+                        clothing_credit_balance: newCredit,
+                        raffle_entries_total: newRaffles
+                    });
+
+                    // Historial de crédito
+                    await base44.asServiceRole.entities.CreditoRopaHistorico.create({
+                        user_email: referrerUser.email,
+                        user_nombre: referrerUser.full_name,
+                        tipo: "ganado",
+                        cantidad: creditEarned,
+                        concepto: `Socio referido (Stripe): ${referidoNombre}`,
+                        temporada: temporada,
+                        referido_nombre: referidoNombre,
+                        saldo_antes: referrerUser.clothing_credit_balance || 0,
+                        saldo_despues: newCredit,
+                        fecha_movimiento: new Date().toISOString()
+                    });
+
+                    // Registro de premio
+                    await base44.asServiceRole.entities.ReferralReward.create({
+                        referrer_email: referrerUser.email,
+                        referrer_name: referrerUser.full_name,
+                        referred_member_id: targetMemberId,
+                        referred_member_name: referidoNombre,
+                        temporada: temporada,
+                        clothing_credit_earned: creditEarned
+                    });
+                    
+                    console.log(`✅ [stripeWebhook] Premios otorgados a ${referrerUser.full_name}`);
+                  }
+
+                  // 2. Crear registro histórico global
+                  await base44.asServiceRole.entities.ReferralHistory.create({
+                    temporada: temporada,
+                    referidor_email: refEmail,
+                    referidor_nombre: refNombre,
+                    referido_email: email,
+                    referido_nombre: referidoNombre,
+                    referido_id: targetMemberId,
+                    estado: 'activo',
+                    credito_otorgado: referrerUser ? (activeConfig.referidos_premio_1 || 5) : 0,
+                    sorteos_otorgados: 0,
+                    fecha_referido: new Date().toISOString()
+                  });
+
+                  // 3. Marcar socio como procesado FINALMENTE
+                  await base44.asServiceRole.entities.ClubMember.update(targetMemberId, {
+                    referido_procesado: true,
+                    referido_por: refNombre,
+                    referido_por_email: refEmail
+                  });
+                  
+                  console.log(`✅ [stripeWebhook] Referido procesado completamente para socio ${targetMemberId}`);
+                }
+              } catch (err) {
+                console.error('[stripeWebhook] Error procesando referidos inline:', err);
+              }
             }
             }
 
