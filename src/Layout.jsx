@@ -1012,15 +1012,19 @@ export default function Layout({ children, currentPageName }) {
           role_RAW: currentUser.role
         });
 
-        // Cargar configuración de temporada AQUÍ (dentro del fetchUser)
+        // Cargar configuración de temporada AQUÍ (dentro del fetchUser) - PRIMERA CARGA
+        // NOTA: El useEffect de polling ya se encarga de mantener esto actualizado, 
+        // pero lo mantenemos aquí para la carga inicial rápida junto con el usuario y los cobros extra.
         try {
-        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
-        const activeConfig = configs[0];
-        setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
-        setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
-        const sociosActivo = activeConfig?.programa_socios_activo === true;
-        setProgramaSociosActivo(sociosActivo);
-        console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
+          // Usamos la función compartida si es posible, o duplicamos para asegurar sincronía inicial
+          const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+          const activeConfig = configs[0];
+          setActiveSeasonConfig(activeConfig); // Actualizar estado local
+          setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
+          setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
+          const sociosActivo = activeConfig?.programa_socios_activo === true;
+          setProgramaSociosActivo(sociosActivo);
+          console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
 
         // Cargar Cobros Extra activos asignados al usuario (filtrado por destinatarios)
         try {
@@ -2306,14 +2310,23 @@ export default function Layout({ children, currentPageName }) {
                                                                                           <span className="font-semibold text-lg">📲 Ver cómo instalar</span>
                                                                                         </button>
                                                                                       )}
-                                                  <button
-                                    onClick={handleLogout}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all"
-                                  >
-                                    <LogOut className="w-6 h-6" />
-                                    <span className="font-semibold text-lg">Cerrar Sesión</span>
-                                  </button>
-                                </div>
+
+                                                    <button
+                                                    onClick={() => window.location.reload()}
+                                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-blue-500/20 text-white hover:bg-blue-500/30 transition-all mb-2"
+                                                    >
+                                                    <RotateCw className="w-6 h-6" />
+                                                    <span className="font-semibold text-lg">Actualizar Datos</span>
+                                                    </button>
+
+                                                    <button
+                                                    onClick={handleLogout}
+                                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all"
+                                                    >
+                                                    <LogOut className="w-6 h-6" />
+                                                    <span className="font-semibold text-lg">Cerrar Sesión</span>
+                                                    </button>
+                                                    </div>
             </div>
           </div>
         )}
