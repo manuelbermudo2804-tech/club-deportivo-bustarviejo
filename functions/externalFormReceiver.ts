@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
                 temporada: '2024-2025', // Debería ser dinámico, pero hardcodeamos la actual por seguridad
                 activo: true,
                 
-                referido_por: referrerName || data.referido_por_codigo,
+                referido_por: referrerName || data.referido_por_manual || data.referido_por_codigo,
                 referido_por_email: referrerEmail,
                 
                 notas: 'Inscripción vía Web Externa'
