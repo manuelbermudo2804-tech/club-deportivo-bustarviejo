@@ -20,7 +20,7 @@ const REWARD_TIERS = [
 
 export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
   if (!seasonConfig) return null;
-  if (!seasonConfig?.programa_referidos_activo) return null;
+  // if (!seasonConfig?.programa_referidos_activo) return null; // PERMITIR MOSTRAR SOLO INVITACIÓN SI ESTÁ INACTIVO
   // if (hasPlayersInClub !== true) return null; // Permitir a todos los usuarios ver el programa
 
   // Generar código de referido del usuario
@@ -196,7 +196,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
           <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
         </div>
 
-        {/* BOTONES PRINCIPALES (GENÉRICOS) */}
+        {/* BOTONES PRINCIPALES (GENÉRICOS) - VISIBLES SIEMPRE */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white/10 rounded-2xl p-4 border border-white/20 flex flex-col justify-center">
             <h4 className="font-bold text-white mb-2 flex items-center gap-2">
@@ -240,6 +240,14 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
               </Button>
           </div>
         </div>
+
+        {/* SECCIONES DE INCENTIVOS - SOLO SI EL PROGRAMA ESTÁ ACTIVO */}
+        {seasonConfig?.programa_referidos_activo && (
+          <>
+            {/* ... resto del contenido de incentivos ... */}
+
+        </>
+        )}
 
         {/* BONUS FÚTBOL FEMENINO + BOTÓN COMPARTIR */}
         {seasonConfig.bonus_femenino_activo && (

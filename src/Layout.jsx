@@ -2509,13 +2509,20 @@ export default function Layout({ children, currentPageName }) {
 
                               <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
                 <p className="font-medium">Temporada {currentSeason}</p>
-                <button 
+                
+                {/* Botón explícito de actualización en desktop */}
+                <Button 
                   onClick={checkForUpdates}
-                  className="text-orange-400 mt-1 hover:text-orange-300 hover:underline transition-colors block mx-auto"
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-3 border-orange-500/50 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 text-xs h-8"
                 >
-                  © CD Bustarviejo (v1.0)
-                </button>
-                <p className="text-slate-500 mt-2 text-[10px]">🔒 Tus datos están protegidos según RGPD</p>
+                  <RotateCw className="w-3 h-3 mr-2" />
+                  Buscar Actualizaciones
+                </Button>
+
+                <p className="text-slate-500 mt-3 text-[10px]">© CD Bustarviejo (v1.0)</p>
+                <p className="text-slate-500 text-[10px]">🔒 Tus datos están protegidos según RGPD</p>
               </div>
           </div>
         </nav>
