@@ -111,11 +111,11 @@ export default function ParentPayments() {
       console.log('👤 [ParentPayments] Usuario cargado:', u.email);
       return u;
     },
-    staleTime: 300000,
+    staleTime: 30000, // 30 segundos
     gcTime: 300000,
     retry: 1,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const { data: players = [], isLoading: loadingPlayers } = useQuery({
