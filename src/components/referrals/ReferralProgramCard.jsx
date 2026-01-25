@@ -34,47 +34,65 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
   };
 
   const userRefCode = userEmail ? generateReferralCode(userEmail) : "";
+  
+  // Enlaces diferenciados
+  const referralLink = userRefCode ? `${window.location.origin}/JoinReferral?ref=${userRefCode}` : "";
   const femeninoLink = userRefCode ? `${window.location.origin}/JoinFemenino?ref=${userRefCode}` : "";
   
-  // Mensaje de WhatsApp para compartir
-  const whatsappMessage = encodeURIComponent(`⚽👧 ¡BUSCAMOS JUGADORAS PARA EL EQUIPO DE FÚTBOL FEMENINO!
+  // 1. Mensaje Genérico (Programa de Referidos)
+  const whatsappMessageGeneric = `¡Únete al CD Bustarviejo! ⚽🏀
+
+El mejor club para disfrutar del deporte, con ambiente familiar y para todas las edades.
+
+🎁 Si te haces socio desde mi enlace, ¡ambos ganamos premios! (ropa gratis, sorteos...)
+
+👉 Hazte socio y paga tu cuota aquí: ${referralLink}
+
+¡Vente a formar parte del club! 💪`;
+
+  const whatsappUrlGeneric = `https://wa.me/?text=${encodeURIComponent(whatsappMessageGeneric)}`;
+
+  // 2. Mensaje Femenino (Bonus Femenino)
+  const whatsappMessageFemenino = `⚽👧 ¡BUSCAMOS JUGADORAS PARA EL EQUIPO DE FÚTBOL FEMENINO!
 
 🌟 CD Bustarviejo abre sus puertas a nuevas jugadoras.
 
 ✅ Todas las edades bienvenidas
 ✅ No hace falta experiencia
 ✅ Ambiente familiar y seguro
-✅ Entrenadores titulados
 ✅ ¡Nos lo pasamos genial!
 
-🎁 Si te apuntas, ¡ambos ganamos premios!
+🎁 Si te apuntas, ¡ambos ganamos premios EXTRA!
 
 👉 ¡Apúntate aquí!: ${femeninoLink}
 
-¡Te esperamos en el campo! 💪`);
+¡Te esperamos en el campo! 💪`;
 
-  const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
+  const whatsappUrlFemenino = `https://wa.me/?text=${encodeURIComponent(whatsappMessageFemenino)}`;
 
-  const copyFemeninoLink = () => {
-    navigator.clipboard.writeText(femeninoLink);
+  const copyLink = (link) => {
+    navigator.clipboard.writeText(link);
     toast.success("¡Enlace copiado! Compártelo con quien quieras");
   };
 
-  const shareWhatsApp = async () => {
-    // Intentar compartir nativo (móvil) primero
+  const shareWhatsAppGeneric = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: 'Fútbol Femenino CD Bustarviejo',
-          text: whatsappMessage
-        });
+        await navigator.share({ title: 'Invitación CD Bustarviejo', text: whatsappMessageGeneric });
         return;
-      } catch (err) {
-        // Si cancela o falla, fallback a WhatsApp
-        if (err.name === 'AbortError') return;
-      }
+      } catch (err) { if (err.name === 'AbortError') return; }
     }
-    window.open(whatsappUrl, '_blank');
+    window.open(whatsappUrlGeneric, '_blank');
+  };
+
+  const shareWhatsAppFemenino = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Fútbol Femenino CD Bustarviejo', text: whatsappMessageFemenino });
+        return;
+      } catch (err) { if (err.name === 'AbortError') return; }
+    }
+    window.open(whatsappUrlFemenino, '_blank');
   };
 
   const hasReachedLimit = userReferrals >= 15;
