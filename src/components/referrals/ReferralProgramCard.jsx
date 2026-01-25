@@ -463,8 +463,8 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
                             Copiar
                         </Button>
                         <Button onClick={shareGeneratedMessage} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
-                            <MessageCircle className="w-4 h-4 mr-2" />
-                            WhatsApp
+                            <Share2 className="w-4 h-4 mr-2" />
+                            Compartir / WhatsApp
                         </Button>
                     </div>
                     <Button 
