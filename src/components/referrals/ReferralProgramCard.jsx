@@ -244,13 +244,8 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
         {/* SECCIONES DE INCENTIVOS - SOLO SI EL PROGRAMA ESTÁ ACTIVO */}
         {seasonConfig?.programa_referidos_activo && (
           <>
-            {/* ... resto del contenido de incentivos ... */}
-
-        </>
-        )}
-
-        {/* BONUS FÚTBOL FEMENINO + BOTÓN COMPARTIR */}
-        {seasonConfig.bonus_femenino_activo && (
+            {/* BONUS FÚTBOL FEMENINO + BOTÓN COMPARTIR */}
+            {seasonConfig.bonus_femenino_activo && (
           <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 rounded-2xl p-4 text-center border-4 border-pink-300 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-white/10"></div>
             <div className="relative">
@@ -455,9 +450,11 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
           </div>
         )}
 
-        <p className="text-center text-xs text-white/70">
-          * Los premios se pueden usar en pedidos de ropa del club. Los sorteos se realizan al final de la temporada.
-        </p>
+            <p className="text-center text-xs text-white/70">
+              * Los premios se pueden usar en pedidos de ropa del club. Los sorteos se realizan al final de la temporada.
+            </p>
+          </>
+        )}
       </CardContent>
 
       <Dialog open={showAiModal} onOpenChange={setShowAiModal}>
