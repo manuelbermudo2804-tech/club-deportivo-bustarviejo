@@ -2,7 +2,11 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper, Share2, MessageCircle, Copy } from "lucide-react";
+import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper, Share2, MessageCircle, Copy, Bot, Brain } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 const REWARD_TIERS = [
