@@ -199,27 +199,49 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
           <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
         </div>
 
-        {/* ASISTENTE IA */}
-        <div className="bg-white/10 rounded-2xl p-4 border border-white/20">
-            <div className="flex items-center justify-between gap-4">
-                <div>
-                    <h4 className="font-bold text-white flex items-center gap-2">
-                        <Brain className="w-5 h-5 text-purple-200" />
-                        ¿No sabes qué decir?
-                    </h4>
-                    <p className="text-xs text-white/80">
-                        Usa nuestra IA para crear una invitación personalizada en segundos.
-                    </p>
-                </div>
-                <Button 
-                    onClick={() => setShowAiModal(true)}
-                    className="bg-white text-purple-700 hover:bg-purple-50 font-bold shadow-lg"
-                    size="sm"
-                >
-                    <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
-                    Crear Invitación
-                </Button>
+        {/* BOTONES PRINCIPALES (GENÉRICOS) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white/10 rounded-2xl p-4 border border-white/20 flex flex-col justify-center">
+            <h4 className="font-bold text-white mb-2 flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-green-300" />
+              Invitación Rápida
+            </h4>
+            <div className="flex gap-2">
+              <Button
+                onClick={shareWhatsAppGeneric}
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold shadow-lg"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                WhatsApp
+              </Button>
+              <Button
+                onClick={() => copyLink(referralLink)}
+                variant="outline"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 px-3"
+              >
+                <Copy className="w-5 h-5" />
+              </Button>
             </div>
+          </div>
+
+          {/* ASISTENTE IA */}
+          <div className="bg-white/10 rounded-2xl p-4 border border-white/20">
+              <h4 className="font-bold text-white mb-2 flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-purple-200" />
+                  Asistente IA
+              </h4>
+              <p className="text-xs text-white/80 mb-3">
+                  Crea mensajes personalizados para cada tipo de amigo.
+              </p>
+              <Button 
+                  onClick={() => setShowAiModal(true)}
+                  className="w-full bg-white text-purple-700 hover:bg-purple-50 font-bold shadow-lg"
+                  size="sm"
+              >
+                  <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+                  Abrir Asistente
+              </Button>
+          </div>
         </div>
 
         {/* BONUS FÚTBOL FEMENINO + BOTÓN COMPARTIR */}
@@ -243,24 +265,24 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
                 </div>
               </div>
 
-              {/* Botones para compartir */}
+              {/* Botones para compartir Femenino */}
               {femeninoLink && (
                 <div className="mt-4 space-y-2">
-                  <p className="text-white/90 text-xs font-semibold">👇 ¡COMPARTE AHORA Y GANA! 👇</p>
+                  <p className="text-white/90 text-xs font-semibold">👇 CAMPAÑA ESPECIAL FEMENINO 👇</p>
                   <div className="flex gap-2 justify-center">
                     <Button
-                      onClick={shareWhatsApp}
-                      className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-5 rounded-xl shadow-lg animate-pulse"
+                      onClick={shareWhatsAppFemenino}
+                      className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-xl shadow-lg border border-pink-400"
                     >
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      Enviar por WhatsApp
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Invitar al Femenino
                     </Button>
                     <Button
-                      onClick={copyFemeninoLink}
+                      onClick={() => copyLink(femeninoLink)}
                       variant="outline"
-                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 py-3 px-4 rounded-xl"
+                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 py-2 px-3 rounded-xl"
                     >
-                      <Copy className="w-5 h-5" />
+                      <Copy className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
