@@ -16,8 +16,9 @@ import {
   Users, Gift, Shirt, Ticket, Hotel, Trophy, Search, 
   CheckCircle2, Clock, Crown, Star, Sparkles, Download,
   Eye, Award, PartyPopper, Dices, Play, History, Package,
-  Plus, HelpCircle, Info, UserPlus, AlertCircle
+  Plus, HelpCircle, Info, UserPlus, AlertCircle, Brain, BarChart3
 } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
 import { toast } from "sonner";
 
 const TIER_CONFIG = [
