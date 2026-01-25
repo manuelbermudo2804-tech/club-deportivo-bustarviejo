@@ -14,6 +14,7 @@ import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import { toast } from "sonner";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
 import { Link } from "react-router-dom";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 
 const CUOTA_SOCIO = 25;
 
@@ -196,27 +197,8 @@ export default function ClubMembership() {
     retry: 1,
   });
 
-  const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
-    queryFn: async () => {
-      try {
-        console.log('⚙️ [ClubMembership] Obteniendo SeasonConfig...');
-        const configs = await base44.entities.SeasonConfig.list();
-        const active = configs.find(c => c.activa === true);
-        console.log('✅ [ClubMembership] SeasonConfig obtenido:', active?.temporada);
-        return active;
-      } catch (error) {
-        console.error("❌ [ClubMembership] Error loading season config:", error);
-        return null;
-      }
-    },
-    enabled: !isCheckingAuth,
-    staleTime: Infinity,
-    gcTime: 3600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    retry: 1,
-  });
+  // Usar la configuración global que se actualiza en tiempo real desde el Layout
+  const { seasonConfig } = useActiveSeason();
 
   const { data: allMemberships = [] } = useQuery({
     queryKey: ['allMemberships'],
