@@ -76,10 +76,11 @@ Deno.serve(async (req) => {
                 notas: 'Inscripción vía Web Externa'
             });
         } 
-        // 5. Handle 'femenino' (Femenino Interest)
-        else if (type === 'femenino') {
+        // 5. Handle 'femenino' OR 'jugador' (Generic Interest)
+        else if (type === 'femenino' || type === 'jugador') {
             await base44.asServiceRole.entities.FemeninoInterest.create({
-                nombre_jugadora: data.nombre_jugadora,
+                // Map generic 'nombre_jugador' to the DB field 'nombre_jugadora'
+                nombre_jugadora: data.nombre_jugadora || data.nombre_jugador,
                 fecha_nacimiento: data.fecha_nacimiento,
                 nombre_padre: data.nombre_padre || data.nombre_tutor,
                 email: data.email,
@@ -92,10 +93,10 @@ Deno.serve(async (req) => {
                 
                 estado: 'Nuevo',
                 temporada: '2024-2025',
-                mensaje: data.mensaje || 'Desde Web Externa'
+                mensaje: data.mensaje || (type === 'jugador' ? 'Desde Web Externa (Jugador Genérico)' : 'Desde Web Externa (Femenino)')
             });
         } else {
-             return new Response(JSON.stringify({ error: 'Tipo desconocido. Use "socio" o "femenino"' }), {
+             return new Response(JSON.stringify({ error: 'Tipo desconocido. Use "socio", "jugador" o "femenino"' }), {
                 status: 400,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
