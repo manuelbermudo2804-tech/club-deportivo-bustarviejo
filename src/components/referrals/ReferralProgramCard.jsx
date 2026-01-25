@@ -19,7 +19,8 @@ const REWARD_TIERS = [
 ];
 
 export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
-  if (!seasonConfig?.programa_referidos_activo) return null;
+  if (!seasonConfig) return null;
+  // if (!seasonConfig?.programa_referidos_activo) return null;
   // if (hasPlayersInClub !== true) return null; // Permitir a todos los usuarios ver el programa
 
   // Generar código de referido del usuario
@@ -44,8 +45,6 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
 
 El mejor club para disfrutar del deporte, con ambiente familiar y para todas las edades.
 
-🎁 Si te haces socio desde mi enlace, ¡ambos ganamos premios! (ropa gratis, sorteos...)
-
 👉 Hazte socio y paga tu cuota aquí: ${referralLink}
 
 ¡Vente a formar parte del club! 💪`;
@@ -61,8 +60,6 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
 ✅ No hace falta experiencia
 ✅ Ambiente familiar y seguro
 ✅ ¡Nos lo pasamos genial!
-
-🎁 Si te apuntas, ¡ambos ganamos premios EXTRA!
 
 👉 ¡Apúntate aquí!: ${femeninoLink}
 
