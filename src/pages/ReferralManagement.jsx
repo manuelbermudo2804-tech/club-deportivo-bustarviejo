@@ -807,6 +807,57 @@ export default function ReferralManagement() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* TAB ANÁLISIS IA */}
+        <TabsContent value="analisis" className="space-y-6 mt-6">
+            <Card className="border-2 border-purple-100 bg-gradient-to-br from-white to-purple-50/50">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Brain className="w-6 h-6 text-purple-600" />
+                        Análisis Inteligente del Programa
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {!aiReport ? (
+                        <div className="text-center py-12">
+                            <BarChart3 className="w-16 h-16 mx-auto mb-4 text-purple-200" />
+                            <h3 className="text-xl font-bold text-slate-700 mb-2">Descubre insights ocultos</h3>
+                            <p className="text-slate-500 max-w-md mx-auto mb-6">
+                                Nuestra IA analizará tus datos de referidos, tendencias y participación para darte recomendaciones estratégicas.
+                            </p>
+                            <Button 
+                                onClick={generateAiReport} 
+                                disabled={generatingReport}
+                                className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-6 h-auto shadow-xl"
+                            >
+                                {generatingReport ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                        Analizando datos...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles className="w-5 h-5 mr-2" />
+                                        Generar Informe Estratégico
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            <div className="prose prose-purple max-w-none bg-white p-8 rounded-2xl shadow-sm border border-purple-100">
+                                <ReactMarkdown>{aiReport}</ReactMarkdown>
+                            </div>
+                            <div className="flex justify-end">
+                                <Button variant="outline" onClick={() => setAiReport(null)}>
+                                    Generar nuevo informe
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Dialog de sorteo */}
