@@ -60,7 +60,20 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
     toast.success("¡Enlace copiado! Compártelo con quien quieras");
   };
 
-  const shareWhatsApp = () => {
+  const shareWhatsApp = async () => {
+    // Intentar compartir nativo (móvil) primero
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Fútbol Femenino CD Bustarviejo',
+          text: whatsappMessage
+        });
+        return;
+      } catch (err) {
+        // Si cancela o falla, fallback a WhatsApp
+        if (err.name === 'AbortError') return;
+      }
+    }
     window.open(whatsappUrl, '_blank');
   };
 
