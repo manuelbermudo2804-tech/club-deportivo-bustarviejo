@@ -60,6 +60,31 @@ Deno.serve(async (req) => {
             let referidoPor = extra.referido_por || '';
             let referidoPorEmail = extra.referido_por_email || '';
 
+            // Si viene referral_code (de JoinReferral), buscar el usuario que coincide con el hash
+            if (meta.referral_code && !referidoPorEmail) {
+              try {
+                const allUsers = await base44.asServiceRole.entities.User.list();
+                const generateReferralCode = (email) => {
+                  let hash = 0;
+                  for (let i = 0; i < email.length; i++) {
+                    const char = email.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                  }
+                  return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+                };
+                
+                const foundUser = allUsers.find(u => generateReferralCode(u.email || '') === meta.referral_code);
+                if (foundUser) {
+                  referidoPor = foundUser.full_name;
+                  referidoPorEmail = foundUser.email;
+                  console.log(`[stripeWebhook] Referidor encontrado por código ${meta.referral_code}: ${referidoPor}`);
+                }
+              } catch (e) {
+                console.error('[stripeWebhook] Error buscando referidor por código:', e);
+              }
+            }
+
             if (!referidoPor && referidoPorEmail) {
               // Intentar obtener nombre del usuario referidor (para compatibilidad con automático)
               try {
