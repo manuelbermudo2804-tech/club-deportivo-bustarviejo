@@ -132,7 +132,23 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
     setShowAiModal(false);
   };
 
-  const shareGeneratedMessage = () => {
+  const shareGeneratedMessage = async () => {
+    // Intentar compartir nativo (móvil) primero
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Invitación CD Bustarviejo',
+          text: generatedMessage
+        });
+        setShowAiModal(false);
+        return;
+      } catch (err) {
+        // Si cancela o falla, fallback a WhatsApp
+        if (err.name === 'AbortError') return;
+      }
+    }
+    
+    // Fallback a WhatsApp
     const url = `https://wa.me/?text=${encodeURIComponent(generatedMessage)}`;
     window.open(url, '_blank');
     setShowAiModal(false);
