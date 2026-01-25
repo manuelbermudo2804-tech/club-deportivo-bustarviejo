@@ -49,6 +49,7 @@ import Home from './pages/Home';
 import InstallSuccessPreview from './pages/InstallSuccessPreview';
 import InvitationRequests from './pages/InvitationRequests';
 import JoinFemenino from './pages/JoinFemenino';
+import JoinReferral from './pages/JoinReferral';
 import LotteryManagement from './pages/LotteryManagement';
 import MatchApp from './pages/MatchApp';
 import MatchResults from './pages/MatchResults';
@@ -100,7 +101,6 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import JoinReferral from './pages/JoinReferral';
 import __Layout from './Layout.jsx';
 
 
@@ -156,6 +156,7 @@ export const PAGES = {
     "InstallSuccessPreview": InstallSuccessPreview,
     "InvitationRequests": InvitationRequests,
     "JoinFemenino": JoinFemenino,
+    "JoinReferral": JoinReferral,
     "LotteryManagement": LotteryManagement,
     "MatchApp": MatchApp,
     "MatchResults": MatchResults,
@@ -207,7 +208,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "JoinReferral": JoinReferral,
 }
 
 export const pagesConfig = {

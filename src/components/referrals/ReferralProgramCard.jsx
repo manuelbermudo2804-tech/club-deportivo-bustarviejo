@@ -20,7 +20,7 @@ const REWARD_TIERS = [
 
 export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
   if (!seasonConfig?.programa_referidos_activo) return null;
-  if (hasPlayersInClub !== true) return null;
+  // if (hasPlayersInClub !== true) return null; // Permitir a todos los usuarios ver el programa
 
   // Generar código de referido del usuario
   const generateReferralCode = (email) => {

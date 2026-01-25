@@ -952,8 +952,8 @@ export default function ClubMembership() {
         </div>
       )}
 
-      {/* Programa Trae un Socio Amigo - Solo visible para padres con hijos en el club */}
-      {!isExternalUser && (
+      {/* Programa Trae un Socio Amigo - Visible para todos los usuarios logueados */}
+      {user && (
         <ReferralProgramCard 
           seasonConfig={seasonConfig}
           userReferrals={currentUser?.referrals_count || 0}
@@ -966,8 +966,8 @@ export default function ClubMembership() {
         />
       )}
 
-      {/* Invitar familiares y amigos - Solo para usuarios con hijos */}
-      {!isExternalUser && (
+      {/* Invitar familiares y amigos - Visible para todos los usuarios logueados */}
+      {user && (
         <Card className="border-none shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
           <CardContent className="pt-6 relative">
