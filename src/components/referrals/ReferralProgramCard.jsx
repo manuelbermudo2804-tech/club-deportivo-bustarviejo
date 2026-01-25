@@ -385,6 +385,71 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           * Los premios se pueden usar en pedidos de ropa del club. Los sorteos se realizan al final de la temporada.
         </p>
       </CardContent>
+
+      <Dialog open={showAiModal} onOpenChange={setShowAiModal}>
+        <DialogContent className="sm:max-w-md bg-white text-slate-900">
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-purple-700">
+                    <Brain className="w-6 h-6" />
+                    Asistente de Invitaciones
+                </DialogTitle>
+            </DialogHeader>
+            
+            {!generatedMessage ? (
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label>¿A quién quieres invitar hoy?</Label>
+                        <Select value={targetType} onValueChange={setTargetType}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecciona..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="amigo del colegio">Amigo/a del Colegio</SelectItem>
+                                <SelectItem value="familiar (primo, tío...)">Familiar</SelectItem>
+                                <SelectItem value="vecino">Vecino/a</SelectItem>
+                                <SelectItem value="compañero de otro equipo">Compañero/a de otro equipo</SelectItem>
+                                <SelectItem value="padre/madre del cole">Padre/Madre del cole (para su hijo/a)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <p className="text-xs text-slate-500">
+                            La IA redactará un mensaje perfecto para este tipo de persona.
+                        </p>
+                    </div>
+                    <Button 
+                        onClick={handleGenerateMessage} 
+                        disabled={!targetType || isGenerating}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                        {isGenerating ? "Redactando..." : "Generar Mensaje"}
+                    </Button>
+                </div>
+            ) : (
+                <div className="space-y-4 py-4">
+                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{generatedMessage}</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button onClick={copyGeneratedMessage} variant="outline" className="flex-1">
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copiar
+                        </Button>
+                        <Button onClick={shareGeneratedMessage} className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            WhatsApp
+                        </Button>
+                    </div>
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="w-full text-xs text-slate-500"
+                        onClick={() => setGeneratedMessage("")}
+                    >
+                        Probar con otro tipo de persona
+                    </Button>
+                </div>
+            )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
