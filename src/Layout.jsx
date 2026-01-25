@@ -1574,6 +1574,44 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
+  const checkForUpdates = async () => {
+    const toastId = toast.loading('Buscando actualizaciones...');
+    try {
+      if (!('serviceWorker' in navigator)) {
+        toast.dismiss(toastId);
+        return toast.info('Verificación no disponible en este modo');
+      }
+      
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) {
+        toast.dismiss(toastId);
+        // Intentar registrar de nuevo si no existe
+        return toast.info('App no instalada o en modo desarrollo');
+      }
+      
+      await reg.update();
+      
+      if (reg.waiting) {
+        setShowUpdateNotification(true);
+        toast.dismiss(toastId);
+        toast.success('¡Nueva versión disponible!');
+      } else {
+        setTimeout(() => {
+          if (showUpdateNotification) {
+             toast.dismiss(toastId);
+          } else {
+             toast.dismiss(toastId);
+             toast.success('Tu app está actualizada ✅');
+          }
+        }, 1500);
+      }
+    } catch (e) {
+      toast.dismiss(toastId);
+      console.error('Update check failed:', e);
+      toast.error('Error al buscar actualizaciones');
+    }
+  };
+
   // Intento fuerte de cierre de ventana/pestaña (puede que el navegador no lo permita)
   const forceCloseWindow = () => {
     try { window.opener = null; } catch {}
@@ -2390,7 +2428,12 @@ export default function Layout({ children, currentPageName }) {
 
                               <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
                 <p className="font-medium">Temporada {currentSeason}</p>
-                <p className="text-orange-400 mt-1">© CD Bustarviejo</p>
+                <button 
+                  onClick={checkForUpdates}
+                  className="text-orange-400 mt-1 hover:text-orange-300 hover:underline transition-colors block mx-auto"
+                >
+                  © CD Bustarviejo (v1.0)
+                </button>
                 <p className="text-slate-500 mt-2 text-[10px]">🔒 Tus datos están protegidos según RGPD</p>
               </div>
           </div>
