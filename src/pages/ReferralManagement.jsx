@@ -63,6 +63,22 @@ export default function ReferralManagement() {
   const [winner, setWinner] = useState(null);
   const [activeTab, setActiveTab] = useState("ranking");
   const [newReferral, setNewReferral] = useState({ referrer_email: "", referred_name: "" });
+  
+  // AI Analysis State
+  const [aiReport, setAiReport] = useState(null);
+  const [generatingReport, setGeneratingReport] = useState(false);
+
+  const generateAiReport = async () => {
+    setGeneratingReport(true);
+    try {
+        const { data } = await base44.functions.invoke("analyzeReferrals", {});
+        setAiReport(data.report);
+    } catch (error) {
+        toast.error("Error generando informe");
+    } finally {
+        setGeneratingReport(false);
+    }
+  };
 
   const queryClient = useQueryClient();
 
