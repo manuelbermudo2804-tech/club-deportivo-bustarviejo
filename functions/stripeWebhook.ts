@@ -39,13 +39,10 @@ Deno.serve(async (req) => {
           const emailFromMeta = (meta.email || '').toLowerCase();
           const email = (emailFromMeta || session.customer_details?.email || session.customer_email || '').toLowerCase();
           const name = meta.nombre_completo || session.customer_details?.name || '';
-          const temporada = (meta.temporada || '').replace(/-/g,'/');
+          // NO forzar reemplazo de guiones por barras, usar el valor exacto de la configuración
+          const temporada = meta.temporada || ''; 
           const tipo = meta.tipo || '';
           const amount = (session.amount_total || 0) / 100;
-          // Normalizar temporada en metadatos (usar formato YYYY/YYYY+1 si viene con guiones)
-          if (session?.metadata?.temporada) {
-            try { session.metadata.temporada = session.metadata.temporada.replace(/-/g,'/'); } catch {}
-          }
           const extra = {
             dni: meta.dni || '',
             telefono: meta.telefono || '',
