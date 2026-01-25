@@ -4,13 +4,22 @@ import Stripe from 'npm:stripe@14.21.0';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch (e) {
+      // User not logged in
     }
 
     const body = await req.json();
     const { lineItems, amount, name, currency = 'eur', successUrl, cancelUrl, metadata = {} } = body || {};
+
+    // Permitir acceso público SOLO para tipos específicos (ej: alta nuevo socio)
+    const isPublicTransaction = metadata.tipo === 'alta_socio_referido';
+
+    if (!user && !isPublicTransaction) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     if ((!lineItems && !(amount && name)) || !successUrl || !cancelUrl) {
       return Response.json({
@@ -26,15 +35,22 @@ Deno.serve(async (req) => {
 
     const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
 
+    // Si no hay usuario logueado, usar el email de los metadatos
+    const customerEmail = user?.email || metadata.email || metadata.user_email;
+
+    if (!customerEmail) {
+      return Response.json({ error: 'Customer email required' }, { status: 400 });
+    }
+
     const sessionParams = {
       mode: 'payment',
-      customer_email: user.email,
+      customer_email: customerEmail,
       success_url: successUrl,
       cancel_url: cancelUrl,
       allow_promotion_codes: true,
       metadata: {
         base44_app_id: Deno.env.get('BASE44_APP_ID') || 'unknown',
-        user_email: user.email,
+        user_email: customerEmail,
         ...metadata,
       },
     };
