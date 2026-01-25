@@ -125,7 +125,8 @@ export default function ParentPayments() {
       const filtered = await base44.entities.Player.filter({
         $or: [
           { email_padre: user?.email },
-          { email_tutor_2: user?.email }
+          { email_tutor_2: user?.email },
+          { email_jugador: user?.email }
         ],
         activo: true
       });
