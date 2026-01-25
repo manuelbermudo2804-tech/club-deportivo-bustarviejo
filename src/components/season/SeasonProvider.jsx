@@ -18,8 +18,14 @@ const SeasonContext = createContext({
   refreshSeason: () => {},
 });
 
-export function SeasonProvider({ children }) {
-  const [seasonConfig, setSeasonConfig] = useState(null);
+export function SeasonProvider({ children, externalConfig }) {
+  const [seasonConfig, setSeasonConfig] = useState(externalConfig || null);
+
+  useEffect(() => {
+    if (externalConfig !== undefined) {
+      setSeasonConfig(externalConfig);
+    }
+  }, [externalConfig]);
   const [manualSeason, setManualSeason] = useState(null);
   const [loading, setLoading] = useState(false);
 

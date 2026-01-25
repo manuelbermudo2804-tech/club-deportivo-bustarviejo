@@ -1881,7 +1881,7 @@ export default function Layout({ children, currentPageName }) {
     return (
             <SeasonProvider externalConfig={activeSeasonConfig}>
             <>
-              {/* <style>{`html, body { overscroll-behavior-y: none; }`}</style> */}
+              <style>{`html, body { overscroll-behavior-y: none; }`}</style>
               <ChatNotificationSync user={user} />
               <ChatNotificationBubbles 
                 user={user} 
