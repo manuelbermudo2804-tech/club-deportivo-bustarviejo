@@ -671,37 +671,60 @@ export default function Layout({ children, currentPageName }) {
     };
     }, []);
 
-    // Actualización automática con notificación visual
+    // Actualización automática MEJORADA (cada 1 min + al volver a la app)
     useEffect(() => {
       if (!('serviceWorker' in navigator)) return;
-      let intervalId;
-      (async () => {
+
+      const checkForNewVersion = async () => {
         try {
           const reg = await navigator.serviceWorker.getRegistration();
           if (!reg) return;
+          // Forzar búsqueda en el servidor
+          await reg.update();
+          // Si hay una versión esperando, mostrar aviso
+          if (reg.waiting) setShowUpdateNotification(true);
+        } catch (e) { 
+          console.error('Error verificando actualizaciones:', e); 
+        }
+      };
 
-          reg.addEventListener('updatefound', () => {
-            const sw = reg.installing;
-            if (!sw) return;
-            sw.addEventListener('statechange', () => {
-              if (sw.state === 'installed' && reg.waiting) {
-                // Mostrar notificación de actualización disponible
-                setShowUpdateNotification(true);
+      // 1. Chequeo inicial y periódico más frecuente (1 min)
+      checkForNewVersion();
+      const intervalId = setInterval(checkForNewVersion, 60 * 1000);
+
+      // 2. Chequeo inteligente al volver a la app (visibilidad)
+      const onVisibilityChange = () => {
+        if (document.visibilityState === 'visible') checkForNewVersion();
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange);
+
+      // 3. Listener estándar de instalación en segundo plano
+      (async () => {
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && reg.waiting) {
+                    setShowUpdateNotification(true);
+                  }
+                });
               }
             });
-          });
-
-          await reg.update();
-          intervalId = window.setInterval(() => reg.update(), 300000); // cada 5 min
+          }
         } catch {}
       })();
 
+      // 4. Recarga automática si el controlador cambia (ej. otra pestaña actualizó)
       const onCtrlChange = () => window.location.reload();
       navigator.serviceWorker.addEventListener('controllerchange', onCtrlChange);
 
       return () => {
+        clearInterval(intervalId);
+        document.removeEventListener('visibilitychange', onVisibilityChange);
         navigator.serviceWorker.removeEventListener('controllerchange', onCtrlChange);
-        if (intervalId) clearInterval(intervalId);
       };
     }, []);
 
