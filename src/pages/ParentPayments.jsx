@@ -695,16 +695,30 @@ export default function ParentPayments() {
           <h1 className="text-3xl font-bold text-slate-900">Mis Pagos</h1>
           <p className="text-slate-600 mt-1">Gestiona tus cuotas y justificantes</p>
         </div>
-        <Button
-          onClick={() => {
-            setQuickPayOpen(true);
-          }}
-          type="button"
-          className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Pagar / Registrar
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+              queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+              toast.success("Actualizando datos...");
+            }}
+            className="bg-white"
+            title="Refrescar datos"
+          >
+            <RefreshCw className={`w-5 h-5 ${loadingPlayers || loadingPayments ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            onClick={() => {
+              setQuickPayOpen(true);
+            }}
+            type="button"
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Pagar / Registrar
+          </Button>
+        </div>
       </div>
 
 
