@@ -197,7 +197,7 @@ export default function ClubMembership() {
     retry: 1,
   });
 
-  // Usar la configuración global que se actualiza en tiempo real desde el Layout
+  // Usar contexto global para SeasonConfig (actualización en tiempo real)
   const { seasonConfig } = useActiveSeason();
 
   const { data: allMemberships = [] } = useQuery({

@@ -1,7 +1,13 @@
 Deno.serve((_req) => {
   const swCode = `
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  // No skipWaiting automatically to allow "Update Available" prompt
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
@@ -28,9 +34,8 @@ self.addEventListener('fetch', () => {});
   return new Response(swCode, {
     headers: {
       "Content-Type": "application/javascript; charset=utf-8",
-      // Allow root scope even though served under /functions/
       "Service-Worker-Allowed": "/",
-      "Cache-Control": "public, max-age=300",
+      "Cache-Control": "public, max-age=0", // Don't cache SW
       "X-Content-Type-Options": "nosniff"
     }
   });

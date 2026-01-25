@@ -1838,7 +1838,7 @@ export default function Layout({ children, currentPageName }) {
     return (
             <SeasonProvider>
             <>
-              {/* <style>{`html, body { overscroll-behavior-y: none; }`}</style> */}
+              <style>{`html, body { overscroll-behavior-y: none; }`}</style>
               <ChatNotificationSync user={user} />
               <ChatNotificationBubbles 
                 user={user} 
@@ -2489,9 +2489,17 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               </div>
               <Button
-                onClick={() => {
+                onClick={async () => {
+                  // Notificar al SW que se active
+                  if ('serviceWorker' in navigator) {
+                    const reg = await navigator.serviceWorker.getRegistration();
+                    if (reg && reg.waiting) {
+                      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                  }
                   setShowUpdateNotification(false);
-                  window.location.reload();
+                  // Recargar tras un breve delay para permitir que el SW se active
+                  setTimeout(() => window.location.reload(), 500);
                 }}
                 className="bg-white text-green-600 hover:bg-gray-100 font-bold whitespace-nowrap"
                 size="sm"
