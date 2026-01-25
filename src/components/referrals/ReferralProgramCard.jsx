@@ -152,6 +152,29 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
           <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
         </div>
 
+        {/* ASISTENTE IA */}
+        <div className="bg-white/10 rounded-2xl p-4 border border-white/20">
+            <div className="flex items-center justify-between gap-4">
+                <div>
+                    <h4 className="font-bold text-white flex items-center gap-2">
+                        <Brain className="w-5 h-5 text-purple-200" />
+                        ¿No sabes qué decir?
+                    </h4>
+                    <p className="text-xs text-white/80">
+                        Usa nuestra IA para crear una invitación personalizada en segundos.
+                    </p>
+                </div>
+                <Button 
+                    onClick={() => setShowAiModal(true)}
+                    className="bg-white text-purple-700 hover:bg-purple-50 font-bold shadow-lg"
+                    size="sm"
+                >
+                    <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+                    Crear Invitación
+                </Button>
+            </div>
+        </div>
+
         {/* BONUS FÚTBOL FEMENINO + BOTÓN COMPARTIR */}
         {seasonConfig.bonus_femenino_activo && (
           <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 rounded-2xl p-4 text-center border-4 border-pink-300 relative overflow-hidden">
