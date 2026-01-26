@@ -28,6 +28,11 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
   const buttonRef = useRef(null);
   const isPressingRef = useRef(false);
 
+  const getClientPoint = (e) => {
+    const t = e.touches?.[0] || e.changedTouches?.[0] || e;
+    return { x: t?.clientX ?? 0, y: t?.clientY ?? 0 };
+  };
+
   // Limpiar al desmontar
   useEffect(() => {
     return () => {
@@ -91,7 +96,7 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     
     e.preventDefault();
     isPressingRef.current = true;
-    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+    pointerStartRef.current = getClientPoint(e);
     setSlideOffset({ x: 0, y: 0 });
 
     try {
@@ -146,8 +151,9 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
   const handlePointerMove = (e) => {
     if (recordingState !== "recording") return;
 
-    const deltaX = e.clientX - pointerStartRef.current.x;
-    const deltaY = e.clientY - pointerStartRef.current.y;
+    const pt = getClientPoint(e);
+    const deltaX = pt.x - pointerStartRef.current.x;
+    const deltaY = pt.y - pointerStartRef.current.y;
 
     setSlideOffset({ x: deltaX, y: deltaY });
 
@@ -168,6 +174,8 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     if (recordingState === "recording") {
       // Soltar sin bloquear = ENVIAR AUTOMÁTICAMENTE
       stopAndSend();
+    } else if (recordingState === "idle") {
+      toast.info("Mantén pulsado para grabar", { duration: 1200 });
     }
   };
 
