@@ -1152,11 +1152,14 @@ export default function ParentPayments() {
                 jugador_nombre: player.nombre,
                 temporada: payment.temporada,
                 mes: payment.mes,
-                categoria: player.deporte || ''
+                categoria: player.deporte || '',
+                user_email: user?.email
               }
             });
             if (data?.url) {
               window.location.href = data.url;
+            } else {
+              toast.error(data?.error || 'No se pudo iniciar el pago con tarjeta');
             }
           } catch (e) {
             console.error('Stripe checkout error', e);
