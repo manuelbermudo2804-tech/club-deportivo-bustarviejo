@@ -26,6 +26,7 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
   const audioPreviewRef = useRef(null);
   const pointerStartRef = useRef({ x: 0, y: 0 });
   const buttonRef = useRef(null);
+  const isPressingRef = useRef(false);
 
   // Limpiar al desmontar
   useEffect(() => {
@@ -89,11 +90,20 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     if (disabled || recordingState !== "idle") return;
     
     e.preventDefault();
+    isPressingRef.current = true;
     pointerStartRef.current = { x: e.clientX, y: e.clientY };
     setSlideOffset({ x: 0, y: 0 });
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Si el usuario soltó el botón antes de que el stream estuviera listo
+      if (!isPressingRef.current) {
+        stream.getTracks().forEach(track => track.stop());
+        toast.info("Mantén pulsado para grabar", { duration: 1500 });
+        return;
+      }
+
       const mediaRecorder = new MediaRecorder(stream);
       
       mediaRecorderRef.current = mediaRecorder;
@@ -125,8 +135,10 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
       if (error.name === 'NotAllowedError') {
         toast.error('Debes permitir el acceso al micrófono');
       } else {
+        console.error("Mic error:", error);
         toast.error('Error al acceder al micrófono');
       }
+      isPressingRef.current = false;
     }
   };
 
@@ -152,6 +164,7 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
 
   // SOLTAR DEDO (onPointerUp)
   const handlePointerUp = () => {
+    isPressingRef.current = false;
     if (recordingState === "recording") {
       // Soltar sin bloquear = ENVIAR AUTOMÁTICAMENTE
       stopAndSend();

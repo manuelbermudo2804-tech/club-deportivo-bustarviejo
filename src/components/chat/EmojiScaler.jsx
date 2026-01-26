@@ -31,7 +31,10 @@ export default function EmojiScaler({ content, reactions }) {
   if (!content) return null;
   
   const trimmed = content.trim();
-  const isOnlyEmoji = trimmed.length <= 3 && /^[\p{Emoji}\s]+$/u.test(trimmed);
+  // Ensure it is only emoji and DOES NOT contain letters/numbers
+  const isOnlyEmoji = trimmed.length <= 3 && 
+    /^[\p{Extended_Pictographic}\p{Emoji_Presentation}\s]+$/u.test(trimmed) && 
+    !/[a-zA-Z0-9]/.test(trimmed);
   
   if (isOnlyEmoji) {
     return <span style={{ fontSize: '3rem' }}>{content}</span>;
