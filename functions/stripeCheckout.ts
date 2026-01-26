@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
         user_email: customerEmail,
         ...metadata,
       },
+      automatic_tax: { enabled: false },
     };
 
     if (Array.isArray(lineItems) && lineItems.length > 0) {
