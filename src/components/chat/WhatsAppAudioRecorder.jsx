@@ -100,12 +100,10 @@ const isIframe = (() => { try { if (isStandalone) return false; return window.to
     e.preventDefault();
 
     // Bloqueo en previsualización (iframe)
-    try {
-      if (window.top !== window.self) {
-        toast.error('El micrófono no está disponible en la previsualización. Abre la app publicada.');
-        return;
-      }
-    } catch {}
+    if (isIframe) {
+      toast.error('El micrófono no está disponible en la previsualización. Abre la app publicada.');
+      return;
+    }
 
     if (startingRef.current) return;
     startingRef.current = true;
