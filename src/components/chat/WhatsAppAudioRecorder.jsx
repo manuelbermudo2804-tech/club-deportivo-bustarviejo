@@ -27,6 +27,7 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
   const pointerStartRef = useRef({ x: 0, y: 0 });
   const buttonRef = useRef(null);
   const isPressingRef = useRef(false);
+  const startingRef = useRef(false);
 
   const getClientPoint = (e) => {
     const t = e.touches?.[0] || e.changedTouches?.[0] || e;
