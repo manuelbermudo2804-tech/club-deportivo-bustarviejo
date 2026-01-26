@@ -63,22 +63,18 @@ export default function ParentLottery() {
     fetchUser();
   }, []);
 
-  // Detectar retorno de Stripe
+  // Detectar retorno de Stripe (solo con parámetro de éxito)
   useEffect(() => {
     try {
       const url = new URL(window.location.href);
       const paid = url.searchParams.get('paid');
-      const lotteryPending = localStorage.getItem('stripeLotteryPending') === '1';
-      if (paid === 'lottery' || lotteryPending) {
+      if (paid === 'lottery') {
         toast.success('✅ Pago con tarjeta confirmado');
-        localStorage.removeItem('stripeLotteryPending');
         // Refrescar pedidos
         queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
         queryClient.invalidateQueries({ queryKey: ['myLotteryOrders'] });
-        if (paid) {
-          url.searchParams.delete('paid');
-          window.history.replaceState({}, '', url.toString());
-        }
+        url.searchParams.delete('paid');
+        window.history.replaceState({}, '', url.toString());
       }
     } catch {}
   }, [queryClient]);
@@ -332,7 +328,6 @@ export default function ParentLottery() {
 
       // Lanzar Stripe Checkout
       setOpeningStripe(true);
-      localStorage.setItem('stripeLotteryPending', '1');
       const successUrl = window.location.origin + createPageUrl('ParentLottery') + '?paid=lottery';
       const cancelUrl = window.location.origin + createPageUrl('ParentLottery');
       const { data } = await base44.functions.invoke('stripeCheckout', {
