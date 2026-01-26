@@ -968,7 +968,7 @@ export default function ClubMembership() {
                 </p>
                 <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
                   <p className="text-white font-semibold text-center">
-                    Solo <span className="text-3xl font-bold">{CUOTA_SOCIO}€</span> /temporada
+                    Solo <span className="text-3xl font-bold">{seasonConfig?.precio_socio || CUOTA_SOCIO}€</span> /temporada
                   </p>
                   <p className="text-white/80 text-xs text-center mt-1">
                     ¡Un pequeño gesto con un gran impacto! 💪
@@ -1203,7 +1203,7 @@ export default function ClubMembership() {
               <div className="space-y-4 border-2 border-green-300 rounded-xl p-6 bg-gradient-to-br from-green-50 to-green-100">
                 <h3 className="font-bold text-green-900 flex items-center gap-2 text-lg">
                   <CreditCard className="w-6 h-6" />
-                  Pago: {CUOTA_SOCIO}€
+                  Pago: {seasonConfig?.precio_socio || CUOTA_SOCIO}€
                 </h3>
 
                 <div className="space-y-3">
@@ -1322,9 +1322,30 @@ export default function ClubMembership() {
 
                         const successUrl = window.location.origin + createPageUrl("ClubMembership") + "?paid=stripe";
                         const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
+
+                        // Crear ficha de socio pendiente ANTES de ir a Stripe
+                        const numeroSocio = await generateNumeroSocio();
+                        const membership = await base44.entities.ClubMember.create({
+                          numero_socio: numeroSocio,
+                          nombre_completo: formData.nombre_completo,
+                          dni: formData.dni,
+                          email: formData.email,
+                          telefono: formData.telefono,
+                          direccion: formData.direccion,
+                          municipio: formData.municipio,
+                          cuota_socio: seasonConfig?.precio_socio || CUOTA_SOCIO,
+                          tipo_inscripcion: formData.tipo_inscripcion,
+                          estado_pago: 'Pendiente',
+                          temporada: seasonConfig?.temporada || new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
+                          activo: true,
+                          es_socio_externo: isExternalUser === true,
+                          referido_por: formData.referido_por || (currentUser && myPlayers.length > 0 ? currentUser.full_name : '')
+                        });
+
                         // Guardar nombre para pantalla de éxito al volver de Stripe
                         localStorage.setItem('stripePendingSuccess', '1');
                         localStorage.setItem('stripeMemberName', formData.nombre_completo || '');
+
                         const { data } = await base44.functions.invoke('stripeCheckout', {
                           amount: seasonConfig?.precio_socio || 25,
                           name: 'Cuota de Socio',
@@ -1334,6 +1355,7 @@ export default function ClubMembership() {
                           metadata: {
                             tipo: 'cuota_socio',
                             temporada: seasonConfig?.temporada || '',
+                            membership_id: membership.id,
                             nombre_completo: formData.nombre_completo,
                             dni: formData.dni,
                             telefono: formData.telefono,

@@ -93,9 +93,57 @@ Deno.serve(async (req) => {
         }
 
         // Otros tipos (ej: extra_charge) se añadirán después si hace falta
-      }
-    }
-  } catch (e) {
+
+        // NUEVO: Lotería de Navidad
+        if (metadata.tipo === 'loteria' && metadata.order_id) {
+          try {
+            await base44.asServiceRole.entities.LotteryOrder.update(metadata.order_id, {
+              pagado: true,
+              metodo_pago: 'Tarjeta'
+            });
+            console.log('[stripe-webhook] Lotería marcada como pagada', { order_id: metadata.order_id });
+          } catch (e) {
+            console.error('[stripe-webhook] Error actualizando LotteryOrder:', e?.message || e);
+          }
+        }
+
+        // NUEVO: Cuota de socio (pago desde la app o Payment Link con metadata)
+        if (metadata.tipo === 'cuota_socio') {
+          const temporada = metadata.temporada || '';
+          const membershipId = metadata.membership_id;
+          const email = session.customer_details?.email || session.customer_email || metadata.user_email;
+
+          if (membershipId) {
+            try {
+              await base44.asServiceRole.entities.ClubMember.update(membershipId, {
+                estado_pago: 'Pagado',
+                activo: true,
+              });
+              console.log('[stripe-webhook] ClubMember marcado Pagado', { membership_id: membershipId });
+            } catch (e) {
+              console.error('[stripe-webhook] Error actualizando ClubMember:', e?.message || e);
+            }
+          } else if (email) {
+            try {
+              const candidates = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
+              const candidate = candidates?.[0];
+              if (candidate) {
+                await base44.asServiceRole.entities.ClubMember.update(candidate.id, {
+                  estado_pago: 'Pagado',
+                  activo: true,
+                });
+                console.log('[stripe-webhook] ClubMember detectado por email+temporada, marcado Pagado', { id: candidate.id });
+              } else {
+                console.warn('[stripe-webhook] No se encontró ClubMember para email/temporada, revise Payment Link metadata');
+              }
+            } catch (e) {
+              console.error('[stripe-webhook] Error marcando ClubMember por email:', e?.message || e);
+            }
+          }
+        }
+        }
+        }
+        } catch (e) {
     // No devolvemos 500 para evitar reintentos infinitos; solo registramos.
     console.error('[stripe-webhook] Error general manejando evento:', e?.message || e);
   }
