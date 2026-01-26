@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
           try {
             await base44.asServiceRole.entities.Payment.update(metadata.payment_id, {
               estado: 'Pagado',
-              fecha_pago: nowIso,
+              fecha_pago: today,
             });
             console.log('[stripe-webhook] Payment marcado Pagado', { payment_id: metadata.payment_id });
           } catch (e) {
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
                 try {
                   await base44.asServiceRole.entities.Payment.update(it.payment_id, {
                     estado: 'Pagado',
-                    fecha_pago: nowIso,
+                    fecha_pago: today,
                   });
                 } catch (e) {
                   console.error('[stripe-webhook] Error marcando pago de lote:', it.payment_id, e?.message || e);
