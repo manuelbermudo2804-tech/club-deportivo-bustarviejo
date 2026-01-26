@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import ImagePreviewModal from "./ImagePreviewModal";
 import AudioRecordingBar from "./AudioRecordingBar";
+import { useAudioRecording } from "./useAudioRecording";
 
 // Menú "+" tipo WhatsApp
 function AttachmentMenu({ 
@@ -110,6 +111,18 @@ export default function WhatsAppInputBar({
   
   // Estado para envío de audio
   const [isSendingAudio, setIsSendingAudio] = useState(false);
+
+  // Fallback de grabación si no pasan handlers desde el padre
+  const fallbackRec = useAudioRecording();
+  const rec = {
+    isRecording: recording ?? fallbackRec.isRecording,
+    audioBlob: audioBlob ?? fallbackRec.audioBlob,
+    audioDuration: audioDuration ?? fallbackRec.audioDuration,
+    start: onStartRecording ?? fallbackRec.startRecording,
+    stop: onStopRecording ?? fallbackRec.stopRecording,
+    upload: onUploadAudio ?? fallbackRec.uploadAudio,
+    cancel: onCancelAudio ?? fallbackRec.cancelAudio,
+  };
 
   // Sincronizar con prop externa SOLO cuando está vacía (para edición)
   useEffect(() => {
@@ -303,20 +316,20 @@ export default function WhatsAppInputBar({
       )}
 
       {/* Audio Recording Bar - estilo WhatsApp */}
-      {(recording || audioBlob) && (
+      {(rec.isRecording || rec.audioBlob) && (
         <div className="mb-2">
           <AudioRecordingBar
-            isRecording={recording}
-            onStartRecording={onStartRecording}
-            onStopRecording={onStopRecording}
-            audioBlob={audioBlob}
-            audioDuration={audioDuration}
+            isRecording={rec.isRecording}
+            onStartRecording={rec.start}
+            onStopRecording={rec.stop}
+            audioBlob={rec.audioBlob}
+            audioDuration={rec.audioDuration}
             onSendAudio={async () => {
               setIsSendingAudio(true);
               try {
-                const audioData = await onUploadAudio?.();
+                const audioData = await rec.upload();
                 if (audioData) {
-                  onCancelAudio?.();
+                  rec.cancel();
                 }
               } catch (err) {
                 console.error('Error sending audio:', err);
@@ -325,7 +338,7 @@ export default function WhatsAppInputBar({
                 setIsSendingAudio(false);
               }
             }}
-            onCancelAudio={onCancelAudio}
+            onCancelAudio={rec.cancel}
             uploading={isSendingAudio || uploading}
             disabled={isSendingAudio || uploading}
           />
@@ -391,17 +404,17 @@ export default function WhatsAppInputBar({
 
             {/* Micrófono - componente mejorado */}
             <AudioRecordingBar
-              isRecording={recording}
-              onStartRecording={onStartRecording}
-              onStopRecording={onStopRecording}
-              audioBlob={audioBlob}
-              audioDuration={audioDuration}
+              isRecording={rec.isRecording}
+              onStartRecording={rec.start}
+              onStopRecording={rec.stop}
+              audioBlob={rec.audioBlob}
+              audioDuration={rec.audioDuration}
               onSendAudio={async () => {
                 setIsSendingAudio(true);
                 try {
-                  const audioData = await onUploadAudio?.();
+                  const audioData = await rec.upload();
                   if (audioData) {
-                    onCancelAudio?.();
+                    rec.cancel();
                   }
                 } catch (err) {
                   console.error('Error sending audio:', err);
@@ -410,9 +423,9 @@ export default function WhatsAppInputBar({
                   setIsSendingAudio(false);
                 }
               }}
-              onCancelAudio={onCancelAudio}
+              onCancelAudio={rec.cancel}
               uploading={isSendingAudio || uploading}
-              disabled={audioBlob || isSendingAudio || uploading}
+              disabled={rec.audioBlob || isSendingAudio || uploading}
             />
           </>
         ) : (

@@ -100,6 +100,11 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     setSlideOffset({ x: 0, y: 0 });
 
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        toast.error('Tu navegador no soporta grabación de audio');
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       // Si el usuario soltó el botón antes de que el stream estuviera listo
@@ -284,6 +289,12 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerCancel={cancelRecording}
+              onMouseDown={handlePointerDown}
+              onMouseMove={handlePointerMove}
+              onMouseUp={handlePointerUp}
+              onTouchStart={handlePointerDown}
+              onTouchMove={handlePointerMove}
+              onTouchEnd={handlePointerUp}
               className="touch-none"
               style={{
                 transform: `translateX(${slideOffset.x}px) translateY(${slideOffset.y}px)`
@@ -436,6 +447,12 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={cancelRecording}
+      onMouseDown={handlePointerDown}
+      onMouseMove={handlePointerMove}
+      onMouseUp={handlePointerUp}
+      onTouchStart={handlePointerDown}
+      onTouchMove={handlePointerMove}
+      onTouchEnd={handlePointerUp}
       className="touch-none"
     >
       <Button
