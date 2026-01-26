@@ -34,6 +34,7 @@ import SeasonComparison from "../components/financial/SeasonComparison.jsx";
 import IncomeDistributionPie from "../components/financial/IncomeDistributionPie.jsx";
 import EndOfSeasonForecast from "../components/financial/EndOfSeasonForecast.jsx";
 import FinancialGoalsTracker from "../components/financial/FinancialGoalsTracker.jsx";
+import StripePaymentsPanel from "../components/financial/StripePaymentsPanel.jsx";
 import FinancialHealthIndicator from "../components/financial/FinancialHealthIndicator.jsx";
 import AutomaticMorosidadAlert from "../components/financial/AutomaticMorosidadAlert.jsx";
 
@@ -1270,6 +1271,9 @@ export default function TreasurerFinancialPanel() {
 
           {/* Distribución de Ingresos (Gráfico Pastel) */}
           <IncomeDistributionPie stats={stats} />
+
+          {/* Registro Stripe */}
+          <StripePaymentsPanel />
 
           {/* Predicción Fin de Temporada */}
           <EndOfSeasonForecast 
