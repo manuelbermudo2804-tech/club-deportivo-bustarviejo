@@ -63,30 +63,31 @@ Deno.serve(async (req) => {
         // Caso 1: pago individual de cuota
         if (metadata.tipo === 'pago_cuota' && metadata.payment_id) {
           try {
+            // Log Stripe (cuotas) - antes de actualizar BD
+            try {
+              await base44.asServiceRole.entities.StripePaymentLog.create({
+                section: 'cuotas',
+                amount: Number(session.amount_total || 0) / 100,
+                currency: session.currency || 'eur',
+                status: 'succeeded',
+                session_id: session.id,
+                payment_intent_id: session.payment_intent || null,
+                email: session.customer_details?.email || session.customer_email || metadata.user_email,
+                related_entity: 'Payment',
+                related_id: metadata.payment_id,
+                metadata,
+                created_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error('[stripe-webhook] Error guardando log Stripe (cuotas-pre):', logErr?.message || logErr);
+            }
             const updated = await base44.asServiceRole.entities.Payment.update(metadata.payment_id, {
               estado: 'Pagado',
               fecha_pago: today,
             });
             console.log('[stripe-webhook] Payment marcado Pagado', { payment_id: metadata.payment_id });
 
-                  // Log Stripe
-                  try {
-                    await base44.asServiceRole.entities.StripePaymentLog.create({
-                      section: 'cuotas',
-                      amount: Number(session.amount_total || 0) / 100,
-                      currency: session.currency || 'eur',
-                      status: 'succeeded',
-                      session_id: session.id,
-                      payment_intent_id: session.payment_intent || null,
-                      email: session.customer_details?.email || session.customer_email || metadata.user_email,
-                      related_entity: 'Payment',
-                      related_id: metadata.payment_id,
-                      metadata,
-                      created_at: new Date().toISOString()
-                    });
-                  } catch (logErr) {
-                    console.error('[stripe-webhook] Error guardando log Stripe (cuotas):', logErr?.message || logErr);
-                  }
+
 
             // Enviar emails a los tutores
             try {
@@ -127,6 +128,25 @@ Deno.serve(async (req) => {
 
             if (batch) {
               // Actualizar estado del lote
+              // Log Stripe (batch) - antes de actualizar BD
+              try {
+                await base44.asServiceRole.entities.StripePaymentLog.create({
+                  section: 'cuotas_batch',
+                  amount: Number(session.amount_total || 0) / 100,
+                  currency: session.currency || 'eur',
+                  status: 'succeeded',
+                  session_id: session.id,
+                  payment_intent_id: session.payment_intent || null,
+                  email: session.customer_details?.email || session.customer_email || metadata.user_email,
+                  related_entity: 'BatchPayment',
+                  related_id: batch.id,
+                  metadata,
+                  created_at: new Date().toISOString()
+                });
+              } catch (logErr) {
+                console.error('[stripe-webhook] Error guardando log Stripe (batch-pre):', logErr?.message || logErr);
+              }
+
               await base44.asServiceRole.entities.BatchPayment.update(batch.id, {
                 status: 'paid',
                 paid_at: new Date().toISOString(),
@@ -167,24 +187,7 @@ Deno.serve(async (req) => {
               }
               console.log('[stripe-webhook] Lote pagado', { batch_id: batch.id, items: items.length });
 
-                  // Log Stripe (batch)
-                  try {
-                    await base44.asServiceRole.entities.StripePaymentLog.create({
-                      section: 'cuotas_batch',
-                      amount: Number(session.amount_total || 0) / 100,
-                      currency: session.currency || 'eur',
-                      status: 'succeeded',
-                      session_id: session.id,
-                      payment_intent_id: session.payment_intent || null,
-                      email: session.customer_details?.email || session.customer_email || metadata.user_email,
-                      related_entity: 'BatchPayment',
-                      related_id: batch.id,
-                      metadata,
-                      created_at: new Date().toISOString()
-                    });
-                  } catch (logErr) {
-                    console.error('[stripe-webhook] Error guardando log Stripe (batch):', logErr?.message || logErr);
-                  }
+
             } else {
               console.warn('[stripe-webhook] Lote no encontrado para session', session.id);
             }
@@ -198,30 +201,32 @@ Deno.serve(async (req) => {
         // NUEVO: Lotería de Navidad
         if (metadata.tipo === 'loteria' && metadata.order_id) {
           try {
+            // Log Stripe (lotería) - antes de actualizar BD
+            try {
+              await base44.asServiceRole.entities.StripePaymentLog.create({
+                section: 'loteria',
+                amount: Number(session.amount_total || 0) / 100,
+                currency: session.currency || 'eur',
+                status: 'succeeded',
+                session_id: session.id,
+                payment_intent_id: session.payment_intent || null,
+                email: session.customer_details?.email || session.customer_email || metadata.user_email,
+                related_entity: 'LotteryOrder',
+                related_id: metadata.order_id,
+                metadata,
+                created_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error('[stripe-webhook] Error guardando log Stripe (lotería-pre):', logErr?.message || logErr);
+            }
+
             await base44.asServiceRole.entities.LotteryOrder.update(metadata.order_id, {
               pagado: true,
               metodo_pago: 'Tarjeta'
             });
             console.log('[stripe-webhook] Lotería marcada como pagada', { order_id: metadata.order_id });
 
-                  // Log Stripe (lotería)
-                  try {
-                    await base44.asServiceRole.entities.StripePaymentLog.create({
-                      section: 'loteria',
-                      amount: Number(session.amount_total || 0) / 100,
-                      currency: session.currency || 'eur',
-                      status: 'succeeded',
-                      session_id: session.id,
-                      payment_intent_id: session.payment_intent || null,
-                      email: session.customer_details?.email || session.customer_email || metadata.user_email,
-                      related_entity: 'LotteryOrder',
-                      related_id: metadata.order_id,
-                      metadata,
-                      created_at: new Date().toISOString()
-                    });
-                  } catch (logErr) {
-                    console.error('[stripe-webhook] Error guardando log Stripe (lotería):', logErr?.message || logErr);
-                  }
+
 
             // Notificar por email
             try {
@@ -252,6 +257,24 @@ Deno.serve(async (req) => {
         // NUEVO: Cuota de socio (pago desde la app o Payment Link con metadata)
         if (metadata.tipo === 'cuota_socio') {
           const temporada = metadata.temporada || '';
+          // Log Stripe (socios) - antes de actualizar BD
+          try {
+            await base44.asServiceRole.entities.StripePaymentLog.create({
+              section: 'socios',
+              amount: Number(session.amount_total || 0) / 100,
+              currency: session.currency || 'eur',
+              status: 'succeeded',
+              session_id: session.id,
+              payment_intent_id: session.payment_intent || null,
+              email: session.customer_details?.email || session.customer_email || metadata.user_email,
+              related_entity: 'ClubMember',
+              related_id: metadata.membership_id || null,
+              metadata,
+              created_at: new Date().toISOString()
+            });
+          } catch (logErr) {
+            console.error('[stripe-webhook] Error guardando log Stripe (socios-pre):', logErr?.message || logErr);
+          }
           const membershipId = metadata.membership_id;
           const email = session.customer_details?.email || session.customer_email || metadata.user_email;
 
@@ -307,24 +330,7 @@ Deno.serve(async (req) => {
             console.error('[stripe-webhook] Error enviando email Socio:', emailErr?.message || emailErr);
           }
 
-          // Log Stripe (socios)
-          try {
-            await base44.asServiceRole.entities.StripePaymentLog.create({
-              section: 'socios',
-              amount: Number(session.amount_total || 0) / 100,
-              currency: session.currency || 'eur',
-              status: 'succeeded',
-              session_id: session.id,
-              payment_intent_id: session.payment_intent || null,
-              email: session.customer_details?.email || session.customer_email || metadata.user_email,
-              related_entity: 'ClubMember',
-              related_id: member?.id || null,
-              metadata,
-              created_at: new Date().toISOString()
-            });
-          } catch (logErr) {
-            console.error('[stripe-webhook] Error guardando log Stripe (socios):', logErr?.message || logErr);
-          }
+
           }
         }
         }
