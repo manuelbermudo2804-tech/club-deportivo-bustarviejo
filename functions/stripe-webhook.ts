@@ -37,6 +37,27 @@ Deno.serve(async (req) => {
       console.log('[stripe-webhook] checkout.session.completed', { session_id: session.id, status, metadata });
 
       if (status === 'paid') {
+        // Fallback log: si el tipo no es uno de los conocidos, registramos igualmente
+        try {
+          const tipo = metadata?.tipo;
+          if (!['pago_cuota','pago_cuota_batch','loteria','cuota_socio'].includes(tipo)) {
+            await base44.asServiceRole.entities.StripePaymentLog.create({
+              section: 'extra',
+              amount: Number(session.amount_total || 0) / 100,
+              currency: session.currency || 'eur',
+              status: 'succeeded',
+              session_id: session.id,
+              payment_intent_id: session.payment_intent || null,
+              email: session.customer_details?.email || session.customer_email || metadata.user_email,
+              related_entity: 'Unknown',
+              related_id: null,
+              metadata,
+              created_at: new Date().toISOString()
+            });
+          }
+        } catch (logErr) {
+          console.error('[stripe-webhook] Error guardando log Stripe (fallback):', logErr?.message || logErr);
+        }
         const today = new Date().toISOString().slice(0,10);
 
         // Caso 1: pago individual de cuota
