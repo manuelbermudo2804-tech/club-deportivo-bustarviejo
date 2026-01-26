@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Banknote, Shield, Gift } from "lucide-react";
+import { CreditCard, Banknote, Shield, Gift, Loader2 } from "lucide-react";
 
 export default function PayModal({ open, onClose, player, payment, onPayCard, onChooseTransfer, onUploadTransfer }) {
+  const [openingStripe, setOpeningStripe] = useState(false);
   const [file, setFile] = useState(null);
   if (!payment || !player) return null;
   return (
@@ -33,8 +34,12 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
                 <div className="flex items-center gap-2 text-slate-600 text-xs">
                   <Shield className="w-4 h-4"/> Pagos protegidos por Stripe.
                 </div>
-                <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={onPayCard}>
-                  <CreditCard className="w-4 h-4 mr-2"/> Pagar {Number(payment.cantidad).toFixed(2)}€ con tarjeta
+                <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={() => { setOpeningStripe(true); onPayCard?.(); }} disabled={openingStripe}>
+                  {openingStripe ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin"/> Abriendo Stripe...</>
+                  ) : (
+                    <><CreditCard className="w-4 h-4 mr-2"/> Pagar {Number(payment.cantidad).toFixed(2)}€ con tarjeta</>
+                  )}
                 </Button>
               </div>
             </TabsContent>

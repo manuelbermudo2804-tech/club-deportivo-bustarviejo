@@ -46,6 +46,7 @@ export default function ClubMembership() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isPublicAccess, setIsPublicAccess] = useState(false); // Nuevo: si es acceso público sin login
   const [stripeFlow, setStripeFlow] = useState(false);
+  const [openingStripe, setOpeningStripe] = useState(false);
   const [isIframe, setIsIframe] = useState(false);
 
   const queryClient = useQueryClient();
@@ -589,6 +590,7 @@ export default function ClubMembership() {
     }
     if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
       toast.error("Por favor, rellena todos los campos obligatorios");
+      setOpeningStripe(false);
       return;
     }
     if (!formData.justificante_url) {
@@ -612,25 +614,17 @@ export default function ClubMembership() {
     }
   }, [showForm]);
 
-  // Mostrar pantalla de éxito al volver de Stripe
+  // Mostrar pantalla de éxito solo si Stripe redirige con el parámetro "paid=stripe"
   useEffect(() => {
-    // Forzar repintado inicial para evitar que el contenido aparezca solo al hacer scroll
     window.scrollTo(0, 0);
     requestAnimationFrame(() => { window.dispatchEvent(new Event('resize')); });
     try {
       const url = new URL(window.location.href);
       const paid = url.searchParams.get('paid');
-      const stripePending = localStorage.getItem('stripePendingSuccess') === '1';
-      if (paid === 'stripe' || stripePending) {
-        const name = localStorage.getItem('stripeMemberName') || '';
-        if (name) setLastRegisteredName(name);
+      if (paid === 'stripe') {
         setShowSuccess(true);
-        localStorage.removeItem('stripePendingSuccess');
-        // limpiar parámetro de la URL
-        if (paid) {
-          url.searchParams.delete('paid');
-          window.history.replaceState({}, '', url.toString());
-        }
+        url.searchParams.delete('paid');
+        window.history.replaceState({}, '', url.toString());
         setTimeout(() => setShowSuccess(false), 5000);
       }
     } catch {}
@@ -1300,15 +1294,17 @@ export default function ClubMembership() {
                     )}
                     <Button
                       type="button"
-                      disabled={isIframe}
+                      disabled={isIframe || openingStripe}
                       className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
                       onClick={async () => {
+                        setOpeningStripe(true);
                         if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
                           toast.error("Por favor, rellena todos los campos obligatorios");
                           return;
                         }
                         if (window.self !== window.top) {
                           toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
+                          setOpeningStripe(false);
                           return;
                         }
                         // Requiere sesión para pagar con tarjeta
@@ -1317,6 +1313,7 @@ export default function ClubMembership() {
                           toast.info("Inicia sesión para pagar con tarjeta");
                           const nextUrl = window.location.origin + createPageUrl("ClubMembership");
                           base44.auth.redirectToLogin(nextUrl);
+                          setOpeningStripe(false);
                           return;
                         }
 
@@ -1342,9 +1339,7 @@ export default function ClubMembership() {
                           referido_por: formData.referido_por || (currentUser && myPlayers.length > 0 ? currentUser.full_name : '')
                         });
 
-                        // Guardar nombre para pantalla de éxito al volver de Stripe
-                        localStorage.setItem('stripePendingSuccess', '1');
-                        localStorage.setItem('stripeMemberName', formData.nombre_completo || '');
+
 
                         const { data } = await base44.functions.invoke('stripeCheckout', {
                           amount: seasonConfig?.precio_socio || 25,
@@ -1374,10 +1369,11 @@ export default function ClubMembership() {
                           window.location.href = data.url;
                         } else {
                           toast.error("No se pudo iniciar el pago con Stripe");
+                          setOpeningStripe(false);
                         }
                       }}
                     >
-                      💳 Pagar cuota con tarjeta (Stripe)
+                      {openingStripe ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin"/> Abriendo Stripe...</>) : (<>💳 Pagar cuota con tarjeta (Stripe)</>)}
                     </Button>
                     <p className="text-xs text-slate-600 mt-2">No necesitas subir justificante ni enviar el formulario.</p>
                   </div>

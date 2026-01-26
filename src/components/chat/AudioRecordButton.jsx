@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Square } from "lucide-react";
+import { Mic, Square, Loader2, Play, Pause, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
@@ -25,15 +25,26 @@ function pickMimeType() {
 export default function AudioRecordButton({ onAudioSent, disabled }) {
   const [isRecording, setIsRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [sending, setSending] = useState(false);
+
+  // Preview state (allow listen before sending)
+  const [previewBlob, setPreviewBlob] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Recorder internals
   const chunksRef = useRef([]);
   const mediaRef = useRef(null);
+  const streamRef = useRef(null);
   const timerRef = useRef(null);
+
+  // Fallback (iframe or no mic permissions)
   const [fallbackMode, setFallbackMode] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    // Fallback si estamos en iframe o sin soporte
-    const inIframe = window.top !== window.self;
+    const inIframe = (() => { try { return window.top !== window.self; } catch { return true; } })();
     const hasMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
     setFallbackMode(inIframe || !hasMedia);
   }, []);
@@ -47,37 +58,34 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     timerRef.current = null;
   };
 
+  const cleanupStream = () => {
+    try { streamRef.current?.getTracks()?.forEach(t => t.stop()); } catch {}
+    streamRef.current = null;
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const type = pickMimeType();
       const mr = new MediaRecorder(stream, { mimeType: type });
       chunksRef.current = [];
-      mr.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
-      };
+      mr.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunksRef.current.push(e.data); };
       mr.onstop = async () => {
         stopTimer();
         const blob = new Blob(chunksRef.current, { type });
         chunksRef.current = [];
-        try {
-          const ext = type.includes("mp4") ? "m4a" : type.includes("ogg") ? "ogg" : "webm";
-          const file = new File([blob], `audio_${Date.now()}.${ext}`, { type });
-          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          if (onAudioSent) {
-            onAudioSent({ audio_url: file_url, audio_duracion: Math.max(1, seconds) });
-          }
-        } catch (err) {
-          console.error("Upload audio error", err);
-          toast.error("Error subiendo el audio");
-        } finally {
-          // Parar tracks
-          try { stream.getTracks().forEach(t => t.stop()); } catch {}
-        }
+        cleanupStream();
+        // Prepare preview instead of sending immediately
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewBlob(blob);
+        setPreviewUrl(URL.createObjectURL(blob));
+        setIsRecording(false);
       };
       mediaRef.current = mr;
       mr.start();
       setIsRecording(true);
+      setSeconds(0);
       startTimer();
     } catch (e) {
       console.error("Mic permission/start error", e);
@@ -87,17 +95,15 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
   };
 
   const stopRecording = () => {
-    try {
-      mediaRef.current?.stop();
-    } catch {}
-    setIsRecording(false);
+    try { mediaRef.current?.stop(); } catch {}
   };
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      // Si es un archivo de audio, intentar leer duración
+      setSending(true);
+      // Try duration if audio
       let durationSec = 0;
       if (file.type.startsWith("audio")) {
         durationSec = await new Promise((resolve) => {
@@ -109,14 +115,73 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
         });
       }
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      if (onAudioSent) onAudioSent({ audio_url: file_url, audio_duracion: Math.max(1, durationSec) });
+      onAudioSent?.({ audio_url: file_url, audio_duracion: Math.max(1, durationSec) });
     } catch (err) {
       console.error("Upload audio file error", err);
       toast.error("Error subiendo el audio");
     } finally {
+      setSending(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
+
+  const discardPreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl("");
+    setPreviewBlob(null);
+    setIsPlaying(false);
+  };
+
+  const sendPreview = async () => {
+    if (!previewBlob) return;
+    try {
+      setSending(true);
+      const type = previewBlob.type || "audio/webm";
+      const ext = type.includes("mp4") ? "m4a" : type.includes("ogg") ? "ogg" : "webm";
+      const file = new File([previewBlob], `audio_${Date.now()}.${ext}`, { type });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      onAudioSent?.({ audio_url: file_url, audio_duracion: Math.max(1, seconds) });
+      discardPreview();
+    } catch (err) {
+      console.error("Upload audio error", err);
+      toast.error("Error subiendo el audio");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Preview UI
+  if (previewBlob && !fallbackMode) {
+    return (
+      <div className="flex items-center gap-2">
+        <audio
+          ref={audioRef}
+          src={previewUrl}
+          controls
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          className="h-10"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={discardPreview}
+          disabled={sending || disabled}
+          className="flex items-center gap-1"
+        >
+          <X className="w-4 h-4" /> Cancelar
+        </Button>
+        <Button
+          size="sm"
+          onClick={sendPreview}
+          disabled={sending || disabled}
+          className="bg-green-600 hover:bg-green-700 flex items-center gap-1"
+        >
+          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Enviar
+        </Button>
+      </div>
+    );
+  }
 
   if (fallbackMode) {
     return (
@@ -127,17 +192,17 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
           accept="audio/*"
           className="hidden"
           onChange={handleFileChange}
-          disabled={disabled}
+          disabled={disabled || sending}
         />
         <Button
           size="icon"
           variant="ghost"
           onClick={() => fileInputRef.current?.click()}
-          disabled={disabled}
+          disabled={disabled || sending}
           className="h-11 w-11 flex-shrink-0"
           title="Subir audio"
         >
-          <Mic className="w-5 h-5 text-slate-600" />
+          {sending ? <Loader2 className="w-5 h-5 animate-spin text-slate-600" /> : <Mic className="w-5 h-5 text-slate-600" />}
         </Button>
       </>
     );
@@ -147,11 +212,11 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     <Button
       size="icon"
       onClick={isRecording ? stopRecording : startRecording}
-      disabled={disabled}
-      className={`h-11 w-11 flex-shrink-0 rounded-full ${isRecording ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-900 hover:bg-slate-800 text-white'}`}
+      disabled={disabled || sending}
+      className={`h-11 w-11 flex-shrink-0 rounded-full ${isRecording ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'}`}
       title={isRecording ? `Grabando… ${seconds}s` : 'Grabar audio'}
     >
-      {isRecording ? <Square className="w-4 h-4 text-white" /> : <Mic className="w-5 h-5" />}
+      {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-5 h-5" />}
     </Button>
   );
 }

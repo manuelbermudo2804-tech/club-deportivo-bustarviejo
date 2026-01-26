@@ -38,6 +38,7 @@ export default function ParentLottery() {
   const [hasPlayers, setHasPlayers] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
   const [pedidoPersonal, setPedidoPersonal] = useState(false);
+  const [openingStripe, setOpeningStripe] = useState(false);
 
   const queryClient = useQueryClient();
   const [isIframe, setIsIframe] = useState(false);
@@ -289,6 +290,7 @@ export default function ParentLottery() {
     if (requierePagoAdelantado && metodoPago === 'Tarjeta') {
       if (isIframe) {
         toast.error('Abre la app publicada para pagar con tarjeta');
+        setOpeningStripe(false);
         return;
       }
       const isAuth = await base44.auth.isAuthenticated();
@@ -329,6 +331,7 @@ export default function ParentLottery() {
       });
 
       // Lanzar Stripe Checkout
+      setOpeningStripe(true);
       localStorage.setItem('stripeLotteryPending', '1');
       const successUrl = window.location.origin + createPageUrl('ParentLottery') + '?paid=lottery';
       const cancelUrl = window.location.origin + createPageUrl('ParentLottery');
@@ -349,6 +352,7 @@ export default function ParentLottery() {
         window.location.href = data.url;
       } else {
         toast.error('No se pudo iniciar el pago con Stripe');
+        setOpeningStripe(false);
       }
       return;
     }
@@ -814,9 +818,9 @@ export default function ParentLottery() {
                   <Button 
                    type="submit" 
                    className="flex-1 h-12 text-lg bg-gradient-to-r from-green-600 to-red-600 hover:from-green-700 hover:to-red-700 border-2 border-yellow-400 font-bold"
-                   disabled={createOrderMutation.isPending || (requierePagoAdelantado && metodoPago !== 'Tarjeta' && !justificanteUrl)}
+                   disabled={openingStripe || createOrderMutation.isPending || (requierePagoAdelantado && metodoPago !== 'Tarjeta' && !justificanteUrl)}
                   >
-                    {createOrderMutation.isPending ? "Enviando..." : "🎁 Confirmar Pedido"}
+                    {openingStripe ? (<><Loader2 className="w-5 h-5 animate-spin mr-2" /> Abriendo Stripe...</>) : (createOrderMutation.isPending ? "Enviando..." : "🎁 Confirmar Pedido")}
                   </Button>
                 </div>
               </form>
