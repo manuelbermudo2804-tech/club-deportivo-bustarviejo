@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Smile, Paperclip, Camera } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
-import WhatsAppAudioRecorder from "./WhatsAppAudioRecorder";
+import AudioRecordButton from "./AudioRecordButton";
 
 const StaffChatInput = memo(function StaffChatInput({
   onSendMessage,
@@ -148,7 +148,7 @@ const StaffChatInput = memo(function StaffChatInput({
         />
 
         {!localText.trim() && localAttachments.length === 0 ? (
-          <WhatsAppAudioRecorder 
+          <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
           />

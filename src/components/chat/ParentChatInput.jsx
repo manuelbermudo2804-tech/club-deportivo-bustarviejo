@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Smile } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
-import WhatsAppAudioRecorder from "./WhatsAppAudioRecorder";
+import AudioRecordButton from "./AudioRecordButton";
 
 const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading, placeholder = "Mensaje" }) {
   const [currentMessage, setCurrentMessage] = useState("");
@@ -77,7 +77,7 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
         />
 
         {!currentMessage.trim() ? (
-          <WhatsAppAudioRecorder 
+          <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
           />

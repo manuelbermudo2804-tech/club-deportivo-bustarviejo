@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Smile, Paperclip, Camera, MapPin, BarChart3, Dumbbell, Mic, Pause, X, FileText } from "lucide-react";
+import { Send, Smile, Paperclip, Camera, MapPin, BarChart3, Dumbbell, X, FileText } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import ImagePreviewModal from "./ImagePreviewModal";
-import AudioRecordingBar from "./AudioRecordingBar";
-import { useAudioRecording } from "./useAudioRecording";
+import AudioRecordButton from "./AudioRecordButton";
+
+
 
 // Menú "+" tipo WhatsApp
 function AttachmentMenu({ 
@@ -110,19 +111,9 @@ export default function WhatsAppInputBar({
   const [previewFile, setPreviewFile] = useState(null);
   
   // Estado para envío de audio
-  const [isSendingAudio, setIsSendingAudio] = useState(false);
+  
 
-  // Fallback de grabación si no pasan handlers desde el padre
-  const fallbackRec = useAudioRecording();
-  const rec = {
-    isRecording: recording ?? fallbackRec.isRecording,
-    audioBlob: audioBlob ?? fallbackRec.audioBlob,
-    audioDuration: audioDuration ?? fallbackRec.audioDuration,
-    start: onStartRecording ?? fallbackRec.startRecording,
-    stop: onStopRecording ?? fallbackRec.stopRecording,
-    upload: onUploadAudio ?? fallbackRec.uploadAudio,
-    cancel: onCancelAudio ?? fallbackRec.cancelAudio,
-  };
+  
 
   // Sincronizar con prop externa SOLO cuando está vacía (para edición)
   useEffect(() => {
@@ -315,35 +306,7 @@ export default function WhatsAppInputBar({
         </div>
       )}
 
-      {/* Audio Recording Bar - estilo WhatsApp */}
-      {(rec.isRecording || rec.audioBlob) && (
-        <div className="mb-2">
-          <AudioRecordingBar
-            isRecording={rec.isRecording}
-            onStartRecording={rec.start}
-            onStopRecording={rec.stop}
-            audioBlob={rec.audioBlob}
-            audioDuration={rec.audioDuration}
-            onSendAudio={async () => {
-              setIsSendingAudio(true);
-              try {
-                const audioData = await rec.upload();
-                if (audioData) {
-                  rec.cancel();
-                }
-              } catch (err) {
-                console.error('Error sending audio:', err);
-                toast.error('Error al enviar audio');
-              } finally {
-                setIsSendingAudio(false);
-              }
-            }}
-            onCancelAudio={rec.cancel}
-            uploading={isSendingAudio || uploading}
-            disabled={isSendingAudio || uploading}
-          />
-        </div>
-      )}
+
 
       {/* Input bar - TIPO WHATSAPP */}
       <div className="flex gap-2 items-end">
@@ -402,30 +365,14 @@ export default function WhatsAppInputBar({
               <Camera className="w-5 h-5 text-slate-600" />
             </Button>
 
-            {/* Micrófono - componente mejorado */}
-            <AudioRecordingBar
-              isRecording={rec.isRecording}
-              onStartRecording={rec.start}
-              onStopRecording={rec.stop}
-              audioBlob={rec.audioBlob}
-              audioDuration={rec.audioDuration}
-              onSendAudio={async () => {
-                setIsSendingAudio(true);
-                try {
-                  const audioData = await rec.upload();
-                  if (audioData) {
-                    rec.cancel();
-                  }
-                } catch (err) {
-                  console.error('Error sending audio:', err);
-                  toast.error('Error al enviar audio');
-                } finally {
-                  setIsSendingAudio(false);
+            {/* Micrófono - sencillo */}
+            <AudioRecordButton
+              disabled={uploading}
+              onAudioSent={async ({ audio_url, audio_duracion }) => {
+                if (onUploadAudio) {
+                  await onUploadAudio({ audio_url, audio_duracion });
                 }
               }}
-              onCancelAudio={rec.cancel}
-              uploading={isSendingAudio || uploading}
-              disabled={rec.audioBlob || isSendingAudio || uploading}
             />
           </>
         ) : (
