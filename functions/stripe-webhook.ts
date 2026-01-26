@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
       const status = session.payment_status || session.status;
       console.log('[stripe-webhook] checkout.session.completed', { session_id: session.id, status, metadata });
 
-      if (status === 'paid') {
+      if (session?.payment_status === 'paid' || status === 'paid' || status === 'complete') {
         // Fallback log: si el tipo no es uno de los conocidos, registramos igualmente
         try {
           const tipo = metadata?.tipo;
