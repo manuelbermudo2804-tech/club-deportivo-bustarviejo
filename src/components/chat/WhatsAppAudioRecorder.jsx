@@ -28,6 +28,8 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
   const buttonRef = useRef(null);
   const isPressingRef = useRef(false);
   const startingRef = useRef(false);
+  const isIframe = (() => { try { return window.top !== window.self; } catch { return true; } })();
+  const startingRef = useRef(false);
 
   const getClientPoint = (e) => {
     const t = e.touches?.[0] || e.changedTouches?.[0] || e;
@@ -372,6 +374,8 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
                 <Button
                   size="icon"
                   onClick={handleClickMicrophone}
+                  disabled={isIframe || disabled}
+                  title={isIframe ? 'Micrófono no disponible en previsualización' : 'Mantén pulsado para grabar'}
                   className="h-16 w-16 bg-red-500 hover:bg-red-600 rounded-full relative z-10"
                 >
                   <Mic className="w-7 h-7" />
@@ -527,7 +531,8 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
         size="icon"
         onClick={handleClickMicrophone}
         className="h-11 w-11 bg-green-600 hover:bg-green-700 rounded-full"
-        disabled={disabled}
+        disabled={disabled || isIframe}
+        title={isIframe ? 'Micrófono no disponible en previsualización' : 'Mantén pulsado para grabar'}
       >
         <Mic className="w-5 h-5" />
       </Button>
