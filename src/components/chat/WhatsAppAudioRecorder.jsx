@@ -28,7 +28,8 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
   const buttonRef = useRef(null);
   const isPressingRef = useRef(false);
   const startingRef = useRef(false);
-  const isIframe = (() => { try { return window.top !== window.self; } catch { return true; } })();
+  const isStandalone = (() => { try { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch { return false; } })();
+const isIframe = (() => { try { if (isStandalone) return false; return window.top !== window.self; } catch { return false; } })();
 
   const getClientPoint = (e) => {
     const t = e.touches?.[0] || e.changedTouches?.[0] || e;
@@ -251,14 +252,12 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     if (disabled) return;
 
     // Bloqueo en previsualización (iframe)
-    try {
-      if (window.top !== window.self) {
+      if (isIframe) {
         toast.error('El micrófono no está disponible en la previsualización. Abre la app publicada.');
         return;
       }
-    } catch {}
 
-    if (recordingState === 'idle') {
+      if (recordingState === 'idle') {
       if (startingRef.current) return;
       startingRef.current = true;
       try {
