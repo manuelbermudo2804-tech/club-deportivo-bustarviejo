@@ -29,7 +29,6 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
   const isPressingRef = useRef(false);
   const startingRef = useRef(false);
   const isIframe = (() => { try { return window.top !== window.self; } catch { return true; } })();
-  const startingRef = useRef(false);
 
   const getClientPoint = (e) => {
     const t = e.touches?.[0] || e.changedTouches?.[0] || e;
