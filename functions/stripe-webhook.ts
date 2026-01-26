@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       console.log('[stripe-webhook] checkout.session.completed', { session_id: session.id, status, metadata });
 
       if (status === 'paid') {
-        const nowIso = new Date().toISOString();
+        const today = new Date().toISOString().slice(0,10);
 
         // Caso 1: pago individual de cuota
         if (metadata.tipo === 'pago_cuota' && metadata.payment_id) {
