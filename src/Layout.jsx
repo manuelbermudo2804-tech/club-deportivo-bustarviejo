@@ -41,6 +41,7 @@ import AutomaticRenewalClosure from "./components/renewals/AutomaticRenewalClosu
 import RenewalNotificationEngine from "./components/renewals/RenewalNotificationEngine";
 import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPaymentReminder.jsx";
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
+const ClothingApprovalNotifier = React.lazy(() => import("./components/payments/ClothingApprovalNotifier"));
 import ChatSoundNotifier from "./components/notifications/ChatSoundNotifier";
 import ChatToasts from "./components/notifications/ChatToasts";
 import CallupSoundNotifier from "./components/notifications/CallupSoundNotifier";
@@ -2160,11 +2161,12 @@ export default function Layout({ children, currentPageName }) {
                 )}
 
                 {enginesStage2Ready && (
-                  <Suspense fallback={null}>
-                    <NotificationBadge />
-                    <PaymentApprovalNotifier isAdmin={isAdmin} />
-                  </Suspense>
-                )}
+                                        <Suspense fallback={null}>
+                                          <NotificationBadge />
+                                          <PaymentApprovalNotifier isAdmin={isAdmin} />
+                                          <ClothingApprovalNotifier isAdmin={isAdmin} />
+                                        </Suspense>
+                                      )}
 
                 {enginesStage3Ready && (
                                         <Suspense fallback={null}>

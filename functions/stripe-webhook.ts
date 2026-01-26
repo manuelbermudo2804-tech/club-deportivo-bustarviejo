@@ -42,11 +42,33 @@ Deno.serve(async (req) => {
         // Caso 1: pago individual de cuota
         if (metadata.tipo === 'pago_cuota' && metadata.payment_id) {
           try {
-            await base44.asServiceRole.entities.Payment.update(metadata.payment_id, {
+            const updated = await base44.asServiceRole.entities.Payment.update(metadata.payment_id, {
               estado: 'Pagado',
               fecha_pago: today,
             });
             console.log('[stripe-webhook] Payment marcado Pagado', { payment_id: metadata.payment_id });
+
+            // Enviar emails a los tutores
+            try {
+              const payments = await base44.asServiceRole.entities.Payment.filter({ id: metadata.payment_id });
+              const payment = payments?.[0];
+              if (payment?.jugador_id) {
+                const players = await base44.asServiceRole.entities.Player.filter({ id: payment.jugador_id });
+                const player = players?.[0];
+                const recipients = [];
+                if (player?.email_padre) recipients.push(player.email_padre);
+                if (player?.email_tutor_2 && !recipients.includes(player.email_tutor_2)) recipients.push(player.email_tutor_2);
+                for (const to of recipients) {
+                  await base44.asServiceRole.integrations.Core.SendEmail({
+                    to,
+                    subject: `✅ Pago confirmado - ${payment.jugador_nombre}`,
+                    body: `Hemos recibido tu pago de ${payment.cantidad}€ (${payment.mes}).\nEstado: Pagado.\nGracias por tu colaboración.\n\nCD Bustarviejo`
+                  });
+                }
+              }
+            } catch (emailErr) {
+              console.error('[stripe-webhook] Error enviando email Payment:', emailErr?.message || emailErr);
+            }
           } catch (e) {
             console.error('[stripe-webhook] Error actualizando Payment:', e?.message || e);
           }
@@ -70,15 +92,35 @@ Deno.serve(async (req) => {
                 paid_at: new Date().toISOString(),
               });
 
-              // Marcar todos los payments del lote como Pagado
+              // Marcar todos los payments del lote como Pagado y notificar
               const items = Array.isArray(batch.items) ? batch.items : [];
               for (const it of items) {
                 if (!it?.payment_id) continue;
                 try {
-                  await base44.asServiceRole.entities.Payment.update(it.payment_id, {
+                  const updated = await base44.asServiceRole.entities.Payment.update(it.payment_id, {
                     estado: 'Pagado',
                     fecha_pago: today,
                   });
+                  try {
+                    const payments = await base44.asServiceRole.entities.Payment.filter({ id: it.payment_id });
+                    const payment = payments?.[0];
+                    if (payment?.jugador_id) {
+                      const players = await base44.asServiceRole.entities.Player.filter({ id: payment.jugador_id });
+                      const player = players?.[0];
+                      const recipients = [];
+                      if (player?.email_padre) recipients.push(player.email_padre);
+                      if (player?.email_tutor_2 && !recipients.includes(player.email_tutor_2)) recipients.push(player.email_tutor_2);
+                      for (const to of recipients) {
+                        await base44.asServiceRole.integrations.Core.SendEmail({
+                          to,
+                          subject: `✅ Pago confirmado - ${payment.jugador_nombre}`,
+                          body: `Hemos recibido tu pago de ${payment.cantidad}€ (${payment.mes}).\nEstado: Pagado.\nGracias por tu colaboración.\n\nCD Bustarviejo`
+                        });
+                      }
+                    }
+                  } catch (emailErr) {
+                    console.error('[stripe-webhook] Error email batch payment:', emailErr?.message || emailErr);
+                  }
                 } catch (e) {
                   console.error('[stripe-webhook] Error marcando pago de lote:', it.payment_id, e?.message || e);
                 }
@@ -102,6 +144,28 @@ Deno.serve(async (req) => {
               metodo_pago: 'Tarjeta'
             });
             console.log('[stripe-webhook] Lotería marcada como pagada', { order_id: metadata.order_id });
+
+            // Notificar por email
+            try {
+              const orders = await base44.asServiceRole.entities.LotteryOrder.filter({ id: metadata.order_id });
+              const order = orders?.[0];
+              const recipients = [];
+              if (order?.email_padre) recipients.push(order.email_padre);
+              if (order?.jugador_id) {
+                const players = await base44.asServiceRole.entities.Player.filter({ id: order.jugador_id });
+                const player = players?.[0];
+                if (player?.email_tutor_2 && !recipients.includes(player.email_tutor_2)) recipients.push(player.email_tutor_2);
+              }
+              for (const to of recipients) {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to,
+                  subject: '✅ Pago de Lotería confirmado',
+                  body: `Hemos recibido tu pago de Lotería. Pedido: ${order?.numero_decimos || ''} décimos.\nEstado: Pagado.\n¡Gracias y mucha suerte!\n\nCD Bustarviejo`
+                });
+              }
+            } catch (emailErr) {
+              console.error('[stripe-webhook] Error enviando email Lotería:', emailErr?.message || emailErr);
+            }
           } catch (e) {
             console.error('[stripe-webhook] Error actualizando LotteryOrder:', e?.message || e);
           }
@@ -113,12 +177,16 @@ Deno.serve(async (req) => {
           const membershipId = metadata.membership_id;
           const email = session.customer_details?.email || session.customer_email || metadata.user_email;
 
+          let member = null;
+
           if (membershipId) {
             try {
               await base44.asServiceRole.entities.ClubMember.update(membershipId, {
                 estado_pago: 'Pagado',
                 activo: true,
               });
+              const members = await base44.asServiceRole.entities.ClubMember.filter({ id: membershipId });
+              member = members?.[0] || null;
               console.log('[stripe-webhook] ClubMember marcado Pagado', { membership_id: membershipId });
             } catch (e) {
               console.error('[stripe-webhook] Error actualizando ClubMember:', e?.message || e);
@@ -132,6 +200,7 @@ Deno.serve(async (req) => {
                   estado_pago: 'Pagado',
                   activo: true,
                 });
+                member = candidate;
                 console.log('[stripe-webhook] ClubMember detectado por email+temporada, marcado Pagado', { id: candidate.id });
               } else {
                 console.warn('[stripe-webhook] No se encontró ClubMember para email/temporada, revise Payment Link metadata');
@@ -139,6 +208,25 @@ Deno.serve(async (req) => {
             } catch (e) {
               console.error('[stripe-webhook] Error marcando ClubMember por email:', e?.message || e);
             }
+          }
+
+          // Emails de confirmación (socio y admin)
+          try {
+            const to = member?.email || email;
+            if (to) {
+              await base44.asServiceRole.integrations.Core.SendEmail({
+                to,
+                subject: '✅ Cuota de socio confirmada',
+                body: `Hemos recibido tu cuota de socio para la temporada ${temporada}.\nEstado: Pagado.\nGracias por apoyar al club.\n\nCD Bustarviejo`
+              });
+            }
+            await base44.asServiceRole.integrations.Core.SendEmail({
+              to: 'cdbustarviejo@gmail.com',
+              subject: '✅ Nuevo socio pagado (Stripe)',
+              body: `Socio pagado: ${member?.nombre_completo || ''} - ${to || ''} - Temporada: ${temporada}`
+            });
+          } catch (emailErr) {
+            console.error('[stripe-webhook] Error enviando email Socio:', emailErr?.message || emailErr);
           }
         }
         }
