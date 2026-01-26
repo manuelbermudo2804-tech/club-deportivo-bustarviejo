@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
   try {
     console.log('[stripe-webhook] Recibido', { id: event.id, type: event.type, livemode: event.livemode });
 
-    if (event.type === 'checkout.session.completed') {
+    if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
       const session = event.data?.object || {};
       const metadata = session.metadata || {};
       const status = session.payment_status || session.status;
