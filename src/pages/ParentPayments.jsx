@@ -540,7 +540,8 @@ export default function ParentPayments() {
       cancelUrl,
       metadata: {
         tipo: 'pago_cuota_batch',
-        batch_id: batch.id
+        batch_id: batch.id,
+        user_email: user?.email
       }
     });
     if (data?.id) {
@@ -548,6 +549,8 @@ export default function ParentPayments() {
     }
     if (data?.url) {
       window.location.href = data.url;
+    } else {
+      toast.error(data?.error || 'No se pudo iniciar el pago con tarjeta');
     }
   };
 
