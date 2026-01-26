@@ -30,9 +30,6 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
             <TabsContent value="card" className="mt-4">
               <div className="space-y-3">
                 <p className="text-sm text-slate-700">Pagarás con tarjeta mediante Stripe. Es rápido y seguro.</p>
-                <div className="text-xs text-slate-600 bg-slate-50 border rounded-lg p-3">
-                  Modo test activo: puedes probar con 4242 4242 4242 4242, fecha futura y CVC cualquiera.
-                </div>
                 <div className="flex items-center gap-2 text-slate-600 text-xs">
                   <Shield className="w-4 h-4"/> Pagos protegidos por Stripe.
                 </div>
