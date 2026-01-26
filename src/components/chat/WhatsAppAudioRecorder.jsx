@@ -95,6 +95,18 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     if (disabled || recordingState !== "idle") return;
     
     e.preventDefault();
+
+    // Bloqueo en previsualización (iframe)
+    try {
+      if (window.top !== window.self) {
+        toast.error('El micrófono no está disponible en la previsualización. Abre la app publicada.');
+        return;
+      }
+    } catch {}
+
+    if (startingRef.current) return;
+    startingRef.current = true;
+
     isPressingRef.current = true;
     pointerStartRef.current = getClientPoint(e);
     setSlideOffset({ x: 0, y: 0 });
@@ -102,6 +114,7 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
         toast.error('Tu navegador no soporta grabación de audio');
+        startingRef.current = false;
         return;
       }
 
@@ -149,6 +162,8 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
         toast.error('Error al acceder al micrófono');
       }
       isPressingRef.current = false;
+    } finally {
+      startingRef.current = false;
     }
   };
 
@@ -229,6 +244,57 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     }
   };
 
+  // Click simple (fallback): tocar para iniciar/parar
+  const handleClickMicrophone = async () => {
+    if (disabled) return;
+
+    // Bloqueo en previsualización (iframe)
+    try {
+      if (window.top !== window.self) {
+        toast.error('El micrófono no está disponible en la previsualización. Abre la app publicada.');
+        return;
+      }
+    } catch {}
+
+    if (recordingState === 'idle') {
+      if (startingRef.current) return;
+      startingRef.current = true;
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          toast.error('Tu navegador no soporta grabación de audio');
+          return;
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        mediaRecorderRef.current.stream = stream;
+        audioChunksRef.current = [];
+        startTimeRef.current = Date.now();
+        mediaRecorder.ondataavailable = (e) => { audioChunksRef.current.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          setAudioBlob(blob);
+          stopAllTracks();
+        };
+        mediaRecorder.start();
+        setRecordingState('recording');
+        setDuration(0);
+        durationIntervalRef.current = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          setDuration(elapsed);
+        }, 100);
+      } catch (error) {
+        toast.error('No se pudo iniciar la grabación');
+      } finally {
+        startingRef.current = false;
+      }
+    } else if (recordingState === 'recording' || recordingState === 'locked') {
+      stopAndSend();
+    } else if (recordingState === 'preview' && audioBlob) {
+      await sendAudio();
+    }
+  };
+
   // ========== RENDERIZADO ==========
 
   // ESTADO: GRABANDO (no bloqueado)
@@ -304,6 +370,7 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
                 <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
                 <Button
                   size="icon"
+                  onClick={handleClickMicrophone}
                   className="h-16 w-16 bg-red-500 hover:bg-red-600 rounded-full relative z-10"
                 >
                   <Mic className="w-7 h-7" />
@@ -457,6 +524,7 @@ export default function WhatsAppAudioRecorder({ onAudioSent, disabled }) {
     >
       <Button
         size="icon"
+        onClick={handleClickMicrophone}
         className="h-11 w-11 bg-green-600 hover:bg-green-700 rounded-full"
         disabled={disabled}
       >
