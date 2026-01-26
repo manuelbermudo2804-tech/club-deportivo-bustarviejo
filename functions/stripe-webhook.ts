@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
               // Actualizar estado del lote
               await base44.asServiceRole.entities.BatchPayment.update(batch.id, {
                 status: 'paid',
-                paid_at: nowIso,
+                paid_at: new Date().toISOString(),
               });
 
               // Marcar todos los payments del lote como Pagado
