@@ -57,8 +57,18 @@ Deno.serve(async (req) => {
     };
 
     if (Array.isArray(lineItems) && lineItems.length > 0) {
-      // Expecting items like { price: 'price_xxx', quantity: 1 }
-      sessionParams.line_items = lineItems;
+      // Support both price IDs and price_data objects
+      sessionParams.line_items = lineItems.map((it) => {
+        if (it.price || it.price_data) return it;
+        return {
+          price_data: it.price_data || {
+            currency: currency,
+            product_data: { name: it.name || 'Pago' },
+            unit_amount: Math.round(Number(it.unit_amount || it.amount) * 100),
+          },
+          quantity: it.quantity || 1,
+        };
+      });
     } else {
       // Ad-hoc amount
       sessionParams.line_items = [{
