@@ -132,7 +132,10 @@ export default function PlayerDashboard() {
   // Asistencias para logros
   const { data: attendances } = useQuery({
     queryKey: ['playerAttendances'],
-    queryFn: () => base44.entities.Attendance.list('-fecha'),
+    queryFn: async () => {
+      if (!player?.deporte) return [];
+      return await base44.entities.Attendance.filter({ categoria: player?.deporte }, '-fecha');
+    },
     initialData: [],
   });
 
@@ -157,8 +160,8 @@ export default function PlayerDashboard() {
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
     queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
+      const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+      return configs?.[0] || null;
     },
     initialData: null,
   });
@@ -187,8 +190,7 @@ export default function PlayerDashboard() {
   const { data: privateConversations = [] } = useQuery({
     queryKey: ['playerPrivateConversations', user?.email],
     queryFn: async () => {
-      const convs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30);
-      return convs.filter(c => c.participante_familia_email === user?.email);
+      return await base44.entities.PrivateConversation.filter({ participante_familia_email: user?.email }, '-ultimo_mensaje_fecha', 30);
     },
     enabled: !!user,
   });
@@ -197,8 +199,7 @@ export default function PlayerDashboard() {
   const { data: coordinatorConversations = [] } = useQuery({
     queryKey: ['playerCoordinatorConversations', user?.email],
     queryFn: async () => {
-      const convs = await base44.entities.CoordinatorConversation.list();
-      return convs.filter(c => c.padre_email === user?.email);
+      return await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email });
     },
     enabled: !!user,
   });
@@ -247,12 +248,8 @@ export default function PlayerDashboard() {
   const { data: teammates = [] } = useQuery({
     queryKey: ['teammates', player?.deporte],
     queryFn: async () => {
-      const allPlayers = await base44.entities.Player.list();
-      return allPlayers.filter(p => 
-        p.deporte === player?.deporte && 
-        p.activo === true &&
-        p.id !== player?.id
-      ).slice(0, 12);
+      const mates = await base44.entities.Player.filter({ deporte: player?.deporte, activo: true });
+      return mates.filter(p => p.id !== player?.id).slice(0, 12);
     },
     enabled: !!player?.deporte,
     initialData: [],
@@ -262,8 +259,7 @@ export default function PlayerDashboard() {
   const { data: clothingOrders = [] } = useQuery({
     queryKey: ['playerClothingOrders', player?.id],
     queryFn: async () => {
-      const orders = await base44.entities.ClothingOrder.list('-created_date');
-      return orders.filter(o => o.jugador_id === player?.id);
+      return await base44.entities.ClothingOrder.filter({ jugador_id: player?.id }, '-created_date');
     },
     enabled: !!player?.id,
     initialData: [],
@@ -273,8 +269,7 @@ export default function PlayerDashboard() {
   const { data: evaluations = [] } = useQuery({
     queryKey: ['playerEvaluations', player?.id],
     queryFn: async () => {
-      const evals = await base44.entities.PlayerEvaluation.list('-fecha_evaluacion');
-      return evals.filter(e => e.jugador_id === player?.id);
+      return await base44.entities.PlayerEvaluation.filter({ jugador_id: player?.id }, '-fecha_evaluacion');
     },
     enabled: !!player?.id,
     initialData: [],
