@@ -8,7 +8,7 @@ export default function CaptacionShareBanner({ link }) {
   const targetLink = link || (typeof window !== 'undefined' ? `${window.location.origin}` : '');
   const [loadingAI, setLoadingAI] = useState(false);
   const [messages, setMessages] = useState([
-    `⚽ ¡Apunta a tu hijo/a! Inscripción rápida aquí: ${targetLink}`,
+    `📩 Formulario de contacto jugadores: ${targetLink}`,
   ]);
   const [currentIdx, setCurrentIdx] = useState(0);
 
@@ -27,7 +27,7 @@ export default function CaptacionShareBanner({ link }) {
   const suggestWithAI = async () => {
     try {
       setLoadingAI(true);
-      const prompt = `Genera 3 mensajes muy cortos en español para compartir por WhatsApp e invitar a familias a inscribir jugadores.\nRequisitos:\n- Incluye exactamente este enlace: ${targetLink}\n- Tono cercano, 2-3 emojis, máximo 180 caracteres.\n- Sin hashtags ni comillas.\nDevuélvelos en el campo messages como array de strings.`;
+      const prompt = `Genera 3 mensajes muy cortos en español para compartir por WhatsApp e invitar a familias a rellenar un formulario de contacto para jugadores.\nRequisitos:\n- Incluye exactamente este enlace: ${targetLink}\n- Tono cercano, 2-3 emojis, máximo 180 caracteres.\n- Sin hashtags ni comillas.\nDevuélvelos en el campo messages como array de strings.`;
 
       const res = await base44.integrations.Core.InvokeLLM({
         prompt,
@@ -66,7 +66,7 @@ export default function CaptacionShareBanner({ link }) {
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="text-lg">📣</span>
           <div className="min-w-0">
-            <p className="text-white font-bold text-sm truncate">Comparte inscripción de jugadores</p>
+            <p className="text-white font-bold text-sm truncate">Comparte formulario contacto jugadores</p>
             <p className="text-white/90 text-xs truncate flex items-center gap-1">
               <LinkIcon className="w-3 h-3" /> {targetLink}
             </p>
@@ -74,6 +74,9 @@ export default function CaptacionShareBanner({ link }) {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          <Button onClick={() => window.open(targetLink, '_blank')} className="h-8 px-3 bg-white/20 hover:bg-white/30 text-white">
+            <LinkIcon className="w-4 h-4 mr-1" /> Abrir
+          </Button>
           <Button onClick={shareWhatsApp} className="bg-green-500 hover:bg-green-600 text-white h-8 px-3">
             <Share2 className="w-4 h-4 mr-1" /> WhatsApp
           </Button>
