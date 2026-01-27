@@ -2179,7 +2179,7 @@ export default function Layout({ children, currentPageName }) {
                                           <CallupSoundNotifier user={user} />
                                           <AnnouncementSoundNotifier user={user} />
                                           <PaymentSoundNotifier user={user} />
-                                          {/* <ChatToasts /> - Desactivado */}
+                                          <ChatToasts />
                                         </Suspense>
                                       )}
 

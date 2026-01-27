@@ -136,7 +136,7 @@ export default function ChatToasts() {
         if (evt.type !== 'create' || !m || isMine(m.remitente_email)) return;
         const title = 'Nuevo mensaje del Administrador';
         const icon = ShieldAlert;
-        const url = user.role === 'admin' ? createPageUrl('AdminChat') : createPageUrl('ParentAdminChat');
+        const url = createPageUrl('ParentSystemMessages');
         pushToast({ title, subtitle: 'Administrador', icon, badge: 'AD', onClick: () => open(url), body: (m.mensaje || '').slice(0, 60) });
       })
     );
