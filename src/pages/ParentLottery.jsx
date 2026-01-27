@@ -337,28 +337,10 @@ export default function ParentLottery() {
         jugador_categoria = player.deporte;
       }
 
-      // Crear pedido pendiente
-      const order = await base44.entities.LotteryOrder.create({
-        jugador_id,
-        jugador_nombre,
-        jugador_categoria,
-        email_padre: user.email,
-        telefono: user.telefono || '',
-        numero_decimos: numDecimos,
-        precio_por_decimo: precioDecimo,
-        total,
-        estado: 'Solicitado',
-        pagado: false,
-        metodo_pago: 'Tarjeta',
-        justificante_url: '',
-        temporada: seasonConfig?.temporada || getCurrentSeasonName(),
-        notas
-      });
-
-      // Lanzar Stripe Checkout
+      // Lanzar Stripe Checkout (sin crear pedido provisional)
       setOpeningStripe(true);
-      const successUrl = `${window.location.origin}${createPageUrl('ParentLottery')}?paid=lottery&order_id=${encodeURIComponent(order.id)}`;
-      const cancelUrl = `${window.location.origin}${createPageUrl('ParentLottery')}?canceled=lottery&order_id=${encodeURIComponent(order.id)}`;
+      const successUrl = `${window.location.origin}${createPageUrl('ParentLottery')}?paid=lottery`;
+      const cancelUrl = `${window.location.origin}${createPageUrl('ParentLottery')}?canceled=lottery`;
       const { data } = await base44.functions.invoke('stripeCheckout', {
         amount: total,
         name: `Lotería de Navidad - ${numDecimos} décimos`,
@@ -367,9 +349,16 @@ export default function ParentLottery() {
         cancelUrl,
         metadata: {
           tipo: 'loteria',
-          order_id: order.id,
           temporada: seasonConfig?.temporada || getCurrentSeasonName(),
-          user_email: user.email
+          user_email: user.email,
+          jugador_id,
+          jugador_nombre,
+          jugador_categoria,
+          telefono: user.telefono || '',
+          numero_decimos: String(numDecimos),
+          precio_por_decimo: String(precioDecimo),
+          total: String(total),
+          notas: notas || ''
         }
       });
       if (data?.url) {

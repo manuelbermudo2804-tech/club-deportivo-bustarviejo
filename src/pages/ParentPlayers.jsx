@@ -66,6 +66,7 @@ export default function ParentPlayers() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
   });
+  const isPlayerUser = user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true;
 
   const { activeSeason: currentSeason, seasonConfig } = useActiveSeason();
 
@@ -704,6 +705,10 @@ Email: cdbustarviejo@gmail.com
   });
 
   const handleSubmit = async (playerData) => {
+    if (!editingPlayer && (user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true)) {
+      toast.info('Como jugador no puedes registrar otros jugadores');
+      return;
+    }
     if (editingPlayer) {
       updatePlayerMutation.mutate({ id: editingPlayer.id, playerData });
     } else {
@@ -963,7 +968,7 @@ Email: cdbustarviejo@gmail.com
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Mis Jugadores</h1>
           <p className="text-slate-600 mt-1 text-sm lg:text-base">Gestiona la información de tus jugadores</p>
         </div>
-        {players.length > 0 && (
+        {!isPlayerUser && players.length > 0 && (
           <Button
             onClick={() => {
               setEditingPlayer(null);
@@ -1165,21 +1170,33 @@ Email: cdbustarviejo@gmail.com
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">No hay jugadores registrados</h2>
           <p className="text-slate-600 mb-6">Empieza registrando tu primer jugador</p>
-          <Button
-            onClick={() => {
-              setEditingPlayer(null);
-              setSuggestedCategory(null);
-              setIsAdultPlayerSelfRegistration(false);
-              setShowForm(true);
-            }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Registrar Primer Jugador
-          </Button>
+          {!isPlayerUser && (
+            <Button
+              onClick={() => {
+                setEditingPlayer(null);
+                setSuggestedCategory(null);
+                setIsAdultPlayerSelfRegistration(false);
+                setShowForm(true);
+              }}
+              className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Registrar Primer Jugador
+            </Button>
+          )}
+          {isPlayerUser && (
+            <p className="text-sm text-yellow-700 mt-2">Como jugador, tu registro es personal y único.</p>
+          )}
         </div>
       ) : (
         <>
+          {isPlayerUser && (
+            <Alert className="bg-yellow-50 border-yellow-300 mb-4">
+              <AlertDescription className="text-yellow-800 text-sm">
+                Como jugador mayor de edad, no puedes dar de alta otros jugadores desde tu cuenta.
+              </AlertDescription>
+            </Alert>
+          )}
           {/* Jugadores de Fútbol */}
           {futbolPlayers.length > 0 && (
             <div className="space-y-3 lg:space-y-4">

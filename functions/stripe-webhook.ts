@@ -199,9 +199,9 @@ Deno.serve(async (req) => {
         // Otros tipos (ej: extra_charge) se añadirán después si hace falta
 
         // NUEVO: Lotería de Navidad
-        if (metadata.tipo === 'loteria' && metadata.order_id) {
+        if (metadata.tipo === 'loteria') {
           try {
-            // Log Stripe (lotería) - antes de actualizar BD
+            // Log Stripe (lotería)
             try {
               await base44.asServiceRole.entities.StripePaymentLog.create({
                 section: 'loteria',
@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
                 payment_intent_id: session.payment_intent || null,
                 email: session.customer_details?.email || session.customer_email || metadata.user_email,
                 related_entity: 'LotteryOrder',
-                related_id: metadata.order_id,
+                related_id: metadata.order_id || null,
                 metadata,
                 created_at: new Date().toISOString()
               });
@@ -220,17 +220,39 @@ Deno.serve(async (req) => {
               console.error('[stripe-webhook] Error guardando log Stripe (lotería-pre):', logErr?.message || logErr);
             }
 
-            await base44.asServiceRole.entities.LotteryOrder.update(metadata.order_id, {
-              pagado: true,
-              metodo_pago: 'Tarjeta'
-            });
-            console.log('[stripe-webhook] Lotería marcada como pagada', { order_id: metadata.order_id });
+            let orderId = metadata.order_id || null;
 
-
+            if (orderId) {
+              await base44.asServiceRole.entities.LotteryOrder.update(orderId, {
+                pagado: true,
+                metodo_pago: 'Tarjeta'
+              });
+              console.log('[stripe-webhook] Lotería marcada como pagada', { order_id: orderId });
+            } else {
+              // Crear pedido tras pago exitoso (sin pedido provisional)
+              const newOrder = await base44.asServiceRole.entities.LotteryOrder.create({
+                jugador_id: metadata.jugador_id || null,
+                jugador_nombre: metadata.jugador_nombre || '',
+                jugador_categoria: metadata.jugador_categoria || '',
+                email_padre: session.customer_details?.email || session.customer_email || metadata.user_email || '',
+                telefono: metadata.telefono || '',
+                numero_decimos: Number(metadata.numero_decimos || 0),
+                precio_por_decimo: Number(metadata.precio_por_decimo || 0),
+                total: Number(metadata.total || 0),
+                estado: 'Solicitado',
+                pagado: true,
+                metodo_pago: 'Tarjeta',
+                justificante_url: '',
+                temporada: metadata.temporada || '',
+                notas: metadata.notas || ''
+              });
+              orderId = newOrder.id;
+              console.log('[stripe-webhook] Lotería creada tras pago', { order_id: orderId });
+            }
 
             // Notificar por email
             try {
-              const orders = await base44.asServiceRole.entities.LotteryOrder.filter({ id: metadata.order_id });
+              const orders = await base44.asServiceRole.entities.LotteryOrder.filter({ id: orderId });
               const order = orders?.[0];
               const recipients = [];
               if (order?.email_padre) recipients.push(order.email_padre);
@@ -250,7 +272,7 @@ Deno.serve(async (req) => {
               console.error('[stripe-webhook] Error enviando email Lotería:', emailErr?.message || emailErr);
             }
           } catch (e) {
-            console.error('[stripe-webhook] Error actualizando LotteryOrder:', e?.message || e);
+            console.error('[stripe-webhook] Error procesando Lotería:', e?.message || e);
           }
         }
 
