@@ -9,6 +9,8 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
   const [currentMessage, setCurrentMessage] = useState("");
   const textareaRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  
+  const [audioPreviewActive, setAudioPreviewActive] = useState(false);
 
   const handleSend = async () => {
     if (!currentMessage.trim()) return;
@@ -41,6 +43,17 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
 
   return (
     <div className="border-t bg-white flex-shrink-0">
+      {audioPreviewActive ? (
+        <div className="p-2">
+          <div className="flex items-center gap-2 w-full">
+            <AudioRecordButton 
+              onAudioSent={handleAudioSent}
+              disabled={uploading}
+              onPreviewChange={setAudioPreviewActive}
+            />
+          </div>
+        </div>
+      ) : (
       <div className="p-2 flex items-end gap-2">
         <Button
           size="sm"
@@ -80,6 +93,7 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
           <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
+            onPreviewChange={setAudioPreviewActive}
           />
         ) : (
           <Button
@@ -92,6 +106,7 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
           </Button>
         )}
       </div>
+      )}
     </div>
   );
 });

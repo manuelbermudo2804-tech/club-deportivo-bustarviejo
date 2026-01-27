@@ -22,7 +22,7 @@ function pickMimeType() {
   return "audio/webm";
 }
 
-export default function AudioRecordButton({ onAudioSent, disabled }) {
+export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChange }) {
   const [isRecording, setIsRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [sending, setSending] = useState(false);
@@ -81,6 +81,7 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
         setPreviewBlob(blob);
         setPreviewUrl(URL.createObjectURL(blob));
         setIsRecording(false);
+        try { onPreviewChange && onPreviewChange(true); } catch {}
       };
       mediaRef.current = mr;
       mr.start();
@@ -130,6 +131,7 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     setPreviewUrl("");
     setPreviewBlob(null);
     setIsPlaying(false);
+    try { onPreviewChange && onPreviewChange(false); } catch {}
   };
 
   const sendPreview = async () => {

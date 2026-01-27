@@ -12,6 +12,7 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
 }) {
   const [localText, setLocalText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [audioPreviewActive, setAudioPreviewActive] = useState(false);
 
   const handleSend = useCallback(() => {
     if (!localText.trim()) return;
@@ -37,6 +38,15 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
 
   return (
     <div className="border-t bg-white flex-shrink-0 p-2">
+      {audioPreviewActive ? (
+        <div className="flex items-center gap-2 w-full">
+          <AudioRecordButton 
+            onAudioSent={handleAudioSent}
+            disabled={uploading}
+            onPreviewChange={setAudioPreviewActive}
+          />
+        </div>
+      ) : (
       <div className="flex items-end gap-2">
         <Button
           size="sm"
@@ -79,6 +89,7 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
           <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
+            onPreviewChange={setAudioPreviewActive}
           />
         ) : (
           <Button
@@ -91,6 +102,7 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
           </Button>
         )}
       </div>
+      )}
     </div>
   );
 });
