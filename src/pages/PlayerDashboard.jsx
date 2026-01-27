@@ -55,45 +55,16 @@ export default function PlayerDashboard() {
   const { data: player, isLoading: loadingPlayer, error: playerError } = useQuery({
     queryKey: ['myPlayerProfile', user?.player_id, user?.email],
     queryFn: async () => {
-      console.log('🔍 [PlayerDashboard] Buscando jugador para:', user?.email, 'player_id:', user?.player_id);
-      
+      if (!user) return null;
       try {
-        const players = await base44.entities.Player.list();
-        console.log('📋 [PlayerDashboard] Total de jugadores en BD:', players.length);
-        
-        let found = null;
-        
-        if (user?.player_id) {
-          found = players.find(p => p.id === user.player_id);
-          console.log('🔍 [PlayerDashboard] Búsqueda por player_id:', found ? `✅ ${found.nombre}` : '❌ No encontrado');
-        }
-        
-        if (!found) {
-          // Buscar por email en múltiples campos
-          found = players.find(p => 
-            (p.email_padre === user?.email || 
-             p.email_tutor_2 === user?.email ||
-             p.email_jugador === user?.email) && 
-            p.activo === true
-          );
-          console.log('🔍 [PlayerDashboard] Búsqueda por email:', found ? `✅ ${found.nombre}` : '❌ No encontrado');
-          
-          // Si lo encontramos, actualizar el user con el player_id para futuras cargas
-          if (found && !user.player_id) {
-            console.log('🔗 [PlayerDashboard] Vinculando player_id al usuario');
-            await base44.auth.updateMe({ player_id: found.id });
-          }
-        }
-        
-        if (!found) {
-          console.log('❌ [PlayerDashboard] No se encontró jugador para:', user?.email);
-        }
-        
-        return found || null;
-      } catch (error) {
-        console.error('❌ [PlayerDashboard] Error buscando jugador:', error);
-        return null;
-      }
+        const conditions = [];
+        if (user.player_id) conditions.push({ id: user.player_id });
+        conditions.push({ email_jugador: user.email }, { email_padre: user.email }, { email_tutor_2: user.email });
+        const candidates = await base44.entities.Player.filter({ $or: conditions }, '-updated_date', 1);
+        const found = candidates?.[0] || null;
+        if (found && !user.player_id) { await base44.auth.updateMe({ player_id: found.id }); }
+        return found;
+      } catch (_) { return null; }
     },
     enabled: !!user,
     retry: 1,
@@ -103,7 +74,7 @@ export default function PlayerDashboard() {
   useEffect(() => {
     if (loadingPlayer) { setAllowCreatePrompt(false); return; }
     if (!player) {
-      const t = setTimeout(() => setAllowCreatePrompt(true), 1800);
+      const t = setTimeout(() => setAllowCreatePrompt(true), 3000);
       return () => clearTimeout(t);
     } else {
       setAllowCreatePrompt(false);
@@ -151,14 +122,9 @@ export default function PlayerDashboard() {
   const { data: schedules } = useQuery({
     queryKey: ['playerSchedules', player?.deporte],
     queryFn: async () => {
-      const allSchedules = await base44.entities.TrainingSchedule.list();
-      return allSchedules.filter(s => 
-        s.activo && 
-        s.categoria === player?.deporte
-      ).sort((a, b) => {
-        const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-        return dias.indexOf(a.dia_semana) - dias.indexOf(b.dia_semana);
-      });
+      const filtered = await base44.entities.TrainingSchedule.filter({ activo: true, categoria: player?.deporte });
+      const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+      return filtered.sort((a, b) => dias.indexOf(a.dia_semana) - dias.indexOf(b.dia_semana));
     },
     enabled: !!player?.deporte,
     initialData: [],
