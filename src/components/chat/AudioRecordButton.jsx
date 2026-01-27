@@ -170,18 +170,17 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   // Preview UI
   if (previewBlob && !fallbackMode) {
     return (
-      <div className="w-full">
-        <div className="flex items-center gap-2 w-full">
-          <audio
-            ref={audioRef}
-            src={previewUrl}
-            controls
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            className="h-10 w-full sm:flex-1"
-          />
-        </div>
-        <div className="mt-2 flex flex-wrap items-center gap-2 justify-end sm:justify-between">
+      <div className="flex flex-wrap items-center gap-2 w-full">
+        <audio
+          ref={audioRef}
+          src={previewUrl}
+          controls
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          className="h-10 flex-1 min-w-0"
+          style={{ maxWidth: '100%' }}
+        />
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             size="sm"
