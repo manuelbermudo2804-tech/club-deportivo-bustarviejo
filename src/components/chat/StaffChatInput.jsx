@@ -93,7 +93,7 @@ const StaffChatInput = memo(function StaffChatInput({
       {audioPreviewActive ? (
         <div className="flex items-center gap-2 w-full">
           <AudioRecordButton 
-            onAudioSent={handleAudioSent}
+            onAudioSent={(data)=>{ setAudioPreviewActive(false); handleAudioSent(data); }}
             disabled={uploading}
             onPreviewChange={setAudioPreviewActive}
           />

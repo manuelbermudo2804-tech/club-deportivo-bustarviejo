@@ -65,6 +65,8 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
 
   const startRecording = async () => {
     try {
+      // Evitar iniciar si ya hay una previsualización pendiente
+      if (previewBlob) return;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const type = pickMimeType();
@@ -76,7 +78,6 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
         const blob = new Blob(chunksRef.current, { type });
         chunksRef.current = [];
         cleanupStream();
-        // Prepare preview instead of sending immediately
         if (previewUrl) URL.revokeObjectURL(previewUrl);
         setPreviewBlob(blob);
         setPreviewUrl(URL.createObjectURL(blob));
@@ -144,7 +145,18 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
       const ext = type.includes("mp4") ? "m4a" : type.includes("ogg") ? "ogg" : "webm";
       const file = new File([previewBlob], `audio_${Date.now()}.${ext}`, { type });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      onAudioSent?.({ audio_url: file_url, audio_duracion: Math.max(1, seconds) });
+      // Fijar duración robusta (si seconds quedó 0, estimar con metadata)
+      let durationSec = seconds;
+      if (!durationSec) {
+        durationSec = await new Promise((resolve) => {
+          const a = new Audio();
+          a.preload = 'metadata';
+          a.onloadedmetadata = () => resolve(Math.max(1, Math.round(a.duration || 1)));
+          a.onerror = () => resolve(1);
+          a.src = URL.createObjectURL(previewBlob);
+        });
+      }
+      onAudioSent?.({ audio_url: file_url, audio_duracion: Math.max(1, durationSec) });
       discardPreview();
     } catch (err) {
       console.error("Upload audio error", err);

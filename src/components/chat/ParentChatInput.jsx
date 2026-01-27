@@ -47,7 +47,7 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
         <div className="p-2">
           <div className="flex items-center gap-2 w-full">
             <AudioRecordButton 
-              onAudioSent={handleAudioSent}
+              onAudioSent={(data)=>{ setAudioPreviewActive(false); handleAudioSent(data); }}
               disabled={uploading}
               onPreviewChange={setAudioPreviewActive}
             />
