@@ -172,10 +172,10 @@ export default function CoordinatorDashboard() {
               <Link to={createPageUrl("CoordinatorChat")} className="flex-1">
                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                    {(Math.max(notifications?.unreadCoordinatorForStaff || 0, chatBubbles.coordinatorBubble || 0)) > 0 && (
-                     <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                       <span className="text-white text-[10px] font-bold">{Math.max(notifications?.unreadCoordinatorForStaff || 0, chatBubbles.coordinatorBubble || 0)}</span>
-                     </div>
-                   )}
+                      <div className="absolute -top-2 -left-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                        <span className="text-white text-[10px] font-bold">{Math.max(notifications?.unreadCoordinatorForStaff || 0, chatBubbles.coordinatorBubble || 0)}</span>
+                      </div>
+                    )}
                    <p className="text-base font-bold mb-0.5">💬</p>
                    <p className="text-xs font-bold text-center">Familias</p>
                    <p className="text-[9px] text-blue-100 text-center">Coord</p>
