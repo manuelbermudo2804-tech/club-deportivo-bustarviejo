@@ -15,6 +15,7 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
+import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
@@ -602,6 +603,9 @@ export default function ParentDashboard() {
             </div>
           </div>
         </Link>
+
+        {/* Captación: Compartir inscripción por WhatsApp */}
+        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
 
         {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP */}
         {activeSeason?.bonus_femenino_activo && myPlayers && myPlayers.length > 0 && (
