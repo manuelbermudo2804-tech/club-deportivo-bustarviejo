@@ -103,13 +103,11 @@ export default function PlayerDashboard() {
   const { data: callups } = useQuery({
     queryKey: ['playerCallups', player?.id],
     queryFn: async () => {
-      const allCallups = await base44.entities.Convocatoria.list('-fecha_partido');
       const today = new Date().toISOString().split('T')[0];
-      return allCallups.filter(c => 
-        c.publicada && 
-        c.fecha_partido >= today &&
-        c.jugadores_convocados?.some(j => j.jugador_id === player?.id)
-      ).slice(0, 5);
+      const convs = await base44.entities.Convocatoria.filter({ publicada: true }, '-fecha_partido');
+      return convs
+        .filter(c => c.fecha_partido >= today && c.jugadores_convocados?.some(j => j.jugador_id === player?.id))
+        .slice(0, 5);
     },
     enabled: !!player?.id,
     initialData: [],
