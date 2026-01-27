@@ -21,7 +21,6 @@ const CoachChatInput = memo(function CoachChatInput({
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const fileInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
-  const [audioPreviewActive, setAudioPreviewActive] = useState(false);
 
   const handleSend = async () => {
     if (!localText.trim() && localAttachments.length === 0) return;
@@ -102,15 +101,6 @@ const CoachChatInput = memo(function CoachChatInput({
         </div>
       )}
 
-      {audioPreviewActive ? (
-        <div className="flex items-center gap-2 w-full">
-          <AudioRecordButton 
-            onAudioSent={(data)=>{ setAudioPreviewActive(false); handleAudioSent(data); }}
-            disabled={uploading}
-            onPreviewChange={setAudioPreviewActive}
-          />
-        </div>
-      ) : (
       <div className="flex items-end gap-2">
         {/* Menú adjuntos */}
         <div className="relative">
@@ -191,7 +181,6 @@ const CoachChatInput = memo(function CoachChatInput({
           <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
-            onPreviewChange={setAudioPreviewActive}
           />
         ) : (
           <Button

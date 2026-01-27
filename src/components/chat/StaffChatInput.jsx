@@ -17,7 +17,6 @@ const StaffChatInput = memo(function StaffChatInput({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
-  const [audioPreviewActive, setAudioPreviewActive] = useState(false);
 
   const handleSend = async () => {
     if (!localText.trim() && localAttachments.length === 0) return;
@@ -90,15 +89,6 @@ const StaffChatInput = memo(function StaffChatInput({
         </div>
       )}
 
-      {audioPreviewActive ? (
-        <div className="flex items-center gap-2 w-full">
-          <AudioRecordButton 
-            onAudioSent={(data)=>{ setAudioPreviewActive(false); handleAudioSent(data); }}
-            disabled={uploading}
-            onPreviewChange={setAudioPreviewActive}
-          />
-        </div>
-      ) : (
       <div className="flex items-end gap-2">
         <Button
           size="icon"
@@ -161,7 +151,6 @@ const StaffChatInput = memo(function StaffChatInput({
           <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
-            onPreviewChange={setAudioPreviewActive}
           />
         ) : (
           <Button

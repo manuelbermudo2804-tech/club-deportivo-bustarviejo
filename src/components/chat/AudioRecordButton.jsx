@@ -44,9 +44,10 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    // Usar fallback SOLO si el navegador no soporta MediaRecorder/getUserMedia
+    // Usar fallback si no hay MediaRecorder o si estamos dentro de un iframe (previsualización)
     const hasMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
-    setFallbackMode(!hasMedia);
+    const isIframe = (() => { try { return window.top !== window.self; } catch { return true; } })();
+    setFallbackMode(!hasMedia || isIframe);
   }, []);
 
   const startTimer = () => {
