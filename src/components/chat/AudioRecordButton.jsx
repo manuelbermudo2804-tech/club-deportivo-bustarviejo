@@ -44,9 +44,9 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const inIframe = (() => { try { return window.top !== window.self; } catch { return true; } })();
+    // Usar fallback SOLO si el navegador no soporta MediaRecorder/getUserMedia
     const hasMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
-    setFallbackMode(inIframe || !hasMedia);
+    setFallbackMode(!hasMedia);
   }, []);
 
   const startTimer = () => {
