@@ -186,7 +186,7 @@ export default function CoordinatorDashboard() {
                 <Link to={createPageUrl("CoachParentChat")} className="flex-1">
                   <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                      {(notifications?.unreadCoachForStaff || 0) > 0 && (
-                       <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                       <div className="absolute -top-2 -left-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                          <span className="text-white text-[10px] font-bold">{notifications.unreadCoachForStaff}</span>
                        </div>
                      )}
