@@ -658,6 +658,8 @@ export default function ClubMembership() {
   // Cálculos derivados DESPUÉS de todos los hooks
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
   const isPlayerUser = (user?.tipo_panel === 'jugador_adulto') || (user?.es_jugador === true);
+  // Los jugadores adultos SÍ pueden darse de alta como socios; solo limitamos que no creen NUEVOS jugadores.
+
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.estado_pago === 'Pagado').length;
 
   // AHORA SÍ, returns condicionales DESPUÉS de TODOS los hooks
