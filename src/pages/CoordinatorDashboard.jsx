@@ -13,6 +13,7 @@ import MiniKPIBanner from "../components/dashboard/MiniKPIBanner";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
 import SocialLinks from "../components/SocialLinks";
+import RecruitmentBanner from "../components/social/RecruitmentBanner";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
 import { useChatNotificationBubbles } from "../components/notifications/useChatNotificationBubbles";
 
@@ -125,6 +126,7 @@ export default function CoordinatorDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
+        <RecruitmentBanner url="https://alta-socio.vercel.app/jugadores.html" title="Captación de jugadores" subtitle="Comparte y ayúdanos a atraer nuevos jugadores al club" />
         
         {/* Header */}
 
