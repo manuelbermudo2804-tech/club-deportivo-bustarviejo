@@ -614,25 +614,50 @@ export default function ClubMembership() {
     }
   }, [showForm]);
 
-  // Mostrar pantalla de éxito solo si Stripe redirige con el parámetro "paid=stripe"
+  // Detectar retorno de Stripe (éxito/cancelación) para crear o limpiar la solicitud
   useEffect(() => {
     window.scrollTo(0, 0);
     requestAnimationFrame(() => { window.dispatchEvent(new Event('resize')); });
     try {
       const url = new URL(window.location.href);
       const paid = url.searchParams.get('paid');
+      const canceled = url.searchParams.get('canceled');
+      const membershipId = url.searchParams.get('membership_id');
+
       if (paid === 'stripe') {
         setShowSuccess(true);
         url.searchParams.delete('paid');
+        url.searchParams.delete('membership_id');
         window.history.replaceState({}, '', url.toString());
         setTimeout(() => setShowSuccess(false), 5000);
       }
+
+      if (canceled === 'socio' && membershipId) {
+        (async () => {
+          try {
+            const res = await base44.entities.ClubMember.filter({ id: membershipId });
+            const mem = res?.[0];
+            if (mem && mem.estado_pago !== 'Pagado') {
+              await base44.entities.ClubMember.delete(membershipId);
+              queryClient.invalidateQueries({ queryKey: ['myMemberships'] });
+              queryClient.invalidateQueries({ queryKey: ['allMemberships'] });
+              toast.info('Pago cancelado, solicitud descartada');
+            }
+          } catch (e) {
+            console.error('[ClubMembership] Error limpiando socio cancelado:', e);
+          } finally {
+            url.searchParams.delete('canceled');
+            url.searchParams.delete('membership_id');
+            window.history.replaceState({}, '', url.toString());
+          }
+        })();
+      }
     } catch {}
-  }, []);
+  }, [queryClient]);
 
   // Cálculos derivados DESPUÉS de todos los hooks
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
-  const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.activo).length;
+  const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.estado_pago === 'Pagado').length;
 
   // AHORA SÍ, returns condicionales DESPUÉS de TODOS los hooks
   console.log('📊 [ClubMembership] Estado antes de render:', {
@@ -1317,8 +1342,8 @@ export default function ClubMembership() {
                           return;
                         }
 
-                        const successUrl = window.location.origin + createPageUrl("ClubMembership") + "?paid=stripe";
-                        const cancelUrl = window.location.origin + createPageUrl("ClubMembership");
+                        const successUrl = `${window.location.origin}${createPageUrl("ClubMembership")}?paid=stripe&membership_id=${encodeURIComponent(membership.id)}`;
+                        const cancelUrl = `${window.location.origin}${createPageUrl("ClubMembership")}?canceled=socio&membership_id=${encodeURIComponent(membership.id)}`;
 
                         // Crear ficha de socio pendiente ANTES de ir a Stripe
                         const numeroSocio = await generateNumeroSocio();
