@@ -113,9 +113,10 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
         {showEmojiPicker && (
           <div className="absolute bottom-16 left-4 z-50">
             <EmojiPicker 
+              autoOpen
+              showInlineButton={false}
               onEmojiSelect={(emoji) => {
                 setCurrentMessage(prev => prev + emoji);
-                setShowEmojiPicker(false);
               }}
               onClose={() => setShowEmojiPicker(false)}
             />
