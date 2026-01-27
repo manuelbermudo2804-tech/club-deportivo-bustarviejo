@@ -657,6 +657,7 @@ export default function ClubMembership() {
 
   // Cálculos derivados DESPUÉS de todos los hooks
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
+  const isPlayerUser = (user?.tipo_panel === 'jugador_adulto') || (user?.es_jugador === true);
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.estado_pago === 'Pagado').length;
 
   // AHORA SÍ, returns condicionales DESPUÉS de TODOS los hooks
@@ -937,11 +938,17 @@ export default function ClubMembership() {
         </Card>
       )}
 
-      {/* Botón para hacerse socio - PRIMERO para que sea lo más visible */}
-      {!showForm && !isRenewal && (
+      {/* Botón para hacerse socio - Jugador solo puede 1 alta por temporada */}
+      {!showForm && !isRenewal && !(isPlayerUser && currentSeasonMembership) && (
         <div className="space-y-4">
           <Button 
-            onClick={() => setShowForm(true)} 
+            onClick={() => {
+              if (isPlayerUser && currentSeasonMembership) {
+                toast.info('Ya eres socio esta temporada. Como jugador no puedes registrar más.');
+                return;
+              }
+              setShowForm(true);
+            }} 
             className="w-full bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700 text-white font-bold py-8 text-xl rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
           >
             <UserPlus className="w-6 h-6 mr-3" />
@@ -1002,7 +1009,7 @@ export default function ClubMembership() {
 
 
       {/* Formulario de inscripción */}
-      {(showForm || isRenewal) ? (
+      {((showForm && !(isPlayerUser && currentSeasonMembership)) || isRenewal) ? (
         <Card ref={formRef} className="border-none shadow-xl">
             <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
               <CardTitle className="flex items-center gap-2">
@@ -1323,6 +1330,11 @@ export default function ClubMembership() {
                       className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
                       onClick={async () => {
                         setOpeningStripe(true);
+                        if (isPlayerUser && currentSeasonMembership) {
+                          toast.info('Ya eres socio esta temporada. Como jugador no puedes registrar más.');
+                          setOpeningStripe(false);
+                          return;
+                        }
                         if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
                           toast.error("Por favor, rellena todos los campos obligatorios");
                           return;
