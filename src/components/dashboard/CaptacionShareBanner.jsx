@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Share2, Sparkles, Loader2, Link as LinkIcon } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 
 
 export default function CaptacionShareBanner({ link }) {
@@ -64,9 +65,6 @@ export default function CaptacionShareBanner({ link }) {
           <span className="text-lg">📣</span>
           <div className="min-w-0">
             <p className="text-white font-bold text-sm truncate">Comparte formulario contacto jugadores</p>
-            <p className="text-white/90 text-xs truncate flex items-center gap-1">
-              <LinkIcon className="w-3 h-3" /> {targetLink}
-            </p>
           </div>
         </div>
 
