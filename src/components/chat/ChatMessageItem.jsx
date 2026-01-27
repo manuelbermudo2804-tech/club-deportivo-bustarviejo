@@ -33,6 +33,16 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
         <p className="text-[15px] whitespace-pre-wrap leading-tight">
           <EmojiScaler content={message.mensaje} />
         </p>
+        {message.audio_url && (
+          <div className="mt-2 w-full">
+            <audio controls className="w-full max-w-[280px]">
+              <source src={message.audio_url} />
+            </audio>
+            {message.audio_duracion ? (
+              <span className="text-[11px] opacity-70 ml-1">{message.audio_duracion}s</span>
+            ) : null}
+          </div>
+        )}
 
         {message.archivos_adjuntos?.length > 0 && (
           <div className="mt-2 space-y-1">

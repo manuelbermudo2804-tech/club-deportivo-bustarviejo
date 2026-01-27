@@ -16,6 +16,7 @@ export function useAudioMessage() {
   const audioChunksRef = useRef([]);
   const audioRef = useRef(null);
   const recordingStartTimeRef = useRef(null);
+  const maxTimerRef = useRef(null);
 
   // Iniciar grabación
   const startRecording = useCallback(async () => {
@@ -37,10 +38,12 @@ export function useAudioMessage() {
         setRecordedAudio(blob);
         setRecordedDuration(duration);
         stream.getTracks().forEach(track => track.stop());
+        try { if (maxTimerRef.current) { clearTimeout(maxTimerRef.current); maxTimerRef.current = null; } } catch {}
       };
 
       mediaRecorder.start();
       setIsRecording(true);
+      try { maxTimerRef.current = setTimeout(() => { try { mediaRecorderRef.current?.stop(); } catch {} }, 60000); } catch {}
     } catch (error) {
       console.error('Error accediendo al micrófono:', error);
       toast.error('No se pudo acceder al micrófono');
@@ -54,6 +57,7 @@ export function useAudioMessage() {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
+    try { if (maxTimerRef.current) { clearTimeout(maxTimerRef.current); maxTimerRef.current = null; } } catch {}
   }, [isRecording]);
 
   // Cancelar grabación
@@ -64,6 +68,7 @@ export function useAudioMessage() {
       setRecordedAudio(null);
       setRecordedDuration(0);
     }
+    try { if (maxTimerRef.current) { clearTimeout(maxTimerRef.current); maxTimerRef.current = null; } } catch {}
   }, []);
 
   // Subir audio a la plataforma

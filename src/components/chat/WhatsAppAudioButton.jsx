@@ -106,6 +106,9 @@ export default function WhatsAppAudioButton({ onAudioSent, disabled }) {
       timerRef.current = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         setDuration(elapsed);
+        if (elapsed >= 60 && mediaRecorderRef.current?.state === 'recording') {
+          stopRecording();
+        }
       }, 100);
 
     } catch (error) {

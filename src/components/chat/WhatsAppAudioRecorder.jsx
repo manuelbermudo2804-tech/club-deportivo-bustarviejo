@@ -153,6 +153,9 @@ const isIframe = (() => { try { if (isStandalone) return false; return window.to
       durationIntervalRef.current = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         setDuration(elapsed);
+        if (elapsed >= 60) {
+          stopAndSend();
+        }
       }, 100);
 
     } catch (error) {

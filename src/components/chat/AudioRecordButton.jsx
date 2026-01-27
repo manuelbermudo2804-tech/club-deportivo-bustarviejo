@@ -52,7 +52,15 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
 
   const startTimer = () => {
     setSeconds(0);
-    timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    timerRef.current = setInterval(() => {
+      setSeconds((s) => {
+        const next = s + 1;
+        if (next >= 60) {
+          try { mediaRef.current?.stop(); } catch {}
+        }
+        return next;
+      });
+    }, 1000);
   };
   const stopTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);

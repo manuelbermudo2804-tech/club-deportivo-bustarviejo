@@ -15,6 +15,7 @@ export function useAudioRecording() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recordingStartTimeRef = useRef(null);
+  const maxTimerRef = useRef(null);
 
   // Iniciar grabación
   const startRecording = useCallback(async () => {
@@ -41,6 +42,7 @@ export function useAudioRecording() {
         setAudioBlob(blob);
         setAudioDuration(duration);
         stream.getTracks().forEach(track => track.stop());
+        try { if (maxTimerRef.current) { clearTimeout(maxTimerRef.current); maxTimerRef.current = null; } } catch {}
       };
 
       mediaRecorder.start();
@@ -61,12 +63,14 @@ export function useAudioRecording() {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
+    try { if (maxTimerRef.current) { clearTimeout(maxTimerRef.current); maxTimerRef.current = null; } } catch {}
   }, [isRecording]);
 
   // Cancelar grabación y descartar audio
   const cancelAudio = useCallback(() => {
     setAudioBlob(null);
     setAudioDuration(0);
+    try { if (maxTimerRef.current) { clearTimeout(maxTimerRef.current); maxTimerRef.current = null; } } catch {}
   }, []);
 
   // Subir audio a la plataforma
