@@ -102,7 +102,10 @@ export default function ParentLottery() {
     return allLotteryOrders.filter(o => (o.temporada || '').replace(/-/g,'/') === activeSeasonName);
   }, [allLotteryOrders, activeSeasonName]);
 
-  const totalDecimosVendidos = allLotteryOrdersSeason.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
+  const totalDecimosVendidos = allLotteryOrdersSeason.reduce((sum, o) => {
+    const countable = o?.pagado === true || o?.estado === 'Entregado';
+    return sum + (countable ? (o.numero_decimos || 0) : 0);
+  }, 0);
   const maxDecimos = seasonConfig?.loteria_max_decimos;
   const decimosDisponibles = maxDecimos ? maxDecimos - totalDecimosVendidos : null;
   const agotado = maxDecimos && totalDecimosVendidos >= maxDecimos;
