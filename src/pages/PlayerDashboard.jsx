@@ -34,6 +34,7 @@ export default function PlayerDashboard() {
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+  const [allowCreatePrompt, setAllowCreatePrompt] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -99,6 +100,15 @@ export default function PlayerDashboard() {
     staleTime: 30000, // 30 segundos
   });
 
+  useEffect(() => {
+    if (loadingPlayer) { setAllowCreatePrompt(false); return; }
+    if (!player) {
+      const t = setTimeout(() => setAllowCreatePrompt(true), 1800);
+      return () => clearTimeout(t);
+    } else {
+      setAllowCreatePrompt(false);
+    }
+  }, [loadingPlayer, player]);
   // Convocatorias del jugador
   const { data: callups } = useQuery({
     queryKey: ['playerCallups', player?.id],
@@ -473,6 +483,17 @@ export default function PlayerDashboard() {
   }
 
   if (!player) {
+    if (!allowCreatePrompt) {
+      return (
+        <div className="p-6 flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+            <p className="text-slate-500">Buscando tu ficha...</p>
+          </div>
+        </div>
+      );
+    }
+
     if (showCreateProfile && !showPaymentFlow) {
       return (
         <div className="p-2 lg:p-6">
