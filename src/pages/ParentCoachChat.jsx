@@ -163,6 +163,8 @@ export default function ParentCoachChat() {
                 fecha_vista: new Date().toISOString()
               });
             }
+            // Limpiar burbuja de familias↔entrenador al leer
+            UnifiedChatNotificationStore.clearChatOnly(user.email, 'coachForFamily');
           } catch (e) {
             console.log('Error marcando notificaciones:', e);
           }
