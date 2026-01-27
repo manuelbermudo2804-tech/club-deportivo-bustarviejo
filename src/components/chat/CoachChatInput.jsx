@@ -153,9 +153,10 @@ const CoachChatInput = memo(function CoachChatInput({
         {showEmojiPicker && (
           <div className="absolute bottom-16 left-4 z-50">
             <EmojiPicker 
+              autoOpen
+              showInlineButton={false}
               onEmojiSelect={(emoji) => {
                 setLocalText(prev => prev + emoji);
-                setShowEmojiPicker(false);
               }}
               onClose={() => setShowEmojiPicker(false)}
             />
