@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
-import RecruitmentBanner from "../components/social/RecruitmentBanner";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
@@ -604,9 +603,7 @@ export default function ParentDashboard() {
           </div>
         </Link>
 
-        <RecruitmentBanner url="https://alta-socio.vercel.app/jugadores.html" title="Captación de jugadores" subtitle="Comparte y ayúdanos a atraer nuevos jugadores al club" />
-
-         {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP */}
+        {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP */}
         {activeSeason?.bonus_femenino_activo && myPlayers && myPlayers.length > 0 && (
           <FemeninoShareBanner />
         )}
