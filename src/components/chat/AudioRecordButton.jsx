@@ -170,14 +170,14 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   // Preview UI (mini reproductor inline + Cancelar / Enviar)
   if (previewBlob && !fallbackMode) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <audio
           ref={audioRef}
           src={previewUrl}
           controls
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          className="h-9"
+          className="h-9 w-40 sm:w-56 flex-none"
         />
         <Button
           variant="outline"
