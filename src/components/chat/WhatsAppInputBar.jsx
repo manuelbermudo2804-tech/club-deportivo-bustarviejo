@@ -312,6 +312,8 @@ export default function WhatsAppInputBar({
       <div className="flex gap-2 items-end">
         {/* Emoji - siempre visible */}
         <EmojiPicker 
+          autoOpen
+          showInlineButton={true}
           onEmojiSelect={(emoji) => {
             const newValue = localText + emoji;
             setLocalText(newValue);
