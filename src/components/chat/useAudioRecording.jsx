@@ -47,6 +47,7 @@ export function useAudioRecording() {
 
       mediaRecorder.start();
       setIsRecording(true);
+      try { maxTimerRef.current = setTimeout(() => { try { mediaRecorderRef.current?.stop(); } catch {} }, 60000); } catch {}
       toast.success('🎤 Grabando...', { duration: 1000 });
     } catch (error) {
       if (error.name === 'NotAllowedError') {
