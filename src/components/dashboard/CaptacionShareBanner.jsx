@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Share2, Copy, Sparkles, Loader2, Link as LinkIcon } from "lucide-react";
+import { Share2, Sparkles, Loader2, Link as LinkIcon } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { toast } from "sonner";
+
 
 export default function CaptacionShareBanner({ link }) {
   const targetLink = link || (typeof window !== 'undefined' ? `${window.location.origin}` : '');
@@ -19,10 +19,7 @@ export default function CaptacionShareBanner({ link }) {
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(targetLink);
-    toast.success("¡Enlace copiado!");
-  };
+
 
   const suggestWithAI = async () => {
     try {
@@ -80,9 +77,7 @@ export default function CaptacionShareBanner({ link }) {
           <Button onClick={shareWhatsApp} className="bg-green-500 hover:bg-green-600 text-white h-8 px-3">
             <Share2 className="w-4 h-4 mr-1" /> WhatsApp
           </Button>
-          <Button variant="outline" onClick={copyLink} className="h-8 px-3 bg-white/90">
-            <Copy className="w-4 h-4 mr-1" /> Copiar
-          </Button>
+
           <Button onClick={suggestWithAI} className="h-8 px-3 bg-indigo-600 hover:bg-indigo-700 text-white" disabled={loadingAI}>
             {loadingAI ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />} IA
           </Button>
