@@ -177,12 +177,11 @@ const CoachChatInput = memo(function CoachChatInput({
           rows={1}
         />
 
-        {!localText.trim() && localAttachments.length === 0 ? (
-          <AudioRecordButton 
-            onAudioSent={handleAudioSent}
-            disabled={uploading}
-          />
-        ) : (
+        <AudioRecordButton 
+          onAudioSent={handleAudioSent}
+          disabled={uploading}
+        />
+        {(!!localText.trim() || localAttachments.length > 0) && (
           <Button
             size="icon"
             onClick={handleSend}

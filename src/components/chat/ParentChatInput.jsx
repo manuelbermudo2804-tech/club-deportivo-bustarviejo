@@ -77,12 +77,11 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
           rows={1}
         />
 
-        {!currentMessage.trim() ? (
-          <AudioRecordButton 
-            onAudioSent={handleAudioSent}
-            disabled={uploading}
-          />
-        ) : (
+        <AudioRecordButton 
+          onAudioSent={handleAudioSent}
+          disabled={uploading}
+        />
+        {currentMessage.trim() && (
           <Button
             size="icon"
             onClick={handleSend}

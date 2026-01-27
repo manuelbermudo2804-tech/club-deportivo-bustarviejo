@@ -75,12 +75,11 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
           rows={1}
         />
 
-        {!localText.trim() ? (
-          <AudioRecordButton 
-            onAudioSent={handleAudioSent}
-            disabled={uploading}
-          />
-        ) : (
+        <AudioRecordButton 
+          onAudioSent={handleAudioSent}
+          disabled={uploading}
+        />
+        {localText.trim() && (
           <Button
             size="icon"
             onClick={handleSend}

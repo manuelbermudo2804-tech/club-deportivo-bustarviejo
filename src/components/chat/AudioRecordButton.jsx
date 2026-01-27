@@ -167,38 +167,35 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
     }
   };
 
-  // Preview UI
+  // Preview UI (mini reproductor inline + Cancelar / Enviar)
   if (previewBlob && !fallbackMode) {
     return (
-      <div className="flex flex-wrap items-center gap-2 w-full">
+      <div className="flex items-center gap-2">
         <audio
           ref={audioRef}
           src={previewUrl}
           controls
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          className="h-10 flex-1 min-w-0"
-          style={{ maxWidth: '100%' }}
+          className="h-9"
         />
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={discardPreview}
-            disabled={sending || disabled}
-            className="flex items-center gap-1 px-3"
-          >
-            <X className="w-4 h-4" /> Cancelar
-          </Button>
-          <Button
-            size="sm"
-            onClick={sendPreview}
-            disabled={sending || disabled}
-            className="bg-green-600 hover:bg-green-700 flex items-center gap-1 px-3"
-          >
-            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Enviar
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={discardPreview}
+          disabled={sending || disabled}
+          className="h-9 px-3"
+        >
+          <X className="w-4 h-4 mr-1" /> Cancelar
+        </Button>
+        <Button
+          size="sm"
+          onClick={sendPreview}
+          disabled={sending || disabled}
+          className="h-9 bg-green-600 hover:bg-green-700 px-3"
+        >
+          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />} Enviar
+        </Button>
       </div>
     );
   }
