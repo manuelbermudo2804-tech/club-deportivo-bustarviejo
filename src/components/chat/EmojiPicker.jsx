@@ -17,8 +17,8 @@ const EMOJI_CATEGORIES = {
   "Reciente": [] // Se llena automáticamente
 };
 
-export default function EmojiPicker({ onEmojiSelect, messageText = "" }) {
-  const [showPicker, setShowPicker] = useState(false);
+export default function EmojiPicker({ onEmojiSelect, onClose, messageText = "", autoOpen = true, showInlineButton = false }) {
+  const [showPicker, setShowPicker] = useState(autoOpen);
   const [searchTerm, setSearchTerm] = useState("");
   const [recent, setRecent] = useState([]);
   const pickerRef = useRef(null);
@@ -36,6 +36,7 @@ export default function EmojiPicker({ onEmojiSelect, messageText = "" }) {
     const handleClickOutside = (e) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
         setShowPicker(false);
+        try { onClose && onClose(); } catch {}
       }
     };
     if (showPicker) {
@@ -53,6 +54,7 @@ export default function EmojiPicker({ onEmojiSelect, messageText = "" }) {
     localStorage.setItem('recentEmojis', JSON.stringify(updated));
     
     setShowPicker(false);
+    try { onClose && onClose(); } catch {}
   };
 
   // Filtrar emojis por búsqueda
@@ -70,16 +72,18 @@ export default function EmojiPicker({ onEmojiSelect, messageText = "" }) {
 
   return (
     <div ref={pickerRef} className="relative">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={() => setShowPicker(!showPicker)}
-        className="h-10 w-10 text-xl hover:bg-slate-100"
-        title="Agregar emoji"
-      >
-        😊
-      </Button>
+      {showInlineButton && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowPicker(!showPicker)}
+          className="h-10 w-10 text-xl hover:bg-slate-100"
+          title="Agregar emoji"
+        >
+          😊
+        </Button>
+      )}>
 
       {showPicker && (
         <div className="absolute bottom-12 left-0 z-[300] bg-white border border-slate-200 rounded-2xl shadow-2xl p-3 w-80 max-h-[450px] flex flex-col">
@@ -87,7 +91,7 @@ export default function EmojiPicker({ onEmojiSelect, messageText = "" }) {
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-sm">Emojis</h3>
             <button
-              onClick={() => setShowPicker(false)}
+              onClick={() => { setShowPicker(false); try { onClose && onClose(); } catch {} }}
               className="text-slate-400 hover:text-slate-600"
             >
               <X className="w-4 h-4" />
