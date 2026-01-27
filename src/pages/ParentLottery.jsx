@@ -63,18 +63,44 @@ export default function ParentLottery() {
     fetchUser();
   }, []);
 
-  // Detectar retorno de Stripe (solo con parámetro de éxito)
+  // Detectar retorno de Stripe (éxito o cancelación)
   useEffect(() => {
     try {
       const url = new URL(window.location.href);
       const paid = url.searchParams.get('paid');
+      const canceled = url.searchParams.get('canceled');
+      const orderId = url.searchParams.get('order_id');
+
       if (paid === 'lottery') {
         toast.success('✅ Pago con tarjeta confirmado');
         // Refrescar pedidos
         queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
         queryClient.invalidateQueries({ queryKey: ['myLotteryOrders'] });
         url.searchParams.delete('paid');
+        url.searchParams.delete('order_id');
         window.history.replaceState({}, '', url.toString());
+      }
+
+      if (canceled === 'lottery' && orderId) {
+        // El usuario canceló Stripe: eliminar el pedido provisional
+        (async () => {
+          try {
+            const orders = await base44.entities.LotteryOrder.filter({ id: orderId });
+            const order = orders?.[0];
+            if (order && order.pagado !== true) {
+              await base44.entities.LotteryOrder.delete(orderId);
+              queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
+              queryClient.invalidateQueries({ queryKey: ['myLotteryOrders'] });
+              toast.info('Pago cancelado, pedido descartado');
+            }
+          } catch (e) {
+            console.error('Error al descartar pedido cancelado:', e);
+          } finally {
+            url.searchParams.delete('canceled');
+            url.searchParams.delete('order_id');
+            window.history.replaceState({}, '', url.toString());
+          }
+        })();
       }
     } catch {}
   }, [queryClient]);
@@ -331,8 +357,8 @@ export default function ParentLottery() {
 
       // Lanzar Stripe Checkout
       setOpeningStripe(true);
-      const successUrl = window.location.origin + createPageUrl('ParentLottery') + '?paid=lottery';
-      const cancelUrl = window.location.origin + createPageUrl('ParentLottery');
+      const successUrl = `${window.location.origin}${createPageUrl('ParentLottery')}?paid=lottery&order_id=${encodeURIComponent(order.id)}`;
+      const cancelUrl = `${window.location.origin}${createPageUrl('ParentLottery')}?canceled=lottery&order_id=${encodeURIComponent(order.id)}`;
       const { data } = await base44.functions.invoke('stripeCheckout', {
         amount: total,
         name: `Lotería de Navidad - ${numDecimos} décimos`,
