@@ -3,17 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Paperclip, Send, X, FileText, StickyNote, Smile } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
-import AudioRecordButton from "./AudioRecordButton";
-// removed useAudioRecording
+import AudioRecordingBar from "./AudioRecordingBar";
+import { useAudioRecording } from "./useAudioRecording";
 
 export default function AdminChatInput({ onSendMessage, onSendInternalNote, uploading }) {
   const [currentMessage, setCurrentMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  // audio recording handled by AudioRecordButton
+  const {
+    isRecording,
+    audioBlob,
+    audioDuration,
+    isUploading,
+    startRecording,
+    stopRecording,
+    cancelAudio,
+    uploadAudio
+  } = useAudioRecording();
 
   const handleSend = async () => {
-    if (!currentMessage.trim() && attachments.length === 0) return;
+    if (!currentMessage.trim() && attachments.length === 0 && !audioBlob) return;
 
     const messageData = {
       mensaje: currentMessage,
@@ -22,9 +31,20 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
       audio_duracion: 0
     };
 
+    if (audioBlob) {
+      const audioData = await uploadAudio();
+      if (audioData) {
+        messageData.audio_url = audioData.audio_url;
+        messageData.audio_duracion = audioData.audio_duracion;
+      } else {
+        return;
+      }
+    }
+
     onSendMessage(messageData);
     setCurrentMessage("");
     setAttachments([]);
+    cancelAudio();
   };
 
   const handleSendInternalNote = async () => {
@@ -40,15 +60,6 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
     setAttachments([]);
   };
 
-  const handleAudioSent = async (audioData) => {
-    onSendMessage({
-      mensaje: "",
-      adjuntos: [],
-      audio_url: audioData.audio_url,
-      audio_duracion: audioData.audio_duracion
-    });
-  };
-
   const handleFileSelect = (e) => {
     // Dummy - las subidas se manejan desde el parent
   };
@@ -62,7 +73,17 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
 
   return (
     <div className="border-t bg-white flex-shrink-0 p-3">
-
+      {(isRecording || audioBlob) && (
+        <AudioRecordingBar
+          isRecording={isRecording}
+          audioBlob={audioBlob}
+          audioDuration={audioDuration}
+          onStop={stopRecording}
+          onCancel={cancelAudio}
+          onPlay={() => {}}
+          playing={false}
+        />
+      )}
 
       {attachments.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
@@ -84,7 +105,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
           variant="ghost"
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           className="h-9 w-9 p-0"
-          disabled={uploading}
+          disabled={uploading || isUploading || isRecording}
         >
           <Smile className="w-5 h-5" />
         </Button>
@@ -108,34 +129,41 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
           onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje..."
           className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm"
-          disabled={uploading}
+          disabled={uploading || isUploading || isRecording}
           rows={1}
         />
 
-        <AudioRecordButton 
-          onAudioSent={handleAudioSent}
-          disabled={uploading}
-        />
-        <div className="flex gap-1">
+        {!audioBlob && !currentMessage.trim() ? (
           <Button
             size="sm"
-            variant="outline"
-            onClick={handleSendInternalNote}
-            disabled={uploading || !currentMessage.trim()}
-            className="h-9"
-                          title="Enviar como nota interna (solo admins)"
-                        >
-            <StickyNote className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleSend}
-            disabled={uploading || !currentMessage.trim()}
-            className="h-9 bg-green-600 hover:bg-green-700"
+            onClick={isRecording ? stopRecording : startRecording}
+            disabled={uploading || isUploading}
+            className={`h-9 w-9 p-0 ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-slate-600 hover:bg-slate-700'}`}
           >
-            <Send className="w-4 h-4" />
+            <Mic className="w-5 h-5" />
           </Button>
-        </div>
+        ) : (
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSendInternalNote}
+              disabled={uploading || isUploading || isRecording || !currentMessage.trim()}
+              className="h-9"
+              title="Enviar como nota interna (solo admins)"
+            >
+              <StickyNote className="w-4 h-4" />
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSend}
+              disabled={uploading || isUploading || isRecording || (!currentMessage.trim() && !audioBlob)}
+              className="h-9 bg-green-600 hover:bg-green-700"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

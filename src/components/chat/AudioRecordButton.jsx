@@ -178,50 +178,31 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   // Preview UI (mini reproductor inline + Cancelar / Enviar)
   if (previewBlob && !fallbackMode) {
     return (
-      <div className="flex items-center gap-2">
-        <audio ref={audioRef} src={previewUrl} onEnded={() => setIsPlaying(false)} className="hidden" />
-        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full px-3 h-9">
-          <button
-            onClick={async () => {
-              if (!audioRef.current) return;
-              try {
-                if (isPlaying) {
-                  audioRef.current.pause();
-                  setIsPlaying(false);
-                } else {
-                  if (audioRef.current.src !== previewUrl) audioRef.current.src = previewUrl;
-                  await audioRef.current.play();
-                  setIsPlaying(true);
-                }
-              } catch {
-                setIsPlaying(false);
-              }
-            }}
-            className="text-slate-700"
-            aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
-          >
-            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          </button>
-          <span className="text-xs font-medium text-slate-700">{Math.max(1, seconds)}s</span>
-        </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        <audio
+          ref={audioRef}
+          src={previewUrl}
+          controls
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          className="h-9 w-40 sm:w-56 flex-none"
+        />
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={discardPreview}
           disabled={sending || disabled}
-          className="h-9 w-9 p-0"
-          title="Cancelar"
+          className="h-9 px-3"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4 mr-1" /> Cancelar
         </Button>
         <Button
           size="sm"
           onClick={sendPreview}
           disabled={sending || disabled}
-          className="h-9 w-9 p-0 bg-green-600 hover:bg-green-700"
-          title="Enviar"
+          className="h-9 bg-green-600 hover:bg-green-700 px-3"
         >
-          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />} Enviar
         </Button>
       </div>
     );
