@@ -243,55 +243,49 @@ export default function StaffChat() {
     };
   }, [conversation?.id, queryClient]);
 
-  // Marcar como leído AL ABRIR el chat - SISTEMA UNIFICADO
+  // Marcar como leído AL ABRIR el chat - INMEDIATO Y DETERMINANTE
   useEffect(() => {
-    if (!conversation || !user || messages.length === 0) return;
+    if (!conversation?.id || !user?.email) return;
 
-    const markAsRead = async () => {
-      const unreadMessages = messages.filter(m => 
-        m.autor_email !== user.email && 
-        !m.leido_por?.some(l => l.email === user.email)
-      );
+    // PASO 1: Limpiar INMEDIATAMENTE del store unificado
+    UnifiedChatNotificationStore.clearChatOnly(user.email, 'staff');
 
-      if (unreadMessages.length > 0) {
-        const BATCH = 10;
-        for (let i = 0; i < unreadMessages.length; i += BATCH) {
-          const batch = unreadMessages.slice(i, i + BATCH);
-          for (const msg of batch) {
-            const leido_por = msg.leido_por || [];
-            leido_por.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-            await base44.entities.StaffMessage.update(msg.id, { leido_por });
-          }
-          await new Promise(r => setTimeout(r, 200));
-        }
-      }
-
-      // Marcar notificaciones del Staff como vistas (SOLO StaffChat)
+    // PASO 2: Actualizar BD en paralelo (no bloquear UI)
+    (async () => {
       try {
+        const unreadMessages = messages.filter(m => 
+          m.autor_email !== user.email && 
+          !m.leido_por?.some(l => l.email === user.email)
+        );
+
+        if (unreadMessages.length > 0) {
+          const BATCH = 10;
+          for (let i = 0; i < unreadMessages.length; i += BATCH) {
+            const batch = unreadMessages.slice(i, i + BATCH);
+            await Promise.all(batch.map(msg => {
+              const leido_por = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
+              return base44.entities.StaffMessage.update(msg.id, { leido_por });
+            }));
+          }
+        }
+
+        // Marcar AppNotifications como vistas
         const notifs = await base44.entities.AppNotification.filter({
           usuario_email: user.email,
           enlace: "StaffChat",
           vista: false
         });
-        for (const n of notifs) {
-          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-        }
-      } catch {}
+        await Promise.all(notifs.map(n => 
+          base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })
+        ));
 
-      // LIMPIAR SOLO el contador de Staff - NO tocar otros chats
-      UnifiedChatNotificationStore.clearChatOnly(user.email, 'staff');
-
-      // Actualizar contadores independientes
-      try { markRead && (await markRead(conversation.id)); } catch {}
-      try { markReadCounter && (await markReadCounter(conversation.id)); } catch {}
-      // Sincronizar contador global (ChatCounter)
-      try { await base44.functions.invoke('chatMarkRead', { chatType: 'staff', conversationId: conversation.id }); } catch {}
-    };
-    
-    if (messages.some(m => m.autor_email !== user.email && !m.leido_por?.some(l => l.email === user.email))) {
-      markAsRead();
-    }
-  }, [conversation, messages, user]);
+        // Sincronizar ChatCounter
+        await base44.functions.invoke('chatMarkRead', { chatType: 'staff', conversationId: conversation.id });
+      } catch (err) {
+        console.error('Error marking staff chat as read:', err);
+      }
+    })();
+  }, [conversation?.id, user?.email]);
 
   const allSharedFiles = messages.flatMap(m => m.adjuntos || m.archivos_adjuntos || []);
 
