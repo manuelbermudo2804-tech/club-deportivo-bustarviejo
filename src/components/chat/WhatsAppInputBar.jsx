@@ -343,20 +343,20 @@ export default function WhatsAppInputBar({
         </div>
 
         {/* Botones dinámicos - COMO WHATSAPP */}
-        {!hasContent ? (
-          <>
-            {/* Menú "+" */}
-            <AttachmentMenu
-              onFileClick={() => fileInputRef.current?.click()}
-              onCameraClick={() => cameraInputRef.current?.click()}
-              onLocationClick={onLocationClick}
-              onPollClick={onPollClick}
-              onExerciseClick={onExerciseClick}
-              showExercise={showExercise}
-              uploading={uploading}
-            />
+        <>
+          {/* Menú adjuntos siempre visible */}
+          <AttachmentMenu
+            onFileClick={() => fileInputRef.current?.click()}
+            onCameraClick={() => cameraInputRef.current?.click()}
+            onLocationClick={onLocationClick}
+            onPollClick={onPollClick}
+            onExerciseClick={onExerciseClick}
+            showExercise={showExercise}
+            uploading={uploading}
+          />
 
-            {/* Cámara rápida */}
+          {/* Cámara rápida solo cuando no hay texto */}
+          {!hasContent && (
             <Button
               size="icon"
               variant="ghost"
@@ -366,8 +366,10 @@ export default function WhatsAppInputBar({
             >
               <Camera className="w-5 h-5 text-slate-600" />
             </Button>
+          )}
 
-            {/* Micrófono - sencillo */}
+          {/* Micrófono cuando no hay texto, Enviar cuando sí */}
+          {!hasText ? (
             <AudioRecordButton
               disabled={uploading}
               onAudioSent={async ({ audio_url, audio_duracion }) => {
@@ -376,10 +378,7 @@ export default function WhatsAppInputBar({
                 }
               }}
             />
-          </>
-        ) : (
-          <>
-            {/* Botón Enviar - aparece cuando hay texto O fotos */}
+          ) : (
             <Button 
               onClick={handleSend}
               disabled={!localText.trim() && attachments.length === 0}
@@ -388,8 +387,8 @@ export default function WhatsAppInputBar({
             >
               <Send className="w-5 h-5" />
             </Button>
-          </>
-        )}
+          )}
+        </>
       </div>
     </div>
   );

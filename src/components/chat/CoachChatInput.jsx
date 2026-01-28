@@ -165,7 +165,11 @@ const CoachChatInput = memo(function CoachChatInput({
 
         <Textarea
           value={localText}
-          onChange={(e) => setLocalText(e.target.value)}
+          onChange={(e) => {
+            setLocalText(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 6*24) + 'px';
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -173,15 +177,17 @@ const CoachChatInput = memo(function CoachChatInput({
             }
           }}
           placeholder={placeholder}
-          className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm rounded-3xl"
+          className="flex-1 min-h-[44px] max-h-[144px] resize-none text-sm rounded-3xl"
           disabled={uploading}
           rows={1}
         />
 
-        <AudioRecordButton 
-          onAudioSent={handleAudioSent}
-          disabled={uploading}
-        />
+        {!(!!localText.trim()) && (
+          <AudioRecordButton 
+            onAudioSent={handleAudioSent}
+            disabled={uploading}
+          />
+        )}
         {(!!localText.trim() || localAttachments.length > 0) && (
           <Button
             size="icon"

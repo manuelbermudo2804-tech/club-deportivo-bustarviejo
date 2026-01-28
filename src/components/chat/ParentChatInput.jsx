@@ -70,18 +70,24 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
         <Textarea
           ref={textareaRef}
           value={currentMessage}
-          onChange={(e) => setCurrentMessage(e.target.value)}
+          onChange={(e) => {
+            setCurrentMessage(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 6*24) + 'px';
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm rounded-3xl"
+          className="flex-1 min-h-[44px] max-h-[144px] resize-none text-sm rounded-3xl"
           disabled={uploading}
           rows={1}
         />
 
-        <AudioRecordButton 
-          onAudioSent={handleAudioSent}
-          disabled={uploading}
-        />
+        {!currentMessage.trim() && (
+          <AudioRecordButton 
+            onAudioSent={handleAudioSent}
+            disabled={uploading}
+          />
+        )}
         {currentMessage.trim() && (
           <Button
             size="icon"
