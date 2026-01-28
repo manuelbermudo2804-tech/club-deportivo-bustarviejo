@@ -101,49 +101,46 @@ export default function CoachParentChat({ embedded = false }) {
   }, [selectedCategory]);
   
   useEffect(() => {
-    if (!selectedCategory || !messages?.length || !user) return;
-    const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-    const catId = toGroupId(selectedCategory);
-    const normSel = normalizeCategory(selectedCategory);
-    const unread = messages.filter(m => {
-      const normMsgCat = normalizeCategory(m.deporte || '');
-      const matchGroup = m.grupo_id === catId;
-      const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
-      return m.tipo === 'padre_a_grupo' && (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
-    });
+    if (!user?.email || !selectedCategory) return;
+
+    // PASO 1: Limpiar INMEDIATAMENTE del store unificado
+    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
     
-    if (unread.length === 0) return;
-    
+    // PASO 2: Actualizar BD en paralelo (no bloquear)
     (async () => {
       try {
-        for (const msg of unread.slice(0, 10)) {
-          const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
-          leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-          await base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
+        const catId = toGroupId(selectedCategory);
+        const normSel = normalizeCategory(selectedCategory);
+        const unread = messages.filter(m => {
+          const normMsgCat = normalizeCategory(m.deporte || '');
+          const matchGroup = m.grupo_id === catId;
+          const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
+          return m.tipo === 'padre_a_grupo' && (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
+        });
+        
+        if (unread.length > 0) {
+          await Promise.all(unread.slice(0, 10).map(msg => {
+            const leidoPor = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
+            return base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
+          }));
         }
         
-        // Marcar AppNotifications de CoachParentChat como vistas
         const notifs = await base44.entities.AppNotification.filter({
           usuario_email: user.email,
           enlace: "CoachParentChat",
           vista: false
         });
-        for (const n of notifs) {
-          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-        }
+        await Promise.all(notifs.map(n =>
+          base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })
+        ));
         
-        // LIMPIAR SOLO el contador de este chat - NO tocar otros
-        UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
-        // Sincronizar contador global (ChatCounter) por categoría
-        try {
-          const convId = toGroupId(selectedCategory);
-          await base44.functions.invoke('chatMarkRead', { chatType: 'coach', conversationId: convId });
-        } catch {}
+        const convId = toGroupId(selectedCategory);
+        await base44.functions.invoke('chatMarkRead', { chatType: 'coach', conversationId: convId });
       } catch (e) {
-        console.log('Error marcando mensajes como leídos:', e);
+        console.error('Error marking coach messages as read:', e);
       }
     })();
-  }, [selectedCategory, messages, user]);
+  }, [user?.email, selectedCategory]);
 
   if (!user) {
     return (
