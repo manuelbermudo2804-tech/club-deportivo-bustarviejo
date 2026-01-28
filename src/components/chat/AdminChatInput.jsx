@@ -3,23 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Paperclip, Send, X, FileText, StickyNote, Smile } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
-import AudioRecordingBar from "./AudioRecordingBar";
-import { useAudioRecording } from "./useAudioRecording";
+import AudioRecordButton from "./AudioRecordButton";
+// removed useAudioRecording
 
 export default function AdminChatInput({ onSendMessage, onSendInternalNote, uploading }) {
   const [currentMessage, setCurrentMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const {
-    isRecording,
-    audioBlob,
-    audioDuration,
-    isUploading,
-    startRecording,
-    stopRecording,
-    cancelAudio,
-    uploadAudio
-  } = useAudioRecording();
+  // audio recording handled by AudioRecordButton
 
   const handleSend = async () => {
     if (!currentMessage.trim() && attachments.length === 0 && !audioBlob) return;
@@ -60,6 +51,15 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
     setAttachments([]);
   };
 
+  const handleAudioSent = async (audioData) => {
+    onSendMessage({
+      mensaje: "",
+      adjuntos: [],
+      audio_url: audioData.audio_url,
+      audio_duracion: audioData.audio_duracion
+    });
+  };
+
   const handleFileSelect = (e) => {
     // Dummy - las subidas se manejan desde el parent
   };
@@ -73,17 +73,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
 
   return (
     <div className="border-t bg-white flex-shrink-0 p-3">
-      {(isRecording || audioBlob) && (
-        <AudioRecordingBar
-          isRecording={isRecording}
-          audioBlob={audioBlob}
-          audioDuration={audioDuration}
-          onStop={stopRecording}
-          onCancel={cancelAudio}
-          onPlay={() => {}}
-          playing={false}
-        />
-      )}
+
 
       {attachments.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
@@ -133,37 +123,30 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
           rows={1}
         />
 
-        {!audioBlob && !currentMessage.trim() ? (
+        <AudioRecordButton 
+          onAudioSent={handleAudioSent}
+          disabled={uploading}
+        />
+        <div className="flex gap-1">
           <Button
             size="sm"
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={uploading || isUploading}
-            className={`h-9 w-9 p-0 ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-slate-600 hover:bg-slate-700'}`}
+            variant="outline"
+            onClick={handleSendInternalNote}
+            disabled={uploading || !currentMessage.trim()}
+            className="h-9"
+            title="Enviar como nota interna (solo admins)"
           >
-            <Mic className="w-5 h-5" />
+            <StickyNote className="w-4 h-4" />
           </Button>
-        ) : (
-          <div className="flex gap-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleSendInternalNote}
-              disabled={uploading || isUploading || isRecording || !currentMessage.trim()}
-              className="h-9"
-              title="Enviar como nota interna (solo admins)"
-            >
-              <StickyNote className="w-4 h-4" />
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleSend}
-              disabled={uploading || isUploading || isRecording || (!currentMessage.trim() && !audioBlob)}
-              className="h-9 bg-green-600 hover:bg-green-700"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
+          <Button
+            size="sm"
+            onClick={handleSend}
+            disabled={uploading || !currentMessage.trim()}
+            className="h-9 bg-green-600 hover:bg-green-700"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
