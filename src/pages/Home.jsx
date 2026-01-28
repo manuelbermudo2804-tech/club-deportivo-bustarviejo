@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
+import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
 
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_ADMIN_BUTTONS, DEFAULT_ADMIN_BUTTONS } from "../components/dashboard/AdminDashboardButtons";
@@ -1269,6 +1270,7 @@ export default function Home() {
       <PaymentApprovalNotifier isAdmin={isAdmin} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
+        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
 
         {/* Mini KPIs Junta/Admin */}
         {user && (isAdmin || user?.es_junta) && (

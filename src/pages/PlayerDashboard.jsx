@@ -24,6 +24,7 @@ import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymen
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ContactCard from "../components/ContactCard";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
+import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -596,6 +597,9 @@ export default function PlayerDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Captación: Compartir inscripción */}
+        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
 
         {/* Banner Clasificaciones y Próximo Partido */}
         <ClassificationsAndMatchesBanner 

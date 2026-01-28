@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
+import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
 import TreasurerAlertCenter from "../components/dashboard/TreasurerAlertCenter";
 import ContactCard from "../components/ContactCard";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
@@ -359,6 +360,7 @@ export default function TreasurerDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
+        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
 
         {/* Banner de Chats - Igual que ParentDashboard */}
         {playersLoading ? (

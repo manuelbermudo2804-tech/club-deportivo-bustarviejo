@@ -14,6 +14,7 @@ import { useUnifiedNotifications } from "../components/notifications/useUnifiedN
 import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
+import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
 import { useChatNotificationBubbles } from "../components/notifications/useChatNotificationBubbles";
 
 
@@ -125,6 +126,7 @@ export default function CoordinatorDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
+        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
         
         {/* Header */}
 
