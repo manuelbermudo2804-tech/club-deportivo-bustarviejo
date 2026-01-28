@@ -94,7 +94,7 @@ export function ChatNotificationSync({ user }) {
         
         // Para staff (entrenadores, coordinadores, admin): mensajes de padres en categorías
         if ((user.es_entrenador || user.es_coordinador || user.role === 'admin') && msg.tipo === 'padre_a_grupo') {
-          const coachCats = (user.categorias_entrena || []).map(c => ({
+          const coachCats = ((user.categorias_entrena || user.categorias_coordina || [])).map(c => ({
             raw: c,
             id: (c || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_')
           }));
