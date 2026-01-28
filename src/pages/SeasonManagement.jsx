@@ -121,36 +121,56 @@ export default function SeasonManagement() {
   const { data: seasons = [] } = useQuery({
     queryKey: ['seasons'],
     queryFn: () => base44.entities.SeasonConfig.list('-created_date'),
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: payments = [] } = useQuery({
-    queryKey: ['payments'],
+    queryKey: ['payments', expandedSections.reset],
     queryFn: () => base44.entities.Payment.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: players = [] } = useQuery({
-    queryKey: ['players'],
+    queryKey: ['players', expandedSections.reset],
     queryFn: () => base44.entities.Player.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: reminders = [] } = useQuery({
-    queryKey: ['reminders'],
+    queryKey: ['reminders', expandedSections.reset],
     queryFn: () => base44.entities.Reminder.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: clothingOrders = [] } = useQuery({
-    queryKey: ['clothingOrders'],
+    queryKey: ['clothingOrders', expandedSections.reset],
     queryFn: () => base44.entities.ClothingOrder.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: lotteryOrders = [] } = useQuery({
-    queryKey: ['lotteryOrders'],
+    queryKey: ['lotteryOrders', expandedSections.reset],
     queryFn: () => base44.entities.LotteryOrder.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: resetHistory = [] } = useQuery({
-    queryKey: ['resetHistory'],
+    queryKey: ['resetHistory', expandedSections.history],
     queryFn: () => base44.entities.ResetHistory.list('-created_date'),
+    enabled: expandedSections.history,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
 
@@ -1028,88 +1048,139 @@ export default function SeasonManagement() {
 
   // Queries adicionales para estadísticas
   const { data: attendances = [] } = useQuery({
-    queryKey: ['attendances'],
+    queryKey: ['attendances', expandedSections.reset],
     queryFn: () => base44.entities.Attendance.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: evaluations = [] } = useQuery({
-    queryKey: ['evaluations'],
+    queryKey: ['evaluations', expandedSections.reset],
     queryFn: () => base44.entities.PlayerEvaluation.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: trainingSchedules = [] } = useQuery({
-    queryKey: ['trainingSchedules'],
+    queryKey: ['trainingSchedules', expandedSections.reset],
     queryFn: () => base44.entities.TrainingSchedule.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: photoGallery = [] } = useQuery({
-    queryKey: ['photoGallery'],
+    queryKey: ['photoGallery', expandedSections.reset],
     queryFn: () => base44.entities.PhotoGallery.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: events = [] } = useQuery({
-    queryKey: ['events'],
+    queryKey: ['events', expandedSections.reset],
     queryFn: () => base44.entities.Event.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: announcements = [] } = useQuery({
-    queryKey: ['announcements'],
+    queryKey: ['announcements', expandedSections.reset],
     queryFn: () => base44.entities.Announcement.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: chatMessages = [] } = useQuery({
-    queryKey: ['chatMessages'],
+    queryKey: ['chatMessages', expandedSections.reset],
     queryFn: () => base44.entities.ChatMessage.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: surveys = [] } = useQuery({
-    queryKey: ['surveys'],
+    queryKey: ['surveys', expandedSections.reset],
     queryFn: () => base44.entities.Survey.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: surveyResponses = [] } = useQuery({
-    queryKey: ['surveyResponses'],
+    queryKey: ['surveyResponses', expandedSections.reset],
     queryFn: () => base44.entities.SurveyResponse.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: matchResults = [] } = useQuery({
-    queryKey: ['matchResults'],
+    queryKey: ['matchResults', expandedSections.reset],
     queryFn: () => base44.entities.MatchResult.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: documents = [] } = useQuery({
-    queryKey: ['documents'],
+    queryKey: ['documents', expandedSections.reset],
     queryFn: () => base44.entities.Document.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: privateMessages = [] } = useQuery({
-    queryKey: ['privateMessages'],
+    queryKey: ['privateMessages', expandedSections.reset],
     queryFn: () => base44.entities.PrivateMessage.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: convocatorias = [] } = useQuery({
-    queryKey: ['convocatorias'],
+    queryKey: ['convocatorias', expandedSections.reset],
     queryFn: () => base44.entities.Convocatoria.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: clubMembers = [] } = useQuery({
-    queryKey: ['clubMembers'],
+    queryKey: ['clubMembers', expandedSections.reset],
     queryFn: () => base44.entities.ClubMember.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: appNotifications = [] } = useQuery({
-    queryKey: ['appNotifications'],
+    queryKey: ['appNotifications', expandedSections.reset],
     queryFn: () => base44.entities.AppNotification.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: certificates = [] } = useQuery({
-    queryKey: ['certificates'],
+    queryKey: ['certificates', expandedSections.reset],
     queryFn: () => base44.entities.Certificate.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversations'],
+    queryKey: ['privateConversations', expandedSections.reset],
     queryFn: () => base44.entities.PrivateConversation.list(),
+    enabled: expandedSections.reset,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   // Estadísticas actuales
