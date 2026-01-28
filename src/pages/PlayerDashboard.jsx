@@ -86,12 +86,14 @@ export default function PlayerDashboard() {
     queryKey: ['playerCallups', player?.id],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      const convs = await base44.entities.Convocatoria.filter({ publicada: true }, '-fecha_partido');
+      const convs = await base44.entities.Convocatoria.filter({ publicada: true, cerrada: false }, '-fecha_partido', 30);
       return convs
         .filter(c => c.fecha_partido >= today && c.jugadores_convocados?.some(j => j.jugador_id === player?.id))
         .slice(0, 5);
     },
     enabled: !!player?.id,
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
@@ -99,23 +101,28 @@ export default function PlayerDashboard() {
   const { data: payments } = useQuery({
     queryKey: ['playerPayments', player?.id],
     queryFn: async () => {
-      const allPayments = await base44.entities.Payment.list('-created_date');
-      return allPayments.filter(p => 
-        p.jugador_id === player?.id && 
-        p.is_deleted !== true
+      return await base44.entities.Payment.filter(
+        { jugador_id: player?.id, is_deleted: false },
+        '-created_date',
+        50
       );
     },
     enabled: !!player?.id,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
   // Asistencias para logros
   const { data: attendances } = useQuery({
-    queryKey: ['playerAttendances'],
+    queryKey: ['playerAttendances', player?.deporte],
     queryFn: async () => {
       if (!player?.deporte) return [];
-      return await base44.entities.Attendance.filter({ categoria: player?.deporte }, '-fecha');
+      return await base44.entities.Attendance.filter({ categoria: player?.deporte }, '-fecha', 100);
     },
+    enabled: !!player?.deporte,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
@@ -123,11 +130,13 @@ export default function PlayerDashboard() {
   const { data: schedules } = useQuery({
     queryKey: ['playerSchedules', player?.deporte],
     queryFn: async () => {
-      const filtered = await base44.entities.TrainingSchedule.filter({ activo: true, categoria: player?.deporte });
+      const filtered = await base44.entities.TrainingSchedule.filter({ activo: true, categoria: player?.deporte }, '-dia_semana', 20);
       const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
       return filtered.sort((a, b) => dias.indexOf(a.dia_semana) - dias.indexOf(b.dia_semana));
     },
     enabled: !!player?.deporte,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
@@ -168,6 +177,8 @@ export default function PlayerDashboard() {
       return await base44.entities.PrivateConversation.filter({ participante_familia_email: user?.email }, '-ultimo_mensaje_fecha', 30);
     },
     enabled: !!user,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
   const unreadPrivateMessages = privateConversations.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
 
@@ -177,14 +188,24 @@ export default function PlayerDashboard() {
       return await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email });
     },
     enabled: !!user,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
   const unreadCoordinatorMessages = coordinatorConversations.reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
 
   const { data: allChatMessages = [] } = useQuery({
-    queryKey: ['playerAllChatMessages', user?.email],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date', 200),
-    staleTime: 10000,
-    enabled: !!user,
+    queryKey: ['playerAllChatMessages', player?.deporte],
+    queryFn: async () => {
+      if (!player?.deporte) return [];
+      return await base44.entities.ChatMessage.filter(
+        { tipo: 'entrenador_a_grupo', deporte: player?.deporte },
+        '-created_date',
+        50
+      );
+    },
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+    enabled: !!player?.deporte,
   });
   const unreadCoachMessages = allChatMessages.filter(m => m.tipo === 'entrenador_a_grupo' && !(m.leido_por || []).some(l => l.email === user?.email)).length;
 
@@ -192,14 +213,17 @@ export default function PlayerDashboard() {
   const { data: unreadMessages } = useQuery({
     queryKey: ['playerUnreadMessages', player?.deporte],
     queryFn: async () => {
-      const messages = await base44.entities.ChatMessage.list('-created_date');
-      return messages.filter(m => 
-        m.tipo === "admin_a_grupo" && 
-        (m.grupo_id === player?.deporte || m.deporte === player?.deporte) &&
-        !m.leido
-      ).slice(0, 5);
+      if (!player?.deporte) return [];
+      const msgs = await base44.entities.ChatMessage.filter(
+        { tipo: 'admin_a_grupo', $or: [{ grupo_id: player?.deporte }, { deporte: player?.deporte }] },
+        '-created_date',
+        50
+      );
+      return msgs.filter(m => !m.leido).slice(0, 5);
     },
     enabled: !!player?.deporte,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
@@ -207,7 +231,7 @@ export default function PlayerDashboard() {
   const { data: announcements } = useQuery({
     queryKey: ['playerAnnouncements', player?.deporte],
     queryFn: async () => {
-      const all = await base44.entities.Announcement.list('-created_date');
+      const all = await base44.entities.Announcement.list('-created_date', 30);
       const today = new Date().toISOString().split('T')[0];
       return all.filter(a => 
         a.publicado && 
@@ -216,6 +240,8 @@ export default function PlayerDashboard() {
       ).slice(0, 3);
     },
     enabled: !!player,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
@@ -223,10 +249,12 @@ export default function PlayerDashboard() {
   const { data: teammates = [] } = useQuery({
     queryKey: ['teammates', player?.deporte],
     queryFn: async () => {
-      const mates = await base44.entities.Player.filter({ deporte: player?.deporte, activo: true });
+      const mates = await base44.entities.Player.filter({ deporte: player?.deporte, activo: true }, '-created_date', 60);
       return mates.filter(p => p.id !== player?.id).slice(0, 12);
     },
     enabled: !!player?.deporte,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
@@ -234,9 +262,11 @@ export default function PlayerDashboard() {
   const { data: clothingOrders = [] } = useQuery({
     queryKey: ['playerClothingOrders', player?.id],
     queryFn: async () => {
-      return await base44.entities.ClothingOrder.filter({ jugador_id: player?.id }, '-created_date');
+      return await base44.entities.ClothingOrder.filter({ jugador_id: player?.id }, '-created_date', 20);
     },
     enabled: !!player?.id,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
@@ -244,9 +274,11 @@ export default function PlayerDashboard() {
   const { data: evaluations = [] } = useQuery({
     queryKey: ['playerEvaluations', player?.id],
     queryFn: async () => {
-      return await base44.entities.PlayerEvaluation.filter({ jugador_id: player?.id }, '-fecha_evaluacion');
+      return await base44.entities.PlayerEvaluation.filter({ jugador_id: player?.id }, '-fecha_evaluacion', 20);
     },
     enabled: !!player?.id,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
     initialData: [],
   });
 
