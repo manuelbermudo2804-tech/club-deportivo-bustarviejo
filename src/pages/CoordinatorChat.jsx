@@ -241,12 +241,12 @@ export default function CoordinatorChat({ embedded = false }) {
 
           {activeConversations.some(c => (c.no_leidos_coordinador || 0) > 0) && (
             <div className="px-4">
-              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-2 text-xs flex flex-wrap gap-2">
-                <span className="text-cyan-800 font-semibold mr-1">Nuevos:</span>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-xs flex flex-wrap gap-2">
+                <span className="text-yellow-800 font-semibold mr-1">🔔 Nuevos mensajes:</span>
                 {activeConversations.filter(c => (c.no_leidos_coordinador || 0) > 0).map(c => (
-                  <button key={c.id} onClick={() => setSelectedConversation(c)} className="bg-white border border-cyan-300 rounded px-2 py-1 hover:bg-cyan-100">
+                  <button key={c.id} onClick={() => setSelectedConversation(c)} className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900 hover:bg-yellow-300 transition-colors whitespace-nowrap">
                     {c.padre_nombre}
-                    <Badge className="ml-1 bg-red-500">{c.no_leidos_coordinador}</Badge>
+                    <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">{c.no_leidos_coordinador}</Badge>
                   </button>
                 ))}
               </div>
