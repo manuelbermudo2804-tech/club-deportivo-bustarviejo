@@ -1508,7 +1508,7 @@ export default function Layout({ children, currentPageName }) {
                   icon: Users,
                   highlight: true
                 }] : []),
-                ...(isJunta ? [{ title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck, highlight: true }] : []),
+    
 
         // 🏠 INICIO
         { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
