@@ -495,7 +495,7 @@ export default function ParentDashboard() {
                 <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
                     {(Math.max(notifications?.unreadCoachMessages || 0, chatBubbles.coachForFamilyBubble || 0)) > 0 && (
-                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
                         <span className="text-white text-xs font-bold">{Math.max(notifications?.unreadCoachMessages || 0, chatBubbles.coachForFamilyBubble || 0)}</span>
                       </div>
                     )}
