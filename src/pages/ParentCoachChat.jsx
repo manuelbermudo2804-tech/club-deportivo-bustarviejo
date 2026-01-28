@@ -457,12 +457,16 @@ export default function ParentCoachChat() {
 
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
           {categories.some(cat => getUnreadCountByCategory(cat) > 0) && (
-            <div className="px-2 py-1 bg-blue-50 border-b border-blue-200 text-blue-800 text-xs flex gap-2 overflow-x-auto">
-              <span className="font-semibold">Nuevos:</span>
+            <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
+              <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
               {categories.filter(cat => getUnreadCountByCategory(cat) > 0).map(cat => (
-                <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-white border border-blue-300 rounded-full px-2 py-0.5 hover:bg-blue-100">
+                <button 
+                  key={cat} 
+                  onClick={() => setSelectedCategory(cat)} 
+                  className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900 hover:bg-yellow-300 transition-colors whitespace-nowrap"
+                >
                   {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                  <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 align-middle">
+                  <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">
                     {getUnreadCountByCategory(cat)}
                   </Badge>
                 </button>

@@ -224,7 +224,26 @@ export default function CoachParentChat({ embedded = false }) {
               </Button>
             </div>
           
-          {/* Pestañas de categorías - más compactas */}
+          {/* Banner de avisos - solo si hay mensajes nuevos */}
+          {Object.values(unreadByCategory).some(count => count > 0) && (
+            <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
+              <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
+              {categories.filter(cat => unreadByCategory[cat] > 0).map(cat => (
+                <button 
+                  key={cat} 
+                  onClick={() => setSelectedCategory(cat)}
+                  className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900 hover:bg-yellow-300 transition-colors whitespace-nowrap"
+                >
+                  {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')} 
+                  <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">
+                    {unreadByCategory[cat]}
+                  </Badge>
+                </button>
+              ))}
+            </div>
+          )}
+
+         {/* Pestañas de categorías - más compactas */}
           <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
             {categories.map(cat => {
               const catKey = typeof cat === 'string' ? cat : (cat?.nombre || String(cat));
@@ -338,6 +357,25 @@ export default function CoachParentChat({ embedded = false }) {
             </Button>
           </div>
         
+        {/* Banner de avisos - solo si hay mensajes nuevos */}
+        {Object.values(unreadByCategory).some(count => count > 0) && (
+          <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
+            <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
+            {categories.filter(cat => unreadByCategory[cat] > 0).map(cat => (
+              <button 
+                key={cat} 
+                onClick={() => setSelectedCategory(cat)}
+                className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900 hover:bg-yellow-300 transition-colors whitespace-nowrap"
+              >
+                {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')} 
+                <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">
+                  {unreadByCategory[cat]}
+                </Badge>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Pestañas de categorías - más compactas */}
         <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
           {categories.map(cat => {
