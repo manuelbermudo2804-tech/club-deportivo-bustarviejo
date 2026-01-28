@@ -95,7 +95,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
           variant="ghost"
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           className="h-9 w-9 p-0"
-          disabled={uploading || isUploading || isRecording}
+          disabled={uploading}
         >
           <Smile className="w-5 h-5" />
         </Button>
