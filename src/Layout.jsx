@@ -2642,27 +2642,6 @@ export default function Layout({ children, currentPageName }) {
                   />
           </main>
 
-        {/* Banner de Socios - Footer fijo */}
-        {programaSociosActivo && isMemberPaid && (
-          <div className="lg:ml-72 fixed bottom-0 left-0 right-0 z-40">
-            <Link to={createPageUrl("MemberCardDisplay")}>
-              <div className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white p-4 shadow-lg border-t-2 border-green-600 hover:shadow-xl transition-shadow cursor-pointer">
-                <div className="max-w-7xl mx-auto flex items-center justify-between px-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🎫</span>
-                    <div>
-                      <p className="font-bold text-lg">¡Usa tu Carnet de Socio!</p>
-                      <p className="text-sm opacity-90">Descuentos exclusivos en comercios colaboradores</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge className="bg-white text-green-600 font-bold">ACTIVO ✅</Badge>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </div>
-        )}
 
         {/* Banner de Patrocinadores - Footer fijo */}
         {sponsorBannerVisible && (
