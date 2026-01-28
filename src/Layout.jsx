@@ -2554,7 +2554,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         )}
 
-        <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${(sponsorBannerVisible || (programaSociosActivo && isMemberPaid)) ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
+        <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
 
           {/* Widget de cumpleaños hoy */}
           {!isAdmin && isLoading === false && (
@@ -2666,10 +2666,10 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Banner de Patrocinadores - Footer fijo */}
         {sponsorBannerVisible && (
-          <div className={`lg:ml-72 fixed left-0 right-0 z-40 ${programaSociosActivo && isMemberPaid ? 'bottom-24 lg:bottom-20' : 'bottom-0'}`}>
-            <Suspense fallback={null}><SponsorBanner /></Suspense>
-          </div>
-        )}
+                        <div className={`lg:ml-72 fixed left-0 right-0 z-40 bottom-0`}>
+                          <Suspense fallback={null}><SponsorBanner /></Suspense>
+                        </div>
+                      )}
         </div>
         </>
         </SeasonProvider>
