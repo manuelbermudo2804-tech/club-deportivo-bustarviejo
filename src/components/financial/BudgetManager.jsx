@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle, Sparkles, Upload, FileText, Loader2, Save, FolderOpen, Copy } from "lucide-react";
+import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle, Sparkles, Upload, FileText, Loader2, Save, FolderOpen, Copy, Sheet, RefreshCw, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 import AIBudgetAssistant from "./AIBudgetAssistant";
@@ -78,6 +78,8 @@ export default function BudgetManager({
   const [importedPartidas, setImportedPartidas] = useState([]);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
+  const [creatingSheet, setCreatingSheet] = useState(false);
+  const [syncingFromSheet, setSyncingFromSheet] = useState(false);
   const [newPartida, setNewPartida] = useState({
     nombre: "",
     categoria: "Gastos Variables",
@@ -227,6 +229,58 @@ export default function BudgetManager({
     setImportedPartidas([]);
     setShowImportDialog(false);
     toast.success(`${newPartidas.length} partidas importadas correctamente`);
+  };
+
+  // Crear/Abrir Google Sheet
+  const handleOpenInSheets = async () => {
+    setCreatingSheet(true);
+    try {
+      const { data } = await base44.functions.invoke('budgetSheets', {
+        action: 'createOrUpdateSheet',
+        budgetId: budget.id
+      });
+
+      if (data.success) {
+        // Refrescar budget para obtener la URL
+        queryClient.invalidateQueries({ queryKey: ['budgets'] });
+        
+        // Abrir en nueva pestaña
+        window.open(data.spreadsheetUrl, '_blank');
+        toast.success('✅ Hoja de cálculo abierta en Google Sheets');
+      }
+    } catch (error) {
+      console.error('Error abriendo Sheets:', error);
+      toast.error('Error al abrir Google Sheets');
+    } finally {
+      setCreatingSheet(false);
+    }
+  };
+
+  // Sincronizar desde Google Sheets
+  const handleSyncFromSheet = async () => {
+    if (!budget.google_sheet_id) {
+      toast.error('No hay hoja de Google Sheets vinculada');
+      return;
+    }
+
+    setSyncingFromSheet(true);
+    try {
+      const { data } = await base44.functions.invoke('budgetSheets', {
+        action: 'syncFromSheet',
+        budgetId: budget.id,
+        spreadsheetId: budget.google_sheet_id
+      });
+
+      if (data.success) {
+        queryClient.invalidateQueries({ queryKey: ['budgets'] });
+        toast.success(`✅ ${data.partidasSincronizadas} partidas sincronizadas desde Sheets`);
+      }
+    } catch (error) {
+      console.error('Error sincronizando:', error);
+      toast.error('Error al sincronizar desde Google Sheets');
+    } finally {
+      setSyncingFromSheet(false);
+    }
   };
 
   const partidas = budget?.partidas || [];
@@ -430,8 +484,64 @@ export default function BudgetManager({
         </CardContent>
       </Card>
 
+      {/* Google Sheets Integration */}
+      {budget.google_sheet_url && (
+        <Card className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
+                  <Sheet className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">Conectado con Google Sheets</p>
+                  <p className="text-xs text-slate-600">
+                    {budget.fecha_ultima_sync 
+                      ? `Última sincronización: ${new Date(budget.fecha_ultima_sync).toLocaleString('es-ES')}` 
+                      : 'Aún no sincronizado'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSyncFromSheet}
+                  disabled={syncingFromSheet}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {syncingFromSheet ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sincronizando...</>
+                  ) : (
+                    <><RefreshCw className="h-4 w-4 mr-2" /> Traer cambios de Sheets</>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => window.open(budget.google_sheet_url, '_blank')}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Abrir en Sheets
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Botones de acción */}
       <div className="flex flex-wrap justify-end gap-2">
+        {!budget.google_sheet_id && (
+          <Button 
+            onClick={handleOpenInSheets}
+            disabled={creatingSheet}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            {creatingSheet ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creando...</>
+            ) : (
+              <><Sheet className="h-4 w-4 mr-2" /> Abrir en Google Sheets</>
+            )}
+          </Button>
+        )}
         <Button 
           onClick={() => setShowLoadTemplateDialog(true)} 
           variant="outline"
