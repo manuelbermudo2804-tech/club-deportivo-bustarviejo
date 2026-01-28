@@ -87,7 +87,7 @@ export function ChatNotificationSync({ user }) {
     }
 
     // ===== 3. ENTRENADOR - FAMILIAS (grupo ChatMessage) =====
-    // Solo escuchar ChatMessage - sin CoachConversation
+    // Escuchar ChatMessage para todos los roles relevantes (entrenador, coordinador, admin)
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
       if (event.type === 'create' && event.data) {
         const msg = event.data;
