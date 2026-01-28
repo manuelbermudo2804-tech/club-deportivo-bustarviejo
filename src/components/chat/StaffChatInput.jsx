@@ -1,7 +1,7 @@
 import React, { useState, memo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Send, Smile, Paperclip, Camera } from "lucide-react";
+import { Send, Smile, Paperclip, Camera, MapPin, BarChart3, X } from "lucide-react";
 import EmojiPicker from "./EmojiPicker";
 import AudioRecordButton from "./AudioRecordButton";
 
@@ -9,12 +9,15 @@ const StaffChatInput = memo(function StaffChatInput({
   onSendMessage,
   onFileUpload,
   onCameraCapture,
+  onLocationClick,
+  onPollClick,
   uploading,
   placeholder = "Escribe un mensaje..."
 }) {
   const [localText, setLocalText] = useState("");
   const [localAttachments, setLocalAttachments] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const fileInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
 
@@ -82,7 +85,7 @@ const StaffChatInput = memo(function StaffChatInput({
             <div key={idx} className="bg-slate-100 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
               <span className="truncate max-w-[120px]">{file.nombre}</span>
               <button onClick={() => setLocalAttachments(localAttachments.filter((_, i) => i !== idx))}>
-                <Send className="w-4 h-4 text-slate-400" />
+                <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
           ))}
@@ -90,27 +93,76 @@ const StaffChatInput = memo(function StaffChatInput({
       )}
 
       <div className="flex items-end gap-2">
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => fileInputRef.current?.click()}
-          className="h-11 w-11 flex-shrink-0"
-          disabled={uploading}
-        >
-          <Paperclip className="w-5 h-5 text-slate-600" />
-        </Button>
-
-        {!localText.trim() && (
+        {/* Menú adjuntos */}
+        <div className="relative">
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => cameraInputRef.current?.click()}
+            onClick={() => setShowAttachMenu(!showAttachMenu)}
             className="h-11 w-11 flex-shrink-0"
             disabled={uploading}
           >
-            <Camera className="w-5 h-5 text-slate-600" />
+            <Paperclip className={`w-5 h-5 text-slate-600 transition-transform ${showAttachMenu ? 'rotate-45' : ''}`} />
           </Button>
-        )}
+
+          {showAttachMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowAttachMenu(false)} />
+              <div className="fixed bottom-[70px] left-1/2 -translate-x-1/2 bg-white rounded-3xl shadow-2xl p-4 z-50 border-2 border-slate-200 w-[340px]">
+                <div className="grid grid-cols-4 gap-3">
+                  <button
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                      setShowAttachMenu(false);
+                    }}
+                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center shadow-sm">
+                      <Paperclip className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <span className="text-xs font-medium text-slate-700 leading-tight text-center">Archivos</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      cameraInputRef.current?.click();
+                      setShowAttachMenu(false);
+                    }}
+                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center shadow-sm">
+                      <Camera className="w-6 h-6 text-green-600" />
+                    </div>
+                    <span className="text-xs font-medium text-slate-700 leading-tight text-center">Cámara</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onLocationClick?.();
+                      setShowAttachMenu(false);
+                    }}
+                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center shadow-sm">
+                      <MapPin className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <span className="text-xs font-medium text-slate-700 leading-tight text-center">Ubicación</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onPollClick?.();
+                      setShowAttachMenu(false);
+                    }}
+                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center shadow-sm">
+                      <BarChart3 className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <span className="text-xs font-medium text-slate-700 leading-tight text-center">Encuesta</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         <Button
           size="sm"
