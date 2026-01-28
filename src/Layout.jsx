@@ -949,7 +949,7 @@ export default function Layout({ children, currentPageName }) {
 
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
-        setIsCoach(currentUser.es_entrenador === true && !currentUser.es_coordinador);
+        setIsCoach(currentUser.es_entrenador === true);
         setIsCoordinator(currentUser.es_coordinador === true);
         setIsTreasurer(currentUser.es_tesorero === true);
         setIsJunta(currentUser.es_junta === true);
