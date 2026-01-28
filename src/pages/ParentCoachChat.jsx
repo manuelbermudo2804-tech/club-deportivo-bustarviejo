@@ -165,6 +165,11 @@ export default function ParentCoachChat() {
             }
             // Limpiar burbuja de familias↔entrenador al leer
             UnifiedChatNotificationStore.clearChatOnly(user.email, 'coachForFamily');
+            // Sincronizar contador global (ChatCounter) por categoría
+            try {
+              const convId = toGroupId(selectedCategory);
+              await base44.functions.invoke('chatMarkRead', { chatType: 'coachForFamily', conversationId: convId });
+            } catch {}
           } catch (e) {
             console.log('Error marcando notificaciones:', e);
           }

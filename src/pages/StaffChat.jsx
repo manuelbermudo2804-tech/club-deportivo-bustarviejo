@@ -284,6 +284,8 @@ export default function StaffChat() {
       // Actualizar contadores independientes
       try { markRead && (await markRead(conversation.id)); } catch {}
       try { markReadCounter && (await markReadCounter(conversation.id)); } catch {}
+      // Sincronizar contador global (ChatCounter)
+      try { await base44.functions.invoke('chatMarkRead', { chatType: 'staff', conversationId: conversation.id }); } catch {}
     };
     
     if (messages.some(m => m.autor_email !== user.email && !m.leido_por?.some(l => l.email === user.email))) {

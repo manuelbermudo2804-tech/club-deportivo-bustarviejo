@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Send, User, MessageCircle, Shield, GraduationCap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -78,6 +79,19 @@ export default function ParentDirectMessages() {
           messageData: { ...msg, leido: true, fecha_lectura: new Date().toISOString() }
         });
       });
+
+      // Marcar AppNotifications (DM) como vistas y limpiar burbuja inmediata
+      (async () => {
+        try {
+          const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: 'ParentDirectMessages', vista: false });
+          for (const n of notifs) {
+            await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+          }
+        } catch {}
+        UnifiedChatNotificationStore.clearChatOnly(user.email, 'private');
+        // Sincronizar contador global (ChatCounter) usando email del contacto como ID estable
+        try { await base44.functions.invoke('chatMarkRead', { chatType: 'private', conversationId: `dm:${selectedContact.email}` }); } catch {}
+      })();
     }
   }, [selectedContact, user, allMessages]);
 

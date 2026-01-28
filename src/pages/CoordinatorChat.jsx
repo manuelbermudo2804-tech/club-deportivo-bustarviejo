@@ -93,6 +93,8 @@ export default function CoordinatorChat({ embedded = false }) {
       
       // LIMPIAR SOLO el contador de Coordinador - NO tocar otros chats
       UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
+      // Sincronizar contador global (ChatCounter)
+      try { await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id }); } catch {}
     };
     
     markRead();

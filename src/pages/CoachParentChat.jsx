@@ -134,6 +134,11 @@ export default function CoachParentChat({ embedded = false }) {
         
         // LIMPIAR SOLO el contador de este chat - NO tocar otros
         UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
+        // Sincronizar contador global (ChatCounter) por categoría
+        try {
+          const convId = toGroupId(selectedCategory);
+          await base44.functions.invoke('chatMarkRead', { chatType: 'coach', conversationId: convId });
+        } catch {}
       } catch (e) {
         console.log('Error marcando mensajes como leídos:', e);
       }

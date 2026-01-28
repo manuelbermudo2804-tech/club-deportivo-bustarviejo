@@ -113,6 +113,10 @@ export default function ParentSystemMessages() {
 
         // CORRECCIÓN #3: Sincronizar con UnifiedChatNotificationStore
         UnifiedChatNotificationStore.clearChatOnly(user.email, 'systemMessages');
+        // Sincronizar contador global (ChatCounter) para todas las conversaciones privadas
+        try {
+          await Promise.all((conversations || []).map(c => base44.functions.invoke('chatMarkRead', { chatType: 'private', conversationId: c.id })));
+        } catch {}
       }
 
       // 2. MARCAR NOTIFICACIONES COMO VISTAS

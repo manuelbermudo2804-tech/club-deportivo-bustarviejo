@@ -159,11 +159,13 @@ export default function ParentCoordinatorChat() {
 
           // LIMPIAR SOLO el contador de Coordinador para familias - NO tocar otros chats
           UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinatorForFamily');
-        
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
-          queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
-        ]);
+          // Sincronizar contador global (ChatCounter)
+          try { await base44.functions.invoke('chatMarkRead', { chatType: 'coordinatorForFamily', conversationId: conversation.id }); } catch {}
+
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
+            queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
+          ]);
       } catch {}
     })();
   }, [messages, conversation?.id, user?.email]);
