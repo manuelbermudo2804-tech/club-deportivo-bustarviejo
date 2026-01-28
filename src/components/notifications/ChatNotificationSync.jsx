@@ -44,16 +44,8 @@ export function ChatNotificationSync({ user }) {
     }
 
     // ===== 2. COORDINADOR - FAMILIAS (1-a-1) =====
-    // Para coordinadores: mensajes DE familias
+    // Para coordinadores: SOLO escuchar updates de CoordinatorConversation (fuente única)
     if (user.es_coordinador || user.role === 'admin') {
-      const unsubCoordMsg = base44.entities.CoordinatorMessage.subscribe((event) => {
-        if (event.type === 'create' && event.data?.autor === 'padre') {
-          UnifiedChatNotificationStore.increment(user.email, 'coordinator');
-        }
-      });
-      unsubscribers.push(unsubCoordMsg);
-
-      // Backup: escuchar updates de CoordinatorConversation.no_leidos_coordinador (más confiable)
       const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
         if (event.type === 'update' && event.data) {
           const oldCount = event.old_data?.no_leidos_coordinador || 0;
