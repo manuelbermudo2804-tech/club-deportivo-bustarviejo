@@ -356,7 +356,7 @@ export default function WhatsAppInputBar({
           />
 
           {/* Cámara rápida solo cuando no hay texto */}
-          {!hasContent && (
+          {!hasText && (
             <Button
               size="icon"
               variant="ghost"

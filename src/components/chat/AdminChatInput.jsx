@@ -12,7 +12,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
 
 
   const handleSend = async () => {
-    if (!currentMessage.trim() && attachments.length === 0 && !audioBlob) return;
+    if (!currentMessage.trim() && attachments.length === 0) return;
 
     const messageData = {
       mensaje: currentMessage,
@@ -21,20 +21,9 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
       audio_duracion: 0
     };
 
-    if (audioBlob) {
-      const audioData = await uploadAudio();
-      if (audioData) {
-        messageData.audio_url = audioData.audio_url;
-        messageData.audio_duracion = audioData.audio_duracion;
-      } else {
-        return;
-      }
-    }
-
     onSendMessage(messageData);
     setCurrentMessage("");
     setAttachments([]);
-    cancelAudio();
   };
 
   const handleSendInternalNote = async () => {
@@ -105,10 +94,14 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
 
         <Textarea
           value={currentMessage}
-          onChange={(e) => setCurrentMessage(e.target.value)}
+          onChange={(e) => {
+            setCurrentMessage(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 6*24) + 'px';
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje..."
-          className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm"
+          className="flex-1 min-h-[44px] max-h-[144px] resize-none text-sm"
           disabled={uploading}
           rows={1}
         />
