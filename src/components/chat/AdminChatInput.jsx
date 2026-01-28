@@ -13,7 +13,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
   // audio recording handled by AudioRecordButton
 
   const handleSend = async () => {
-    if (!currentMessage.trim() && attachments.length === 0 && !audioBlob) return;
+    if (!currentMessage.trim() && attachments.length === 0) return;
 
     const messageData = {
       mensaje: currentMessage,
@@ -22,20 +22,9 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
       audio_duracion: 0
     };
 
-    if (audioBlob) {
-      const audioData = await uploadAudio();
-      if (audioData) {
-        messageData.audio_url = audioData.audio_url;
-        messageData.audio_duracion = audioData.audio_duracion;
-      } else {
-        return;
-      }
-    }
-
     onSendMessage(messageData);
     setCurrentMessage("");
     setAttachments([]);
-    cancelAudio();
   };
 
   const handleSendInternalNote = async () => {
@@ -119,7 +108,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
           onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje..."
           className="flex-1 min-h-[36px] max-h-[120px] resize-none text-sm"
-          disabled={uploading || isUploading || isRecording}
+          disabled={uploading}
           rows={1}
         />
 
