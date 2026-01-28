@@ -97,7 +97,6 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
           </Button>
         )}
       </div>
-      )}
     </div>
   );
 });

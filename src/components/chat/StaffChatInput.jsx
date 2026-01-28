@@ -171,7 +171,6 @@ const StaffChatInput = memo(function StaffChatInput({
           </Button>
         )}
       </div>
-      )}
     </div>
   );
 });

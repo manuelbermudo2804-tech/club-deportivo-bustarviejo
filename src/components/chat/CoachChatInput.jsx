@@ -199,7 +199,6 @@ const CoachChatInput = memo(function CoachChatInput({
           </Button>
         )}
       </div>
-      )}
     </div>
   );
 });
