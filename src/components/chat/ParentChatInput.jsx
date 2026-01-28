@@ -81,6 +81,9 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
         <AudioRecordButton 
           onAudioSent={handleAudioSent}
           disabled={uploading}
+          onPreviewChange={(active) => {
+            // Cuando hay previsualización, ocultamos el botón Enviar (se enviará desde la píldora)
+          }}
         />
         {currentMessage.trim() && (
           <Button
