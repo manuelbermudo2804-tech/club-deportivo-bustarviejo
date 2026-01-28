@@ -14,7 +14,6 @@ import DashboardButtonSelector from "../components/dashboard/DashboardButtonSele
 import { ALL_ADMIN_BUTTONS, DEFAULT_ADMIN_BUTTONS } from "../components/dashboard/AdminDashboardButtons";
 
 import ClubStats from "../components/dashboard/ClubStats";
-import MiniKPIBanner from "../components/dashboard/MiniKPIBanner";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
@@ -1272,52 +1271,6 @@ export default function Home() {
         <SocialLinks />
         <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
 
-        {/* Mini KPIs Junta/Admin */}
-        {user && (isAdmin || user?.es_junta) && (
-          (() => {
-            // Temporada actual (preferir config activa)
-            const activeSeason = seasonConfig?.temporada?.replace(/-/g,'/') || (() => {
-              const now = new Date();
-              const y = now.getFullYear();
-              const m = now.getMonth() + 1;
-              return m >= 6 ? `${y}/${y+1}` : `${y-1}/${y}`;
-            })();
-
-            // % cobrados
-            const normalize = (s) => (s || "").replace(/-/g,'/');
-            const seasonPayments = (payments || []).filter(p => ['Pagado','Pendiente','En revisión'].includes(p.estado) && normalize(p.temporada) === activeSeason && p.is_deleted !== true);
-            const paid = seasonPayments.filter(p => p.estado === 'Pagado').length;
-            const total = seasonPayments.length || 0;
-            const paidPct = total > 0 ? Math.round((paid/total)*100) : 0;
-            const paidTone = paidPct >= 85 ? 'green' : paidPct >= 70 ? 'amber' : 'red';
-
-            // Asistencia media 30 días (solo si hay datos de asistencias cargados para admin)
-            const since = new Date(Date.now() - 30*24*60*60*1000);
-            const lastAttendances = (attendances || []).filter(a => new Date(a.fecha) >= since);
-            let attPct = 0;
-            if (lastAttendances.length > 0) {
-              const present = lastAttendances.reduce((s,a) => s + (a.asistencias||[]).filter(x => x.estado === 'presente').length, 0);
-              const expected = lastAttendances.reduce((s,a) => s + (a.asistencias||[]).length, 0);
-              attPct = expected > 0 ? Math.round((present/expected)*100) : 0;
-            }
-            const attTone = attPct >= 80 ? 'green' : attPct >= 65 ? 'amber' : 'red';
-
-            // Pagos en revisión (calcular directamente para Junta/Admin)
-            const inReview = seasonPayments.filter(p => p.estado === 'En revisión').length;
-            const revTone = inReview === 0 ? 'green' : inReview <= 10 ? 'amber' : 'red';
-
-            return (
-              <MiniKPIBanner
-                className="mt-1"
-                items={[
-                  { label: 'cobrado', value: `${paidPct}%`, tone: paidTone },
-                  { label: 'asistencia 30d', value: `${attPct}%`, tone: attTone },
-                  { label: 'en revisión', value: inReview, tone: revTone },
-                ]}
-              />
-            );
-          })()
-        )}
 
 
         {/* Banner de Chats - Admin */}

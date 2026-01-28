@@ -9,7 +9,6 @@ import { ALL_COORDINATOR_BUTTONS, DEFAULT_COORDINATOR_BUTTONS, MIN_BUTTONS, MAX_
 import { MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ContactCard from "../components/ContactCard";
-import MiniKPIBanner from "../components/dashboard/MiniKPIBanner";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
 import SocialLinks from "../components/SocialLinks";
@@ -130,16 +129,6 @@ export default function CoordinatorDashboard() {
         
         {/* Header */}
 
-        {/* Mini KPIs Staff (Coordinador) */}
-        {user && (
-          <MiniKPIBanner
-            className="mt-1"
-            items={[
-              { label: 'asistencia 30d', value: '0%', tone: 'red' },
-              { label: 'respuestas conv.', value: notifications?.pendingCallupResponses || 0, tone: (notifications?.pendingCallupResponses || 0) === 0 ? 'green' : (notifications?.pendingCallupResponses || 0) <= 10 ? 'amber' : 'red' },
-            ]}
-          />
-        )}
 
         <div className="text-center lg:text-left">
           <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
