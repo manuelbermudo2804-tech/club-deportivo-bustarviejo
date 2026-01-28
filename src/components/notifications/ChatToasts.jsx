@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
+import { useLocation } from "react-router-dom";
 import { MessageCircle, ShieldAlert, Users } from "lucide-react";
 
 // Pequeño sistema de toasts locales (no depende de sonner)
@@ -43,6 +44,26 @@ export default function ChatToasts() {
   const [myCategories, setMyCategories] = useState([]);
   const [coachCategories, setCoachCategories] = useState([]);
   const idRef = useRef(0);
+  const location = useLocation();
+  const isOn = (slug) => (location?.pathname || '').toLowerCase().includes(slug.toLowerCase());
+  const shouldSuppress = (kind, url) => {
+    switch (kind) {
+      case 'coachGroup':
+        return isOn('coachparentchat') || isOn('parentcoachchat');
+      case 'coordinator':
+        return isOn('parentcoordinatorchat') || isOn('familychats') || isOn('coordinatorchat');
+      case 'staff':
+        return isOn('staffchat');
+      case 'admin':
+        return isOn('parentsystemmessages');
+      case 'private':
+        return isOn('parentsystemmessages');
+      default:
+        if (!url) return false;
+        const targetPath = url.split('?')[0].toLowerCase();
+        return (location?.pathname || '').toLowerCase().includes(targetPath);
+    }
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -96,7 +117,9 @@ export default function ChatToasts() {
         const url = isToCoach
           ? createPageUrl(`CoachParentChat?category=${encodeURIComponent(group)}`)
           : createPageUrl(`ParentCoachChat?category=${encodeURIComponent(group)}`);
-        pushToast({ title, subtitle, icon, badge: group.slice(0, 2).toUpperCase(), onClick: () => open(url) });
+        if (!shouldSuppress('coachGroup', url)) {
+          pushToast({ title, subtitle, icon, badge: group.slice(0, 2).toUpperCase(), onClick: () => open(url) });
+        }
       })
     );
 
@@ -112,7 +135,9 @@ export default function ChatToasts() {
         const url = user.es_coordinador
           ? createPageUrl('FamilyChats?tab=coordinator')
           : createPageUrl('ParentCoordinatorChat');
-        pushToast({ title, subtitle, icon, badge: 'CO', onClick: () => open(url) });
+        if (!shouldSuppress('coordinator', url)) {
+          pushToast({ title, subtitle, icon, badge: 'CO', onClick: () => open(url) });
+        }
       })
     );
 
@@ -125,7 +150,9 @@ export default function ChatToasts() {
         const title = 'Nuevo mensaje en Staff';
         const subtitle = m.autor_rol === 'coordinador' ? 'Coordinador' : m.autor_rol === 'admin' ? 'Admin' : 'Entrenador';
         const url = createPageUrl('StaffChat');
-        pushToast({ title, subtitle, icon, badge: 'ST', onClick: () => open(url), body: (m.mensaje || '').slice(0, 60) });
+        if (!shouldSuppress('staff', url)) {
+          pushToast({ title, subtitle, icon, badge: 'ST', onClick: () => open(url), body: (m.mensaje || '').slice(0, 60) });
+        }
       })
     );
 
@@ -137,7 +164,9 @@ export default function ChatToasts() {
         const title = 'Nuevo mensaje del Administrador';
         const icon = ShieldAlert;
         const url = createPageUrl('ParentSystemMessages');
-        pushToast({ title, subtitle: 'Administrador', icon, badge: 'AD', onClick: () => open(url), body: (m.mensaje || '').slice(0, 60) });
+        if (!shouldSuppress('admin', url)) {
+          pushToast({ title, subtitle: 'Administrador', icon, badge: 'AD', onClick: () => open(url), body: (m.mensaje || '').slice(0, 60) });
+        }
       })
     );
 
@@ -154,7 +183,9 @@ export default function ChatToasts() {
         const title = 'Mensaje del Club';
         const icon = ShieldAlert;
         const url = createPageUrl('ParentSystemMessages');
-        pushToast({ title, subtitle: 'Privado', icon, badge: 'CL', onClick: () => open(url), body: (m.mensaje || '').slice(0, 60) });
+        if (!shouldSuppress('private', url)) {
+          pushToast({ title, subtitle: 'Privado', icon, badge: 'CL', onClick: () => open(url), body: (m.mensaje || '').slice(0, 60) });
+        }
       })
     );
 
