@@ -41,7 +41,7 @@ export default function ChatNotificationBubbles({ user, isCoordinator, isCoach, 
       )}
 
       {/* ENTRENADOR -> FAMILIAS (para entrenadores) */}
-      {isCoach && bubbles.coachBubble > 0 && (
+      {(isCoach || isCoordinator || isAdmin) && bubbles.coachBubble > 0 && (
         <Link to={createPageUrl('CoachParentChat')} className="pointer-events-auto">
           <div className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-green-700 transition-all cursor-pointer">
             <span className="text-xs lg:text-sm font-semibold whitespace-nowrap">⚽ Fam</span>
