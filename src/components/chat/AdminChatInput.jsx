@@ -134,8 +134,8 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
             onClick={handleSendInternalNote}
             disabled={uploading || !currentMessage.trim()}
             className="h-9"
-            title="Enviar como nota interna (solo admins)"
-          >
+                          title="Enviar como nota interna (solo admins)"
+                        >
             <StickyNote className="w-4 h-4" />
           </Button>
           <Button
