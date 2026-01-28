@@ -529,6 +529,16 @@ export default function BudgetManager({
 
       {/* Botones de acción - SIMPLIFICADOS */}
       <div className="flex flex-wrap justify-end gap-2">
+        {savedTemplates.length > 0 && (
+          <Button 
+            onClick={() => setShowLoadTemplateDialog(true)} 
+            variant="outline"
+            size="sm"
+          >
+            <FolderOpen className="h-4 w-4 mr-2" />
+            Plantillas ({savedTemplates.length})
+          </Button>
+        )}
         {!budget.google_sheet_id ? (
           <Button 
             onClick={handleOpenInSheets}
