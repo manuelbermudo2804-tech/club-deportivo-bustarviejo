@@ -44,6 +44,7 @@ import RetentionAnalysis from "../components/financial/RetentionAnalysis.jsx";
 import CashFlowAnalysis from "../components/financial/CashFlowAnalysis.jsx";
 import FinancialRatios from "../components/financial/FinancialRatios.jsx";
 import SeasonalityAnalysis from "../components/financial/SeasonalityAnalysis.jsx";
+import BankStatementReconciliation from "../components/financial/BankStatementReconciliation.jsx";
 
 export default function TreasurerFinancialPanel() {
   const [user, setUser] = useState(null);
@@ -1411,6 +1412,7 @@ export default function TreasurerFinancialPanel() {
 
         {/* TAB BANCARIO */}
         <TabsContent value="bancario" className="space-y-6 mt-6">
+          <BankStatementReconciliation activeSeason={activeSeason} />
           <BankAccountManager activeSeason={activeSeason} />
         </TabsContent>
 
