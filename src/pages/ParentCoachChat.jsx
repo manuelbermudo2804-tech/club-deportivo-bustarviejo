@@ -128,11 +128,15 @@ export default function ParentCoachChat() {
     }).length;
   };
 
-  // Marcar mensajes como leídos cuando se abre la categoría
+  // Marcar mensajes como leídos cuando se abre la categoría - INMEDIATO
   useEffect(() => {
-    if (!user || !selectedCategory || messages.length === 0) return;
+    if (!user?.email || !selectedCategory) return;
 
-    const markAsRead = async () => {
+    // PASO 1: Limpiar INMEDIATAMENTE del store unificado
+    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coachForFamily');
+
+    // PASO 2: Actualizar BD en paralelo (no bloquear)
+    (async () => {
       try {
         const categoryKey = toGroupId(selectedCategory || "");
         const normSel = normalizeCategory(selectedCategory || "");
@@ -143,50 +147,32 @@ export default function ParentCoachChat() {
           return (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
         });
         
-        for (const msg of unreadMessages) {
-          const leidoPor = Array.isArray(msg.leido_por) ? [...msg.leido_por] : [];
-          leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-          await base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
+        if (unreadMessages.length > 0) {
+          await Promise.all(unreadMessages.map(msg => {
+            const leidoPor = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
+            return base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
+          }));
         }
         
-        // Marcar SOLO las notificaciones de ParentCoachChat como vistas
-        if (unreadMessages.length > 0) {
-          try {
-            const notifs = await base44.entities.AppNotification.filter({
-              usuario_email: user.email,
-              enlace: "ParentCoachChat",
-              vista: false
-            });
-            for (const n of notifs) {
-              await base44.entities.AppNotification.update(n.id, {
-                vista: true,
-                fecha_vista: new Date().toISOString()
-              });
-            }
-            // Limpiar burbuja de familias↔entrenador al leer
-            UnifiedChatNotificationStore.clearChatOnly(user.email, 'coachForFamily');
-            // Sincronizar contador global (ChatCounter) por categoría
-            try {
-              const convId = toGroupId(selectedCategory);
-              await base44.functions.invoke('chatMarkRead', { chatType: 'coachForFamily', conversationId: convId });
-            } catch {}
-          } catch (e) {
-            console.log('Error marcando notificaciones:', e);
-          }
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: user.email,
+          enlace: "ParentCoachChat",
+          vista: false
+        });
+        await Promise.all(notifs.map(n =>
+          base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })
+        ));
 
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] }),
-            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
-            queryClient.refetchQueries({ queryKey: ['coachParentChatMessages'] }),
-          ]);
-        }
+        const convId = toGroupId(selectedCategory);
+        await base44.functions.invoke('chatMarkRead', { chatType: 'coachForFamily', conversationId: convId });
+
+        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
+        queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
       } catch (error) {
-        console.error("Error marking as read:", error);
+        console.error("Error marking parent-coach messages as read:", error);
       }
-    };
-
-    markAsRead();
-  }, [user?.email, selectedCategory, messages.length, queryClient]);
+    })();
+  }, [user?.email, selectedCategory]);
 
   const categoryKey = toGroupId(selectedCategory || "");
   const categoryMessages = selectedCategory
