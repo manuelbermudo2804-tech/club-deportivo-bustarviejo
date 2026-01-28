@@ -44,6 +44,7 @@ import RetentionAnalysis from "../components/financial/RetentionAnalysis.jsx";
 import CashFlowAnalysis from "../components/financial/CashFlowAnalysis.jsx";
 import FinancialRatios from "../components/financial/FinancialRatios.jsx";
 import SeasonalityAnalysis from "../components/financial/SeasonalityAnalysis.jsx";
+import BankReconciliationWizard from "../components/financial/BankReconciliationWizard.jsx";
 import BankStatementReconciliation from "../components/financial/BankStatementReconciliation.jsx";
 
 export default function TreasurerFinancialPanel() {
@@ -58,6 +59,7 @@ export default function TreasurerFinancialPanel() {
   const [timeFilter, setTimeFilter] = useState("all");
   const [generatingExcel, setGeneratingExcel] = useState(false);
   const [showSeasonComparison, setShowSeasonComparison] = useState(false);
+  const [showBankReconciliation, setShowBankReconciliation] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -1564,6 +1566,13 @@ export default function TreasurerFinancialPanel() {
           allSeasons={allSeasons}
         />
       )}
+
+      {/* Dialog: Conciliación Bancaria */}
+      <BankReconciliationWizard
+        open={showBankReconciliation}
+        onClose={() => setShowBankReconciliation(false)}
+        temporada={activeSeason?.temporada}
+      />
     </div>
   );
 }
