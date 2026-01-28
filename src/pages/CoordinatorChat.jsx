@@ -67,20 +67,25 @@ export default function CoordinatorChat({ embedded = false }) {
     return unsub;
   }, [isCoordinator, queryClient]);
 
-  // Marcar como leído AL ABRIR conversación - SISTEMA UNIFICADO
+  // Marcar como leído AL ABRIR conversación - INMEDIATO Y DETERMINANTE
   useEffect(() => {
     if (!selectedConversation?.id || !user) return;
     
-    const markRead = async () => {
-      if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
-        await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
-          no_leidos_coordinador: 0,
-          last_read_coordinador_at: new Date().toISOString()
-        });
-      }
-      
-      // Marcar AppNotifications como vistas (SOLO CoordinatorChat)
+    // PASO 1: Limpiar INMEDIATAMENTE del store unificado
+    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
+    
+    // PASO 2: Actualizar BD en paralelo (no bloquear)
+    (async () => {
       try {
+        // Actualizar conversación
+        if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
+          await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
+            no_leidos_coordinador: 0,
+            last_read_coordinador_at: new Date().toISOString()
+          });
+        }
+        
+        // Marcar AppNotifications como vistas
         const notifs = await base44.entities.AppNotification.filter({
           usuario_email: user.email,
           enlace: "CoordinatorChat",
@@ -89,16 +94,14 @@ export default function CoordinatorChat({ embedded = false }) {
         for (const n of notifs) {
           await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
         }
-      } catch {}
-      
-      // LIMPIAR SOLO el contador de Coordinador - NO tocar otros chats
-      UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
-      // Sincronizar contador global (ChatCounter)
-      try { await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id }); } catch {}
-    };
-    
-    markRead();
-  }, [selectedConversation?.id, selectedConversation?.no_leidos_coordinador, user]);
+        
+        // Sincronizar ChatCounter
+        await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id });
+      } catch (err) {
+        console.error('Error marking as read:', err);
+      }
+    })();
+  }, [selectedConversation?.id, user?.email]);
 
   const archiveMutation = useMutation({
     mutationFn: ({ id, archivada }) => 
