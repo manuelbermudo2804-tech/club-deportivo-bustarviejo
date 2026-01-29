@@ -82,9 +82,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      messagesEndRef.current.scrollIntoView({ behavior: "auto", block: "end" });
     }
-  }, [messages, otherPersonTyping, conversation?.id]);
+  }, [messages, conversation?.id]);
 
   useEffect(() => {
     if (scrollContainerRef.current) {
