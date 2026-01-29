@@ -68,7 +68,7 @@ export default function AdminCoordinatorChats() {
     if (!selectedConversation?.id || !user) return;
     
     // Limpiar badge inmediatamente
-    UnifiedChatNotificationStore.clearNotifications(user.email, 'coordinator');
+    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
     
     // BD en segundo plano
     (async () => {
