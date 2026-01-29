@@ -356,7 +356,7 @@ export default function CoordinatorChat({ embedded = false }) {
       </div>
 
       {/* Ventana de chat */}
-      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 min-h-0 h-full overflow-hidden`}>
+      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 min-h-0 h-full overflow-hidden relative`}>
         {selectedConversation ? (
           <CoordinatorChatWindow
             conversation={selectedConversation}
