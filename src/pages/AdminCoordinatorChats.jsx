@@ -419,7 +419,6 @@ export default function AdminCoordinatorChats() {
             </div>
           )}
 
-          {/* TAB: Conversaciones Escaladas (PRIORITARIAS) */}
           <TabsContent value="escalated" className="flex-1 overflow-y-auto px-2">
             {filteredEscalated.length === 0 ? (
               <div className="text-center py-12">
@@ -489,7 +488,6 @@ export default function AdminCoordinatorChats() {
             )
           </TabsContent>
 
-          {/* TAB: Todas las conversaciones activas */}
           <TabsContent value="active" className="flex-1 overflow-y-auto px-2">
             {filteredNormal.length === 0 ? (
               <div className="text-center py-12">
@@ -501,7 +499,6 @@ export default function AdminCoordinatorChats() {
             )}
           </TabsContent>
 
-          {/* TAB: Admin (responder al padre) */}
           <TabsContent value="admin" className="flex-1 overflow-y-auto px-2">
             {adminConversations.length === 0 ? (
               <div className="text-center py-12">
@@ -546,7 +543,6 @@ export default function AdminCoordinatorChats() {
             )}
           </TabsContent>
 
-          {/* TAB: Archivadas */}
           <TabsContent value="archived" className="flex-1 overflow-y-auto px-2">
             {archivedConversations.length === 0 ? (
               <div className="text-center py-12">
