@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +22,9 @@ export default function AdminCoordinatorChats() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [labelFilter, setLabelFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [withAdminOnly, setWithAdminOnly] = useState(false);
+  const [viewMode, setViewMode] = useState("list");
   const [userLoaded, setUserLoaded] = useState(false);
   
   const queryClient = useQueryClient();
@@ -218,7 +222,11 @@ export default function AdminCoordinatorChats() {
 
       const matchesLabel = labelFilter === "all" || conv.etiqueta === labelFilter;
 
-      return matchesSearch && matchesCategory && matchesLabel;
+      const matchesPriority = priorityFilter === "all" || (priorityFilter === "prioritaria" ? !!conv.prioritaria : !conv.prioritaria);
+
+      const matchesAdmin = !withAdminOnly || parentsWithAdminChats.has(conv.padre_email);
+
+      return matchesSearch && matchesCategory && matchesLabel && matchesPriority && matchesAdmin;
     });
   };
 
@@ -231,6 +239,10 @@ export default function AdminCoordinatorChats() {
 
   const totalUnread = conversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
   const escalatedUnread = escalatedConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
+  const totalEscalatedCount = escalatedConversations.length;
+  const escalatedPriorityCount = escalatedConversations.filter(c => c.prioritaria).length;
+  const escalatedWithAdminActive = escalatedConversations.filter(c => parentsWithAdminChats.has(c.padre_email)).length;
+  const archivedCount = archivedConversations.length;
 
   const ConversationCard = ({ conv }) => (
     <Card
@@ -310,6 +322,24 @@ export default function AdminCoordinatorChats() {
               Conversaciones Escaladas
             </h1>
           </div>
+          <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+            <div className="bg-white/10 rounded-lg p-2 flex items-center justify-between">
+              <span>Escaladas</span>
+              <Badge className="bg-white text-cyan-700">{totalEscalatedCount}</Badge>
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 flex items-center justify-between">
+              <span>Sin leer</span>
+              <Badge className="bg-red-500">{escalatedUnread}</Badge>
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 flex items-center justify-between">
+              <span>Con Admin</span>
+              <Badge className="bg-white text-cyan-700">{escalatedWithAdminActive}</Badge>
+            </div>
+            <div className="bg-white/10 rounded-lg p-2 flex items-center justify-between">
+              <span>Prioritarias</span>
+              <Badge className="bg-orange-500">{escalatedPriorityCount}</Badge>
+            </div>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
@@ -358,6 +388,20 @@ export default function AdminCoordinatorChats() {
                 <SelectItem value="Otro">Otro</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-full mt-2">
+                <SelectValue placeholder="Prioridad" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las prioridades</SelectItem>
+                <SelectItem value="prioritaria">Solo prioritarias</SelectItem>
+                <SelectItem value="normal">Solo normales</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center justify-between text-xs text-slate-600 mt-2">
+              <span>Con chat Admin activo</span>
+              <Switch checked={withAdminOnly} onCheckedChange={setWithAdminOnly} />
+            </div>
           </div>
 
           {/* Banner de conversaciones escaladas */}
@@ -402,9 +446,47 @@ export default function AdminCoordinatorChats() {
                     </div>
                   </div>
                 )}
-                {filteredEscalated.map(conv => <ConversationCard key={conv.id} conv={conv} />)}
+
+                <div className="flex items-center justify-end mb-2">
+                  <Button variant="outline" size="sm" onClick={() => setViewMode(viewMode === 'list' ? 'kanban' : 'list')}>
+                    {viewMode === 'list' ? 'Ver Kanban' : 'Ver Lista'}
+                  </Button>
+                </div>
+
+                {viewMode === 'kanban' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-slate-600 mb-1">🔶 Pendientes</p>
+                      <div className="space-y-2">
+                        {filteredEscalated.filter(c => !c.prioritaria && !parentsWithAdminChats.has(c.padre_email)).map(c => (
+                          <ConversationCard key={c.id} conv={c} />
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-600 mb-1">⭐ Prioritarias</p>
+                      <div className="space-y-2">
+                        {filteredEscalated.filter(c => c.prioritaria).map(c => (
+                          <ConversationCard key={c.id} conv={c} />
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-600 mb-1">🛡️ Con Admin</p>
+                      <div className="space-y-2">
+                        {filteredEscalated.filter(c => parentsWithAdminChats.has(c.padre_email)).map(c => (
+                          <ConversationCard key={c.id} conv={c} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {filteredEscalated.map(conv => <ConversationCard key={conv.id} conv={conv} />)}
+                  </>
+                )}
               </>
-            )}
+            )
           </TabsContent>
 
           {/* TAB: Todas las conversaciones activas */}
