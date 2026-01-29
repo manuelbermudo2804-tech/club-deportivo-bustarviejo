@@ -45,7 +45,11 @@ export default function EscalateToAdminButton({
             escalada_a_admin: true,
             motivo_escalacion_admin: motivo,
             contexto_escalacion_admin: contexto,
-            etiqueta: 'Escalada'
+            etiqueta: 'Escalada',
+            prioritaria: true,
+            ultimo_mensaje: 'Escalada a Admin',
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_autor: 'coordinador'
           });
         } catch {}
         // Notificar a administradores
@@ -126,7 +130,11 @@ Esta situación requiere intervención administrativa urgente.`;
           escalada_a_admin: true,
           motivo_escalacion_admin: motivo,
           contexto_escalacion_admin: contexto,
-          etiqueta: 'Escalada'
+          etiqueta: 'Escalada',
+          prioritaria: true,
+          ultimo_mensaje: 'Escalada a Admin',
+          ultimo_mensaje_fecha: new Date().toISOString(),
+          ultimo_mensaje_autor: 'coordinador'
         });
       } catch {}
 

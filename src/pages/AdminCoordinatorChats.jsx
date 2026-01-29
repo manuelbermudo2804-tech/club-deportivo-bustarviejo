@@ -45,8 +45,8 @@ export default function AdminCoordinatorChats() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['adminCoordinatorConversations'],
     queryFn: async () => {
-      // Traer TODAS las conversaciones (admin puede ver todo)
-      return await base44.entities.CoordinatorConversation.list('-ultimo_mensaje_fecha');
+      // Traer muchas conversaciones ordenadas por último mensaje para no perder escaladas recientes
+      return await base44.entities.CoordinatorConversation.filter({}, '-ultimo_mensaje_fecha', 200);
     },
     enabled: isAdmin,
     refetchInterval: false,
