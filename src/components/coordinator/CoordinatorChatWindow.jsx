@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Smile, MessageCircle, MapPin, Reply, Edit, Trash2, Pin, Check, CheckCheck } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Smile, MessageCircle, MapPin, Reply, Edit, Trash2, Pin, Check, CheckCheck, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -555,8 +555,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 coordinatorUser={user}
               />
             )}
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20 h-8 w-8 p-0 lg:hidden">
-              <X className="w-4 h-4" />
+            <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20 h-8 w-8 p-0">
+              <ChevronLeft className="w-4 h-4" />
             </Button>
           </div>
         </div>

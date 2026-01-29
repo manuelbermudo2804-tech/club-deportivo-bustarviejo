@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminChat from './pages/AdminChat';
 import AdminCoordinatorChats from './pages/AdminCoordinatorChats';
 import AdminGallery from './pages/AdminGallery';
 import AdminStats from './pages/AdminStats';
@@ -151,11 +152,11 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
-import AdminChat from './pages/AdminChat';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminChat": AdminChat,
     "AdminCoordinatorChats": AdminCoordinatorChats,
     "AdminGallery": AdminGallery,
     "AdminStats": AdminStats,
@@ -260,7 +261,6 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
-    "AdminChat": AdminChat,
 }
 
 export const pagesConfig = {
