@@ -328,18 +328,6 @@ export default function AdminCoordinatorChats() {
                 <Badge className="ml-2 bg-red-500 animate-pulse">{escalatedUnread}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="active" className="flex-1">
-              Todas ({filteredNormal.length})
-              {totalUnread > escalatedUnread && (
-                <Badge className="ml-2 bg-orange-500">{totalUnread - escalatedUnread}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="admin" className="flex-1">
-              Admin ({adminConversations.length})
-            </TabsTrigger>
-            <TabsTrigger value="archived" className="flex-1">
-              Archivo ({archivedConversations.length})
-            </TabsTrigger>
           </TabsList>
 
           <div className="px-4 py-2 space-y-2">
