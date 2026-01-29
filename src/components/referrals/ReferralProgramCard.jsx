@@ -191,10 +191,17 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
       </CardHeader>
 
       <CardContent className="relative space-y-4">
-        <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-          <p className="text-lg font-semibold mb-1">🔥 ¡Cuantos más amigos traigas, más premios ganas! 🔥</p>
-          <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
-        </div>
+        {seasonConfig?.programa_referidos_activo ? (
+          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
+            <p className="text-lg font-semibold mb-1">🔥 ¡Cuantos más amigos traigas, más premios ganas! 🔥</p>
+            <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
+          </div>
+        ) : (
+          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
+            <p className="text-lg font-semibold mb-1">✨ Comparte el alta de socio</p>
+            <p className="text-sm text-white/90">Invita a quien creas que pueda interesarle. El programa de premios no está activo ahora.</p>
+          </div>
+        )}
 
         {/* BOTONES PRINCIPALES (GENÉRICOS) - VISIBLES SIEMPRE */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
