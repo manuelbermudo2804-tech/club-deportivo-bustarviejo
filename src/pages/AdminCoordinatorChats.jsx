@@ -179,7 +179,7 @@ export default function AdminCoordinatorChats() {
 
   // Separar conversaciones: escaladas (urgentes), normales activas, archivadas
   const escalatedConversations = conversations.filter(c => 
-    !c.archivada && c.escalada_desde_entrenador === true
+    !c.archivada && (c.escalada_desde_entrenador === true || c.escalada_a_admin === true)
   );
   const normalActiveConversations = conversations.filter(c => 
     !c.archivada && c.escalada_desde_entrenador !== true

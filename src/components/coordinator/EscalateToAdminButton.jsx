@@ -27,6 +27,11 @@ export default function EscalateToAdminButton({
         throw new Error("Debes explicar el motivo de la escalación");
       }
 
+      // Preparar contexto (TODOS los mensajes)
+      const contexto = recentMessages.map(m => 
+        `[${m.autor === "coordinador" ? "Coordinador" : "Padre"}] ${m.autor_nombre}: ${m.mensaje}`
+      ).join('\n\n');
+
       // Verificar si ya existe conversación con admin para este padre
       const allAdminConvs = await base44.entities.AdminConversation.list();
       const existingConv = allAdminConvs.find(c => 
@@ -34,14 +39,32 @@ export default function EscalateToAdminButton({
       );
 
       if (existingConv) {
+        // Marcar la conversación del coordinador como escalada para que aparezca al admin
+        try {
+          await base44.entities.CoordinatorConversation.update(conversation.id, {
+            escalada_a_admin: true,
+            motivo_escalacion_admin: motivo,
+            contexto_escalacion_admin: contexto,
+            etiqueta: 'Escalada'
+          });
+        } catch {}
+        // Notificar a administradores
+        try {
+          const allUsers = await base44.entities.User.list();
+          const admins = allUsers.filter(u => u.role === 'admin');
+          await Promise.all(admins.map(a => base44.entities.AppNotification.create({
+            usuario_email: a.email,
+            titulo: `🚨 ESCALACIÓN CRÍTICA - ${motivo}`,
+            mensaje: `El coordinador ${coordinatorUser.full_name} ha escalado la conversación con ${conversation.padre_nombre}.`,
+            tipo: 'urgente',
+            icono: '🚨',
+            enlace: 'AdminCoordinatorChats',
+            vista: false
+          })));
+        } catch {}
         toast.info("Ya existe una conversación activa con el administrador para este padre");
         return existingConv;
       }
-
-      // Preparar contexto (TODOS los mensajes)
-      const contexto = recentMessages.map(m => 
-        `[${m.autor === "coordinador" ? "Coordinador" : "Padre"}] ${m.autor_nombre}: ${m.mensaje}`
-      ).join('\n\n');
 
       // Crear nueva conversación con admin
       const newConv = await base44.entities.AdminConversation.create({
