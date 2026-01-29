@@ -1315,11 +1315,12 @@ export default function Layout({ children, currentPageName }) {
     
     // 💬 CHATS (destacado al inicio)
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
-    
+
     { title: "📧 Emails y Notificaciones", url: createPageUrl("EmailTemplates"), icon: Mail },
 
     // 💬 CHATS Y ESTADÍSTICAS
     { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
+    { title: "🚨 Chats Escalados (Admin)", url: createPageUrl("AdminCoordinatorChats"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
     { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
     { title: "📊 Estadísticas de Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
