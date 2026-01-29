@@ -120,6 +120,16 @@ Esta situación requiere intervención administrativa urgente.`;
         es_nota_interna: true
       });
 
+      // Marcar la conversación del coordinador como escalada para Admin
+      try {
+        await base44.entities.CoordinatorConversation.update(conversation.id, {
+          escalada_a_admin: true,
+          motivo_escalacion_admin: motivo,
+          contexto_escalacion_admin: contexto,
+          etiqueta: 'Escalada'
+        });
+      } catch {}
+
       // Notificar a todos los admins
        const allUsers = await base44.entities.User.list();
        const admins = allUsers.filter(u => u.role === "admin");
