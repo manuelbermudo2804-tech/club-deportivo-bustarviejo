@@ -88,9 +88,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   useEffect(() => {
     if (scrollContainerRef.current) {
+      // usar scroll instantáneo para asegurar quedarse abajo
       scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
     }
-  }, [conversation?.id, messages.length, otherPersonTyping]);
+  }, [conversation?.id, messages.length]);
 
   const handleTyping = async () => {
     if (!conversation?.id) return;
