@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Smile, MessageCircle, MapPin, Reply, Edit, Trash2, Pin, Check, CheckCheck, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -287,6 +288,24 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   
   const pinnedMessages = getPinnedMessages();
 
+  // Clasificación: cambiar etiqueta / prioridad
+  const handleChangeEtiqueta = async (value) => {
+    if (!conversation?.id) return;
+    await base44.entities.CoordinatorConversation.update(conversation.id, { etiqueta: value });
+    toast.success("Etiqueta actualizada");
+    queryClient.invalidateQueries({ queryKey: ['coordinatorConversationState', conversation.id] });
+    queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
+  };
+
+  const togglePrioritaria = async () => {
+    if (!conversation?.id) return;
+    const next = !conversation.prioritaria;
+    await base44.entities.CoordinatorConversation.update(conversation.id, { prioritaria: next });
+    toast.success(next ? "Marcada como prioritaria" : "Prioridad desactivada");
+    queryClient.invalidateQueries({ queryKey: ['coordinatorConversationState', conversation.id] });
+    queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
+  };
+
   const sendLocationFromBrowser = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -547,13 +566,31 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {conversation.prioritaria && <Star className="w-4 h-4 text-orange-400 fill-orange-400" />}
             {isCoordinator && (
-              <EscalateToAdminButton 
-                conversation={conversation}
-                recentMessages={messages}
-                coordinatorUser={user}
-              />
+              <>
+                <Select value={conversation.etiqueta || "Otro"} onValueChange={handleChangeEtiqueta}>
+                  <SelectTrigger className="h-8 w-40 bg-white/10 text-white border-white/20">
+                    <SelectValue placeholder="Etiqueta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Horarios">Horarios</SelectItem>
+                    <SelectItem value="Quejas">Quejas</SelectItem>
+                    <SelectItem value="Consulta Partido">Consulta Partido</SelectItem>
+                    <SelectItem value="Equipación">Equipación</SelectItem>
+                    <SelectItem value="Transporte">Transporte</SelectItem>
+                    <SelectItem value="Lesiones">Lesiones</SelectItem>
+                    <SelectItem value="Otro">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="ghost" size="sm" onClick={togglePrioritaria} className="text-white hover:bg-white/20 h-8 w-8 p-0" title={conversation.prioritaria ? "Quitar prioridad" : "Marcar prioritaria"}>
+                  <Star className={`w-4 h-4 ${conversation.prioritaria ? 'text-orange-400 fill-orange-400' : ''}`} />
+                </Button>
+                <EscalateToAdminButton 
+                  conversation={conversation}
+                  recentMessages={messages}
+                  coordinatorUser={user}
+                />
+              </>
             )}
             <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20 h-8 w-8 p-0">
               <ChevronLeft className="w-4 h-4" />

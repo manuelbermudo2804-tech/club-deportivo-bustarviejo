@@ -96,9 +96,8 @@ const { data: adminEscalationsCount = 0 } = useQuery({
   queryKey: ['alert-admin-escalations'],
   queryFn: async () => {
     try {
-      const escal1 = await base44.entities.CoordinatorConversation.filter({ escalada_a_admin: true, archivada: false }, '-ultimo_mensaje_fecha', 1);
-      const escal2 = await base44.entities.AdminConversation.filter({ escalada_desde_coordinador: true, resuelta: false }, '-ultimo_mensaje_fecha', 1);
-      return (escal1.length || 0) + (escal2.length || 0);
+      const unresolved = await base44.entities.AdminConversation.filter({ resuelta: false }, '-ultimo_mensaje_fecha', 1);
+      return unresolved.length || 0;
     } catch { return 0; }
   },
   enabled: isAdmin,
@@ -196,6 +195,7 @@ const alerts = [];
     const surveysWithNewResponses = surveys.filter(s => (s.respuestas_nuevas || 0) > 0);
     if (surveysWithNewResponses.length > 0) {
       const totalNewResponses = surveysWithNewResponses.reduce((sum, s) => sum + (s.respuestas_nuevas || 0), 0);
+      // Nota: las alertas de chat se gestionan fuera de AlertCenter
       alerts.push({
         id: "survey-new-responses",
         icon: FileText,

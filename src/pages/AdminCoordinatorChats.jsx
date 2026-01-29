@@ -198,11 +198,12 @@ export default function AdminCoordinatorChats() {
   }
 
   // Separar conversaciones: escaladas (urgentes), normales activas, archivadas
-  const escalatedConversations = conversations.filter(c => 
-    !c.archivada && (c.escalada_desde_entrenador === true || c.escalada_a_admin === true)
+  const parentsWithAdminChats = new Set((adminConversations || []).filter(ac => ac.resuelta === false).map(ac => ac.padre_email));
+  const escalatedConversations = conversations.filter(c =>
+    !c.archivada && (c.escalada_desde_entrenador === true || parentsWithAdminChats.has(c.padre_email))
   );
-  const normalActiveConversations = conversations.filter(c => 
-    !c.archivada && !(c.escalada_desde_entrenador === true || c.escalada_a_admin === true)
+  const normalActiveConversations = conversations.filter(c =>
+    !c.archivada && !(c.escalada_desde_entrenador === true || parentsWithAdminChats.has(c.padre_email))
   );
   const archivedConversations = conversations.filter(c => c.archivada);
 
