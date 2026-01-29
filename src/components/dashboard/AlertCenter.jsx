@@ -92,6 +92,31 @@ useEffect(() => {
   } catch {}
 }, [dismissedAlerts]);
 
+const { data: adminEscalationsCount = 0 } = useQuery({
+  queryKey: ['alert-admin-escalations'],
+  queryFn: async () => {
+    try {
+      const escal1 = await base44.entities.CoordinatorConversation.filter({ escalada_a_admin: true, archivada: false }, '-ultimo_mensaje_fecha', 1);
+      const escal2 = await base44.entities.AdminConversation.filter({ escalada_desde_coordinador: true, resuelta: false }, '-ultimo_mensaje_fecha', 1);
+      return (escal1.length || 0) + (escal2.length || 0);
+    } catch { return 0; }
+  },
+  enabled: isAdmin,
+});
+
+const { data: myAdminChatsCount = 0 } = useQuery({
+  queryKey: ['alert-parent-adminchats', userEmail],
+  queryFn: async () => {
+    try {
+      const email = userEmail || meUser?.email;
+      if (!email) return 0;
+      const convs = await base44.entities.AdminConversation.filter({ padre_email: email, resuelta: false }, '-ultimo_mensaje_fecha', 1);
+      return convs.length || 0;
+    } catch { return 0; }
+  },
+  enabled: !!(isParent || userEmail || meUser?.email),
+});
+
 const alerts = [];
 
   const isJuntaUser = meUser?.es_junta === true;
@@ -201,7 +226,7 @@ const alerts = [];
         icon: AlertTriangle,
         title: "🛡️ Chat Administrador Activo",
         description: "Conversación supervisada por la dirección del club",
-        url: createPageUrl("ParentAdminChat"),
+        url: createPageUrl("ParentDirectMessages"),
         color: "bg-red-600",
         priority: 0
       });

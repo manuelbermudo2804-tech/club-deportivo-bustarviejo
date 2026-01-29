@@ -306,7 +306,7 @@ export default function AdminCoordinatorChats() {
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-base font-bold flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
-              Chats Coordinador (Admin)
+              Conversaciones Escaladas
             </h1>
           </div>
           <div className="relative">

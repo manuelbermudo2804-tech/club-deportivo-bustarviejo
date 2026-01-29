@@ -112,6 +112,17 @@ export default function AdminChat() {
         no_leidos_padre: (selectedFull.no_leidos_padre || 0) + 1,
         archivada: false,
       });
+      if (selectedFull.padre_email) {
+        await base44.entities.AppNotification.create({
+          usuario_email: selectedFull.padre_email,
+          titulo: `🛡️ Mensaje del Administrador`,
+          mensaje: messageInput.trim().slice(0, 100),
+          tipo: "importante",
+          icono: "🛡️",
+          enlace: "ParentDirectMessages",
+          vista: false,
+        });
+      }
     },
     onSuccess: () => {
       setMessageInput("\n".slice(1));
@@ -242,12 +253,24 @@ export default function AdminChat() {
         {selectedFull ? (
           <Card className="w-full h-full rounded-none border-0">
             <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100 border-b">
-              <CardTitle className="text-base">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-orange-700" />
+                    {selectedFull.padre_nombre}
+                  </div>
+                </CardTitle>
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-orange-700" />
-                  {selectedFull.padre_nombre}
+                  {!selectedFull.archivada && (
+                    <Button size="sm" variant="outline" onClick={async () => {
+                      await base44.entities.AdminConversation.update(selectedFull.id, { archivada: true, resuelta: true });
+                      queryClient.invalidateQueries({ queryKey: ["adminConversations"] });
+                    }}>
+                      Archivar
+                    </Button>
+                  )}
                 </div>
-              </CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="p-0 h-full flex flex-col min-h-0">
               {/* Messages */}
