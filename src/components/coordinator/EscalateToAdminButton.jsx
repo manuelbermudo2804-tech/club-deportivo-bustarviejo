@@ -131,7 +131,7 @@ Esta situación requiere intervención administrativa urgente.`;
            mensaje: `El coordinador ${coordinatorUser.full_name} ha escalado la conversación con ${conversation.padre_nombre}. Requiere intervención inmediata.`,
            tipo: "urgente",
            icono: "🚨",
-           enlace: "AdminChat",
+           enlace: "AdminCoordinatorChats",
            vista: false
          });
 
