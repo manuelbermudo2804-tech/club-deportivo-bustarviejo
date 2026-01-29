@@ -169,7 +169,7 @@ export default function CoordinatorChat({ embedded = false }) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(-1)}
+                  onClick={() => setSelectedConversation(null)}
                   className="text-white hover:bg-white/20 h-7 w-7 p-0"
                   title="Volver atrás"
                 >
@@ -356,7 +356,7 @@ export default function CoordinatorChat({ embedded = false }) {
       </div>
 
       {/* Ventana de chat */}
-      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 min-h-0 h-full overflow-hidden`}>
+      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 min-h-0 h-full`}>
         {selectedConversation ? (
           <CoordinatorChatWindow
             conversation={selectedConversation}

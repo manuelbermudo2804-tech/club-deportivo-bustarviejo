@@ -535,7 +535,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-3 border-b flex-shrink-0">
+      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-3 border-b flex-shrink-0 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageCircle className="w-4 h-4" />
@@ -698,7 +698,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       </div>
 
       {/* Input Bar */}
-      <div className="border-t bg-white flex-shrink-0">
+      <div className="border-t bg-white flex-shrink-0 sticky bottom-0 z-10">
          <CoordinatorChatInput
            onSendMessage={handleSendMessage}
            onFileUpload={handleFileUpload}
