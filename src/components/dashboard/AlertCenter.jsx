@@ -220,7 +220,7 @@ const alerts = [];
   // Alertas para padres
   if (isParent) {
     // ALERTA CRÍTICA DE ADMIN (prioridad máxima) - MOSTRAR SIEMPRE si hay chat activo
-    if (hasActiveAdminChat) {
+    if (myAdminChatsCount > 0) {
       alerts.push({
         id: "admin-chat-active",
         icon: AlertTriangle,
@@ -390,13 +390,13 @@ const alerts = [];
   // Alertas para admin
   if (isAdmin) {
     // CONVERSACIONES CRÍTICAS SIN RESOLVER (prioridad máxima)
-    if (unresolvedAdminChats > 0) {
+    if (adminEscalationsCount > 0) {
       alerts.push({
         id: "admin-critical-chats",
         icon: ShieldAlert,
         title: "🚨 Conversaciones Críticas",
         description: `${unresolvedAdminChats} conversación${unresolvedAdminChats > 1 ? 'es' : ''} escalada${unresolvedAdminChats > 1 ? 's' : ''} sin resolver`,
-        url: createPageUrl("AdminChat"),
+        url: createPageUrl("AdminCoordinatorChats"),
         color: "bg-red-600",
         priority: 0
       });
