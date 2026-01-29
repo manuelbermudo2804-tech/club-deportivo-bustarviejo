@@ -53,6 +53,17 @@ export default function AdminCoordinatorChats() {
     staleTime: 60000,
   });
 
+  // Conversaciones ADMIN abiertas desde escaladas del coordinador
+  const { data: adminConversations = [] } = useQuery({
+    queryKey: ['adminConversationsFromCoordinator'],
+    queryFn: async () => {
+      return await base44.entities.AdminConversation.filter({ escalada_desde_coordinador: true, resuelta: false }, '-ultimo_mensaje_fecha', 200);
+    },
+    enabled: isAdmin,
+    refetchInterval: false,
+    staleTime: 60000,
+  });
+
   // REAL-TIME: Suscripción a conversaciones
   useEffect(() => {
     if (!isAdmin) return;
@@ -61,6 +72,15 @@ export default function AdminCoordinatorChats() {
       queryClient.invalidateQueries({ queryKey: ['adminCoordinatorConversations'] });
     });
     
+    return unsub;
+  }, [isAdmin, queryClient]);
+
+  // REAL-TIME: Suscripción a AdminConversation
+  useEffect(() => {
+    if (!isAdmin) return;
+    const unsub = base44.entities.AdminConversation.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['adminConversationsFromCoordinator'] });
+    });
     return unsub;
   }, [isAdmin, queryClient]);
 
@@ -314,6 +334,9 @@ export default function AdminCoordinatorChats() {
                 <Badge className="ml-2 bg-orange-500">{totalUnread - escalatedUnread}</Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="admin" className="flex-1">
+              Admin ({adminConversations.length})
+            </TabsTrigger>
             <TabsTrigger value="archived" className="flex-1">
               Archivo ({archivedConversations.length})
             </TabsTrigger>
@@ -404,6 +427,51 @@ export default function AdminCoordinatorChats() {
               </div>
             ) : (
               filteredNormal.map(conv => <ConversationCard key={conv.id} conv={conv} />)
+            )}
+          </TabsContent>
+
+          {/* TAB: Admin (responder al padre) */}
+          <TabsContent value="admin" className="flex-1 overflow-y-auto px-2">
+            {adminConversations.length === 0 ? (
+              <div className="text-center py-12">
+                <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500">No hay chats de Admin abiertos</p>
+                <p className="text-xs text-slate-400 mt-1">Cuando un coordinador escale, el chat Admin aparecerá aquí</p>
+              </div>
+            ) : (
+              adminConversations.map((ac) => (
+                <Card key={ac.id} className="mb-2 hover:shadow-md transition-all">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-slate-900 truncate">{ac.padre_nombre}</p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {ac.jugadores_asociados?.map(j => `${j.jugador_nombre} (${j.categoria})`).join(', ')}
+                        </p>
+                        {ac.motivo_escalacion && (
+                          <p className="text-xs text-orange-700 mt-1">⚠️ {ac.motivo_escalacion}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {ac.no_leidos_admin > 0 && (
+                          <Badge className="bg-red-500 text-white font-bold text-xs px-2 py-1 rounded-full">{ac.no_leidos_admin}</Badge>
+                        )}
+                        <Button
+                          size="sm"
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                          onClick={() => {
+                            const url = createPageUrl('AdminChat') + `?convId=${ac.id}`;
+                            window.location.href = url;
+                          }}
+                        >
+                          Abrir chat
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 truncate mt-1">{ac.ultimo_mensaje}</p>
+                  </CardContent>
+                </Card>
+              ))
             )}
           </TabsContent>
 
