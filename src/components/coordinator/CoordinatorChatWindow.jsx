@@ -562,7 +562,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Messages Area - scrollable */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0" style={{backgroundColor: '#E5DDD5', minHeight: 0, maxHeight: '100%'}}>
         {messages.map((msg, idx) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           
