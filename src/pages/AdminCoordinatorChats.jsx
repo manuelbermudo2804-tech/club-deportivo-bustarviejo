@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageCircle, Search, Archive, ArchiveRestore, Users, Filter, Star, AlertCircle } from "lucide-react";
+import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
@@ -96,6 +97,66 @@ export default function AdminCoordinatorChats() {
       }
     })();
   }, [selectedConversation?.id, user?.email]);
+
+  const openAdminChatMutation = useMutation({
+    mutationFn: async (conv) => {
+      const existing = await base44.entities.AdminConversation.list();
+      const active = existing.find(c => c.padre_email === conv.padre_email && !c.resuelta);
+      if (active) return active;
+
+      const contexto = conv.contexto_escalacion_admin || conv.contexto_escalacion || '';
+      const motivo = conv.motivo_escalacion_admin || conv.etiqueta || 'Escalada';
+      const newConv = await base44.entities.AdminConversation.create({
+        padre_email: conv.padre_email,
+        padre_nombre: conv.padre_nombre,
+        jugadores_asociados: conv.jugadores_asociados,
+        escalada_desde_coordinador: true,
+        coordinador_que_escalo: user.email,
+        coordinador_nombre_que_escalo: user.full_name,
+        fecha_escalacion: new Date().toISOString(),
+        contexto_escalacion: contexto,
+        motivo_escalacion: motivo,
+        ultimo_mensaje: "Conversación creada por Admin",
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_autor: "admin",
+        no_leidos_admin: 0,
+        no_leidos_padre: 1,
+        criticidad: "Alta",
+        etiqueta: "Escalada"
+      });
+
+      const mensajeInicial = `🛡️ ADMIN ↔ PADRE\n\nPadre: ${conv.padre_nombre}\nJugadores: ${conv.jugadores_asociados?.map(j => `${j.jugador_nombre} (${j.categoria})`).join(', ')}\nFecha: ${new Date().toLocaleString('es-ES')}\n\n⚠️ Motivo: ${motivo}\n\n📎 Contexto:\n${contexto || 'Sin contexto'}`;
+
+      await base44.entities.AdminMessage.create({
+        conversacion_id: newConv.id,
+        autor: "admin",
+        autor_email: user.email,
+        autor_nombre: user.full_name,
+        mensaje: mensajeInicial,
+        leido_admin: true,
+        leido_padre: false,
+        es_nota_interna: true
+      });
+
+      try {
+        await base44.entities.AppNotification.create({
+          usuario_email: conv.padre_email,
+          titulo: "📣 Administración contactará contigo",
+          mensaje: "Un administrador abrirá un chat directo en breve.",
+          tipo: "importante",
+          icono: "📣",
+          enlace: "ParentDirectMessages",
+          vista: false
+        });
+      } catch {}
+
+      return newConv;
+    },
+    onSuccess: (newConv) => {
+      const url = createPageUrl('AdminChat') + `?convId=${newConv.id}`;
+      window.location.href = url;
+    }
+  });
 
   const archiveMutation = useMutation({
     mutationFn: ({ id, archivada }) => 
@@ -188,6 +249,17 @@ export default function AdminCoordinatorChats() {
         </div>
         <p className="text-xs text-slate-600 truncate">{conv.ultimo_mensaje}</p>
         <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center gap-2">
+            {conv.escalada_a_admin && (
+              <Button
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={(e) => { e.stopPropagation(); openAdminChatMutation.mutate(conv); }}
+              >
+                Abrir chat con el padre
+              </Button>
+            )}
+          </div>
           <p className="text-xs text-slate-400">
             {conv.ultimo_mensaje_fecha && format(new Date(conv.ultimo_mensaje_fecha), "dd MMM, HH:mm", { locale: es })}
           </p>

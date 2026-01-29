@@ -16,8 +16,8 @@ import ThemeToggle from "./components/ThemeToggle";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
-import BirthdayModal from "./components/birthday/BirthdayModal";
-import BirthdayWidget from "./components/birthday/BirthdayWidget";
+
+
 import FeedbackModal from "./components/feedback/FeedbackModal";
 
 import LanguageSelector from "./components/LanguageSelector";
@@ -620,7 +620,7 @@ export default function Layout({ children, currentPageName }) {
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
-  const [showBirthdayModal, setShowBirthdayModal] = useState(null);
+  
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
 
   const [installContext, setInstallContext] = useState('manual');
@@ -2558,11 +2558,7 @@ export default function Layout({ children, currentPageName }) {
         <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
 
           {/* Widget de cumpleaños hoy */}
-          {!isAdmin && isLoading === false && (
-            <div className="px-4 pt-4 lg:pt-6">
-              <BirthdayWidget />
-            </div>
-          )}
+
 
         <ActiveBanner position="top" user={user} />
 
@@ -2625,14 +2621,7 @@ export default function Layout({ children, currentPageName }) {
           )}
 
           {/* Modal de felicitación de cumpleaños */}
-          {showBirthdayModal && (
-                    <BirthdayModal
-                      nombre={showBirthdayModal.destinatario_nombre}
-                      edad={showBirthdayModal.edad}
-                      tipo={showBirthdayModal.destinatario_tipo}
-                      onClose={() => setShowBirthdayModal(null)}
-                    />
-                  )}
+
 
                   {/* Modal Feedback */}
                   <FeedbackModal

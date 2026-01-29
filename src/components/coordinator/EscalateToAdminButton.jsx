@@ -130,14 +130,11 @@ Esta situación requiere intervención administrativa urgente.`;
       return newConv;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminConversations'] });
       queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] });
       setShowDialog(false);
       setShowSuccess(true);
       setMotivo("Conflicto familiar");
       setDetalles("");
-      
-      // Ocultar confirmación después de 3 segundos
       setTimeout(() => setShowSuccess(false), 3000);
     },
     onError: (error) => {

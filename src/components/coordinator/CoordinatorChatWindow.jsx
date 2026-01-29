@@ -697,8 +697,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Bar (fija) */}
-      <div className="border-t bg-white flex-shrink-0 sticky bottom-0 left-0 right-0 z-10">
+      {/* Input Bar */}
+      <div className="border-t bg-white flex-shrink-0">
          <CoordinatorChatInput
            onSendMessage={handleSendMessage}
            onFileUpload={handleFileUpload}
