@@ -104,7 +104,7 @@ export default function CoachParentChat({ embedded = false }) {
     if (!user?.email || !selectedCategory) return;
 
     // LIMPIAR INMEDIATAMENTE (sin esperar mensajes)
-    UnifiedChatNotificationStore.clearNotifications(user.email, 'coach');
+    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
     console.log(`✅ [CoachChat] Limpiado INMEDIATO badge para ${selectedCategory}`);
     
     // Actualizar contadores locales también
@@ -183,7 +183,7 @@ export default function CoachParentChat({ embedded = false }) {
           </DialogContent>
         </Dialog>
 
-        <Card className="h-full flex flex-col overflow-hidden border-green-200 shadow-lg rounded-none">
+        <Card className="h-full flex flex-col overflow-hidden min-h-0 border-green-200 shadow-lg rounded-none">
            {/* Header con pestañas de categorías */}
            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
              <div className="p-2 flex items-center justify-between border-b border-green-500/30">
@@ -299,7 +299,7 @@ export default function CoachParentChat({ embedded = false }) {
   }
 
   return (
-    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
+    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden min-h-0 pt-[100px] lg:pt-0 pb-0">
       {/* Modal de configuración */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
