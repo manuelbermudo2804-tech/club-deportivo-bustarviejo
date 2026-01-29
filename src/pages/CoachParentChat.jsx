@@ -316,7 +316,7 @@ export default function CoachParentChat({ embedded = false }) {
         </DialogContent>
       </Dialog>
 
-      <Card className="h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none border-green-200 shadow-lg">
+      <Card className="h-full flex flex-col overflow-hidden min-h-0 lg:rounded-lg rounded-none border-green-200 shadow-lg">
          {/* Header con pestañas de categorías */}
          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
            <div className="p-2 flex items-center justify-between border-b border-green-500/30">
