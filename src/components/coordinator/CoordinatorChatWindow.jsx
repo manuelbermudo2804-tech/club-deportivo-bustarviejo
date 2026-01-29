@@ -83,7 +83,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [messages, otherPersonTyping]);
+  }, [messages, otherPersonTyping, conversation?.id]);
 
   const handleTyping = async () => {
     if (!conversation?.id) return;

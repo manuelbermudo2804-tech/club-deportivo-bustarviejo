@@ -146,7 +146,7 @@ export default function CoordinatorChat({ embedded = false }) {
 
 
    return (
-    <div className="h-full flex flex-col lg:flex-row overflow-hidden">
+    <div className="h-full min-h-0 flex flex-col lg:flex-row overflow-hidden">
       {/* Modal de configuración */}
       {showSettings && (
         <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -161,7 +161,7 @@ export default function CoordinatorChat({ embedded = false }) {
       )}
       
       {/* Lista de conversaciones */}
-      <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col h-full overflow-hidden`}>
+      <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 min-h-0 flex-col h-full overflow-hidden`}>
         <div className="p-2 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -356,7 +356,7 @@ export default function CoordinatorChat({ embedded = false }) {
       </div>
 
       {/* Ventana de chat */}
-      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 h-full overflow-hidden`}>
+      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 min-h-0 h-full overflow-hidden`}>
         {selectedConversation ? (
           <CoordinatorChatWindow
             conversation={selectedConversation}
