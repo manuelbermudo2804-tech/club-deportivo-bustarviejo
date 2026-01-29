@@ -209,7 +209,7 @@ export default function AdminCoordinatorChats() {
   return (
     <div className="h-full min-h-0 flex flex-col lg:flex-row overflow-hidden">
       {/* Lista de conversaciones */}
-      <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col h-full overflow-hidden`}>
+      <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 min-h-0 flex-col h-full overflow-hidden`}>
         <div className="p-3 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-base font-bold flex items-center gap-2">
