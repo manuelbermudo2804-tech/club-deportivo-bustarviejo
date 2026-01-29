@@ -242,18 +242,23 @@ export default function BudgetManager({
         budgetId: budget.id
       });
 
-      if (data?.success && data?.spreadsheetUrl) {
-        queryClient.invalidateQueries({ queryKey: ['budgets'] });
-        if (win) { win.location.href = data.spreadsheetUrl; }
-        toast.success('✅ Hoja de cálculo abierta en Google Sheets');
-      } else {
-        // Fallback: intentar con la URL guardada cuando se refresque
+      // Si la función devolvió success, pero aún no tenemos url en memoria, refrescamos y usamos la guardada
+      if (data?.success) {
         await queryClient.invalidateQueries({ queryKey: ['budgets'] });
-        setTimeout(() => {
-          const url = budget?.google_sheet_url;
-          if (url && win) { win.location.href = url; toast.success('✅ Hoja de cálculo abierta'); }
-          else { if (win) win.close(); toast.error('No se pudo obtener la URL de Sheets'); }
-        }, 600);
+        const url = (data.spreadsheetUrl || budget?.google_sheet_url);
+        if (url && win) {
+          win.location.href = url;
+          toast.success('✅ Hoja de cálculo abierta en Google Sheets');
+        } else {
+          setTimeout(() => {
+            const fallbackUrl = budget?.google_sheet_url;
+            if (fallbackUrl && win) { win.location.href = fallbackUrl; toast.success('✅ Hoja de cálculo abierta'); }
+            else { if (win) win.close(); toast.error('No se pudo obtener la URL de Sheets'); }
+          }, 500);
+        }
+      } else {
+        if (win) win.close();
+        toast.error('No se pudo crear/actualizar la hoja');
       }
     } catch (error) {
       console.error('Error abriendo Sheets:', error);
