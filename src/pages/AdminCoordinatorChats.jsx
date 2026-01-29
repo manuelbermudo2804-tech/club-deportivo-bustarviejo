@@ -207,7 +207,7 @@ export default function AdminCoordinatorChats() {
   );
 
   return (
-    <div className="h-full flex flex-col lg:flex-row overflow-hidden">
+    <div className="h-full min-h-0 flex flex-col lg:flex-row overflow-hidden">
       {/* Lista de conversaciones */}
       <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 flex-col h-full overflow-hidden`}>
         <div className="p-3 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
@@ -371,7 +371,7 @@ export default function AdminCoordinatorChats() {
       </div>
 
       {/* Ventana de chat */}
-      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 h-full overflow-hidden`}>
+      <div className={`${selectedConversation ? 'flex' : 'hidden lg:flex'} flex-1 min-h-0 h-full overflow-hidden`}>
         {selectedConversation ? (
           <CoordinatorChatWindow
             conversation={selectedConversation}

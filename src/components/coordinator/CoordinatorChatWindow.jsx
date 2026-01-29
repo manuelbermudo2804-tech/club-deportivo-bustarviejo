@@ -41,6 +41,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const audioRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
+  const scrollContainerRef = useRef(null);
 
   const isCoordinator = user?.es_coordinador || user?.role === "admin";
 
@@ -84,6 +85,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [messages, otherPersonTyping, conversation?.id]);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [conversation?.id, messages.length]);
 
   const handleTyping = async () => {
     if (!conversation?.id) return;
@@ -562,7 +569,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Messages Area - scrollable */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
         {messages.map((msg, idx) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           
