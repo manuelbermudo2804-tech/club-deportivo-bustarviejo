@@ -103,44 +103,36 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     if (!user?.email || !selectedCategory) return;
 
-    // PASO 1: Limpiar INMEDIATAMENTE del store unificado
-    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
+    // LIMPIAR INMEDIATAMENTE (sin esperar mensajes)
+    UnifiedChatNotificationStore.clearNotifications(user.email, 'coach');
+    console.log(`✅ [CoachChat] Limpiado INMEDIATO badge para ${selectedCategory}`);
     
-    // PASO 2: Actualizar BD en paralelo (no bloquear)
+    // Actualizar contadores locales también
+    setUnreadByCategory(prev => ({ ...prev, [selectedCategory]: 0 }));
+
+    // BD en segundo plano
     (async () => {
       try {
         const catId = toGroupId(selectedCategory);
-        const normSel = normalizeCategory(selectedCategory);
-        const unread = messages.filter(m => {
-          const normMsgCat = normalizeCategory(m.deporte || '');
-          const matchGroup = m.grupo_id === catId;
-          const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
-          return m.tipo === 'padre_a_grupo' && (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
-        });
+        const allMsgs = await base44.entities.ChatMessage.filter({ grupo_id: catId, tipo: 'padre_a_grupo' });
+        const unread = allMsgs.filter(m => !m.leido_por?.some(lp => lp.email === user.email));
         
         if (unread.length > 0) {
-          await Promise.all(unread.slice(0, 10).map(msg => {
+          await Promise.all(unread.map(msg => {
             const leidoPor = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
             return base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
           }));
         }
         
-        const notifs = await base44.entities.AppNotification.filter({
-          usuario_email: user.email,
-          enlace: "CoachParentChat",
-          vista: false
-        });
-        await Promise.all(notifs.map(n =>
-          base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })
-        ));
+        const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: "CoachParentChat", vista: false });
+        await Promise.all(notifs.map(n => base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })));
         
-        const convId = toGroupId(selectedCategory);
-        await base44.functions.invoke('chatMarkRead', { chatType: 'coach', conversationId: convId });
+        await base44.functions.invoke('chatMarkRead', { chatType: 'coach', conversationId: catId });
       } catch (e) {
-        console.error('Error marking coach messages as read:', e);
+        console.error('Error BD:', e);
       }
     })();
-  }, [user?.email, selectedCategory]);
+  }, [selectedCategory, user?.email]);
 
   if (!user) {
     return (
