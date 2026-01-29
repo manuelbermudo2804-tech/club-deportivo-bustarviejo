@@ -528,7 +528,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-white overflow-hidden min-h-0">
+    <div className="flex flex-col h-full bg-white overflow-hidden min-h-0">
       <audio 
         ref={audioRef} 
         onEnded={() => setPlayingAudio(null)}
@@ -697,8 +697,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Bar - fija abajo */}
-      <div className="border-t bg-white flex-shrink-0 sticky bottom-0 left-0 right-0">
+      {/* Input Bar */}
+      <div className="border-t bg-white flex-shrink-0">
          <CoordinatorChatInput
            onSendMessage={handleSendMessage}
            onFileUpload={handleFileUpload}
