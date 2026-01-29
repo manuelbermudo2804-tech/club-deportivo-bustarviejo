@@ -570,7 +570,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Messages Area - scrollable */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-0 min-h-0 snap-y scroll-smooth" style={{backgroundColor: '#E5DDD5'}}>
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 pb-24 space-y-0 min-h-0 snap-y scroll-smooth" style={{backgroundColor: '#E5DDD5'}}>
         {messages.map((msg, idx) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           
@@ -697,8 +697,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Bar */}
-      <div className="border-t bg-white flex-shrink-0">
+      {/* Input Bar (fija) */}
+      <div className="border-t bg-white flex-shrink-0 sticky bottom-0 left-0 right-0 z-10">
          <CoordinatorChatInput
            onSendMessage={handleSendMessage}
            onFileUpload={handleFileUpload}
