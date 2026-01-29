@@ -161,7 +161,7 @@ export default function CoordinatorChat({ embedded = false }) {
       )}
       
       {/* Lista de conversaciones */}
-      <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 min-h-0 flex-col h-full overflow-hidden`}>
+      <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'} w-full lg:w-96 border-r bg-slate-50 min-h-0 flex-col h-full overflow-y-auto`}>
         <div className="p-2 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white">
           <div className="flex items-center justify-between mb-2">
             <div>

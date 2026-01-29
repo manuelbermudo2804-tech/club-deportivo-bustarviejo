@@ -180,10 +180,11 @@ Esta situación requiere intervención administrativa urgente.`;
         variant="outline"
         size="sm"
         onClick={() => setShowDialog(true)}
-        className="border-red-300 text-red-700 hover:bg-red-50 gap-2"
+        className="border-red-300 text-red-700 hover:bg-red-50 gap-2 whitespace-nowrap"
       >
         <ShieldAlert className="w-4 h-4" />
-        🚨 Escalar al Administrador
+        <span className="hidden sm:inline">🚨 Escalar al Administrador</span>
+        <span className="sm:hidden">🚨 Escalar</span>
       </Button>
 
       {/* Confirmación de éxito */}

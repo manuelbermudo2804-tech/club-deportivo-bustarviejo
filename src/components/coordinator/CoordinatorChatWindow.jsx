@@ -546,7 +546,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {conversation.prioritaria && <Star className="w-4 h-4 text-orange-400 fill-orange-400" />}
             {isCoordinator && (
               <EscalateToAdminButton 
