@@ -234,22 +234,30 @@ export default function BudgetManager({
   // Crear/Abrir Google Sheet
   const handleOpenInSheets = async () => {
     setCreatingSheet(true);
+    // Abrir pestaña en blanco de inmediato para evitar bloqueo de popups
+    const win = window.open('about:blank', '_blank');
     try {
       const { data } = await base44.functions.invoke('budgetSheets', {
         action: 'createOrUpdateSheet',
         budgetId: budget.id
       });
 
-      if (data.success) {
-        // Refrescar budget para obtener la URL
+      if (data?.success && data?.spreadsheetUrl) {
         queryClient.invalidateQueries({ queryKey: ['budgets'] });
-        
-        // Abrir en nueva pestaña
-        window.open(data.spreadsheetUrl, '_blank');
+        if (win) { win.location.href = data.spreadsheetUrl; }
         toast.success('✅ Hoja de cálculo abierta en Google Sheets');
+      } else {
+        // Fallback: intentar con la URL guardada cuando se refresque
+        await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+        setTimeout(() => {
+          const url = budget?.google_sheet_url;
+          if (url && win) { win.location.href = url; toast.success('✅ Hoja de cálculo abierta'); }
+          else { if (win) win.close(); toast.error('No se pudo obtener la URL de Sheets'); }
+        }, 600);
       }
     } catch (error) {
       console.error('Error abriendo Sheets:', error);
+      if (win) win.close();
       toast.error('Error al abrir Google Sheets');
     } finally {
       setCreatingSheet(false);

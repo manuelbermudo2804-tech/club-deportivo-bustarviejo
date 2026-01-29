@@ -146,7 +146,7 @@ export default function CoordinatorChat({ embedded = false }) {
 
 
    return (
-    <div className="h-full min-h-0 flex flex-col lg:flex-row overflow-hidden">
+       <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col lg:flex-row overflow-hidden pt-[100px] lg:pt-0">
       {/* Modal de configuración */}
       {showSettings && (
         <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">

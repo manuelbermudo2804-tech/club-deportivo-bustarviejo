@@ -528,7 +528,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white overflow-hidden min-h-0">
+    <div className="flex flex-col h-full w-full bg-white overflow-hidden min-h-0">
       <audio 
         ref={audioRef} 
         onEnded={() => setPlayingAudio(null)}
@@ -570,7 +570,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Messages Area - scrollable */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 pb-24 space-y-0 min-h-0 snap-y scroll-smooth" style={{backgroundColor: '#E5DDD5'}}>
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 pb-24 min-h-0 scroll-smooth" style={{backgroundColor: '#E5DDD5'}}>
         {messages.map((msg, idx) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           
