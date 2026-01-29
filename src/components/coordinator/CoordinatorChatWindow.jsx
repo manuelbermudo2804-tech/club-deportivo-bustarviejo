@@ -565,9 +565,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
             <MessageCircle className="w-4 h-4" />
             <div className="min-w-0">
               <h3 className="font-semibold text-sm truncate">{conversation.padre_nombre}</h3>
-              <p className="text-[11px] text-white/80 truncate">
-                {conversation.jugadores_asociados?.map(j => j.jugador_nombre).join(', ')}
-              </p>
+              <div className="flex items-center gap-1 text-[11px] text-white/80 min-w-0">
+                <span className="truncate max-w-[160px]">{childNames[0] || ''}</span>
+                {extraChildren > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/15 text-white whitespace-nowrap">+{extraChildren}</span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -577,12 +580,39 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
           </div>
         </div>
         {isCoordinator && (
-          <div className="mt-2 flex flex-wrap gap-2 items-center">
+          <div className="mt-2 flex flex-wrap gap-2 items-center justify-between">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Select value={conversation.etiqueta || "Otro"} onValueChange={handleChangeEtiqueta}>
+                <SelectTrigger className="h-8 w-40 sm:w-56 bg-white/10 text-white border-white/20">
+                  <SelectValue placeholder="Etiqueta" />
+                </SelectTrigger>
+                <SelectContent className="z-[1000]">
+                  <SelectItem value="Horarios">Horarios</SelectItem>
+                  <SelectItem value="Quejas">Quejas</SelectItem>
+                  <SelectItem value="Consulta Partido">Consulta Partido</SelectItem>
+                  <SelectItem value="Equipación">Equipación</SelectItem>
+                  <SelectItem value="Transporte">Transporte</SelectItem>
+                  <SelectItem value="Lesiones">Lesiones</SelectItem>
+                  <SelectItem value="Otro">Otro</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="sm" onClick={togglePrioritaria} className="text-white hover:bg-white/20 h-8 px-3" title={conversation.prioritaria ? "Quitar prioridad" : "Marcar prioritaria"}>
+                <Star className={`w-4 h-4 ${conversation.prioritaria ? 'text-orange-300 fill-orange-300' : ''}`} />
+                <span className="ml-1 hidden sm:inline text-xs">Prioridad</span>
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <EscalateToAdminButton 
+                conversation={conversation}
+                recentMessages={messages}
+                coordinatorUser={user}
+              />
+            </div>
             <Select value={conversation.etiqueta || "Otro"} onValueChange={handleChangeEtiqueta}>
-              <SelectTrigger className="h-8 w-[180px] sm:w-56 bg-white/10 text-white border-white/20">
+              <SelectTrigger className="h-8 w-40 sm:w-56 bg-white/10 text-white border-white/20">
                 <SelectValue placeholder="Etiqueta" />
               </SelectTrigger>
-              <SelectContent className="z-[60]">
+              <SelectContent className="z-[1000]">
                 <SelectItem value="Horarios">Horarios</SelectItem>
                 <SelectItem value="Quejas">Quejas</SelectItem>
                 <SelectItem value="Consulta Partido">Consulta Partido</SelectItem>
