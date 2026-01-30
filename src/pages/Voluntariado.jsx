@@ -62,7 +62,12 @@ export default function Voluntariado() {
         {opportunities.map((opp)=>{
           const count = signups.filter((s)=> s.opportunity_id === opp.id).length;
           return (
-            <OpportunityCard key={opp.id} opp={opp} count={count} onSignup={()=>doSignup.mutate({ opp })} />
+            <OpportunityCard key={opp.id} opp={opp} count={count} onSignup={()=>{
+              const nombre = prompt('¿A nombre de quién? (tú u otra persona)') || '';
+              const telefono = prompt('Teléfono de contacto (opcional)') || '';
+              const por_quien = nombre && (nombre !== (myProfile?.nombre || user?.full_name || user?.email)) ? 'familiar' : 'yo';
+              doSignup.mutate({ opp, por_quien, nombre, telefono });
+            }} />
           );
         })}
       </div>
