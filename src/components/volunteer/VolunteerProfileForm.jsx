@@ -19,7 +19,8 @@ export default function VolunteerProfileForm({ initial, onSubmit }) {
       <Select value={form.relacion} onValueChange={(v) => setForm({ ...form, relacion: v })}>
         <SelectTrigger><SelectValue placeholder="Relación" /></SelectTrigger>
         <SelectContent>
-          <SelectItem value="padre/madre">Padre/Madre</SelectItem>
+          <SelectItem value="padre">Padre</SelectItem>
+          <SelectItem value="madre">Madre</SelectItem>
           <SelectItem value="jugador">Jugador</SelectItem>
           <SelectItem value="familiar">Familiar</SelectItem>
           <SelectItem value="otro">Otro</SelectItem>
