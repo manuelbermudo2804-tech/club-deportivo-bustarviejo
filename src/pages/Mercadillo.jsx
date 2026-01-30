@@ -13,6 +13,7 @@ export default function Mercadillo() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [filter, setFilter] = useState('todos');
+  const [newCount, setNewCount] = useState(0);
   const [category, setCategory] = useState('todas');
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
@@ -27,6 +28,11 @@ export default function Mercadillo() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const lastSeen = Number(localStorage.getItem('marketLastSeenCount') || 0);
+    setNewCount(listings.length > lastSeen ? (listings.length - lastSeen) : 0);
+  }, [listings]);
 
   const reserve = async (item) => {
     if (!user) { alert('Debes estar conectado para reservar'); return; }
@@ -52,7 +58,13 @@ export default function Mercadillo() {
       subject: `Nueva reserva: ${item.titulo}`,
       body: `Hola ${item.vendedor_nombre || ''},\n\n${comprador_nombre} quiere reservar tu anuncio: ${item.titulo}.\nEmail: ${user.email}\nTeléfono: ${user.telefono || ''}\n\nPoneos de acuerdo para la entrega.\n\nCD Bustarviejo`
     });
-    alert('Reserva enviada. El vendedor ha sido notificado.');
+    // Confirmación al comprador
+    await base44.integrations.Core.SendEmail({
+      to: user.email,
+      subject: `Has solicitado reservar: ${item.titulo}`,
+      body: `Hola ${comprador_nombre},\n\nHemos avisado por email al vendedor (${item.vendedor_nombre || item.vendedor_email}).\nTe recomendamos escribirle o llamarle para cerrar la entrega.\n\nAnuncio: ${item.titulo}\nCategoría: ${item.categoria}\nPrecio: ${Number(item.precio||0).toFixed(2)} €\n\nGracias por usar el mercadillo del club.\nCD Bustarviejo`
+    });
+    alert('¡Reserva enviada! Hemos avisado por email al vendedor y te hemos mandado una confirmación.');
     await load();
   };
 
@@ -74,6 +86,13 @@ export default function Mercadillo() {
         <h1 className="text-3xl font-black">🛍️ Mercadillo Deportivo</h1>
         <p className="text-slate-600">Compra, vende o dona material deportivo dentro del club.</p>
       </div>
+
+      {newCount > 0 && (
+        <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl p-3 flex items-center justify-between">
+          <span className="font-medium">Tienes {newCount} anuncio(s) nuevo(s) desde tu última visita</span>
+          <Button size="sm" variant="outline" onClick={() => { localStorage.setItem('marketLastSeenCount', String(listings.length)); setNewCount(0); }}>Marcar como visto</Button>
+        </div>
+      )}
 
       <Card className="p-4">
         <div className="space-y-3">
