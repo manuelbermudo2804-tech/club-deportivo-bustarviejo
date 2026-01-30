@@ -34,10 +34,10 @@ export default function Voluntariado() {
     return base44.entities.VolunteerOpportunity.create({ ...payload, creado_por: user.email });
   }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_opps"]}); setOpenOpp(false); }});
 
-  const doSignup = useMutation({ mutationFn: async ({ opp }) => {
-    const name = myProfile?.nombre || user?.full_name || user?.email;
-    const tel = myProfile?.telefono || "";
-    await base44.entities.VolunteerSignup.create({ opportunity_id: opp.id, volunteer_email: user.email, volunteer_nombre: name, volunteer_telefono: tel });
+  const doSignup = useMutation({ mutationFn: async ({ opp, por_quien, nombre, telefono, mensaje }) => {
+    const name = nombre || myProfile?.nombre || user?.full_name || user?.email;
+    const tel = (telefono || myProfile?.telefono || "").toString();
+    await base44.entities.VolunteerSignup.create({ opportunity_id: opp.id, volunteer_email: user.email, volunteer_nombre: name, volunteer_telefono: tel, por_quien: por_quien || 'yo', mensaje: mensaje || '' });
   }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_signups"]}); }});
 
   const isStaff = !!(user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador);
