@@ -1338,18 +1338,18 @@ export default function Layout({ children, currentPageName }) {
     { title: "─ GESTIÓN DE PERSONAS ─", section: true },
     { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
     { title: "🔄 Dashboard Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
-    { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },,
+    { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
     { title: "📧 Solicitudes Invitación", url: createPageUrl("InvitationRequests"), icon: Mail, badge: pendingInvitations > 0 ? pendingInvitations : null },
-    { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },,
+    { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
 
     // ⚽ DEPORTIVO
     { title: "─ DEPORTIVO ─", section: true },
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },,
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
 
     // 📢 COMUNICACIÓN
@@ -1366,14 +1366,14 @@ export default function Layout({ children, currentPageName }) {
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
             { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
-            { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },,
-        { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },,
+            { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
+        { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },
 
                 // 🎉 CONTENIDO
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
                                     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
-                                    { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },,
-                                    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+                                    { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+                                    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
                       
 
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
@@ -1406,15 +1406,15 @@ export default function Layout({ children, currentPageName }) {
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
       { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
-      { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },,
+      { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
       { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
       { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
       { title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3, badge: pendingMatchObservations > 0 ? pendingMatchObservations : null, urgentBadge: pendingMatchObservations > 0 },
 
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },,
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
 
       // 📊 REPORTES
       { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
@@ -1430,7 +1430,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
       // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
-      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },] : []),
+      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
       ...(hasPlayers ? [{ title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
       ...(hasPlayers ? [{ title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
@@ -1439,7 +1439,7 @@ export default function Layout({ children, currentPageName }) {
       ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
       // 🎫 SOCIO
-      { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },,
+      { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
 
       // ⚙️ CONFIGURACIÓN
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
@@ -1469,7 +1469,7 @@ export default function Layout({ children, currentPageName }) {
       // ⚽ GESTIÓN DEPORTIVA (trabajo principal)
       { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
       { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
-      { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },,
+      { title: "🎓 Plantillas", url: createPageUrl("TeamRosters"), icon: Users },
       { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
       { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
       { title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3, badge: pendingMatchObservations > 0 ? pendingMatchObservations : null, urgentBadge: pendingMatchObservations > 0 },
@@ -1480,8 +1480,8 @@ export default function Layout({ children, currentPageName }) {
 
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },,
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
 
       // 👤 PERFIL
       { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
@@ -1493,7 +1493,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
       // 👨‍👩‍👧 SECCIÓN FAMILIA (si tiene hijos)
-      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },] : []),
+      ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
       ...(hasPlayers ? [{ title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
       ...(hasPlayers ? [{ title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
@@ -1502,7 +1502,7 @@ export default function Layout({ children, currentPageName }) {
       ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
       // 🎫 SOCIO
-      { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },,
+      { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
 
       // ⚙️ CONFIGURACIÓN
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
@@ -1534,12 +1534,12 @@ export default function Layout({ children, currentPageName }) {
 
     // 💰 PAGOS Y JUGADORES
     { title: "💳 Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
-    { title: "👥 Mis Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },,
+    { title: "👥 Mis Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
 
     // 📅 CALENDARIO Y EVENTOS
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },,
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     
@@ -1550,14 +1550,17 @@ export default function Layout({ children, currentPageName }) {
 
     // 🛍️ PEDIDOS
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag }
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
     // 🖼️ CONTENIDO
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag },
+              { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
 
-    // 📋 EXTRAS
+              // 📋 EXTRAS
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },,
+    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     ];
 
   const playerNavigationItems = [
@@ -1585,17 +1588,19 @@ export default function Layout({ children, currentPageName }) {
 
     // 📅 CALENDARIO E INFO
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-          { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },,
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+          { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
-    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag },
+              { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+              { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+              { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText }
 
     // 🎫 EXTRAS
-    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },,
+    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
   const treasurerNavigationItems = [
@@ -1613,19 +1618,19 @@ export default function Layout({ children, currentPageName }) {
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    { title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },,
+    { title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-          { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },,
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+          { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
-    { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },,
+    { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "🖊️ Firmas Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },,
+    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
   let navigationItems;
@@ -1645,13 +1650,13 @@ export default function Layout({ children, currentPageName }) {
         { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
 
         { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-          { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },,
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+          { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
         { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
         { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
         { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
         { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-        { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },,
+        { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
       ];
     } else {
       // Usuario normal de familia (padre/madre sin roles especiales)
