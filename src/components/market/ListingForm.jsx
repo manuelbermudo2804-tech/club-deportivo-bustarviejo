@@ -41,15 +41,6 @@ export default function ListingForm({ listing, onSaved }) {
       await base44.entities.MarketListing.update(listing.id, payload);
     } else {
       await base44.entities.MarketListing.create(payload);
-      try {
-        await base44.entities.Announcement.create({
-          titulo: `Nuevo anuncio en Mercadillo: ${payload.titulo}`,
-          contenido: payload.descripcion || 'Hay un nuevo artículo disponible en el mercadillo.',
-          prioridad: 'Normal',
-          destinatarios_tipo: 'Todos',
-          publicado: true
-        });
-      } catch (e) {}
     }
     onSaved?.();
   };

@@ -622,6 +622,9 @@ export default function Layout({ children, currentPageName }) {
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
   
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
+  // Mercadillo badge
+  const [marketCount, setMarketCount] = useState(0);
+  const [marketNewCount, setMarketNewCount] = useState(0);
 
   const [installContext, setInstallContext] = useState('manual');
 
@@ -773,6 +776,47 @@ export default function Layout({ children, currentPageName }) {
     }, []);
 
     // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
+  // Badge Mercadillo: cargar conteo y calcular nuevos
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await base44.entities.MarketListing.filter({ estado: 'activo' });
+        const count = (data || []).length;
+        setMarketCount(count);
+        const lastSeen = Number(localStorage.getItem('marketLastSeenCount') || 0);
+        setMarketNewCount(count > lastSeen ? count - lastSeen : 0);
+      } catch {}
+    };
+    load();
+  }, []);
+
+  // Actualizar al volver a la app
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible') {
+        (async () => {
+          try {
+            const data = await base44.entities.MarketListing.filter({ estado: 'activo' });
+            const count = (data || []).length;
+            setMarketCount(count);
+            const lastSeen = Number(localStorage.getItem('marketLastSeenCount') || 0);
+            setMarketNewCount(count > lastSeen ? count - lastSeen : 0);
+          } catch {}
+        })();
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
+  // Marcar como visto al entrar en Mercadillo
+  useEffect(() => {
+    const p = location.pathname.toLowerCase();
+    if (p.includes('mercadillo') && marketCount > 0) {
+      localStorage.setItem('marketLastSeenCount', String(marketCount));
+      setMarketNewCount(0);
+    }
+  }, [location.pathname, marketCount]);
 
   // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation, PWA aliases)
   const [authChecked, setAuthChecked] = useState(false);
@@ -1349,7 +1393,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
 
     // 📢 COMUNICACIÓN
@@ -1373,7 +1417,7 @@ export default function Layout({ children, currentPageName }) {
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
                                     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
                                     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-                                    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+                                    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
 
 
         { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
@@ -1414,7 +1458,7 @@ export default function Layout({ children, currentPageName }) {
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
 
       // 📊 REPORTES
       { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
@@ -1481,7 +1525,7 @@ export default function Layout({ children, currentPageName }) {
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
 
       // 👤 PERFIL
       { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
@@ -1539,7 +1583,7 @@ export default function Layout({ children, currentPageName }) {
     // 📅 CALENDARIO Y EVENTOS
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     
@@ -1550,12 +1594,12 @@ export default function Layout({ children, currentPageName }) {
 
     // 🛍️ PEDIDOS
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag },
+    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag, badge: marketNewCount > 0 ? marketNewCount : null },
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
     // 🖼️ CONTENIDO
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
-              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag },
+              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag, badge: marketNewCount > 0 ? marketNewCount : null },
               { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
 
               // 📋 EXTRAS
@@ -1589,12 +1633,12 @@ export default function Layout({ children, currentPageName }) {
     // 📅 CALENDARIO E INFO
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
           { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag },
+              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag, badge: marketNewCount > 0 ? marketNewCount : null },
               { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
               { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
               { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
@@ -1621,7 +1665,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
           { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
     { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
@@ -1651,7 +1695,7 @@ export default function Layout({ children, currentPageName }) {
 
         { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
           { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
         { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
         { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
         { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
