@@ -76,13 +76,49 @@ export default function Mercadillo() {
       </div>
 
       <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant={filter==='todos'?'default':'outline'} onClick={() => setFilter('todos')}>Todos</Button>
-            <Button size="sm" variant={filter==='venta'?'default':'outline'} onClick={() => setFilter('venta')}>Venta</Button>
-            <Button size="sm" variant={filter==='donacion'?'default':'outline'} onClick={() => setFilter('donacion')}>Donación</Button>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
+            {/* Categoría */}
+            <Select value={category} onValueChange={(v) => setCategory(v)}>
+              <SelectTrigger><SelectValue placeholder="Categoría" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                {CATEGORIES.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Tipo */}
+            <Select value={filter} onValueChange={(v) => setFilter(v)}>
+              <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="venta">Venta</SelectItem>
+                <SelectItem value="donacion">Donación</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Precio mín */}
+            <Input type="number" min="0" step="0.01" placeholder="Precio mín." value={priceMin} onChange={(e) => setPriceMin(e.target.value)} />
+            {/* Precio máx */}
+            <Input type="number" min="0" step="0.01" placeholder="Precio máx." value={priceMax} onChange={(e) => setPriceMax(e.target.value)} />
+
+            {/* Búsqueda por palabras */}
+            <Input placeholder="Buscar por palabras" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
-          <Button size="sm" onClick={() => { setEditing(null); setShowForm(v => !v); }} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 sm:ml-auto mt-2 sm:mt-0">{showForm ? 'Cerrar' : 'Publicar anuncio'}</Button>
+
+          <div className="flex flex-wrap gap-2 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => { setCategory('todas'); setFilter('todos'); setPriceMin(''); setPriceMax(''); setQ(''); }}
+            >
+              Limpiar filtros
+            </Button>
+            <Button size="sm" onClick={() => { setEditing(null); setShowForm(v => !v); }} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700">
+              {showForm ? 'Cerrar' : 'Publicar anuncio'}
+            </Button>
+          </div>
         </div>
         {showForm && (
           <div className="mt-4">
