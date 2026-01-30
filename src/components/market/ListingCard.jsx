@@ -15,7 +15,7 @@ export default function ListingCard({ item, onReserve, onEdit }) {
         </div>
         <div className="text-right">
           <Badge className="mb-1">{item.categoria}</Badge>
-          <div className="text-xl font-extrabold {isFree ? 'text-green-600' : 'text-slate-900'}">
+          <div className={`text-xl font-extrabold ${isFree ? 'text-green-600' : 'text-slate-900'}`}>
             {isFree ? 'GRATIS' : `${Number(item.precio).toFixed(2)} €`}
           </div>
         </div>
