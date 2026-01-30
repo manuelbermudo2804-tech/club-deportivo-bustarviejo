@@ -152,6 +152,8 @@ import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
+import Voluntariado from './pages/Voluntariado';
+import Mercadillo from './pages/Mercadillo';
 import __Layout from './Layout.jsx';
 
 
@@ -261,6 +263,8 @@ export const PAGES = {
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
+    "Voluntariado": Voluntariado,
+    "Mercadillo": Mercadillo,
 }
 
 export const pagesConfig = {
