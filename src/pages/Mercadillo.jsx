@@ -60,13 +60,13 @@ export default function Mercadillo() {
       </div>
 
       <Card className="p-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Button variant={filter==='todos'?'default':'outline'} onClick={() => setFilter('todos')}>Todos</Button>
-            <Button variant={filter==='venta'?'default':'outline'} onClick={() => setFilter('venta')}>Venta</Button>
-            <Button variant={filter==='donacion'?'default':'outline'} onClick={() => setFilter('donacion')}>Donación</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant={filter==='todos'?'default':'outline'} onClick={() => setFilter('todos')}>Todos</Button>
+            <Button size="sm" variant={filter==='venta'?'default':'outline'} onClick={() => setFilter('venta')}>Venta</Button>
+            <Button size="sm" variant={filter==='donacion'?'default':'outline'} onClick={() => setFilter('donacion')}>Donación</Button>
           </div>
-          <Button onClick={() => { setEditing(null); setShowForm(v => !v); }} className="bg-orange-600 hover:bg-orange-700">{showForm ? 'Cerrar' : 'Publicar anuncio'}</Button>
+          <Button size="sm" onClick={() => { setEditing(null); setShowForm(v => !v); }} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 sm:ml-auto mt-2 sm:mt-0">{showForm ? 'Cerrar' : 'Publicar anuncio'}</Button>
         </div>
         {showForm && (
           <div className="mt-4">
