@@ -107,6 +107,7 @@ import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
 import MemberCardDisplay from './pages/MemberCardDisplay';
 import MemberManagement from './pages/MemberManagement';
+import Mercadillo from './pages/Mercadillo';
 import NotificationPreferences from './pages/NotificationPreferences';
 import OrderManagement from './pages/OrderManagement';
 import PWASetup from './pages/PWASetup';
@@ -153,7 +154,6 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import Mercadillo from './pages/Mercadillo';
 import __Layout from './Layout.jsx';
 
 
@@ -218,6 +218,7 @@ export const PAGES = {
     "MedicalRecords": MedicalRecords,
     "MemberCardDisplay": MemberCardDisplay,
     "MemberManagement": MemberManagement,
+    "Mercadillo": Mercadillo,
     "NotificationPreferences": NotificationPreferences,
     "OrderManagement": OrderManagement,
     "PWASetup": PWASetup,
@@ -264,7 +265,6 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "Mercadillo": Mercadillo,
 }
 
 export const pagesConfig = {
