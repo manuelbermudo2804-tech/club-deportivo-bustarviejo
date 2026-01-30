@@ -17,7 +17,7 @@ export default function Voluntariado() {
   useEffect(()=>{ base44.auth.me().then(setUser).catch(()=>{}); },[]);
 
   const { data: myProfile } = useQuery({ queryKey:["volunteer_profile"], enabled: !!user, queryFn: async()=>{
-    const list = await base44.entities.VolunteerProfile.filter({ user_email: user.email });
+    const list = await base44.entities.VolunteerProfile.filter({ email: user.email });
     return list[0] || null;
   }});
 
@@ -74,7 +74,7 @@ export default function Voluntariado() {
 
       <Dialog open={openProfile} onOpenChange={setOpenProfile}>
         <DialogContent className="sm:max-w-lg">
-          <VolunteerProfileForm initial={myProfile||{ user_email: user?.email }} onSubmit={(payload)=>saveProfile.mutate(payload)} />
+          <VolunteerProfileForm initial={myProfile||{ email: user?.email }} onSubmit={(payload)=>saveProfile.mutate(payload)} />
         </DialogContent>
       </Dialog>
 

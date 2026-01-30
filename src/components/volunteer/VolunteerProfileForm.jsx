@@ -5,15 +5,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 
 export default function VolunteerProfileForm({ initial, onSubmit }) {
-  const [form, setForm] = useState(initial || { relacion: "padre/madre", puede_whatsapp: true, intereses: [], disponibilidad: [] });
-  useEffect(() => { setForm(initial || { relacion: "padre/madre", puede_whatsapp: true, intereses: [], disponibilidad: [] }); }, [initial]);
+  const [form, setForm] = useState(initial || { relacion: "padre", activo: true, areas: [], disponibilidad: "" });
+  useEffect(() => { setForm(initial || { relacion: "padre", activo: true, areas: [], disponibilidad: "" }); }, [initial]);
 
   const toggleArr = (key, val) => setForm((f) => ({ ...f, [key]: (f[key] || []).includes(val) ? f[key].filter((v) => v !== val) : [...(f[key] || []), val] }));
 
   return (
     <div className="space-y-3">
       <Input placeholder="Nombre y apellidos" value={form.nombre || ""} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
-      <Input placeholder="Email" value={form.user_email || ""} onChange={(e) => setForm({ ...form, user_email: e.target.value })} />
+      <Input placeholder="Email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
       <Input placeholder="Teléfono" value={form.telefono || ""} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
 
       <Select value={form.relacion} onValueChange={(v) => setForm({ ...form, relacion: v })}>
@@ -27,16 +27,14 @@ export default function VolunteerProfileForm({ initial, onSubmit }) {
       </Select>
 
       <div>
-        <p className="text-sm font-medium mb-1">Intereses</p>
-        {['eventos','logistica','comunicacion','dia_a_dia'].map((opt) => (
-          <label key={opt} className="mr-3 text-sm"><input type="checkbox" className="mr-1" checked={(form.intereses||[]).includes(opt)} onChange={() => toggleArr('intereses', opt)} /> {opt}</label>
+        <p className="text-sm font-medium mb-1">Áreas donde ayudar</p>
+        {['dia_a_dia','eventos','logistica','bar','transporte','fotografia'].map((opt) => (
+          <label key={opt} className="mr-3 text-sm"><input type="checkbox" className="mr-1" checked={(form.areas||[]).includes(opt)} onChange={() => toggleArr('areas', opt)} /> {opt}</label>
         ))}
       </div>
       <div>
-        <p className="text-sm font-medium mb-1">Disponibilidad</p>
-        {['mananas','tardes','fines_de_semana','eventos','diario'].map((opt) => (
-          <label key={opt} className="mr-3 text-sm"><input type="checkbox" className="mr-1" checked={(form.disponibilidad||[]).includes(opt)} onChange={() => toggleArr('disponibilidad', opt)} /> {opt}</label>
-        ))}
+        <p className="text-sm font-medium mb-1">Disponibilidad (días/horas)</p>
+        <Textarea placeholder="Ej: fines de semana por la mañana" value={form.disponibilidad || ""} onChange={(e)=> setForm({ ...form, disponibilidad: e.target.value })} />
       </div>
 
       <Textarea placeholder="Notas (opcional)" value={form.notas || ""} onChange={(e) => setForm({ ...form, notas: e.target.value })} />
