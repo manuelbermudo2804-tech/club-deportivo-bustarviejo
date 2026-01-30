@@ -1597,10 +1597,10 @@ export default function Layout({ children, currentPageName }) {
               { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag },
               { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
               { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
-              { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText }
+              { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
 
-    // 🎫 EXTRAS
-    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+              // 🎫 EXTRAS
+              { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
   ];
 
   const treasurerNavigationItems = [
