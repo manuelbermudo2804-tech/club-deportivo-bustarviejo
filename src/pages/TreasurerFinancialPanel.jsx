@@ -458,7 +458,7 @@ export default function TreasurerFinancialPanel() {
   }
 
   return (
-    <div className="min-h-screen overflow-y-auto p-6 space-y-6">
+    <div className="min-h-screen overflow-y-auto p-6 space-y-6 pb-28">
       {/* Alerta automática de morosidad */}
       <AutomaticMorosidadAlert 
         totalIngresos={totalIngresos}

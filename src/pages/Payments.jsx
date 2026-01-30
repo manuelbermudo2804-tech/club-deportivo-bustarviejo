@@ -674,7 +674,7 @@ export default function Payments() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6 pb-28">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">

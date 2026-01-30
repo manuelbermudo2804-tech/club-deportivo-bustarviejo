@@ -115,7 +115,7 @@ export default function PaymentHistory() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6 pb-28">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Histórico de Pagos</h1>
         <p className="text-slate-600 mt-1">Consulta pagos de temporadas anteriores agrupados por jugador</p>
