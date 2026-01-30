@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Plus, CheckCircle2 } from "lucide-react";
 import VolunteerProfileForm from "@/components/volunteer/VolunteerProfileForm";
 import OpportunityForm from "@/components/volunteer/OpportunityForm";
 import OpportunityCard from "@/components/volunteer/OpportunityCard";
@@ -13,6 +13,7 @@ export default function Voluntariado() {
   const [user, setUser] = useState(null);
   const [openProfile, setOpenProfile] = useState(false);
   const [openOpp, setOpenOpp] = useState(false);
+  const [openSuccess, setOpenSuccess] = useState(false);
 
   useEffect(()=>{ base44.auth.me().then(setUser).catch(()=>{}); },[]);
 
@@ -28,7 +29,7 @@ export default function Voluntariado() {
   const saveProfile = useMutation({ mutationFn: async (payload) => {
     if (myProfile) return base44.entities.VolunteerProfile.update(myProfile.id, payload);
     return base44.entities.VolunteerProfile.create(payload);
-  }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_profile"]}); setOpenProfile(false); }});
+  }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_profile"]}); setOpenProfile(false); setOpenSuccess(true); }});
 
   const createOpp = useMutation({ mutationFn: async (payload) => {
     return base44.entities.VolunteerOpportunity.create({ ...payload, creado_por: user.email });
@@ -74,7 +75,22 @@ export default function Voluntariado() {
 
       <Dialog open={openProfile} onOpenChange={setOpenProfile}>
         <DialogContent className="sm:max-w-lg">
-          <VolunteerProfileForm initial={myProfile||{ email: user?.email }} onSubmit={(payload)=>saveProfile.mutate(payload)} />
+          <VolunteerProfileForm initial={myProfile||{ email: user?.email }} onSubmit={(payload)=>{
+              const clean = { ...payload, email: payload.email || user?.email };
+              saveProfile.mutate(clean);
+            }} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Éxito al guardar perfil */}
+      <Dialog open={openSuccess} onOpenChange={setOpenSuccess}>
+        <DialogContent className="sm:max-w-md text-center space-y-3">
+          <div className="mx-auto w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8 text-green-600" />
+          </div>
+          <h3 className="text-xl font-bold">¡Gracias!</h3>
+          <p className="text-slate-600 text-sm">Tu perfil de voluntariado se ha guardado correctamente. Pronto contaremos contigo en actividades del club.</p>
+          <Button className="w-full bg-green-600 hover:bg-green-700" onClick={()=> setOpenSuccess(false)}>Cerrar</Button>
         </DialogContent>
       </Dialog>
 

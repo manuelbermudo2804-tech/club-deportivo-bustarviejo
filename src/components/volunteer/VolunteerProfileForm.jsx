@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 
 export default function VolunteerProfileForm({ initial, onSubmit }) {
+  const [error, setError] = useState("");
   const [form, setForm] = useState(initial || { relacion: "padre", activo: true, areas: [], disponibilidad: "" });
   useEffect(() => { setForm(initial || { relacion: "padre", activo: true, areas: [], disponibilidad: "" }); }, [initial]);
 
@@ -12,6 +13,7 @@ export default function VolunteerProfileForm({ initial, onSubmit }) {
 
   return (
     <div className="space-y-3">
+      {error && <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-md p-2">{error}</div>}
       <Input placeholder="Nombre y apellidos" value={form.nombre || ""} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
       <Input placeholder="Email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
       <Input placeholder="Teléfono" value={form.telefono || ""} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
@@ -40,7 +42,14 @@ export default function VolunteerProfileForm({ initial, onSubmit }) {
 
       <Textarea placeholder="Notas (opcional)" value={form.notas || ""} onChange={(e) => setForm({ ...form, notas: e.target.value })} />
 
-      <Button onClick={() => onSubmit(form)} className="w-full">Guardar perfil</Button>
+      <Button onClick={() => {
+        if (!form.nombre || !form.email || !form.telefono || !form.relacion) {
+          setError('Por favor, completa nombre, email, teléfono y relación.');
+          return;
+        }
+        setError('');
+        onSubmit(form);
+      }} className="w-full">Guardar perfil</Button>
     </div>
   );
 }
