@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ListingForm from "../components/market/ListingForm";
 import ListingCard from "../components/market/ListingCard";
 
@@ -12,6 +13,11 @@ export default function Mercadillo() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [filter, setFilter] = useState('todos');
+  const [category, setCategory] = useState('todas');
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [q, setQ] = useState('');
+  const CATEGORIES = ['Fútbol','Baloncesto','Equipación','Calzado','Protecciones','Accesorios','Otro Deportivo'];
 
   const load = async () => {
     const u = await base44.auth.me().catch(() => null);
@@ -50,7 +56,17 @@ export default function Mercadillo() {
     await load();
   };
 
-  const filtered = listings.filter(l => filter === 'todos' ? true : (filter === 'donacion' ? l.tipo === 'donacion' : l.tipo === 'venta'));
+  const filtered = listings.filter((l) => {
+    const typeMatch = filter === 'todos' || l.tipo === filter;
+    const categoryMatch = category === 'todas' || l.categoria === category;
+    const keyword = q.trim().toLowerCase();
+    const keywordMatch = !keyword || (l.titulo?.toLowerCase().includes(keyword) || l.descripcion?.toLowerCase().includes(keyword));
+    let priceMatch = true;
+    const p = Number(l.precio || 0);
+    if (priceMin !== '' && l.tipo === 'venta' && p < Number(priceMin)) priceMatch = false;
+    if (priceMax !== '' && l.tipo === 'venta' && p > Number(priceMax)) priceMatch = false;
+    return typeMatch && categoryMatch && keywordMatch && priceMatch;
+  });
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
