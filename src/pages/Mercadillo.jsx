@@ -33,6 +33,13 @@ export default function Mercadillo() {
       mensaje: 'Reserva desde la app',
       fecha: new Date().toISOString()
     });
+    // Marcar anuncio como reservado
+    await base44.entities.MarketListing.update(item.id, {
+      estado: 'reservado',
+      reservado_por_email: user.email,
+      reservado_por_nombre: comprador_nombre,
+      reservado_fecha: new Date().toISOString()
+    });
     // Aviso por email al vendedor
     await base44.integrations.Core.SendEmail({
       to: item.vendedor_email,
@@ -40,6 +47,7 @@ export default function Mercadillo() {
       body: `Hola ${item.vendedor_nombre || ''},\n\n${comprador_nombre} quiere reservar tu anuncio: ${item.titulo}.\nEmail: ${user.email}\nTeléfono: ${user.telefono || ''}\n\nPoneos de acuerdo para la entrega.\n\nCD Bustarviejo`
     });
     alert('Reserva enviada. El vendedor ha sido notificado.');
+    await load();
   };
 
   const filtered = listings.filter(l => filter === 'todos' ? true : (filter === 'donacion' ? l.tipo === 'donacion' : l.tipo === 'venta'));
