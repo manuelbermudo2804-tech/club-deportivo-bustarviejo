@@ -23,7 +23,7 @@ export default function Voluntariado() {
 
   const { data: opportunities = [] } = useQuery({ queryKey:["volunteer_opps"], queryFn: ()=> base44.entities.VolunteerOpportunity.list("-created_date", 100) });
   const { data: signups = [] } = useQuery({ queryKey:["volunteer_signups"], queryFn: ()=> base44.entities.VolunteerSignup.list("-created_date", 200) });
-  const { data: profiles = [] } = useQuery({ queryKey:["volunteer_profiles_all"], enabled: !!user && (user.role === 'admin' || user.es_entrenador || user.es_coordinador), queryFn: ()=> base44.entities.VolunteerProfile.list("-created_date", 500) });
+  const { data: profiles = [] } = useQuery({ queryKey:["volunteer_profiles_all"], enabled: !!user && (user.role === 'admin' || user.es_coordinador), queryFn: ()=> base44.entities.VolunteerProfile.list("-created_date", 500) });
 
   const saveProfile = useMutation({ mutationFn: async (payload) => {
     if (myProfile) return base44.entities.VolunteerProfile.update(myProfile.id, payload);
