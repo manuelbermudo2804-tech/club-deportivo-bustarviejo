@@ -1349,7 +1349,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
 
     // 📢 COMUNICACIÓN
@@ -1366,14 +1366,14 @@ export default function Layout({ children, currentPageName }) {
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
             { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
-            { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },,
+            { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
         { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },
 
                 // 🎉 CONTENIDO
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
                                     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
                                     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-                                    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
+                                    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift }
                       
 
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
@@ -1414,7 +1414,7 @@ export default function Layout({ children, currentPageName }) {
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
 
       // 📊 REPORTES
       { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
@@ -1481,7 +1481,7 @@ export default function Layout({ children, currentPageName }) {
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
 
       // 👤 PERFIL
       { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
@@ -1539,7 +1539,7 @@ export default function Layout({ children, currentPageName }) {
     // 📅 CALENDARIO Y EVENTOS
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     
@@ -1597,7 +1597,7 @@ export default function Layout({ children, currentPageName }) {
               { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag },
               { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
               { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
-              { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+              { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText }
 
     // 🎫 EXTRAS
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
@@ -1621,7 +1621,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
           { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
     { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
@@ -1651,7 +1651,7 @@ export default function Layout({ children, currentPageName }) {
 
         { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
           { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },,
+          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift },
         { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
         { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
         { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
