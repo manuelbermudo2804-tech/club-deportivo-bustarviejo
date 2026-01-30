@@ -1554,8 +1554,10 @@ export default function Layout({ children, currentPageName }) {
 
     // 🖼️ CONTENIDO
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag },
+              { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
 
-    // 📋 EXTRAS
+              // 📋 EXTRAS
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     ];

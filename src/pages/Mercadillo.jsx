@@ -1,87 +1,94 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import ListingForm from "@/components/marketplace/ListingForm";
-import ListingCard from "@/components/marketplace/ListingCard";
+import ListingForm from "../components/market/ListingForm";
+import ListingCard from "../components/market/ListingCard";
 
 export default function Mercadillo() {
-  const qc = useQueryClient();
   const [user, setUser] = useState(null);
-  const [openForm, setOpenForm] = useState(false);
+  const [listings, setListings] = useState([]);
+  const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState('todos');
 
-  useEffect(()=>{ base44.auth.me().then(setUser).catch(()=>{}); },[]);
+  const load = async () => {
+    const u = await base44.auth.me().catch(() => null);
+    setUser(u);
+    const data = await base44.entities.MarketListing.filter({ estado: 'activo' });
+    setListings(data || []);
+  };
 
-  const { data: listings = [] } = useQuery({ queryKey:["market_listings"], queryFn:()=> base44.entities.MarketplaceListing.list("-created_date", 200) });
+  useEffect(() => { load(); }, []);
 
-  const saveListing = useMutation({ mutationFn: async (payload)=>{
-    if (editing) return base44.entities.MarketplaceListing.update(editing.id, payload);
-    return base44.entities.MarketplaceListing.create({ ...payload, estado: 'activo' });
-  }, onSuccess:()=>{ setOpenForm(false); setEditing(null); qc.invalidateQueries({queryKey:["market_listings"]}); }});
+  const reserve = async (item) => {
+    if (!user) { alert('Debes estar conectado para reservar'); return; }
+    const comprador_nombre = user.full_name || user.email;
+    await base44.entities.MarketReservation.create({
+      listing_id: item.id,
+      comprador_nombre,
+      comprador_email: user.email,
+      comprador_telefono: user.telefono || '',
+      mensaje: 'Reserva desde la app',
+      fecha: new Date().toISOString()
+    });
+    // Aviso por email al vendedor
+    await base44.integrations.Core.SendEmail({
+      to: item.vendedor_email,
+      subject: `Nueva reserva: ${item.titulo}`,
+      body: `Hola ${item.vendedor_nombre || ''},\n\n${comprador_nombre} quiere reservar tu anuncio: ${item.titulo}.\nEmail: ${user.email}\nTeléfono: ${user.telefono || ''}\n\nPoneos de acuerdo para la entrega.\n\nCD Bustarviejo`
+    });
+    alert('Reserva enviada. El vendedor ha sido notificado.');
+  };
 
-  const updateListing = useMutation({ mutationFn: async ({ id, data })=> base44.entities.MarketplaceListing.update(id, data), onSuccess:()=> qc.invalidateQueries({queryKey:["market_listings"]}) });
-
-  const reserve = useMutation({ mutationFn: async (item)=>{
-    const me = user; if (!me) return;
-    await base44.entities.MarketplaceReservation.create({ listing_id: item.id, buyer_email: me.email, buyer_nombre: me.full_name || me.email, buyer_telefono: '', mensaje: 'Reserva solicitada' });
-    await base44.entities.MarketplaceListing.update(item.id, { estado: 'reservado' });
-    await base44.integrations.Core.SendEmail({ to: item.seller_email, subject: `Reserva en tu anuncio: ${item.titulo}`, body: `Hola,\n\n${me.full_name || me.email} ha reservado tu anuncio en el Mercadillo.\n\nDetalle: ${item.titulo}\nPrecio: ${item.donacion? 'Donación' : (item.precio+'€')}\n\nPonte en contacto: ${me.email}\n\nGracias.\nCD Bustarviejo` });
-  }, onSuccess:()=> qc.invalidateQueries({queryKey:["market_listings"]}) });
-
-  const explore = useMemo(()=> listings.filter(l => l.estado==='activo' && (l.titulo?.toLowerCase().includes(q.toLowerCase()) || l.descripcion?.toLowerCase().includes(q.toLowerCase()))), [listings, q]);
-  const mine = useMemo(()=> (user? listings.filter(l => l.seller_email===user.email):[]), [listings, user]);
+  const filtered = listings.filter(l => filter === 'todos' ? true : (filter === 'donacion' ? l.tipo === 'donacion' : l.tipo === 'venta'));
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <h1 className="text-3xl font-bold">Mercadillo</h1>
-        <Button onClick={()=>{ setEditing(null); setOpenForm(true); }} className="bg-orange-600">Publicar anuncio</Button>
+    <div className="max-w-5xl mx-auto p-6 space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-black">🛍️ Mercadillo Deportivo</h1>
+        <p className="text-slate-600">Compra, vende o dona material deportivo dentro del club.</p>
       </div>
 
-      <Tabs defaultValue="explorar" className="w-full">
-        <TabsList>
-          <TabsTrigger value="explorar">Explorar</TabsTrigger>
-          <TabsTrigger value="mis">Mis anuncios</TabsTrigger>
-        </TabsList>
-        <TabsContent value="explorar">
-          <div className="mb-3"><Input placeholder="Buscar material deportivo..." value={q} onChange={(e)=>setQ(e.target.value)} /></div>
-          <div className="grid md:grid-cols-2 gap-4">
-            {explore.map((it)=> (
-              <ListingCard key={it.id} item={it} onReserve={()=>reserve.mutate(it)} />
-            ))}
+      <Card className="p-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant={filter==='todos'?'default':'outline'} onClick={() => setFilter('todos')}>Todos</Button>
+            <Button variant={filter==='venta'?'default':'outline'} onClick={() => setFilter('venta')}>Venta</Button>
+            <Button variant={filter==='donacion'?'default':'outline'} onClick={() => setFilter('donacion')}>Donación</Button>
           </div>
-        </TabsContent>
-        <TabsContent value="mis">
-          <div className="grid gap-3">
-            {mine.map((it)=> (
-              <ListingCard key={it.id} item={it} isOwner onReserve={()=>{}} />
-            ))}
-            {mine.length===0 && <div className="text-slate-600">No tienes anuncios publicados aún.</div>}
+          <Button onClick={() => { setEditing(null); setShowForm(v => !v); }} className="bg-orange-600 hover:bg-orange-700">{showForm ? 'Cerrar' : 'Publicar anuncio'}</Button>
+        </div>
+        {showForm && (
+          <div className="mt-4">
+            <ListingForm listing={editing} onSaved={() => { setShowForm(false); setEditing(null); load(); }} />
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {mine.map((it)=> (
-              <div key={it.id} className="flex items-center gap-2 bg-white rounded-lg border p-2">
-                <span className="text-sm font-medium">{it.titulo}</span>
-                <Button size="sm" variant="outline" onClick={()=>{ setEditing(it); setOpenForm(true); }}>Editar</Button>
-                {it.estado !== 'vendido' && <Button size="sm" variant="outline" onClick={()=>updateListing.mutate({ id: it.id, data: { estado: 'vendido' } })}>Marcar vendido</Button>}
-                {it.estado !== 'activo' && <Button size="sm" variant="outline" onClick={()=>updateListing.mutate({ id: it.id, data: { estado: 'activo' } })}>Reactivar</Button>}
-                {it.estado === 'reservado' && <Button size="sm" variant="outline" onClick={()=>updateListing.mutate({ id: it.id, data: { estado: 'activo' } })}>Cancelar reserva</Button>}
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+        )}
+      </Card>
 
-      <Dialog open={openForm} onOpenChange={setOpenForm}>
-        <DialogContent className="sm:max-w-lg">
-          {user && <ListingForm user={user} initial={editing} onSubmit={(payload)=>saveListing.mutate(payload)} />}
-        </DialogContent>
-      </Dialog>
+      <div className="grid gap-3">
+        {filtered.map(item => (
+          <ListingCard
+            key={item.id}
+            item={item}
+            onReserve={reserve}
+            onEdit={user && (item.created_by === user.email) ? (it) => { setEditing(it); setShowForm(true); } : null}
+          />
+        ))}
+      </div>
+
+      <Card className="bg-yellow-50 border-yellow-200">
+        <CardHeader>
+          <CardTitle>ℹ️ Normas del Mercadillo</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-slate-700 space-y-1">
+          <p>• Solo material deportivo (equipación, calzado, protecciones, accesorios).</p>
+          <p>• Contacto directo entre vendedor y comprador (email/teléfono).</p>
+          <p>• Usa el botón “Reservar” para notificar al vendedor por email.</p>
+          <p>• El vendedor puede editar o retirar su anuncio en cualquier momento.</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
