@@ -342,7 +342,7 @@ export default function TreasurerDashboard() {
 
   if (!user || playersLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+      <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-800 to-black">
         <div className="px-4 lg:px-8 py-6">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
