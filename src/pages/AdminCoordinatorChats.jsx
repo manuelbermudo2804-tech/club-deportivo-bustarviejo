@@ -485,8 +485,8 @@ export default function AdminCoordinatorChats() {
                   </>
                 )}
               </>
-            )
-          </TabsContent>
+              )}
+              </TabsContent>
 
           <TabsContent value="active" className="flex-1 overflow-y-auto px-2">
             {filteredNormal.length === 0 ? (
