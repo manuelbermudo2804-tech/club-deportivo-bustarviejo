@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ListingForm from "../components/market/ListingForm";
-import ListingCard from "../components/market/ListingCard";
+import ListingRow from "../components/market/ListingRow";
 
 export default function Mercadillo() {
   const [user, setUser] = useState(null);
@@ -18,6 +18,8 @@ export default function Mercadillo() {
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
   const [q, setQ] = useState('');
+  const [visibleCount, setVisibleCount] = useState(20);
+  const loaderRef = useRef(null);
   const CATEGORIES = ['Fútbol','Baloncesto','Equipación','Calzado','Protecciones','Accesorios','Otro Deportivo'];
 
   const load = async () => {
@@ -80,6 +82,24 @@ export default function Mercadillo() {
     return typeMatch && categoryMatch && keywordMatch && priceMatch;
   });
 
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [filter, category, priceMin, priceMax, q]);
+
+  useEffect(() => {
+    const el = loaderRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          setVisibleCount((v) => Math.min(v + 20, filtered.length));
+        }
+      });
+    }, { root: null, rootMargin: '200px', threshold: 0 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [filtered.length]);
+
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <div className="text-center space-y-2">
@@ -94,7 +114,7 @@ export default function Mercadillo() {
         </div>
       )}
 
-      <Card className="p-4">
+      <Card className="p-4 sticky top-0 z-20 bg-white/80 backdrop-blur">
         <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
             {/* Categoría */}
@@ -146,15 +166,18 @@ export default function Mercadillo() {
         )}
       </Card>
 
-      <div className="grid gap-3">
-        {filtered.map(item => (
-          <ListingCard
+      <div className="divide-y rounded-xl border bg-white">
+        {filtered.slice(0, visibleCount).map(item => (
+          <ListingRow
             key={item.id}
             item={item}
             onReserve={reserve}
             onEdit={user && (item.created_by === user.email) ? (it) => { setEditing(it); setShowForm(true); } : null}
           />
         ))}
+      </div>
+      <div ref={loaderRef} className="py-4 text-center text-sm text-slate-500">
+        {visibleCount < filtered.length ? 'Cargando más...' : 'No hay más anuncios'}
       </div>
 
       <Card className="bg-yellow-50 border-yellow-200">
