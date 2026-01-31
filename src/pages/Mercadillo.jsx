@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ListingForm from "../components/market/ListingForm";
 import ListingCard from "../components/market/ListingCard";
+import CompactListingRow from "../components/market/CompactListingRow";
 
 export default function Mercadillo() {
   const [user, setUser] = useState(null);
