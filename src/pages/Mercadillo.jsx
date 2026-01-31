@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ListingForm from "../components/market/ListingForm";
-import ListingRow from "../components/market/ListingRow";
+import ListingCard from "../components/market/ListingCard";
 
 export default function Mercadillo() {
   const [user, setUser] = useState(null);
@@ -18,8 +18,6 @@ export default function Mercadillo() {
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
   const [q, setQ] = useState('');
-  const [visibleCount, setVisibleCount] = useState(20);
-  const loaderRef = useRef(null);
   const CATEGORIES = ['Fútbol','Baloncesto','Equipación','Calzado','Protecciones','Accesorios','Otro Deportivo'];
 
   const load = async () => {
@@ -36,7 +34,10 @@ export default function Mercadillo() {
     setNewCount(listings.length > lastSeen ? (listings.length - lastSeen) : 0);
   }, [listings]);
 
-  const reserve = async (item) => {
+  // Reset paginación al cambiar filtros/búsqueda
+  useEffect(() => { setVisibleCount(20); }, [filter, category, priceMin, priceMax, q, listings]);
+
+   const reserve = async (item) => {
     if (!user) { alert('Debes estar conectado para reservar'); return; }
     const comprador_nombre = user.full_name || user.email;
     await base44.entities.MarketReservation.create({
@@ -82,25 +83,21 @@ export default function Mercadillo() {
     return typeMatch && categoryMatch && keywordMatch && priceMatch;
   });
 
+  // Cargar más al alcanzar el final (infinite scroll)
   useEffect(() => {
-    setVisibleCount(20);
-  }, [filter, category, priceMin, priceMax, q]);
-
-  useEffect(() => {
-    const el = loaderRef.current;
+    const el = sentinelRef.current;
     if (!el) return;
     const obs = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          setVisibleCount((v) => Math.min(v + 20, filtered.length));
-        }
-      });
-    }, { root: null, rootMargin: '200px', threshold: 0 });
+      const first = entries[0];
+      if (first.isIntersecting) {
+        setVisibleCount((c) => Math.min(c + 20, filtered.length));
+      }
+    }, { root: null, rootMargin: '200px', threshold: 0.1 });
     obs.observe(el);
     return () => obs.disconnect();
   }, [filtered.length]);
 
-  return (
+   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-black">🛍️ Mercadillo Deportivo</h1>
@@ -114,7 +111,7 @@ export default function Mercadillo() {
         </div>
       )}
 
-      <Card className="p-4 sticky top-0 z-20 bg-white/80 backdrop-blur">
+      <Card className="p-4 sticky top-0 z-20 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
             {/* Categoría */}
@@ -166,18 +163,15 @@ export default function Mercadillo() {
         )}
       </Card>
 
-      <div className="divide-y rounded-xl border bg-white">
-        {filtered.slice(0, visibleCount).map(item => (
-          <ListingRow
+      <div className="grid gap-3">
+        {filtered.map(item => (
+          <ListingCard
             key={item.id}
             item={item}
             onReserve={reserve}
             onEdit={user && (item.created_by === user.email) ? (it) => { setEditing(it); setShowForm(true); } : null}
           />
         ))}
-      </div>
-      <div ref={loaderRef} className="py-4 text-center text-sm text-slate-500">
-        {visibleCount < filtered.length ? 'Cargando más...' : 'No hay más anuncios'}
       </div>
 
       <Card className="bg-yellow-50 border-yellow-200">

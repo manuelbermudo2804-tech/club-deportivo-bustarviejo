@@ -43,12 +43,6 @@ export default function Voluntariado() {
   }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_signups"]}); }});
 
   const isStaff = !!(user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador);
-  const canSeeDirectory = !!(user?.role === 'admin' || user?.es_coordinador);
-  const mySignups = (signups || []).filter((s) => (s.volunteer_email || s.email) === user?.email);
-  const signupsWithOpp = mySignups.map((s) => {
-    const opp = (opportunities || []).find((o) => o.id === s.opportunity_id);
-    return { ...s, opp };
-  });
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -66,48 +60,25 @@ export default function Voluntariado() {
         </div>
       )}
 
-      {isStaff ? (
-        <div className="grid gap-3">
-          {opportunities.map((opp)=>{
-            const count = signups.filter((s)=> s.opportunity_id === opp.id).length;
-            return (
-              <OpportunityCard key={opp.id} opp={opp} count={count} onSignup={()=>{
-                const nombre = prompt('¿A nombre de quién? (tú u otra persona)') || '';
-                const telefono = prompt('Teléfono de contacto (opcional)') || '';
-                const por_quien = nombre && (nombre !== (myProfile?.nombre || user?.full_name || user?.email)) ? 'familiar' : 'yo';
-                doSignup.mutate({ opp, por_quien, nombre, telefono });
-              }} />
-            );
-          })}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Mis inscripciones</h2>
-          {signupsWithOpp.length === 0 ? (
-            <p className="text-sm text-slate-500">Aún no tienes inscripciones.</p>
-          ) : (
-            <div className="grid gap-2">
-              {signupsWithOpp.map((s) => (
-                <div key={s.id} className="p-3 rounded-lg border bg-white flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">{s.opp?.titulo || 'Oportunidad'}</p>
-                    <p className="text-xs text-slate-500">
-                      {(s.opp?.fecha || '')} {s.opp?.hora ? '· ' + s.opp.hora : ''} {s.opp?.ubicacion ? '· ' + s.opp.ubicacion : ''}
-                    </p>
-                  </div>
-                  <span className="text-xs text-slate-500">{s.por_quien === 'familiar' ? 'Para familiar' : 'Personal'}</span>
-                </div>
-              ))}
-            </div>
-          )}
+      {(user?.role === 'admin' || user?.es_coordinador) && (
+        <div className="mb-6">
+          <VolunteerDirectory profiles={profiles||[]} />
         </div>
       )}
 
-      {canSeeDirectory && (
-        <div className="mt-6">
-          <VolunteerDirectory profiles={(profiles || [])} />
-        </div>
-      )}
+      <div className="grid gap-3">
+        {opportunities.map((opp)=>{
+          const count = signups.filter((s)=> s.opportunity_id === opp.id).length;
+          return (
+            <OpportunityCard key={opp.id} opp={opp} count={count} onSignup={()=>{
+              const nombre = prompt('¿A nombre de quién? (tú u otra persona)') || '';
+              const telefono = prompt('Teléfono de contacto (opcional)') || '';
+              const por_quien = nombre && (nombre !== (myProfile?.nombre || user?.full_name || user?.email)) ? 'familiar' : 'yo';
+              doSignup.mutate({ opp, por_quien, nombre, telefono });
+            }} />
+          );
+        })}
+      </div>
 
       <Dialog open={openProfile} onOpenChange={setOpenProfile}>
         <DialogContent className="sm:max-w-lg">
