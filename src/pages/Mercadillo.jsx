@@ -19,6 +19,8 @@ export default function Mercadillo() {
   const [priceMax, setPriceMax] = useState('');
   const [q, setQ] = useState('');
   const CATEGORIES = ['Fútbol','Baloncesto','Equipación','Calzado','Protecciones','Accesorios','Otro Deportivo'];
+  const [visibleCount, setVisibleCount] = useState(20);
+  const sentinelRef = useRef(null);
 
   const load = async () => {
     const u = await base44.auth.me().catch(() => null);
