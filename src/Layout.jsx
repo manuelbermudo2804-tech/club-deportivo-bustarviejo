@@ -1415,9 +1415,7 @@ export default function Layout({ children, currentPageName }) {
 
                 // 🎉 CONTENIDO
         { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
-                                    { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
-                                    { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-                                    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
+                                        { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
 
 
         { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
@@ -1594,13 +1592,10 @@ export default function Layout({ children, currentPageName }) {
 
     // 🛍️ PEDIDOS
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
-    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag, badge: marketNewCount > 0 ? marketNewCount : null },
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
     // 🖼️ CONTENIDO
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
-              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag, badge: marketNewCount > 0 ? marketNewCount : null },
-              { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
 
               // 📋 EXTRAS
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
@@ -1638,8 +1633,6 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-              { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: ShoppingBag, badge: marketNewCount > 0 ? marketNewCount : null },
-              { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
               { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
               { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
 

@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -205,7 +211,7 @@ export default function Mercadillo() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold truncate max-w-[60vw] md:max-w-[500px]">{item.titulo}</span>
+                  <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)} className="font-semibold truncate max-w-[60vw] md:max-w-[500px] hover:underline">{item.titulo}</Link>
                   {isNew && <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Nuevo</span>}
                 </div>
                 <div className="text-xs text-slate-500 truncate">
