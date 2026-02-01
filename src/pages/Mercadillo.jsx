@@ -107,6 +107,26 @@ export default function Mercadillo() {
     return typeMatch && categoryMatch && keywordMatch && priceMatch;
   });
 
+  const overdueMine = listings.filter((l) => {
+    if (!user) return false;
+    if (l.created_by !== user.email) return false;
+    if (l.estado !== 'reservado') return false;
+    try {
+      const t = new Date(l.reservado_fecha).getTime();
+      return Date.now() - t >= 48 * 60 * 60 * 1000; // > 48h
+    } catch { return false; }
+  });
+
+  const overdueMine = listings.filter((l) => {
+    if (!user) return false;
+    if (l.created_by !== user.email) return false;
+    if (l.estado !== 'reservado') return false;
+    try {
+      const t = new Date(l.reservado_fecha).getTime();
+      return Date.now() - t >= 48 * 60 * 60 * 1000; // > 48h
+    } catch { return false; }
+  });
+
   // Cargar más al alcanzar el final (infinite scroll)
   useEffect(() => {
     const el = sentinelRef.current;
@@ -187,6 +207,31 @@ export default function Mercadillo() {
         )}
       </Card>
 
+      {overdueMine.length > 0 && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="p-4 text-sm text-yellow-900 space-y-2">
+            <div className="font-semibold">Tienes {overdueMine.length} anuncio(s) reservados desde hace más de 48h. Ciérralos para mantener el mercadillo ordenado.</div>
+            <div className="space-y-2">
+              {overdueMine.slice(0, 3).map((it) => (
+                <div key={it.id} className="flex items-center justify-between gap-2">
+                  <span className="truncate">{it.titulo}</span>
+                  <div className="flex gap-2">
+                    {user && (
+                      <>
+                        {it.tipo === 'donacion' && (
+                          <Button size="sm" variant="outline" className="border-green-600 text-green-700" onClick={async () => { await base44.entities.MarketListing.update(it.id, { estado: 'entregado' }); await load(); }}>Entregado</Button>
+                        )}
+                        <Button size="sm" variant="destructive" onClick={async () => { await base44.entities.MarketListing.update(it.id, { estado: 'vendido' }); await load(); }}>Vendido</Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="divide-y rounded-xl bg-white/50">
         {filtered.slice(0, visibleCount).map(item => {
           const firstImg = Array.isArray(item.imagenes) && item.imagenes[0] ? item.imagenes[0] : null;
@@ -208,6 +253,12 @@ export default function Mercadillo() {
                   {item.estado === 'reservado' && (
                     <span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">Reservado</span>
                   )}
+                  {item.estado === 'entregado' && (
+                    <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Entregado</span>
+                  )}
+                  {item.estado === 'entregado' && (
+                    <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Entregado</span>
+                  )}
                 </div>
                 <div className="text-xs text-slate-500 truncate">
                   {item.categoria} · {item.tipo === 'donacion' ? 'Donación' : 'Venta'}
@@ -221,6 +272,12 @@ export default function Mercadillo() {
                 <div className="flex gap-2">
                   {user && (item.created_by === user.email) && (
                     <Button variant="outline" size="sm" onClick={() => { setEditing(item); setShowForm(true); }}>Editar</Button>
+                  )}
+                  {user && (item.created_by === user.email) && item.tipo === 'donacion' && (
+                    <Button variant="outline" size="sm" className="border-green-600 text-green-700" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'entregado' }); await load(); }}>Entregado</Button>
+                  )}
+                  {user && (item.created_by === user.email) && item.tipo === 'donacion' && (
+                    <Button variant="outline" size="sm" className="border-green-600 text-green-700" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'entregado' }); await load(); }}>Entregado</Button>
                   )}
                   {user && (item.created_by === user.email) && (
                     <Button variant="destructive" size="sm" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'vendido' }); await load(); }}>Vendido</Button>

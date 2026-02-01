@@ -53,7 +53,7 @@ export default function MarketListingDetail() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold flex items-center gap-3">{listing.titulo}{listing.estado === 'reservado' && (<span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">Reservado</span>)}</h1>
+        <h1 className="text-2xl font-extrabold flex items-center gap-3">{listing.titulo}{listing.estado === 'reservado' && (<span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">Reservado</span>)}{listing.estado === 'entregado' && (<span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Entregado</span>)}</h1>
         <Link to={createPageUrl("Mercadillo")}><Button variant="outline">Volver</Button></Link>
       </div>
 
