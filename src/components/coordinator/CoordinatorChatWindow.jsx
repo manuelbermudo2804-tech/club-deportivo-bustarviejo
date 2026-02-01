@@ -608,29 +608,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 coordinatorUser={user}
               />
             </div>
-            <Select value={conversation.etiqueta || "Otro"} onValueChange={handleChangeEtiqueta}>
-              <SelectTrigger className="h-8 w-40 sm:w-56 bg-white/10 text-white border-white/20">
-                <SelectValue placeholder="Etiqueta" />
-              </SelectTrigger>
-              <SelectContent className="z-[1000]">
-                <SelectItem value="Horarios">Horarios</SelectItem>
-                <SelectItem value="Quejas">Quejas</SelectItem>
-                <SelectItem value="Consulta Partido">Consulta Partido</SelectItem>
-                <SelectItem value="Equipación">Equipación</SelectItem>
-                <SelectItem value="Transporte">Transporte</SelectItem>
-                <SelectItem value="Lesiones">Lesiones</SelectItem>
-                <SelectItem value="Otro">Otro</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" size="sm" onClick={togglePrioritaria} className="text-white hover:bg-white/20 h-8 px-3" title={conversation.prioritaria ? "Quitar prioridad" : "Marcar prioritaria"}>
-              <Star className={`w-4 h-4 ${conversation.prioritaria ? 'text-orange-300 fill-orange-300' : ''}`} />
-              <span className="ml-1 hidden sm:inline text-xs">Prioridad</span>
-            </Button>
-            <EscalateToAdminButton 
-              conversation={conversation}
-              recentMessages={messages}
-              coordinatorUser={user}
-            />
           </div>
         )}
       </div>

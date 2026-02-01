@@ -159,21 +159,8 @@ export function ChatNotificationSync({ user }) {
     });
     unsubscribers.push(unsubPrivateConv);
 
-    // FALLBACK INSTANTÁNEO: si llega un PrivateMessage del club, incrementa sin esperar al update de la conversación
-    const unsubPrivateMsg = base44.entities.PrivateMessage.subscribe((event) => {
-      if (event.type === 'create' && event.data?.remitente_tipo === 'staff') {
-        const convId = event.data.conversacion_id;
-        if (convId) {
-          base44.entities.PrivateConversation.filter({ id: convId }).then((res) => {
-            const conv = res?.[0];
-            if (conv?.participante_familia_email === user.email) {
-              UnifiedChatNotificationStore.increment(user.email, 'systemMessages');
-            }
-          }).catch(() => {});
-        }
-      }
-    });
-    unsubscribers.push(unsubPrivateMsg);
+    // Nota: eliminamos el fallback de PrivateMessage para evitar doble conteo.
+    // Nos apoyamos exclusivamente en PrivateConversation.update (fuente de verdad).
 
     return () => {
       unsubscribers.forEach(unsub => {
