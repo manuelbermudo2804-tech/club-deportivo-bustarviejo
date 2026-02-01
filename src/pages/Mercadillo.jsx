@@ -91,7 +91,7 @@ export default function Mercadillo() {
       body: `Hola ${comprador_nombre},\n\nHemos avisado por email al vendedor (${item.vendedor_nombre || item.vendedor_email}).\nPermanece atento a su respuesta para concretar la entrega.\n\nAnuncio: ${item.titulo}\nCategoría: ${item.categoria}\nPrecio: ${Number(item.precio||0).toFixed(2)} €\n\nGracias por usar el mercadillo del club.\nCD Bustarviejo`
     });
 
-    alert('¡Reserva enviada! Es temporal (3h) y ya hemos avisado al vendedor.');
+    alert('¡Reserva enviada! Hemos avisado al vendedor.');
     await load();
   };
 
