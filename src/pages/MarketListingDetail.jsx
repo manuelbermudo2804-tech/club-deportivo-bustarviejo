@@ -47,11 +47,13 @@ export default function MarketListingDetail() {
   const isDonation = listing.tipo === "donacion" || Number(listing.precio||0) === 0;
   const priceText = isDonation ? "GRATIS" : `${Number(listing.precio||0).toFixed(2)} €`;
   const images = Array.isArray(listing.imagenes) ? listing.imagenes : [];
+  const phoneDigits = (listing.vendedor_telefono || '').replace(/\D/g, '');
+  const waUrl = phoneDigits ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent('Hola, estoy interesado en tu anuncio: ' + listing.titulo)}` : null;
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold">{listing.titulo}</h1>
+        <h1 className="text-2xl font-extrabold flex items-center gap-3">{listing.titulo}{listing.estado === 'reservado' && (<span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">Reservado</span>)}</h1>
         <Link to={createPageUrl("Mercadillo")}><Button variant="outline">Volver</Button></Link>
       </div>
 
@@ -100,7 +102,14 @@ export default function MarketListingDetail() {
               </a>
             </p>
           )}
-          {listing.vendedor_telefono && <p><span className="font-semibold">Teléfono:</span> {listing.vendedor_telefono}</p>}
+          {listing.vendedor_telefono && (
+            <p className="flex items-center gap-3">
+              <span><span className="font-semibold">Teléfono:</span> {listing.vendedor_telefono}</span>
+              {waUrl && (
+                <a href={waUrl} target="_blank" rel="noopener noreferrer" className="text-green-600 font-medium underline">Escribir por WhatsApp</a>
+              )}
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

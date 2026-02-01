@@ -28,7 +28,7 @@ export default function Mercadillo() {
   const load = async () => {
     const u = await base44.auth.me().catch(() => null);
     setUser(u);
-    const data = await base44.entities.MarketListing.filter({ estado: 'activo' });
+    const data = await base44.entities.MarketListing.filter({ $or: [{ estado: 'activo' }, { estado: 'reservado' }] });
     setListings(data || []);
   };
 
@@ -209,6 +209,9 @@ export default function Mercadillo() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)} className="font-semibold truncate max-w-[60vw] md:max-w-[500px] hover:underline">{item.titulo}</Link>
                   {isNew && <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Nuevo</span>}
+                  {item.estado === 'reservado' && (
+                    <span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">Reservado</span>
+                  )}
                 </div>
                 <div className="text-xs text-slate-500 truncate">
                   {item.categoria} · {item.tipo === 'donacion' ? 'Donación' : 'Venta'}
@@ -223,7 +226,12 @@ export default function Mercadillo() {
                   {user && (item.created_by === user.email) && (
                     <Button variant="outline" size="sm" onClick={() => { setEditing(item); setShowForm(true); }}>Editar</Button>
                   )}
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => reserve(item)}>Reservar</Button>
+                  {user && (item.created_by === user.email) && (
+                    <Button variant="destructive" size="sm" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'vendido' }); await load(); }}>Vendido</Button>
+                  )}
+                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700 disabled:opacity-60" disabled={item.estado === 'reservado' || (user && item.created_by === user.email)} onClick={() => reserve(item)}>
+                    {item.estado === 'reservado' ? 'Reservado' : 'Reservar'}
+                  </Button>
                 </div>
               </div>
             </div>

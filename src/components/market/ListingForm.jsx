@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,23 @@ export default function ListingForm({ listing, onSaved }) {
     imagenes: [],
   });
   const [uploading, setUploading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const me = await base44.auth.me().catch(() => null);
+      setCurrentUser(me);
+      // Autorellenar datos del vendedor al crear
+      if (!listing) {
+        setForm(prev => ({
+          ...prev,
+          vendedor_nombre: me?.full_name || '',
+          vendedor_email: me?.email || '',
+          vendedor_telefono: prev.vendedor_telefono || me?.telefono || ''
+        }));
+      }
+    })();
+  }, [listing]);
 
   const handle = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
@@ -31,11 +48,16 @@ export default function ListingForm({ listing, onSaved }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    // Teléfono obligatorio
+    if (!form.vendedor_telefono || String(form.vendedor_telefono).trim() === '') {
+      alert('El teléfono es obligatorio para publicar.');
+      return;
+    }
     const payload = {
       ...form,
-      vendedor_nombre: form.vendedor_nombre || undefined,
-      vendedor_email: form.vendedor_email || undefined,
-      vendedor_telefono: form.vendedor_telefono || undefined,
+      vendedor_nombre: (form.vendedor_nombre || currentUser?.full_name || '').trim() || undefined,
+      vendedor_email: currentUser?.email, // bloqueado: siempre el email del usuario
+      vendedor_telefono: String(form.vendedor_telefono).trim(),
     };
     if (listing?.id) {
       await base44.entities.MarketListing.update(listing.id, payload);
