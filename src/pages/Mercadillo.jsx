@@ -56,16 +56,12 @@ export default function Mercadillo() {
       fecha: new Date().toISOString()
     });
 
-    // Establecer reserva temporal por 3 horas
-    const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString();
-
-    // Marcar anuncio como reservado temporalmente
+    // Marcar anuncio como reservado (sin expiración automática)
     await base44.entities.MarketListing.update(item.id, {
       estado: 'reservado',
       reservado_por_email: user.email,
       reservado_por_nombre: comprador_nombre,
-      reservado_fecha: new Date().toISOString(),
-      reserva_temporal_hasta: expiresAt
+      reservado_fecha: new Date().toISOString()
     });
 
     // Notificación en la app al vendedor (barra de notificaciones)
@@ -73,8 +69,8 @@ export default function Mercadillo() {
     if (vendedorEmail) {
       await base44.entities.AppNotification.create({
         usuario_email: vendedorEmail,
-        titulo: `Reserva temporal: ${item.titulo}`,
-        mensaje: `${comprador_nombre} ha reservado tu anuncio. La reserva caduca a las ${new Date(expiresAt).toLocaleTimeString()}.`,
+        titulo: `Reserva: ${item.titulo}`,
+        mensaje: `${comprador_nombre} ha reservado tu anuncio. Puedes marcarlo como vendido cuando cierres el trato.`,
         tipo: 'importante',
         icono: '🛍️',
         enlace: typeof window !== 'undefined' ? window.location.href : ''
@@ -84,15 +80,15 @@ export default function Mercadillo() {
     // Aviso por email al vendedor
     await base44.integrations.Core.SendEmail({
       to: item.vendedor_email,
-      subject: `Nueva reserva (temporal): ${item.titulo}`,
-      body: `Hola ${item.vendedor_nombre || ''},\n\n${comprador_nombre} ha reservado tu anuncio: ${item.titulo}.\n\nDatos de contacto:\n- Email: ${user.email}\n- Teléfono: ${user.telefono || ''}\n\nEsta reserva es temporal y caduca el ${new Date(expiresAt).toLocaleString()}. Si no se concreta, el anuncio volverá a estar activo automáticamente.\n\nCD Bustarviejo`
+      subject: `Nueva reserva: ${item.titulo}`,
+      body: `Hola ${item.vendedor_nombre || ''},\n\n${comprador_nombre} ha reservado tu anuncio: ${item.titulo}.\n\nDatos de contacto:\n- Email: ${user.email}\n- Teléfono: ${user.telefono || ''}\n\nEntra en la app para gestionar el anuncio; cuando cierres el trato, márcalo como vendido.\n\nCD Bustarviejo`
     });
 
     // Confirmación al comprador
     await base44.integrations.Core.SendEmail({
       to: user.email,
-      subject: `Has reservado (temporal) : ${item.titulo}`,
-      body: `Hola ${comprador_nombre},\n\nHemos avisado por email al vendedor (${item.vendedor_nombre || item.vendedor_email}).\nTu reserva es temporal y caduca el ${new Date(expiresAt).toLocaleString()}.\n\nAnuncio: ${item.titulo}\nCategoría: ${item.categoria}\nPrecio: ${Number(item.precio||0).toFixed(2)} €\n\nGracias por usar el mercadillo del club.\nCD Bustarviejo`
+      subject: `Has reservado: ${item.titulo}`,
+      body: `Hola ${comprador_nombre},\n\nHemos avisado por email al vendedor (${item.vendedor_nombre || item.vendedor_email}).\nPermanece atento a su respuesta para concretar la entrega.\n\nAnuncio: ${item.titulo}\nCategoría: ${item.categoria}\nPrecio: ${Number(item.precio||0).toFixed(2)} €\n\nGracias por usar el mercadillo del club.\nCD Bustarviejo`
     });
 
     alert('¡Reserva enviada! Es temporal (3h) y ya hemos avisado al vendedor.');

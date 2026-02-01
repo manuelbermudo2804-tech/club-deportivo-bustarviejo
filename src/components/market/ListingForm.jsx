@@ -64,6 +64,8 @@ export default function ListingForm({ listing, onSaved }) {
     } else {
       await base44.entities.MarketListing.create(payload);
     }
+    // Guardar teléfono en el perfil para futuros anuncios
+    try { await base44.auth.updateMe({ telefono: payload.vendedor_telefono }); } catch {}
     onSaved?.();
   };
 
