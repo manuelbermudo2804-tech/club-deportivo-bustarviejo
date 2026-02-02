@@ -54,7 +54,7 @@ export default function CoachParentChat({ embedded = false }) {
     fetchPlayers();
   }, []);
 
-  // Contar mensajes no leídos por categoría (desde ChatMessage)
+  // Contar mensajes no leídos por categoría - LEER DEL STORE GLOBAL
   const { data: messages = [] } = useQuery({
     queryKey: ['coachGroupMessagesAll'],
     queryFn: async () => {
