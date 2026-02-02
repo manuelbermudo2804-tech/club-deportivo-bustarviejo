@@ -92,32 +92,31 @@ export default function AdminCoordinatorChats() {
   useEffect(() => {
     if (!selectedConversation?.id || !user) return;
     
-    // Limpiar badge inmediatamente
-    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
+    // Limpiar badge de ADMIN inmediatamente
+    UnifiedChatNotificationStore.clearChatOnly(user.email, 'admin');
     
     // BD en segundo plano
     (async () => {
       try {
-        if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
-          await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
-            no_leidos_coordinador: 0,
-            last_read_coordinador_at: new Date().toISOString()
-          });
-        }
+        // Si esta vista abre una conversación del coordinador, no tocar aquí.
+        // Para admin, sincronizamos contra AdminConversation si existe relación.
+        try {
+          const adminConvs = await base44.entities.AdminConversation.filter({ padre_email: selectedConversation.padre_email, resuelta: false });
+          for (const ac of adminConvs) {
+            if ((ac.no_leidos_admin || 0) > 0) {
+              await base44.entities.AdminConversation.update(ac.id, { no_leidos_admin: 0 });
+              await base44.functions.invoke('chatMarkRead', { chatType: 'admin', conversationId: ac.id });
+            }
+          }
+        } catch {}
         
-        const notifs = await base44.entities.AppNotification.filter({
-          usuario_email: user.email,
-          tipo: 'chat_mensaje',
-          visto: false
-        });
-        const toUpdate = notifs.filter(n => n.metadata?.conversacion_id === selectedConversation.id);
-        for (const n of toUpdate) {
-          await base44.entities.AppNotification.update(n.id, { visto: true });
+        // Limpiar posibles notificaciones antiguas
+        const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: 'AdminChat', vista: false });
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
         }
-        
-        await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id });
       } catch (err) {
-        console.error('Error marking as read:', err);
+        console.error('Error marking admin as read:', err);
       }
     })();
   }, [selectedConversation?.id, user?.email]);
