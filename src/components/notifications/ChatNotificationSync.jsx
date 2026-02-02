@@ -17,6 +17,11 @@ export function ChatNotificationSync({ user }) {
   useEffect(() => {
     if (!user?.email) return;
 
+    if (typeof window !== 'undefined') {
+      if (window.__B44_CHAT_SYNC_ACTIVE) return;
+      window.__B44_CHAT_SYNC_ACTIVE = true;
+    }
+
     const unsubscribers = [];
 
     // ===== 1. STAFF CHAT (interno) =====
@@ -45,7 +50,7 @@ export function ChatNotificationSync({ user }) {
 
     // ===== 2. COORDINADOR - FAMILIAS (1-a-1) =====
     // Para coordinadores: SOLO escuchar updates de CoordinatorConversation (fuente única)
-    if (user.es_coordinador || user.role === 'admin') {
+    if (user.es_coordinador) {
       const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
         if (event.type === 'update' && event.data) {
           const oldCount = event.old_data?.no_leidos_coordinador || 0;
@@ -168,6 +173,9 @@ export function ChatNotificationSync({ user }) {
           unsub();
         } catch (e) {}
       });
+      if (typeof window !== 'undefined') {
+        window.__B44_CHAT_SYNC_ACTIVE = false;
+      }
     };
   }, [user?.email, user?.es_coordinador, user?.es_entrenador, user?.role]);
 

@@ -1364,7 +1364,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 💬 CHATS Y ESTADÍSTICAS
     { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
-    { title: "🚨 Chats Escalados (Admin)", url: createPageUrl("AdminCoordinatorChats"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
+    { title: "🚨 Chats Escalados (Admin)", url: createPageUrl("AdminCoordinatorChats"), icon: MessageCircle, badge: chatMenuCounts.adminCount },
     { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
     { title: "📊 Estadísticas de Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },

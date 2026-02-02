@@ -102,6 +102,7 @@ import InvitationRequests from './pages/InvitationRequests';
 import JoinFemenino from './pages/JoinFemenino';
 import JoinReferral from './pages/JoinReferral';
 import LotteryManagement from './pages/LotteryManagement';
+import MarketListingDetail from './pages/MarketListingDetail';
 import MatchApp from './pages/MatchApp';
 import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
@@ -154,7 +155,6 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import MarketListingDetail from './pages/MarketListingDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -214,6 +214,7 @@ export const PAGES = {
     "JoinFemenino": JoinFemenino,
     "JoinReferral": JoinReferral,
     "LotteryManagement": LotteryManagement,
+    "MarketListingDetail": MarketListingDetail,
     "MatchApp": MatchApp,
     "MatchResults": MatchResults,
     "MedicalRecords": MedicalRecords,
@@ -266,7 +267,6 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "MarketListingDetail": MarketListingDetail,
 }
 
 export const pagesConfig = {
