@@ -16,7 +16,6 @@ import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
 import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
-import { useChatNotificationMenuSidebar } from "../components/notifications/useChatNotificationMenuSidebar";
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 
@@ -115,7 +114,6 @@ export default function ParentCoachChat() {
     return unsub;
   }, [user?.email, queryClient]);
 
-  // Badges por pestaña - cuenta solo mensajes del ENTRENADOR no leídos
   const getUnreadCountByCategory = (categoria) => {
     if (!user) return 0;
     const key = toGroupId(categoria);
@@ -125,7 +123,7 @@ export default function ParentCoachChat() {
       const matchGroup = m.grupo_id && m.grupo_id === key;
       const matchName = normMsgCat && (normMsgCat === normCat || normMsgCat.startsWith(normCat) || normCat.startsWith(normMsgCat));
       return (matchGroup || matchName) &&
-        m.tipo === 'entrenador_a_grupo' && // Solo mensajes del ENTRENADOR
+        (m.tipo === 'entrenador_a_grupo' || m.tipo === 'padre_a_grupo') &&
         (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
     }).length;
   };
