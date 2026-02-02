@@ -25,7 +25,6 @@ import { useUnifiedNotifications } from "./components/notifications/useUnifiedNo
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 import { ChatNotificationSync } from "./components/notifications/ChatNotificationSync";
-import ChatNotificationBubbles from "./components/notifications/ChatNotificationBubbles";
 import { useChatNotificationMenuSidebar } from "./components/notifications/useChatNotificationMenuSidebar";
 
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
@@ -1943,13 +1942,6 @@ export default function Layout({ children, currentPageName }) {
             <>
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
               <ChatNotificationSync user={user} />
-              <ChatNotificationBubbles 
-                user={user} 
-                isCoordinator={isCoordinator}
-                isCoach={isCoach}
-                isFamily={!isAdmin && !isCoach && !isCoordinator && !isTreasurer && !isPlayer}
-                isAdmin={isAdmin}
-              />
 
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
