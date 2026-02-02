@@ -8,12 +8,16 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import SocialLinks from "../components/SocialLinks";
 import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
+import { useChatNotificationMenuSidebar } from "../components/notifications/useChatNotificationMenuSidebar";
 
 export default function ParentSystemMessages() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
+  
+  // Badge del menú sincronizado
+  const { systemMessagesCount } = useChatNotificationMenuSidebar(user);
 
   useEffect(() => {
     const fetchUser = async () => {
