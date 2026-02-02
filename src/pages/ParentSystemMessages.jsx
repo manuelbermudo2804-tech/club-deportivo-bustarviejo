@@ -193,6 +193,11 @@ export default function ParentSystemMessages() {
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
                 Mensajes del Club
+                {systemMessagesCount > 0 && (
+                  <Badge className="ml-2 bg-red-500 text-white animate-pulse">
+                    {systemMessagesCount}
+                  </Badge>
+                )}
               </CardTitle>
               <p className="text-xs sm:text-sm text-orange-100 mt-1">
                 Recordatorios y comunicaciones privadas de la administración
