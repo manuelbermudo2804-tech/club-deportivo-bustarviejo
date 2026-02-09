@@ -53,6 +53,11 @@ export default function TreasurerFinancialPanel() {
   const [activeSeason, setActiveSeason] = useState(null);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("resumen");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab) setActiveTab(tab);
+  }, []);
   const [activeAnalysisTab, setActiveAnalysisTab] = useState("rentabilidad");
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showAIForecasting, setShowAIForecasting] = useState(false);
@@ -1547,34 +1552,92 @@ export default function TreasurerFinancialPanel() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {!activeSeason?.google_sheets_id ? (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex gap-3">
-                      <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-yellow-800">Configura primero</p>
-                        <p className="text-xs text-yellow-700 mt-1">Añade el ID del Sheets arriba</p>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex gap-3">
+                        <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-yellow-800">Configura primero</p>
+                          <p className="text-xs text-yellow-700 mt-1">Añade el ID del Sheets arriba o crea uno automáticamente</p>
+                        </div>
                       </div>
+                      <Button
+                        onClick={async () => {
+                          if (!currentBudget) { toast.error('Crea primero un presupuesto'); return; }
+                          setSyncing(true);
+                          const { data } = await base44.functions.invoke('budgetSheets', { action: 'createOrUpdateSheet', budgetId: currentBudget.id });
+                          const spreadsheetId = data?.spreadsheetId || data?.spreadsheet_id || data?.id;
+                          if (spreadsheetId) {
+                            await base44.entities.SeasonConfig.update(activeSeason.id, { google_sheets_id: spreadsheetId });
+                            setActiveSeason({ ...activeSeason, google_sheets_id: spreadsheetId });
+                            setNewSheetsId(spreadsheetId);
+                            toast.success('Google Sheets creado y vinculado');
+                          } else {
+                            toast.error('No se pudo obtener el ID del Sheets');
+                          }
+                          setSyncing(false);
+                        }}
+                        disabled={syncing}
+                        className="mt-3 w-full bg-green-600 hover:bg-green-700"
+                      >
+                        {syncing ? 'Creando...' : 'Crear Google Sheets automático'}
+                      </Button>
                     </div>
                   ) : (
-                    <>
-                      <Button
-                        onClick={() => syncIncomesMutation.mutate()}
-                        disabled={syncing || syncIncomesMutation.isPending}
-                        className="w-full bg-green-600 hover:bg-green-700 py-6 text-lg font-bold"
-                      >
-                        {syncing || syncIncomesMutation.isPending ? (
-                          <>
-                            <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
-                            Sincronizando...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="w-5 h-5 mr-2" />
-                            Sincronizar Partidas
-                          </>
-                        )}
-                      </Button>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <Button
+                          onClick={() => syncIncomesMutation.mutate()}
+                          disabled={syncing || syncIncomesMutation.isPending}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {syncing || syncIncomesMutation.isPending ? (
+                            <>
+                              <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                              Sincronizando...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-5 h-5 mr-2" />
+                              Enviar a Sheets
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          onClick={async () => {
+                            setSyncing(true);
+                            await base44.functions.invoke('budgetSheets', { action: 'syncFromSheet', sheetId: activeSeason.google_sheets_id, budgetId: currentBudget?.id });
+                            await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+                            setSyncing(false);
+                            toast.success('Datos traídos desde Sheets');
+                          }}
+                          disabled={syncing}
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          {syncing ? (
+                            <>
+                              <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                              Sincronizando...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-5 h-5 mr-2" />
+                              Traer de Sheets
+                            </>
+                          )}
+                        </Button>
+
+                        <a
+                          href={`https://docs.google.com/spreadsheets/d/${activeSeason.google_sheets_id}/edit`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium h-10 px-4"
+                        >
+                          Abrir en Sheets <ExternalLink className="w-4 h-4 ml-2" />
+                        </a>
+                      </div>
                       <p className="text-xs text-slate-500 text-center">Se sincroniza automáticamente al crear/editar partidas</p>
-                    </>
+                    </div>
                   )}
                 </CardContent>
               </Card>

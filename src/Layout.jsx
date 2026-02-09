@@ -1477,7 +1477,7 @@ export default function Layout({ children, currentPageName }) {
     // 💰 FINANZAS
     { title: "─ FINANZAS ─", section: true },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "📊 Presupuestos", url: createPageUrl("BudgetManager"), icon: BarChart3 },
+    { title: "📊 Presupuestos", url: createPageUrl("TreasurerFinancialPanel?tab=presupuestos"), icon: BarChart3 }
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
     { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
     { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
@@ -1760,7 +1760,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏠 Inicio", url: createPageUrl("TreasurerDashboard"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💳 Pagos Club", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "📊 Presupuestos", url: createPageUrl("BudgetManager"), icon: BarChart3 },
+    { title: "📊 Presupuestos", url: createPageUrl("TreasurerFinancialPanel?tab=presupuestos"), icon: BarChart3 }
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
