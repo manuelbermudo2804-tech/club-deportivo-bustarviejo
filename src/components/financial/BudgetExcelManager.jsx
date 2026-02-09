@@ -35,7 +35,7 @@ export default function BudgetExcelManager({ budget, onImportSuccess }) {
           bytes[i] = binaryString.charCodeAt(i);
         }
         const blob = new Blob([bytes], {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          type: 'text/csv'
         });
 
         const url = URL.createObjectURL(blob);
