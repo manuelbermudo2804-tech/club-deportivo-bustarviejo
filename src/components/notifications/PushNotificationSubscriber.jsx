@@ -14,9 +14,25 @@ export default function PushNotificationSubscriber({ user }) {
     setIsSupported(supported);
 
     if (supported && user?.email) {
-      checkSubscription();
+      registerServiceWorker();
     }
   }, [user?.email]);
+
+  const registerServiceWorker = async () => {
+    try {
+      let registration = await navigator.serviceWorker.getRegistration();
+      
+      if (!registration) {
+        // Registrar el service worker
+        registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('✅ Service Worker registrado');
+      }
+      
+      checkSubscription();
+    } catch (err) {
+      console.error('Error registering Service Worker:', err);
+    }
+  };
 
   const checkSubscription = async () => {
     try {
