@@ -563,65 +563,71 @@ export default function BudgetManager({
           Cargar partidas base
         </Button>
 
-        <Button 
-          onClick={handleOpenInSheets}
-          disabled={creatingSheet}
-          variant="outline"
-          size="sm"
-          className="border-green-500 text-green-600 hover:bg-green-50"
-        >
-          {creatingSheet ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Abriendo...</>
-          ) : (
-            <><Sheet className="h-4 w-4 mr-2" /> Abrir en Google Sheets</>
-          )}
-        </Button>
-
-        {budget?.google_sheet_id && (
+        {/* Grupo de Sincronización */}
+        <div className="flex gap-2">
           <Button 
-            onClick={handleSyncFromSheet}
-            disabled={syncingFromSheet}
+            onClick={handleOpenInSheets}
+            disabled={creatingSheet}
             variant="outline"
             size="sm"
-            className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            className="border-green-500 text-green-600 hover:bg-green-50"
+            title="Crear o actualizar hoja en Google Sheets"
           >
-            {syncingFromSheet ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sincronizando...</>
+            {creatingSheet ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <><RefreshCw className="h-4 w-4 mr-2" /> Traer de Sheets</>
+              <Sheet className="h-4 w-4" />
             )}
           </Button>
-        )}
 
-        <Button 
-          onClick={async () => {
-            try {
-              setUpdatingExecuted(true);
-              const { data } = await base44.functions.invoke('updateBudgetExecuted', { budgetId: budget.id });
-              if (data?.success) {
-                await queryClient.invalidateQueries({ queryKey: ['budgets'] });
-                toast.success('Ejecutado actualizado');
-              } else {
-                toast.error(data?.error || 'No se pudo actualizar el ejecutado');
-              }
-            } catch (e) {
-              console.error('updateBudgetExecuted error', e);
-              toast.error('Error al actualizar el ejecutado');
-            } finally {
-              setUpdatingExecuted(false);
-            }
-          }}
-          disabled={updatingExecuted}
-          variant="outline"
-          size="sm"
-          className="border-slate-400 text-slate-700 hover:bg-slate-50"
-        >
-          {updatingExecuted ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Actualizando...</>
-          ) : (
-            <><RefreshCw className="h-4 w-4 mr-2" /> Actualizar ejecutado</>
+          {budget?.google_sheet_id && (
+            <Button 
+              onClick={handleSyncFromSheet}
+              disabled={syncingFromSheet}
+              variant="outline"
+              size="sm"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+              title="Traer datos de Google Sheets"
+            >
+              {syncingFromSheet ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+            </Button>
           )}
-        </Button>
+
+          <Button 
+            onClick={async () => {
+              try {
+                setUpdatingExecuted(true);
+                const { data } = await base44.functions.invoke('updateBudgetExecuted', { budgetId: budget.id });
+                if (data?.success) {
+                  await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+                  toast.success('Ejecutado actualizado');
+                } else {
+                  toast.error(data?.error || 'No se pudo actualizar el ejecutado');
+                }
+              } catch (e) {
+                console.error('updateBudgetExecuted error', e);
+                toast.error('Error al actualizar el ejecutado');
+              } finally {
+                setUpdatingExecuted(false);
+              }
+            }}
+            disabled={updatingExecuted}
+            variant="outline"
+            size="sm"
+            className="border-slate-400 text-slate-700 hover:bg-slate-50"
+            title="Recalcular datos ejecutados"
+          >
+            {updatingExecuted ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
 
         <Button onClick={() => setShowAddPartida(true)} className="bg-orange-600 hover:bg-orange-700">
           <Plus className="h-4 w-4 mr-2" />
