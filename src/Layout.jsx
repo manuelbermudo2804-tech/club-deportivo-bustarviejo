@@ -630,6 +630,8 @@ export default function Layout({ children, currentPageName }) {
   const [enginesReady, setEnginesReady] = useState(false);
   const [enginesStage2Ready, setEnginesStage2Ready] = useState(false);
   const [enginesStage3Ready, setEnginesStage3Ready] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
+  const rateLimitTimerRef = useRef(null);
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -771,6 +773,26 @@ export default function Layout({ children, currentPageName }) {
         document.removeEventListener('visibilitychange', onVisibilityChange);
         navigator.serviceWorker.removeEventListener('controllerchange', onCtrlChange);
       };
+    }, []);
+
+    // Rate limit guard - pausa consultas si recibimos 429
+    useEffect(() => {
+      const onRateLimit = (e) => {
+        try {
+          const msg = (e?.reason?.message || e?.message || '').toString();
+          if (/rate limit/i.test(msg)) {
+            if (rateLimitTimerRef.current) clearTimeout(rateLimitTimerRef.current);
+            window.__BASE44_PAUSE_REALTIME__ = true;
+            setRateLimited(true);
+            rateLimitTimerRef.current = setTimeout(() => {
+              window.__BASE44_PAUSE_REALTIME__ = false;
+              setRateLimited(false);
+            }, 20000);
+          }
+        } catch {}
+      };
+      window.addEventListener('unhandledrejection', onRateLimit);
+      return () => window.removeEventListener('unhandledrejection', onRateLimit);
     }, []);
 
     // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
@@ -2719,6 +2741,12 @@ export default function Layout({ children, currentPageName }) {
                 Actualizar ahora
               </Button>
             </div>
+          </div>
+        )}
+
+        {rateLimited && (
+          <div className="fixed top-[84px] lg:top-10 left-0 right-0 z-[150] bg-yellow-500 text-white px-4 py-2 text-center shadow">
+            Se ha alcanzado el límite de peticiones. Reintentamos en unos segundos…
           </div>
         )}
 
