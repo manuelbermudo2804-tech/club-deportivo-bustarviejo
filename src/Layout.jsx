@@ -665,7 +665,6 @@ export default function Layout({ children, currentPageName }) {
   // maintenance mode removed
   
   const [installDismissed, setInstallDismissed] = useState(false);
-  const [rateLimited, setRateLimited] = useState(false);
   // isIOS/isAndroid definidos arriba para evitar TDZ
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
@@ -845,6 +844,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation, PWA aliases)
   const [authChecked, setAuthChecked] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
   const fetchUserOnceRef = useRef(false);
   const isPublicPageRef = useRef(false);
 
