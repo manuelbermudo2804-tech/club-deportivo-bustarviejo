@@ -7,6 +7,7 @@ export default function PushNotificationSubscriber({ user }) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [swError, setSwError] = useState(null);
 
   useEffect(() => {
     // Verificar soporte de Web Push
@@ -23,21 +24,15 @@ export default function PushNotificationSubscriber({ user }) {
       let registration = await navigator.serviceWorker.getRegistration();
       
       if (!registration) {
-        // Registrar el service worker desde el endpoint de funciones
-        try {
-          registration = await navigator.serviceWorker.register('/sw.js');
-          console.log('✅ Service Worker registrado desde /sw.js');
-        } catch (e1) {
-          console.log('Intentando ruta alternativa...');
-          registration = await navigator.serviceWorker.register('/functions/sw');
-          console.log('✅ Service Worker registrado desde /functions/sw');
-        }
+        registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('✅ Service Worker registrado desde /sw.js');
       }
       
+      setSwError(null);
       checkSubscription();
     } catch (err) {
       console.error('❌ Error registering Service Worker:', err);
-      setIsSupported(false); // Desactivar si falla
+      setSwError('Service Worker no disponible en esta URL');
     }
   };
 
@@ -61,10 +56,12 @@ export default function PushNotificationSubscriber({ user }) {
 
     setIsLoading(true);
     try {
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) throw new Error('Service Worker no disponible');
+      let registration = await navigator.serviceWorker.getRegistration();
+      
+      if (!registration) {
+        registration = await navigator.serviceWorker.register('/sw.js');
+      }
 
-      // Solicitar suscripción al push
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: process.env.REACT_APP_VAPID_PUBLIC_KEY || 
@@ -74,7 +71,6 @@ export default function PushNotificationSubscriber({ user }) {
 
       if (!subscription) throw new Error('No se pudo crear suscripción');
 
-      // Guardar suscripción en base de datos
       await base44.entities.PushSubscription.create({
         usuario_email: user.email,
         endpoint: subscription.endpoint,
@@ -84,6 +80,7 @@ export default function PushNotificationSubscriber({ user }) {
       });
 
       setIsSubscribed(true);
+      setSwError(null);
       alert('✅ Notificaciones push activadas. Recibirás alertas como en WhatsApp.');
     } catch (err) {
       console.error('Error subscribing to push:', err);
@@ -103,7 +100,6 @@ export default function PushNotificationSubscriber({ user }) {
       if (subscription) {
         await subscription.unsubscribe();
         
-        // Marcar como inactiva en BD
         const subs = await base44.entities.PushSubscription.filter({
           usuario_email: user?.email,
           endpoint: subscription.endpoint
