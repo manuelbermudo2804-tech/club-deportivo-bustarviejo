@@ -1309,14 +1309,14 @@ export default function ClubMembership() {
                 )}
 
                 {formData.metodo_pago === "Tarjeta" && (
-                   <div className="bg-white rounded-xl p-4 border-2 border-orange-300">
-                     <div className="space-y-4">
+                   <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-6 border-2 border-orange-200">
+                     <div className="space-y-5">
                        <div>
-                         <p className="text-sm text-slate-700 font-semibold">💳 Elige tu forma de pago:</p>
-                         <p className="text-xs text-slate-600 mt-1 mb-3">Por favor, elige una opción para completar tu inscripción</p>
+                         <p className="text-base text-slate-800 font-bold">💳 Elige tu forma de pago:</p>
+                         <p className="text-sm text-slate-600 mt-2">Selecciona la opción que mejor se adapte a ti</p>
                        </div>
 
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                       <div className="grid grid-cols-1 gap-4">
                          {/* Pago único anual */}
                          <a 
                            href="https://buy.stripe.com/28E6oH3Ys3yBaKEdGrfrW00"
@@ -1326,11 +1326,14 @@ export default function ClubMembership() {
                          >
                            <Button
                              type="button"
-                             className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 text-sm"
+                             className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-6 text-base h-auto"
                            >
-                             <span>💰 Pago Único</span>
-                             <span className="block text-xs font-normal mt-0.5">Una vez / año</span>
-                             <span className="block text-xs font-bold mt-0.5">25€</span>
+                             <div className="text-center w-full">
+                               <div className="text-2xl mb-1">💰</div>
+                               <span className="block text-lg font-bold">Pago Único</span>
+                               <span className="block text-sm font-normal opacity-90">Paga una sola vez este año</span>
+                               <span className="block text-lg font-bold mt-1">25€</span>
+                             </div>
                            </Button>
                          </a>
 
@@ -1339,33 +1342,44 @@ export default function ClubMembership() {
                            href="https://buy.stripe.com/aFaaEX1Qk4CF7yseKvfrW01"
                            target="_blank"
                            rel="noopener noreferrer"
-                           className="block"
+                           className="block relative"
                          >
+                           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-xs font-bold animate-bounce">
+                             ⭐ MÁS RECOMENDADO
+                           </div>
                            <Button
                              type="button"
-                             className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 text-sm ring-2 ring-purple-300 ring-offset-2"
+                             className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 text-white font-bold py-8 text-base h-auto ring-2 ring-purple-300 ring-offset-3 shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02]"
                            >
-                             <span>🔄 Suscripción</span>
-                             <span className="block text-xs font-normal mt-0.5">Automática cada año</span>
-                             <span className="block text-xs font-bold mt-0.5">25€/año</span>
+                             <div className="text-center w-full">
+                               <div className="text-2xl mb-1">🔄</div>
+                               <span className="block text-lg font-bold">Suscripción Automática</span>
+                               <span className="block text-sm font-normal opacity-90">Renovación automática cada año</span>
+                               <span className="block text-lg font-bold mt-1">25€/año</span>
+                               <span className="block text-xs opacity-75 mt-1">✓ La más conveniente</span>
+                             </div>
                            </Button>
                          </a>
                        </div>
 
-                       <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                         <p className="text-xs text-purple-800">
-                           <strong>✨ Recomendado:</strong> La suscripción automática te renovará cada año sin tener que hacer nada. Es la opción más cómoda para no olvidarte de tu membresía.
-                         </p>
+                       <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-xl p-4 border-2 border-purple-200">
+                         <p className="text-sm text-purple-900 font-semibold mb-2">✨ ¿Por qué elegir suscripción?</p>
+                         <ul className="space-y-1 text-xs text-purple-800">
+                           <li>✓ Te renovarás automáticamente sin hacer nada</li>
+                           <li>✓ Nunca te perderás un año de membresía</li>
+                           <li>✓ Cancela cuando quieras sin penalización</li>
+                         </ul>
                        </div>
 
-                       <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                       <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-xl p-4 border-2 border-blue-200">
+                         <p className="text-sm text-blue-900 font-semibold mb-2">💡 Sin papeleos ni complicaciones</p>
                          <p className="text-xs text-blue-800">
-                           <strong>💡 Sin papeleos:</strong> No necesitas subir justificante de pago ni enviar el formulario. Todo se gestiona automáticamente por Stripe.
+                           No necesitas subir justificante de pago. Todo se gestiona automáticamente y seguro a través de Stripe.
                          </p>
                        </div>
                      </div>
                    </div>
-                 )}
+                  )}
 
                 {/* Subir justificante */}
                 <div className="space-y-2">
