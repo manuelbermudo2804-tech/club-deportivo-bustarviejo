@@ -470,9 +470,9 @@ export default function ParentDashboard() {
 
                 <Link to={createPageUrl("ParentSystemMessages")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(Math.max(notifications?.unreadSystemMessages || 0, chatBubbles.systemMessagesBubble || 0)) > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{Math.max(notifications?.unreadSystemMessages || 0, chatBubbles.systemMessagesBubble || 0)}</span>
+                    {(notifications?.unreadSystemMessages || 0) > 0 && (
+                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-orange-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                        🔔 {notifications.unreadSystemMessages}
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">🔔 Mensajes</p>
@@ -482,9 +482,9 @@ export default function ParentDashboard() {
 
                 <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(Math.max(notifications?.unreadCoordinatorMessages || 0, chatBubbles.coordinatorForFamilyBubble || 0)) > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{Math.max(notifications?.unreadCoordinatorMessages || 0, chatBubbles.coordinatorForFamilyBubble || 0)}</span>
+                    {(notifications?.unreadCoordinatorMessages || 0) > 0 && (
+                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-cyan-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                        💬 {notifications.unreadCoordinatorMessages}
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
@@ -494,9 +494,9 @@ export default function ParentDashboard() {
                 
                 <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(Math.max(notifications?.unreadCoachMessages || 0, chatBubbles.coachForFamilyBubble || 0)) > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{Math.max(notifications?.unreadCoachMessages || 0, chatBubbles.coachForFamilyBubble || 0)}</span>
+                    {(notifications?.unreadCoachMessages || 0) > 0 && (
+                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-blue-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                        ⚽ {notifications.unreadCoachMessages}
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
@@ -652,12 +652,7 @@ export default function ParentDashboard() {
                 <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
                 <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
                 
-                {/* Badge flotante esquina superior derecha */}
-                {item.badge !== undefined && item.badge > 0 && (
-                  <div className="absolute -top-2 -right-2 z-20 bg-green-500 text-white font-bold text-xs px-2 py-1 rounded-lg shadow-lg border-2 border-white animate-pulse">
-                    {item.badge}
-                  </div>
-                )}
+
                 
                 <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
                   <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
