@@ -22,10 +22,63 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Budget not found' }, { status: 404 });
     }
 
+    // Obtener datos para cálculos automáticos
+    const [players, payments, seasonConfigs] = await Promise.all([
+      base44.entities.Player.list(),
+      base44.entities.Payment.list(),
+      base44.entities.SeasonConfig.list()
+    ]);
+
+    // Obtener cuota de la temporada
+    const seasonConfig = seasonConfigs.find(s => s.temporada === budget.temporada);
+    const cuotaUnica = seasonConfig?.cuota_unica || 0;
+
     const xlsx = await import('npm:xlsx@0.18.5');
     const XLSX = xlsx.default;
 
-    const partidas = budget.partidas || [];
+    // Obtener partidas del presupuesto o generar automáticas
+    let partidas = budget.partidas || [];
+    
+    // Si no hay partidas, generarlas automáticamente
+    if (partidas.length === 0) {
+      // Contar jugadores por categoría
+      const playersByCategory = {};
+      players.forEach(p => {
+        if (p.activo && (p.categoria_principal || p.deporte)) {
+          const cat = p.categoria_principal || p.deporte;
+          playersByCategory[cat] = (playersByCategory[cat] || 0) + 1;
+        }
+      });
+
+      // Generar partidas de ingresos por categoría
+      partidas = Object.entries(playersByCategory).map(([categoria, count]) => ({
+        nombre: `Cuotas ${categoria}`,
+        categoria: 'Ingresos',
+        presupuestado: count * cuotaUnica,
+        ejecutado: 0,
+        id: Math.random().toString()
+      }));
+    }
+
+    // Calcular ejecutado real desde payments
+    const paymentsByPartida = {};
+    payments.forEach(p => {
+      if (p.temporada === budget.temporada && p.estado === 'Pagado') {
+        const key = p.jugador_id || 'sin_asignar';
+        paymentsByPartida[key] = (paymentsByPartida[key] || 0) + (p.cantidad || 0);
+      }
+    });
+
+    // Actualizar ejecutado en las partidas
+    partidas = partidas.map(p => {
+      if (p.categoria === 'Ingresos') {
+        // Calcular ejecutado sumando todos los pagos
+        const totalEjecutado = Object.values(paymentsByPartida).reduce((sum, amount) => sum + amount, 0);
+        return { ...p, ejecutado: totalEjecutado };
+      }
+      return p;
+    });
+
     const categorías = ['Ingresos', 'Gastos Fijos', 'Gastos Variables', 'Inversiones'];
     
     // Crear datos en formato de array
