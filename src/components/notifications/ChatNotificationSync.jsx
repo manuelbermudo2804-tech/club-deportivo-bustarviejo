@@ -121,7 +121,7 @@ export function ChatNotificationSync({ user }) {
     // ===== 3. ENTRENADOR - FAMILIAS (grupo ChatMessage) =====
     // CRÍTICO: Necesitamos cargar jugadores del usuario para validar categorías
     let userPlayers = [];
-    const loadUserPlayers = async () => {
+    (async () => {
       if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
         try {
           userPlayers = await base44.entities.Player.filter({
@@ -137,8 +137,7 @@ export function ChatNotificationSync({ user }) {
           console.error('[ChatNotificationSync] Error cargando jugadores:', e);
         }
       }
-    };
-    await loadUserPlayers();
+    })();
 
     // Escuchar ChatMessage para todos los roles relevantes (entrenador, coordinador, admin)
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
