@@ -209,7 +209,11 @@ export function useUnifiedNotifications(user, options = {}) {
         }
         setRawData(prev => ({ ...prev, coachConversations: convs }));
       };
-      setTimeout(() => run(loadCoachConvs), 300);
+      if (forceRefreshKey > 0) {
+        run(loadCoachConvs);
+      } else {
+        setTimeout(() => run(loadCoachConvs), 300);
+      }
     
       // Suscripción SOLO si cargamos datos
       let lastCoachConvUpdate = 0;
@@ -235,7 +239,11 @@ export function useUnifiedNotifications(user, options = {}) {
         const msgs = await run(() => base44.entities.ChatMessage.list('-created_date', 15));
         setRawData(prev => ({ ...prev, chatMessages: msgs }));
       };
-      setTimeout(() => run(loadChatMsgs), 2500);
+      if (forceRefreshKey > 0) {
+        run(loadChatMsgs);
+      } else {
+        setTimeout(() => run(loadChatMsgs), 2500);
+      }
       // Throttle chat subscription updates
       let lastChatUpdate = 0;
       const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
@@ -260,7 +268,11 @@ export function useUnifiedNotifications(user, options = {}) {
         const msgs = await run(() => base44.entities.StaffMessage.list('-created_date', 40));
         setRawData(prev => ({ ...prev, staffMessages: msgs }));
       };
-      setTimeout(() => run(loadStaffMsgs), 3500);
+      if (forceRefreshKey > 0) {
+        run(loadStaffMsgs);
+      } else {
+        setTimeout(() => run(loadStaffMsgs), 3500);
+      }
       let staffQueue = [];
       let staffFlushTimer = null;
       const flushStaffQueue = () => {
@@ -298,7 +310,11 @@ export function useUnifiedNotifications(user, options = {}) {
         }
         setRawData(prev => ({ ...prev, adminConversations: convs }));
       };
-      setTimeout(() => run(loadAdminConvs), 4500);
+      if (forceRefreshKey > 0) {
+        run(loadAdminConvs);
+      } else {
+        setTimeout(() => run(loadAdminConvs), 4500);
+      }
     }
     if (user?.role === 'admin' || (!user.es_entrenador && !user.es_coordinador && !user.es_tesorero)) {
       let lastAdminConvUpdate = 0;
@@ -350,7 +366,11 @@ export function useUnifiedNotifications(user, options = {}) {
       }
       setRawData(prev => ({ ...prev, privateConversations: convs }));
     };
-    setTimeout(() => run(loadPrivateConvs), 6500);
+    if (forceRefreshKey > 0) {
+      run(loadPrivateConvs);
+    } else {
+      setTimeout(() => run(loadPrivateConvs), 6500);
+    }
     let lastPrivateConvUpdate = 0;
     const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
         const now = Date.now();
@@ -371,7 +391,11 @@ export function useUnifiedNotifications(user, options = {}) {
       const convs = await run(() => base44.entities.Convocatoria.list('-created_date', 30));
       setRawData(prev => ({ ...prev, convocatorias: convs }));
     };
-    setTimeout(() => run(loadConvocatorias), 7500);
+    if (forceRefreshKey > 0) {
+      run(loadConvocatorias);
+    } else {
+      setTimeout(() => run(loadConvocatorias), 7500);
+    }
     let lastCallupsUpdate = 0;
     const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
         const now = Date.now();
@@ -393,7 +417,11 @@ export function useUnifiedNotifications(user, options = {}) {
         const pays = await run(() => base44.entities.Payment.list('-created_date', 30));
         setRawData(prev => ({ ...prev, payments: pays }));
       };
-      setTimeout(() => run(loadPayments), 8500);
+      if (forceRefreshKey > 0) {
+        run(loadPayments);
+      } else {
+        setTimeout(() => run(loadPayments), 8500);
+      }
       let lastPaymentsUpdate = 0;
       const unsubPayments = base44.entities.Payment.subscribe((event) => {
           const now = Date.now();
@@ -422,7 +450,11 @@ export function useUnifiedNotifications(user, options = {}) {
       }
       setRawData(prev => ({ ...prev, players: pls }));
     };
-    setTimeout(() => run(loadPlayers), 9500);
+    if (forceRefreshKey > 0) {
+      run(loadPlayers);
+    } else {
+      setTimeout(() => run(loadPlayers), 9500);
+    }
     if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
       let lastPlayersUpdate = 0;
       const unsubPlayers = base44.entities.Player.subscribe((event) => {
@@ -445,7 +477,11 @@ export function useUnifiedNotifications(user, options = {}) {
       const anns = await run(() => base44.entities.Announcement.filter({ publicado: true }, '-fecha_publicacion', 20));
       setRawData(prev => ({ ...prev, announcements: anns }));
     };
-    setTimeout(() => run(loadAnnouncements), 10500);
+    if (forceRefreshKey > 0) {
+      run(loadAnnouncements);
+    } else {
+      setTimeout(() => run(loadAnnouncements), 10500);
+    }
     let lastAnnouncementsUpdate = 0;
     const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
         const now = Date.now();
@@ -480,7 +516,11 @@ export function useUnifiedNotifications(user, options = {}) {
           clubMembers: members
         }));
       };
-      setTimeout(() => run(loadInvitations), 11500);
+      if (forceRefreshKey > 0) {
+        run(loadInvitations);
+      } else {
+        setTimeout(() => run(loadInvitations), 11500);
+      }
       
       const unsubInv = base44.entities.InvitationRequest.subscribe(() => {
                     globalThrottler.execute(() => {
@@ -531,7 +571,11 @@ export function useUnifiedNotifications(user, options = {}) {
         const obs = await run(() => base44.entities.MatchObservation.list('-updated_date', 40));
         setRawData(prev => ({ ...prev, matchObservations: obs }));
       };
-      setTimeout(() => run(loadObservations), 12500);
+      if (forceRefreshKey > 0) {
+        run(loadObservations);
+      } else {
+        setTimeout(() => run(loadObservations), 12500);
+      }
       let lastObsUpdate = 0;
       const unsubObs = base44.entities.MatchObservation.subscribe((event) => {
         const now = Date.now();
