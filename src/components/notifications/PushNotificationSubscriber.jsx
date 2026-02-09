@@ -24,15 +24,15 @@ export default function PushNotificationSubscriber({ user }) {
       let registration = await navigator.serviceWorker.getRegistration();
       
       if (!registration) {
-        registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('✅ Service Worker registrado desde /sw.js');
+        registration = await navigator.serviceWorker.register('/functions/sw');
+        console.log('✅ Service Worker registrado');
       }
       
       setSwError(null);
       checkSubscription();
     } catch (err) {
-      console.error('❌ Error registering Service Worker:', err);
-      setSwError('Service Worker no disponible en esta URL');
+      console.error('❌ Error:', err);
+      setSwError('Service Worker no disponible');
     }
   };
 
