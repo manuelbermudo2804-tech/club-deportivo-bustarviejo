@@ -1309,113 +1309,53 @@ export default function ClubMembership() {
                 )}
 
                 {formData.metodo_pago === "Tarjeta" && (
-                  <div className="bg-white rounded-xl p-4 border-2 border-orange-300">
-                    <p className="text-sm text-slate-700 mb-3 font-semibold">💳 Paga con tarjeta de forma segura (Stripe)</p>
-                    {isIframe && (
-                      <Alert className="mb-3 bg-yellow-50 border-yellow-200">
-                        <AlertDescription className="text-yellow-800 text-sm">
-                          Para pagar con tarjeta abre la app publicada. En la vista previa del editor no se puede abrir Stripe.
-                          <a
-                            href={"https://app.cdbustarviejo.com" + createPageUrl("ClubMembership")}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-2 underline text-orange-700"
-                          >
-                            Abrir app publicada
-                          </a>
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                    <Button
-                      type="button"
-                      disabled={isIframe || openingStripe}
-                      className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-bold"
-                      onClick={async () => {
-                        setOpeningStripe(true);
-                        if (isPlayerUser && currentSeasonMembership) {
-                          toast.info('Ya eres socio esta temporada. Como jugador no puedes registrar más.');
-                          setOpeningStripe(false);
-                          return;
-                        }
-                        if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
-                          toast.error("Por favor, rellena todos los campos obligatorios");
-                          return;
-                        }
-                        if (window.self !== window.top) {
-                          toast.error("Para pagar con tarjeta abre la app publicada (no en el preview)");
-                          setOpeningStripe(false);
-                          return;
-                        }
-                        // Requiere sesión para pagar con tarjeta
-                        const isAuth = await base44.auth.isAuthenticated();
-                        if (!isAuth) {
-                          toast.info("Inicia sesión para pagar con tarjeta");
-                          const nextUrl = window.location.origin + createPageUrl("ClubMembership");
-                          base44.auth.redirectToLogin(nextUrl);
-                          setOpeningStripe(false);
-                          return;
-                        }
+                   <div className="bg-white rounded-xl p-4 border-2 border-orange-300">
+                     <p className="text-sm text-slate-700 mb-4 font-semibold">💳 Elige tu forma de pago:</p>
 
-                        const successUrl = `${window.location.origin}${createPageUrl("ClubMembership")}?paid=stripe&membership_id=${encodeURIComponent(membership.id)}`;
-                        const cancelUrl = `${window.location.origin}${createPageUrl("ClubMembership")}?canceled=socio&membership_id=${encodeURIComponent(membership.id)}`;
+                     <div className="grid md:grid-cols-2 gap-3">
+                       {/* Pago único anual */}
+                       <a 
+                         href="https://buy.stripe.com/28E6oH3Ys3yBaKEdGrfrW00"
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="block"
+                       >
+                         <Button
+                           type="button"
+                           className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-6"
+                         >
+                           <span className="text-lg">💰 Pago Único</span>
+                           <span className="block text-xs mt-1 font-normal">Paga una sola vez este año</span>
+                           <span className="block text-sm font-bold mt-1">25€ / año</span>
+                         </Button>
+                       </a>
 
-                        // Crear ficha de socio pendiente ANTES de ir a Stripe
-                        const numeroSocio = await generateNumeroSocio();
-                        const membership = await base44.entities.ClubMember.create({
-                          numero_socio: numeroSocio,
-                          nombre_completo: formData.nombre_completo,
-                          dni: formData.dni,
-                          email: formData.email,
-                          telefono: formData.telefono,
-                          direccion: formData.direccion,
-                          municipio: formData.municipio,
-                          cuota_socio: seasonConfig?.precio_socio || CUOTA_SOCIO,
-                          tipo_inscripcion: formData.tipo_inscripcion,
-                          estado_pago: 'Pendiente',
-                          temporada: seasonConfig?.temporada || new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
-                          activo: true,
-                          es_socio_externo: isExternalUser === true,
-                          referido_por: formData.referido_por || (currentUser && myPlayers.length > 0 ? currentUser.full_name : '')
-                        });
+                       {/* Suscripción anual automática */}
+                       <a 
+                         href="https://buy.stripe.com/aFaaEX1Qk4CF7yseKvfrW01"
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="block"
+                       >
+                         <Button
+                           type="button"
+                           className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-6 ring-2 ring-purple-300"
+                         >
+                           <span className="text-lg">🔄 Suscripción</span>
+                           <span className="block text-xs mt-1 font-normal">Renovación automática cada año</span>
+                           <span className="block text-sm font-bold mt-1">25€ / año</span>
+                         </Button>
+                       </a>
+                     </div>
 
+                     <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                       <p className="text-xs text-blue-800">
+                         <strong>💡 Con suscripción:</strong> Te renovarás automáticamente cada año sin tener que hacer nada. Si prefieres pagar solo este año, elige "Pago Único".
+                       </p>
+                     </div>
 
-
-                        const { data } = await base44.functions.invoke('stripeCheckout', {
-                          amount: seasonConfig?.precio_socio || 25,
-                          name: 'Cuota de Socio',
-                          currency: 'eur',
-                          successUrl,
-                          cancelUrl,
-                          metadata: {
-                            tipo: 'cuota_socio',
-                            temporada: seasonConfig?.temporada || '',
-                            membership_id: membership.id,
-                            nombre_completo: formData.nombre_completo,
-                            dni: formData.dni,
-                            telefono: formData.telefono,
-                            email: formData.email,
-                            direccion: formData.direccion,
-                            municipio: formData.municipio,
-                            tipo_inscripcion: formData.tipo_inscripcion,
-                            es_segundo_progenitor: formData.es_segundo_progenitor ? 'true' : 'false',
-                            referido_por: formData.referido_por || '',
-                            referido_por_email: currentUser?.email || '',
-                            es_socio_externo: isExternalUser ? 'true' : 'false',
-                            metodo_pago: 'Tarjeta'
-                          }
-                        });
-                        if (data?.url) {
-                          window.location.href = data.url;
-                        } else {
-                          toast.error("No se pudo iniciar el pago con Stripe");
-                          setOpeningStripe(false);
-                        }
-                      }}
-                    >
-                      {openingStripe ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin"/> Abriendo Stripe...</>) : (<>💳 Pagar cuota con tarjeta (Stripe)</>)}
-                    </Button>
-                    <p className="text-xs text-slate-600 mt-2">No necesitas subir justificante ni enviar el formulario.</p>
-                  </div>
+                     <p className="text-xs text-slate-600 mt-3">No necesitas subir justificante ni enviar el formulario si pagas por Stripe.</p>
+                   </div>
                 )}
 
                 {/* Subir justificante */}
