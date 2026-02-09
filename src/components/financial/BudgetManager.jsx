@@ -78,9 +78,9 @@ export default function BudgetManager({
   const [importedPartidas, setImportedPartidas] = useState([]);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
-  const [creatingSheet, setCreatingSheet] = useState(false);
-  const [syncingFromSheet, setSyncingFromSheet] = useState(false);
   const [updatingExecuted, setUpdatingExecuted] = useState(false);
+  const [isDownloadingExcel, setIsDownloadingExcel] = useState(false);
+  const [isImportingExcel, setIsImportingExcel] = useState(false);
   const [newPartida, setNewPartida] = useState({
     nombre: "",
     categoria: "Gastos Variables",
