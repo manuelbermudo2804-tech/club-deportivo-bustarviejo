@@ -266,7 +266,7 @@ export default function BudgetManager({
   const handleOpenInSheets = async () => {
     setCreatingSheet(true);
     // Intento preventivo para evitar bloqueo; puede fallar en iFrame
-    let win: Window | null = null;
+    let win = null;
     try { win = window.open('about:blank', '_blank'); } catch {}
     try {
       const { data } = await base44.functions.invoke('budgetSheets', {
