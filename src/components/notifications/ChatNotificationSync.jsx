@@ -29,6 +29,81 @@ export function ChatNotificationSync({ user }) {
     const unsubscribers = [];
     const processedEvents = new Set(); // Anti-duplicados
 
+    // ===== CARGA INICIAL DESDE BD (CRÍTICO PARA PERSISTENCIA) =====
+    const loadInitialCounts = async () => {
+      console.log('📊 [ChatNotificationSync] Cargando contadores iniciales desde BD...');
+      
+      try {
+        // 1. Staff chat
+        if (user.es_coordinador || user.es_entrenador || user.role === 'admin') {
+          const staffConvs = await base44.entities.StaffConversation.filter({});
+          const staffUnread = staffConvs.reduce((sum, conv) => {
+            const reads = conv.last_read_by || [];
+            const myRead = reads.find(r => r.email === user.email);
+            if (!myRead || !conv.ultimo_mensaje_fecha) return sum;
+            const lastReadTime = new Date(myRead.fecha).getTime();
+            const lastMsgTime = new Date(conv.ultimo_mensaje_fecha).getTime();
+            return sum + (lastMsgTime > lastReadTime ? 1 : 0);
+          }, 0);
+          UnifiedChatNotificationStore.updateCount(user.email, 'staff', staffUnread);
+        }
+
+        // 2. Coordinador - familias
+        if (user.es_coordinador) {
+          const coordConvs = await base44.entities.CoordinatorConversation.filter({});
+          const coordUnread = coordConvs.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
+          UnifiedChatNotificationStore.updateCount(user.email, 'coordinator', coordUnread);
+        }
+
+        // 3. Familia - coordinador
+        if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
+          const coordConvs = await base44.entities.CoordinatorConversation.filter({ padre_email: user.email });
+          const coordUnread = coordConvs.reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
+          UnifiedChatNotificationStore.updateCount(user.email, 'coordinatorForFamily', coordUnread);
+
+          // 4. Mensajes del club
+          const privateConvs = await base44.entities.PrivateConversation.filter({ participante_familia_email: user.email });
+          const privateUnread = privateConvs.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+          UnifiedChatNotificationStore.updateCount(user.email, 'systemMessages', privateUnread);
+
+          // 5. Entrenador - familias (ChatMessage grupo)
+          const myPlayers = await base44.entities.Player.filter({
+            $or: [
+              { email_padre: user.email },
+              { email_tutor_2: user.email },
+              { email_jugador: user.email }
+            ],
+            activo: true
+          });
+
+          const myCategories = myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
+          let coachUnread = 0;
+
+          for (const cat of myCategories) {
+            const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
+            const groupId = normalizeId(cat);
+            
+            const messages = await base44.entities.ChatMessage.filter({ grupo_id: groupId }, '-created_date', 50);
+            const unreadInGroup = messages.filter(msg => 
+              (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') &&
+              msg.remitente_email !== user.email &&
+              (!msg.leido_por || !msg.leido_por.some(r => r.email === user.email))
+            ).length;
+            
+            coachUnread += unreadInGroup;
+          }
+
+          UnifiedChatNotificationStore.updateCount(user.email, 'coachForFamily', coachUnread);
+        }
+
+        console.log('✅ [ChatNotificationSync] Contadores iniciales cargados');
+      } catch (e) {
+        console.error('❌ [ChatNotificationSync] Error cargando contadores iniciales:', e);
+      }
+    };
+
+    loadInitialCounts();
+
     // ===== 1. STAFF CHAT (interno) =====
     if (user.es_coordinador || user.es_entrenador || user.role === 'admin') {
       const unsubStaff = base44.entities.StaffMessage.subscribe((event) => {

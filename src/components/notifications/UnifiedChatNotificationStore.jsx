@@ -6,10 +6,24 @@
  * - Burbujas y menú lateral usan EXACTAMENTE el mismo estado
  * - Entrar en un chat SOLO borra notificaciones de ese chat
  * - Se marcan como leídos SOLO cuando el chat está abierto
+ * - PERSISTENCIA: guarda en localStorage y restaura al recargar
  */
 
 // Estado global compartido - FUENTE ÚNICA DE VERDAD
 let GLOBAL_CHAT_STATE = {};
+
+// Cargar estado desde localStorage al inicio
+if (typeof window !== 'undefined') {
+  try {
+    const saved = localStorage.getItem('chat_notifications_state');
+    if (saved) {
+      GLOBAL_CHAT_STATE = JSON.parse(saved);
+      console.log('📦 [UnifiedChatNotificationStore] Estado restaurado desde localStorage');
+    }
+  } catch (e) {
+    console.error('Error restaurando estado:', e);
+  }
+}
 
 export const UnifiedChatNotificationStore = {
   /**
@@ -101,6 +115,13 @@ export const UnifiedChatNotificationStore = {
     if (typeof window !== 'undefined') {
       const state = this.getAll(userEmail);
       window.__BASE44_CHAT_NOTIFICATIONS = state;
+
+      // PERSISTIR en localStorage
+      try {
+        localStorage.setItem('chat_notifications_state', JSON.stringify(GLOBAL_CHAT_STATE));
+      } catch (e) {
+        console.error('Error guardando estado:', e);
+      }
 
       console.log(`📢 [UnifiedChatNotificationStore] Broadcasting para ${userEmail}:`, state);
 
