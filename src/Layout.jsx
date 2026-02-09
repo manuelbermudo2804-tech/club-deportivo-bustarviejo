@@ -634,7 +634,6 @@ export default function Layout({ children, currentPageName }) {
   const [enginesReady, setEnginesReady] = useState(false);
   const [enginesStage2Ready, setEnginesStage2Ready] = useState(false);
   const [enginesStage3Ready, setEnginesStage3Ready] = useState(false);
-  const [rateLimited, setRateLimited] = useState(false);
   const rateLimitTimerRef = useRef(null);
 
   const [showWelcome, setShowWelcome] = useState(false);
@@ -666,6 +665,7 @@ export default function Layout({ children, currentPageName }) {
   // maintenance mode removed
   
   const [installDismissed, setInstallDismissed] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
   // isIOS/isAndroid definidos arriba para evitar TDZ
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
