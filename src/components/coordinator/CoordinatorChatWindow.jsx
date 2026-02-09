@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Smile, MessageCircle, MapPin, Reply, Edit, Trash2, Pin, Check, CheckCheck, ChevronLeft, MoreHorizontal } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Smile, MessageCircle, MapPin, Reply, Edit, Trash2, Pin, Check, CheckCheck, ChevronLeft, MoreHorizontal, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -38,6 +38,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [locationAddress, setLocationAddress] = useState("");
+  const [showNewMessageButton, setShowNewMessageButton] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
@@ -94,6 +96,50 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
     }
   }, [conversation?.id, messages.length]);
+
+  // Scroll tracking para botón de mensajes nuevos
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      if (isAtBottom) {
+        setShowNewMessageButton(false);
+        setUnreadCount(0);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Detectar nuevos mensajes del padre mientras no estás al final
+  useEffect(() => {
+    if (!scrollContainerRef.current || !messages || messages.length === 0 || !user) return;
+    
+    const container = scrollContainerRef.current;
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+    
+    if (!isAtBottom) {
+      const unreadFromParent = messages.filter(msg => 
+        msg.autor === "padre" && !msg.leido_coordinador
+      );
+      
+      if (unreadFromParent.length > 0) {
+        setUnreadCount(unreadFromParent.length);
+        setShowNewMessageButton(true);
+      }
+    }
+  }, [messages, user]);
+
+  const scrollToBottom = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      setShowNewMessageButton(false);
+      setUnreadCount(0);
+    }
+  };
 
   const handleTyping = async () => {
     if (!conversation?.id) return;
@@ -620,7 +666,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       />
 
       {/* Messages Area - scrollable */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 pb-24 min-h-0 scroll-smooth" style={{backgroundColor: '#E5DDD5'}}>
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 pb-24 min-h-0 scroll-smooth relative" style={{backgroundColor: '#E5DDD5'}}>
         {messages.map((msg, idx) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           
@@ -745,6 +791,18 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         )}
         
         <div ref={messagesEndRef} />
+
+        {/* Botón flotante de mensajes nuevos */}
+        {showNewMessageButton && unreadCount > 0 && (
+          <Button
+            onClick={scrollToBottom}
+            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-cyan-600 hover:bg-cyan-700 text-white shadow-xl animate-bounce z-10"
+            size="lg"
+          >
+            <ChevronDown className="w-5 h-5 mr-2" />
+            {unreadCount} {unreadCount === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}
+          </Button>
+        )}
       </div>
 
       {/* Input Bar */}
