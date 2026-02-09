@@ -51,11 +51,15 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
 
       if (hasPagoUnico) {
         const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
-        categories[categoria].esperado += pagoUnico.cantidad || 0;
+        const importeEsperado = pagoUnico?.cantidad || 0;
+        categories[categoria].esperado += importeEsperado;
+        
         if (pagoUnico.estado === "Pagado") {
           categories[categoria].cobrado += pagoUnico.cantidad || 0;
         } else if (pagoUnico.estado === "En revisión") {
           categories[categoria].enRevision += pagoUnico.cantidad || 0;
+        } else {
+          categories[categoria].pendiente += importeEsperado;
         }
       } else {
         allMonths.forEach(mes => {
@@ -68,6 +72,8 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
               categories[categoria].cobrado += pago.cantidad || 0;
             } else if (pago.estado === "En revisión") {
               categories[categoria].enRevision += pago.cantidad || 0;
+            } else {
+              categories[categoria].pendiente += importe;
             }
           } else {
             categories[categoria].pendiente += importe;
