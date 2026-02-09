@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     };
 
     let partidas = budget.partidas || [];
-    partidas = ensurePartida(partidas, 'Inscripciones Jugadores', 'Ingresos', inscripciones);
+    partidas = ensurePartida(partidas, 'Inscripciones Jugadores', 'Ingresos', inscripciones, inscripcionesPresupuestado);
     partidas = ensurePartida(partidas, 'Cuotas Socios', 'Ingresos', socios);
     partidas = ensurePartida(partidas, 'Patrocinios', 'Ingresos', patrocinios);
     partidas = ensurePartida(partidas, 'Lotería Navidad', 'Ingresos', loteria);
