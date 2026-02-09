@@ -73,7 +73,7 @@ export const UnifiedChatNotificationStore = {
   },
 
   /**
-   * CRITICÓ: Limpiar SOLO el contador de UN chat
+   * CRÍTICO: Limpiar SOLO el contador de UN chat
    * Nunca limpiar todos, nunca afectar a otros chats
    */
   clearChatOnly(userEmail, chatType) {
