@@ -542,6 +542,14 @@ export default function BudgetManager({
             Plantillas ({savedTemplates.length})
           </Button>
         )}
+        <Button 
+          onClick={handleLoadDefaultPartidas}
+          variant="outline"
+          size="sm"
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          Cargar partidas base
+        </Button>
 
         <Button onClick={() => setShowAddPartida(true)} className="bg-orange-600 hover:bg-orange-700">
           <Plus className="h-4 w-4 mr-2" />
