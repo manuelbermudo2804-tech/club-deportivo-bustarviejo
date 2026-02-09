@@ -1309,14 +1309,14 @@ export default function ClubMembership() {
                 )}
 
                 {formData.metodo_pago === "Tarjeta" && (
-                   <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-6 border-2 border-orange-200">
-                     <div className="space-y-5">
+                   <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-8 border-2 border-orange-200">
+                     <div className="space-y-6">
                        <div>
-                         <p className="text-base text-slate-800 font-bold">💳 Elige tu forma de pago:</p>
-                         <p className="text-sm text-slate-600 mt-2">Selecciona la opción que mejor se adapte a ti</p>
+                         <p className="text-lg text-slate-800 font-bold">💳 Elige tu forma de pago:</p>
+                         <p className="text-sm text-slate-600 mt-3">Selecciona la opción que mejor se adapte a ti</p>
                        </div>
 
-                       <div className="grid grid-cols-1 gap-4">
+                       <div className="grid grid-cols-1 gap-5">
                          {/* Pago único anual */}
                          <a 
                            href="https://buy.stripe.com/28E6oH3Ys3yBaKEdGrfrW00"
@@ -1326,13 +1326,13 @@ export default function ClubMembership() {
                          >
                            <Button
                              type="button"
-                             className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-6 text-base h-auto"
+                             className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-8 text-lg h-auto rounded-xl transition-all hover:shadow-lg"
                            >
-                             <div className="text-center w-full">
-                               <div className="text-2xl mb-1">💰</div>
-                               <span className="block text-lg font-bold">Pago Único</span>
-                               <span className="block text-sm font-normal opacity-90">Paga una sola vez este año</span>
-                               <span className="block text-lg font-bold mt-1">25€</span>
+                             <div className="text-center w-full py-2">
+                               <div className="text-3xl mb-2">💰</div>
+                               <span className="block text-xl font-bold">Pago Único</span>
+                               <span className="block text-sm font-normal opacity-90 mt-1">Paga una sola vez este año</span>
+                               <span className="block text-2xl font-bold mt-3">25€</span>
                              </div>
                            </Button>
                          </a>
@@ -1344,36 +1344,36 @@ export default function ClubMembership() {
                            rel="noopener noreferrer"
                            className="block relative"
                          >
-                           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-xs font-bold animate-bounce">
+                           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-xs font-bold animate-bounce shadow-lg">
                              ⭐ MÁS RECOMENDADO
                            </div>
                            <Button
                              type="button"
-                             className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 text-white font-bold py-8 text-base h-auto ring-2 ring-purple-300 ring-offset-3 shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02]"
+                             className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 text-white font-bold py-10 text-lg h-auto ring-2 ring-purple-300 ring-offset-3 shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] rounded-xl"
                            >
-                             <div className="text-center w-full">
-                               <div className="text-2xl mb-1">🔄</div>
-                               <span className="block text-lg font-bold">Suscripción Automática</span>
-                               <span className="block text-sm font-normal opacity-90">Renovación automática cada año</span>
-                               <span className="block text-lg font-bold mt-1">25€/año</span>
-                               <span className="block text-xs opacity-75 mt-1">✓ La más conveniente</span>
+                             <div className="text-center w-full py-2">
+                               <div className="text-3xl mb-2">🔄</div>
+                               <span className="block text-xl font-bold">Suscripción Automática</span>
+                               <span className="block text-sm font-normal opacity-90 mt-1">Renovación automática cada año</span>
+                               <span className="block text-2xl font-bold mt-3">25€/año</span>
+                               <span className="block text-xs opacity-75 mt-2">✓ La más conveniente</span>
                              </div>
                            </Button>
                          </a>
                        </div>
 
-                       <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-xl p-4 border-2 border-purple-200">
-                         <p className="text-sm text-purple-900 font-semibold mb-2">✨ ¿Por qué elegir suscripción?</p>
-                         <ul className="space-y-1 text-xs text-purple-800">
+                       <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-xl p-5 border-2 border-purple-200">
+                         <p className="text-sm text-purple-900 font-semibold mb-3">✨ ¿Por qué elegir suscripción?</p>
+                         <ul className="space-y-2 text-sm text-purple-800">
                            <li>✓ Te renovarás automáticamente sin hacer nada</li>
                            <li>✓ Nunca te perderás un año de membresía</li>
                            <li>✓ Cancela cuando quieras sin penalización</li>
                          </ul>
                        </div>
 
-                       <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-xl p-4 border-2 border-blue-200">
+                       <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-xl p-5 border-2 border-blue-200">
                          <p className="text-sm text-blue-900 font-semibold mb-2">💡 Sin papeleos ni complicaciones</p>
-                         <p className="text-xs text-blue-800">
+                         <p className="text-sm text-blue-800">
                            No necesitas subir justificante de pago. Todo se gestiona automáticamente y seguro a través de Stripe.
                          </p>
                        </div>
