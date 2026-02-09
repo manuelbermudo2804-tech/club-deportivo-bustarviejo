@@ -1108,14 +1108,21 @@ export default function Layout({ children, currentPageName }) {
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'staff', staffUnread);
           }
 
-          // 2. Coordinador - familias
+          // 2. Admin - conversaciones escaladas
+          if (currentUser.role === 'admin') {
+            const adminConvs = await base44.entities.AdminConversation.filter({});
+            const adminUnread = adminConvs.reduce((sum, c) => sum + (c.no_leidos_admin || 0), 0);
+            UnifiedChatNotificationStore.updateCount(currentUser.email, 'admin', adminUnread);
+          }
+
+          // 3. Coordinador - familias
           if (currentUser.es_coordinador) {
             const coordConvs = await base44.entities.CoordinatorConversation.filter({});
             const coordUnread = coordConvs.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'coordinator', coordUnread);
           }
 
-          // 3. Entrenador - familias (1-a-1 + grupo)
+          // 4. Entrenador - familias (1-a-1 + grupo)
           if (currentUser.es_entrenador) {
             // 3a. Conversaciones 1-a-1
             const coachConvs = await base44.entities.CoachConversation.filter({ entrenador_email: currentUser.email });
@@ -1140,19 +1147,19 @@ export default function Layout({ children, currentPageName }) {
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'coach', coachUnread);
           }
 
-          // 4. Familias - todos sus chats
+          // 5. Familias - todos sus chats
           if (!currentUser.es_entrenador && !currentUser.es_coordinador && currentUser.role !== 'admin') {
-            // 4a. Coordinador
+            // 5a. Coordinador
             const coordConvs = await base44.entities.CoordinatorConversation.filter({ padre_email: currentUser.email });
             const coordUnread = coordConvs.reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'coordinatorForFamily', coordUnread);
 
-            // 4b. Mensajes del club
+            // 5b. Mensajes del club
             const privateConvs = await base44.entities.PrivateConversation.filter({ participante_familia_email: currentUser.email });
             const privateUnread = privateConvs.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'systemMessages', privateUnread);
 
-            // 4c. Entrenador (grupo)
+            // 5c. Entrenador (grupo)
             const myPlayers = await base44.entities.Player.filter({
               $or: [
                 { email_padre: currentUser.email },
