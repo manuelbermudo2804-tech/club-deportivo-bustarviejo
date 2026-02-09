@@ -37,6 +37,16 @@ export default function ClubMembersManagement() {
   const [importData, setImportData] = useState([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importPreview, setImportPreview] = useState([]);
+  const [showManualImportForm, setShowManualImportForm] = useState(false);
+  const [manualImportForm, setManualImportForm] = useState({
+    nombre_completo: "",
+    dni: "",
+    email: "",
+    telefono: "",
+    direccion: "",
+    municipio: "",
+  });
+  const [isManualImporting, setIsManualImporting] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
