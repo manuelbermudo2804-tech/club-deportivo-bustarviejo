@@ -119,6 +119,27 @@ export function ChatNotificationSync({ user }) {
     }
 
     // ===== 3. ENTRENADOR - FAMILIAS (grupo ChatMessage) =====
+    // CRÍTICO: Necesitamos cargar jugadores del usuario para validar categorías
+    let userPlayers = [];
+    const loadUserPlayers = async () => {
+      if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
+        try {
+          userPlayers = await base44.entities.Player.filter({
+            $or: [
+              { email_padre: user.email },
+              { email_tutor_2: user.email },
+              { email_jugador: user.email }
+            ],
+            activo: true
+          });
+          console.log('✅ [ChatNotificationSync] Jugadores cargados:', userPlayers.length);
+        } catch (e) {
+          console.error('[ChatNotificationSync] Error cargando jugadores:', e);
+        }
+      }
+    };
+    await loadUserPlayers();
+
     // Escuchar ChatMessage para todos los roles relevantes (entrenador, coordinador, admin)
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
       if (event.type === 'create' && event.data) {
@@ -143,12 +164,25 @@ export function ChatNotificationSync({ user }) {
           }
         }
         
-        // Para familias: mensajes del entrenador O de otros padres en MIS categorías
+        // Para familias: mensajes del entrenador O de otros padres SOLO en MIS categorías
         if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
           if (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') {
             if (msg.remitente_email !== user.email) {
-              console.log('✅ [ChatNotificationSync] Incrementando coachForFamily para', user.email);
-              UnifiedChatNotificationStore.increment(user.email, 'coachForFamily');
+              // VALIDAR que el mensaje sea de UNA categoría donde tengo jugadores
+              const myCategories = userPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
+              const normalizeCategory = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim();
+              const msgCategory = normalizeCategory(msg.deporte || '');
+              const isMyCategory = myCategories.some(cat => {
+                const catNorm = normalizeCategory(cat);
+                return msgCategory === catNorm || msgCategory.startsWith(catNorm) || catNorm.startsWith(msgCategory);
+              });
+
+              if (isMyCategory) {
+                console.log('✅ [ChatNotificationSync] Incrementando coachForFamily para', user.email, 'categoría:', msg.deporte);
+                UnifiedChatNotificationStore.increment(user.email, 'coachForFamily');
+              } else {
+                console.log('⚠️ [ChatNotificationSync] Mensaje ignorado - no es mi categoría:', msg.deporte);
+              }
             }
           }
         }

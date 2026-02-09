@@ -247,17 +247,22 @@ export default function StaffChat() {
   useEffect(() => {
     if (!conversation?.id || !user?.email) return;
 
-    // PASO 1: Limpiar INMEDIATAMENTE del store unificado
-    UnifiedChatNotificationStore.clearChatOnly(user.email, 'staff');
+    // PASO 1: Calcular no leídos y decrementar badge EXACTAMENTE
+    const unreadMessages = messages.filter(m => 
+      m.autor_email !== user.email && 
+      !m.leido_por?.some(l => l.email === user.email)
+    );
+
+    if (unreadMessages.length > 0) {
+      for (let i = 0; i < unreadMessages.length; i++) {
+        UnifiedChatNotificationStore.decrement(user.email, 'staff');
+      }
+      console.log(`✅ [StaffChat] Badge decrementado x${unreadMessages.length}`);
+    }
 
     // PASO 2: Actualizar BD en paralelo (no bloquear UI)
     (async () => {
       try {
-        const unreadMessages = messages.filter(m => 
-          m.autor_email !== user.email && 
-          !m.leido_por?.some(l => l.email === user.email)
-        );
-
         if (unreadMessages.length > 0) {
           const BATCH = 10;
           for (let i = 0; i < unreadMessages.length; i += BATCH) {
@@ -285,7 +290,7 @@ export default function StaffChat() {
         console.error('Error marking staff chat as read:', err);
       }
     })();
-  }, [conversation?.id, user?.email]);
+  }, [conversation?.id, user?.email, messages]);
 
   const allSharedFiles = messages.flatMap(m => m.adjuntos || m.archivos_adjuntos || []);
 

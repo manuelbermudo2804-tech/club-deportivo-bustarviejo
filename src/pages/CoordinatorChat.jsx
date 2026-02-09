@@ -71,8 +71,14 @@ export default function CoordinatorChat({ embedded = false }) {
   useEffect(() => {
     if (!selectedConversation?.id || !user) return;
     
-    // PASO 1: Limpiar INMEDIATAMENTE del store unificado
-    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
+    // PASO 1: Decrementar badge EXACTAMENTE por los no leídos de ESTA conversación
+    const unreadInThisConv = selectedConversation.no_leidos_coordinador || 0;
+    if (unreadInThisConv > 0) {
+      for (let i = 0; i < unreadInThisConv; i++) {
+        UnifiedChatNotificationStore.decrement(user.email, 'coordinator');
+      }
+      console.log(`✅ [CoordinatorChat] Badge decrementado x${unreadInThisConv} para conversación ${selectedConversation.padre_nombre}`);
+    }
     
     // PASO 2: Actualizar BD en paralelo (no bloquear)
     (async () => {
