@@ -42,26 +42,26 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
 
       const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
       
-      const hasPagoUnico = playerPayments.some(p => 
-        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-        (p.estado === "Pagado" || p.estado === "En revisión")
-      );
+      // Verificar si tiene pago único (independiente del estado)
+      const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+      const hasPagoUnico = !!pagoUnico;
 
       const allMonths = ["Junio", "Septiembre", "Diciembre"];
 
       if (hasPagoUnico) {
-        const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
-        const importeEsperado = pagoUnico?.cantidad || 0;
+        // PAGO ÚNICO: usar la cantidad del pago como esperado
+        const importeEsperado = pagoUnico.cantidad || 0;
         categories[categoria].esperado += importeEsperado;
         
         if (pagoUnico.estado === "Pagado") {
-          categories[categoria].cobrado += pagoUnico.cantidad || 0;
+          categories[categoria].cobrado += importeEsperado;
         } else if (pagoUnico.estado === "En revisión") {
-          categories[categoria].enRevision += pagoUnico.cantidad || 0;
+          categories[categoria].enRevision += importeEsperado;
         } else {
           categories[categoria].pendiente += importeEsperado;
         }
       } else {
+        // PAGO FRACCIONADO: calcular por cada mes
         allMonths.forEach(mes => {
           const importe = getImportePorMes(player.deporte, mes);
           categories[categoria].esperado += importe;
@@ -69,9 +69,9 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
           const pago = playerPayments.find(p => p.mes === mes);
           if (pago) {
             if (pago.estado === "Pagado") {
-              categories[categoria].cobrado += pago.cantidad || 0;
+              categories[categoria].cobrado += (pago.cantidad || 0);
             } else if (pago.estado === "En revisión") {
-              categories[categoria].enRevision += pago.cantidad || 0;
+              categories[categoria].enRevision += (pago.cantidad || 0);
             } else {
               categories[categoria].pendiente += importe;
             }
