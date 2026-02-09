@@ -592,6 +592,23 @@ export default function BudgetManager({
           </Button>
         )}
 
+        <Button 
+          onClick={async () => {
+            const { data } = await base44.functions.invoke('updateBudgetExecuted', { budgetId: budget.id });
+            if (data?.success) {
+              await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+              toast.success('Ejecutado actualizado');
+            } else {
+              toast.error('No se pudo actualizar el ejecutado');
+            }
+          }}
+          variant="outline"
+          size="sm"
+          className="border-slate-400 text-slate-700 hover:bg-slate-50"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" /> Actualizar ejecutado
+        </Button>
+
         <Button onClick={() => setShowAddPartida(true)} className="bg-orange-600 hover:bg-orange-700">
           <Plus className="h-4 w-4 mr-2" />
           Añadir Partida
