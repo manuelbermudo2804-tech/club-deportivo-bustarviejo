@@ -331,6 +331,16 @@ export default function NotificationPreferences() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>📲 Notificaciones Push</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-slate-600 mb-4">Recibe notificaciones en tiempo real, incluso cuando la app está cerrada (como WhatsApp).</p>
+          <PushNotificationSubscriber user={user} />
+        </CardContent>
+      </Card>
+
       <Button
         onClick={handleSave}
         className="w-full bg-orange-600 hover:bg-orange-700 font-bold py-6 text-lg"
