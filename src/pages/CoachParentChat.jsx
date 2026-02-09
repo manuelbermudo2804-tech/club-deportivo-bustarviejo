@@ -103,14 +103,29 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     if (!user?.email || !selectedCategory) return;
 
-    // LIMPIAR INMEDIATAMENTE (sin esperar mensajes)
-    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
-    console.log(`✅ [CoachChat] Limpiado INMEDIATO badge para ${selectedCategory}`);
-    
-    // Actualizar contadores locales también
+    // PASO 1: Actualizar contadores locales INMEDIATAMENTE
     setUnreadByCategory(prev => ({ ...prev, [selectedCategory]: 0 }));
+    console.log(`✅ [CoachChat] Limpiado contador local para ${selectedCategory}`);
 
-    // BD en segundo plano
+    // PASO 2: Calcular cuántos mensajes NO LEÍDOS tiene esta pestaña
+    const catId = toGroupId(selectedCategory);
+    const unreadInThisTab = messages.filter(m => {
+      if (m.tipo !== 'padre_a_grupo') return false;
+      if (m.grupo_id !== catId && normalizeCategory(m.deporte || '') !== normalizeCategory(selectedCategory)) return false;
+      return !m.leido_por?.some(lp => lp.email === user.email);
+    }).length;
+
+    console.log(`📊 [CoachChat] Mensajes no leídos en ${selectedCategory}:`, unreadInThisTab);
+
+    // PASO 3: Decrementar el badge general exactamente por los no leídos de ESTA pestaña
+    if (unreadInThisTab > 0) {
+      for (let i = 0; i < unreadInThisTab; i++) {
+        UnifiedChatNotificationStore.decrement(user.email, 'coach');
+      }
+      console.log(`✅ [CoachChat] Badge general decrementado x${unreadInThisTab}`);
+    }
+
+    // PASO 4: BD en segundo plano
     (async () => {
       try {
         const catId = toGroupId(selectedCategory);
@@ -132,7 +147,7 @@ export default function CoachParentChat({ embedded = false }) {
         console.error('Error BD:', e);
       }
     })();
-  }, [selectedCategory, user?.email]);
+  }, [selectedCategory, user?.email, messages]);
 
   if (!user) {
     return (

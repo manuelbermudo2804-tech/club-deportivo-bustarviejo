@@ -132,10 +132,27 @@ export default function ParentCoachChat() {
   useEffect(() => {
     if (!user?.email || !selectedCategory) return;
 
-    // PASO 1: Limpiar INMEDIATAMENTE del store unificado
-    UnifiedChatNotificationStore.clearChatOnly(user.email, 'coachForFamily');
+    // PASO 1: Calcular no leídos de ESTA pestaña específica
+    const categoryKey = toGroupId(selectedCategory || "");
+    const normSel = normalizeCategory(selectedCategory || "");
+    const unreadInThisTab = messages.filter(m => {
+      const normMsgCat = normalizeCategory(m.deporte || "");
+      const matchGroup = m.grupo_id === categoryKey;
+      const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
+      return (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
+    }).length;
 
-    // PASO 2: Actualizar BD en paralelo (no bloquear)
+    console.log(`📊 [ParentCoachChat] Mensajes no leídos en ${selectedCategory}:`, unreadInThisTab);
+
+    // PASO 2: Decrementar badge EXACTAMENTE por los no leídos de esta pestaña
+    if (unreadInThisTab > 0) {
+      for (let i = 0; i < unreadInThisTab; i++) {
+        UnifiedChatNotificationStore.decrement(user.email, 'coachForFamily');
+      }
+      console.log(`✅ [ParentCoachChat] Badge decrementado x${unreadInThisTab}`);
+    }
+
+    // PASO 3: Actualizar BD en paralelo (no bloquear)
     (async () => {
       try {
         const categoryKey = toGroupId(selectedCategory || "");
@@ -172,7 +189,7 @@ export default function ParentCoachChat() {
         console.error("Error marking parent-coach messages as read:", error);
       }
     })();
-  }, [user?.email, selectedCategory]);
+  }, [user?.email, selectedCategory, messages]);
 
   const categoryKey = toGroupId(selectedCategory || "");
   const categoryMessages = selectedCategory
