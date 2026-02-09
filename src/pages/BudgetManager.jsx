@@ -156,7 +156,7 @@ export default function BudgetManager() {
               {creatingSheet ? (
                 <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Creando...</>
               ) : (
-                <><Sheet className="w-5 h-5 mr-2" /> Crear Google Sheets</>
+                <><FileSpreadsheet className="w-5 h-5 mr-2" /> Crear Google Sheets</>
               )}
             </Button>
           )}
