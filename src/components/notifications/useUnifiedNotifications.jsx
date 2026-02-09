@@ -12,6 +12,8 @@ export function useUnifiedNotifications(user, options = {}) {
   // Activar para TODOS los usuarios para que vean notificaciones
   const shouldBeActive = !!user;
   
+  const [forceRefreshKey, setForceRefreshKey] = useState(0);
+  
   const [notifications, setNotifications] = useState({
     // CHATS (mantenidos para compatibilidad visual; la fuente real vendrá de ChatCounter en UI)
     unreadCoordinatorMessages: 0,
@@ -75,6 +77,33 @@ export function useUnifiedNotifications(user, options = {}) {
 
   // Throttled + retried executor to avoid rate limits
   const run = (fn) => globalThrottler.execute(() => retryWithBackoff(fn));
+
+  // FORZAR RECARGA al volver a la app después de mucho tiempo
+  useEffect(() => {
+    if (!user) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const lastRefresh = Number(localStorage.getItem('lastNotifRefresh') || 0);
+        const hoursSince = (Date.now() - lastRefresh) / (1000 * 60 * 60);
+        
+        // Si hace más de 2 horas que no se actualiza, forzar recarga completa
+        if (hoursSince > 2 || lastRefresh === 0) {
+          console.log('🔄 [Notificaciones] Forzando recarga completa - hace', hoursSince.toFixed(1), 'horas');
+          setForceRefreshKey(prev => prev + 1);
+          localStorage.setItem('lastNotifRefresh', String(Date.now()));
+        }
+      }
+    };
+
+    // Marcar timestamp inicial
+    if (!localStorage.getItem('lastNotifRefresh')) {
+      localStorage.setItem('lastNotifRefresh', String(Date.now()));
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user]);
 
   // Global listener to receive updates from the primary notifications instance
   useEffect(() => {
@@ -144,7 +173,12 @@ export function useUnifiedNotifications(user, options = {}) {
         }
         setRawData(prev => ({ ...prev, coordinatorConversations: convs }));
       };
-      setTimeout(() => run(loadCoordConvs), 100);
+      // Carga inmediata si es refresh forzado
+      if (forceRefreshKey > 0) {
+        run(loadCoordConvs);
+      } else {
+        setTimeout(() => run(loadCoordConvs), 100);
+      }
     
       // Suscripción SOLO si cargamos datos
       let lastCoordConvUpdate = 0;
@@ -520,7 +554,7 @@ export function useUnifiedNotifications(user, options = {}) {
         window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = false;
         }
         };
-        }, [user, shouldBeActive]);
+        }, [user, shouldBeActive, forceRefreshKey]);
 
   // Limpieza automática de notificaciones huérfanas/antiguas (no vistas)
   useEffect(() => {
