@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 
 
-import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert, UserX, RotateCw, CheckCircle2, Trophy } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert, UserX, RotateCw, CheckCircle2, Trophy, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +16,8 @@ import ThemeToggle from "./components/ThemeToggle";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
-
+import MobileBottomBar from "./components/mobile/MobileBottomBar";
+import MobileBackButton from "./components/mobile/MobileBackButton";
 
 import FeedbackModal from "./components/feedback/FeedbackModal";
 
@@ -635,6 +636,7 @@ export default function Layout({ children, currentPageName }) {
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   // Forzar nombre consistente de la app (iOS usa <title> y meta tags)
   useEffect(() => {
@@ -2378,6 +2380,7 @@ export default function Layout({ children, currentPageName }) {
         <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg safe-area-top">
           <div className="flex items-center justify-between p-2">
             <div className="flex items-center gap-2">
+              <MobileBackButton />
               <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-9 h-9 rounded-lg shadow-lg object-cover" />
               <div className="text-white">
                 <h1 className="font-bold text-base leading-tight">CD Bustarviejo</h1>
@@ -2453,12 +2456,24 @@ export default function Layout({ children, currentPageName }) {
                   <h2 className="font-bold text-lg">Menú</h2>
                   <p className="text-xs text-orange-100">CD Bustarviejo</p>
                 </div>
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setShowDeleteAccount(true);
+                    }}
+                    className="p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-colors"
+                    title="Eliminar cuenta"
+                  >
+                    <UserX className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
                 {/* Botón Feedback móvil - para TODOS */}
@@ -2552,6 +2567,14 @@ export default function Layout({ children, currentPageName }) {
                                                     >
                                                     <RotateCw className="w-6 h-6" />
                                                     <span className="font-semibold text-lg">Actualizar Datos</span>
+                                                    </button>
+
+                                                    <button
+                                                    onClick={() => setShowDeleteAccount(true)}
+                                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-yellow-500/20 text-white hover:bg-yellow-500/30 transition-all"
+                                                    >
+                                                    <UserX className="w-6 h-6" />
+                                                    <span className="font-semibold text-lg">Eliminar Cuenta</span>
                                                     </button>
 
                                                     <button
@@ -2829,6 +2852,16 @@ export default function Layout({ children, currentPageName }) {
 
 
         {/* Banner de Patrocinadores - Footer fijo */}
+        {/* Mobile Bottom Bar */}
+        <MobileBottomBar location={location} chatBadges={chatMenuCounts} />
+
+        {/* Delete Account Dialog */}
+        {user && (
+          <Suspense fallback={null}>
+            <DeleteAccountDialog open={showDeleteAccount} onOpenChange={setShowDeleteAccount} />
+          </Suspense>
+        )}
+
         {sponsorBannerVisible && (
                         <div className={`lg:ml-72 fixed left-0 right-0 z-40 bottom-0`}>
                           <Suspense fallback={null}><SponsorBanner /></Suspense>
