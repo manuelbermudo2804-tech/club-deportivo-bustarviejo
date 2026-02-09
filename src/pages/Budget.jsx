@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { createPageUrl } from "@/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings, RefreshCw, ExternalLink, AlertCircle } from "lucide-react";
 
 export default function Budget() {
+  useEffect(() => {
+    window.location.replace(createPageUrl("BudgetManager"));
+  }, []);
+  return null;
   const [config, setConfig] = useState(null);
   const [newSheetsId, setNewSheetsId] = useState("");
   const [syncing, setSyncing] = useState(false);

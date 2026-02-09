@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sheet, ExternalLink, RefreshCw, Loader2, AlertCircle } from "lucide-react";
+import { FileSpreadsheet, ExternalLink, RefreshCw, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export default function BudgetManager() {
@@ -120,7 +120,7 @@ export default function BudgetManager() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
-                    <Sheet className="w-6 h-6 text-white" />
+                    <FileSpreadsheet className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <p className="font-bold text-slate-900">✅ Google Sheets Conectado</p>
