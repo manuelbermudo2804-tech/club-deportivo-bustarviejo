@@ -81,7 +81,6 @@ export default function BudgetManager({
   const [creatingSheet, setCreatingSheet] = useState(false);
   const [syncingFromSheet, setSyncingFromSheet] = useState(false);
   const [updatingExecuted, setUpdatingExecuted] = useState(false);
-  const [updatingExecuted, setUpdatingExecuted] = useState(false);
   const [newPartida, setNewPartida] = useState({
     nombre: "",
     categoria: "Gastos Variables",
