@@ -66,8 +66,8 @@ export default function TreasurerFinancialPanel() {
   const [generatingExcel, setGeneratingExcel] = useState(false);
   const [showSeasonComparison, setShowSeasonComparison] = useState(false);
   const [showBankReconciliation, setShowBankReconciliation] = useState(false);
-  const [newSheetsId, setNewSheetsId] = useState("");
-  const [syncing, setSyncing] = useState(false);
+  const [isDownloadingBudgetExcel, setIsDownloadingBudgetExcel] = useState(false);
+  const [isImportingBudgetExcel, setIsImportingBudgetExcel] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
