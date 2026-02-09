@@ -253,10 +253,27 @@ export default function TreasurerFinancialPanel() {
       toast.error("No hay temporada activa");
       return;
     }
+    // Partidas base por defecto (ingresos y gastos)
+    const defaultPartidas = [
+      // INGRESOS
+      { id: `p_${Date.now()}_1`, nombre: 'Inscripciones Jugadores', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_2`, nombre: 'Cuotas Socios', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_3`, nombre: 'Patrocinios', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_4`, nombre: 'Lotería Navidad', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_5`, nombre: 'Venta Equipación', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_6`, nombre: 'Subvenciones', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
+      // GASTOS
+      { id: `p_${Date.now()}_7`, nombre: 'Arbitrajes', categoria: 'Gastos Variables', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_8`, nombre: 'Instalaciones', categoria: 'Gastos Fijos', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_9`, nombre: 'Material Deportivo', categoria: 'Gastos Variables', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_10`, nombre: 'Viajes', categoria: 'Gastos Variables', presupuestado: 0, ejecutado: 0 },
+      { id: `p_${Date.now()}_11`, nombre: 'Publicidad y Redes', categoria: 'Gastos Variables', presupuestado: 0, ejecutado: 0 },
+    ];
+
     createBudgetMutation.mutate({
       temporada: activeSeason.temporada,
       nombre: `Presupuesto ${activeSeason.temporada}`,
-      partidas: []
+      partidas: defaultPartidas
     });
   };
 
@@ -1586,7 +1603,11 @@ export default function TreasurerFinancialPanel() {
                     <div className="space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <Button
-                          onClick={() => syncIncomesMutation.mutate()}
+                          onClick={() => {
+                            const ok = window.confirm('Esto enviará el presupuesto actual a Google Sheets y puede sobrescribir datos allí. ¿Continuar?');
+                            if (!ok) return;
+                            syncIncomesMutation.mutate();
+                          }}
                           disabled={syncing || syncIncomesMutation.isPending}
                           className="bg-green-600 hover:bg-green-700"
                         >
@@ -1605,6 +1626,8 @@ export default function TreasurerFinancialPanel() {
 
                         <Button
                           onClick={async () => {
+                            const ok = window.confirm('Esto traerá datos desde Google Sheets y puede sobrescribir las partidas actuales. ¿Continuar?');
+                            if (!ok) return;
                             setSyncing(true);
                             await base44.functions.invoke('budgetSheets', { action: 'syncFromSheet', sheetId: activeSeason.google_sheets_id, budgetId: currentBudget?.id });
                             await queryClient.invalidateQueries({ queryKey: ['budgets'] });

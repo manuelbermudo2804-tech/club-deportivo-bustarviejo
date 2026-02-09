@@ -497,48 +497,7 @@ export default function BudgetManager({
         </CardContent>
       </Card>
 
-      {/* Google Sheets Integration */}
-      {budget.google_sheet_url && (
-        <Card className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
-                  <Sheet className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">Conectado con Google Sheets</p>
-                  <p className="text-xs text-slate-600">
-                    {budget.fecha_ultima_sync 
-                      ? `Última sincronización: ${new Date(budget.fecha_ultima_sync).toLocaleString('es-ES')}` 
-                      : 'Aún no sincronizado'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleSyncFromSheet}
-                  disabled={syncingFromSheet}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {syncingFromSheet ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sincronizando...</>
-                  ) : (
-                    <><RefreshCw className="h-4 w-4 mr-2" /> Traer cambios de Sheets</>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => window.open(budget.google_sheet_url, '_blank')}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Abrir en Sheets
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Integración con Google Sheets gestionada desde Panel de Tesorería > Presupuestos */}
 
       {/* Botones de acción - SIMPLIFICADOS */}
       <div className="flex flex-wrap justify-end gap-2">
@@ -552,19 +511,7 @@ export default function BudgetManager({
             Plantillas ({savedTemplates.length})
           </Button>
         )}
-        {!budget.google_sheet_id ? (
-          <Button 
-            onClick={handleOpenInSheets}
-            disabled={creatingSheet}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            {creatingSheet ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creando...</>
-            ) : (
-              <><Sheet className="h-4 w-4 mr-2" /> Abrir en Google Sheets</>
-            )}
-          </Button>
-        ) : null}
+
         <Button onClick={() => setShowAddPartida(true)} className="bg-orange-600 hover:bg-orange-700">
           <Plus className="h-4 w-4 mr-2" />
           Añadir Partida
