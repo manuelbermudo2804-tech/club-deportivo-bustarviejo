@@ -308,37 +308,8 @@ export default function TreasurerDashboard() {
     .map(id => availableButtons.find(b => b.id === id))
     .filter(Boolean);
 
-  // Añadir badges dinámicos
-  const menuItems = displayButtons.map(item => {
-    const updated = { ...item };
-    
-    if (item.id === "pagos_club" && paymentsInReviewTreasurer > 0) {
-      updated.badge = paymentsInReviewTreasurer;
-      updated.badgeLabel = "en revisión";
-    }
-    if (item.id === "pedidos_ropa" && pendingClothingOrders > 0) {
-      updated.badge = pendingClothingOrders;
-      updated.badgeLabel = "pendientes";
-    }
-    if (item.id === "loteria" && pendingLotteryOrders > 0) {
-      updated.badge = pendingLotteryOrders;
-      updated.badgeLabel = "sin pagar";
-    }
-    if (item.id === "socios" && pendingMemberRequests > 0) {
-      updated.badge = pendingMemberRequests;
-      updated.badgeLabel = "pendientes";
-    }
-    if (item.id === "mis_jugadores" && myPlayers.length > 0) {
-      updated.badge = myPlayers.length;
-      updated.badgeLabel = "registrados";
-    }
-    if (item.id === "pagos_hijos" && totalPendingPaymentsParent > 0) {
-      updated.badge = totalPendingPaymentsParent;
-      updated.badgeLabel = "pendientes";
-    }
-    
-    return updated;
-  });
+  // Sin badges en botones principales - solo en los del banner de chats
+  const menuItems = displayButtons;
 
   if (!user || playersLoading) {
     return (
@@ -392,8 +363,8 @@ export default function TreasurerDashboard() {
                 <Link to={createPageUrl("ParentSystemMessages")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
                     {(notifications?.unreadSystemMessages || 0) > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{notifications.unreadSystemMessages}</span>
+                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-orange-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                        🔔 {notifications.unreadSystemMessages}
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">🔔 Mensajes</p>
@@ -404,8 +375,8 @@ export default function TreasurerDashboard() {
                 <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
                     {(notifications?.unreadCoordinatorMessages || 0) > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorMessages}</span>
+                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-cyan-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                        💬 {notifications.unreadCoordinatorMessages}
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
@@ -416,8 +387,8 @@ export default function TreasurerDashboard() {
                 <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
                     {(notifications?.unreadCoachMessages || 0) > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{notifications.unreadCoachMessages}</span>
+                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-blue-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                        ⚽ {notifications.unreadCoachMessages}
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
@@ -487,14 +458,6 @@ export default function TreasurerDashboard() {
                   <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
                     {item.title}
                   </h3>
-                  
-                  {item.badge !== undefined && item.badge > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                      <p className="text-white text-[10px] lg:text-xs font-semibold">
-                        {item.badge} {item.badgeLabel}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             </Link>

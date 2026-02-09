@@ -162,9 +162,9 @@ export default function CoordinatorDashboard() {
 
               <Link to={createPageUrl("CoordinatorChat")} className="flex-1">
                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
-                   {(Math.max(notifications?.unreadCoordinatorForStaff || 0, chatBubbles.coordinatorBubble || 0)) > 0 && (
-                      <div className="absolute -top-2 -left-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-[10px] font-bold">{Math.max(notifications?.unreadCoordinatorForStaff || 0, chatBubbles.coordinatorBubble || 0)}</span>
+                   {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
+                      <div className="absolute -top-2 -right-2 px-2 py-1 bg-cyan-500 text-white text-xs rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                        💬 {notifications.unreadCoordinatorForStaff}
                       </div>
                     )}
                    <p className="text-base font-bold mb-0.5">💬</p>
@@ -177,8 +177,8 @@ export default function CoordinatorDashboard() {
                 <Link to={createPageUrl("CoachParentChat")} className="flex-1">
                   <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                      {(notifications?.unreadCoachForStaff || 0) > 0 && (
-                       <div className="absolute -top-2 -left-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                         <span className="text-white text-[10px] font-bold">{notifications.unreadCoachForStaff}</span>
+                       <div className="absolute -top-2 -right-2 px-2 py-1 bg-blue-500 text-white text-xs rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                         ⚽ {notifications.unreadCoachForStaff}
                        </div>
                      )}
                      <p className="text-base font-bold mb-0.5">⚽</p>
@@ -191,8 +191,8 @@ export default function CoordinatorDashboard() {
               <Link to={createPageUrl("StaffChat")} className="flex-1">
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
                   {(notifications?.unreadStaffMessages || 0) > 0 && (
-                    <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-[10px] font-bold">{notifications.unreadStaffMessages}</span>
+                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-purple-500 text-white text-xs rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
+                      💼 {notifications.unreadStaffMessages}
                     </div>
                   )}
                   <p className="text-base font-bold mb-0.5">💼</p>
