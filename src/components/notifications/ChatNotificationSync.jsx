@@ -60,64 +60,59 @@ export function ChatNotificationSync({ user }) {
     }
 
     // ===== 2. COORDINADOR - FAMILIAS (1-a-1) =====
-    // Para coordinadores: SOLO escuchar updates de CoordinatorConversation (fuente única)
+    // Para coordinadores: escuchar CREACIÓN de CoordinatorMessage cuando viene de familias
     if (user.es_coordinador) {
-      const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
-        if (event.type === 'update' && event.data) {
-          const eventKey = `coord_staff_${event.data.id}_${event.data.updated_date}`;
+      const unsubCoordMsg = base44.entities.CoordinatorMessage.subscribe((event) => {
+        if (event.type === 'create' && event.data && event.data.autor === 'padre' && event.data.autor_email !== user.email) {
+          const eventKey = `coord_msg_${event.data.id}`;
           if (processedEvents.has(eventKey)) return;
           processedEvents.add(eventKey);
 
-          const oldCount = event.old_data?.no_leidos_coordinador || 0;
-          const newCount = event.data.no_leidos_coordinador || 0;
-          
-          console.log('📬 [ChatNotificationSync] CoordinatorConv update (COORDINADOR):', {
-            conversationId: event.data.id,
-            oldCount,
-            newCount,
-            delta: newCount - oldCount
+          console.log('📬 [ChatNotificationSync] Nuevo mensaje de FAMILIA al coordinador:', {
+            messageId: event.data.id,
+            conversationId: event.data.conversacion_id,
+            autor: event.data.autor_nombre
           });
 
-          if (newCount > oldCount) {
-            const delta = newCount - oldCount;
-            for (let i = 0; i < delta; i++) {
-              UnifiedChatNotificationStore.increment(user.email, 'coordinator');
-            }
-            console.log(`✅ [ChatNotificationSync] coordinator incrementado x${delta}`);
-          }
+          UnifiedChatNotificationStore.increment(user.email, 'coordinator');
+          console.log(`✅ [ChatNotificationSync] coordinator incrementado por mensaje nuevo`);
         }
       });
-      unsubscribers.push(unsubCoordConv);
+      unsubscribers.push(unsubCoordMsg);
     }
 
-    // Para familias: mensajes DEL coordinador - escuchar updates de CoordinatorConversation
+    // Para familias: mensajes DEL coordinador - escuchar CREACIÓN de CoordinatorMessage
     if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
-      const unsubCoordForFamily = base44.entities.CoordinatorConversation.subscribe((event) => {
-        if (event.type === 'update' && event.data?.padre_email === user.email) {
-          const eventKey = `coord_family_${event.data.id}_${event.data.updated_date}`;
-          if (processedEvents.has(eventKey)) return;
-          processedEvents.add(eventKey);
+      const unsubCoordMsgFamily = base44.entities.CoordinatorMessage.subscribe((event) => {
+        if (event.type === 'create' && event.data) {
+          // Buscar conversación para verificar si es mi familia
+          (async () => {
+            try {
+              const convs = await base44.entities.CoordinatorConversation.filter({ 
+                id: event.data.conversacion_id,
+                padre_email: user.email 
+              });
+              
+              if (convs.length > 0 && event.data.autor === 'coordinador' && event.data.autor_email !== user.email) {
+                const eventKey = `coord_msg_family_${event.data.id}`;
+                if (processedEvents.has(eventKey)) return;
+                processedEvents.add(eventKey);
 
-          const oldCount = event.old_data?.no_leidos_padre || 0;
-          const newCount = event.data.no_leidos_padre || 0;
-          
-          console.log('📬 [ChatNotificationSync] CoordinatorConv update (FAMILIA):', {
-            conversationId: event.data.id,
-            oldCount,
-            newCount,
-            delta: newCount - oldCount
-          });
+                console.log('📬 [ChatNotificationSync] Nuevo mensaje del COORDINADOR a mi familia:', {
+                  messageId: event.data.id,
+                  conversationId: event.data.conversacion_id
+                });
 
-          if (newCount > oldCount) {
-            const delta = newCount - oldCount;
-            for (let i = 0; i < delta; i++) {
-              UnifiedChatNotificationStore.increment(user.email, 'coordinatorForFamily');
+                UnifiedChatNotificationStore.increment(user.email, 'coordinatorForFamily');
+                console.log(`✅ [ChatNotificationSync] coordinatorForFamily incrementado`);
+              }
+            } catch (e) {
+              console.error('Error verificando conversación coordinador-familia:', e);
             }
-            console.log(`✅ [ChatNotificationSync] coordinatorForFamily incrementado x${delta}`);
-          }
+          })();
         }
       });
-      unsubscribers.push(unsubCoordForFamily);
+      unsubscribers.push(unsubCoordMsgFamily);
     }
 
     // ===== 3. ENTRENADOR - FAMILIAS (grupo ChatMessage) =====
