@@ -1702,9 +1702,12 @@ export default function Layout({ children, currentPageName }) {
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
               // 📋 EXTRAS
-    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-    { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
-    ];
+              { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+              { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+
+              // ⚙️ CONFIGURACIÓN
+              { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+              ];
 
   const playerNavigationItems = [
           // 🎫 CARNET DE SOCIO (primera posición si es socio pagado)
