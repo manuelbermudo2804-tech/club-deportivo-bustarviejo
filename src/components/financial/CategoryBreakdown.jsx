@@ -153,7 +153,7 @@ return normalized.sort((a, b) => b.esperado - a.esperado);
         <CardContent>
           <div className="space-y-4">
             {categoryStats.map((cat, index) => {
-              const tasaCobro = cat.esperado > 0 ? ((cat.cobrado / cat.esperado) * 100) : 0;
+              const tasaCobro = cat.esperado > 0 ? Math.min(100, (cat.cobrado / cat.esperado) * 100) : 0;
               
               return (
                 <div key={cat.nombre} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
