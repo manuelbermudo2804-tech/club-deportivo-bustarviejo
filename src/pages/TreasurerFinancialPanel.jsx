@@ -467,35 +467,80 @@ export default function TreasurerFinancialPanel() {
     }
   };
 
-  const updateSheetsMutation = useMutation({
-    mutationFn: async (sheetsId) => {
-      await base44.entities.SeasonConfig.update(activeSeason.id, {
-        google_sheets_id: sheetsId,
+  const handleDownloadBudgetExcel = async () => {
+    setIsDownloadingBudgetExcel(true);
+    try {
+      const { data } = await base44.functions.invoke('downloadBudgetExcel', {
+        budgetId: currentBudget?.id
       });
-    },
-    onSuccess: () => {
-      setActiveSeason({ ...activeSeason, google_sheets_id: newSheetsId });
-      toast.success("Google Sheets configurado correctamente");
-    },
-  });
+      
+      if (data?.file_url) {
+        const link = document.createElement('a');
+        link.href = data.file_url;
+        link.download = `Presupuesto_${currentBudget.nombre}_${currentBudget.temporada}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('✅ Presupuesto descargado como Excel');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error al descargar el presupuesto');
+    } finally {
+      setIsDownloadingBudgetExcel(false);
+    }
+  };
 
-  const syncIncomesMutation = useMutation({
-    mutationFn: async () => {
-      setSyncing(true);
-      const result = await base44.functions.invoke("syncBudgetToSheets", {
-        sheetsId: activeSeason.google_sheets_id,
+  const handleImportBudgetExcel = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentBudget) return;
+
+    setIsImportingBudgetExcel(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            partidas: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  nombre: { type: "string" },
+                  categoria: { type: "string" },
+                  presupuestado: { type: "number" },
+                  ejecutado: { type: "number" }
+                }
+              }
+            }
+          }
+        }
       });
-      setSyncing(false);
-      return result;
-    },
-    onSuccess: () => {
-      toast.success("Datos sincronizados con Google Sheets");
-    },
-    onError: (error) => {
-      setSyncing(false);
-      toast.error("Error al sincronizar: " + error.message);
-    },
-  });
+
+      if (result.status === "success" && result.output?.partidas?.length > 0) {
+        const importedPartidas = result.output.partidas.map((p, idx) => ({
+          id: `partida_import_${Date.now()}_${idx}`,
+          nombre: p.nombre,
+          categoria: p.categoria,
+          presupuestado: p.presupuestado || 0,
+          ejecutado: p.ejecutado || 0
+        }));
+        
+        await base44.entities.Budget.update(currentBudget.id, { partidas: importedPartidas });
+        await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+        toast.success(`✅ ${importedPartidas.length} partidas importadas`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error al importar Excel');
+    } finally {
+      setIsImportingBudgetExcel(false);
+      e.target.value = '';
+    }
+  };
 
   const handleExportExcel = async () => {
     setGeneratingExcel(true);
