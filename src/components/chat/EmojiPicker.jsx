@@ -83,7 +83,7 @@ export default function EmojiPicker({ onEmojiSelect, onClose, messageText = "", 
         >
           😊
         </Button>
-      )}>
+      )}
 
       {showPicker && (
         <div className="absolute bottom-12 left-0 z-[300] bg-white border border-slate-200 rounded-2xl shadow-2xl p-3 w-80 max-h-[450px] flex flex-col">

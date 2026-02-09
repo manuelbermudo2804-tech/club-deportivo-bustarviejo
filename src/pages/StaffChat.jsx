@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStaffCounters } from "../components/chats/useChatCounters";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -49,17 +49,6 @@ export default function StaffChat() {
   const audioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  // Contador global estable (evita parpadeo)
-  const { total: staffCounterTotal, markRead: markReadCounter } = useStaffCounters({ refetchOnFocus: true });
-  // Contador independiente (ChatCounter)
-  const { markRead, reload } = (() => {
-    try {
-      const mod = require?.('../components/chats/useChatCounters');
-      return mod ? mod.useStaffCounters({}) : { markRead: async () => {}, reload: async () => {} };
-    } catch {
-      return { markRead: async () => {}, reload: async () => {} };
-    }
-  })();
   const [searchTerm, setSearchTerm] = useState("");
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showPollDialog, setShowPollDialog] = useState(false);
@@ -152,9 +141,7 @@ export default function StaffChat() {
       !m.leido_por?.some(l => l.email === user.email)
     ).length;
     setUnreadCount(unread);
-    // refrescar ChatCounter
-    try { reload && reload(); } catch {}
-  }, [messages, user, reload]);
+  }, [messages, user]);
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsersStaff'],
@@ -283,9 +270,6 @@ export default function StaffChat() {
         await Promise.all(notifs.map(n => 
           base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })
         ));
-
-        // Sincronizar ChatCounter
-        await base44.functions.invoke('chatMarkRead', { chatType: 'staff', conversationId: conversation.id });
       } catch (err) {
         console.error('Error marking staff chat as read:', err);
       }
@@ -703,8 +687,8 @@ export default function StaffChat() {
                </Button>
                <MessageCircle className="w-4 h-4" />
                💼 Chat Interno Staff
-               {(unreadCount > 0 || staffCounterTotal > 0) && (
-                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{Math.max(unreadCount, staffCounterTotal)}</Badge>
+               {unreadCount > 0 && (
+                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{unreadCount}</Badge>
                )}
              </CardTitle>
              <div className="flex gap-1">
