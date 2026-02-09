@@ -18,14 +18,20 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
   const categoryStats = useMemo(() => {
     if (!activeSeason || !players.length) return [];
 
-    const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
+    const normalizeSeasonKey = (s) => (s ? String(s).replace(/[^\d]/g, "") : "");
+    const seasonMatches = (a, b) => {
+      if (!a || !b) return false;
+      return normalizeSeasonKey(a) === normalizeSeasonKey(b);
+    };
+
+    const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason.temporada) && p.is_deleted !== true);
     const currentSeasonPlayers = players.filter(p => p.activo === true);
 
     // Agrupar por categoría
     const categories = {};
     
     currentSeasonPlayers.forEach(player => {
-      const categoria = player.deporte || "Sin categoría";
+      const categoria = player.categoria_principal || player.deporte || "Sin categoría";
       
       if (!categories[categoria]) {
         categories[categoria] = {
