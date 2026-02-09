@@ -796,6 +796,61 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     toast.success("CSV exportado");
   };
 
+  const handleManualImport = async (e) => {
+    e.preventDefault();
+    
+    if (!manualImportForm.nombre_completo || !manualImportForm.dni || !manualImportForm.email) {
+      toast.error("Por favor, rellena al menos: nombre, DNI y email");
+      return;
+    }
+
+    setIsManualImporting(true);
+    try {
+      // Generar número de socio
+      const currentYear = new Date().getFullYear();
+      const allCurrentMembers = await base44.entities.ClubMember.list();
+      const membersThisYear = allCurrentMembers.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
+      const nextNumber = membersThisYear.length + 1;
+      const numeroSocio = `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
+
+      // Crear socio
+      await base44.entities.ClubMember.create({
+        numero_socio: numeroSocio,
+        nombre_completo: manualImportForm.nombre_completo,
+        dni: manualImportForm.dni,
+        email: manualImportForm.email,
+        telefono: manualImportForm.telefono || "",
+        direccion: manualImportForm.direccion || "",
+        municipio: manualImportForm.municipio || "Bustarviejo",
+        cuota_socio: 25,
+        tipo_inscripcion: "Nueva Inscripción",
+        estado_pago: "Pendiente",
+        temporada: seasonConfig?.temporada || `${currentYear}/${currentYear + 1}`,
+        activo: true,
+        es_socio_externo: true,
+        metodo_pago: "Formulario Externo"
+      });
+
+      // Limpiar formulario
+      setManualImportForm({
+        nombre_completo: "",
+        dni: "",
+        email: "",
+        telefono: "",
+        direccion: "",
+        municipio: "",
+      });
+      
+      setShowManualImportForm(false);
+      queryClient.invalidateQueries({ queryKey: ['allMembers'] });
+      toast.success(`✅ ${manualImportForm.nombre_completo} importado correctamente`);
+    } catch (error) {
+      toast.error("Error al importar: " + error.message);
+    } finally {
+      setIsManualImporting(false);
+    }
+  };
+
   // Determinar si un socio es externo (no tiene hijos en el club)
   const isExternalMember = (member) => {
     return !parentEmails.has(member.email?.toLowerCase());
