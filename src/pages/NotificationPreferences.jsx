@@ -100,7 +100,7 @@ export default function NotificationPreferences() {
 
   if (!isStaff) {
     return (
-      <div className="p-6 lg:p-8">
+      <div className="p-6 lg:p-8 space-y-6">
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="pt-6">
             <div className="text-center space-y-3">
@@ -123,6 +123,16 @@ export default function NotificationPreferences() {
                 </ul>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>📲 Notificaciones Push (Recomendado)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-slate-600 mb-4">Recibe notificaciones en tiempo real en tu móvil, incluso cuando la app está cerrada (como WhatsApp).</p>
+            <PushNotificationSubscriber user={user} />
           </CardContent>
         </Card>
       </div>
