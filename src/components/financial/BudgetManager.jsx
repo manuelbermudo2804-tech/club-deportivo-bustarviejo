@@ -263,78 +263,86 @@ export default function BudgetManager({
     toast.success(`Añadidas ${toAdd.length} partidas base`);
   };
 
-  // Crear/Abrir Google Sheet (con fallback seguro para iFrame)
-  const handleOpenInSheets = async () => {
-    setCreatingSheet(true);
-    // Intento preventivo para evitar bloqueo; puede fallar en iFrame
-    let win = null;
-    try { win = window.open('about:blank', '_blank'); } catch {}
+  // Descargar presupuesto como Excel
+  const handleDownloadExcel = async () => {
+    setIsDownloadingExcel(true);
     try {
-      const { data } = await base44.functions.invoke('budgetSheets', {
-        action: 'createOrUpdateSheet',
+      const { data } = await base44.functions.invoke('downloadBudgetExcel', {
         budgetId: budget.id
       });
-
-      if (data?.success) {
-        await queryClient.invalidateQueries({ queryKey: ['budgets'] });
-        const url = (data.spreadsheetUrl || budget?.google_sheet_url || (data.spreadsheetId ? `https://docs.google.com/spreadsheets/d/${data.spreadsheetId}` : null));
-        if (url) {
-          let opened = false;
-          try {
-            const topWin = window.top || window;
-            topWin?.open?.(url, '_blank');
-            opened = true;
-          } catch {}
-          if (win && !win.closed) {
-            try { win.location.href = url; opened = true; } catch {}
-          }
-          if (!opened) {
-            try { await navigator.clipboard.writeText(url); } catch {}
-            toast.message('Hoja creada', { description: 'No se pudo abrir por el entorno de previsualización. Enlace copiado al portapapeles.' });
-          } else {
-            toast.success('✅ Hoja de cálculo abierta en Google Sheets');
-          }
-        } else {
-          if (win && !win.closed) win.close();
-          toast.error('No se pudo obtener la URL de Sheets');
-        }
+      
+      if (data?.file_url) {
+        // Descargar el archivo
+        const link = document.createElement('a');
+        link.href = data.file_url;
+        link.download = `Presupuesto_${budget.nombre}_${budget.temporada}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('✅ Presupuesto descargado como Excel');
       } else {
-        if (win && !win.closed) win.close();
-        toast.error('No se pudo crear/actualizar la hoja');
+        toast.error('Error al generar el Excel');
       }
     } catch (error) {
-      console.error('Error abriendo Sheets:', error);
-      if (win && !win.closed) win.close();
-      toast.error('Error al abrir Google Sheets');
+      console.error('Error descargando Excel:', error);
+      toast.error('Error al descargar el presupuesto');
     } finally {
-      setCreatingSheet(false);
+      setIsDownloadingExcel(false);
     }
   };
 
-  // Sincronizar desde Google Sheets
-  const handleSyncFromSheet = async () => {
-    if (!budget.google_sheet_id) {
-      toast.error('No hay hoja de Google Sheets vinculada');
-      return;
-    }
+  // Importar presupuesto desde Excel
+  const handleImportExcel = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setSyncingFromSheet(true);
+    setIsImportingExcel(true);
     try {
-      const { data } = await base44.functions.invoke('budgetSheets', {
-        action: 'syncFromSheet',
-        budgetId: budget.id,
-        spreadsheetId: budget.google_sheet_id
+      // Subir archivo y extraer datos
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            partidas: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  nombre: { type: "string" },
+                  categoria: { type: "string", enum: ["Ingresos", "Gastos Fijos", "Gastos Variables", "Inversiones"] },
+                  presupuestado: { type: "number" },
+                  ejecutado: { type: "number" }
+                }
+              }
+            }
+          }
+        }
       });
 
-      if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ['budgets'] });
-        toast.success(`✅ ${data.partidasSincronizadas} partidas sincronizadas desde Sheets`);
+      if (result.status === "success" && result.output?.partidas?.length > 0) {
+        const importedPartidas = result.output.partidas.map((p, idx) => ({
+          id: `partida_import_${Date.now()}_${idx}`,
+          nombre: p.nombre,
+          categoria: p.categoria || "Gastos Variables",
+          presupuestado: p.presupuestado || 0,
+          ejecutado: p.ejecutado || 0
+        }));
+        
+        onUpdate({ partidas: importedPartidas });
+        toast.success(`✅ ${importedPartidas.length} partidas importadas del Excel`);
+      } else {
+        toast.error('No se pudieron extraer partidas del Excel');
       }
     } catch (error) {
-      console.error('Error sincronizando:', error);
-      toast.error('Error al sincronizar desde Google Sheets');
+      console.error('Error importando Excel:', error);
+      toast.error('Error al procesar el archivo Excel');
     } finally {
-      setSyncingFromSheet(false);
+      setIsImportingExcel(false);
+      // Reset input
+      e.target.value = '';
     }
   };
 
