@@ -571,39 +571,46 @@ export default function BudgetManager({
           Cargar partidas base
         </Button>
 
-        {/* Grupo de Sincronización */}
+        {/* Grupo de Excel */}
         <div className="flex gap-2">
           <Button 
-            onClick={handleOpenInSheets}
-            disabled={creatingSheet}
+            onClick={handleDownloadExcel}
+            disabled={isDownloadingExcel}
             variant="outline"
             size="sm"
             className="border-green-500 text-green-600 hover:bg-green-50"
-            title="Crear o actualizar hoja en Google Sheets"
+            title="Descargar presupuesto como Excel"
           >
-            {creatingSheet ? (
+            {isDownloadingExcel ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Sheet className="h-4 w-4" />
+              <Download className="h-4 w-4" />
             )}
           </Button>
 
-          {budget?.google_sheet_id && (
+          <label className="relative">
             <Button 
-              onClick={handleSyncFromSheet}
-              disabled={syncingFromSheet}
+              as="span"
+              disabled={isImportingExcel}
               variant="outline"
               size="sm"
-              className="border-blue-500 text-blue-600 hover:bg-blue-50"
-              title="Traer datos de Google Sheets"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50 cursor-pointer"
+              title="Importar Excel editado desde Drive"
             >
-              {syncingFromSheet ? (
+              {isImportingExcel ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <RefreshCw className="h-4 w-4" />
+                <Upload className="h-4 w-4" />
               )}
             </Button>
-          )}
+            <input 
+              type="file" 
+              accept=".xlsx,.xls"
+              onChange={handleImportExcel}
+              disabled={isImportingExcel}
+              className="hidden"
+            />
+          </label>
 
           <Button 
             onClick={async () => {
@@ -627,7 +634,7 @@ export default function BudgetManager({
             variant="outline"
             size="sm"
             className="border-slate-400 text-slate-700 hover:bg-slate-50"
-            title="Recalcular datos ejecutados"
+            title="Recalcular datos ejecutados (automáticos)"
           >
             {updatingExecuted ? (
               <Loader2 className="h-4 w-4 animate-spin" />
