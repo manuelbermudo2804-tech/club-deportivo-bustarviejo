@@ -1310,53 +1310,62 @@ export default function ClubMembership() {
 
                 {formData.metodo_pago === "Tarjeta" && (
                    <div className="bg-white rounded-xl p-4 border-2 border-orange-300">
-                     <p className="text-sm text-slate-700 mb-4 font-semibold">💳 Elige tu forma de pago:</p>
+                     <div className="space-y-4">
+                       <div>
+                         <p className="text-sm text-slate-700 font-semibold">💳 Elige tu forma de pago:</p>
+                         <p className="text-xs text-slate-600 mt-1 mb-3">Por favor, elige una opción para completar tu inscripción</p>
+                       </div>
 
-                     <div className="grid md:grid-cols-2 gap-3">
-                       {/* Pago único anual */}
-                       <a 
-                         href="https://buy.stripe.com/28E6oH3Ys3yBaKEdGrfrW00"
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="block"
-                       >
-                         <Button
-                           type="button"
-                           className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-6"
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                         {/* Pago único anual */}
+                         <a 
+                           href="https://buy.stripe.com/28E6oH3Ys3yBaKEdGrfrW00"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="block"
                          >
-                           <span className="text-lg">💰 Pago Único</span>
-                           <span className="block text-xs mt-1 font-normal">Paga una sola vez este año</span>
-                           <span className="block text-sm font-bold mt-1">25€ / año</span>
-                         </Button>
-                       </a>
+                           <Button
+                             type="button"
+                             className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 text-sm"
+                           >
+                             <span>💰 Pago Único</span>
+                             <span className="block text-xs font-normal mt-0.5">Una vez / año</span>
+                             <span className="block text-xs font-bold mt-0.5">25€</span>
+                           </Button>
+                         </a>
 
-                       {/* Suscripción anual automática */}
-                       <a 
-                         href="https://buy.stripe.com/aFaaEX1Qk4CF7yseKvfrW01"
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="block"
-                       >
-                         <Button
-                           type="button"
-                           className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-6 ring-2 ring-purple-300"
+                         {/* Suscripción anual automática */}
+                         <a 
+                           href="https://buy.stripe.com/aFaaEX1Qk4CF7yseKvfrW01"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="block"
                          >
-                           <span className="text-lg">🔄 Suscripción</span>
-                           <span className="block text-xs mt-1 font-normal">Renovación automática cada año</span>
-                           <span className="block text-sm font-bold mt-1">25€ / año</span>
-                         </Button>
-                       </a>
-                     </div>
+                           <Button
+                             type="button"
+                             className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 text-sm ring-2 ring-purple-300 ring-offset-2"
+                           >
+                             <span>🔄 Suscripción</span>
+                             <span className="block text-xs font-normal mt-0.5">Automática cada año</span>
+                             <span className="block text-xs font-bold mt-0.5">25€/año</span>
+                           </Button>
+                         </a>
+                       </div>
 
-                     <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                       <p className="text-xs text-blue-800">
-                         <strong>💡 Con suscripción:</strong> Te renovarás automáticamente cada año sin tener que hacer nada. Si prefieres pagar solo este año, elige "Pago Único".
-                       </p>
-                     </div>
+                       <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                         <p className="text-xs text-purple-800">
+                           <strong>✨ Recomendado:</strong> La suscripción automática te renovará cada año sin tener que hacer nada. Es la opción más cómoda para no olvidarte de tu membresía.
+                         </p>
+                       </div>
 
-                     <p className="text-xs text-slate-600 mt-3">No necesitas subir justificante ni enviar el formulario si pagas por Stripe.</p>
+                       <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                         <p className="text-xs text-blue-800">
+                           <strong>💡 Sin papeleos:</strong> No necesitas subir justificante de pago ni enviar el formulario. Todo se gestiona automáticamente por Stripe.
+                         </p>
+                       </div>
+                     </div>
                    </div>
-                )}
+                 )}
 
                 {/* Subir justificante */}
                 <div className="space-y-2">
