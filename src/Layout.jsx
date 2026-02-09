@@ -537,6 +537,8 @@ export default function Layout({ children, currentPageName }) {
   const [hasPlayers, setHasPlayers] = useState(false);
   const [playerName, setPlayerName] = useState(null);
   const [onboardingView, setOnboardingView] = useState('loading');
+  const [rateLimited, setRateLimited] = useState(false);
+  const rateLimitTimerRef = useRef(null);
 
   const [isJunta, setIsJunta] = useState(false);
   const [activeSeasonConfig, setActiveSeasonConfig] = useState(null);
@@ -634,7 +636,6 @@ export default function Layout({ children, currentPageName }) {
   const [enginesReady, setEnginesReady] = useState(false);
   const [enginesStage2Ready, setEnginesStage2Ready] = useState(false);
   const [enginesStage3Ready, setEnginesStage3Ready] = useState(false);
-  const rateLimitTimerRef = useRef(null);
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -844,7 +845,6 @@ export default function Layout({ children, currentPageName }) {
 
   // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation, PWA aliases)
   const [authChecked, setAuthChecked] = useState(false);
-  const [rateLimited, setRateLimited] = useState(false);
   const fetchUserOnceRef = useRef(false);
   const isPublicPageRef = useRef(false);
 
