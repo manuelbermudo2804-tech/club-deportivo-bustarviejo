@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle, Sparkles, Upload, FileText, Loader2, Save, FolderOpen, Copy, Sheet, RefreshCw, ExternalLink } from "lucide-react";
+import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle, Sparkles, Upload, Download, FileText, Loader2, Save, FolderOpen, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import AIBudgetAssistant from "./AIBudgetAssistant";
