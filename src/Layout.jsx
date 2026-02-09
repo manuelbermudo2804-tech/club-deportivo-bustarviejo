@@ -2856,7 +2856,15 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Banner de Patrocinadores - Footer fijo */}
         {/* Mobile Bottom Bar */}
-        <MobileBottomBar location={location} chatBadges={chatMenuCounts} />
+        <MobileBottomBar 
+          location={location} 
+          chatBadges={chatMenuCounts}
+          isAdmin={isAdmin}
+          isCoach={isCoach}
+          isCoordinator={isCoordinator}
+          isTreasurer={isTreasurer}
+          isPlayer={isPlayer}
+        />
 
         {/* Delete Account Dialog */}
         {user && (
