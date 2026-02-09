@@ -231,6 +231,37 @@ export default function BudgetManager({
     toast.success(`${newPartidas.length} partidas importadas correctamente`);
   };
 
+  // Cargar partidas base sin borrar las existentes
+  const handleLoadDefaultPartidas = () => {
+    const defaults = [
+      // Ingresos
+      { nombre: 'Inscripciones Jugadores', categoria: 'Ingresos' },
+      { nombre: 'Cuotas Socios', categoria: 'Ingresos' },
+      { nombre: 'Patrocinios', categoria: 'Ingresos' },
+      { nombre: 'Lotería Navidad', categoria: 'Ingresos' },
+      { nombre: 'Venta Equipación', categoria: 'Ingresos' },
+      { nombre: 'Subvenciones', categoria: 'Ingresos' },
+      // Gastos
+      { nombre: 'Arbitrajes', categoria: 'Gastos Variables' },
+      { nombre: 'Instalaciones', categoria: 'Gastos Fijos' },
+      { nombre: 'Material Deportivo', categoria: 'Gastos Variables' },
+      { nombre: 'Viajes', categoria: 'Gastos Variables' },
+      { nombre: 'Publicidad y Redes', categoria: 'Gastos Variables' },
+    ];
+
+    const existentes = new Set((budget?.partidas || []).map(p => `${(p.nombre||'').toLowerCase()}|${(p.categoria||'').toLowerCase()}`));
+    const toAdd = defaults
+      .filter(d => !existentes.has(`${d.nombre.toLowerCase()}|${d.categoria.toLowerCase()}`))
+      .map((d, idx) => ({ id: `partida_default_${Date.now()}_${idx}`, nombre: d.nombre, categoria: d.categoria, presupuestado: 0, ejecutado: 0 }));
+
+    if (toAdd.length === 0) {
+      toast.info('Ya tienes todas las partidas base');
+      return;
+    }
+    onUpdate({ partidas: [ ...(budget?.partidas || []), ...toAdd ] });
+    toast.success(`Añadidas ${toAdd.length} partidas base`);
+  };
+
   // Crear/Abrir Google Sheet
   const handleOpenInSheets = async () => {
     setCreatingSheet(true);
