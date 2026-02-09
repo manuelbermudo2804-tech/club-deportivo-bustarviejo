@@ -101,17 +101,7 @@ export default function PushNotificationSubscriber({ user }) {
     }
   };
 
-  if (!isSupported) {
-    return (
-      <div className="p-3 bg-slate-100 rounded-lg border border-slate-300">
-        <p className="text-sm text-slate-600">
-          ⚠️ Push Notifications no disponibles en tu navegador. 
-          <br/>
-          <strong>Usa Chrome/Firefox en Android o Safari en iOS</strong> para activar notificaciones.
-        </p>
-      </div>
-    );
-  }
+  if (!isSupported) return null;
 
   return (
     <Button
