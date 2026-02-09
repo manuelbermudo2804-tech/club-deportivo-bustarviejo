@@ -9,52 +9,40 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Obtener access token de Google Drive
-    const accessToken = await base44.asServiceRole.connectors.getAccessToken('googledrive');
-
-    if (!accessToken) {
+    // Obtener token de Google Drive
+    let accessToken;
+    try {
+      accessToken = await base44.asServiceRole.connectors.getAccessToken('googledrive');
+    } catch (err) {
       return Response.json({ 
-        error: 'Google Drive not authorized',
+        error: 'Google Drive no autorizado',
         needsAuth: true 
-      }, { status: 401 });
+      }, { status: 403 });
     }
 
-    // Buscar archivos Excel en Drive
-    const query = encodeURIComponent(
-      "mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and trashed=false and name contains 'Presupuesto'"
-    );
-
+    // Listar archivos Excel en Drive
     const response = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=${query}&fields=id,name,modifiedTime,size&pageSize=20&orderBy=modifiedTime desc`,
+      'https://www.googleapis.com/drive/v3/files?q=mimeType%3D%22application%2Fvnd.openxmlformats-officedocument.spreadsheetml.sheet%22&spaces=drive&fields=files(id,name,modifiedTime,size)&pageSize=50',
       {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${accessToken}`
         }
       }
     );
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('Drive API error:', error);
-      return Response.json({ 
-        error: 'Error accessing Google Drive',
-        details: error 
-      }, { status: response.status });
+      return Response.json({ error: 'Error al listar archivos' }, { status: response.status });
     }
 
     const data = await response.json();
+    const files = (data.files || []).map(f => ({
+      id: f.id,
+      name: f.name,
+      modified: f.modifiedTime,
+      size: f.size
+    }));
 
-    return Response.json({
-      success: true,
-      files: (data.files || []).map(f => ({
-        id: f.id,
-        name: f.name,
-        modified: f.modifiedTime,
-        size: f.size
-      })),
-      total: data.files?.length || 0
-    });
+    return Response.json({ files });
 
   } catch (error) {
     console.error('Error listing Drive files:', error);
