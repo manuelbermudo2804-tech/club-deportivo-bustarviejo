@@ -82,8 +82,20 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
       }
     });
 
-    return Object.values(categories).sort((a, b) => b.esperado - a.esperado);
-  }, [players, payments, activeSeason, getImportePorMes]);
+// Normalización final para evitar tasas > 100% si los importes cobrados superan el esperado teórico
+const normalized = Object.values(categories).map(c => {
+  const sumActual = (c.cobrado || 0) + (c.enRevision || 0) + (c.pendiente || 0);
+  const esperadoAjustado = Math.max(c.esperado || 0, sumActual);
+  const pendienteAjustado = Math.max(0, esperadoAjustado - ((c.cobrado || 0) + (c.enRevision || 0)));
+  return {
+    ...c,
+    esperado: esperadoAjustado,
+    pendiente: pendienteAjustado,
+  };
+});
+
+return normalized.sort((a, b) => b.esperado - a.esperado);
+}, [players, payments, activeSeason, getImportePorMes]);
 
   const chartData = categoryStats.map(c => ({
     name: c.nombre.replace('Fútbol ', '').replace(' (Mixto)', ''),
