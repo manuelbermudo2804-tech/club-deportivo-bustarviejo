@@ -1344,27 +1344,27 @@ export default function ClubMembership() {
                            rel="noopener noreferrer"
                            className="block relative"
                          >
-                           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-xs font-bold animate-bounce shadow-lg">
+                           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-bounce shadow-lg">
                              ⭐ MÁS RECOMENDADO
                            </div>
                            <Button
                              type="button"
-                             className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 text-white font-bold py-10 text-lg h-auto ring-2 ring-purple-300 ring-offset-3 shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] rounded-xl"
+                             className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 text-white font-bold py-6 sm:py-10 text-base sm:text-lg h-auto ring-2 ring-purple-300 ring-offset-3 shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] rounded-xl"
                            >
-                             <div className="text-center w-full py-2">
-                               <div className="text-3xl mb-2">🔄</div>
-                               <span className="block text-xl font-bold">Suscripción Automática</span>
-                               <span className="block text-sm font-normal opacity-90 mt-1">Renovación automática cada año</span>
-                               <span className="block text-2xl font-bold mt-3">25€/año</span>
-                               <span className="block text-xs opacity-75 mt-2">✓ La más conveniente</span>
+                             <div className="text-center w-full py-1 sm:py-2 px-2">
+                               <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🔄</div>
+                               <span className="block text-base sm:text-xl font-bold leading-tight">Suscripción Automática</span>
+                               <span className="block text-xs sm:text-sm font-normal opacity-90 mt-1">Renovación automática cada año</span>
+                               <span className="block text-xl sm:text-2xl font-bold mt-2 sm:mt-3">25€/año</span>
+                               <span className="block text-xs opacity-75 mt-1 sm:mt-2">✓ La más conveniente</span>
                              </div>
                            </Button>
                          </a>
                        </div>
 
-                       <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-xl p-5 border-2 border-purple-200">
-                         <p className="text-sm text-purple-900 font-semibold mb-3">✨ ¿Por qué elegir suscripción?</p>
-                         <ul className="space-y-2 text-sm text-purple-800">
+                       <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-xl p-4 sm:p-5 border-2 border-purple-200">
+                         <p className="text-xs sm:text-sm text-purple-900 font-semibold mb-2 sm:mb-3">✨ ¿Por qué elegir suscripción?</p>
+                         <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-purple-800">
                            <li>✓ Te renovarás automáticamente sin hacer nada</li>
                            <li>✓ Nunca te perderás un año de membresía</li>
                            <li>✓ Cancela cuando quieras sin penalización</li>
