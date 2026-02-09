@@ -262,38 +262,48 @@ export default function BudgetManager({
     toast.success(`Añadidas ${toAdd.length} partidas base`);
   };
 
-  // Crear/Abrir Google Sheet
+  // Crear/Abrir Google Sheet (con fallback seguro para iFrame)
   const handleOpenInSheets = async () => {
     setCreatingSheet(true);
-    // Abrir pestaña en blanco de inmediato para evitar bloqueo de popups
-    const win = window.open('about:blank', '_blank');
+    // Intento preventivo para evitar bloqueo; puede fallar en iFrame
+    let win: Window | null = null;
+    try { win = window.open('about:blank', '_blank'); } catch {}
     try {
       const { data } = await base44.functions.invoke('budgetSheets', {
         action: 'createOrUpdateSheet',
         budgetId: budget.id
       });
 
-      // Si la función devolvió success, pero aún no tenemos url en memoria, refrescamos y usamos la guardada
       if (data?.success) {
         await queryClient.invalidateQueries({ queryKey: ['budgets'] });
-        const url = (data.spreadsheetUrl || budget?.google_sheet_url);
-        if (url && win) {
-          win.location.href = url;
-          toast.success('✅ Hoja de cálculo abierta en Google Sheets');
+        const url = (data.spreadsheetUrl || budget?.google_sheet_url || (data.spreadsheetId ? `https://docs.google.com/spreadsheets/d/${data.spreadsheetId}` : null));
+        if (url) {
+          let opened = false;
+          try {
+            const topWin = window.top || window;
+            topWin?.open?.(url, '_blank');
+            opened = true;
+          } catch {}
+          if (win && !win.closed) {
+            try { win.location.href = url; opened = true; } catch {}
+          }
+          if (!opened) {
+            try { await navigator.clipboard.writeText(url); } catch {}
+            toast.message('Hoja creada', { description: 'No se pudo abrir por el entorno de previsualización. Enlace copiado al portapapeles.' });
+          } else {
+            toast.success('✅ Hoja de cálculo abierta en Google Sheets');
+          }
         } else {
-          setTimeout(() => {
-            const fallbackUrl = budget?.google_sheet_url;
-            if (fallbackUrl && win) { win.location.href = fallbackUrl; toast.success('✅ Hoja de cálculo abierta'); }
-            else { if (win) win.close(); toast.error('No se pudo obtener la URL de Sheets'); }
-          }, 500);
+          if (win && !win.closed) win.close();
+          toast.error('No se pudo obtener la URL de Sheets');
         }
       } else {
-        if (win) win.close();
+        if (win && !win.closed) win.close();
         toast.error('No se pudo crear/actualizar la hoja');
       }
     } catch (error) {
       console.error('Error abriendo Sheets:', error);
-      if (win) win.close();
+      if (win && !win.closed) win.close();
       toast.error('Error al abrir Google Sheets');
     } finally {
       setCreatingSheet(false);
@@ -542,6 +552,7 @@ export default function BudgetManager({
             Plantillas ({savedTemplates.length})
           </Button>
         )}
+
         <Button 
           onClick={handleLoadDefaultPartidas}
           variant="outline"
@@ -550,6 +561,36 @@ export default function BudgetManager({
           <Copy className="h-4 w-4 mr-2" />
           Cargar partidas base
         </Button>
+
+        <Button 
+          onClick={handleOpenInSheets}
+          disabled={creatingSheet}
+          variant="outline"
+          size="sm"
+          className="border-green-500 text-green-600 hover:bg-green-50"
+        >
+          {creatingSheet ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Abriendo...</>
+          ) : (
+            <><Sheet className="h-4 w-4 mr-2" /> Abrir en Google Sheets</>
+          )}
+        </Button>
+
+        {budget?.google_sheet_id && (
+          <Button 
+            onClick={handleSyncFromSheet}
+            disabled={syncingFromSheet}
+            variant="outline"
+            size="sm"
+            className="border-blue-500 text-blue-600 hover:bg-blue-50"
+          >
+            {syncingFromSheet ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sincronizando...</>
+            ) : (
+              <><RefreshCw className="h-4 w-4 mr-2" /> Traer de Sheets</>
+            )}
+          </Button>
+        )}
 
         <Button onClick={() => setShowAddPartida(true)} className="bg-orange-600 hover:bg-orange-700">
           <Plus className="h-4 w-4 mr-2" />
