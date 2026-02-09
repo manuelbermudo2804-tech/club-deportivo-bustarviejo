@@ -10,7 +10,7 @@ import {
   CreditCard, ShoppingBag, Users, TrendingUp, TrendingDown, 
   Download, Euro, Clover, Building2, DollarSign, FileText,
   Calendar, CheckCircle2, Clock, AlertCircle, HelpCircle, BarChart3, Sparkles, Plus,
-  PieChart, Target, Award, Heart
+  PieChart, Target, Award, Heart, Settings, RefreshCw, ExternalLink
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -46,6 +46,7 @@ import FinancialRatios from "../components/financial/FinancialRatios.jsx";
 import SeasonalityAnalysis from "../components/financial/SeasonalityAnalysis.jsx";
 import BankReconciliationWizard from "../components/financial/BankReconciliationWizard.jsx";
 import BankStatementReconciliation from "../components/financial/BankStatementReconciliation.jsx";
+import { Input } from "@/components/ui/input";
 
 export default function TreasurerFinancialPanel() {
   const [user, setUser] = useState(null);
@@ -60,6 +61,8 @@ export default function TreasurerFinancialPanel() {
   const [generatingExcel, setGeneratingExcel] = useState(false);
   const [showSeasonComparison, setShowSeasonComparison] = useState(false);
   const [showBankReconciliation, setShowBankReconciliation] = useState(false);
+  const [newSheetsId, setNewSheetsId] = useState("");
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -83,6 +86,9 @@ export default function TreasurerFinancialPanel() {
   useEffect(() => {
     const active = seasonConfigs.find(s => s.activa === true);
     setActiveSeason(active);
+    if (active) {
+      setNewSheetsId(active.google_sheets_id || "");
+    }
   }, [seasonConfigs]);
 
   const { data: payments = [] } = useQuery({
@@ -442,6 +448,36 @@ export default function TreasurerFinancialPanel() {
     }
   };
 
+  const updateSheetsMutation = useMutation({
+    mutationFn: async (sheetsId) => {
+      await base44.entities.SeasonConfig.update(activeSeason.id, {
+        google_sheets_id: sheetsId,
+      });
+    },
+    onSuccess: () => {
+      setActiveSeason({ ...activeSeason, google_sheets_id: newSheetsId });
+      toast.success("Google Sheets configurado correctamente");
+    },
+  });
+
+  const syncIncomesMutation = useMutation({
+    mutationFn: async () => {
+      setSyncing(true);
+      const result = await base44.functions.invoke("syncBudgetToSheets", {
+        sheetsId: activeSeason.google_sheets_id,
+      });
+      setSyncing(false);
+      return result;
+    },
+    onSuccess: () => {
+      toast.success("Datos sincronizados con Google Sheets");
+    },
+    onError: (error) => {
+      setSyncing(false);
+      toast.error("Error al sincronizar: " + error.message);
+    },
+  });
+
   const handleExportExcel = async () => {
     setGeneratingExcel(true);
     try {
@@ -561,7 +597,7 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 bg-white border border-slate-200 rounded-xl">
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-slate-200 rounded-xl">
           <TabsTrigger value="resumen" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden md:inline">Resumen</span>
@@ -577,6 +613,10 @@ export default function TreasurerFinancialPanel() {
           <TabsTrigger value="presupuestos" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Euro className="w-4 h-4" />
             <span className="hidden md:inline">Presupuestos</span>
+          </TabsTrigger>
+          <TabsTrigger value="google-sheets" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <Target className="w-4 h-4" />
+            <span className="hidden md:inline">Google Sheets</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1444,6 +1484,142 @@ export default function TreasurerFinancialPanel() {
         <TabsContent value="bancario" className="space-y-6 mt-6">
           <BankStatementReconciliation activeSeason={activeSeason} />
           <BankAccountManager activeSeason={activeSeason} />
+        </TabsContent>
+
+        {/* TAB GOOGLE SHEETS */}
+        <TabsContent value="google-sheets" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Configuración */}
+            <Card className="border-none shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Configurar Google Sheets
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    ID del Google Sheets
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newSheetsId}
+                      onChange={(e) => setNewSheetsId(e.target.value)}
+                      placeholder="1xDYfPZ2EljUpZYaTyEHkCYVatqzQKD1s4HDTpFeBMAc"
+                      className="flex-1 text-xs"
+                    />
+                    <Button
+                      onClick={() => updateSheetsMutation.mutate(newSheetsId)}
+                      disabled={updateSheetsMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {updateSheetsMutation.isPending ? "..." : "Guardar"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Copia el ID de la URL del Sheets: docs.google.com/spreadsheets/d/<strong>AQUI_VA_EL_ID</strong>
+                  </p>
+                </div>
+
+                {activeSeason?.google_sheets_id && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p className="text-sm text-green-800 font-medium mb-2">✅ Sheets conectado</p>
+                    <a
+                      href={`https://docs.google.com/spreadsheets/d/${activeSeason.google_sheets_id}/edit`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-2 inline-flex"
+                    >
+                      Abrir en Google Sheets <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Sincronizar */}
+            <Card className="border-none shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5" />
+                  Sincronizar Datos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!activeSeason?.google_sheets_id && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex gap-3">
+                    <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800">Configurar primero</p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Añade el ID del Sheets a la izquierda
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {activeSeason?.google_sheets_id && (
+                  <Button
+                    onClick={() => syncIncomesMutation.mutate()}
+                    disabled={syncing || syncIncomesMutation.isPending}
+                    className="w-full bg-green-600 hover:bg-green-700 py-6 text-lg font-bold"
+                  >
+                    {syncing || syncIncomesMutation.isPending ? (
+                      <>
+                        <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                        Sincronizando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-5 h-5 mr-2" />
+                        Sincronizar Ahora
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+                  <p className="font-medium text-blue-900 mb-2">📋 Se sincroniza:</p>
+                  <ul className="text-blue-800 space-y-1 text-xs">
+                    <li>✅ <strong>Ingresos Previstos</strong> (basados en jugadores por categoría)</li>
+                    <li>✅ <strong>Ingresos Reales</strong> (cuotas, socios, loterías, cobros extra)</li>
+                    <li>✅ <strong>Ingresos Otros</strong> (que rellenéis manualmente)</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Información sobre estructura */}
+          <Card className="border-2 border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="text-orange-900 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Estructura de Pestañas en Google Sheets
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="bg-white rounded-lg p-3 border-l-4 border-blue-500">
+                  <p className="font-medium text-slate-900">1️⃣ Presupuestos</p>
+                  <p className="text-sm text-slate-600 mt-1">Gastos que esperáis (rellenáis vosotros)</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border-l-4 border-green-500">
+                  <p className="font-medium text-slate-900">2️⃣ Ingresos Previstos</p>
+                  <p className="text-sm text-slate-600 mt-1">Ingresos que deberían llegar (se calcula automático)</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border-l-4 border-purple-500">
+                  <p className="font-medium text-slate-900">3️⃣ Ingresos Reales APP</p>
+                  <p className="text-sm text-slate-600 mt-1">Dinero que entra realmente (se actualiza automático)</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border-l-4 border-orange-500">
+                  <p className="font-medium text-slate-900">4️⃣ Ingresos Otros</p>
+                  <p className="text-sm text-slate-600 mt-1">Dinero externo/donaciones (rellenáis vosotros)</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* TAB PRESUPUESTOS */}
