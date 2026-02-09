@@ -159,15 +159,19 @@ export default function TreasurerFinancialPanel() {
     return budgets.find(b => b.temporada === activeSeason.temporada) || null;
   }, [activeSeason, budgets]);
 
-  // Función para obtener importe por mes y categoría (igual que en Payments)
-  const getImportePorMes = (deporte, mes) => {
-    // Valores predeterminados si no hay configuración
+  // Función para obtener importe por mes según temporada activa
+  const getImportePorMes = (_deporte, mes) => {
+    // Si hay temporada activa con cuota fraccionada configurada, usarla para cada mes
+    if (activeSeason && typeof activeSeason.cuota_tres_meses === 'number' && activeSeason.cuota_tres_meses > 0) {
+      return Number(activeSeason.cuota_tres_meses) || 0;
+    }
+    // Fallbacks si no hay configuración en la temporada
     const defaultValues = {
       "Junio": 110,
       "Septiembre": 70,
       "Diciembre": 70
     };
-    return defaultValues[mes] || 70;
+    return defaultValues[mes] || 0;
   };
 
   // Normaliza temporadas ("2024-2025" vs "2024/2025") y utilidades de temporada
