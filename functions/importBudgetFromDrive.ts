@@ -12,14 +12,24 @@ Deno.serve(async (req) => {
     const { fileId, budgetId } = await req.json();
 
     if (!fileId || !budgetId) {
-      return Response.json({ error: 'fileId and budgetId are required' }, { status: 400 });
+      return Response.json({ error: 'fileId and budgetId required' }, { status: 400 });
     }
 
-    // Obtener access token
-    const accessToken = await base44.asServiceRole.connectors.getAccessToken('googledrive');
+    // Obtener presupuesto
+    const budget = await base44.entities.Budget.list().then(list => 
+      list.find(b => b.id === budgetId)
+    );
 
-    if (!accessToken) {
-      return Response.json({ error: 'Google Drive not authorized' }, { status: 401 });
+    if (!budget) {
+      return Response.json({ error: 'Budget not found' }, { status: 404 });
+    }
+
+    // Obtener token de Google Drive
+    let accessToken;
+    try {
+      accessToken = await base44.asServiceRole.connectors.getAccessToken('googledrive');
+    } catch (err) {
+      return Response.json({ error: 'Google Drive no autorizado' }, { status: 403 });
     }
 
     // Descargar archivo de Drive
@@ -33,70 +43,45 @@ Deno.serve(async (req) => {
     );
 
     if (!fileResponse.ok) {
-      return Response.json({ error: 'Error downloading file from Drive' }, { status: fileResponse.status });
+      return Response.json({ error: 'Error al descargar archivo' }, { status: fileResponse.status });
     }
 
-    const fileBuffer = await fileResponse.arrayBuffer();
+    const buffer = await fileResponse.arrayBuffer();
     
-    // Subir a Base44 y extraer datos
-    const blob = new Blob([fileBuffer], { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-    });
+    // Procesar Excel
+    const xlsxModule = await import('npm:xlsx@0.18.5');
+    const XLSX = xlsxModule.default;
 
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: blob });
+    const workbook = XLSX.read(buffer, { type: 'array' });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(worksheet);
 
-    // Extraer datos del Excel
-    const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-      file_url,
-      json_schema: {
-        type: "object",
-        properties: {
-          partidas: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                categoria: { type: "string" },
-                nombre: { type: "string" },
-                presupuestado: { type: "number" },
-                ejecutado: { type: "number" }
-              }
-            }
-          }
-        }
+    // Actualizar partidas con los datos del Excel
+    const updatedPartidas = budget.partidas.map(partida => {
+      const rowData = data.find(row => row['Partida'] === partida.nombre);
+      if (rowData) {
+        return {
+          ...partida,
+          presupuestado: Number(rowData['Presupuestado']) || partida.presupuestado,
+          ejecutado: Number(rowData['Ejecutado']) || partida.ejecutado
+        };
       }
+      return partida;
     });
 
-    if (result.status === "success" && result.output?.partidas?.length > 0) {
-      const importedPartidas = result.output.partidas
-        .filter(p => p.nombre && p.nombre.trim() !== "SUMA TOTAL")
-        .map((p, idx) => ({
-          id: `partida_import_${Date.now()}_${idx}`,
-          nombre: p.nombre,
-          categoria: p.categoria || "Gastos Variables",
-          presupuestado: Number(p.presupuestado || 0),
-          ejecutado: Number(p.ejecutado || 0)
-        }));
+    // Guardar cambios
+    await base44.entities.Budget.update(budgetId, {
+      partidas: updatedPartidas,
+      fecha_ultima_actualizacion_ejecutado: new Date().toISOString()
+    });
 
-      // Actualizar presupuesto
-      await base44.entities.Budget.update(budgetId, { 
-        partidas: importedPartidas 
-      });
-
-      return Response.json({
-        success: true,
-        imported: importedPartidas.length,
-        message: `${importedPartidas.length} partidas importadas correctamente`
-      });
-    }
-
-    return Response.json({ 
-      error: 'No se pudieron extraer partidas del archivo',
-      details: result.details 
-    }, { status: 400 });
+    return Response.json({
+      success: true,
+      message: 'Presupuesto actualizado correctamente'
+    });
 
   } catch (error) {
-    console.error('Error importing from Drive:', error);
+    console.error('Error importing budget:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
