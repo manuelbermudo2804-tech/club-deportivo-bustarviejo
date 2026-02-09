@@ -1088,6 +1088,87 @@ export default function Layout({ children, currentPageName }) {
         }
 
         setIsPlayer(playerDetected);
+
+        // ===== CARGA INICIAL INMEDIATA DE CONTADORES DE CHAT =====
+        // CRÍTICO: Cargar ANTES de mostrar UI para que los badges aparezcan inmediatamente
+        try {
+          const { UnifiedChatNotificationStore } = await import("./components/notifications/UnifiedChatNotificationStore");
+          
+          // 1. Staff chat
+          if (currentUser.es_coordinador || currentUser.es_entrenador || currentUser.role === 'admin') {
+            const staffConvs = await base44.entities.StaffConversation.filter({});
+            const staffUnread = staffConvs.reduce((sum, conv) => {
+              const reads = conv.last_read_by || [];
+              const myRead = reads.find(r => r.email === currentUser.email);
+              if (!myRead || !conv.ultimo_mensaje_fecha) return sum;
+              const lastReadTime = new Date(myRead.fecha).getTime();
+              const lastMsgTime = new Date(conv.ultimo_mensaje_fecha).getTime();
+              return sum + (lastMsgTime > lastReadTime ? 1 : 0);
+            }, 0);
+            UnifiedChatNotificationStore.updateCount(currentUser.email, 'staff', staffUnread);
+          }
+
+          // 2. Coordinador - familias
+          if (currentUser.es_coordinador) {
+            const coordConvs = await base44.entities.CoordinatorConversation.filter({});
+            const coordUnread = coordConvs.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
+            UnifiedChatNotificationStore.updateCount(currentUser.email, 'coordinator', coordUnread);
+          }
+
+          // 3. Entrenador - familias (1-a-1)
+          if (currentUser.es_entrenador) {
+            const coachConvs = await base44.entities.CoachConversation.filter({ entrenador_email: currentUser.email });
+            const coachUnread = coachConvs.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
+            UnifiedChatNotificationStore.updateCount(currentUser.email, 'coach', coachUnread);
+          }
+
+          // 4. Familias - todos sus chats
+          if (!currentUser.es_entrenador && !currentUser.es_coordinador && currentUser.role !== 'admin') {
+            // 4a. Coordinador
+            const coordConvs = await base44.entities.CoordinatorConversation.filter({ padre_email: currentUser.email });
+            const coordUnread = coordConvs.reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
+            UnifiedChatNotificationStore.updateCount(currentUser.email, 'coordinatorForFamily', coordUnread);
+
+            // 4b. Mensajes del club
+            const privateConvs = await base44.entities.PrivateConversation.filter({ participante_familia_email: currentUser.email });
+            const privateUnread = privateConvs.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
+            UnifiedChatNotificationStore.updateCount(currentUser.email, 'systemMessages', privateUnread);
+
+            // 4c. Entrenador (grupo)
+            const myPlayers = await base44.entities.Player.filter({
+              $or: [
+                { email_padre: currentUser.email },
+                { email_tutor_2: currentUser.email },
+                { email_jugador: currentUser.email }
+              ],
+              activo: true
+            });
+
+            const myCategories = [...new Set(myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+            let coachUnread = 0;
+
+            for (const cat of myCategories) {
+              const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
+              const groupId = normalizeId(cat);
+              
+              const messages = await base44.entities.ChatMessage.filter({ grupo_id: groupId }, '-created_date', 50);
+              const unreadInGroup = messages.filter(msg => 
+                (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') &&
+                msg.remitente_email !== currentUser.email &&
+                (!msg.leido_por || !msg.leido_por.some(r => r.email === currentUser.email))
+              ).length;
+              
+              coachUnread += unreadInGroup;
+            }
+
+            UnifiedChatNotificationStore.updateCount(currentUser.email, 'coachForFamily', coachUnread);
+          }
+
+          console.log('✅ [LAYOUT] Contadores de chat cargados inmediatamente');
+        } catch (e) {
+          console.error('❌ [LAYOUT] Error cargando contadores:', e);
+        }
+
         // Fast path: render UI immediately while background data loads
         setIsLoading(false);
 
