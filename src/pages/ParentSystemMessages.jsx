@@ -12,6 +12,10 @@ import { UnifiedChatNotificationStore } from "../components/notifications/Unifie
 export default function ParentSystemMessages() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showNewMessageButton, setShowNewMessageButton] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 

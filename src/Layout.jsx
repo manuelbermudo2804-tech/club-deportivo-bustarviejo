@@ -43,7 +43,6 @@ import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPayment
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
 const ClothingApprovalNotifier = React.lazy(() => import("./components/payments/ClothingApprovalNotifier"));
 import ChatSoundNotifier from "./components/notifications/ChatSoundNotifier";
-import ChatToasts from "./components/notifications/ChatToasts";
 import CallupSoundNotifier from "./components/notifications/CallupSoundNotifier";
 import AnnouncementSoundNotifier from "./components/notifications/AnnouncementSoundNotifier";
 import PaymentSoundNotifier from "./components/notifications/PaymentSoundNotifier";
@@ -2239,7 +2238,6 @@ export default function Layout({ children, currentPageName }) {
                                           <CallupSoundNotifier user={user} />
                                           <AnnouncementSoundNotifier user={user} />
                                           <PaymentSoundNotifier user={user} />
-                                          <ChatToasts />
                                         </Suspense>
                                       )}
 
