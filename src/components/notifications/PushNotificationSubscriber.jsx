@@ -123,18 +123,26 @@ export default function PushNotificationSubscriber({ user }) {
   if (!isSupported) return null;
 
   return (
-    <Button
-      onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
-      disabled={isLoading}
-      className={`gap-2 ${
-        isSubscribed
-          ? 'bg-green-600 hover:bg-green-700'
-          : 'bg-orange-600 hover:bg-orange-700'
-      }`}
-      size="sm"
-    >
-      <Bell className="w-4 h-4" />
-      {isLoading ? 'Procesando...' : isSubscribed ? '🔔 Push Activado' : '📲 Activar Push'}
-    </Button>
+    <div className="space-y-2">
+      <Button
+        onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
+        disabled={isLoading}
+        className={`gap-2 ${
+          isSubscribed
+            ? 'bg-green-600 hover:bg-green-700'
+            : 'bg-orange-600 hover:bg-orange-700'
+        }`}
+        size="sm"
+      >
+        <Bell className="w-4 h-4" />
+        {isLoading ? 'Procesando...' : isSubscribed ? '🔔 Push Activado' : '📲 Activar Push'}
+      </Button>
+      
+      {swError && (
+        <p className="text-xs text-red-600 bg-red-50 p-2 rounded">
+          ⚠️ {swError}
+        </p>
+      )}
+    </div>
   );
 }
