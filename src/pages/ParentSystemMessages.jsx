@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, CheckCircle2, Clock, AlertCircle, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import SocialLinks from "../components/SocialLinks";
@@ -16,7 +17,6 @@ export default function ParentSystemMessages() {
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
-  const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -159,11 +159,56 @@ export default function ParentSystemMessages() {
 
 
 
+  // Scroll tracking para botón de mensajes nuevos
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      if (isAtBottom) {
+        setShowNewMessageButton(false);
+        setUnreadCount(0);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Detectar nuevos mensajes mientras no estás al final
+  useEffect(() => {
+    if (!containerRef.current || !allMessages || allMessages.length === 0) return;
+    
+    const container = containerRef.current;
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+    
+    if (!isAtBottom) {
+      const unreadStaffMessages = allMessages.filter(msg => 
+        msg.remitente_tipo === 'staff' && !msg.leido
+      );
+      
+      if (unreadStaffMessages.length > 0) {
+        setUnreadCount(unreadStaffMessages.length);
+        setShowNewMessageButton(true);
+      }
     }
   }, [allMessages]);
+
+  // Auto-scroll al final al montar
+  useEffect(() => {
+    if (messagesEndRef.current && allMessages.length > 0) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [allMessages.length]);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setShowNewMessageButton(false);
+      setUnreadCount(0);
+    }
+  };
 
   if (loading) {
     return (
@@ -200,8 +245,8 @@ export default function ParentSystemMessages() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-slate-50">
+        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0 relative">
+          <div ref={containerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-slate-50">
             {allMessages.length === 0 ? (
               <div className="text-center py-12">
                 <Bell className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -288,6 +333,18 @@ export default function ParentSystemMessages() {
               </>
             )}
           </div>
+
+          {/* Botón flotante de mensajes nuevos */}
+          {showNewMessageButton && unreadCount > 0 && (
+            <Button
+              onClick={scrollToBottom}
+              className="absolute bottom-24 left-1/2 transform -translate-x-1/2 bg-orange-600 hover:bg-orange-700 text-white shadow-xl animate-bounce z-10"
+              size="lg"
+            >
+              <ChevronDown className="w-5 h-5 mr-2" />
+              {unreadCount} {unreadCount === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}
+            </Button>
+          )}
 
           <div className="p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-orange-100 border-t flex-shrink-0">
             <div className="flex items-center gap-3 bg-white rounded-xl p-3 border-2 border-orange-300">
