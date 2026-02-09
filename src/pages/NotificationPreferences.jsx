@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Bell, Save, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import PushNotificationSubscriber from "@/components/notifications/PushNotificationSubscriber";
 
 export default function NotificationPreferences() {
   const [user, setUser] = useState(null);
