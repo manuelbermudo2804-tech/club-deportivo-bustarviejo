@@ -91,9 +91,6 @@ export default function TreasurerFinancialPanel() {
   useEffect(() => {
     const active = seasonConfigs.find(s => s.activa === true);
     setActiveSeason(active);
-    if (active) {
-      setNewSheetsId(active.google_sheets_id || "");
-    }
   }, [seasonConfigs]);
 
   const { data: payments = [] } = useQuery({
