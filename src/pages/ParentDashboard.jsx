@@ -388,22 +388,25 @@ export default function ParentDashboard() {
   // Calcular pagos pendientes para badges
   const { pendingPayments: pagosPendientesCount } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
 
-  // Añadir badges tipo header móvil (rectangulares verdes)
+  // Añadir badges dinámicos
   const menuItems = displayButtons.map(item => {
     const updated = { ...item };
     
-    // Mapear badges con formato header móvil
     if (item.id === "convocatorias" && pendingCallups > 0) {
-      updated.mobileBadge = { emoji: "🏆", count: pendingCallups };
+      updated.badge = pendingCallups;
+      updated.badgeLabel = "pendientes";
     }
     if (item.id === "firmas" && pendingFederationSignatures > 0) {
-      updated.mobileBadge = { emoji: "🖊️", count: pendingFederationSignatures };
+      updated.badge = pendingFederationSignatures;
+      updated.badgeLabel = "pendientes";
     }
     if (item.id === "pagos" && pagosPendientesCount > 0) {
-      updated.mobileBadge = { emoji: "💳", count: pagosPendientesCount };
+      updated.badge = pagosPendientesCount;
+      updated.badgeLabel = "pendientes";
     }
     if (item.id === "jugadores" && myPlayers.length > 0) {
-      updated.mobileBadge = { emoji: "👥", count: myPlayers.length };
+      updated.badge = myPlayers.length;
+      updated.badgeLabel = "registrados";
     }
     
     return updated;
@@ -649,10 +652,10 @@ export default function ParentDashboard() {
                 <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
                 <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
                 
-                {/* Badge tipo header móvil - esquina superior derecha */}
-                {item.mobileBadge && (
-                  <div className="absolute -top-2 -right-2 z-20 px-2 py-1 bg-green-500 text-white text-xs rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
-                    {item.mobileBadge.emoji} {item.mobileBadge.count}
+                {/* Badge flotante esquina superior derecha */}
+                {item.badge !== undefined && item.badge > 0 && (
+                  <div className="absolute -top-2 -right-2 z-20 bg-green-500 text-white font-bold text-xs px-2 py-1 rounded-lg shadow-lg border-2 border-white animate-pulse">
+                    {item.badge}
                   </div>
                 )}
                 
