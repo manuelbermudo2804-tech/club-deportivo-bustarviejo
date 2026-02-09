@@ -1484,6 +1484,19 @@ export default function TreasurerFinancialPanel() {
 
         {/* TAB PRESUPUESTOS */}
         <TabsContent value="presupuestos" className="space-y-6 mt-6">
+          {activeSeason?.google_sheets_id && (
+            <a
+              href={`https://docs.google.com/spreadsheets/d/${activeSeason.google_sheets_id}/edit`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 py-6 text-lg font-bold shadow-lg">
+                <ExternalLink className="w-5 h-5 mr-2" />
+                Abrir Google Sheets en otra pestaña
+              </Button>
+            </a>
+          )}
+
           {/* Configuración Google Sheets */}
           {activeSeason && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
