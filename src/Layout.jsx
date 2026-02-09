@@ -1684,6 +1684,7 @@ export default function Layout({ children, currentPageName }) {
           { title: "🏠 Mi Dashboard", url: createPageUrl("PlayerDashboard"), icon: Home },
           { title: "👤 Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserCircle },
         { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+        { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
         { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
 
         { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
