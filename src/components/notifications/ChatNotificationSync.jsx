@@ -18,19 +18,27 @@ export function ChatNotificationSync({ user }) {
     if (!user?.email) return;
 
     if (typeof window !== 'undefined') {
-      if (window.__B44_CHAT_SYNC_ACTIVE) return;
+      if (window.__B44_CHAT_SYNC_ACTIVE) {
+        console.log('⚠️ [ChatNotificationSync] Ya está activo - ignorando duplicado');
+        return;
+      }
       window.__B44_CHAT_SYNC_ACTIVE = true;
+      console.log('✅ [ChatNotificationSync] Activado para', user.email);
     }
 
     const unsubscribers = [];
+    const processedEvents = new Set(); // Anti-duplicados
 
     // ===== 1. STAFF CHAT (interno) =====
     if (user.es_coordinador || user.es_entrenador || user.role === 'admin') {
       const unsubStaff = base44.entities.StaffMessage.subscribe((event) => {
         if (event.type === 'create' && event.data?.autor_email !== user.email) {
-          // Verificar si soy destinatario
+          const eventKey = `staff_${event.data.id}`;
+          if (processedEvents.has(eventKey)) return;
+          processedEvents.add(eventKey);
+
           const destinatarios = event.data?.staff_destinatarios;
-          let autorizado = !destinatarios || destinatarios.length === 0; // sin filtro = todos
+          let autorizado = !destinatarios || destinatarios.length === 0;
           
           if (destinatarios && destinatarios.length > 0) {
             autorizado = (
@@ -41,6 +49,7 @@ export function ChatNotificationSync({ user }) {
           }
           
           if (autorizado) {
+            console.log('✅ [ChatNotificationSync] Incrementando staff para', user.email);
             UnifiedChatNotificationStore.increment(user.email, 'staff');
           }
         }
@@ -53,13 +62,26 @@ export function ChatNotificationSync({ user }) {
     if (user.es_coordinador) {
       const unsubCoordConv = base44.entities.CoordinatorConversation.subscribe((event) => {
         if (event.type === 'update' && event.data) {
+          const eventKey = `coord_staff_${event.data.id}_${event.data.updated_date}`;
+          if (processedEvents.has(eventKey)) return;
+          processedEvents.add(eventKey);
+
           const oldCount = event.old_data?.no_leidos_coordinador || 0;
           const newCount = event.data.no_leidos_coordinador || 0;
+          
+          console.log('📬 [ChatNotificationSync] CoordinatorConv update (COORDINADOR):', {
+            conversationId: event.data.id,
+            oldCount,
+            newCount,
+            delta: newCount - oldCount
+          });
+
           if (newCount > oldCount) {
             const delta = newCount - oldCount;
             for (let i = 0; i < delta; i++) {
               UnifiedChatNotificationStore.increment(user.email, 'coordinator');
             }
+            console.log(`✅ [ChatNotificationSync] coordinator incrementado x${delta}`);
           }
         }
       });
@@ -70,13 +92,26 @@ export function ChatNotificationSync({ user }) {
     if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
       const unsubCoordForFamily = base44.entities.CoordinatorConversation.subscribe((event) => {
         if (event.type === 'update' && event.data?.padre_email === user.email) {
-          const oldCount = event.old_data?.no_leidos_familia || 0;
-          const newCount = event.data.no_leidos_familia || 0;
+          const eventKey = `coord_family_${event.data.id}_${event.data.updated_date}`;
+          if (processedEvents.has(eventKey)) return;
+          processedEvents.add(eventKey);
+
+          const oldCount = event.old_data?.no_leidos_padre || 0;
+          const newCount = event.data.no_leidos_padre || 0;
+          
+          console.log('📬 [ChatNotificationSync] CoordinatorConv update (FAMILIA):', {
+            conversationId: event.data.id,
+            oldCount,
+            newCount,
+            delta: newCount - oldCount
+          });
+
           if (newCount > oldCount) {
             const delta = newCount - oldCount;
             for (let i = 0; i < delta; i++) {
               UnifiedChatNotificationStore.increment(user.email, 'coordinatorForFamily');
             }
+            console.log(`✅ [ChatNotificationSync] coordinatorForFamily incrementado x${delta}`);
           }
         }
       });
@@ -88,6 +123,9 @@ export function ChatNotificationSync({ user }) {
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
       if (event.type === 'create' && event.data) {
         const msg = event.data;
+        const eventKey = `chatmsg_${msg.id}`;
+        if (processedEvents.has(eventKey)) return;
+        processedEvents.add(eventKey);
         
         // Para staff (entrenadores, coordinadores, admin): mensajes de padres en categorías
         if ((user.es_entrenador || user.es_coordinador || user.role === 'admin') && msg.tipo === 'padre_a_grupo') {
@@ -100,6 +138,7 @@ export function ChatNotificationSync({ user }) {
           const isMyCategory = coachCats.some(c => c.id === msgId || c.raw === msg.deporte || msgNorm.startsWith(c.raw?.toLowerCase()) );
           
           if (isMyCategory && msg.remitente_email !== user.email) {
+            console.log('✅ [ChatNotificationSync] Incrementando coach para', user.email);
             UnifiedChatNotificationStore.increment(user.email, 'coach');
           }
         }
@@ -107,8 +146,8 @@ export function ChatNotificationSync({ user }) {
         // Para familias: mensajes del entrenador O de otros padres en MIS categorías
         if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
           if (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') {
-            // IMPORTANTE: no hacer query por cada mensaje - validar contra cache local
             if (msg.remitente_email !== user.email) {
+              console.log('✅ [ChatNotificationSync] Incrementando coachForFamily para', user.email);
               UnifiedChatNotificationStore.increment(user.email, 'coachForFamily');
             }
           }
@@ -123,13 +162,26 @@ export function ChatNotificationSync({ user }) {
       const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
         if (event.type === 'update' && event.data) {
           if (event.data.entrenador_email === user.email) {
+            const eventKey = `coach_conv_${event.data.id}_${event.data.updated_date}`;
+            if (processedEvents.has(eventKey)) return;
+            processedEvents.add(eventKey);
+
             const oldCount = event.old_data?.no_leidos_entrenador || 0;
             const newCount = event.data.no_leidos_entrenador || 0;
+            
+            console.log('📬 [ChatNotificationSync] CoachConv update (ENTRENADOR):', {
+              conversationId: event.data.id,
+              oldCount,
+              newCount,
+              delta: newCount - oldCount
+            });
+
             if (newCount > oldCount) {
               const delta = newCount - oldCount;
               for (let i = 0; i < delta; i++) {
                 UnifiedChatNotificationStore.increment(user.email, 'coach');
               }
+              console.log(`✅ [ChatNotificationSync] coach incrementado x${delta}`);
             }
           }
         }
@@ -142,10 +194,19 @@ export function ChatNotificationSync({ user }) {
     const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
       if (event.type === 'update' && event.data) {
         if (event.data.participante_familia_email === user.email) {
+          const eventKey = `private_${event.data.id}_${event.data.updated_date}`;
+          if (processedEvents.has(eventKey)) {
+            console.log(`⚠️ [ChatNotificationSync] Evento duplicado ignorado: ${eventKey}`);
+            return;
+          }
+          processedEvents.add(eventKey);
+
           const oldCount = event.old_data?.no_leidos_familia || 0;
           const newCount = event.data.no_leidos_familia || 0;
 
           console.log(`📬 [ChatNotificationSync] PrivateConversation update para ${user.email}:`, {
+            conversationId: event.data.id,
+            eventKey,
             oldCount,
             newCount,
             delta: newCount - oldCount
@@ -153,7 +214,6 @@ export function ChatNotificationSync({ user }) {
 
           if (newCount > oldCount) {
             const delta = newCount - oldCount;
-            // Incrementar por CADA nuevo mensaje no leído
             for (let i = 0; i < delta; i++) {
               UnifiedChatNotificationStore.increment(user.email, 'systemMessages');
             }
