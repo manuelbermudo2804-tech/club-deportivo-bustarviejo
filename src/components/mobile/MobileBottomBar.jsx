@@ -1,15 +1,56 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, Bell, CreditCard, MessageCircle } from 'lucide-react';
+import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 
-export default function MobileBottomBar({ location, chatBadges }) {
-  const tabs = [
-    { icon: Home, label: 'Inicio', url: createPageUrl('Home'), key: 'home' },
-    { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups', badge: chatBadges?.callups },
-    { icon: CreditCard, label: 'Pagos', url: createPageUrl('ParentPayments'), key: 'payments' },
-    { icon: MessageCircle, label: 'Chat', url: createPageUrl('ParentCoachChat'), key: 'chat', badge: chatBadges?.chat },
-  ];
+export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer }) {
+  // Botones dinámicos según el rol
+  let tabs = [];
+
+  if (isAdmin) {
+    tabs = [
+      { icon: Home, label: 'Inicio', url: createPageUrl('Home'), key: 'home' },
+      { icon: Users, label: 'Jugadores', url: createPageUrl('Players'), key: 'players' },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('StaffChat'), key: 'chat', badge: chatBadges?.staffCount },
+      { icon: CreditCard, label: 'Pagos', url: createPageUrl('Payments'), key: 'payments' },
+    ];
+  } else if (isCoordinator) {
+    tabs = [
+      { icon: Home, label: 'Inicio', url: createPageUrl('CoordinatorDashboard'), key: 'home' },
+      { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoordinatorChat'), key: 'chat', badge: chatBadges?.coordinatorCount },
+      { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
+    ];
+  } else if (isCoach) {
+    tabs = [
+      { icon: Home, label: 'Inicio', url: createPageUrl('CoachDashboard'), key: 'home' },
+      { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
+      { icon: MessageCircle, label: 'Familias', url: createPageUrl('CoachParentChat'), key: 'chat', badge: chatBadges?.coachCount },
+      { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
+    ];
+  } else if (isTreasurer) {
+    tabs = [
+      { icon: Home, label: 'Inicio', url: createPageUrl('TreasurerDashboard'), key: 'home' },
+      { icon: CreditCard, label: 'Pagos', url: createPageUrl('Payments'), key: 'payments' },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('StaffChat'), key: 'chat', badge: chatBadges?.staffCount },
+      { icon: Users, label: 'Socios', url: createPageUrl('ClubMembersManagement'), key: 'members' },
+    ];
+  } else if (isPlayer) {
+    tabs = [
+      { icon: Home, label: 'Inicio', url: createPageUrl('PlayerDashboard'), key: 'home' },
+      { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
+      { icon: CreditCard, label: 'Pagos', url: createPageUrl('ParentPayments'), key: 'payments' },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('ParentCoachChat'), key: 'chat', badge: chatBadges?.coachForFamilyCount },
+    ];
+  } else {
+    // Familia (padre)
+    tabs = [
+      { icon: Home, label: 'Inicio', url: createPageUrl('ParentDashboard'), key: 'home' },
+      { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
+      { icon: CreditCard, label: 'Pagos', url: createPageUrl('ParentPayments'), key: 'payments' },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('ParentCoachChat'), key: 'chat', badge: chatBadges?.coachForFamilyCount },
+    ];
+  }
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-bottom">
