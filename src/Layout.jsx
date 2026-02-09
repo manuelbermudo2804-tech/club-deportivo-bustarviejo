@@ -18,6 +18,7 @@ import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
 import MobileBottomBar from "./components/mobile/MobileBottomBar";
 import MobileBackButton from "./components/mobile/MobileBackButton";
+import DeleteAccountDialog from "./components/DeleteAccountDialog";
 
 import FeedbackModal from "./components/feedback/FeedbackModal";
 
