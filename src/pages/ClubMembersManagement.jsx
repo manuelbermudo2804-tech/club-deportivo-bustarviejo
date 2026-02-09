@@ -982,7 +982,124 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         referrals={members}
       />
 
-      {/* Dialog de importación */}
+      {/* Dialog de importación manual */}
+      <Dialog open={showManualImportForm} onOpenChange={setShowManualImportForm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-blue-600" />
+              Importar Socio Manualmente
+            </DialogTitle>
+            <DialogDescription>
+              Introduce los datos del socio que recibiste por email del formulario
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleManualImport} className="space-y-4">
+            {/* Obligatorios */}
+            <div className="space-y-3 pb-4 border-b">
+              <div className="space-y-2">
+                <Label htmlFor="nombre">Nombre y Apellidos *</Label>
+                <input
+                  id="nombre"
+                  type="text"
+                  value={manualImportForm.nombre_completo}
+                  onChange={(e) => setManualImportForm({...manualImportForm, nombre_completo: e.target.value})}
+                  placeholder="Juan García López"
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dni">DNI *</Label>
+                <input
+                  id="dni"
+                  type="text"
+                  value={manualImportForm.dni}
+                  onChange={(e) => setManualImportForm({...manualImportForm, dni: e.target.value})}
+                  placeholder="12345678A"
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Correo Electrónico *</Label>
+                <input
+                  id="email"
+                  type="email"
+                  value={manualImportForm.email}
+                  onChange={(e) => setManualImportForm({...manualImportForm, email: e.target.value})}
+                  placeholder="correo@ejemplo.com"
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Opcionales */}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="telefono">Teléfono</Label>
+                <input
+                  id="telefono"
+                  type="text"
+                  value={manualImportForm.telefono}
+                  onChange={(e) => setManualImportForm({...manualImportForm, telefono: e.target.value})}
+                  placeholder="600123456"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="direccion">Dirección</Label>
+                <input
+                  id="direccion"
+                  type="text"
+                  value={manualImportForm.direccion}
+                  onChange={(e) => setManualImportForm({...manualImportForm, direccion: e.target.value})}
+                  placeholder="Calle, número, piso..."
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="municipio">Municipio</Label>
+                <input
+                  id="municipio"
+                  type="text"
+                  value={manualImportForm.municipio}
+                  onChange={(e) => setManualImportForm({...manualImportForm, municipio: e.target.value})}
+                  placeholder="Bustarviejo"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertDescription className="text-blue-800 text-sm">
+                El estado se marcará como "Pendiente". El socio deberá completar el pago por Stripe.
+              </AlertDescription>
+            </Alert>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowManualImportForm(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isManualImporting} className="bg-blue-600 hover:bg-blue-700">
+                {isManualImporting ? (
+                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Importando...</>
+                ) : (
+                  <>✅ Importar Socio</>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de importación CSV */}
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
