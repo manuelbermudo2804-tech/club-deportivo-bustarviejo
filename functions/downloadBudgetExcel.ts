@@ -22,27 +22,26 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Budget not found' }, { status: 404 });
     }
 
-    // Importar XLSX
+    // Usar ExcelJS para crear el archivo
     const ExcelJS = (await import('npm:exceljs@4.3.0')).default;
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Presupuesto');
 
-    // Configurar ancho de columnas
+    // Configurar columnas
     worksheet.columns = [
       { header: 'Categoría', key: 'categoria', width: 20 },
-      { header: 'Partida', key: 'nombre', width: 30 },
-      { header: 'Presupuestado', key: 'presupuestado', width: 15 },
-      { header: 'Ejecutado', key: 'ejecutado', width: 15 }
+      { header: 'Partida', key: 'nombre', width: 35 },
+      { header: 'Presupuestado (€)', key: 'presupuestado', width: 18 },
+      { header: 'Ejecutado (€)', key: 'ejecutado', width: 18 }
     ];
 
-    // Estilos
-    const headerStyle = {
-      font: { bold: true, color: { argb: 'FFFFFFFF' } },
-      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF366092' } },
-      alignment: { horizontal: 'center', vertical: 'center' }
-    };
+    // Estilos header
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF366092' } };
+    headerRow.alignment = { horizontal: 'center', vertical: 'center' };
 
-    const numberFormat = '#,##0.00';
+    // Colores por categoría
     const categoriaColors = {
       'Ingresos': 'FF90EE90',
       'Gastos Fijos': 'FFFFCC99',
@@ -50,44 +49,52 @@ Deno.serve(async (req) => {
       'Inversiones': 'FF99CCFF'
     };
 
-    // Aplicar estilo a headers
-    worksheet.getRow(1).eachCell(cell => {
-      cell.font = headerStyle.font;
-      cell.fill = headerStyle.fill;
-      cell.alignment = headerStyle.alignment;
-    });
-
     // Agregar partidas
     const partidas = budget?.partidas || [];
-    partidas.forEach(p => {
+    partidas.forEach((p, idx) => {
       const row = worksheet.addRow({
         categoria: p.categoria,
         nombre: p.nombre,
-        presupuestado: p.presupuestado || 0,
-        ejecutado: p.ejecutado || 0
+        presupuestado: Number(p.presupuestado || 0),
+        ejecutado: Number(p.ejecutado || 0)
       });
 
+      // Colorear fila según categoría
       const color = categoriaColors[p.categoria] || 'FFFFFFFF';
-      row.getCell('categoria').fill = {
+      row.cells[0].fill = {
         type: 'pattern',
         pattern: 'solid',
         fgColor: { argb: color }
       };
 
-      row.getCell('presupuestado').numFmt = numberFormat;
-      row.getCell('ejecutado').numFmt = numberFormat;
+      // Formato números
+      row.getCell('presupuestado').numFmt = '#,##0.00';
+      row.getCell('ejecutado').numFmt = '#,##0.00';
+      row.getCell('presupuestado').alignment = { horizontal: 'right' };
+      row.getCell('ejecutado').alignment = { horizontal: 'right' };
     });
+
+    // Fila de totales
+    const totalRow = worksheet.addRow({
+      categoria: 'TOTAL',
+      nombre: 'SUMA TOTAL',
+      presupuestado: { formula: `SUM(C2:C${partidas.length + 1})` },
+      ejecutado: { formula: `SUM(D2:D${partidas.length + 1})` }
+    });
+    totalRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    totalRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+    totalRow.getCell('presupuestado').numFmt = '#,##0.00';
+    totalRow.getCell('ejecutado').numFmt = '#,##0.00';
 
     // Convertir a buffer
     const buffer = await workbook.xlsx.writeBuffer();
-
-    // Subir a Drive y obtener URL compartible
-    const file = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const base64 = btoa(String.fromCharCode.apply(null, buffer));
 
     return Response.json({
       success: true,
-      file_url
+      filename: `Presupuesto_${budget.nombre}_${budget.temporada}.xlsx`,
+      file_base64: base64,
+      message: 'Excel generado correctamente'
     });
 
   } catch (error) {
