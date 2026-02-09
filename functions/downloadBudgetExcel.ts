@@ -12,89 +12,76 @@ Deno.serve(async (req) => {
     const { budgetId } = await req.json();
 
     if (!budgetId) {
-      return Response.json({ error: 'budgetId is required' }, { status: 400 });
+      return Response.json({ error: 'budgetId required' }, { status: 400 });
     }
 
     // Obtener presupuesto
-    const budget = await base44.entities.Budget.get(budgetId);
+    const budget = await base44.entities.Budget.list().then(list => 
+      list.find(b => b.id === budgetId)
+    );
 
     if (!budget) {
       return Response.json({ error: 'Budget not found' }, { status: 404 });
     }
 
-    // Usar ExcelJS para crear el archivo
-    const ExcelJS = (await import('npm:exceljs@4.3.0')).default;
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Presupuesto');
+    // Generar Excel simple usando formato CSV embebido en XLSX
+    // Para esto usamos una librería que esté disponible en Deno
+    const xlsxModule = await import('npm:xlsx@0.18.5');
+    const XLSX = xlsxModule.default;
 
-    // Configurar columnas
-    worksheet.columns = [
-      { header: 'Categoría', key: 'categoria', width: 20 },
-      { header: 'Partida', key: 'nombre', width: 35 },
-      { header: 'Presupuestado (€)', key: 'presupuestado', width: 18 },
-      { header: 'Ejecutado (€)', key: 'ejecutado', width: 18 }
-    ];
-
-    // Estilos header
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
-    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF366092' } };
-    headerRow.alignment = { horizontal: 'center', vertical: 'center' };
-
-    // Colores por categoría
-    const categoriaColors = {
-      'Ingresos': 'FF90EE90',
-      'Gastos Fijos': 'FFFFCC99',
-      'Gastos Variables': 'FFFF9999',
-      'Inversiones': 'FF99CCFF'
-    };
-
-    // Agregar partidas
-    const partidas = budget?.partidas || [];
-    partidas.forEach((p, idx) => {
-      const row = worksheet.addRow({
-        categoria: p.categoria,
-        nombre: p.nombre,
-        presupuestado: Number(p.presupuestado || 0),
-        ejecutado: Number(p.ejecutado || 0)
+    // Preparar datos por categoría
+    const partidas = budget.partidas || [];
+    const categorías = ['Ingresos', 'Gastos Fijos', 'Gastos Variables', 'Inversiones'];
+    
+    const filas = [];
+    filas.push(['PRESUPUESTO', budget.nombre]);
+    filas.push(['TEMPORADA', budget.temporada]);
+    filas.push([]);
+    
+    categorías.forEach(categoria => {
+      const itemsDeCategoria = partidas.filter(p => p.categoria === categoria);
+      
+      filas.push([categoria.toUpperCase()]);
+      filas.push(['Partida', 'Presupuestado', 'Ejecutado', 'Diferencia']);
+      
+      itemsDeCategoria.forEach(item => {
+        const diferencia = (item.presupuestado || 0) - (item.ejecutado || 0);
+        filas.push([
+          item.nombre,
+          item.presupuestado || 0,
+          item.ejecutado || 0,
+          diferencia
+        ]);
       });
-
-      // Colorear fila según categoría
-      const color = categoriaColors[p.categoria] || 'FFFFFFFF';
-      row.cells[0].fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: color }
-      };
-
-      // Formato números
-      row.getCell('presupuestado').numFmt = '#,##0.00';
-      row.getCell('ejecutado').numFmt = '#,##0.00';
-      row.getCell('presupuestado').alignment = { horizontal: 'right' };
-      row.getCell('ejecutado').alignment = { horizontal: 'right' };
+      
+      // Subtotales por categoría
+      const subtotalPresupuestado = itemsDeCategoria.reduce((sum, i) => sum + (i.presupuestado || 0), 0);
+      const subtotalEjecutado = itemsDeCategoria.reduce((sum, i) => sum + (i.ejecutado || 0), 0);
+      filas.push([
+        `SUBTOTAL ${categoria}`,
+        subtotalPresupuestado,
+        subtotalEjecutado,
+        subtotalPresupuestado - subtotalEjecutado
+      ]);
+      filas.push([]);
     });
 
-    // Fila de totales
-    const totalRow = worksheet.addRow({
-      categoria: 'TOTAL',
-      nombre: 'SUMA TOTAL',
-      presupuestado: { formula: `SUM(C2:C${partidas.length + 1})` },
-      ejecutado: { formula: `SUM(D2:D${partidas.length + 1})` }
-    });
-    totalRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
-    totalRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-    totalRow.getCell('presupuestado').numFmt = '#,##0.00';
-    totalRow.getCell('ejecutado').numFmt = '#,##0.00';
+    // Totales generales
+    filas.push(['TOTALES']);
+    filas.push(['', budget.total_presupuestado_ingresos + (budget.total_presupuestado_gastos || 0), budget.total_ejecutado_ingresos + (budget.total_ejecutado_gastos || 0)]);
 
-    // Convertir a buffer
-    const buffer = await workbook.xlsx.writeBuffer();
-    const base64 = btoa(String.fromCharCode.apply(null, buffer));
+    // Crear workbook
+    const worksheet = XLSX.utils.aoa_to_sheet(filas);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Presupuesto');
+
+    // Generar como buffer y convertir a base64
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const base64 = btoa(String.fromCharCode.apply(null, excelBuffer));
 
     return Response.json({
-      success: true,
-      filename: `Presupuesto_${budget.nombre}_${budget.temporada}.xlsx`,
       file_base64: base64,
-      message: 'Excel generado correctamente'
+      filename: `Presupuesto_${budget.nombre.replace(/\s+/g, '_')}_${budget.temporada}.xlsx`
     });
 
   } catch (error) {
