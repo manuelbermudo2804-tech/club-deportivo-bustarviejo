@@ -43,10 +43,18 @@ Deno.serve(async (req) => {
     };
 
     // 1) Inscripciones Jugadores -> Payment.estado==Pagado && temporada==budget.temporada
+    // PRESUPUESTADO: jugadores activos × cuota única
     let inscripciones = 0;
+    let inscripcionesPresupuestado = 0;
     try {
       const pagos = await base44.entities.Payment.filter({ temporada: seasonStr, estado: 'Pagado', is_deleted: false });
       inscripciones = sum(pagos, p => p.cantidad);
+      
+      // Calcular presupuestado: jugadores activos × cuota_unica
+      const jugadores = await base44.entities.Player.list();
+      const jugadoresActivos = jugadores.filter(p => p.activo === true).length;
+      const cuotaUnica = Number(active?.cuota_unica) || 0;
+      inscripcionesPresupuestado = jugadoresActivos * cuotaUnica;
     } catch {}
 
     // 2) Cuotas Socios -> ClubMember.estado_pago==Pagado multiplicado por precio_socio
