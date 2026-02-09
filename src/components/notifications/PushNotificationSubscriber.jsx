@@ -59,7 +59,7 @@ export default function PushNotificationSubscriber({ user }) {
       let registration = await navigator.serviceWorker.getRegistration();
       
       if (!registration) {
-        registration = await navigator.serviceWorker.register('/sw.js');
+        registration = await navigator.serviceWorker.register('/functions/sw');
       }
 
       const subscription = await registration.pushManager.subscribe({
