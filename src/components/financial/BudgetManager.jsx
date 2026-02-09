@@ -26,6 +26,7 @@ import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertTriangle, Sparkles,
 import { toast } from "sonner";
 
 import AIBudgetAssistant from "./AIBudgetAssistant";
+import BudgetExcelManager from "./BudgetExcelManager";
 
 const PARTIDA_TEMPLATES = {
   "Ingresos": [
@@ -472,6 +473,12 @@ export default function BudgetManager({
 
   return (
     <div className="space-y-6">
+      {/* Gestor de Excel y Google Drive */}
+      <BudgetExcelManager 
+        budget={budget}
+        onImportSuccess={() => onUpdate({ partidas: budget?.partidas })}
+      />
+
       {/* Resumen General */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-green-200 bg-green-50">
