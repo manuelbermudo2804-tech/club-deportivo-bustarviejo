@@ -1,51 +1,58 @@
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* Safe area support for mobile devices (iOS notch, Android nav) */
+    --sat: env(safe-area-inset-top);
+    --sab: env(safe-area-inset-bottom);
+    --sal: env(safe-area-inset-left);
+    --sar: env(safe-area-inset-right);
+
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 27 96% 61%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 142 76% 36%;
-    --secondary-foreground: 0 0% 100%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 27 96% 61%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 27 96% 61%;
-    --radius: 1rem;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
-    --foreground: 0 0% 100%;
+    --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
-    --card-foreground: 0 0% 100%;
+    --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 27 96% 61%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 142 76% 36%;
-    --secondary-foreground: 0 0% 100%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 27 96% 61%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 27 96% 61%;
+    --ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -55,50 +62,46 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
   }
-  
+
   /* Tipografía mejorada */
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
     text-wrap: balance;
   }
-  
+
   h1 {
     @apply text-3xl lg:text-4xl leading-tight;
     letter-spacing: -0.025em;
   }
-  
+
   h2 {
     @apply text-2xl lg:text-3xl leading-tight;
     letter-spacing: -0.02em;
   }
-  
+
   h3 {
     @apply text-xl lg:text-2xl leading-snug;
     letter-spacing: -0.015em;
   }
-  
+
   p {
     @apply leading-relaxed;
   }
-  
+
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .text-pretty {
     text-wrap: pretty;
   }
-  
+
   /* ============================
-     MODO NORMAL (por defecto) 
+     MODO NORMAL (por defecto)
      ============================ */
   /* El modo normal es el actual - oscuro en sidebar, claro en contenido */
-  
+
   /* ============================
      MODO CLARO (theme-light)
      Cambia TODO a tonos claros
@@ -106,70 +109,70 @@
   body.theme-light {
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
   }
-  
+
   /* Sidebar en modo claro */
   body.theme-light nav.fixed {
     background: linear-gradient(to bottom, #ffffff, #f8fafc, #f1f5f9) !important;
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
   }
-  
+
   body.theme-light .bg-gradient-to-b.from-slate-900,
   body.theme-light .bg-gradient-to-b.from-slate-800 {
     background: linear-gradient(to bottom, #ffffff, #f8fafc, #f1f5f9) !important;
   }
-  
+
   body.theme-light .bg-slate-900,
   body.theme-light .bg-slate-800 {
     background: #ffffff !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
   }
-  
+
   /* Textos en sidebar modo claro */
   body.theme-light nav .text-white,
   body.theme-light nav .text-slate-300,
   body.theme-light nav .text-slate-400 {
     color: #334155 !important;
   }
-  
+
   body.theme-light nav .text-green-400 {
     color: #16a34a !important;
   }
-  
+
   body.theme-light nav .text-orange-400 {
     color: #ea580c !important;
   }
-  
+
   /* Bordes en modo claro */
   body.theme-light .border-green-500\/30,
   body.theme-light .border-slate-700 {
     border-color: #e2e8f0 !important;
   }
-  
+
   /* Links del menú en modo claro */
   body.theme-light nav a.text-slate-300 {
     color: #475569 !important;
   }
-  
+
   body.theme-light nav a:hover {
     background: rgba(0, 0, 0, 0.05) !important;
   }
-  
+
   /* Cards y contenido en modo claro */
   body.theme-light .bg-white {
     background: #ffffff !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
-  
+
   /* Header móvil en modo claro */
   body.theme-light header.fixed {
     background: linear-gradient(to right, #f97316, #ea580c) !important;
   }
-  
+
   /* Footer del sidebar en modo claro */
   body.theme-light .bg-gradient-to-r.from-slate-800 {
     background: linear-gradient(to right, #f1f5f9, #e2e8f0) !important;
   }
-  
+
   /* ============================
      MODO OSCURO (theme-dark)
      Cambia TODO a tonos oscuros - MEJORADO
@@ -191,7 +194,7 @@
   body.theme-dark .bg-white {
     background: linear-gradient(145deg, #1e293b 0%, #1a2332 100%) !important;
     border-color: rgba(71, 85, 105, 0.5) !important;
-    box-shadow: 
+    box-shadow:
       0 4px 6px -1px rgba(0, 0, 0, 0.3),
       0 2px 4px -1px rgba(0, 0, 0, 0.2),
       inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
@@ -245,7 +248,7 @@
   body.theme-dark textarea:focus,
   body.theme-dark select:focus {
     border-color: rgba(249, 115, 22, 0.5) !important;
-    box-shadow: 
+    box-shadow:
       inset 0 1px 2px rgba(0, 0, 0, 0.2),
       0 0 0 3px rgba(249, 115, 22, 0.15) !important;
   }
@@ -318,7 +321,7 @@
   body.theme-dark [role="menu"] {
     background: linear-gradient(145deg, #1e293b 0%, #1a2332 100%) !important;
     border-color: rgba(71, 85, 105, 0.5) !important;
-    box-shadow: 
+    box-shadow:
       0 10px 25px -5px rgba(0, 0, 0, 0.5),
       0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
   }
@@ -352,7 +355,68 @@
   body.theme-dark .bg-slate-200 {
     background: rgba(71, 85, 105, 0.5) !important;
   }
+}
+
+/* Make UI elements unselectable for native feel */
+@layer utilities {
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
+
+  .transition-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Apply to buttons and navigation globally */
+button, nav, [role="button"], .btn, a[class*="button"] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* But allow text selection in content areas */
+p, span, div[class*="content"], article, section {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Safe area padding classes */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Prevent pull-to-refresh on mobile */
+html, body {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 
 /* Estilos personalizados para la app */
 .app-button {
@@ -490,8 +554,8 @@ body.theme-dark .skeleton-shimmer {
 
 .card-hover-glow:hover {
   transform: translateY(-4px);
-  box-shadow: 
-    0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04),
     0 0 20px rgba(249, 115, 22, 0.15);
 }
@@ -540,40 +604,40 @@ body.theme-dark .skeleton-shimmer {
    ============================ */
 
 .shadow-elegant {
-  box-shadow: 
+  box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.07),
     0 2px 4px -1px rgba(0, 0, 0, 0.04),
     0 -1px 2px rgba(255, 255, 255, 0.1);
 }
 
 .shadow-elegant-lg {
-  box-shadow: 
+  box-shadow:
     0 10px 15px -3px rgba(0, 0, 0, 0.08),
     0 4px 6px -2px rgba(0, 0, 0, 0.04),
     0 0 0 1px rgba(0, 0, 0, 0.02);
 }
 
 .shadow-elegant-xl {
-  box-shadow: 
+  box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.08),
     0 10px 10px -5px rgba(0, 0, 0, 0.03),
     0 0 0 1px rgba(0, 0, 0, 0.02);
 }
 
 .shadow-glow-orange {
-  box-shadow: 
+  box-shadow:
     0 10px 40px -10px rgba(249, 115, 22, 0.4),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-glow-green {
-  box-shadow: 
+  box-shadow:
     0 10px 40px -10px rgba(34, 197, 94, 0.4),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-glow-blue {
-  box-shadow: 
+  box-shadow:
     0 10px 40px -10px rgba(59, 130, 246, 0.4),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
@@ -670,7 +734,7 @@ body.theme-dark .skeleton-shimmer {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
@@ -680,7 +744,7 @@ body.theme-dark .skeleton-shimmer {
    ============================ */
 
 .gradient-mesh {
-  background: 
+  background:
     radial-gradient(at 40% 20%, rgba(249, 115, 22, 0.3) 0px, transparent 50%),
     radial-gradient(at 80% 0%, rgba(34, 197, 94, 0.2) 0px, transparent 50%),
     radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.2) 0px, transparent 50%),
@@ -707,7 +771,7 @@ body.theme-dark .skeleton-shimmer {
 
 .focus-ring:focus-visible {
   outline: none;
-  box-shadow: 
+  box-shadow:
     0 0 0 2px white,
     0 0 0 4px rgba(249, 115, 22, 0.5);
 }
@@ -987,26 +1051,26 @@ body.theme-dark .skeleton-shimmer {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Reduce padding on mobile */
   .app-card {
     @apply p-4;
   }
-  
+
   /* Better spacing */
   .space-y-6 > * + * {
     margin-top: 1rem;
   }
-  
+
   /* Optimized text sizes */
   h1 {
     @apply text-2xl;
   }
-  
+
   h2 {
     @apply text-xl;
   }
-  
+
   /* Swipe gestures hint */
   .swipeable {
     touch-action: pan-y;
