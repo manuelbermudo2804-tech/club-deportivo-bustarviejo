@@ -1060,7 +1060,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
           </h1>
           <p className="text-slate-600 mt-1">Administra los socios del club · Temporada {seasonConfig?.temporada}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <label className="cursor-pointer">
             <input
               type="file"
@@ -1072,6 +1072,12 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
               <Upload className="w-4 h-4 mr-2" /> Importar CSV
             </Button>
           </label>
+          <Button
+            onClick={() => setShowManualImportForm(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <UserPlus className="w-4 h-4 mr-2" /> Importar Manual
+          </Button>
           <Button
             onClick={() => setShowReminderDialog(true)}
             className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
