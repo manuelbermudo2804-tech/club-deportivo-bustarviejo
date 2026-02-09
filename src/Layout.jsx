@@ -46,7 +46,6 @@ import ChatSoundNotifier from "./components/notifications/ChatSoundNotifier";
 import CallupSoundNotifier from "./components/notifications/CallupSoundNotifier";
 import AnnouncementSoundNotifier from "./components/notifications/AnnouncementSoundNotifier";
 import PaymentSoundNotifier from "./components/notifications/PaymentSoundNotifier";
-import { useStaffCounters, useCoachCounters, useCoordinatorCounters, useFamilyCounters, usePrivateCounters, useAdminCounters } from "./components/chats/useChatCounters";
 
 
 // ToastContainer eliminado - causaba spam de notificaciones
