@@ -564,15 +564,17 @@ export default function Layout({ children, currentPageName }) {
     }
   };
 
-  // Polling de configuración: Al montar, al cambiar visibilidad y cada 60s
+  // Polling de configuración: Al montar, al cambiar visibilidad y cada 5 minutos (en lugar de 60s)
   useEffect(() => {
     fetchSeasonConfig(); // Carga inicial
-    const intervalId = setInterval(fetchSeasonConfig, 60000); // Cada 60s
+    const intervalId = setInterval(fetchSeasonConfig, 300000); // Cada 5 minutos (en lugar de 60s)
     return () => clearInterval(intervalId);
   }, []);
   
   // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
-  const { notifications } = useUnifiedNotifications(user);
+  // Pausa las notificaciones en tiempo real si estamos en rate limit
+  const pauseRealtime = rateLimited || window.__BASE44_PAUSE_REALTIME__;
+  const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
   // SISTEMA UNIFICADO DE CHATS (misma fuente que burbujas)
   const chatMenuCounts = useChatNotificationMenuSidebar(user);
@@ -726,9 +728,9 @@ export default function Layout({ children, currentPageName }) {
         }
       };
 
-      // 1. Chequeo inicial y periódico más frecuente (1 min)
+      // 1. Chequeo inicial y periódico (5 minutos)
       checkForNewVersion();
-      const intervalId = setInterval(checkForNewVersion, 60 * 1000);
+      const intervalId = setInterval(checkForNewVersion, 300 * 1000);
 
       // 2. Chequeo inteligente al volver a la app (visibilidad)
       const onVisibilityChange = () => {
