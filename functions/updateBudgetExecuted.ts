@@ -106,17 +106,27 @@ Deno.serve(async (req) => {
     } catch {}
 
     // Merge en partidas existentes o crear si faltan
-    const ensurePartida = (arr, nombre, categoria, ejecutado) => {
-      if (ejecutado == null) return arr;
+    const ensurePartida = (arr, nombre, categoria, ejecutado, presupuestado) => {
+      if (ejecutado == null && presupuestado == null) return arr;
       const key = (p) => `${(p.nombre||'').toLowerCase()}|${(p.categoria||'').toLowerCase()}`;
       const targetKey = `${nombre.toLowerCase()}|${categoria.toLowerCase()}`;
       const idx = (arr || []).findIndex(p => key(p) === targetKey || (p.nombre||'').toLowerCase() === nombre.toLowerCase());
       if (idx >= 0) {
         const updated = [...arr];
-        updated[idx] = { ...updated[idx], ejecutado: Number(ejecutado) };
+        updated[idx] = { 
+          ...updated[idx], 
+          ejecutado: ejecutado != null ? Number(ejecutado) : updated[idx].ejecutado,
+          presupuestado: presupuestado != null ? Number(presupuestado) : updated[idx].presupuestado
+        };
         return updated;
       }
-      return [ ...(arr || []), { id: `partida_exec_${Date.now()}_${Math.random().toString(36).slice(2,8)}`, nombre, categoria, presupuestado: 0, ejecutado: Number(ejecutado) } ];
+      return [ ...(arr || []), { 
+        id: `partida_exec_${Date.now()}_${Math.random().toString(36).slice(2,8)}`, 
+        nombre, 
+        categoria, 
+        presupuestado: presupuestado != null ? Number(presupuestado) : 0, 
+        ejecutado: ejecutado != null ? Number(ejecutado) : 0
+      } ];
     };
 
     let partidas = budget.partidas || [];
