@@ -161,17 +161,41 @@ export default function TreasurerFinancialPanel() {
 
   // Función para obtener importe por mes según temporada activa
   const getImportePorMes = (_deporte, mes) => {
-    // Si hay temporada activa con cuota fraccionada configurada, usarla para cada mes
-    if (activeSeason && typeof activeSeason.cuota_tres_meses === 'number' && activeSeason.cuota_tres_meses > 0) {
-      return Number(activeSeason.cuota_tres_meses) || 0;
+    // 1) Preferir cuota fraccionada definida en temporada
+    if (activeSeason && Number(activeSeason.cuota_tres_meses) > 0) {
+      return Number(activeSeason.cuota_tres_meses);
     }
-    // Fallbacks si no hay configuración en la temporada
-    const defaultValues = {
-      "Junio": 110,
-      "Septiembre": 70,
-      "Diciembre": 70
+
+    // 2) Inferir desde pagos reales de la temporada (modo/valor más frecuente)
+    const normalizeSeasonKey = (s) => (s ? String(s).replace(/[^\d]/g, "") : "");
+    const seasonMatches = (a, b) => {
+      if (!a || !b) return false;
+      return normalizeSeasonKey(a) === normalizeSeasonKey(b);
     };
-    return defaultValues[mes] || 0;
+    const monthPayments = (payments || []).filter(p => 
+      seasonMatches(p.temporada, activeSeason?.temporada) &&
+      p.mes === mes &&
+      !(p.tipo_pago === 'Único' || p.tipo_pago === 'único')
+    );
+    const cantidades = monthPayments.map(p => Number(p.cantidad || 0)).filter(v => v > 0);
+    if (cantidades.length > 0) {
+      const freq = {};
+      let bestVal = 0, best = 0;
+      cantidades.forEach(v => {
+        const k = Math.round(v);
+        freq[k] = (freq[k] || 0) + 1;
+        if (freq[k] > best) { best = freq[k]; bestVal = k; }
+      });
+      return bestVal;
+    }
+
+    // 3) Derivar de cuota única si existe (dividir entre 3)
+    if (activeSeason && Number(activeSeason.cuota_unica) > 0) {
+      return Number(activeSeason.cuota_unica) / 3;
+    }
+
+    // 4) Último recurso: 0
+    return 0;
   };
 
   // Normaliza temporadas ("2024-2025" vs "2024/2025") y utilidades de temporada
