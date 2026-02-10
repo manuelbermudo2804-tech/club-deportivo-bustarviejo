@@ -1996,6 +1996,19 @@ export default function Layout({ children, currentPageName }) {
   const isPublicAnon = isPublicPage && authChecked && !user;
   const isPublicLoading = isPublicPage && !authChecked;
 
+  // Restaurar scroll por ruta y capturar dirección (adelante/atrás)
+  useEffect(() => {
+    if (window.__NAV_DIR__) {
+      setNavDirection(window.__NAV_DIR__);
+      try { delete window.__NAV_DIR__; } catch {}
+    }
+    try {
+      const key = 'scroll:' + window.location.pathname;
+      const y = Number(sessionStorage.getItem(key) || '0');
+      if (y > 0) setTimeout(() => window.scrollTo({ top: y, behavior: 'instant' }), 0);
+    } catch {}
+  }, [location.pathname]);
+
   // AHORA SÍ - todos los returns condicionales DESPUÉS de TODOS los hooks
   if (isLoading && !isPublicPage) {
     return (
