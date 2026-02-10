@@ -1309,77 +1309,87 @@ export default function ClubMembership() {
                 )}
 
                 {formData.metodo_pago === "Tarjeta" && (
-                   <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-8 border-2 border-orange-200">
+                   <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-4 sm:p-8 border-2 border-orange-200">
                      <div className="space-y-6">
                        <div>
-                         <p className="text-lg text-slate-800 font-bold">💳 Elige tu forma de pago:</p>
-                         <p className="text-sm text-slate-600 mt-3">Selecciona la opción que mejor se adapte a ti</p>
+                         <p className="text-base sm:text-lg text-slate-800 font-bold">💳 Elige tu forma de pago:</p>
+                         <p className="text-xs sm:text-sm text-slate-600 mt-2 sm:mt-3">Selecciona la opción que mejor se adapte a ti</p>
                        </div>
 
-                       <div className="grid grid-cols-1 gap-5">
+                       <div className="grid grid-cols-1 gap-3 sm:gap-5">
                          {/* Pago único anual */}
-                         <a 
-                           href="https://buy.stripe.com/28E6oH3Ys3yBaKEdGrfrW00"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           className="block"
+                         <button
+                           type="button"
+                           onClick={() => {
+                             if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
+                               toast.error("Por favor, completa todos los campos obligatorios del formulario");
+                               return;
+                             }
+                             if (isIframe) {
+                               toast.error("El pago solo funciona desde la app publicada. Abre la página completa.");
+                               return;
+                             }
+                             window.open("https://buy.stripe.com/28E6oH3Ys3yBaKEdGrfrW00", "_blank");
+                           }}
+                           disabled={!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio || isIframe}
+                           className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed text-white font-bold py-6 sm:py-8 text-sm sm:text-base h-auto rounded-xl transition-all hover:shadow-lg disabled:shadow-none px-3 sm:px-4"
                          >
-                           <Button
-                             type="button"
-                             className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-8 text-lg h-auto rounded-xl transition-all hover:shadow-lg"
-                           >
-                             <div className="text-center w-full py-2">
-                               <div className="text-3xl mb-2">💰</div>
-                               <span className="block text-xl font-bold">Pago Único</span>
-                               <span className="block text-sm font-normal opacity-90 mt-1">Paga una sola vez este año</span>
-                               <span className="block text-2xl font-bold mt-3">25€</span>
-                             </div>
-                           </Button>
-                         </a>
+                           <div className="text-center w-full py-1 sm:py-2">
+                             <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">💰</div>
+                             <span className="block font-bold leading-tight line-clamp-2">Pago Único</span>
+                             <span className="block text-xs sm:text-xs font-normal opacity-90 mt-1 line-clamp-2">Paga una sola vez</span>
+                             <span className="block text-lg sm:text-xl font-bold mt-2 sm:mt-3">25€</span>
+                           </div>
+                         </button>
 
                          {/* Suscripción anual automática */}
-                         <a 
-                           href="https://buy.stripe.com/aFaaEX1Qk4CF7yseKvfrW01"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           className="block relative"
+                         <button
+                           type="button"
+                           onClick={() => {
+                             if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
+                               toast.error("Por favor, completa todos los campos obligatorios del formulario");
+                               return;
+                             }
+                             if (isIframe) {
+                               toast.error("El pago solo funciona desde la app publicada. Abre la página completa.");
+                               return;
+                             }
+                             window.open("https://buy.stripe.com/aFaaEX1Qk4CF7yseKvfrW01", "_blank");
+                           }}
+                           disabled={!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio || isIframe}
+                           className="relative w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 disabled:from-slate-400 disabled:via-slate-500 disabled:to-slate-500 disabled:cursor-not-allowed text-white font-bold py-6 sm:py-8 text-sm sm:text-base h-auto ring-2 ring-purple-300 ring-offset-3 shadow-xl hover:shadow-2xl disabled:shadow-none transition-all hover:scale-[1.02] disabled:scale-100 rounded-xl overflow-hidden px-3 sm:px-4"
                          >
-                           <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg pointer-events-none z-10">
+                           <div className="absolute top-1 sm:top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold shadow-lg z-10">
                              ⭐ MÁS RECOMENDADO
                            </div>
-                           <Button
-                             type="button"
-                             className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:via-pink-700 hover:to-purple-800 text-white font-bold pt-8 pb-6 sm:pt-10 sm:pb-8 text-base sm:text-lg h-auto ring-2 ring-purple-300 ring-offset-3 shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] rounded-xl overflow-hidden"
-                           >
-                             <div className="text-center w-full py-1 sm:py-2 px-2">
-                               <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🔄</div>
-                               <span className="block text-base sm:text-xl font-bold leading-tight">Suscripción Automática</span>
-                               <span className="block text-xs sm:text-sm font-normal opacity-90 mt-1">Renovación automática cada año</span>
-                               <span className="block text-xl sm:text-2xl font-bold mt-2 sm:mt-3 whitespace-nowrap">25€/año</span>
-                               <span className="block text-xs opacity-75 mt-1 sm:mt-2">✓ La más conveniente</span>
-                             </div>
-                           </Button>
-                         </a>
+                           <div className="text-center w-full py-1 sm:py-2 mt-3 sm:mt-1">
+                             <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🔄</div>
+                             <span className="block font-bold leading-tight line-clamp-2">Suscripción Automática</span>
+                             <span className="block text-xs sm:text-xs font-normal opacity-90 mt-1 line-clamp-2">Renovación automática cada año</span>
+                             <span className="block text-lg sm:text-xl font-bold mt-2 sm:mt-3">25€/año</span>
+                             <span className="block text-xs opacity-75 mt-1">✓ Conveniente</span>
+                           </div>
+                         </button>
                        </div>
 
-                       <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-xl p-4 sm:p-5 border-2 border-purple-200">
+                       <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-xl p-3 sm:p-5 border-2 border-purple-200">
                          <p className="text-xs sm:text-sm text-purple-900 font-semibold mb-2 sm:mb-3">✨ ¿Por qué elegir suscripción?</p>
-                         <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-purple-800">
-                           <li>✓ Te renovarás automáticamente sin hacer nada</li>
-                           <li>✓ Nunca te perderás un año de membresía</li>
-                           <li>✓ Cancela cuando quieras sin penalización</li>
+                         <ul className="space-y-1 text-xs sm:text-sm text-purple-800">
+                           <li>✓ Renovación automática sin hacer nada</li>
+                           <li>✓ Nunca pierdes tu membresía</li>
+                           <li>✓ Cancela sin penalización</li>
                          </ul>
                        </div>
 
-                       <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-xl p-5 border-2 border-blue-200">
-                         <p className="text-sm text-blue-900 font-semibold mb-2">💡 Sin papeleos ni complicaciones</p>
-                         <p className="text-sm text-blue-800">
-                           No necesitas subir justificante de pago. Todo se gestiona automáticamente y seguro a través de Stripe.
+                       <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-xl p-3 sm:p-5 border-2 border-blue-200">
+                         <p className="text-xs sm:text-sm text-blue-900 font-semibold mb-2">💡 Sin papeleos ni complicaciones</p>
+                         <p className="text-xs sm:text-sm text-blue-800">
+                           No necesitas subir justificante. Todo se gestiona automáticamente a través de Stripe.
                          </p>
                        </div>
                      </div>
                    </div>
-                  )}
+                   )}
 
                 {/* Subir justificante */}
                 <div className="space-y-2">
