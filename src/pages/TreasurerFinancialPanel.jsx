@@ -1622,7 +1622,7 @@ export default function TreasurerFinancialPanel() {
                   </div>
                 </CardContent>
               </Card>
-            */}
+            */}}
 
               <BudgetManager
                 budget={currentBudget}
