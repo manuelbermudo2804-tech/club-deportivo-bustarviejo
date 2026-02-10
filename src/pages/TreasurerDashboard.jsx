@@ -9,8 +9,8 @@ import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
-import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
 import TreasurerAlertCenter from "../components/dashboard/TreasurerAlertCenter";
+import ShareFormButton from "../components/players/ShareFormButton";
 import ContactCard from "../components/ContactCard";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
@@ -330,7 +330,10 @@ export default function TreasurerDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6 pb-28">
-        <SocialLinks />
+        <div className="flex items-center justify-between gap-3">
+          <SocialLinks />
+          <ShareFormButton />
+        </div>
 
         {/* Banner de Chats - Igual que ParentDashboard */}
         {playersLoading ? (

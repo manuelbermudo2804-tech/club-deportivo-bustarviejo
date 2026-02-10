@@ -24,7 +24,7 @@ import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymen
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ContactCard from "../components/ContactCard";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
-import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
+import ShareFormButton from "../components/players/ShareFormButton";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -558,6 +558,9 @@ export default function PlayerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
+        <div className="flex items-center justify-end">
+          <ShareFormButton />
+        </div>
 
         {/* Banner de Chats */}
         <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg overflow-hidden">

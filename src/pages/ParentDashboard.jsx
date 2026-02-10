@@ -15,8 +15,8 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
-import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
+import ShareFormButton from "../components/players/ShareFormButton";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import { useChatNotificationBubbles } from "../components/notifications/useChatNotificationBubbles";
@@ -439,7 +439,10 @@ export default function ParentDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <SocialLinks />
+        <div className="flex items-center justify-between gap-3">
+          <SocialLinks />
+          <ShareFormButton />
+        </div>
 
         {/* Banner Unificado de Chats */}
         {playersLoading ? (

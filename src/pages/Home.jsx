@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
-import CaptacionShareBanner from "../components/dashboard/CaptacionShareBanner";
+import ShareFormButton from "../components/players/ShareFormButton";
 
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_ADMIN_BUTTONS, DEFAULT_ADMIN_BUTTONS } from "../components/dashboard/AdminDashboardButtons";
@@ -1268,7 +1268,10 @@ export default function Home() {
 
       <PaymentApprovalNotifier isAdmin={isAdmin} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <SocialLinks />
+        <div className="flex items-center justify-between gap-3">
+          <SocialLinks />
+          <ShareFormButton />
+        </div>
 
 
 
