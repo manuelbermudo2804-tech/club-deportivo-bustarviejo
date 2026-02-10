@@ -40,12 +40,13 @@ export function ChatNotificationSync({ user }) {
           processedEvents.add(eventKey);
 
           const destinatarios = event.data?.staff_destinatarios;
+          // CRÍTICO: Validar === true para booleanos
           let autorizado = !destinatarios || destinatarios.length === 0;
           
           if (destinatarios && destinatarios.length > 0) {
             autorizado = (
-              (user.es_coordinador && destinatarios.includes('coordinator')) ||
-              (user.es_entrenador && destinatarios.includes('coach')) ||
+              (user.es_coordinador === true && destinatarios.includes('coordinator')) ||
+              (user.es_entrenador === true && destinatarios.includes('coach')) ||
               (user.role === 'admin' && destinatarios.includes('admin'))
             );
           }
@@ -61,7 +62,7 @@ export function ChatNotificationSync({ user }) {
 
     // ===== 2. COORDINADOR - FAMILIAS (1-a-1) =====
     // Para coordinadores: escuchar CREACIÓN de CoordinatorMessage cuando viene de familias
-    if (user.es_coordinador) {
+    if (user.es_coordinador === true) {
       const unsubCoordMsg = base44.entities.CoordinatorMessage.subscribe((event) => {
         if (event.type === 'create' && event.data && event.data.autor === 'padre' && event.data.autor_email !== user.email) {
           const eventKey = `coord_msg_${event.data.id}`;
@@ -82,7 +83,7 @@ export function ChatNotificationSync({ user }) {
     }
 
     // Para familias: mensajes DEL coordinador - escuchar CREACIÓN de CoordinatorMessage
-    if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
+    if (user.es_entrenador !== true && user.es_coordinador !== true && user.role !== 'admin') {
       const unsubCoordMsgFamily = base44.entities.CoordinatorMessage.subscribe((event) => {
         if (event.type === 'create' && event.data) {
           // Buscar conversación para verificar si es mi familia
@@ -138,10 +139,8 @@ export function ChatNotificationSync({ user }) {
       }
     })();
     
-    // Esperar a que se carguen antes de continuar
-    loadPlayersPromise.then(() => {
-      console.log('📋 [ChatNotificationSync] Jugadores listos para validar categorías');
-    });
+    // ESPERAR A QUE CARGUEN ANTES DE USAR EN SUBSCRIPTIONS
+    loadPlayersPromise.catch(e => console.error('[ChatNotificationSync] Promise error:', e));
 
     // Escuchar ChatMessage para todos los roles relevantes (entrenador, coordinador, admin)
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
@@ -152,7 +151,7 @@ export function ChatNotificationSync({ user }) {
         processedEvents.add(eventKey);
         
         // Para staff (entrenadores, coordinadores, admin): mensajes de padres en categorías
-          if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && msg.tipo === 'padre_a_grupo') {
+          if ((user.es_entrenador === true || user.es_coordinador === true) && msg.tipo === 'padre_a_grupo') {
           const coachCats = ((user.categorias_entrena || user.categorias_coordina || [])).map(c => ({
             raw: c,
             id: (c || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_')
@@ -168,7 +167,7 @@ export function ChatNotificationSync({ user }) {
         }
         
         // Para familias: mensajes del entrenador O de otros padres SOLO en MIS categorías
-        if (user.es_entrenador !== true && user.es_coordinador !== true && user.role !== 'admin') {
+        if (user.es_entrenador !== true && user.es_coordinador !== true) {
           if (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') {
             if (msg.remitente_email !== user.email) {
               // VALIDAR que el mensaje sea de UNA categoría donde tengo jugadores
@@ -265,21 +264,25 @@ export function ChatNotificationSync({ user }) {
     // Nos apoyamos exclusivamente en PrivateConversation.update (fuente de verdad).
 
     return () => {
-      // Limpiar memory leaks: vaciar processedEvents
+    // Limpiar memory leaks: vaciar processedEvents
+    try {
       processedEvents.clear();
       console.log('🧹 [ChatNotificationSync] processedEvents limpiado');
+    } catch (e) {
+      console.error('Error limpiando processedEvents:', e);
+    }
 
-      unsubscribers.forEach((unsub, idx) => {
-        try {
-          unsub();
-          console.log(`✅ [ChatNotificationSync] Unsubscriber ${idx} ejecutado`);
-        } catch (e) {
-          console.error(`❌ [ChatNotificationSync] Error en unsubscriber ${idx}:`, e);
-        }
-      });
-      if (typeof window !== 'undefined') {
-        window.__B44_CHAT_SYNC_ACTIVE = false;
+    unsubscribers.forEach((unsub, idx) => {
+      try {
+        unsub();
+        console.log(`✅ [ChatNotificationSync] Unsubscriber ${idx} ejecutado`);
+      } catch (e) {
+        console.error(`❌ [ChatNotificationSync] Error en unsubscriber ${idx}:`, e);
       }
+    });
+    if (typeof window !== 'undefined') {
+      window.__B44_CHAT_SYNC_ACTIVE = false;
+    }
     };
   }, [user?.email, user?.es_coordinador, user?.es_entrenador, user?.role]);
 
