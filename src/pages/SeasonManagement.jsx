@@ -1386,6 +1386,34 @@ export default function SeasonManagement() {
               />
             </div>
 
+            {/* Config URLs Tienda */}
+            <div className="ml-8 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">URL Tienda Equipación:</Label>
+                <Input
+                  value={activeSeason?.tienda_ropa_url || ""}
+                  onChange={(e) => {
+                    if (activeSeason) {
+                      updateSeasonMutation.mutate({ id: activeSeason.id, data: { tienda_ropa_url: e.target.value } });
+                    }
+                  }}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">URL Merchandising:</Label>
+                <Input
+                  value={activeSeason?.tienda_merch_url || ""}
+                  onChange={(e) => {
+                    if (activeSeason) {
+                      updateSeasonMutation.mutate({ id: activeSeason.id, data: { tienda_merch_url: e.target.value } });
+                    }
+                  }}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
             {/* Lotería */}
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
               <div className="flex items-center gap-3">
