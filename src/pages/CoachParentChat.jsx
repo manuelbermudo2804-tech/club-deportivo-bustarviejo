@@ -99,11 +99,13 @@ export default function CoachParentChat({ embedded = false }) {
     if (cat && !selectedCategory) setSelectedCategory(cat);
   }, [selectedCategory]);
   
-  // Marcar como leído AL CAMBIAR DE PESTAÑA O CERRAR - NO al abrir
+  // ✅ CRÍTICO: Marcar como leído AL ENTRAR en pestaña - Persiste en BD
   useEffect(() => {
-    return () => {
-      // Este cleanup se ejecuta cuando cambia selectedCategory o se desmonta el componente
-      if (selectedCategory && user?.email && messages) {
+    if (!selectedCategory || !user?.email || !messages) return;
+
+    // ENTRAR: marca como leído Y decrementa badge
+    (async () => {
+      try {
         const catId = toGroupId(selectedCategory);
         const unreadInThisTab = messages.filter(m => {
           if (m.tipo !== 'padre_a_grupo') return false;
@@ -111,40 +113,37 @@ export default function CoachParentChat({ embedded = false }) {
           return !m.leido_por?.some(lp => lp.email === user.email);
         }).length;
 
-        console.log(`📊 [CoachChat] Al SALIR: Mensajes no leídos en ${selectedCategory}:`, unreadInThisTab);
+        console.log(`📊 [CoachChat] Al ENTRAR: Mensajes no leídos en ${selectedCategory}:`, unreadInThisTab);
 
+        // 1. Decrementar badge
         if (unreadInThisTab > 0) {
           for (let i = 0; i < unreadInThisTab; i++) {
             UnifiedChatNotificationStore.decrement(user.email, 'coach');
           }
-          console.log(`✅ [CoachChat] Badge general decrementado x${unreadInThisTab} al SALIR`);
+          console.log(`✅ [CoachChat] Badge decrementado x${unreadInThisTab} al ENTRAR`);
         }
 
-        // BD en segundo plano
-        (async () => {
-          try {
-            const catId = toGroupId(selectedCategory);
-            const allMsgs = await base44.entities.ChatMessage.filter({ grupo_id: catId, tipo: 'padre_a_grupo' });
-            const unread = allMsgs.filter(m => !m.leido_por?.some(lp => lp.email === user.email));
-            
-            if (unread.length > 0) {
-              await Promise.all(unread.map(msg => {
-                const leidoPor = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
-                return base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
-              }));
-            }
-            
-            const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: "CoachParentChat", vista: false });
-            await Promise.all(notifs.map(n => base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })));
-            
-            await base44.functions.invoke('chatMarkRead', { chatType: 'coach', conversationId: catId });
-          } catch (e) {
-            console.error('Error BD on close:', e);
-          }
-        })();
+        // 2. Marcar mensajes como leídos
+        const allMsgs = await base44.entities.ChatMessage.filter({ grupo_id: catId, tipo: 'padre_a_grupo' });
+        const unread = allMsgs.filter(m => !m.leido_por?.some(lp => lp.email === user.email));
+        
+        if (unread.length > 0) {
+          await Promise.all(unread.map(msg => {
+            const leidoPor = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
+            return base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
+          }));
+        }
+
+        // 3. Marcar AppNotifications como vistas
+        const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: "CoachParentChat", vista: false });
+        await Promise.all(notifs.map(n => base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })));
+        
+        await base44.functions.invoke('chatMarkRead', { chatType: 'coach', conversationId: catId });
+      } catch (e) {
+        console.error('Error marking as read on enter:', e);
       }
-    };
-  }, [selectedCategory, user?.email, messages]);
+    })();
+  }, [selectedCategory, user?.email]);
 
   if (!user) {
     return (
