@@ -42,7 +42,7 @@ export const ALL_TREASURER_BUTTONS = [
     icon: ShoppingBag,
     gradient: "from-teal-600 to-teal-700",
     description: "Acceso a tiendas"
-  }
+  },
   {
     id: "socios",
     title: "🎫 Socios",
