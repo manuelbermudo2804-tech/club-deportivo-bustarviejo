@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -18,6 +19,7 @@ import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
 import MobileBottomBar from "./components/mobile/MobileBottomBar";
 import MobileBackButton from "./components/mobile/MobileBackButton";
+import PullToRefresh from "./components/mobile/PullToRefresh";
 import DeleteAccountDialog from "./components/DeleteAccountDialog";
 
 import FeedbackModal from "./components/feedback/FeedbackModal";
@@ -631,6 +633,7 @@ export default function Layout({ children, currentPageName }) {
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
+  const [navDirection, setNavDirection] = useState('forward');
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
   
@@ -678,6 +681,7 @@ export default function Layout({ children, currentPageName }) {
   // isIOS/isAndroid definidos arriba para evitar TDZ
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+  const isMobile = isIOS || isAndroid;
 
       // Detectar si la app está instalada - solo por localStorage (marcado manual)
                   useEffect(() => {
@@ -857,6 +861,9 @@ export default function Layout({ children, currentPageName }) {
   const fetchUserOnceRef = useRef(false);
   const isPublicPageRef = useRef(false);
 
+  // Dirección de navegación
+  const onPop = () => setNavDirection('back');
+  window.addEventListener('popstate', onPop);
   // Redirigir alias de PWA a la ruta canónica
   useEffect(() => {
     const p = window.location.pathname.toLowerCase();
@@ -2831,7 +2838,25 @@ export default function Layout({ children, currentPageName }) {
           {extraChargeVisible && (
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}
-          {children}
+          <PullToRefresh
+            enabled={isMobile}
+            onRefresh={async () => {
+              // refresco seguro en móvil (sin activar pull nativo)
+              window.location.reload();
+            }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={{ x: navDirection === 'back' ? -80 : 80, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: navDirection === 'back' ? 80 : -80, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 30, duration: 0.25 }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </PullToRefresh>
           <ActiveBanner position="bottom" user={user} />
 
           <ExtraChargePayModal
@@ -2919,7 +2944,7 @@ export default function Layout({ children, currentPageName }) {
         )}
 
         {sponsorBannerVisible && (
-                        <div className={`lg:ml-72 fixed left-0 right-0 z-40 bottom-0`}>
+                        <div className={`lg:ml-72 fixed left-0 right-0 z-40 bottom-0 safe-area-bottom`}>
                           <Suspense fallback={null}><SponsorBanner /></Suspense>
                         </div>
                       )}
