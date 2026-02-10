@@ -45,7 +45,16 @@ export default function DeleteAccount() {
         account_deletion_requested_at: new Date().toISOString(),
       });
 
-      // 3) Email de acuse de recibo al usuario
+      // 3) Aviso a administradores (notificación interna + email)
+      try {
+        await base44.functions.invoke('notifyAccountDeletionRequest', {
+          user_email: user.email,
+          user_name: user.full_name || '',
+          reason: reason || ''
+        });
+      } catch (_) {}
+
+      // 4) Email de acuse de recibo al usuario
       try {
         await base44.integrations.Core.SendEmail({
           to: user.email,
@@ -75,7 +84,7 @@ export default function DeleteAccount() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen px-4 py-8">
+      <div className="min-h-screen px-4 py-8 relative z-10">
         <Card className="max-w-2xl mx-auto app-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
@@ -99,7 +108,7 @@ export default function DeleteAccount() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8">
+    <div className="min-h-screen px-4 py-8 relative z-10">
       <Card className="max-w-2xl mx-auto app-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
