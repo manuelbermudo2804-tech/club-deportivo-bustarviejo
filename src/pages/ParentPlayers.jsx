@@ -17,6 +17,7 @@ import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
+import ShareReferralButton from "../components/players/ShareReferralButton";
 
 
 export default function ParentPlayers() {
@@ -968,20 +969,23 @@ Email: cdbustarviejo@gmail.com
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Mis Jugadores</h1>
           <p className="text-slate-600 mt-1 text-sm lg:text-base">Gestiona la información de tus jugadores</p>
         </div>
-        {!isPlayerUser && players.length > 0 && (
-          <Button
-            onClick={() => {
-              setEditingPlayer(null);
-              setSuggestedCategory(null);
-              setIsAdultPlayerSelfRegistration(false);
-              setShowForm(!showForm);
-            }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg w-full md:w-auto"
-          >
-            <Plus className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-            <span className="text-sm lg:text-base">Registrar Jugador</span>
-          </Button>
-        )}
+        <div className="flex gap-2 w-full md:w-auto">
+          <ShareReferralButton user={user} />
+          {!isPlayerUser && players.length > 0 && (
+            <Button
+              onClick={() => {
+                setEditingPlayer(null);
+                setSuggestedCategory(null);
+                setIsAdultPlayerSelfRegistration(false);
+                setShowForm(!showForm);
+              }}
+              className="bg-orange-600 hover:bg-orange-700 shadow-lg flex-1 md:flex-none"
+            >
+              <Plus className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
+              <span className="text-sm lg:text-base">Registrar Jugador</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       <Alert className="bg-blue-50 border-blue-200">
