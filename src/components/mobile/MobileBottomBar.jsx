@@ -3,7 +3,12 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 
-export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer }) {
+export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, currentPageName }) {
+  // Ocultar en páginas de chat
+  const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages'];
+  if (chatPages.includes(currentPageName)) {
+    return null;
+  }
   // Botones dinámicos según el rol
   let tabs = [];
 

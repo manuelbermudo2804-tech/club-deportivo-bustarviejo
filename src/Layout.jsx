@@ -2918,6 +2918,7 @@ export default function Layout({ children, currentPageName }) {
           isCoordinator={isCoordinator}
           isTreasurer={isTreasurer}
           isPlayer={isPlayer}
+          currentPageName={currentPageName}
         />
 
         {/* Delete Account Dialog */}
