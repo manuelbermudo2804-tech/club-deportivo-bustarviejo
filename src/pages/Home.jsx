@@ -136,11 +136,11 @@ export default function Home() {
     queryKey: ['chatMessages'],
     queryFn: () => base44.entities.ChatMessage.list('-created_date', 50),
     initialData: [],
-    staleTime: 30000, // 30 segundos
+    staleTime: 5000,
     gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    refetchOnWindowFocus: true, // ✅ Actualizar SIEMPRE al volver
+    refetchOnMount: true,
+    refetchInterval: 10000,
     enabled: queriesEnabled && (hasPlayers || isAdmin || isCoordinator || isCoach),
   });
 
