@@ -604,9 +604,6 @@ export default function ParentDashboard() {
           </div>
         </Link>
 
-        {/* Captación: Compartir inscripción por WhatsApp */}
-        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
-
         {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP */}
         {activeSeason?.bonus_femenino_activo && myPlayers && myPlayers.length > 0 && (
           <FemeninoShareBanner />

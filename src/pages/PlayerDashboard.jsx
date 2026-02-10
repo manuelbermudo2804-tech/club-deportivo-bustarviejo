@@ -630,9 +630,6 @@ export default function PlayerDashboard() {
           </CardContent>
         </Card>
 
-        {/* Captación: Compartir inscripción */}
-        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
-
         {/* Banner Clasificaciones y Próximo Partido */}
         <ClassificationsAndMatchesBanner 
           userEmail={user?.email} 

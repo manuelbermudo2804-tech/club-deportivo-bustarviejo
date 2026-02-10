@@ -331,7 +331,6 @@ export default function TreasurerDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6 pb-28">
         <SocialLinks />
-        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
 
         {/* Banner de Chats - Igual que ParentDashboard */}
         {playersLoading ? (

@@ -1269,7 +1269,6 @@ export default function Home() {
       <PaymentApprovalNotifier isAdmin={isAdmin} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <SocialLinks />
-        <CaptacionShareBanner link="https://alta-socio.vercel.app/jugadores.html" />
 
 
 
