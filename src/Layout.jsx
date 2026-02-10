@@ -2857,7 +2857,7 @@ export default function Layout({ children, currentPageName }) {
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}
           <PullToRefresh
-            enabled={isMobile && SOFT_PTR_PAGES.has(currentPageName)}
+            enabled={isMobile && SOFT_PTR_PAGES.has(currentPageName) && !DISABLED_PTR_PAGES.has(currentPageName)}
             onRefresh={async () => {
               try {
                 await queryClient.invalidateQueries();
