@@ -2603,9 +2603,9 @@ export default function Layout({ children, currentPageName }) {
                                                     </button>
 
                                                     <button
-                                                    onClick={() => setShowDeleteAccount(true)}
-                                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-yellow-500/20 text-white hover:bg-yellow-500/30 transition-all"
-                                                    >
+                                                                                     onClick={() => { setMobileMenuOpen(false); setShowDeleteAccount(true); }}
+                                                                                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-yellow-500/20 text-white hover:bg-yellow-500/30 transition-all"
+                                                                                     >
                                                     <UserX className="w-6 h-6" />
                                                     <span className="font-semibold text-lg">Eliminar Cuenta</span>
                                                     </button>
