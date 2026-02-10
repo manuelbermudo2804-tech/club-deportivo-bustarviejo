@@ -116,9 +116,9 @@ export function ChatNotificationSync({ user }) {
     }
 
     // ===== 3. ENTRENADOR - FAMILIAS (grupo ChatMessage) =====
-    // CRÍTICO: Necesitamos cargar jugadores del usuario para validar categorías
+    // CRÍTICO: Cargar jugadores ANTES de usarlos (evitar race condition)
     let userPlayers = [];
-    (async () => {
+    const loadPlayersPromise = (async () => {
       if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
         try {
           const players = await base44.entities.Player.filter({
@@ -133,9 +133,15 @@ export function ChatNotificationSync({ user }) {
           console.log('✅ [ChatNotificationSync] Jugadores cargados:', userPlayers.length);
         } catch (e) {
           console.error('[ChatNotificationSync] Error cargando jugadores:', e);
+          userPlayers = [];
         }
       }
     })();
+    
+    // Esperar a que se carguen antes de continuar
+    loadPlayersPromise.then(() => {
+      console.log('📋 [ChatNotificationSync] Jugadores listos para validar categorías');
+    });
 
     // Escuchar ChatMessage para todos los roles relevantes (entrenador, coordinador, admin)
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
@@ -146,7 +152,7 @@ export function ChatNotificationSync({ user }) {
         processedEvents.add(eventKey);
         
         // Para staff (entrenadores, coordinadores, admin): mensajes de padres en categorías
-        if ((user.es_entrenador || user.es_coordinador || user.role === 'admin') && msg.tipo === 'padre_a_grupo') {
+          if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && msg.tipo === 'padre_a_grupo') {
           const coachCats = ((user.categorias_entrena || user.categorias_coordina || [])).map(c => ({
             raw: c,
             id: (c || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_')
@@ -162,7 +168,7 @@ export function ChatNotificationSync({ user }) {
         }
         
         // Para familias: mensajes del entrenador O de otros padres SOLO en MIS categorías
-        if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
+        if (user.es_entrenador !== true && user.es_coordinador !== true && user.role !== 'admin') {
           if (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') {
             if (msg.remitente_email !== user.email) {
               // VALIDAR que el mensaje sea de UNA categoría donde tengo jugadores
@@ -189,7 +195,7 @@ export function ChatNotificationSync({ user }) {
 
     // ===== 3B. ENTRENADOR - FAMILIAS (CoachConversation 1-a-1) - CORRECCIÓN #1 =====
     // Para entrenadores: escuchar cambios en no_leidos_entrenador
-    if (user.es_entrenador) {
+    if (user.es_entrenador === true) {
       const unsubCoachConv = base44.entities.CoachConversation.subscribe((event) => {
         if (event.type === 'update' && event.data) {
           if (event.data.entrenador_email === user.email) {
@@ -259,10 +265,17 @@ export function ChatNotificationSync({ user }) {
     // Nos apoyamos exclusivamente en PrivateConversation.update (fuente de verdad).
 
     return () => {
-      unsubscribers.forEach(unsub => {
+      // Limpiar memory leaks: vaciar processedEvents
+      processedEvents.clear();
+      console.log('🧹 [ChatNotificationSync] processedEvents limpiado');
+
+      unsubscribers.forEach((unsub, idx) => {
         try {
           unsub();
-        } catch (e) {}
+          console.log(`✅ [ChatNotificationSync] Unsubscriber ${idx} ejecutado`);
+        } catch (e) {
+          console.error(`❌ [ChatNotificationSync] Error en unsubscriber ${idx}:`, e);
+        }
       });
       if (typeof window !== 'undefined') {
         window.__B44_CHAT_SYNC_ACTIVE = false;

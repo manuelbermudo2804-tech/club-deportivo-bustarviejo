@@ -162,5 +162,18 @@ export const UnifiedChatNotificationStore = {
    */
   reset() {
     GLOBAL_CHAT_STATE = {};
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('chat_notifications_state');
+      } catch (e) {}
+    }
+  },
+
+  /**
+   * RESET para un usuario específico (logout)
+   */
+  resetUser(userEmail) {
+    delete GLOBAL_CHAT_STATE[userEmail];
+    this.broadcastUpdate(userEmail);
   }
 };

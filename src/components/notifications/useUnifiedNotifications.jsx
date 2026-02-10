@@ -580,7 +580,7 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // ===== ENTRENADORES/COORDINADORES =====
-    if (user.es_entrenador || user.es_coordinador) {
+     if (user.es_entrenador === true || user.es_coordinador === true) {
       const loadObservations = async () => {
         const obs = await run(() => base44.entities.MatchObservation.list('-updated_date', 40));
         setRawData(prev => ({ ...prev, matchObservations: obs }));
@@ -692,15 +692,15 @@ export function useUnifiedNotifications(user, options = {}) {
 
 
     // === ENTRENADOR - FAMILIAS (conversaciones directas CoachConversation) ===
-    (rawData.coachConversations || []).forEach(conv => {
-      // Para entrenadores: mensajes de familias
-      if (user.es_entrenador && conv.entrenador_email === user.email) {
+     (rawData.coachConversations || []).forEach(conv => {
+       // Para entrenadores: mensajes de familias
+       if (user.es_entrenador === true && conv.entrenador_email === user.email) {
         const c = (conv.no_leidos_entrenador || 0);
         unreadCoachForStaff += c;
         if (c > 0) breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] = (breakdown.coachGroupForCoach[conv.grupo_id || conv.categoria || 'general'] || 0) + c;
       }
       // Para familias: mensajes del entrenador en CoachConversation
-      if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin' && conv.padre_email === user.email) {
+       if (user.es_entrenador !== true && user.es_coordinador !== true && user.role !== 'admin' && conv.padre_email === user.email) {
         const c = (conv.no_leidos_padre || 0);
         unreadCoachForParent += c;
         if (c > 0) breakdown.coachGroupForParent[conv.categoria || 'general'] = (breakdown.coachGroupForParent[conv.categoria || 'general'] || 0) + c;
@@ -755,8 +755,8 @@ export function useUnifiedNotifications(user, options = {}) {
     });
 
     // === STAFF INTERNO (coordinadores/entrenadores/admin) ===
-    // CRÍTICO: NO mezclar con otros contadores
-    if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && (rawData.staffMessages || []).length > 0) {
+     // CRÍTICO: NO mezclar con otros contadores - Validar que user es staff
+     if ((user.es_entrenador === true || user.es_coordinador === true || user.role === 'admin') && (rawData.staffMessages || []).length > 0) {
      (rawData.staffMessages || []).forEach(msg => {
        // Ignorar mis propios mensajes
        if (msg.autor_email === user.email) return;
@@ -830,7 +830,7 @@ export function useUnifiedNotifications(user, options = {}) {
       });
 
       // Para entrenadores (respuestas sin confirmar)
-      if ((user.es_entrenador || user.es_coordinador) && callup.entrenador_email === user.email) {
+        if ((user.es_entrenador === true || user.es_coordinador === true) && callup.entrenador_email === user.email) {
         const pendingCount = callup.jugadores_convocados?.filter(j => j.confirmacion === 'pendiente').length || 0;
         pendingCallupResponses += pendingCount;
       }
@@ -892,8 +892,8 @@ export function useUnifiedNotifications(user, options = {}) {
     }
 
     // OBSERVACIONES DE PARTIDOS
-    let pendingMatchObservations = 0;
-    if (user.es_entrenador || user.es_coordinador) {
+     let pendingMatchObservations = 0;
+     if (user.es_entrenador === true || user.es_coordinador === true) {
       const myCallups = (rawData.convocatorias || []).filter(c => c.entrenador_email === user.email && c.publicada);
       const now = new Date();
       

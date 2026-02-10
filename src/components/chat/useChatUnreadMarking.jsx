@@ -16,12 +16,17 @@ export function useChatUnreadMarking({
   const markedRef = useRef(false);
 
   useEffect(() => {
-    if (!conversationId || !userEmail || markedRef.current) return;
+    // RESETEAR markedRef cuando cambia conversación (permite marcar nuevamente)
+    markedRef.current = false;
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (!conversationId || !userEmail) return;
 
     const isNearBottom = () => {
       try {
         const dist = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
-        return dist < 200; // solo si los últimos mensajes están realmente en pantalla
+        return dist < 200;
       } catch {
         return false;
       }
@@ -33,9 +38,11 @@ export function useChatUnreadMarking({
       if (!Array.isArray(messages) || messages.length === 0) return;
 
       const last = messages[messages.length - 1];
-      const lastFromOther = last?.remitente_email && last.remitente_email !== userEmail;
+      // CRÍTICO: Validar AMBOS campos (remitente_email y autor_email)
+      const senderEmail = last?.remitente_email || last?.autor_email;
+      const lastFromOther = senderEmail && senderEmail !== userEmail;
       if (!lastFromOther) return;
-      if (!isNearBottom()) return; // no marcar si el usuario no está viendo el final del chat
+      if (!isNearBottom()) return;
 
       try {
         const noLeidosField = getUnreadField(entityName, userRole);
@@ -44,13 +51,12 @@ export function useChatUnreadMarking({
         markedRef.current = true;
         await base44.entities[entityName].update(conversationId, { [noLeidosField]: 0 });
 
-        // Refrescar listas relacionadas
         queryClient?.invalidateQueries({ queryKey: [entityName.toLowerCase(), 'list'] });
         if (entityName === 'CoordinatorConversation') {
           queryClient?.invalidateQueries({ queryKey: ['coordinatorMessages'] });
         }
       } catch (error) {
-        console.log(`Error marking as read in ${entityName}:`, error);
+        console.error(`Error marking as read in ${entityName}:`, error);
         markedRef.current = false;
       }
     };
@@ -58,7 +64,6 @@ export function useChatUnreadMarking({
     const onScroll = () => { markIfVisible(); };
     const onVis = () => { markIfVisible(); };
 
-    // Intento inmediato al abrir el chat
     const t = setTimeout(markIfVisible, 100);
     window.addEventListener('scroll', onScroll, { passive: true });
     document.addEventListener('visibilitychange', onVis);
@@ -68,7 +73,7 @@ export function useChatUnreadMarking({
       window.removeEventListener('scroll', onScroll);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [conversationId, userEmail, entityName, userRole, messages]);
+  }, [conversationId, userEmail, entityName, userRole, messages, queryClient]);
 }
 
 /**
@@ -87,6 +92,9 @@ export function getUnreadField(entityName, userRole) {
     PrivateConversation: {
       staff: 'no_leidos_staff',
       coach: 'no_leidos_staff',
+      entrenador: 'no_leidos_staff',
+      coordinador: 'no_leidos_staff',
+      admin: 'no_leidos_staff',
       familia: 'no_leidos_familia',
       padre: 'no_leidos_familia',
     },
@@ -101,20 +109,21 @@ export function getUnreadField(entityName, userRole) {
 export async function incrementUnreadCount(
   conversationId,
   entityName,
-  userRole, // rol de quien ENVÍA el mensaje
+  senderRole, // rol de quien ENVÍA el mensaje
   currentCount = 0
 ) {
-  const recipientRole = getRecipientRole(userRole);
+  // CRÍTICO: Invertir la lógica - si PADRE envía, incrementa no_leidos_coordinador (no al revés)
+  const recipientRole = getRecipientRole(senderRole);
   const noLeidosField = getUnreadField(entityName, recipientRole);
 
   if (!noLeidosField || !conversationId) return;
 
   try {
     await base44.entities[entityName].update(conversationId, {
-      [noLeidosField]: (currentCount || 0) + 1,
+      [noLeidosField]: Math.min(9999, (currentCount || 0) + 1), // Cap para evitar desbordamiento
     });
   } catch (error) {
-    console.log(`Error incrementing unread in ${entityName}:`, error);
+    console.error(`Error incrementing unread in ${entityName}:`, error);
   }
 }
 
@@ -128,7 +137,10 @@ function getRecipientRole(senderRole) {
     admin: 'padre',
     staff: 'familia',
     coach: 'familia',
+    entrenador: 'familia',
     familia: 'staff',
+    coordinador_envía_a_familia: 'padre',
+    entrenador_envía_a_familia: 'padre',
   };
   return roleMap[senderRole] || 'padre';
 }

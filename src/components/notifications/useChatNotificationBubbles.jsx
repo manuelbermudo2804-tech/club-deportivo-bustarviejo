@@ -14,12 +14,14 @@ export function useChatNotificationBubbles(user) {
   const [counts, setCounts] = useState({});
 
   useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.email) {
+      // CRÍTICO: Limpiar al logout
+      UnifiedChatNotificationStore.reset();
+      setCounts({});
+      return;
+    }
 
-    // Inicializar
     UnifiedChatNotificationStore.initUser(user.email);
-
-    // Suscribirse a cambios
     const unsubscribe = UnifiedChatNotificationStore.subscribe(
       user.email,
       (state) => {
@@ -27,7 +29,11 @@ export function useChatNotificationBubbles(user) {
       }
     );
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      // Limpiar al desmontar
+      UnifiedChatNotificationStore.resetUser(user.email);
+    };
   }, [user?.email]);
 
   return {
