@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import RenewalReminderDialog from "../components/members/RenewalReminderDialog";
 import MemberEditForm from "../components/members/MemberEditForm";
