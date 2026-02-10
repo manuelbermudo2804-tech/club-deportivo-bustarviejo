@@ -2677,7 +2677,22 @@ export default function Layout({ children, currentPageName }) {
                           </div>
                         );
                       }
-              return (
+              return item.externalUrl ? (
+                <a
+                  key={item.title}
+                  href={item.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center justify-center gap-4 p-4 rounded-2xl transition-all group ${
+                    item.highlight
+                      ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-600/50 ring-2 ring-green-400 animate-pulse'
+                      : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-semibold flex-1 text-center">{item.title}</span>
+                </a>
+              ) : (
                 <Link
                   key={item.title}
                   to={item.url}
