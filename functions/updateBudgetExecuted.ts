@@ -42,20 +42,43 @@ Deno.serve(async (req) => {
       try { const dt = new Date(d); return dt >= seasonStart && dt <= seasonEnd; } catch { return true; }
     };
 
-    // 1) Inscripciones Jugadores -> Payment.estado==Pagado && temporada==budget.temporada
-    // PRESUPUESTADO: jugadores activos × cuota única
-    let inscripciones = 0;
-    let inscripcionesPresupuestado = 0;
-    try {
-      const pagos = await base44.entities.Payment.filter({ temporada: seasonStr, estado: 'Pagado', is_deleted: false });
-      inscripciones = sum(pagos, p => p.cantidad);
-      
-      // Calcular presupuestado: jugadores activos × cuota_unica
-      const jugadores = await base44.entities.Player.list();
-      const jugadoresActivos = jugadores.filter(p => p.activo === true).length;
-      const cuotaUnica = Number(active?.cuota_unica) || 0;
-      inscripcionesPresupuestado = jugadoresActivos * cuotaUnica;
-    } catch {}
+    // 1) Inscripciones Jugadores
+      // PRESUPUESTADO = suma de TODAS las cuotas creadas (cualquier estado) deduplicadas por jugador/mes/modo
+      // EJECUTADO = suma de las mismas cuotas pero solo con estado 'Pagado'
+      let inscripciones = 0;
+      let inscripcionesPresupuestado = 0;
+      try {
+        const allPayments = await base44.entities.Payment.filter({ temporada: seasonStr, is_deleted: false });
+
+        // Dedupe por clave estable: plan:jugador:mes | unico:jugador | mes:jugador:mes
+        const rank = (s) => (s === 'Pagado' ? 3 : s === 'En revisión' ? 2 : s === 'Pendiente' ? 1 : 0);
+        const byKey = {};
+        (allPayments || []).forEach(p => {
+          const tipo = (p.tipo_pago || '').toLowerCase();
+          let key = '';
+          if (tipo.includes('plan')) key = `plan:${p.jugador_id}:${p.mes || p.id}`;
+          else if (tipo.includes('único') || tipo.includes('unico')) key = `unico:${p.jugador_id}`;
+          else key = `mes:${p.jugador_id}:${p.mes || p.id}`;
+          if (!byKey[key] || rank(p.estado) > rank(byKey[key].estado)) byKey[key] = p;
+        });
+
+        const deduped = Object.values(byKey);
+        inscripcionesPresupuestado = deduped.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
+        inscripciones = deduped.filter(p => p.estado === 'Pagado').reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
+
+        // Incluir cuotas de Plan Especial activas sin pagos creados aún
+        try {
+          const allPlans = await base44.entities.CustomPaymentPlan.list();
+          const activePlans = (allPlans || []).filter(pl => pl.estado === 'Activo' && (!pl.temporada || pl.temporada === seasonStr));
+          const covered = new Set(deduped.filter(p => (p.tipo_pago || '').toLowerCase().includes('plan')).map(p => `${p.jugador_id}:${p.mes || p.id}`));
+          activePlans.forEach(pl => {
+            (pl.cuotas || []).forEach((c, idx) => {
+              const k = `${pl.jugador_id}:${c.mes || idx}`;
+              if (!covered.has(k)) inscripcionesPresupuestado += Number(c.cantidad) || 0;
+            });
+          });
+        } catch {}
+      } catch {}
 
     // 2) Cuotas Socios -> ClubMember.estado_pago==Pagado multiplicado por precio_socio
     let socios = 0;
