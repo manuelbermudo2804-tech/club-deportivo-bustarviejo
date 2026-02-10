@@ -446,7 +446,7 @@ export default function TreasurerDashboard() {
         {/* Botones de Acceso Rápido - Aspecto ParentDashboard */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
           {menuItems.map((item, index) => (
-            <Link key={index} to={createPageUrl(item.url.replace('/', ''))} className="group">
+            <Link key={index} to={item.url?.startsWith('http') ? item.url : createPageUrl(item.url.replace('/', ''))} className="group">
               <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
                 <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
