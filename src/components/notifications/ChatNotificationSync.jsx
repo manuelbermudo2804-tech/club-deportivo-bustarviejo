@@ -121,7 +121,7 @@ export function ChatNotificationSync({ user }) {
     (async () => {
       if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
         try {
-          userPlayers = await base44.entities.Player.filter({
+          const players = await base44.entities.Player.filter({
             $or: [
               { email_padre: user.email },
               { email_tutor_2: user.email },
@@ -129,6 +129,7 @@ export function ChatNotificationSync({ user }) {
             ],
             activo: true
           });
+          userPlayers = players;
           console.log('✅ [ChatNotificationSync] Jugadores cargados:', userPlayers.length);
         } catch (e) {
           console.error('[ChatNotificationSync] Error cargando jugadores:', e);
@@ -140,7 +141,7 @@ export function ChatNotificationSync({ user }) {
     const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
       if (event.type === 'create' && event.data) {
         const msg = event.data;
-        const eventKey = `chatmsg_${msg.id}`;
+        const eventKey = `chatmsg_${msg.id}_create`;
         if (processedEvents.has(eventKey)) return;
         processedEvents.add(eventKey);
         

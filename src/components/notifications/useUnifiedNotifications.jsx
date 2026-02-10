@@ -82,21 +82,21 @@ export function useUnifiedNotifications(user, options = {}) {
 
   // FORZAR RECARGA al volver a la app después de mucho tiempo
   useEffect(() => {
-    if (!user) return;
+  if (!user) return;
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        const lastRefresh = Number(localStorage.getItem('lastNotifRefresh') || 0);
-        const hoursSince = (Date.now() - lastRefresh) / (1000 * 60 * 60);
-        
-        // Si hace más de 2 horas que no se actualiza, forzar recarga completa
-        if (hoursSince > 2 || lastRefresh === 0) {
-          console.log('🔄 [Notificaciones] Forzando recarga completa - hace', hoursSince.toFixed(1), 'horas');
-          setForceRefreshKey(prev => prev + 1);
-          localStorage.setItem('lastNotifRefresh', String(Date.now()));
-        }
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') {
+      const lastRefresh = Number(localStorage.getItem('lastNotifRefresh') || 0);
+      const minutesSince = (Date.now() - lastRefresh) / (1000 * 60);
+
+      // Si hace más de 30 minutos que no se actualiza, forzar recarga completa
+      if (minutesSince > 30 || lastRefresh === 0) {
+        console.log('🔄 [Notificaciones] Forzando recarga completa - hace', minutesSince.toFixed(1), 'minutos');
+        setForceRefreshKey(prev => prev + 1);
+        localStorage.setItem('lastNotifRefresh', String(Date.now()));
       }
-    };
+    }
+  };
 
     // Marcar timestamp inicial
     if (!localStorage.getItem('lastNotifRefresh')) {
@@ -745,6 +745,9 @@ export function useUnifiedNotifications(user, options = {}) {
         const isRead = msg.leido_por?.some(lp => lp.email === user.email);
         if (isRead) return; // SKIP si ya lo leí
         
+        // SKIP si es mi propio mensaje
+        if (msg.remitente_email === user.email || msg.autor_email === user.email) return;
+        
         unreadCoachForStaff++;
         const key = msg.grupo_id || msg.deporte || 'general';
         breakdown.coachGroupForCoach[key] = (breakdown.coachGroupForCoach[key] || 0) + 1;
@@ -949,7 +952,7 @@ export function useUnifiedNotifications(user, options = {}) {
       unreadAdminMessages: unreadAdmin,
       unreadPrivateMessages: Math.max(unreadPrivate, appNotifsByLink['ParentSystemMessages'] || 0),
       unreadSystemMessages: Math.max(unreadSystemMessages, appNotifsByLink['ParentSystemMessages'] || 0), // System messages for parents
-      unreadFamilyMessages: Math.max(unreadCoordinatorForStaff, appNotifsByLink['CoordinatorChat'] || 0) + Math.max(unreadCoachForStaff, appNotifsByLink['CoachParentChat'] || 0), // Considerar AppNotif de CoordinatorChat y CoachParentChat
+      unreadFamilyMessages: unreadCoordinatorForStaff + unreadCoachForStaff, // Total de mensajes de familias para staff
       unreadCoordinatorForStaff,  // Para coordinadores: mensajes de familias
       unreadCoachForStaff,         // Para entrenadores: mensajes de familias
       pendingCallups,
