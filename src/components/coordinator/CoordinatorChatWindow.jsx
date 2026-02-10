@@ -21,6 +21,7 @@ import EmojiPicker from "../chat/EmojiPicker";
 import CoordinatorChatInput from "../chat/CoordinatorChatInput";
 import EmojiScaler from "../chat/EmojiScaler";
 import { useAudioRecording } from "../chat/useAudioRecording";
+import { UnifiedChatNotificationStore } from "../notifications/UnifiedChatNotificationStore";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
