@@ -21,7 +21,6 @@ import EmojiPicker from "../chat/EmojiPicker";
 import CoordinatorChatInput from "../chat/CoordinatorChatInput";
 import EmojiScaler from "../chat/EmojiScaler";
 import { useAudioRecording } from "../chat/useAudioRecording";
-import { UnifiedChatNotificationStore } from "../notifications/UnifiedChatNotificationStore";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
@@ -49,13 +48,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const scrollContainerRef = useRef(null);
 
   const isCoordinator = user?.es_coordinador || user?.role === "admin";
-
-  // CRÍTICO: Limpiar notificaciones al abrir conversación
-  useEffect(() => {
-    if (conversation?.id && user?.email) {
-      UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
-    }
-  }, [conversation?.id, user?.email]);
 
   const { data: messages = [] } = useQuery({
     queryKey: ['coordinatorMessages', conversation?.id],

@@ -1,9 +1,7 @@
 import React, { useState, useEffect, Suspense, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { useQueryClient } from "@tanstack/react-query";
 
 
 import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert, UserX, RotateCw, CheckCircle2, Trophy, ChevronLeft } from "lucide-react";
@@ -20,7 +18,6 @@ import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import NotificationCenter from "./components/NotificationCenter";
 import MobileBottomBar from "./components/mobile/MobileBottomBar";
 import MobileBackButton from "./components/mobile/MobileBackButton";
-import PullToRefresh from "./components/mobile/PullToRefresh";
 import DeleteAccountDialog from "./components/DeleteAccountDialog";
 
 import FeedbackModal from "./components/feedback/FeedbackModal";
@@ -634,10 +631,6 @@ export default function Layout({ children, currentPageName }) {
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
-  const [navDirection, setNavDirection] = useState('forward');
-  const queryClient = useQueryClient();
-  const SOFT_PTR_PAGES = new Set(['Home','ParentDashboard','CoachDashboard','TreasurerDashboard','CoordinatorDashboard','PlayerDashboard']);
-  const DISABLED_PTR_PAGES = new Set(['StaffChat','CoachParentChat','ParentCoachChat','CoordinatorChat','ParentSystemMessages','ParentCoordinatorChat']);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
   
@@ -685,7 +678,6 @@ export default function Layout({ children, currentPageName }) {
   // isIOS/isAndroid definidos arriba para evitar TDZ
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
-  const isMobile = isIOS || isAndroid;
 
       // Detectar si la app está instalada - solo por localStorage (marcado manual)
                   useEffect(() => {
@@ -865,9 +857,6 @@ export default function Layout({ children, currentPageName }) {
   const fetchUserOnceRef = useRef(false);
   const isPublicPageRef = useRef(false);
 
-  // Dirección de navegación
-  const onPop = () => setNavDirection('back');
-  window.addEventListener('popstate', onPop);
   // Redirigir alias de PWA a la ruta canónica
   useEffect(() => {
     const p = window.location.pathname.toLowerCase();
@@ -1170,14 +1159,25 @@ export default function Layout({ children, currentPageName }) {
 
           // 4. Entrenador - familias (1-a-1 + grupo)
           if (currentUser.es_entrenador) {
-            // 3a. Conversaciones 1-a-1 - DESACTIVADO por entity no encontrada
-               // const coachConvs = await base44.entities.CoachConversation.filter({ entrenador_email: currentUser.email });
-               let coachUnread = 0; // Temporalmente 0 hasta que entity exista
+            // 3a. Conversaciones 1-a-1
+            const coachConvs = await base44.entities.CoachConversation.filter({ entrenador_email: currentUser.email });
+            let coachUnread = coachConvs.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
             
-            // 3b. Mensajes de grupo - DESACTIVADO temporalmente por rate limits
-               const myCoachCategories = currentUser.categorias_entrena || [];
-               // TODO: Re-habilitar cuando API esté optimizado
-               // for (const cat of myCoachCategories) { ... }
+            // 3b. Mensajes de grupo (ChatMessage)
+            const myCoachCategories = currentUser.categorias_entrena || [];
+            for (const cat of myCoachCategories) {
+              const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
+              const groupId = normalizeId(cat);
+              
+              const messages = await base44.entities.ChatMessage.filter({ grupo_id: groupId }, '-created_date', 50);
+              const unreadInGroup = messages.filter(msg => 
+                msg.tipo === 'padre_a_grupo' &&
+                msg.remitente_email !== currentUser.email &&
+                (!msg.leido_por || !msg.leido_por.some(r => r.email === currentUser.email))
+              ).length;
+              
+              coachUnread += unreadInGroup;
+            }
             
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'coach', coachUnread);
           }
@@ -1207,8 +1207,19 @@ export default function Layout({ children, currentPageName }) {
             const myCategories = [...new Set(myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
             let coachUnread = 0;
 
-            // Desactivado temporalmente por rate limits
-            // for (const cat of myCategories) { ... }
+            for (const cat of myCategories) {
+              const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
+              const groupId = normalizeId(cat);
+              
+              const messages = await base44.entities.ChatMessage.filter({ grupo_id: groupId }, '-created_date', 50);
+              const unreadInGroup = messages.filter(msg => 
+                (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') &&
+                msg.remitente_email !== currentUser.email &&
+                (!msg.leido_por || !msg.leido_por.some(r => r.email === currentUser.email))
+              ).length;
+              
+              coachUnread += unreadInGroup;
+            }
 
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'coachForFamily', coachUnread);
           }
@@ -1554,7 +1565,6 @@ export default function Layout({ children, currentPageName }) {
 
     // ⚙️ CONFIGURACIÓN
     { title: "─ CONFIGURACIÓN ─", section: true },
-    { title: "📚 Manuales y Guías", url: createPageUrl("ManualsDownload"), icon: FileText },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
@@ -1978,19 +1988,6 @@ export default function Layout({ children, currentPageName }) {
   const isPublicPage = isPublicPageRef.current;
   const isPublicAnon = isPublicPage && authChecked && !user;
   const isPublicLoading = isPublicPage && !authChecked;
-
-  // Restaurar scroll por ruta y capturar dirección (adelante/atrás)
-  useEffect(() => {
-    if (window.__NAV_DIR__) {
-      setNavDirection(window.__NAV_DIR__);
-      try { delete window.__NAV_DIR__; } catch {}
-    }
-    try {
-      const key = 'scroll:' + window.location.pathname;
-      const y = Number(sessionStorage.getItem(key) || '0');
-      if (y > 0) setTimeout(() => window.scrollTo({ top: y, behavior: 'instant' }), 0);
-    } catch {}
-  }, [location.pathname]);
 
   // AHORA SÍ - todos los returns condicionales DESPUÉS de TODOS los hooks
   if (isLoading && !isPublicPage) {
@@ -2834,29 +2831,7 @@ export default function Layout({ children, currentPageName }) {
           {extraChargeVisible && (
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}
-          <PullToRefresh
-            enabled={isMobile && SOFT_PTR_PAGES.has(currentPageName) && !DISABLED_PTR_PAGES.has(currentPageName)}
-            onRefresh={async () => {
-              try {
-                await queryClient.invalidateQueries();
-                await queryClient.refetchQueries({ type: 'active' });
-              } catch (e) {
-                window.location.reload();
-              }
-            }}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={location.pathname}
-                initial={{ x: navDirection === 'back' ? -80 : 80, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: navDirection === 'back' ? 80 : -80, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 30, duration: 0.25 }}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
-          </PullToRefresh>
+          {children}
           <ActiveBanner position="bottom" user={user} />
 
           <ExtraChargePayModal
@@ -2944,7 +2919,7 @@ export default function Layout({ children, currentPageName }) {
         )}
 
         {sponsorBannerVisible && (
-                        <div className={`lg:ml-72 fixed left-0 right-0 z-40 bottom-0 safe-area-bottom`}>
+                        <div className={`lg:ml-72 fixed left-0 right-0 z-40 bottom-0`}>
                           <Suspense fallback={null}><SponsorBanner /></Suspense>
                         </div>
                       )}

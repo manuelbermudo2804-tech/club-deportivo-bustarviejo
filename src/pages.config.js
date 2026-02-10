@@ -82,7 +82,6 @@ import CoordinatorChat from './pages/CoordinatorChat';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
 import CoordinatorSettings from './pages/CoordinatorSettings';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
-import DeleteAccount from './pages/DeleteAccount';
 import DocumentManagement from './pages/DocumentManagement';
 import EmailTemplates from './pages/EmailTemplates';
 import EventManagement from './pages/EventManagement';
@@ -156,7 +155,7 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import ManualsDownload from './pages/ManualsDownload';
+import DeleteAccount from './pages/DeleteAccount';
 import __Layout from './Layout.jsx';
 
 
@@ -196,7 +195,6 @@ export const PAGES = {
     "CoordinatorDashboard": CoordinatorDashboard,
     "CoordinatorSettings": CoordinatorSettings,
     "CustomPaymentPlans": CustomPaymentPlans,
-    "DeleteAccount": DeleteAccount,
     "DocumentManagement": DocumentManagement,
     "EmailTemplates": EmailTemplates,
     "EventManagement": EventManagement,
@@ -270,7 +268,7 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "ManualsDownload": ManualsDownload,
+    "DeleteAccount": DeleteAccount,
 }
 
 export const pagesConfig = {

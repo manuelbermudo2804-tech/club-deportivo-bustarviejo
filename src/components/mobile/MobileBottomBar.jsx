@@ -53,16 +53,12 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   }
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-bottom shadow-[0_-6px_20px_rgba(0,0,0,0.06)]">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-bottom">
       <div className="flex items-center justify-around">
         {tabs.map(({ icon: Icon, label, url, key, badge }) => (
           <Link
             key={key}
             to={url}
-            onClick={() => {
-              try { sessionStorage.setItem('scroll:'+window.location.pathname, String(window.scrollY||0)); } catch {}
-              window.__NAV_DIR__ = 'forward';
-            }}
             className="flex-1 flex flex-col items-center justify-center py-3 min-h-[60px] relative transition-colors hover:bg-slate-50"
           >
             <div className="relative">

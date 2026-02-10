@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Users, CheckCircle2, XCircle, HelpCircle, Info, Heart, Download } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, CheckCircle2, XCircle, HelpCircle, Info, Heart } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -160,53 +160,6 @@ export default function ParentEventRSVP() {
     return { asistire, totalAcompanantes, total: asistire + totalAcompanantes };
   };
 
-  const handleDownloadCalendar = (event) => {
-    try {
-      const eventDate = new Date(event.fecha);
-      const [hours, minutes] = (event.hora || "10:00").split(':').map(Number);
-      eventDate.setHours(hours, minutes, 0);
-      
-      const endDate = new Date(eventDate);
-      endDate.setHours(endDate.getHours() + 2);
-      
-      const formatICSDate = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hour = String(date.getHours()).padStart(2, '0');
-        const minute = String(date.getMinutes()).padStart(2, '0');
-        return `${year}${month}${day}T${hour}${minute}00`;
-      };
-
-      const icsContent = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//CD Bustarviejo//ES',
-        'BEGIN:VEVENT',
-        `DTSTART:${formatICSDate(eventDate)}`,
-        `DTEND:${formatICSDate(endDate)}`,
-        `SUMMARY:${event.titulo}`,
-        `DESCRIPTION:${(event.descripcion || '').replace(/\n/g, '\\n')}`,
-        `LOCATION:${event.ubicacion || ''}`,
-        'STATUS:CONFIRMED',
-        'END:VEVENT',
-        'END:VCALENDAR'
-      ].join('\r\n');
-
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `${event.titulo.replace(/[^a-z0-9]/gi, '_')}.ics`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast.success("Evento descargado - Ábrelo para añadirlo a tu calendario");
-    } catch (error) {
-      toast.error("Error al exportar evento");
-    }
-  };
-
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <div>
@@ -252,25 +205,14 @@ export default function ParentEventRSVP() {
                       </div>
                       <CardTitle className="text-xl">{event.titulo}</CardTitle>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDownloadCalendar(event)}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        title="Añadir a mi calendario"
+                    {event.requiere_confirmacion && (
+                      <Button 
+                       onClick={() => handleOpenRSVP(event)}
+                       className={myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "bg-green-600 hover:bg-green-700" : ""}
                       >
-                        <Download className="w-4 h-4" />
+                       {myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "Ver mi respuesta" : "Confirmar"}
                       </Button>
-                      {event.requiere_confirmacion && (
-                        <Button 
-                         onClick={() => handleOpenRSVP(event)}
-                         className={myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "bg-green-600 hover:bg-green-700" : ""}
-                        >
-                         {myConfirmation && myConfirmation.confirmacion !== "pendiente" ? "Ver mi respuesta" : "Confirmar"}
-                        </Button>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

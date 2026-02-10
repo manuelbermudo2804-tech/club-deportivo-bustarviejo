@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Calendar as CalendarIcon, Bell, Grid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, ExternalLink, Info, Download } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Bell, Grid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, ExternalLink, Info } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import CalendarSyncButton from "../components/calendar/CalendarSyncButton";
 import { toast } from "sonner";
@@ -296,53 +296,6 @@ export default function CalendarAndSchedules() {
     const itemDate = new Date(date);
     setCurrentMonth(itemDate);
     setViewMode("calendar");
-  };
-
-  const handleDownloadEventCalendar = (event) => {
-    try {
-      const eventDate = new Date(event.fecha);
-      const [hours, minutes] = (event.hora || "10:00").split(':').map(Number);
-      eventDate.setHours(hours, minutes, 0);
-      
-      const endDate = new Date(eventDate);
-      endDate.setHours(endDate.getHours() + 2);
-      
-      const formatICSDate = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hour = String(date.getHours()).padStart(2, '0');
-        const minute = String(date.getMinutes()).padStart(2, '0');
-        return `${year}${month}${day}T${hour}${minute}00`;
-      };
-
-      const icsContent = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//CD Bustarviejo//ES',
-        'BEGIN:VEVENT',
-        `DTSTART:${formatICSDate(eventDate)}`,
-        `DTEND:${formatICSDate(endDate)}`,
-        `SUMMARY:${event.titulo}`,
-        `DESCRIPTION:${(event.descripcion || '').replace(/\n/g, '\\n')}`,
-        `LOCATION:${event.ubicacion || ''}`,
-        'STATUS:CONFIRMED',
-        'END:VEVENT',
-        'END:VCALENDAR'
-      ].join('\r\n');
-
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `${event.titulo.replace(/[^a-z0-9]/gi, '_')}.ics`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast.success("Evento descargado");
-    } catch (error) {
-      toast.error("Error al exportar evento");
-    }
   };
 
   const eventTypes = ["all", "Partido", "Reunión", "Torneo", "Gestion Club", "Fiesta Club", "Otro"];

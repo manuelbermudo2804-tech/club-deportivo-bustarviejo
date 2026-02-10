@@ -53,66 +53,64 @@ export default function ParentCoordinatorChat() {
       setMyPlayers(players);
 
       // Buscar o crear conversación
-       const conversations = await base44.entities.CoordinatorConversation.filter({ 
-         padre_email: currentUser.email 
-       });
+      const conversations = await base44.entities.CoordinatorConversation.filter({ 
+        padre_email: currentUser.email 
+      });
 
-       let currentConv;
-       if (conversations.length > 0) {
-         currentConv = conversations[0];
-         setConversation(conversations[0]);
-       } else {
-         // Crear conversación nueva - obtener email del coordinador (en el futuro esto será dinámico)
-         currentConv = await base44.entities.CoordinatorConversation.create({
-           padre_email: currentUser.email,
-           padre_nombre: currentUser.full_name,
-           jugadores_asociados: players.map(p => ({
-             jugador_id: p.id,
-             jugador_nombre: p.nombre,
-             categoria: p.deporte
-           })),
-           no_leidos_coordinador: 0,
-           no_leidos_padre: 0,
-           archivada: false
-         });
-         setConversation(currentConv);
-       }
+      if (conversations.length > 0) {
+        setConversation(conversations[0]);
+      } else {
+        // Crear conversación nueva - obtener email del coordinador (en el futuro esto será dinámico)
+        const newConv = await base44.entities.CoordinatorConversation.create({
+          padre_email: currentUser.email,
+          padre_nombre: currentUser.full_name,
+          jugadores_asociados: players.map(p => ({
+            jugador_id: p.id,
+            jugador_nombre: p.nombre,
+            categoria: p.deporte
+          })),
+          no_leidos_coordinador: 0,
+          no_leidos_padre: 0,
+          archivada: false
+        });
+        setConversation(newConv);
+      }
 
-       // Verificar si ya aceptó las condiciones
-       if (!currentUser.condiciones_chat_aceptadas) {
-         setShowTermsDialog(true);
-       } else {
-         setTermsAccepted(true);
-       }
+      // Verificar si ya aceptó las condiciones
+      if (!currentUser.condiciones_chat_aceptadas) {
+        setShowTermsDialog(true);
+      } else {
+        setTermsAccepted(true);
+      }
 
-       // Marcar AppNotifications como vistas (copiado de StaffChat)
-       try {
-         const notifs = await base44.entities.AppNotification.filter({
-           usuario_email: currentUser.email,
-           enlace: "ParentCoordinatorChat",
-           vista: false
-         });
-         for (const n of notifs) {
-           await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-         }
-       } catch {}
+      // Marcar AppNotifications como vistas (copiado de StaffChat)
+      try {
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: currentUser.email,
+          enlace: "ParentCoordinatorChat",
+          vista: false
+        });
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+        }
+      } catch {}
+      
+      // Marcar mensajes del coordinador como leídos
+      const allMessages = await base44.entities.CoordinatorMessage.filter({ conversacion_id: newConv.id || conversations[0]?.id });
+      const unreadCoordMessages = allMessages.filter(m => m.autor === "coordinador" && !m.leido_padre);
 
-       // Marcar mensajes del coordinador como leídos
-       const allMessages = await base44.entities.CoordinatorMessage.filter({ conversacion_id: currentConv.id });
-       const unreadCoordMessages = allMessages.filter(m => m.autor === "coordinador" && !m.leido_padre);
+      for (const msg of unreadCoordMessages) {
+        await base44.entities.CoordinatorMessage.update(msg.id, {
+          leido_padre: true,
+          fecha_leido_padre: new Date().toISOString()
+        });
+      }
 
-       for (const msg of unreadCoordMessages) {
-         await base44.entities.CoordinatorMessage.update(msg.id, {
-           leido_padre: true,
-           fecha_leido_padre: new Date().toISOString()
-         });
-       }
-
-       if ((currentConv?.no_leidos_padre > 0)) {
-         await base44.entities.CoordinatorConversation.update(currentConv.id, {
-           no_leidos_padre: 0
-         });
-       }
+      if ((newConv || conversations[0])?.no_leidos_familia > 0) {
+        await base44.entities.CoordinatorConversation.update(newConv?.id || conversations[0]?.id, {
+          no_leidos_familia: 0
+        });
+      }
     };
     fetchUser();
   }, []);
@@ -126,10 +124,8 @@ export default function ParentCoordinatorChat() {
     enabled: !!conversation?.id,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: 60000,
-    gcTime: 600000,
-    retry: 1,
-    retryDelay: 2000,
+    staleTime: 30000,
+    gcTime: 300000,
   });
 
   // Auto-marcar como leídos los mensajes del coordinador - SISTEMA UNIFICADO
@@ -147,9 +143,9 @@ export default function ParentCoordinatorChat() {
             });
           }
         }
-        if ((conversation.no_leidos_padre || 0) > 0) {
-          await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_padre: 0 });
-        }
+        if ((conversation.no_leidos_familia || 0) > 0) {
+            await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_familia: 0 });
+          }
 
           // Marcar AppNotifications como vistas (SOLO ParentCoordinatorChat)
           const notifs = await base44.entities.AppNotification.filter({
@@ -196,9 +192,8 @@ export default function ParentCoordinatorChat() {
       return data[0];
     },
     refetchInterval: false,
-    staleTime: 600000,
+    staleTime: 300000,
     enabled: !!conversation?.id,
-    retry: 1,
   });
 
   const coordinatorTyping = conversationState?.coordinador_escribiendo;
