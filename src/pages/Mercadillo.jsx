@@ -121,7 +121,25 @@ export default function Mercadillo() {
     return () => obs.disconnect();
   }, [filtered.length]);
 
-   return (
+  const overdueMine = (() => {
+    if (!user || !Array.isArray(listings)) return [];
+    const now = Date.now();
+    const cutoff = 48 * 60 * 60 * 1000; // 48h
+    try {
+      return listings.filter((it) => {
+        if (it?.estado !== 'reservado') return false;
+        const isOwner = (it?.created_by === user.email) || (it?.vendedor_email === user.email);
+        if (!isOwner) return false;
+        const ts = it?.reservado_fecha || it?.updated_date || it?.created_date;
+        const t = ts ? new Date(ts).getTime() : NaN;
+        return Number.isFinite(t) && (now - t) > cutoff;
+      });
+    } catch {
+      return [];
+    }
+  })();
+
+  return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-black">🛍️ Mercadillo Deportivo</h1>
