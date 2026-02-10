@@ -727,6 +727,24 @@ export default function ParentPayments() {
 
 
 
+      {/* Banner destacado de pago múltiple */}
+      {cartSelected.length === 0 && (
+        <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400">
+          <div className="flex items-start gap-3">
+            <div className="bg-blue-600 text-white p-2 rounded-full">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <AlertTitle className="text-blue-900 font-bold text-base">⚡ Pago Express con Tarjeta</AlertTitle>
+              <AlertDescription className="text-blue-800 text-sm mt-1">
+                <strong>¿Varias cuotas pendientes?</strong> Selecciona todas las que quieras (de uno o varios jugadores), 
+                revisa el total y paga todo de una vez con tarjeta. ¡Rápido y seguro! 💳
+              </AlertDescription>
+            </div>
+          </div>
+        </Alert>
+      )}
+
       {/* Modal selector rápido Tarjeta / Transferencia */}
       <QuickPaySelector
         open={quickPayOpen}
@@ -1116,13 +1134,7 @@ export default function ParentPayments() {
         )}
       </div>
 
-      {/* Aviso de selección múltiple */}
-      <Alert className="mb-4">
-        <AlertTitle>Pago múltiple de cuotas</AlertTitle>
-        <AlertDescription>
-          Puedes seleccionar distintas cuotas de diferentes jugadores y pagarlas todas a la vez. Marca las cuotas que quieras, revisa el total y elige Tarjeta o Transferencia.
-        </AlertDescription>
-      </Alert>
+      {/* Info simplificada estados */}
 
       <ContactCard />
 
