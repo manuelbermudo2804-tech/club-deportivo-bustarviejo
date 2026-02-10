@@ -1576,6 +1576,7 @@ export default function Layout({ children, currentPageName }) {
 
     // ⚙️ CONFIGURACIÓN
     { title: "─ CONFIGURACIÓN ─", section: true },
+    { title: "📚 Manuales y Guías", url: createPageUrl("ManualsDownload"), icon: FileText },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
