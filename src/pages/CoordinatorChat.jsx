@@ -67,46 +67,45 @@ export default function CoordinatorChat({ embedded = false }) {
     return unsub;
   }, [isCoordinator, queryClient]);
 
-  // Marcar como leído AL ABRIR conversación - INMEDIATO Y DETERMINANTE
+  // Marcar como leído AL CERRAR conversación - NO al abrirla
   useEffect(() => {
-    if (!selectedConversation?.id || !user) return;
-    
-    // PASO 1: Decrementar badge EXACTAMENTE por los no leídos de ESTA conversación
-    const unreadInThisConv = selectedConversation.no_leidos_coordinador || 0;
-    if (unreadInThisConv > 0) {
-      for (let i = 0; i < unreadInThisConv; i++) {
-        UnifiedChatNotificationStore.decrement(user.email, 'coordinator');
-      }
-      console.log(`✅ [CoordinatorChat] Badge decrementado x${unreadInThisConv} para conversación ${selectedConversation.padre_nombre}`);
-    }
-    
-    // PASO 2: Actualizar BD en paralelo (no bloquear)
-    (async () => {
-      try {
-        // Actualizar conversación
-        if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
-          await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
-            no_leidos_coordinador: 0,
-            last_read_coordinador_at: new Date().toISOString()
-          });
+    return () => {
+      // Este cleanup se ejecuta cuando el componente se desmonta O cuando selectedConversation cambia
+      if (selectedConversation?.id && user?.email) {
+        const unreadInThisConv = selectedConversation.no_leidos_coordinador || 0;
+        if (unreadInThisConv > 0) {
+          for (let i = 0; i < unreadInThisConv; i++) {
+            UnifiedChatNotificationStore.decrement(user.email, 'coordinator');
+          }
+          console.log(`✅ [CoordinatorChat] Badge decrementado x${unreadInThisConv} al CERRAR conversación ${selectedConversation.padre_nombre}`);
         }
         
-        // Marcar AppNotifications como vistas
-        const notifs = await base44.entities.AppNotification.filter({
-          usuario_email: user.email,
-          enlace: "CoordinatorChat",
-          vista: false
-        });
-        for (const n of notifs) {
-          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-        }
-        
-        // Sincronizar ChatCounter
-        await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id });
-      } catch (err) {
-        console.error('Error marking as read:', err);
+        // Actualizar BD en segundo plano
+        (async () => {
+          try {
+            if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
+              await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
+                no_leidos_coordinador: 0,
+                last_read_coordinador_at: new Date().toISOString()
+              });
+            }
+            
+            const notifs = await base44.entities.AppNotification.filter({
+              usuario_email: user.email,
+              enlace: "CoordinatorChat",
+              vista: false
+            });
+            for (const n of notifs) {
+              await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+            }
+            
+            await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id });
+          } catch (err) {
+            console.error('Error marking as read on close:', err);
+          }
+        })();
       }
-    })();
+    };
   }, [selectedConversation?.id, user?.email]);
 
   const archiveMutation = useMutation({
