@@ -126,8 +126,10 @@ export default function ParentCoordinatorChat() {
     enabled: !!conversation?.id,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: 30000,
-    gcTime: 300000,
+    staleTime: 60000,
+    gcTime: 600000,
+    retry: 1,
+    retryDelay: 2000,
   });
 
   // Auto-marcar como leídos los mensajes del coordinador - SISTEMA UNIFICADO
@@ -194,8 +196,9 @@ export default function ParentCoordinatorChat() {
       return data[0];
     },
     refetchInterval: false,
-    staleTime: 300000,
+    staleTime: 600000,
     enabled: !!conversation?.id,
+    retry: 1,
   });
 
   const coordinatorTyping = conversationState?.coordinador_escribiendo;
