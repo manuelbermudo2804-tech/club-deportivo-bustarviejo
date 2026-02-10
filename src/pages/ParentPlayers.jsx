@@ -17,7 +17,7 @@ import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
-import ShareReferralButton from "../components/players/ShareReferralButton";
+import ShareFormButton from "../components/players/ShareFormButton";
 
 
 export default function ParentPlayers() {
@@ -970,7 +970,7 @@ Email: cdbustarviejo@gmail.com
           <p className="text-slate-600 mt-1 text-sm lg:text-base">Gestiona la información de tus jugadores</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-          <ShareReferralButton user={user} />
+          <ShareFormButton />
           {!isPlayerUser && players.length > 0 && (
             <Button
               onClick={() => {

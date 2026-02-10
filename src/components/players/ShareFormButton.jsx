@@ -2,26 +2,23 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Share2, Copy, Check } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
-export default function ShareReferralButton({ user }) {
+export default function ShareFormButton() {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  if (!user?.full_name) return null;
-
-  const referralLink = `https://app.cdbustarviejo.com/JoinReferral?referrer=${encodeURIComponent(user.full_name)}`;
+  const formLink = "https://forms.gle/jfFAqGBjNbhYd6Jw9";
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(referralLink);
+    navigator.clipboard.writeText(formLink);
     setCopied(true);
     toast.success("Enlace copiado");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = () => {
-    const message = `¡Únete al CD Bustarviejo! 🟠⚽\n\nInscribe a tu hijo/a en nuestro club y disfruta de beneficios exclusivos.\n\n👉 ${referralLink}\n\n¡Te espero en el club! 💪`;
+    const message = `📋 Formulario de Inscripción - CD Bustarviejo\n\n${formLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -31,27 +28,27 @@ export default function ShareReferralButton({ user }) {
         onClick={() => setOpen(true)}
         variant="outline"
         size="sm"
-        className="gap-2 border-green-500 text-green-700 hover:bg-green-50"
+        className="gap-2 border-blue-500 text-blue-700 hover:bg-blue-50"
       >
         <Share2 className="w-4 h-4" />
-        <span className="hidden sm:inline">Invitar Amigos</span>
+        <span className="hidden sm:inline">Compartir Formulario</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <div className="text-center space-y-4 p-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <Share2 className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+              <Share2 className="w-8 h-8 text-blue-600" />
             </div>
             
-            <h2 className="text-2xl font-bold text-slate-900">Invita a tus amigos</h2>
+            <h2 className="text-2xl font-bold text-slate-900">Compartir Formulario</h2>
             <p className="text-sm text-slate-600">
-              Comparte tu enlace de referido y gana premios cuando tus amigos se inscriban
+              Comparte el formulario de inscripción externo para captar nuevos jugadores
             </p>
 
             <div className="bg-slate-50 rounded-lg p-3 text-left">
-              <p className="text-xs text-slate-500 mb-1">Tu enlace personal:</p>
-              <p className="text-sm text-slate-900 break-all font-mono">{referralLink}</p>
+              <p className="text-xs text-slate-500 mb-1">Enlace del formulario:</p>
+              <p className="text-sm text-slate-900 break-all font-mono">{formLink}</p>
             </div>
 
             <div className="flex gap-2">
@@ -73,12 +70,6 @@ export default function ShareReferralButton({ user }) {
                 </svg>
                 WhatsApp
               </Button>
-            </div>
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <p className="text-xs text-green-800">
-                🎁 <strong>Gana premios</strong> por cada socio que traigas: crédito en ropa y participaciones en sorteos
-              </p>
             </div>
           </div>
         </DialogContent>
