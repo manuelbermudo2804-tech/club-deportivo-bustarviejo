@@ -1170,25 +1170,14 @@ export default function Layout({ children, currentPageName }) {
 
           // 4. Entrenador - familias (1-a-1 + grupo)
           if (currentUser.es_entrenador) {
-            // 3a. Conversaciones 1-a-1
-            const coachConvs = await base44.entities.CoachConversation.filter({ entrenador_email: currentUser.email });
-            let coachUnread = coachConvs.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
+            // 3a. Conversaciones 1-a-1 - DESACTIVADO por entity no encontrada
+               // const coachConvs = await base44.entities.CoachConversation.filter({ entrenador_email: currentUser.email });
+               let coachUnread = 0; // Temporalmente 0 hasta que entity exista
             
-            // 3b. Mensajes de grupo (ChatMessage)
-            const myCoachCategories = currentUser.categorias_entrena || [];
-            for (const cat of myCoachCategories) {
-              const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-              const groupId = normalizeId(cat);
-              
-              const messages = await base44.entities.ChatMessage.filter({ grupo_id: groupId }, '-created_date', 50);
-              const unreadInGroup = messages.filter(msg => 
-                msg.tipo === 'padre_a_grupo' &&
-                msg.remitente_email !== currentUser.email &&
-                (!msg.leido_por || !msg.leido_por.some(r => r.email === currentUser.email))
-              ).length;
-              
-              coachUnread += unreadInGroup;
-            }
+            // 3b. Mensajes de grupo - DESACTIVADO temporalmente por rate limits
+               const myCoachCategories = currentUser.categorias_entrena || [];
+               // TODO: Re-habilitar cuando API esté optimizado
+               // for (const cat of myCoachCategories) { ... }
             
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'coach', coachUnread);
           }
@@ -1218,19 +1207,8 @@ export default function Layout({ children, currentPageName }) {
             const myCategories = [...new Set(myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
             let coachUnread = 0;
 
-            for (const cat of myCategories) {
-              const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-              const groupId = normalizeId(cat);
-              
-              const messages = await base44.entities.ChatMessage.filter({ grupo_id: groupId }, '-created_date', 50);
-              const unreadInGroup = messages.filter(msg => 
-                (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') &&
-                msg.remitente_email !== currentUser.email &&
-                (!msg.leido_por || !msg.leido_por.some(r => r.email === currentUser.email))
-              ).length;
-              
-              coachUnread += unreadInGroup;
-            }
+            // Desactivado temporalmente por rate limits
+            // for (const cat of myCategories) { ... }
 
             UnifiedChatNotificationStore.updateCount(currentUser.email, 'coachForFamily', coachUnread);
           }
