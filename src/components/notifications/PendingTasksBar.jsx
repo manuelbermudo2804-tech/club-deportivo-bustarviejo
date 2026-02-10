@@ -30,7 +30,8 @@ export default function PendingTasksBar({ notifications, forceShow = false }) {
   const isCoordinator = notifications?.isCoordinator;
   const isCoach = notifications?.isCoach;
 
-  const total = coordTotal + coachTotal + staffTotal + adminTotal + privateTotal + familyTotal;
+  const deletionTotal = notifications?.pendingDeletionRequests || 0;
+  const total = coordTotal + coachTotal + staffTotal + adminTotal + privateTotal + familyTotal + deletionTotal;
   
   // SIEMPRE mostrar para admin, coordinador y entrenador (aunque no haya mensajes)
   const shouldShow = (forceShow === true) || (role === 'admin' || isCoordinator === true || isCoach === true || total > 0);

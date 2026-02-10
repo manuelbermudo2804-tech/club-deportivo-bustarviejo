@@ -45,6 +45,7 @@ export function useUnifiedNotifications(user, options = {}) {
     pendingClothingOrders: 0,
     pendingLotteryOrders: 0,
     pendingMemberRequests: 0,
+    pendingDeletionRequests: 0,
     
     // ENTRENADORES
     pendingMatchObservations: 0,
@@ -72,6 +73,7 @@ export function useUnifiedNotifications(user, options = {}) {
     clubMembers: [],
     matchObservations: [],
     appNotifications: [],
+    accountDeletionRequests: [],
   });
   const [isPrimaryInstance, setIsPrimaryInstance] = useState(false);
 
@@ -500,12 +502,14 @@ export function useUnifiedNotifications(user, options = {}) {
     // ===== ADMIN ONLY =====
     if (user.role === 'admin') {
       const loadInvitations = async () => {
-        const [inv, secInv, clothing, lottery, members] = await Promise.all([
+        const [inv, secInv, clothing, lottery, members, delReqSolicitada, delReqRevision] = await Promise.all([
           base44.entities.InvitationRequest.filter({ estado: "Pendiente" }),
           base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
           base44.entities.ClothingOrder.list('-updated_date', 80),
           base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }),
-          base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })
+          base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }),
+          base44.entities.AccountDeletionRequest.filter({ status: "solicitada" }),
+          base44.entities.AccountDeletionRequest.filter({ status: "en_revision" })
         ]);
         setRawData(prev => ({ 
           ...prev, 
@@ -513,7 +517,8 @@ export function useUnifiedNotifications(user, options = {}) {
           secondParentInvitations: secInv,
           clothingOrders: clothing,
           lotteryOrders: lottery,
-          clubMembers: members
+          clubMembers: members,
+          accountDeletionRequests: [...(delReqSolicitada || []), ...(delReqRevision || [])]
         }));
       };
       if (forceRefreshKey > 0) {
@@ -561,8 +566,17 @@ export function useUnifiedNotifications(user, options = {}) {
                       });
                     });
                   });
+      const unsubDeletionReq = base44.entities.AccountDeletionRequest.subscribe(() => {
+                    globalThrottler.execute(async () => {
+                      const [sol, rev] = await Promise.all([
+                        base44.entities.AccountDeletionRequest.filter({ status: "solicitada" }),
+                        base44.entities.AccountDeletionRequest.filter({ status: "en_revision" })
+                      ]);
+                      setRawData(prev => ({ ...prev, accountDeletionRequests: [...(sol || []), ...(rev || [])] }));
+                    });
+                  });
 
-                  unsubscribers.push(unsubInv, unsubSecInv, unsubClothing, unsubLottery, unsubMembers);
+                  unsubscribers.push(unsubInv, unsubSecInv, unsubClothing, unsubLottery, unsubMembers, unsubDeletionReq);
     }
 
     // ===== ENTRENADORES/COORDINADORES =====
@@ -862,6 +876,7 @@ export function useUnifiedNotifications(user, options = {}) {
     let pendingClothingOrders = 0;
     let pendingLotteryOrders = 0;
     let pendingMemberRequests = 0;
+    let pendingDeletionRequests = 0;
 
     if (user.role === 'admin') {
       unresolvedAdminChats = (rawData.adminConversations || []).filter(c => c.resuelta === false).length;
@@ -870,6 +885,7 @@ export function useUnifiedNotifications(user, options = {}) {
       pendingClothingOrders = (rawData.clothingOrders || []).filter(o => o.estado === 'Pendiente' || o.estado === 'En revisión').length;
       pendingLotteryOrders = (rawData.lotteryOrders || []).length;
       pendingMemberRequests = (rawData.clubMembers || []).length;
+      pendingDeletionRequests = (rawData.accountDeletionRequests || []).length;
     }
 
     // OBSERVACIONES DE PARTIDOS
@@ -949,6 +965,7 @@ export function useUnifiedNotifications(user, options = {}) {
       pendingClothingOrders,
       pendingLotteryOrders,
       pendingMemberRequests,
+      pendingDeletionRequests,
       pendingMatchObservations,
       hasActiveAdminConversation,
       appNotificationsCount,
