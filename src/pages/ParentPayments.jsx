@@ -534,7 +534,7 @@ export default function ParentPayments() {
       },
       quantity: 1
     }));
-    const { data } = await base44.functions.invoke('stripeCheckout', {
+    const response = await base44.functions.invoke('stripeCheckout', {
       lineItems,
       successUrl,
       cancelUrl,
@@ -544,6 +544,7 @@ export default function ParentPayments() {
         user_email: user?.email
       }
     });
+    const data = response.data || response;
     if (data?.id) {
       await base44.entities.BatchPayment.update(batch.id, { stripe_session_id: data.id });
     }
@@ -1142,7 +1143,7 @@ export default function ParentPayments() {
             }
             const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
             const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
-            const { data } = await base44.functions.invoke('stripeCheckout', {
+            const response = await base44.functions.invoke('stripeCheckout', {
               amount: Number(payment.cantidad),
               name: `Cuota ${payment.mes} - ${player.nombre} (${payment.temporada})`,
               currency: 'eur',
@@ -1159,6 +1160,7 @@ export default function ParentPayments() {
                 user_email: user?.email
               }
             });
+            const data = response.data || response;
             if (data?.url) {
               window.location.href = data.url;
             } else {
