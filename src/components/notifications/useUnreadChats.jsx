@@ -64,58 +64,107 @@ export default function useUnreadChats(enabled = true) {
     return unsubscribe;
   }, [enabled, user, isAdmin, isFamily, isPlayer]);
 
-  // Mensajes de grupos entrenador↔familia - Real-time
+  // CRÍTICO: NO cargar aquí - esto duplica ChatNotificationSync + NotificationCenter
+  // Solo usar para contadores, no para datos crudos
   const [groupMessages, setGroupMessages] = useState([]);
 
   useEffect(() => {
     if (!enabled || !user) return;
 
+    // SOLO cargar los últimos 50 mensajes para contadores
     const loadInitial = async () => {
-      const messages = await base44.entities.ChatMessage.list("-created_date", 200);
-      setGroupMessages(messages);
+      try {
+        const messages = await base44.entities.ChatMessage.list("-created_date", 50);
+        setGroupMessages(messages);
+      } catch (e) {
+        console.error('[useUnreadChats] Error loading group messages:', e);
+      }
     };
     loadInitial();
 
     const unsubscribe = base44.entities.ChatMessage.subscribe((event) => {
-      if (event.type === 'create') setGroupMessages(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setGroupMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
-      else if (event.type === 'delete') setGroupMessages(prev => prev.filter(m => m.id !== event.id));
+      try {
+        if (event.type === 'create') setGroupMessages(prev => [event.data, ...prev].slice(0, 50));
+        else if (event.type === 'update') setGroupMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+        else if (event.type === 'delete') setGroupMessages(prev => prev.filter(m => m.id !== event.id));
+      } catch (e) {
+        console.error('[useUnreadChats] Error in group message subscription:', e);
+      }
     });
 
-    return unsubscribe;
+    return () => {
+      try {
+        unsubscribe();
+      } catch (e) {
+        console.error('[useUnreadChats] Error unsubscribing from group messages:', e);
+      }
+    };
   }, [enabled, user]);
 
-  // Conversaciones privadas - Real-time
+  // Conversaciones privadas - Real-time (máximo 50)
   const [privateConvs, setPrivateConvs] = useState([]);
 
   useEffect(() => {
     if (!enabled || !user) return;
 
     const loadInitial = async () => {
-      const convs = await base44.entities.PrivateConversation.list("-ultimo_mensaje_fecha", 120);
-      setPrivateConvs(convs);
+      try {
+        const convs = await base44.entities.PrivateConversation.list("-ultimo_mensaje_fecha", 50);
+        setPrivateConvs(convs);
+      } catch (e) {
+        console.error('[useUnreadChats] Error loading private conversations:', e);
+      }
     };
     loadInitial();
 
     const unsubscribe = base44.entities.PrivateConversation.subscribe((event) => {
-      if (event.type === 'create') setPrivateConvs(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setPrivateConvs(prev => prev.map(c => c.id === event.id ? event.data : c));
-      else if (event.type === 'delete') setPrivateConvs(prev => prev.filter(c => c.id !== event.id));
+      try {
+        if (event.type === 'create') setPrivateConvs(prev => [event.data, ...prev].slice(0, 50));
+        else if (event.type === 'update') setPrivateConvs(prev => prev.map(c => c.id === event.id ? event.data : c));
+        else if (event.type === 'delete') setPrivateConvs(prev => prev.filter(c => c.id !== event.id));
+      } catch (e) {
+        console.error('[useUnreadChats] Error in private conversation subscription:', e);
+      }
     });
 
-    return unsubscribe;
+    return () => {
+      try {
+        unsubscribe();
+      } catch (e) {
+        console.error('[useUnreadChats] Error unsubscribing from private conversations:', e);
+      }
+    };
   }, [enabled, user]);
 
   // Jugadores del usuario (para familias/jugadores)
+  // CRÍTICO: Resetear estados cuando cambia user (evitar data leak de usuario anterior)
+  useEffect(() => {
+    if (!user) {
+      setCoordConvs([]);
+      setAdminConvs([]);
+      setGroupMessages([]);
+      setPrivateConvs([]);
+    }
+  }, [user?.email]);
+
   const { data: players = [] } = useQuery({
     queryKey: ["players-unified", user?.email],
     queryFn: async () => {
-      const all = await base44.entities.Player.list();
-      return all.filter(
-        (p) =>
-          p.activo === true &&
-          (p.email_padre === user?.email || p.email_tutor_2 === user?.email || p.email_jugador === user?.email)
-      );
+      try {
+        // Filtrar al cargar, no después (optimiza base de datos)
+        const all = await base44.entities.Player.filter({
+          activo: true,
+          $or: [
+            { email_padre: user?.email },
+            { email_tutor_2: user?.email },
+            { email_jugador: user?.email }
+          ]
+        }, '-created_date', 100);
+        return all;
+      } catch (e) {
+        console.error('[useUnreadChats] Error loading players:', e);
+        return [];
+      }
     },
     initialData: [],
     enabled: enabled && !!user,

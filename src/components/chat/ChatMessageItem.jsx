@@ -6,7 +6,9 @@ import { es } from "date-fns/locale";
 import EmojiScaler from "./EmojiScaler";
 
 export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true, showReadStatus = false, isGroupStart = true, marginTop = '12px' }) {
+  // CRÍTICO: Soportar AMBOS remitente_email (ChatMessage) Y autor_email (StaffMessage)
   const senderEmail = message.remitente_email || message.autor_email;
+  const senderName = message.remitente_nombre || message.autor_nombre || 'Usuario';
   const isMine = currentUserEmail && senderEmail === currentUserEmail;
   const isCoach = message.tipo === "entrenador_a_grupo";
   const isBot = message.es_respuesta_bot === true;
@@ -24,7 +26,7 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
         {showSenderName && (
           <div className="flex items-center gap-1 mb-0.5">
             <p className="text-[11px] font-semibold opacity-75">
-              {isBot ? '🤖 ' : isCoach ? '🏃 ' : isSystem ? '📢 ' : ''}{message.remitente_nombre}
+              {isBot ? '🤖 ' : isCoach ? '🏃 ' : isSystem ? '📢 ' : ''}{senderName}
             </p>
             {isBot && <Badge className="text-[10px] bg-blue-400 px-1 py-0 h-4">Bot</Badge>}
             {isCoach && !isBot && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}

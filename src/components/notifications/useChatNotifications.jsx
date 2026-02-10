@@ -6,10 +6,10 @@ import { base44 } from '@/api/base44Client';
  * Retorna estructura unificada para mostrar en AlertCenter y NotificationCenter
  */
 export function useChatNotifications(user, enabled = true) {
-  // Cargar conversaciones según rol del usuario
-  const shouldLoadCoord = enabled && (user?.es_coordinador || (!user?.es_entrenador && !user?.es_tesorero && user?.role !== 'admin'));
-  const shouldLoadAdmin = enabled && (user?.role === 'admin' || (!user?.es_entrenador && !user?.es_coordinador && !user?.es_tesorero));
-  const shouldLoadStaff = enabled && (user?.es_entrenador || user?.es_coordinador || user?.role === 'admin');
+  // CRÍTICO: Usar validación booleana estricta (=== true)
+  const shouldLoadCoord = enabled && (user?.es_coordinador === true || (user?.es_entrenador !== true && user?.es_tesorero !== true && user?.role !== 'admin'));
+  const shouldLoadAdmin = enabled && (user?.role === 'admin' || (user?.es_entrenador !== true && user?.es_coordinador !== true && user?.es_tesorero !== true));
+  const shouldLoadStaff = enabled && (user?.es_entrenador === true || user?.es_coordinador === true || user?.role === 'admin');
 
   const { data: coordinatorConversations = [] } = useQuery({
     queryKey: ['coordinatorConversations', user?.email],
@@ -34,7 +34,7 @@ export function useChatNotifications(user, enabled = true) {
 
   const { data: staffMessages = [] } = useQuery({
     queryKey: ['staffMessages', user?.email],
-    queryFn: () => base44.entities.StaffMessage.list('-created_date', 100),
+    queryFn: () => base44.entities.StaffMessage.list('-created_date', 50), // Máximo 50, no 100
     enabled: shouldLoadStaff,
     refetchInterval: 20000,
   });
@@ -60,13 +60,21 @@ export function useChatNotifications(user, enabled = true) {
   const staffUnread = staffMessages.filter((m) => {
     if (!user?.email || m.autor_email === user.email) return false;
     const destinatarios = m.staff_destinatarios || [];
-    if (destinatarios.length === 0) return true;
+    // CRÍTICO: Si NO hay destinatarios específicos, es para TODOS los staff
+    // Pero aun así validar que el usuario es staff
     const soyCoord = user.es_coordinador === true;
     const soyCoach = user.es_entrenador === true;
     const soyAdmin = user.role === 'admin';
-    return (soyCoord && destinatarios.includes('coordinator')) ||
-           (soyCoach && destinatarios.includes('coach')) ||
-           (soyAdmin && destinatarios.includes('admin'));
+    
+    // Si hay destinatarios, debe estar en la lista
+    if (destinatarios.length > 0) {
+      return (soyCoord && destinatarios.includes('coordinator')) ||
+             (soyCoach && destinatarios.includes('coach')) ||
+             (soyAdmin && destinatarios.includes('admin'));
+    }
+    
+    // Si no hay destinatarios, solo lo ven staff
+    return soyCoord || soyCoach || soyAdmin;
   }).length;
 
   return {
