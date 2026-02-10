@@ -414,9 +414,10 @@ export default function BudgetManager({
 
   const renderPartidaRow = (partida) => {
     const esIngreso = partida.categoria === "Ingresos";
-    const porcentaje = partida.presupuestado > 0 
-      ? Math.min((partida.ejecutado / partida.presupuestado) * 100, 150) 
+    const porcentajeRaw = partida.presupuestado > 0 
+      ? (partida.ejecutado / partida.presupuestado) * 100 
       : 0;
+    const porcentaje = Math.max(0, Math.min(100, porcentajeRaw));
     const desviacion = (partida.ejecutado || 0) - (partida.presupuestado || 0);
 
     return (
