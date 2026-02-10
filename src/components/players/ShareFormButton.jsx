@@ -8,7 +8,7 @@ export default function ShareFormButton() {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const formLink = "https://forms.gle/jfFAqGBjNbhYd6Jw9";
+  const formLink = "https://alta-socio.vercel.app/jugadores.html";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(formLink);
