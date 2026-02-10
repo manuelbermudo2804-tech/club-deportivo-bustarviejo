@@ -56,7 +56,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   }
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-bottom">
+    <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-bottom ${isInChat ? 'hidden' : ''}`}>
       <div className="flex items-center justify-around">
         {tabs.map(({ icon: Icon, label, url, key, badge }) => (
           <Link
