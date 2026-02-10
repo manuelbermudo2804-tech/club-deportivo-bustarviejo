@@ -65,7 +65,6 @@ import ChatNotificationAuditPage from './pages/ChatNotificationAuditPage';
 import ChatTestConsole from './pages/ChatTestConsole';
 import Chatbot from './pages/Chatbot';
 import Clasificaciones from './pages/Clasificaciones';
-import ClothingOrders from './pages/ClothingOrders';
 import ClubMembersManagement from './pages/ClubMembersManagement';
 import ClubMembership from './pages/ClubMembership';
 import ClubStats from './pages/ClubStats';
@@ -177,7 +176,6 @@ export const PAGES = {
     "ChatTestConsole": ChatTestConsole,
     "Chatbot": Chatbot,
     "Clasificaciones": Clasificaciones,
-    "ClothingOrders": ClothingOrders,
     "ClubMembersManagement": ClubMembersManagement,
     "ClubMembership": ClubMembership,
     "ClubStats": ClubStats,

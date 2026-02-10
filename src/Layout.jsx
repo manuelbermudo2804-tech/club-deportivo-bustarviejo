@@ -191,7 +191,7 @@ function ClosedSeasonScreen({ user, isAdmin }) {
   );
 }
 
-function InscriptionPeriodScreen({ user, isAdmin }) {
+function InscriptionPeriodScreen({ user, isAdmin, clothingStoreUrl, merchStoreUrl }) {
   const handleLogout = () => {
     base44.auth.logout();
   };
@@ -286,12 +286,19 @@ function InscriptionPeriodScreen({ user, isAdmin }) {
                 </Button>
               </Link>
               
-              <Link to={createPageUrl("ClothingOrders")} className="w-full">
-                <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 text-lg shadow-xl">
+              {clothingStoreUrl ? (
+                <a href={clothingStoreUrl} target="_blank" rel="noopener noreferrer" className="w-full">
+                  <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 text-lg shadow-xl">
+                    <ShoppingBag className="w-5 h-5 mr-2" />
+                    Pedidos de Equipación
+                  </Button>
+                </a>
+              ) : (
+                <Button disabled className="w-full bg-gray-300 text-gray-600 font-bold py-6 text-lg shadow-xl">
                   <ShoppingBag className="w-5 h-5 mr-2" />
-                  Pedidos de Equipación
+                  Pedidos de Equipación (Próximamente)
                 </Button>
-              </Link>
+              )}
             </div>
             <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-600">
               <p>⏸️ <strong>Resto de funciones</strong> (pagos cuotas, calendario, etc.) estarán disponibles en <strong>Septiembre</strong> con el inicio de la temporada.</p>
@@ -542,6 +549,8 @@ export default function Layout({ children, currentPageName }) {
 
   const [isJunta, setIsJunta] = useState(false);
   const [activeSeasonConfig, setActiveSeasonConfig] = useState(null);
+  const clothingStoreUrl = activeSeasonConfig?.tienda_ropa_url || null;
+  const merchStoreUrl = activeSeasonConfig?.tienda_merch_url || null;
 
   // Función para recargar la configuración (usada por polling y eventos de visibilidad)
   const fetchSeasonConfig = async () => {
@@ -1539,7 +1548,8 @@ export default function Layout({ children, currentPageName }) {
 
     // 🛍️ PEDIDOS Y EXTRAS
     { title: "─ PEDIDOS Y EXTRAS ─", section: true },
-    { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag, badge: pendingClothingOrders > 0 ? pendingClothingOrders : null },
+    ...(clothingStoreUrl ? [{ title: "🛍️ Tienda Equipación", externalUrl: clothingStoreUrl, icon: ShoppingBag }] : []),
+    ...(merchStoreUrl ? [{ title: "🛒 Merchandising", externalUrl: merchStoreUrl, icon: ShoppingBag }] : []),
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
             { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
@@ -2013,7 +2023,7 @@ export default function Layout({ children, currentPageName }) {
     return <ClosedSeasonScreen user={user} isAdmin={isAdmin} />;
   }
   if (shouldShowInscriptions) {
-    return <InscriptionPeriodScreen user={user} isAdmin={isAdmin} />;
+    return <InscriptionPeriodScreen user={user} isAdmin={isAdmin} clothingStoreUrl={activeSeasonConfig?.tienda_ropa_url} merchStoreUrl={activeSeasonConfig?.tienda_merch_url} />;
   }
   if (shouldShowVacation) {
     return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
@@ -2525,7 +2535,23 @@ export default function Layout({ children, currentPageName }) {
                       </div>
                     );
                   }
-                  return (
+                  return item.externalUrl ? (
+                    <a
+                      key={item.title}
+                      href={item.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                        item.highlight
+                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg ring-2 ring-green-400 animate-pulse'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      <item.icon className="w-6 h-6 flex-shrink-0" />
+                      <span className="font-semibold text-base flex-1">{item.title}</span>
+                    </a>
+                  ) : (
                     <Link
                       key={item.title}
                       to={item.url}
