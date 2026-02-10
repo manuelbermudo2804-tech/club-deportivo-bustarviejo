@@ -83,8 +83,9 @@ export default function CoordinatorChat({ embedded = false }) {
           console.log(`✅ [CoordinatorChat] Badge decrementado x${unreadInThisConv} al ENTRAR`);
         }
 
-        // 2. Actualizar BD: guardar last_read_at (NO poner no_leidos a 0)
+        // 2. Actualizar BD: marcar como leído
         await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
+          no_leidos_coordinador: 0,
           last_read_coordinador_at: new Date().toISOString()
         });
 

@@ -123,7 +123,16 @@ export default function CoachParentChat({ embedded = false }) {
           console.log(`✅ [CoachChat] Badge decrementado x${unreadInThisTab} al ENTRAR`);
         }
 
-        // 2. Marcar mensajes como leídos
+        // 2. Decrementar contador en CoachConversation si existe
+        const coachConv = await base44.entities.CoachConversation.filter({ entrenador_email: user.email, categoria: selectedCategory });
+        if (coachConv.length > 0) {
+          await base44.entities.CoachConversation.update(coachConv[0].id, {
+            no_leidos_entrenador: 0,
+            last_read_entrenador_at: new Date().toISOString()
+          });
+        }
+
+        // 3. Marcar mensajes como leídos
         const allMsgs = await base44.entities.ChatMessage.filter({ grupo_id: catId, tipo: 'padre_a_grupo' });
         const unread = allMsgs.filter(m => !m.leido_por?.some(lp => lp.email === user.email));
         
@@ -134,7 +143,7 @@ export default function CoachParentChat({ embedded = false }) {
           }));
         }
 
-        // 3. Marcar AppNotifications como vistas
+        // 4. Marcar AppNotifications como vistas
         const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: "CoachParentChat", vista: false });
         await Promise.all(notifs.map(n => base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })));
         
