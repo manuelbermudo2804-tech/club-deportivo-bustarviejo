@@ -359,6 +359,10 @@ export default function Home() {
       const convs = await base44.entities.StaffConversation.filter({ categoria: 'General' });
       return convs[0] || null;
     },
+    staleTime: 5000,
+    refetchOnWindowFocus: true, // ✅ Actualizar SIEMPRE al volver
+    refetchOnMount: true,
+    refetchInterval: 10000,
     enabled: queriesEnabled && (isCoordinator || isCoach || isAdmin),
   });
 
@@ -368,6 +372,10 @@ export default function Home() {
       if (!staffConversationHome?.id) return [];
       return await base44.entities.StaffMessage.filter({ conversacion_id: staffConversationHome.id }, 'created_date');
     },
+    staleTime: 5000,
+    refetchOnWindowFocus: true, // ✅ Actualizar SIEMPRE al volver
+    refetchOnMount: true,
+    refetchInterval: 10000,
     enabled: queriesEnabled && !!staffConversationHome?.id,
   });
 
