@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
+import { useQueryClient } from "@tanstack/react-query";
 
 
 import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert, UserX, RotateCw, CheckCircle2, Trophy, ChevronLeft } from "lucide-react";
@@ -634,6 +635,9 @@ export default function Layout({ children, currentPageName }) {
   const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
   const [navDirection, setNavDirection] = useState('forward');
+  const queryClient = useQueryClient();
+  const SOFT_PTR_PAGES = new Set(['Home','ParentDashboard','CoachDashboard','TreasurerDashboard','CoordinatorDashboard','PlayerDashboard']);
+  const DISABLED_PTR_PAGES = new Set(['StaffChat','CoachParentChat','ParentCoachChat','CoordinatorChat','ParentSystemMessages','ParentCoordinatorChat']);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
   
@@ -2852,10 +2856,14 @@ export default function Layout({ children, currentPageName }) {
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}
           <PullToRefresh
-            enabled={isMobile}
+            enabled={isMobile && SOFT_PTR_PAGES.has(currentPageName)}
             onRefresh={async () => {
-              // refresco seguro en móvil (sin activar pull nativo)
-              window.location.reload();
+              try {
+                await queryClient.invalidateQueries();
+                await queryClient.refetchQueries({ type: 'active' });
+              } catch (e) {
+                window.location.reload();
+              }
             }}
           >
             <AnimatePresence mode="wait" initial={false}>
