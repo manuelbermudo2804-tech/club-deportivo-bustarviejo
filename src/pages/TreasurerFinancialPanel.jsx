@@ -107,12 +107,7 @@ export default function TreasurerFinancialPanel() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: clothingOrders = [] } = useQuery({
-    queryKey: ['clothingOrders'],
-    queryFn: () => base44.entities.ClothingOrder.list(),
-    staleTime: 120000, // 2 minutos
-    refetchOnWindowFocus: false,
-  });
+  const clothingOrders = [];
 
   const { data: lotteryOrders = [] } = useQuery({
     queryKey: ['lotteryOrders'],
@@ -378,9 +373,9 @@ export default function TreasurerFinancialPanel() {
       cuotasPendientes: totalPendiente,
       cuotasEnRevision: currentSeasonPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0),
       
-      ropaTotal: currentSeasonClothing.reduce((sum, o) => sum + ((o.precio_final ?? o.precio_total) || 0), 0),
-      ropaPagada: currentSeasonClothing.filter(o => (o.pagado === true) || o.estado === "Entregado" || o.estado === "Confirmado").reduce((sum, o) => sum + ((o.precio_final ?? o.precio_total) || 0), 0),
-      ropaPendiente: currentSeasonClothing.filter(o => !((o.pagado === true) || o.estado === "Entregado" || o.estado === "Confirmado")).reduce((sum, o) => sum + ((o.precio_final ?? o.precio_total) || 0), 0),
+      ropaTotal: 0,
+      ropaPagada: 0,
+      ropaPendiente: 0,
       
       loteriaTotal: currentSeasonLottery.reduce((sum, o) => sum + (o.total || 0), 0),
       loteriaPagada: currentSeasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0),
@@ -395,15 +390,14 @@ export default function TreasurerFinancialPanel() {
   }, [activeSeason, payments, players, clothingOrders, lotteryOrders, clubMembers, sponsors, customPlans]);
 
   // TOTALES CORREGIDOS
-  const totalIngresos = stats.cuotasPagadas + stats.ropaPagada + stats.loteriaPagada + stats.sociosPagados + stats.patrociniosTotal;
-  const totalPendiente = stats.cuotasPendientes + stats.ropaPendiente + stats.loteriaPendiente + stats.sociosPendientes;
+  const totalIngresos = stats.cuotasPagadas + stats.loteriaPagada + stats.sociosPagados + stats.patrociniosTotal;
+  const totalPendiente = stats.cuotasPendientes + stats.loteriaPendiente + stats.sociosPendientes;
   const totalEsperado = totalIngresos + totalPendiente + stats.cuotasEnRevision;
 
   // Datos para gráficos
   const chartData = useMemo(() => {
     return [
       { name: 'Cuotas', Cobrado: stats.cuotasPagadas, Pendiente: stats.cuotasPendientes, EnRevision: stats.cuotasEnRevision },
-      { name: 'Ropa', Cobrado: stats.ropaPagada, Pendiente: stats.ropaPendiente, EnRevision: 0 },
       { name: 'Lotería', Cobrado: stats.loteriaPagada, Pendiente: stats.loteriaPendiente, EnRevision: 0 },
       { name: 'Socios', Cobrado: stats.sociosPagados, Pendiente: stats.sociosPendientes, EnRevision: 0 },
       { name: 'Patrocinios', Cobrado: stats.patrociniosTotal, Pendiente: 0, EnRevision: 0 },
@@ -412,7 +406,6 @@ export default function TreasurerFinancialPanel() {
 
   const pieData = useMemo(() => [
     { name: 'Cuotas', value: stats.cuotasPagadas, color: '#3b82f6' },
-    { name: 'Ropa', value: stats.ropaPagada, color: '#f97316' },
     { name: 'Lotería', value: stats.loteriaPagada, color: '#22c55e' },
     { name: 'Socios', value: stats.sociosPagados, color: '#6366f1' },
     { name: 'Patrocinios', value: stats.patrociniosTotal, color: '#a855f7' },
@@ -890,8 +883,8 @@ export default function TreasurerFinancialPanel() {
               </CardContent>
             </Card>
 
-            {/* Pedidos Ropa */}
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
+            {/* Pedidos Ropa - Eliminado por externalización */}
+            {/*
               <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 border-b">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
