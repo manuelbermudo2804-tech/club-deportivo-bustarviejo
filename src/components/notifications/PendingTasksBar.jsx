@@ -66,6 +66,14 @@ export default function PendingTasksBar({ notifications, forceShow = false }) {
           color="bg-green-800/40"
           onClick={() => navigate(createPageUrl('ParentAdminChat'))}
         />
+        {notifications?.role === 'admin' && (
+          <Chip
+            label="Eliminación"
+            count={deletionTotal}
+            color="bg-red-600/70"
+            onClick={() => navigate(createPageUrl('DeleteAccount'))}
+          />
+        )}
         <Chip
           label="Privados"
           count={privateTotal}
