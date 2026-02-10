@@ -11,7 +11,6 @@ import { Calendar, MapPin, Clock, Users, CheckCircle2, XCircle, HelpCircle, Info
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
-import { createEvent } from "ics";
 import EventCapacityBar from "../components/events/EventCapacityBar";
 import {
   Dialog,
@@ -165,54 +164,44 @@ export default function ParentEventRSVP() {
     try {
       const eventDate = new Date(event.fecha);
       const [hours, minutes] = (event.hora || "10:00").split(':').map(Number);
-      
       eventDate.setHours(hours, minutes, 0);
-      
-      const startArray = [
-        eventDate.getFullYear(),
-        eventDate.getMonth() + 1,
-        eventDate.getDate(),
-        eventDate.getHours(),
-        eventDate.getMinutes()
-      ];
       
       const endDate = new Date(eventDate);
       endDate.setHours(endDate.getHours() + 2);
       
-      const endArray = [
-        endDate.getFullYear(),
-        endDate.getMonth() + 1,
-        endDate.getDate(),
-        endDate.getHours(),
-        endDate.getMinutes()
-      ];
-
-      const icsEvent = {
-        start: startArray,
-        end: endArray,
-        title: event.titulo,
-        description: event.descripcion || '',
-        location: event.ubicacion || '',
-        status: 'CONFIRMED',
-        busyStatus: 'BUSY'
+      const formatICSDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
+        return `${year}${month}${day}T${hour}${minute}00`;
       };
 
-      createEvent(icsEvent, (error, value) => {
-        if (error) {
-          toast.error("Error al generar el archivo");
-          return;
-        }
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//CD Bustarviejo//ES',
+        'BEGIN:VEVENT',
+        `DTSTART:${formatICSDate(eventDate)}`,
+        `DTEND:${formatICSDate(endDate)}`,
+        `SUMMARY:${event.titulo}`,
+        `DESCRIPTION:${(event.descripcion || '').replace(/\n/g, '\\n')}`,
+        `LOCATION:${event.ubicacion || ''}`,
+        'STATUS:CONFIRMED',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n');
 
-        const blob = new Blob([value], { type: 'text/calendar;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = `${event.titulo.replace(/[^a-z0-9]/gi, '_')}.ics`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast.success("Evento descargado - Ábrelo para añadirlo a tu calendario");
-      });
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `${event.titulo.replace(/[^a-z0-9]/gi, '_')}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Evento descargado - Ábrelo para añadirlo a tu calendario");
     } catch (error) {
       toast.error("Error al exportar evento");
     }
