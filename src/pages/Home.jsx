@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -768,7 +767,7 @@ export default function Home() {
       // Usar botones configurados en lugar de lista hardcoded
       return displayAdminButtons.map(item => {
         const updated = { ...item };
-        if (item.id === "ropa") { updated.url = clothingStoreUrl || createPageUrl("ClothingOrders"); }
+        if (item.id === "ropa") { updated.url = merchStoreUrl || clothingStoreUrl || item.url; }
 
         // Añadir badges dinámicos
         if (item.id === "pagos") {
