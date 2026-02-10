@@ -309,8 +309,8 @@ export default function Home() {
     queryFn: () => base44.entities.CoordinatorConversation.list(),
     staleTime: 30000,
     gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: true, // ✅ Actualizar al volver al Home
+    refetchOnMount: true, // ✅ Actualizar al montar
     refetchInterval: false,
     enabled: queriesEnabled,
   });
@@ -320,10 +320,24 @@ export default function Home() {
     queryFn: () => base44.entities.AdminConversation.list(),
     staleTime: 30000,
     gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: true, // ✅ Actualizar al volver al Home
+    refetchOnMount: true, // ✅ Actualizar al montar
     refetchInterval: false,
     enabled: queriesEnabled && !isAdmin,
+  });
+
+  // Queries DIRECTAS para badges de chat (fuente verdad = BD)
+  const { data: coachConversations = [] } = useQuery({
+    queryKey: ['coachConversationsHome'],
+    queryFn: async () => {
+      if (!user?.es_entrenador) return [];
+      return await base44.entities.CoachConversation.filter({ entrenador_email: user.email });
+    },
+    staleTime: 30000,
+    gcTime: 300000,
+    refetchOnWindowFocus: true, // ✅ Actualizar al volver
+    refetchOnMount: true,
+    enabled: queriesEnabled && (user?.es_entrenador || isAdmin),
   });
 
   // Configuración de botones del dashboard
@@ -663,18 +677,39 @@ export default function Home() {
       });
     }
 
-    // Calcular mensajes coordinador no leídos - SOLO mensajes QUE RECIBEN (no los que envían)
-    let unreadCoordinatorMessages = 0;
-    if (user && coordinatorConversations) {
-      coordinatorConversations.forEach(conv => {
-        if (isCoordinator || isAdmin) {
-          // Coordinador/Admin: solo contar mensajes DE FAMILIAS (no_leidos_coordinador)
-          unreadCoordinatorMessages += (conv.no_leidos_coordinador || 0);
-        } else if (conv.padre_email === user.email) {
-          // Familia: solo contar mensajes DEL COORDINADOR (no_leidos_padre)
-          unreadCoordinatorMessages += (conv.no_leidos_padre || 0);
-        }
-      });
+    // ========================================
+    // BADGES DE CHAT - DIRECTO DE BD (verdad única)
+    // ========================================
+    
+    // Coordinador: mensajes de familias
+    let unreadCoordinatorForStaff = 0;
+    if ((isCoordinator || isAdmin) && coordinatorConversations) {
+      unreadCoordinatorForStaff = coordinatorConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
+    }
+    
+    // Entrenador: mensajes de familias (1-a-1 + grupo)
+    let unreadCoachForStaff = 0;
+    if ((isCoach || isAdmin) && user) {
+      // 1-a-1
+      const coachUnread1a1 = coachConversations?.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0) || 0;
+      
+      // Grupo: mensajes no leídos por el entrenador
+      const myCoachCategories = user.categorias_entrena || [];
+      const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
+      
+      let groupUnread = 0;
+      for (const cat of myCoachCategories) {
+        const groupId = normalizeId(cat);
+        const unreadInGroup = messages?.filter(msg => 
+          msg.grupo_id === groupId &&
+          msg.tipo === 'padre_a_grupo' &&
+          msg.remitente_email !== user.email &&
+          (!msg.leido_por || !msg.leido_por.some(r => r.email === user.email))
+        ).length || 0;
+        groupUnread += unreadInGroup;
+      }
+      
+      unreadCoachForStaff = coachUnread1a1 + groupUnread;
     }
 
     // Calcular mensajes admin no leídos
@@ -741,10 +776,13 @@ export default function Home() {
       activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages, unreadStaffMessages,
       pendingCallups, pendingSignatures, adminPendingSignatures, pendingPlayerAccess,
       pendingClothingOrders, pendingLotteryOrders, pendingMemberRequests, 
-      recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses, unreadCoordinatorMessages,
-      unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations, unresolvedAdminChats
+      recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses,
+      unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations, unresolvedAdminChats,
+      // BADGES DE CHAT - DIRECTO DE BD ✅
+      unreadCoordinatorForStaff,
+      unreadCoachForStaff
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isCoach, coordinatorConversations, matchObservations, staffMessagesHome, seasonConfig]);
+  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isCoach, coordinatorConversations, matchObservations, staffMessagesHome, seasonConfig, coachConversations]);
 
 
 
@@ -1305,9 +1343,9 @@ export default function Home() {
 
               <Link to={createPageUrl("CoordinatorChat")} className="relative flex-1">
                 <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
+                  {(stats.unreadCoordinatorForStaff || 0) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorForStaff}</span>
+                      <span className="text-white text-xs font-bold">{stats.unreadCoordinatorForStaff}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold mb-1 text-center">💬 Coordinador</p>
@@ -1317,9 +1355,9 @@ export default function Home() {
 
               <Link to={createPageUrl("CoachParentChat")} className="relative flex-1">
                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(notifications?.unreadCoachForStaff || 0) > 0 && (
+                  {(stats.unreadCoachForStaff || 0) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadCoachForStaff}</span>
+                      <span className="text-white text-xs font-bold">{stats.unreadCoachForStaff}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
@@ -1329,9 +1367,9 @@ export default function Home() {
               
               <Link to={createPageUrl("StaffChat")} className="relative flex-1">
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(notifications?.unreadStaffMessages || 0) > 0 && (
+                  {(stats.unreadStaffMessages || 0) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadStaffMessages}</span>
+                      <span className="text-white text-xs font-bold">{stats.unreadStaffMessages}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold mb-1 text-center">💼 Staff</p>
@@ -1368,9 +1406,9 @@ export default function Home() {
 
               <Link to={createPageUrl("CoordinatorChat")} className="relative flex-1">
                 <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
+                  {(stats.unreadCoordinatorForStaff || 0) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadCoordinatorForStaff}</span>
+                      <span className="text-white text-xs font-bold">{stats.unreadCoordinatorForStaff}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold mb-1 text-center">💬 Coordinador</p>
@@ -1381,9 +1419,9 @@ export default function Home() {
               {user?.es_entrenador && (
                 <Link to={createPageUrl("CoachParentChat")} className="relative flex-1">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                    {(notifications?.unreadCoachForStaff || 0) > 0 && (
+                    {(stats.unreadCoachForStaff || 0) > 0 && (
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{notifications.unreadCoachForStaff}</span>
+                        <span className="text-white text-xs font-bold">{stats.unreadCoachForStaff}</span>
                       </div>
                     )}
                     <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
@@ -1394,9 +1432,9 @@ export default function Home() {
               
               <Link to={createPageUrl("StaffChat")} className="relative flex-1">
                 <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(notifications?.unreadStaffMessages || 0) > 0 && (
+                  {(stats.unreadStaffMessages || 0) > 0 && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{notifications.unreadStaffMessages}</span>
+                      <span className="text-white text-xs font-bold">{stats.unreadStaffMessages}</span>
                     </div>
                   )}
                   <p className="text-sm font-bold mb-1 text-center">💼 Staff</p>
