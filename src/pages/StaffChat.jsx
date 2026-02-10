@@ -230,50 +230,51 @@ export default function StaffChat() {
     };
   }, [conversation?.id, queryClient]);
 
-  // Marcar como leído AL ABRIR el chat - INMEDIATO Y DETERMINANTE
+  // ✅ CRÍTICO: Marcar como leído SOLO AL CERRAR/DESMONTAR - NO al abrir
   useEffect(() => {
-    if (!conversation?.id || !user?.email) return;
+    return () => {
+      // Cleanup: Se ejecuta al DESMONTAR el componente
+      if (!conversation?.id || !user?.email) return;
 
-    // PASO 1: Calcular no leídos y decrementar badge EXACTAMENTE
-    const unreadMessages = messages.filter(m => 
-      m.autor_email !== user.email && 
-      !m.leido_por?.some(l => l.email === user.email)
-    );
+      const unreadMessages = messages.filter(m => 
+        m.autor_email !== user.email && 
+        !m.leido_por?.some(l => l.email === user.email)
+      );
 
-    if (unreadMessages.length > 0) {
-      for (let i = 0; i < unreadMessages.length; i++) {
-        UnifiedChatNotificationStore.decrement(user.email, 'staff');
-      }
-      console.log(`✅ [StaffChat] Badge decrementado x${unreadMessages.length}`);
-    }
-
-    // PASO 2: Actualizar BD en paralelo (no bloquear UI)
-    (async () => {
-      try {
-        if (unreadMessages.length > 0) {
-          const BATCH = 10;
-          for (let i = 0; i < unreadMessages.length; i += BATCH) {
-            const batch = unreadMessages.slice(i, i + BATCH);
-            await Promise.all(batch.map(msg => {
-              const leido_por = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
-              return base44.entities.StaffMessage.update(msg.id, { leido_por });
-            }));
-          }
+      if (unreadMessages.length > 0) {
+        for (let i = 0; i < unreadMessages.length; i++) {
+          UnifiedChatNotificationStore.decrement(user.email, 'staff');
         }
-
-        // Marcar AppNotifications como vistas
-        const notifs = await base44.entities.AppNotification.filter({
-          usuario_email: user.email,
-          enlace: "StaffChat",
-          vista: false
-        });
-        await Promise.all(notifs.map(n => 
-          base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })
-        ));
-      } catch (err) {
-        console.error('Error marking staff chat as read:', err);
+        console.log(`✅ [StaffChat] Badge decrementado x${unreadMessages.length} AL CERRAR`);
       }
-    })();
+
+      // BD en segundo plano
+      (async () => {
+        try {
+          if (unreadMessages.length > 0) {
+            const BATCH = 10;
+            for (let i = 0; i < unreadMessages.length; i += BATCH) {
+              const batch = unreadMessages.slice(i, i + BATCH);
+              await Promise.all(batch.map(msg => {
+                const leido_por = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
+                return base44.entities.StaffMessage.update(msg.id, { leido_por });
+              }));
+            }
+          }
+
+          const notifs = await base44.entities.AppNotification.filter({
+            usuario_email: user.email,
+            enlace: "StaffChat",
+            vista: false
+          });
+          await Promise.all(notifs.map(n => 
+            base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })
+          ));
+        } catch (err) {
+          console.error('Error marking staff chat as read:', err);
+        }
+      })();
+    };
   }, [conversation?.id, user?.email, messages]);
 
   const allSharedFiles = messages.flatMap(m => m.adjuntos || m.archivos_adjuntos || []);
