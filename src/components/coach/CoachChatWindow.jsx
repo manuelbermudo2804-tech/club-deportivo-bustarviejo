@@ -142,6 +142,13 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     }
   }, [messages, isScrolledToBottom, anyoneTyping]);
 
+  // CRÍTICO: Limpiar notificaciones al abrir categoría (incluso sin mensajes nuevos)
+  useEffect(() => {
+    if (user?.email && selectedCategory) {
+      UnifiedChatNotificationStore.clearChatOnly(user.email, 'coach');
+    }
+  }, [selectedCategory, user?.email]);
+
   // Marcar como leídos los mensajes de familias - SISTEMA UNIFICADO
   useEffect(() => {
     if (!user || !selectedCategory || messages.length === 0) return;

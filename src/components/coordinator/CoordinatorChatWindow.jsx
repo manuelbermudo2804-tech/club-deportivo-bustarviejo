@@ -49,6 +49,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const isCoordinator = user?.es_coordinador || user?.role === "admin";
 
+  // CRÍTICO: Limpiar notificaciones al abrir conversación
+  useEffect(() => {
+    if (conversation?.id && user?.email) {
+      UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinator');
+    }
+  }, [conversation?.id, user?.email]);
+
   const { data: messages = [] } = useQuery({
     queryKey: ['coordinatorMessages', conversation?.id],
     queryFn: async () => {

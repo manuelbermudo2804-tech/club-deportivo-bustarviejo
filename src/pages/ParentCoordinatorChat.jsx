@@ -106,9 +106,9 @@ export default function ParentCoordinatorChat() {
         });
       }
 
-      if ((newConv || conversations[0])?.no_leidos_familia > 0) {
+      if ((newConv || conversations[0])?.no_leidos_padre > 0) {
         await base44.entities.CoordinatorConversation.update(newConv?.id || conversations[0]?.id, {
-          no_leidos_familia: 0
+          no_leidos_padre: 0
         });
       }
     };
@@ -143,9 +143,9 @@ export default function ParentCoordinatorChat() {
             });
           }
         }
-        if ((conversation.no_leidos_familia || 0) > 0) {
-            await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_familia: 0 });
-          }
+        if ((conversation.no_leidos_padre || 0) > 0) {
+          await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_padre: 0 });
+        }
 
           // Marcar AppNotifications como vistas (SOLO ParentCoordinatorChat)
           const notifs = await base44.entities.AppNotification.filter({

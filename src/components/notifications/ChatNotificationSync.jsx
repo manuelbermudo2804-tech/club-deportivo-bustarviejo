@@ -116,10 +116,12 @@ export function ChatNotificationSync({ user }) {
     }
 
     // ===== 3. ENTRENADOR - FAMILIAS (grupo ChatMessage) =====
-    // CRÍTICO: Necesitamos cargar jugadores del usuario para validar categorías
+    // CRÍTICO: Cargar jugadores ANTES de suscribirse (evitar race condition)
     let userPlayers = [];
-    (async () => {
-      if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
+    
+    // Cargar jugadores SINCRÓNICAMENTE para familias
+    if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
+      (async () => {
         try {
           userPlayers = await base44.entities.Player.filter({
             $or: [
@@ -129,15 +131,64 @@ export function ChatNotificationSync({ user }) {
             ],
             activo: true
           });
-          console.log('✅ [ChatNotificationSync] Jugadores cargados:', userPlayers.length);
+          console.log('✅ [ChatNotificationSync] Jugadores cargados ANTES de suscribir:', userPlayers.length);
+          
+          // Montar subscripción DESPUÉS de cargar jugadores
+          const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
+            if (event.type === 'create' && event.data) {
+              const msg = event.data;
+              const eventKey = `chatmsg_${msg.id}`;
+              if (processedEvents.has(eventKey)) return;
+              processedEvents.add(eventKey);
+              
+              // Para staff (entrenadores, coordinadores, admin): mensajes de padres en categorías
+              if ((user.es_entrenador || user.es_coordinador || user.role === 'admin') && msg.tipo === 'padre_a_grupo') {
+                const coachCats = ((user.categorias_entrena || user.categorias_coordina || [])).map(c => ({
+                  raw: c,
+                  id: (c || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_')
+                }));
+                const msgId = (msg.grupo_id || '').toString();
+                const msgNorm = (msg.deporte || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim();
+                const isMyCategory = coachCats.some(c => c.id === msgId || c.raw === msg.deporte || msgNorm.startsWith(c.raw?.toLowerCase()) );
+                
+                if (isMyCategory && msg.remitente_email !== user.email) {
+                  console.log('✅ [ChatNotificationSync] Incrementando coach para', user.email);
+                  UnifiedChatNotificationStore.increment(user.email, 'coach');
+                }
+              }
+              
+              // Para familias: mensajes del entrenador O de otros padres SOLO en MIS categorías
+              if (!user.es_entrenador && !user.es_coordinador && user.role !== 'admin') {
+                if (msg.tipo === 'entrenador_a_grupo' || msg.tipo === 'padre_a_grupo') {
+                  if (msg.remitente_email !== user.email) {
+                    // VALIDAR que el mensaje sea de UNA categoría donde tengo jugadores
+                    const myCategories = userPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
+                    const normalizeCategory = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim();
+                    const msgCategory = normalizeCategory(msg.deporte || '');
+                    const isMyCategory = myCategories.some(cat => {
+                      const catNorm = normalizeCategory(cat);
+                      return msgCategory === catNorm || msgCategory.startsWith(catNorm) || catNorm.startsWith(msgCategory);
+                    });
+
+                    if (isMyCategory) {
+                      console.log('✅ [ChatNotificationSync] Incrementando coachForFamily para', user.email, 'categoría:', msg.deporte);
+                      UnifiedChatNotificationStore.increment(user.email, 'coachForFamily');
+                    } else {
+                      console.log('⚠️ [ChatNotificationSync] Mensaje ignorado - no es mi categoría:', msg.deporte);
+                    }
+                  }
+                }
+              }
+            }
+          });
+          unsubscribers.push(unsubChatMsg);
         } catch (e) {
           console.error('[ChatNotificationSync] Error cargando jugadores:', e);
         }
-      }
-    })();
-
-    // Escuchar ChatMessage para todos los roles relevantes (entrenador, coordinador, admin)
-    const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
+      })();
+    } else {
+      // Para staff: suscribir inmediatamente (no necesitan jugadores)
+      const unsubChatMsg = base44.entities.ChatMessage.subscribe((event) => {
       if (event.type === 'create' && event.data) {
         const msg = event.data;
         const eventKey = `chatmsg_${msg.id}`;
@@ -185,6 +236,7 @@ export function ChatNotificationSync({ user }) {
       }
     });
     unsubscribers.push(unsubChatMsg);
+    }
 
     // ===== 3B. ENTRENADOR - FAMILIAS (CoachConversation 1-a-1) - CORRECCIÓN #1 =====
     // Para entrenadores: escuchar cambios en no_leidos_entrenador
@@ -254,8 +306,24 @@ export function ChatNotificationSync({ user }) {
     });
     unsubscribers.push(unsubPrivateConv);
 
-    // Nota: eliminamos el fallback de PrivateMessage para evitar doble conteo.
-    // Nos apoyamos exclusivamente en PrivateConversation.update (fuente de verdad).
+    // ===== 5. ADMIN CHAT - MENSAJES ESCALADOS =====
+    if (user.role === 'admin') {
+      const unsubAdminMsg = base44.entities.AdminMessage.subscribe((event) => {
+        if (event.type === 'create' && event.data && event.data.autor === 'padre' && event.data.autor_email !== user.email) {
+          const eventKey = `admin_msg_${event.data.id}`;
+          if (processedEvents.has(eventKey)) return;
+          processedEvents.add(eventKey);
+
+          console.log('📬 [ChatNotificationSync] Nuevo mensaje de FAMILIA a Admin:', {
+            messageId: event.data.id,
+            conversationId: event.data.conversacion_id
+          });
+
+          UnifiedChatNotificationStore.increment(user.email, 'admin');
+        }
+      });
+      unsubscribers.push(unsubAdminMsg);
+    }
 
     return () => {
       unsubscribers.forEach(unsub => {
