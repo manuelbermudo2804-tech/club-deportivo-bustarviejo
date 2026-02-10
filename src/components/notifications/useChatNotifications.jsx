@@ -5,55 +5,69 @@ import { base44 } from '@/api/base44Client';
  * Hook UNIVERSAL que obtiene TODOS los contadores de chats sin leer
  * Retorna estructura unificada para mostrar en AlertCenter y NotificationCenter
  */
-export function useChatNotifications(enabled = true) {
-  // Cargar todas las conversaciones en paralelo
+export function useChatNotifications(user, enabled = true) {
+  // Cargar conversaciones según rol del usuario
+  const shouldLoadCoord = enabled && (user?.es_coordinador || (!user?.es_entrenador && !user?.es_tesorero && user?.role !== 'admin'));
+  const shouldLoadAdmin = enabled && (user?.role === 'admin' || (!user?.es_entrenador && !user?.es_coordinador && !user?.es_tesorero));
+  const shouldLoadStaff = enabled && (user?.es_entrenador || user?.es_coordinador || user?.role === 'admin');
+
   const { data: coordinatorConversations = [] } = useQuery({
-    queryKey: ['coordinatorConversations'],
+    queryKey: ['coordinatorConversations', user?.email],
     queryFn: () => base44.entities.CoordinatorConversation.list(),
-    enabled: enabled,
-    refetchInterval: 3000,
+    enabled: shouldLoadCoord,
+    refetchInterval: 15000,
   });
 
   const { data: adminConversations = [] } = useQuery({
-    queryKey: ['adminConversations'],
+    queryKey: ['adminConversations', user?.email],
     queryFn: () => base44.entities.AdminConversation.list(),
-    enabled: enabled,
-    refetchInterval: 3000,
+    enabled: shouldLoadAdmin,
+    refetchInterval: 15000,
   });
 
   const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversations'],
+    queryKey: ['privateConversations', user?.email],
     queryFn: () => base44.entities.PrivateConversation.list(),
     enabled: enabled,
-    refetchInterval: 3000,
+    refetchInterval: 20000,
   });
 
   const { data: staffMessages = [] } = useQuery({
-    queryKey: ['staffMessages'],
-    queryFn: () => base44.entities.StaffMessage.list('-created_date', 500),
-    enabled: enabled,
-    refetchInterval: 3000,
+    queryKey: ['staffMessages', user?.email],
+    queryFn: () => base44.entities.StaffMessage.list('-created_date', 100),
+    enabled: shouldLoadStaff,
+    refetchInterval: 20000,
   });
 
-  // Calcular contadores totales
-  const coordinatorUnread = coordinatorConversations.reduce(
-    (sum, c) => sum + (c.no_leidos_padre || c.no_leidos_coordinador || 0),
-    0
-  );
+  // Calcular contadores totales según rol
+  const coordinatorUnread = coordinatorConversations.reduce((sum, c) => {
+    if (user?.es_coordinador) return sum + (c.no_leidos_coordinador || 0);
+    return sum + (c.no_leidos_padre || 0);
+  }, 0);
 
-  const adminUnread = adminConversations.reduce(
-    (sum, c) => sum + (c.no_leidos_padre || c.no_leidos_admin || 0),
-    0
-  );
+  const adminUnread = adminConversations.reduce((sum, c) => {
+    if (user?.role === 'admin') return sum + (c.no_leidos_admin || 0);
+    return sum + (c.no_leidos_padre || 0);
+  }, 0);
 
-  const privateUnread = privateConversations.reduce(
-    (sum, c) => sum + (c.no_leidos_familia || c.no_leidos_staff || 0),
-    0
-  );
+  const privateUnread = privateConversations.reduce((sum, c) => {
+    if (user?.es_coordinador || user?.es_entrenador || user?.role === 'admin') {
+      return sum + (c.no_leidos_staff || 0);
+    }
+    return sum + (c.no_leidos_familia || 0);
+  }, 0);
 
-  const staffUnread = staffMessages.filter(
-    (m) => !m.leido_por?.some((lp) => lp.email === base44.auth.me()?.email)
-  ).length;
+  const staffUnread = staffMessages.filter((m) => {
+    if (!user?.email || m.autor_email === user.email) return false;
+    const destinatarios = m.staff_destinatarios || [];
+    if (destinatarios.length === 0) return true;
+    const soyCoord = user.es_coordinador === true;
+    const soyCoach = user.es_entrenador === true;
+    const soyAdmin = user.role === 'admin';
+    return (soyCoord && destinatarios.includes('coordinator')) ||
+           (soyCoach && destinatarios.includes('coach')) ||
+           (soyAdmin && destinatarios.includes('admin'));
+  }).length;
 
   return {
     // Contadores individuales

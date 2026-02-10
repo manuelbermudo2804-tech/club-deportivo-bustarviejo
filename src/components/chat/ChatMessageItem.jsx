@@ -6,7 +6,8 @@ import { es } from "date-fns/locale";
 import EmojiScaler from "./EmojiScaler";
 
 export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true, showReadStatus = false, isGroupStart = true, marginTop = '12px' }) {
-  const isMine = message.remitente_email === currentUserEmail;
+  const senderEmail = message.remitente_email || message.autor_email;
+  const isMine = currentUserEmail && senderEmail === currentUserEmail;
   const isCoach = message.tipo === "entrenador_a_grupo";
   const isBot = message.es_respuesta_bot === true;
   const isSystem = message.tipo === "sistema";
