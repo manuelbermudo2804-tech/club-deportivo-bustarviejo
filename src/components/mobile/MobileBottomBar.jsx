@@ -4,11 +4,9 @@ import { createPageUrl } from '@/utils';
 import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 
 export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, currentPageName }) {
-  // Ocultar en páginas de chat
+  // Ocultar visualmente en páginas de chat pero mantener en DOM para badges
   const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages'];
-  if (chatPages.includes(currentPageName)) {
-    return null;
-  }
+  const isInChat = chatPages.includes(currentPageName);
   // Botones dinámicos según el rol
   let tabs = [];
 
