@@ -38,11 +38,11 @@ export const ALL_TREASURER_BUTTONS = [
   {
     id: "pedidos_ropa",
     title: "Tienda",
-    url: "https://club-deportivo-bustarviejo.myspreadshop.es/",
+    url: "/Shop",
     icon: ShoppingBag,
     gradient: "from-teal-600 to-teal-700",
-    description: "Tienda externa de merchandising"
-  },
+    description: "Acceso a tiendas"
+  }
   {
     id: "socios",
     title: "🎫 Socios",

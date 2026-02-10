@@ -767,7 +767,7 @@ export default function Home() {
       // Usar botones configurados en lugar de lista hardcoded
       return displayAdminButtons.map(item => {
         const updated = { ...item };
-        if (item.id === "ropa") { updated.url = merchStoreUrl || clothingStoreUrl || item.url; }
+        if (item.id === "ropa") { updated.url = createPageUrl("Shop"); }
 
         // Añadir badges dinámicos
         if (item.id === "pagos") {

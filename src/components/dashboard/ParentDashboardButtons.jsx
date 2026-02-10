@@ -56,7 +56,7 @@ export const ALL_PARENT_BUTTONS = [
     id: "ropa",
     title: "Tienda",
     icon: ShoppingBag,
-    url: "https://club-deportivo-bustarviejo.myspreadshop.es/",
+    url: createPageUrl("Shop"),
     gradient: "from-red-600 to-red-700",
     priority: 7
   },

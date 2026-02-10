@@ -7,7 +7,7 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "jugadores", title: "👥 Jugadores", icon: Users, url: createPageUrl("Players"), gradient: "from-orange-600 to-orange-700", priority: 2 },
   { id: "financiero", title: "📊 Panel Financiero", icon: TrendingUp, url: createPageUrl("TreasurerFinancialPanel"), gradient: "from-emerald-600 to-emerald-700", priority: 3 },
   { id: "firmas", title: "🖊️ Firmas Federación", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 4 },
-  { id: "ropa", title: "Tienda", icon: ShoppingBag, url: "https://club-deportivo-bustarviejo.myspreadshop.es/", gradient: "from-teal-600 to-teal-700", priority: 5 },
+  { id: "ropa", title: "Tienda", icon: ShoppingBag, url: createPageUrl("Shop"), gradient: "from-teal-600 to-teal-700", priority: 5 },
   { id: "renovaciones", title: "🔄 Dashboard Renovaciones", icon: RotateCcw, url: createPageUrl("RenewalDashboard"), gradient: "from-cyan-600 to-cyan-700", priority: 6 },
   { id: "calendario", title: "📅 Calendario", icon: Calendar, url: createPageUrl("CalendarAndSchedules"), gradient: "from-purple-600 to-purple-700", priority: 7 },
   { id: "convocatorias", title: "🎓 Convocatorias", icon: Bell, url: createPageUrl("CoachCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 8 },
