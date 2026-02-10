@@ -67,45 +67,42 @@ export default function CoordinatorChat({ embedded = false }) {
     return unsub;
   }, [isCoordinator, queryClient]);
 
-  // Marcar como leído AL CERRAR conversación - NO al abrirla
+  // ✅ CRÍTICO: Marcar como leído AL ENTRAR en conversación - Persiste en BD con last_read_at
   useEffect(() => {
-    return () => {
-      // Este cleanup se ejecuta cuando el componente se desmonta O cuando selectedConversation cambia
-      if (selectedConversation?.id && user?.email) {
+    if (!selectedConversation?.id || !user?.email) return;
+
+    // ENTRAR: marca como leído Y decrementa badge
+    (async () => {
+      try {
+        // 1. Decrementar badge en memoria
         const unreadInThisConv = selectedConversation.no_leidos_coordinador || 0;
         if (unreadInThisConv > 0) {
           for (let i = 0; i < unreadInThisConv; i++) {
             UnifiedChatNotificationStore.decrement(user.email, 'coordinator');
           }
-          console.log(`✅ [CoordinatorChat] Badge decrementado x${unreadInThisConv} al CERRAR conversación ${selectedConversation.padre_nombre}`);
+          console.log(`✅ [CoordinatorChat] Badge decrementado x${unreadInThisConv} al ENTRAR`);
         }
-        
-        // Actualizar BD en segundo plano
-        (async () => {
-          try {
-            if ((selectedConversation.no_leidos_coordinador || 0) > 0) {
-              await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
-                no_leidos_coordinador: 0,
-                last_read_coordinador_at: new Date().toISOString()
-              });
-            }
-            
-            const notifs = await base44.entities.AppNotification.filter({
-              usuario_email: user.email,
-              enlace: "CoordinatorChat",
-              vista: false
-            });
-            for (const n of notifs) {
-              await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-            }
-            
-            await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id });
-          } catch (err) {
-            console.error('Error marking as read on close:', err);
-          }
-        })();
+
+        // 2. Actualizar BD: guardar last_read_at (NO poner no_leidos a 0)
+        await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
+          last_read_coordinador_at: new Date().toISOString()
+        });
+
+        // 3. Marcar AppNotifications como vistas
+        const notifs = await base44.entities.AppNotification.filter({
+          usuario_email: user.email,
+          enlace: "CoordinatorChat",
+          vista: false
+        });
+        for (const n of notifs) {
+          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
+        }
+
+        await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id });
+      } catch (err) {
+        console.error('Error marking as read on enter:', err);
       }
-    };
+    })();
   }, [selectedConversation?.id, user?.email]);
 
   const archiveMutation = useMutation({
