@@ -1620,7 +1620,8 @@ export default function Layout({ children, currentPageName }) {
       ...(hasPlayers ? [{ title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
       ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText }] : []),
-      ...(hasPlayers ? [{ title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
+      ...(hasPlayers && clothingStoreUrl ? [{ title: "🛍️ Tienda Equipación", externalUrl: clothingStoreUrl, icon: ShoppingBag }] : []),
+      ...(merchStoreUrl ? [{ title: "🛒 Merchandising", externalUrl: merchStoreUrl, icon: ShoppingBag }] : []),
       ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
       // 🎫 SOCIO
@@ -1683,7 +1684,8 @@ export default function Layout({ children, currentPageName }) {
       ...(hasPlayers ? [{ title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
       ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText }] : []),
-      ...(hasPlayers ? [{ title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag }] : []),
+      ...(hasPlayers && clothingStoreUrl ? [{ title: "🛍️ Tienda Equipación", externalUrl: clothingStoreUrl, icon: ShoppingBag }] : []),
+      ...(merchStoreUrl ? [{ title: "🛒 Merchandising", externalUrl: merchStoreUrl, icon: ShoppingBag }] : []),
       ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
       // 🎫 SOCIO
@@ -1734,7 +1736,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
 
     // 🛍️ PEDIDOS
-    { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    ...(clothingStoreUrl ? [{ title: "🛍️ Tienda Equipación", externalUrl: clothingStoreUrl, icon: ShoppingBag }] : []),
+    ...(merchStoreUrl ? [{ title: "🛒 Merchandising", externalUrl: merchStoreUrl, icon: ShoppingBag }] : []),
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
     // 🖼️ CONTENIDO
@@ -1800,7 +1803,8 @@ export default function Layout({ children, currentPageName }) {
     { title: "💳 Pagos Club", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
-    { title: "🛍️ Pedidos Ropa", url: createPageUrl("ClothingOrders"), icon: ShoppingBag },
+    ...(clothingStoreUrl ? [{ title: "🛍️ Tienda Equipación", externalUrl: clothingStoreUrl, icon: ShoppingBag }] : []),
+    ...(merchStoreUrl ? [{ title: "🛒 Merchandising", externalUrl: merchStoreUrl, icon: ShoppingBag }] : []),
     { title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
           { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },

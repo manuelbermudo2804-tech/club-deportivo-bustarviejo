@@ -1160,15 +1160,17 @@ export default function TreasurerFinancialPanel() {
               </div>
             </Link>
             
-            <Link to={createPageUrl("ClothingOrders")}>
-              <div className="group bg-gradient-to-br from-orange-600 to-amber-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
-                <div className="flex flex-col items-center text-white text-center">
-                  <ShoppingBag className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="font-bold text-sm">Pedidos Ropa</p>
-                  <p className="text-xs text-orange-100 mt-1">Equipación club</p>
+            {activeSeason?.tienda_ropa_url ? (
+              <a href={activeSeason.tienda_ropa_url} target="_blank" rel="noopener noreferrer">
+                <div className="group bg-gradient-to-br from-orange-600 to-amber-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
+                  <div className="flex flex-col items-center text-white text-center">
+                    <ShoppingBag className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
+                    <p className="font-bold text-sm">Tienda Equipación</p>
+                    <p className="text-xs text-orange-100 mt-1">Externa</p>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </a>
+            ) : null}
 
             <Link to={createPageUrl("ClubMembersManagement")}>
               <div className="group bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
