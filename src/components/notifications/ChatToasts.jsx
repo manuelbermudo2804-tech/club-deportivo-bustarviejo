@@ -70,11 +70,18 @@ export default function ChatToasts() {
       try {
         const u = await base44.auth.me();
         setUser(u);
-        const players = await base44.entities.Player.filter({ $or: [ { email_padre: u.email }, { email_tutor_2: u.email }, { email_jugador: u.email } ] });
-        const cats = Array.from(new Set(players.flatMap(p => [p.categoria_principal, p.deporte].filter(Boolean))));
-        setMyCategories(cats);
+        
+        // Solo cargar jugadores si es familia (no staff)
+        if (!u.es_entrenador && !u.es_coordinador && u.role !== 'admin') {
+          const players = await base44.entities.Player.filter({ $or: [ { email_padre: u.email }, { email_tutor_2: u.email }, { email_jugador: u.email } ] });
+          const cats = Array.from(new Set(players.flatMap(p => [p.categoria_principal, p.deporte].filter(Boolean))));
+          setMyCategories(cats);
+        }
+        
         setCoachCategories(Array.isArray(u.categorias_entrena) ? u.categorias_entrena : []);
-      } catch {}
+      } catch (e) {
+        console.error('[ChatToasts] Error en init:', e);
+      }
     };
     init();
   }, []);
@@ -141,11 +148,18 @@ export default function ChatToasts() {
       })
     );
 
-    // Staff interno
+    // Staff interno (CRÍTICO: StaffMessage usa autor_email, no remitente_email)
     unsubs.push(
       base44.entities.StaffMessage.subscribe((evt) => {
         const m = evt.data;
         if (evt.type !== 'create' || !m || isMine(m.autor_email)) return;
+        
+        // CRÍTICO: Validar que el usuario es staff y debe recibir este mensaje
+        const isRecipient = m.destinatarios_emails?.includes(user.email) || 
+                           m.staff_destinatarios?.includes(user.email) ||
+                           !m.destinatarios_emails; // Si no hay destinatarios específicos, es para todos
+        if (!isRecipient) return;
+        
         const icon = Users;
         const title = 'Nuevo mensaje en Staff';
         const subtitle = m.autor_rol === 'coordinador' ? 'Coordinador' : m.autor_rol === 'admin' ? 'Admin' : 'Entrenador';

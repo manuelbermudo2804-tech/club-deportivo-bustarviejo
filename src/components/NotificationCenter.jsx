@@ -52,40 +52,60 @@ export default function NotificationCenter() {
 
     const unsubscribers = [];
 
-    // Messages
+    // Messages - Solo últimos 50 (no 200)
     const loadMessages = async () => {
-      const msgs = await base44.entities.ChatMessage.list('-created_date', 200);
-      setMessages(msgs);
+      try {
+        const msgs = await base44.entities.ChatMessage.list('-created_date', 50);
+        setMessages(msgs);
+      } catch (e) {
+        console.error('[NotificationCenter] Error loading messages:', e);
+      }
     };
     loadMessages();
     const unsubMsg = base44.entities.ChatMessage.subscribe((event) => {
-      if (event.type === 'create') setMessages(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
-      else if (event.type === 'delete') setMessages(prev => prev.filter(m => m.id !== event.id));
+      try {
+        if (event.type === 'create') setMessages(prev => [event.data, ...prev].slice(0, 50));
+        else if (event.type === 'update') setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+        else if (event.type === 'delete') setMessages(prev => prev.filter(m => m.id !== event.id));
+      } catch (e) {
+        console.error('[NotificationCenter] Error in message subscription:', e);
+      }
     });
     unsubscribers.push(unsubMsg);
 
-    // AppNotifications
+    // AppNotifications - Solo últimas 50
     const loadNotifs = async () => {
-      const all = await base44.entities.AppNotification.filter({ usuario_email: user.email }, '-created_date', 200);
-      setAllNotifications(all);
+      try {
+        const all = await base44.entities.AppNotification.filter({ usuario_email: user.email }, '-created_date', 50);
+        setAllNotifications(all);
+      } catch (e) {
+        console.error('[NotificationCenter] Error loading notifications:', e);
+      }
     };
     loadNotifs();
     const unsubNotif = base44.entities.AppNotification.subscribe((event) => {
-      if (event.type === 'create' && event.data.usuario_email === user.email) {
-        setAllNotifications(prev => [event.data, ...prev]);
-      } else if (event.type === 'update' && event.data.usuario_email === user.email) {
-        setAllNotifications(prev => prev.map(n => n.id === event.id ? event.data : n));
-      } else if (event.type === 'delete') {
-        setAllNotifications(prev => prev.filter(n => n.id !== event.id));
+      try {
+        if (event.type === 'create' && event.data.usuario_email === user.email) {
+          setAllNotifications(prev => [event.data, ...prev].slice(0, 50));
+        } else if (event.type === 'update' && event.data.usuario_email === user.email) {
+          setAllNotifications(prev => prev.map(n => n.id === event.id ? event.data : n));
+        } else if (event.type === 'delete') {
+          setAllNotifications(prev => prev.filter(n => n.id !== event.id));
+        }
+      } catch (e) {
+        console.error('[NotificationCenter] Error in notification subscription:', e);
       }
     });
     unsubscribers.push(unsubNotif);
 
-    // Callups
+    // Callups - Solo últimas 50
     const loadCallups = async () => {
-      const c = await base44.entities.Convocatoria.list('-created_date', 120);
-      setCallups(c);
+      try {
+        const c = await base44.entities.Convocatoria.list('-created_date', 50);
+        setCallups(c);
+      } catch (e) {
+        console.error('[NotificationCenter] Error loading callups:', e);
+      }
     };
     loadCallups();
     let lastCallupUpdate = 0;
@@ -93,16 +113,24 @@ export default function NotificationCenter() {
       const nowT = Date.now();
       if (nowT - lastCallupUpdate < 1000) return;
       lastCallupUpdate = nowT;
-      if (event.type === 'create') setCallups(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setCallups(prev => prev.map(c => c.id === event.id ? event.data : c));
-      else if (event.type === 'delete') setCallups(prev => prev.filter(c => c.id !== event.id));
+      try {
+        if (event.type === 'create') setCallups(prev => [event.data, ...prev].slice(0, 50));
+        else if (event.type === 'update') setCallups(prev => prev.map(c => c.id === event.id ? event.data : c));
+        else if (event.type === 'delete') setCallups(prev => prev.filter(c => c.id !== event.id));
+      } catch (e) {
+        console.error('[NotificationCenter] Error in callup subscription:', e);
+      }
     });
     unsubscribers.push(unsubCall);
 
-    // Announcements
+    // Announcements - Solo últimas 50
     const loadAnn = async () => {
-      const a = await base44.entities.Announcement.list('-fecha_publicacion');
-      setAnnouncements(a);
+      try {
+        const a = await base44.entities.Announcement.list('-fecha_publicacion', 50);
+        setAnnouncements(a);
+      } catch (e) {
+        console.error('[NotificationCenter] Error loading announcements:', e);
+      }
     };
     loadAnn();
     let lastAnnUpdate = 0;
@@ -110,22 +138,34 @@ export default function NotificationCenter() {
       const nowA = Date.now();
       if (nowA - lastAnnUpdate < 1000) return;
       lastAnnUpdate = nowA;
-      if (event.type === 'create') setAnnouncements(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setAnnouncements(prev => prev.map(a => a.id === event.id ? event.data : a));
-      else if (event.type === 'delete') setAnnouncements(prev => prev.filter(a => a.id !== event.id));
+      try {
+        if (event.type === 'create') setAnnouncements(prev => [event.data, ...prev].slice(0, 50));
+        else if (event.type === 'update') setAnnouncements(prev => prev.map(a => a.id === event.id ? event.data : a));
+        else if (event.type === 'delete') setAnnouncements(prev => prev.filter(a => a.id !== event.id));
+      } catch (e) {
+        console.error('[NotificationCenter] Error in announcement subscription:', e);
+      }
     });
     unsubscribers.push(unsubAnn);
 
-    // Payments
+    // Payments - Solo últimos 50
     const loadPay = async () => {
-      const p = await base44.entities.Payment.list('-created_date', 200);
-      setPayments(p);
+      try {
+        const p = await base44.entities.Payment.list('-created_date', 50);
+        setPayments(p);
+      } catch (e) {
+        console.error('[NotificationCenter] Error loading payments:', e);
+      }
     };
     loadPay();
     const unsubPay = base44.entities.Payment.subscribe((event) => {
-      if (event.type === 'create') setPayments(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setPayments(prev => prev.map(p => p.id === event.id ? event.data : p));
-      else if (event.type === 'delete') setPayments(prev => prev.filter(p => p.id !== event.id));
+      try {
+        if (event.type === 'create') setPayments(prev => [event.data, ...prev].slice(0, 50));
+        else if (event.type === 'update') setPayments(prev => prev.map(p => p.id === event.id ? event.data : p));
+        else if (event.type === 'delete') setPayments(prev => prev.filter(p => p.id !== event.id));
+      } catch (e) {
+        console.error('[NotificationCenter] Error in payment subscription:', e);
+      }
     });
     unsubscribers.push(unsubPay);
 
@@ -142,10 +182,14 @@ export default function NotificationCenter() {
     });
     unsubscribers.push(unsubRem);
 
-    // Events
+    // Events - Solo últimos 50
     const loadEv = async () => {
-      const e = await base44.entities.Event.list('-fecha');
-      setEvents(e);
+      try {
+        const e = await base44.entities.Event.list('-fecha', 50);
+        setEvents(e);
+      } catch (e) {
+        console.error('[NotificationCenter] Error loading events:', e);
+      }
     };
     loadEv();
     let lastEvUpdate = 0;
@@ -153,16 +197,24 @@ export default function NotificationCenter() {
       const nowE = Date.now();
       if (nowE - lastEvUpdate < 1000) return;
       lastEvUpdate = nowE;
-      if (event.type === 'create') setEvents(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setEvents(prev => prev.map(e => e.id === event.id ? event.data : e));
-      else if (event.type === 'delete') setEvents(prev => prev.filter(e => e.id !== event.id));
+      try {
+        if (event.type === 'create') setEvents(prev => [event.data, ...prev].slice(0, 50));
+        else if (event.type === 'update') setEvents(prev => prev.map(e => e.id === event.id ? event.data : e));
+        else if (event.type === 'delete') setEvents(prev => prev.filter(e => e.id !== event.id));
+      } catch (e) {
+        console.error('[NotificationCenter] Error in event subscription:', e);
+      }
     });
     unsubscribers.push(unsubEv);
 
-    // Private Conversations
+    // Private Conversations - Solo últimas 50
     const loadPriv = async () => {
-      const pc = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 150);
-      setPrivateConversations(pc);
+      try {
+        const pc = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 50);
+        setPrivateConversations(pc);
+      } catch (e) {
+        console.error('[NotificationCenter] Error loading private conversations:', e);
+      }
     };
     loadPriv();
     let lastPrivUpdate = 0;
@@ -170,14 +222,24 @@ export default function NotificationCenter() {
       const nowP = Date.now();
       if (nowP - lastPrivUpdate < 1000) return;
       lastPrivUpdate = nowP;
-      if (event.type === 'create') setPrivateConversations(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setPrivateConversations(prev => prev.map(p => p.id === event.id ? event.data : p));
-      else if (event.type === 'delete') setPrivateConversations(prev => prev.filter(p => p.id !== event.id));
+      try {
+        if (event.type === 'create') setPrivateConversations(prev => [event.data, ...prev].slice(0, 50));
+        else if (event.type === 'update') setPrivateConversations(prev => prev.map(p => p.id === event.id ? event.data : p));
+        else if (event.type === 'delete') setPrivateConversations(prev => prev.filter(p => p.id !== event.id));
+      } catch (e) {
+        console.error('[NotificationCenter] Error in private conversation subscription:', e);
+      }
     });
     unsubscribers.push(unsubPriv);
 
     return () => {
-      unsubscribers.forEach(unsub => unsub());
+      unsubscribers.forEach((unsub, idx) => {
+        try {
+          if (unsub && typeof unsub === 'function') unsub();
+        } catch (e) {
+          console.error(`[NotificationCenter] Error in unsubscriber ${idx}:`, e);
+        }
+      });
     };
   }, [isOpen, user]);
 
@@ -385,8 +447,9 @@ export default function NotificationCenter() {
   ).length : 0;
 
   // Contador simétrico para familias: mensajes de entrenador sin leer (badge en Centro)
+  // CRÍTICO: Usar === true para validación booleana estricta
   const myGroupSportsSet = new Set(myGroupSports);
-  const unreadFromCoachForFamily = (!user || user.role === 'admin' || user.es_entrenador || user.es_coordinador) ? 0 : messages.filter(m =>
+  const unreadFromCoachForFamily = (!user || user.role === 'admin' || user.es_entrenador === true || user.es_coordinador === true) ? 0 : messages.filter(m =>
     m.tipo === 'entrenador_a_grupo' &&
     (myGroupSportsSet.has(m.deporte) || myGroupSportsSet.has(m.grupo_id)) &&
     (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email))
