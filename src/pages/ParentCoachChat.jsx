@@ -410,7 +410,8 @@ export default function ParentCoachChat() {
         </CardHeader>
 
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
-          {categories.some(cat => getUnreadCountByCategory(cat) > 0) && (
+          {/* Solo mostrar pestañas de categorías si NO viene de URL con categoría fija */}
+          {!lockedCategory && categories.some(cat => getUnreadCountByCategory(cat) > 0) && (
             <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
               <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
               {categories.filter(cat => getUnreadCountByCategory(cat) > 0).map(cat => (
@@ -427,7 +428,7 @@ export default function ParentCoachChat() {
               ))}
             </div>
           )}
-          {categories.length > 1 && (
+          {!lockedCategory && categories.length > 1 && (
             <div className="flex gap-1.5 p-1.5 bg-slate-50 border-b overflow-x-auto flex-shrink-0">
               {categories.map(cat => {
                 const unreadCount = getUnreadCountByCategory(cat);
