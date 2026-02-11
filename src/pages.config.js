@@ -48,6 +48,7 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AdminChat from './pages/AdminChat';
+import AdminChatsHub from './pages/AdminChatsHub';
 import AdminCoordinatorChats from './pages/AdminCoordinatorChats';
 import AdminGallery from './pages/AdminGallery';
 import AdminStats from './pages/AdminStats';
@@ -71,6 +72,7 @@ import ClubStats from './pages/ClubStats';
 import CoachAttendance from './pages/CoachAttendance';
 import CoachCallups from './pages/CoachCallups';
 import CoachChatSettings from './pages/CoachChatSettings';
+import CoachChatsHub from './pages/CoachChatsHub';
 import CoachDashboard from './pages/CoachDashboard';
 import CoachEvaluationReports from './pages/CoachEvaluationReports';
 import CoachParentChat from './pages/CoachParentChat';
@@ -79,6 +81,7 @@ import CoachProfiles from './pages/CoachProfiles';
 import CoachStandingsAnalysis from './pages/CoachStandingsAnalysis';
 import CompetitionChecklist from './pages/CompetitionChecklist';
 import CoordinatorChat from './pages/CoordinatorChat';
+import CoordinatorChatsHub from './pages/CoordinatorChatsHub';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
 import CoordinatorSettings from './pages/CoordinatorSettings';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
@@ -157,14 +160,12 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import CoachChatsHub from './pages/CoachChatsHub';
-import CoordinatorChatsHub from './pages/CoordinatorChatsHub';
-import AdminChatsHub from './pages/AdminChatsHub';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminChat": AdminChat,
+    "AdminChatsHub": AdminChatsHub,
     "AdminCoordinatorChats": AdminCoordinatorChats,
     "AdminGallery": AdminGallery,
     "AdminStats": AdminStats,
@@ -188,6 +189,7 @@ export const PAGES = {
     "CoachAttendance": CoachAttendance,
     "CoachCallups": CoachCallups,
     "CoachChatSettings": CoachChatSettings,
+    "CoachChatsHub": CoachChatsHub,
     "CoachDashboard": CoachDashboard,
     "CoachEvaluationReports": CoachEvaluationReports,
     "CoachParentChat": CoachParentChat,
@@ -196,6 +198,7 @@ export const PAGES = {
     "CoachStandingsAnalysis": CoachStandingsAnalysis,
     "CompetitionChecklist": CompetitionChecklist,
     "CoordinatorChat": CoordinatorChat,
+    "CoordinatorChatsHub": CoordinatorChatsHub,
     "CoordinatorDashboard": CoordinatorDashboard,
     "CoordinatorSettings": CoordinatorSettings,
     "CustomPaymentPlans": CustomPaymentPlans,
@@ -274,9 +277,6 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "CoachChatsHub": CoachChatsHub,
-    "CoordinatorChatsHub": CoordinatorChatsHub,
-    "AdminChatsHub": AdminChatsHub,
 }
 
 export const pagesConfig = {
