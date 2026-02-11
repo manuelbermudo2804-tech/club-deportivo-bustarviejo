@@ -138,11 +138,15 @@ export default function ParentCoachChat() {
     }).length;
   };
 
-  // Marcar como leído via backend persistente
+  // Marcar como leído via backend persistente (solo una vez al seleccionar categoría)
+  const markedCategoriesRef = useRef(new Set());
   useEffect(() => {
     if (!user?.email || !selectedCategory) return;
     const gid = toGroupId(selectedCategory);
-    if (gid) markRead('team', gid);
+    if (gid && !markedCategoriesRef.current.has(gid)) {
+      markedCategoriesRef.current.add(gid);
+      markRead('team', gid);
+    }
   }, [user?.email, selectedCategory]);
 
   const categoryKey = toGroupId(selectedCategory || "");
