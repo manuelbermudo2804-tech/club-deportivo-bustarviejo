@@ -1,7 +1,7 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { useStaffCounters } from "../chats/useChatCounters";
+import { useChatUnreadCounts } from "../chat/useChatUnreadCounts";
 
 // Unifica contadores de chats para todos los roles
 // Devuelve { total, items: [{source, label, count, link, subtitle?}] }

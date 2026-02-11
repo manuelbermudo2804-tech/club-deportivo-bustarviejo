@@ -24,8 +24,7 @@ Deno.serve(async (req) => {
         // chatId = CoordinatorConversation id
         // Padre marca como leído
         await base44.asServiceRole.entities.CoordinatorConversation.update(chatId, {
-          last_read_padre_at: now,
-          no_leidos_padre: 0
+          last_read_padre_at: now
         });
         break;
       }
@@ -34,8 +33,7 @@ Deno.serve(async (req) => {
         // chatId = CoordinatorConversation id
         // Coordinador marca como leído
         await base44.asServiceRole.entities.CoordinatorConversation.update(chatId, {
-          last_read_coordinador_at: now,
-          no_leidos_coordinador: 0
+          last_read_coordinador_at: now
         });
         break;
       }
@@ -43,8 +41,7 @@ Deno.serve(async (req) => {
       case 'adminForAdmin': {
         // chatId = AdminConversation id
         await base44.asServiceRole.entities.AdminConversation.update(chatId, {
-          last_read_admin_at: now,
-          no_leidos_admin: 0
+          last_read_admin_at: now
         });
         break;
       }
@@ -52,8 +49,7 @@ Deno.serve(async (req) => {
       case 'adminForFamily': {
         // chatId = AdminConversation id
         await base44.asServiceRole.entities.AdminConversation.update(chatId, {
-          last_read_padre_at: now,
-          no_leidos_padre: 0
+          last_read_padre_at: now
         });
         break;
       }
@@ -77,14 +73,12 @@ Deno.serve(async (req) => {
           });
           for (const conv of convs) {
             await base44.asServiceRole.entities.PrivateConversation.update(conv.id, {
-              last_read_familia_at: now,
-              no_leidos_familia: 0
+              last_read_familia_at: now
             });
           }
         } else {
           await base44.asServiceRole.entities.PrivateConversation.update(chatId, {
-            last_read_familia_at: now,
-            no_leidos_familia: 0
+            last_read_familia_at: now
           });
         }
         break;
