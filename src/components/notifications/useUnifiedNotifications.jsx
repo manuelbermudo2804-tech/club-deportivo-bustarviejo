@@ -537,7 +537,7 @@ export function useUnifiedNotifications(user, options = {}) {
     let pendingDeletionRequests = 0;
 
     if (user.role === 'admin') {
-      unresolvedAdminChats = (rawData.adminConversations || []).filter(c => c.resuelta === false).length;
+      // unresolvedAdminChats desactivado - se reimplementará
       playersNeedingReview = (rawData.players || []).filter(p => p.categoria_requiere_revision === true).length;
       pendingInvitations = (rawData.invitations || []).length + (rawData.secondParentInvitations || []).length;
       pendingClothingOrders = (rawData.clothingOrders || []).filter(o => o.estado === 'Pendiente' || o.estado === 'En revisión').length;
@@ -582,10 +582,8 @@ export function useUnifiedNotifications(user, options = {}) {
       });
     }
 
-    // CONVERSACIÓN ACTIVA CON ADMIN
-    const hasActiveAdminConversation = (rawData.adminConversations || []).some(c => 
-      c.padre_email === user.email && c.resuelta === false
-    );
+    // CONVERSACIÓN ACTIVA CON ADMIN - desactivado
+    const hasActiveAdminConversation = false;
 
     // APP NOTIFICATIONS (fallback/visual - mensajes que llegan al notificador)
     const appNotificationsCount = (rawData.appNotifications || []).filter(n => !n.vista).length;
