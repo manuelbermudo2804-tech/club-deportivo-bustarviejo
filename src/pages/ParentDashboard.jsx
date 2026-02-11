@@ -444,72 +444,24 @@ export default function ParentDashboard() {
           <ShareFormButton />
         </div>
 
-        {/* Banner Unificado de Chats */}
-        {playersLoading ? (
-          <DashboardCardSkeleton />
-        ) : myPlayers.length > 0 && (
-          <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <MessageCircle className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                  <p className="text-xs text-purple-700">Chats con el club</p>
-                </div>
+        {/* Asistente IA - Independiente */}
+        <Link to={createPageUrl("Chatbot")}>
+          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-purple-700 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-purple-400 relative overflow-hidden">
+            <div className="absolute -top-1 -right-1 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse shadow-lg">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-6 h-6 text-white" />
               </div>
-              
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                <Link to={createPageUrl("Chatbot")} className="relative flex-1">
-                  <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-                      <Sparkles className="w-3 h-3 text-white" />
-                    </div>
-                    <p className="text-sm font-bold mb-1 text-center">🤖 Asistente</p>
-                    <p className="text-xs text-indigo-100 leading-tight text-center">Consulta IA</p>
-                  </div>
-                </Link>
-
-                <Link to={createPageUrl("ParentSystemMessages")} className="relative flex-1">
-                  <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(notifications?.unreadSystemMessages || 0) > 0 && (
-                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-orange-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
-                        🔔 {notifications.unreadSystemMessages}
-                      </div>
-                    )}
-                    <p className="text-sm font-bold mb-1 text-center">🔔 Mensajes</p>
-                    <p className="text-xs text-purple-100 leading-tight text-center">Del Club</p>
-                  </div>
-                </Link>
-
-                <Link to={createPageUrl("ParentCoordinatorChat")} className="relative flex-1">
-                  <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(notifications?.unreadCoordinatorMessages || 0) > 0 && (
-                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-cyan-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
-                        💬 {notifications.unreadCoordinatorMessages}
-                      </div>
-                    )}
-                    <p className="text-sm font-bold mb-1 text-center">🏟️ Coordinador</p>
-                    <p className="text-xs text-cyan-100 leading-tight text-center">Consultas deportivas</p>
-                  </div>
-                </Link>
-                
-                <Link to={createPageUrl("ParentCoachChat")} className="relative flex-1">
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                    {(notifications?.unreadCoachMessages || 0) > 0 && (
-                      <div className="absolute -top-2 -right-2 px-3 py-2 bg-blue-500 text-white text-sm rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
-                        ⚽ {notifications.unreadCoachMessages}
-                      </div>
-                    )}
-                    <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
-                    <p className="text-xs text-blue-100 leading-tight text-center">Chat del equipo</p>
-                  </div>
-                </Link>
+              <div className="flex-1">
+                <p className="text-white font-bold text-sm">🤖 Asistente Virtual</p>
+                <p className="text-xs text-purple-100">Pregunta lo que necesites</p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <span className="text-white text-lg">→</span>
+            </div>
+          </div>
+        </Link>
 
         {/* Aviso renovaciones (aunque estén inactivos) */}
         {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (

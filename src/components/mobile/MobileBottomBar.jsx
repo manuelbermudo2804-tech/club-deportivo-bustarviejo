@@ -5,7 +5,7 @@ import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 
 export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, currentPageName }) {
   // Ocultar visualmente en páginas de chat pero mantener en DOM para badges
-  const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages'];
+  const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub'];
   const isInChat = chatPages.includes(currentPageName);
   // Botones dinámicos según el rol
   let tabs = [];
@@ -47,11 +47,15 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     ];
   } else {
     // Familia (padre)
+    const totalChatBadge = (chatBadges?.coachForFamilyCount || 0) + 
+                           (chatBadges?.coordinatorForFamilyCount || 0) + 
+                           (chatBadges?.systemMessagesCount || 0);
+    
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('ParentDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('ParentPayments'), key: 'payments' },
-      { icon: MessageCircle, label: 'Chat', url: createPageUrl('ParentCoachChat'), key: 'chat', badge: chatBadges?.coachForFamilyCount },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('FamilyChatsHub'), key: 'chat', badge: totalChatBadge },
     ];
   }
 
