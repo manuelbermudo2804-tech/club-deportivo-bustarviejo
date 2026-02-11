@@ -15,7 +15,7 @@ import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCent
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
 import ShareFormButton from "../components/players/ShareFormButton";
-import { useChatNotificationBubbles } from "../components/notifications/useChatNotificationBubbles";
+
 
 
 export default function CoordinatorDashboard() {
@@ -44,7 +44,7 @@ export default function CoordinatorDashboard() {
 
   // ÚNICA fuente de verdad para TODAS las notificaciones
   const { notifications } = useUnifiedNotifications(user);
-  const chatBubbles = useChatNotificationBubbles(user);
+
 
   // Contadores de chat eliminados - se recrearán desde cero
 
