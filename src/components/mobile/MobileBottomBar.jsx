@@ -56,9 +56,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     ];
   } else {
     // Familia (padre)
-    const totalChatBadge = (chatBadges?.coachForFamilyCount || 0) + 
-                           (chatBadges?.coordinatorForFamilyCount || 0) + 
-                           (chatBadges?.systemMessagesCount || 0);
+    const totalChatBadge = familyTotal;
     
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('ParentDashboard'), key: 'home' },
