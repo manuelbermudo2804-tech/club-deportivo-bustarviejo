@@ -20,7 +20,7 @@ import DashboardButtonSelector from "../components/dashboard/DashboardButtonSele
 import ShareFormButton from "../components/players/ShareFormButton";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
-import { useChatNotificationBubbles } from "../components/notifications/useChatNotificationBubbles";
+
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
@@ -78,7 +78,7 @@ export default function ParentDashboard() {
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
   const { notifications } = useUnifiedNotifications(user);
-  const chatBubbles = useChatNotificationBubbles(user);
+
 
   useEffect(() => {
     const fetchUser = async () => {
