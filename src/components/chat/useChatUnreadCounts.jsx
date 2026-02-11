@@ -107,40 +107,52 @@ export function useChatUnreadCounts(user) {
       const d = event.data;
       const myEmail = userEmailRef.current;
       let isFromMe = false;
+      // Check if user is currently viewing this chat (skip +1 if so)
+      const active = activeChatRef.current;
 
       if (entityType === 'ChatMessage') {
         isFromMe = d?.remitente_email === myEmail;
-        if (!isFromMe && d?.grupo_id) {
+        const cat = d?.deporte || d?.grupo_id;
+        const isViewingThis = active?.type === 'team' && cat && active.id === cat;
+        if (!isFromMe && d?.grupo_id && !isViewingThis) {
+          suppressFetchUntilRef.current = Date.now() + 3000;
           setCounts(prev => {
             const newTeam = { ...prev.team_chats };
-            const cat = d.deporte || d.grupo_id;
             newTeam[cat] = (newTeam[cat] || 0) + 1;
             return { ...prev, team_chats: newTeam, total: (prev.total || 0) + 1 };
           });
         }
       } else if (entityType === 'CoordinatorMessage') {
         isFromMe = d?.autor_email === myEmail;
-        if (!isFromMe) {
+        const isViewingThis = active?.type === 'coordinator';
+        if (!isFromMe && !isViewingThis) {
+          suppressFetchUntilRef.current = Date.now() + 3000;
           setCounts(prev => ({ ...prev, coordinator: (prev.coordinator || 0) + 1, total: (prev.total || 0) + 1 }));
         }
       } else if (entityType === 'AdminMessage') {
         isFromMe = d?.autor_email === myEmail;
-        if (!isFromMe) {
+        const isViewingThis = active?.type === 'admin';
+        if (!isFromMe && !isViewingThis) {
+          suppressFetchUntilRef.current = Date.now() + 3000;
           setCounts(prev => ({ ...prev, admin: (prev.admin || 0) + 1, total: (prev.total || 0) + 1 }));
         }
       } else if (entityType === 'StaffMessage') {
         isFromMe = d?.autor_email === myEmail;
-        if (!isFromMe) {
+        const isViewingThis = active?.type === 'staff';
+        if (!isFromMe && !isViewingThis) {
+          suppressFetchUntilRef.current = Date.now() + 3000;
           setCounts(prev => ({ ...prev, staff: (prev.staff || 0) + 1, total: (prev.total || 0) + 1 }));
         }
       } else if (entityType === 'PrivateMessage') {
         isFromMe = d?.remitente_email === myEmail;
-        if (!isFromMe) {
+        const isViewingThis = active?.type === 'system';
+        if (!isFromMe && !isViewingThis) {
+          suppressFetchUntilRef.current = Date.now() + 3000;
           setCounts(prev => ({ ...prev, system: (prev.system || 0) + 1, total: (prev.total || 0) + 1 }));
         }
       }
 
-      // Confirm with backend (corrects any optimistic drift)
+      // Confirm with backend after a delay (corrects any optimistic drift)
       debouncedFetch();
     };
 
