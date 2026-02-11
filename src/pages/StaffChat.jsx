@@ -26,7 +26,6 @@ import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
 import StaffChatInput from "../components/chat/StaffChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
