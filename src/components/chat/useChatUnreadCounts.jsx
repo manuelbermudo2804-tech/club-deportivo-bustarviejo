@@ -47,11 +47,13 @@ export function useChatUnreadCounts(user) {
 
   const inFlightRef = useRef(new Set());
   const refetchPendingRef = useRef(false);
+  const latestRequestIdRef = useRef(0);
 
   const fetchCounts = useCallback(async () => {
     if (!user) return;
     if (fetchingRef.current) { refetchPendingRef.current = true; return; }
     fetchingRef.current = true;
+    const requestId = ++latestRequestIdRef.current;
     try {
       const { data } = await base44.functions.invoke('chatGetUnreadCounts', {});
       if (mountedRef.current && data && !data.error) {
@@ -59,6 +61,9 @@ export function useChatUnreadCounts(user) {
         for (const k of Object.keys(data.team_chats || {})) {
           const nk = toGroupId(k);
           normalized.team_chats[nk] = (normalized.team_chats[nk] || 0) + (data.team_chats[k] || 0);
+        }
+        if (requestId !== latestRequestIdRef.current) {
+          return; // Ignorar respuesta antigua
         }
         setCounts(normalized);
       }
