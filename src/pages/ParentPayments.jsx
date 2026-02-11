@@ -1227,8 +1227,14 @@ export default function ParentPayments() {
           onClose={() => setShowSummary(false)}
           items={cartSelected}
           total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
-          onPayCard={async () => { setShowSummary(false); await handlePayCartWithCard(); }}
-          onTransfer={async () => { setShowSummary(false); await handleGenerateTransfer(); }}
+          onPayCard={async () => { 
+            await handlePayCartWithCard();
+            // No cerrar - se redirige a Stripe
+          }}
+          onTransfer={async () => { 
+            setShowSummary(false);
+            await handleGenerateTransfer();
+          }}
         />
 
         {/* Diálogo de transferencia por lote */}
