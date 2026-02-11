@@ -31,8 +31,10 @@ Deno.serve(async (req) => {
     const chatLastRead = user.chat_last_read || {};
 
     if (isCoach || isCoordinator) {
-      // Entrenador/Coordinador: contar mensajes de padres no leídos en sus categorías
-      const cats = isCoach ? (user.categorias_entrena || []) : (user.categorias_coordina || []);
+      // Entrenador/Coordinador: fusionar categorías de ambos roles
+      const coachCats = user.categorias_entrena || [];
+      const coordCats = user.categorias_coordina || [];
+      const cats = [...new Set([...coachCats, ...coordCats])];
       if (cats.length > 0) {
         const allChatMessages = await base44.asServiceRole.entities.ChatMessage.filter(
           { tipo: 'padre_a_grupo' }, '-created_date', 500
@@ -112,16 +114,20 @@ Deno.serve(async (req) => {
 
     // ===== 4. STAFF CHAT (StaffConversation) =====
     if (isStaff) {
-      const staffConvs = await base44.asServiceRole.entities.StaffConversation.filter({ categoria: 'General' });
-      const staffConv = staffConvs[0];
-      if (staffConv) {
-        const lastReadArr = staffConv.last_read_by || [];
-        const myEntry = lastReadArr.find(e => e.email === email);
-        const lastRead = myEntry?.fecha || '1970-01-01T00:00:00.000Z';
-        const msgs = await base44.asServiceRole.entities.StaffMessage.filter({
-          conversacion_id: staffConv.id
-        }, '-created_date', 100);
-        result.staff = msgs.filter(m => m.autor_email !== email && m.created_date > lastRead).length;
+      try {
+        const staffConvs = await base44.asServiceRole.entities.StaffConversation.filter({ categoria: 'General' });
+        const staffConv = staffConvs[0];
+        if (staffConv) {
+          const lastReadArr = staffConv.last_read_by || [];
+          const myEntry = lastReadArr.find(e => e.email === email);
+          const lastRead = myEntry?.fecha || '1970-01-01T00:00:00.000Z';
+          const msgs = await base44.asServiceRole.entities.StaffMessage.filter({
+            conversacion_id: staffConv.id
+          }, '-created_date', 200);
+          result.staff = msgs.filter(m => m.autor_email !== email && m.created_date > lastRead).length;
+        }
+      } catch (e) {
+        console.error('Error counting staff messages:', e);
       }
     }
 
