@@ -8,9 +8,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 export default function FamilyChatsHub() {
   const [user, setUser] = useState(null);
+  const { counts: chatCounts } = useChatUnreadCounts(user);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -192,7 +194,7 @@ export default function FamilyChatsHub() {
                   subtitle={playerNames ? `${playerNames} · Chat grupal con entrenador` : "Chat grupal con entrenador y familias"}
                   lastMessage={chatData?.lastMessage?.mensaje || null}
                   lastMessageDate={chatData?.lastMessage?.created_date || null}
-                  unreadCount={chatData?.unreadCount || 0}
+                  unreadCount={(chatCounts.team_chats || {})[cat] || 0}
                   url={createPageUrl("ParentCoachChat") + `?category=${encodeURIComponent(cat)}`}
                   icon={Users}
                   color="#3b82f6"
@@ -216,7 +218,7 @@ export default function FamilyChatsHub() {
             subtitle="Comunicación oficial del club"
             lastMessage={systemConv[0]?.ultimo_mensaje}
             lastMessageDate={systemConv[0]?.ultimo_mensaje_fecha}
-            unreadCount={systemConv.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0)}
+            unreadCount={chatCounts.system || 0}
             url={createPageUrl("ParentSystemMessages")}
             icon={Bell}
             color="#a855f7"
@@ -232,7 +234,7 @@ export default function FamilyChatsHub() {
                 subtitle="Conversación 1 a 1 con el coordinador"
                 lastMessage={conv.ultimo_mensaje}
                 lastMessageDate={conv.ultimo_mensaje_fecha}
-                unreadCount={conv.no_leidos_padre || 0}
+                unreadCount={chatCounts.coordinator || 0}
                 url={createPageUrl("ParentCoordinatorChat")}
                 icon={MessageCircle}
                 color="#06b6d4"
