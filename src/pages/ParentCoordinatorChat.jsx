@@ -33,7 +33,7 @@ export default function ParentCoordinatorChat() {
   const [showReactions, setShowReactions] = useState(null);
   const messagesEndRef = useRef(null);
 
-  const { markRead } = useChatUnreadCounts(user);
+  const { markRead, clearActiveChat } = useChatUnreadCounts(user);
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -134,6 +134,13 @@ export default function ParentCoordinatorChat() {
     if (!conversation?.id || !user) return;
     markRead('coordinatorForFamily', conversation.id);
   }, [conversation?.id, user?.email]);
+
+  // Al salir del chat 1-a-1, limpiar chat activo
+  useEffect(() => {
+    return () => {
+      try { clearActiveChat(); } catch {}
+    };
+  }, []);
 
   // REAL-TIME: Suscripción a mensajes nuevos
   useEffect(() => {

@@ -235,6 +235,8 @@ export function useChatUnreadCounts(user) {
 
     // Suppress backend overwrite for a generous window
     suppressFetchUntilRef.current = Date.now() + 10000;
+    // Programar una sincronización al expirar la supresión para refrescar el contador global/botón inferior
+    setTimeout(() => { if (mountedRef.current) fetchCounts(); }, 10050);
 
     // Confirm with backend
     try {

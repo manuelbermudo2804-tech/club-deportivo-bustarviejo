@@ -37,7 +37,7 @@ export default function ParentCoachChat() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [lockedCategory, setLockedCategory] = useState(null);
-  const { markRead } = useChatUnreadCounts(user);
+  const { markRead, clearActiveChat } = useChatUnreadCounts(user);
   const [uploading, setUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -146,6 +146,13 @@ export default function ParentCoachChat() {
       markRead('team', gid);
     }
   }, [user?.email, selectedCategory]);
+
+  // Al salir del chat, limpiar el chat activo para que vuelvan a contar los +1
+  useEffect(() => {
+    return () => {
+      try { clearActiveChat(); } catch {}
+    };
+  }, []);
 
   const categoryKey = toGroupId(selectedCategory || "");
   const categoryMessages = selectedCategory
