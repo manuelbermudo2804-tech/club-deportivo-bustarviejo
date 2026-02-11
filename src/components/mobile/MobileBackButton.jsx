@@ -16,6 +16,9 @@ export default function MobileBackButton() {
     createPageUrl('CoordinatorDashboard'),
     createPageUrl('TreasurerDashboard'),
     createPageUrl('FamilyChatsHub'),
+    createPageUrl('CoachChatsHub'),
+    createPageUrl('CoordinatorChatsHub'),
+    createPageUrl('AdminChatsHub'),
   ].map(url => url.toLowerCase());
 
   const isRootPage = rootPages.some(root => location.pathname.toLowerCase() === root);
