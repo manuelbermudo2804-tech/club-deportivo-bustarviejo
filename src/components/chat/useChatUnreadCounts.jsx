@@ -110,13 +110,51 @@ export function useChatUnreadCounts(user) {
     };
   }, [user?.email, fetchCounts]);
 
-  // Optimistic markRead: set counter to 0 immediately, then confirm with backend
+  // Limpieza inmediata visual SOLO del chat abierto y sincronización posterior
   const markRead = useCallback(async (chatType, chatId) => {
+    const type = normalizeType(chatType);
+
+    // 1) Limpieza local inmediata (sin suppress/debounce/otros optimismos)
+    setCounts(prev => {
+      const next = { ...prev };
+      if (type === 'team' && chatId) {
+        const gid = toGroupId(chatId);
+        const curr = (next.team_chats?.[gid] || 0);
+        if (curr > 0) {
+          next.total = Math.max(0, (next.total || 0) - curr);
+          next.team_chats = { ...(next.team_chats || {}), [gid]: 0 };
+        }
+      } else if (type === 'coordinator') {
+        if (next.coordinator > 0) {
+          next.total = Math.max(0, (next.total || 0) - next.coordinator);
+          next.coordinator = 0;
+        }
+      } else if (type === 'admin') {
+        if (next.admin > 0) {
+          next.total = Math.max(0, (next.total || 0) - next.admin);
+          next.admin = 0;
+        }
+      } else if (type === 'staff') {
+        if (next.staff > 0) {
+          next.total = Math.max(0, (next.total || 0) - next.staff);
+          next.staff = 0;
+        }
+      } else if (type === 'system') {
+        if (next.system > 0) {
+          next.total = Math.max(0, (next.total || 0) - next.system);
+          next.system = 0;
+        }
+      }
+      return next;
+    });
+
+    // 2) Persistir en backend y 3) Sincronizar con server truth
     try {
       await base44.functions.invoke('chatMarkRead', { chatType, chatId });
-      await fetchCounts();
     } catch (e) {
       console.error('[useChatUnreadCounts] markRead error:', e);
+    } finally {
+      await fetchCounts();
     }
   }, [fetchCounts]);
 
