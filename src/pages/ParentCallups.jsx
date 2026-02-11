@@ -80,7 +80,10 @@ export default function ParentCallups() {
   const updateCallupMutation = useMutation({
     mutationFn: ({ id, callupData }) => base44.entities.Convocatoria.update(id, callupData),
     onSuccess: () => {
+      // Invalidar TODAS las queries de convocatorias para actualización inmediata en AlertCenter y dashboards
       queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+      queryClient.invalidateQueries({ queryKey: ['callups'] });
+      queryClient.invalidateQueries({ queryKey: ['playerCallups'] });
       queryClient.invalidateQueries({ queryKey: ['announcementsAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['eventsAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['surveysAlerts'] });
