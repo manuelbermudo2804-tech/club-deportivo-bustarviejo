@@ -6,6 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart, FileSignature, Euro, Share2, Sparkles, BarChart3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link as RouterLink } from "react-router-dom";
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
