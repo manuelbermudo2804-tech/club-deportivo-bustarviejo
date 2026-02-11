@@ -206,8 +206,8 @@ export function useChatUnreadCounts(user) {
       return next;
     });
 
-    // Suppress backend overwrite for a few seconds
-    suppressFetchUntilRef.current = Date.now() + 5000;
+    // Suppress backend overwrite for a generous window
+    suppressFetchUntilRef.current = Date.now() + 10000;
 
     // Confirm with backend
     try {
