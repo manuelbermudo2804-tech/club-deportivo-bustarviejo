@@ -440,28 +440,23 @@ export default function ParentDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <div className="flex items-center justify-between gap-3">
-          <SocialLinks />
+          <div className="flex items-center gap-2">
+            <SocialLinks />
+            <Link to={createPageUrl("Chatbot")}>
+              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800">
+                <Sparkles className="w-4 h-4 mr-1" />
+                🤖 IA
+              </Button>
+            </Link>
+            <Link to={createPageUrl("FamilyChatsHub")}>
+              <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                <MessageCircle className="w-4 h-4 mr-1" />
+                💬 Chats
+              </Button>
+            </Link>
+          </div>
           <ShareFormButton />
         </div>
-
-        {/* Asistente IA - Independiente */}
-        <Link to={createPageUrl("Chatbot")}>
-          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-purple-700 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-purple-400 relative overflow-hidden">
-            <div className="absolute -top-1 -right-1 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse shadow-lg">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="text-white font-bold text-sm">🤖 Asistente Virtual</p>
-                <p className="text-xs text-purple-100">Pregunta lo que necesites</p>
-              </div>
-              <span className="text-white text-lg">→</span>
-            </div>
-          </div>
-        </Link>
 
         {/* Aviso renovaciones (aunque estén inactivos) */}
         {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (
