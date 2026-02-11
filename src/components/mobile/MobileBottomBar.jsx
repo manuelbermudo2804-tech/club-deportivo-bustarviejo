@@ -5,30 +5,36 @@ import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 
 export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, currentPageName }) {
   // Ocultar visualmente en páginas de chat pero mantener en DOM para badges
-  const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub'];
+  const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub', 'CoachChatsHub', 'CoordinatorChatsHub', 'AdminChatsHub'];
   const isInChat = chatPages.includes(currentPageName);
   // Botones dinámicos según el rol
   let tabs = [];
 
   if (isAdmin) {
+    const totalChatBadge = (chatBadges?.staffCount || 0) + (chatBadges?.adminCount || 0);
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('Home'), key: 'home' },
       { icon: Users, label: 'Jugadores', url: createPageUrl('Players'), key: 'players' },
-      { icon: MessageCircle, label: 'Chat', url: createPageUrl('StaffChat'), key: 'chat', badge: chatBadges?.staffCount },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('AdminChatsHub'), key: 'chat', badge: totalChatBadge },
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('Payments'), key: 'payments' },
     ];
   } else if (isCoordinator) {
+    const totalChatBadge = (chatBadges?.coordinatorCount || 0) + 
+                           (chatBadges?.adminCount || 0) + 
+                           (chatBadges?.staffCount || 0) +
+                           (chatBadges?.coachCount || 0);
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('CoordinatorDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
-      { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoordinatorChat'), key: 'chat', badge: chatBadges?.coordinatorCount },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoordinatorChatsHub'), key: 'chat', badge: totalChatBadge },
       { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
     ];
   } else if (isCoach) {
+    const totalChatBadge = (chatBadges?.coachCount || 0) + (chatBadges?.staffCount || 0);
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('CoachDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
-      { icon: MessageCircle, label: 'Familias', url: createPageUrl('CoachParentChat'), key: 'chat', badge: chatBadges?.coachCount },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoachChatsHub'), key: 'chat', badge: totalChatBadge },
       { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
     ];
   } else if (isTreasurer) {
@@ -39,11 +45,14 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: Users, label: 'Socios', url: createPageUrl('ClubMembersManagement'), key: 'members' },
     ];
   } else if (isPlayer) {
+    const totalChatBadge = (chatBadges?.coachForFamilyCount || 0) + 
+                           (chatBadges?.coordinatorForFamilyCount || 0) + 
+                           (chatBadges?.systemMessagesCount || 0);
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('PlayerDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('ParentPayments'), key: 'payments' },
-      { icon: MessageCircle, label: 'Chat', url: createPageUrl('ParentCoachChat'), key: 'chat', badge: chatBadges?.coachForFamilyCount },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('FamilyChatsHub'), key: 'chat', badge: totalChatBadge },
     ];
   } else {
     // Familia (padre)
