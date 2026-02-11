@@ -41,8 +41,8 @@ export default function CoachParentChat({ embedded = false }) {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      
-      // Vista de ENTRENADOR: mostrar SOLO sus categorías como entrenador
+
+      // Categorías visibles para ENTRENADOR/COORDINADOR
       let categories;
       if (currentUser.role === "admin") {
         categories = ["Todas las categorías"];
@@ -50,8 +50,15 @@ export default function CoachParentChat({ embedded = false }) {
         const coachCats = currentUser.categorias_entrena || [];
         categories = [...new Set(coachCats)];
       }
-      
-      if (categories.length > 0 && !selectedCategory) {
+
+      // Priorizar categoría recibida por URL (?category= / ?categoria=)
+      const params = new URLSearchParams(window.location.search);
+      const urlCat = params.get('category') || params.get('categoria');
+
+      if (urlCat) {
+        setSelectedCategory(urlCat);
+        setLockedCategory(urlCat);
+      } else if (categories.length > 0 && !selectedCategory) {
         setSelectedCategory(categories[0]);
       }
     };
@@ -105,8 +112,8 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const cat = params.get('category') || params.get('categoria');
-    if (cat && !selectedCategory) {
-      setSelectedCategory(cat);
+    if (cat) {
+      if (selectedCategory !== cat) setSelectedCategory(cat);
       setLockedCategory(cat);
     }
   }, [selectedCategory]);
