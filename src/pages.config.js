@@ -157,6 +157,9 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
+import CoachChatsHub from './pages/CoachChatsHub';
+import CoordinatorChatsHub from './pages/CoordinatorChatsHub';
+import AdminChatsHub from './pages/AdminChatsHub';
 import __Layout from './Layout.jsx';
 
 
@@ -271,6 +274,9 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
+    "CoachChatsHub": CoachChatsHub,
+    "CoordinatorChatsHub": CoordinatorChatsHub,
+    "AdminChatsHub": AdminChatsHub,
 }
 
 export const pagesConfig = {

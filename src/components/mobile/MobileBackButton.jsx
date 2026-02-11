@@ -22,20 +22,46 @@ export default function MobileBackButton() {
 
   if (isRootPage) return null;
 
-  // Detectar si estamos en un chat individual (familia) -> volver a FamilyChatsHub
-  const familyChatPages = [
-    createPageUrl('ParentCoachChat'),
-    createPageUrl('ParentCoordinatorChat'),
-    createPageUrl('ParentSystemMessages'),
-  ].map(url => url.toLowerCase());
+  // Detectar si estamos en un chat individual -> volver al hub correspondiente
+  const chatPageToHub = {
+    // Familia/Jugador
+    [createPageUrl('ParentCoachChat').toLowerCase()]: createPageUrl('FamilyChatsHub'),
+    [createPageUrl('ParentCoordinatorChat').toLowerCase()]: createPageUrl('FamilyChatsHub'),
+    [createPageUrl('ParentSystemMessages').toLowerCase()]: createPageUrl('FamilyChatsHub'),
+    // Coach
+    [createPageUrl('CoachParentChat').toLowerCase()]: createPageUrl('CoachChatsHub'),
+    // Coordinator
+    [createPageUrl('CoordinatorChat').toLowerCase()]: createPageUrl('CoordinatorChatsHub'),
+    // Admin/Staff/Coordinator
+    [createPageUrl('StaffChat').toLowerCase()]: (path) => {
+      // Detectar el rol para saber a qué hub volver
+      const url = window.location.href.toLowerCase();
+      if (url.includes('admin')) return createPageUrl('AdminChatsHub');
+      if (url.includes('coordinator')) return createPageUrl('CoordinatorChatsHub');
+      if (url.includes('coach')) return createPageUrl('CoachChatsHub');
+      return null; // Fallback a navigate(-1)
+    },
+    [createPageUrl('AdminCoordinatorChats').toLowerCase()]: (path) => {
+      const url = window.location.href.toLowerCase();
+      if (url.includes('coordinator')) return createPageUrl('CoordinatorChatsHub');
+      return createPageUrl('AdminChatsHub');
+    },
+  };
 
-  const isFamilyChat = familyChatPages.some(chat => location.pathname.toLowerCase() === chat);
+  const currentPath = location.pathname.toLowerCase();
+  const hubUrl = chatPageToHub[currentPath];
+  const shouldGoToHub = !!hubUrl;
 
   return (
     <button
       onClick={() => {
-        if (isFamilyChat) {
-          navigate(createPageUrl('FamilyChatsHub'));
+        if (shouldGoToHub) {
+          const target = typeof hubUrl === 'function' ? hubUrl(currentPath) : hubUrl;
+          if (target) {
+            navigate(target);
+          } else {
+            navigate(-1);
+          }
         } else {
           navigate(-1);
         }
