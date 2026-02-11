@@ -45,6 +45,7 @@ export function useChatUnreadCounts(user) {
   // Keep user email in ref for realtime handlers
   useEffect(() => { userEmailRef.current = user?.email; }, [user?.email]);
 
+  const inFlightRef = useRef(new Set());
   const refetchPendingRef = useRef(false);
 
   const fetchCounts = useCallback(async () => {
@@ -110,11 +111,16 @@ export function useChatUnreadCounts(user) {
     };
   }, [user?.email, fetchCounts]);
 
-  // Limpieza inmediata visual SOLO del chat abierto y sincronización posterior
+  // Limpieza inmediata visual SOLO del chat abierto + protección contra llamadas concurrentes por chat
   const markRead = useCallback(async (chatType, chatId) => {
     const type = normalizeType(chatType);
+    const key = `${type}::${chatId || 'global'}`;
 
-    // 1) Limpieza local inmediata (sin suppress/debounce/otros optimismos)
+    // 1) Evitar llamadas concurrentes para el mismo chat
+    if (inFlightRef.current.has(key)) return;
+    inFlightRef.current.add(key);
+
+    // 2) Limpieza local inmediata (sin incrementos optimistas, sin debounce, sin suppress)
     setCounts(prev => {
       const next = { ...prev };
       if (type === 'team' && chatId) {
@@ -145,16 +151,19 @@ export function useChatUnreadCounts(user) {
           next.system = 0;
         }
       }
+      // 2.b) Asegurar que nunca sea negativo
+      next.total = Math.max(0, next.total || 0);
       return next;
     });
 
-    // 2) Persistir en backend y 3) Sincronizar con server truth
+    // 3) Persistir en backend y 4) Sincronizar con server truth
     try {
       await base44.functions.invoke('chatMarkRead', { chatType, chatId });
     } catch (e) {
       console.error('[useChatUnreadCounts] markRead error:', e);
     } finally {
       await fetchCounts();
+      inFlightRef.current.delete(key);
     }
   }, [fetchCounts]);
 
