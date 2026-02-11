@@ -39,14 +39,13 @@ export default function CoachParentChat({ embedded = false }) {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Coordinador que también es entrenador: fusionar ambas listas de categorías
+      // Vista de ENTRENADOR: mostrar SOLO sus categorías como entrenador
       let categories;
       if (currentUser.role === "admin") {
         categories = ["Todas las categorías"];
       } else {
         const coachCats = currentUser.categorias_entrena || [];
-        const coordCats = currentUser.es_coordinador ? (currentUser.categorias_coordina || []) : [];
-        categories = [...new Set([...coachCats, ...coordCats])];
+        categories = [...new Set(coachCats)];
       }
       
       if (categories.length > 0 && !selectedCategory) {
@@ -63,6 +62,15 @@ export default function CoachParentChat({ embedded = false }) {
     };
     fetchPlayers();
   }, []);
+
+  // Asegurar que siempre haya una categoría válida seleccionada para ENTRENADOR
+  useEffect(() => {
+    if (!user) return;
+    const coachCats = user.categorias_entrena || [];
+    if (coachCats.length > 0 && (!selectedCategory || !coachCats.includes(selectedCategory))) {
+      setSelectedCategory(coachCats[0]);
+    }
+  }, [user, selectedCategory]);
 
   // Contar mensajes no leídos por categoría (desde ChatMessage)
   const { data: messages = [] } = useQuery({
@@ -81,8 +89,8 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     if (!chatCounts || !user) return;
     const teamChats = chatCounts.team_chats || {};
-    // Mapear de gid a nombre de categoría para mostrar en las pestañas
-    const allCats = [...new Set([...(user.categorias_entrena || []), ...(user.es_coordinador ? (user.categorias_coordina || []) : [])])];
+    // Solo categorías que el usuario ENTRENA
+    const allCats = [...new Set(user.categorias_entrena || [])];
     const unreadCounts = {};
     for (const cat of allCats) {
       const gid = toGroupId(cat);
@@ -137,12 +145,12 @@ export default function CoachParentChat({ embedded = false }) {
 
   const categories = user?.role === "admin" 
     ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))]
-    : [...new Set([...(user?.categorias_entrena || []), ...(isCoordinator ? (user?.categorias_coordina || []) : [])])];
+    : [...new Set([...(user?.categorias_entrena || [])])] ;
 
   if (categories.length === 0) {
     return (
       <div className="p-6 text-center">
-        <p className="text-slate-500">No tienes categorías asignadas. Contacta con el administrador.</p>
+        <p className="text-slate-500">No tienes categorías de entrenador asignadas. Contacta con el administrador.</p>
       </div>
     );
   }
@@ -222,7 +230,7 @@ export default function CoachParentChat({ embedded = false }) {
               const catKey = typeof cat === 'string' ? cat : (cat?.nombre || String(cat));
               const categoryPlayers = cat === "Todas las categorías" 
                 ? allPlayers 
-                : allPlayers.filter(p => p.deporte === cat);
+                : allPlayers.filter(p => (p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)));
               
               const parentCount = new Set(categoryPlayers.flatMap(p => 
                 [p.email_padre, p.email_tutor_2].filter(Boolean)
@@ -361,7 +369,7 @@ export default function CoachParentChat({ embedded = false }) {
           {categories.map(cat => {
             const categoryPlayers = cat === "Todas las categorías" 
               ? allPlayers 
-              : allPlayers.filter(p => p.deporte === cat);
+              : allPlayers.filter(p => (p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)));
             
             const parentCount = new Set(categoryPlayers.flatMap(p => 
               [p.email_padre, p.email_tutor_2].filter(Boolean)
