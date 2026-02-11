@@ -177,6 +177,9 @@ export default function FamilyChatsHub() {
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-slate-600" />
               <h2 className="font-bold text-slate-900">Chats de Equipo</h2>
+              {myCategories.length > 1 && (
+                <Badge variant="outline" className="text-xs">{myCategories.length} equipos</Badge>
+              )}
             </div>
             {myCategories.map(cat => {
               const chatData = teamChats.find(c => c.categoryName === cat);
