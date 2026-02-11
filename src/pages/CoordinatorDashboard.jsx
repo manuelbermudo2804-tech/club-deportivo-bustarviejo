@@ -125,7 +125,21 @@ export default function CoordinatorDashboard() {
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <div className="flex items-center justify-between gap-3">
-          <SocialLinks />
+          <div className="flex items-center gap-2">
+            <SocialLinks />
+            <Link to={createPageUrl("Chatbot")}>
+              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800">
+                <Sparkles className="w-4 h-4 mr-1" />
+                🤖 IA
+              </Button>
+            </Link>
+            <Link to={createPageUrl("CoordinatorChatsHub")}>
+              <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                <MessageCircle className="w-4 h-4 mr-1" />
+                💬 Chats
+              </Button>
+            </Link>
+          </div>
           <ShareFormButton />
         </div>
         
@@ -140,71 +154,6 @@ export default function CoordinatorDashboard() {
             {user?.full_name} - Vista global del club
           </p>
         </div>
-
-        {/* Banner de Chats - FUENTE ÚNICA */}
-        <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg text-purple-900">💬 Mensajes</h3>
-                <p className="text-sm text-purple-700">Comunicación con familias y staff</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 lg:gap-2">
-              <Link to={createPageUrl("Chatbot")} className="flex-1">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
-                  <p className="text-base font-bold mb-0.5">🤖</p>
-                  <p className="text-xs font-bold text-center">Asistente</p>
-                </div>
-              </Link>
-
-              <Link to={createPageUrl("CoordinatorChat")} className="flex-1">
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
-                   {(notifications?.unreadCoordinatorForStaff || 0) > 0 && (
-                      <div className="absolute -top-2 -right-2 px-2 py-1 bg-cyan-500 text-white text-xs rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
-                        💬 {notifications.unreadCoordinatorForStaff}
-                      </div>
-                    )}
-                   <p className="text-base font-bold mb-0.5">💬</p>
-                   <p className="text-xs font-bold text-center">Familias</p>
-                   <p className="text-[9px] text-blue-100 text-center">Coord</p>
-                </div>
-              </Link>
-
-              {user?.es_entrenador && (
-                <Link to={createPageUrl("CoachParentChat")} className="flex-1">
-                  <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
-                     {(notifications?.unreadCoachForStaff || 0) > 0 && (
-                       <div className="absolute -top-2 -right-2 px-2 py-1 bg-blue-500 text-white text-xs rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
-                         ⚽ {notifications.unreadCoachForStaff}
-                       </div>
-                     )}
-                     <p className="text-base font-bold mb-0.5">⚽</p>
-                     <p className="text-xs font-bold text-center">Familias</p>
-                     <p className="text-[9px] text-red-100 text-center">Entrena</p>
-                  </div>
-                </Link>
-              )}
-
-              <Link to={createPageUrl("StaffChat")} className="flex-1">
-                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg p-2 text-white hover:scale-105 transition-all shadow-lg relative h-full flex flex-col items-center justify-center min-h-[70px]">
-                  {(notifications?.unreadStaffMessages || 0) > 0 && (
-                    <div className="absolute -top-2 -right-2 px-2 py-1 bg-purple-500 text-white text-xs rounded-lg font-bold animate-pulse shadow-lg border-2 border-white">
-                      💼 {notifications.unreadStaffMessages}
-                    </div>
-                  )}
-                  <p className="text-base font-bold mb-0.5">💼</p>
-                  <p className="text-xs font-bold text-center">Staff</p>
-                  <p className="text-[9px] text-slate-100 text-center">Interno</p>
-                </div>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
         <CoordinatorClassificationsMatchesBanner />

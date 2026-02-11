@@ -1279,215 +1279,43 @@ export default function Home() {
       <PaymentApprovalNotifier isAdmin={isAdmin} />
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <div className="flex items-center justify-between gap-3">
-          <SocialLinks />
+          <div className="flex items-center gap-2">
+            <SocialLinks />
+            <Link to={createPageUrl("Chatbot")}>
+              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800">
+                <Sparkles className="w-4 h-4 mr-1" />
+                🤖 IA
+              </Button>
+            </Link>
+            <Link to={createPageUrl("AdminChatsHub")}>
+              <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                <MessageCircle className="w-4 h-4 mr-1" />
+                💬 Chats
+              </Button>
+            </Link>
+          </div>
           <ShareFormButton />
         </div>
 
-
-
-        {/* Banner de Chats - Admin */}
-        {isAdmin && (
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                <p className="text-xs text-purple-700">Comunicación del club</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              <Link to={createPageUrl("Chatbot")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-                    <Sparkles className="w-3 h-3 text-white" />
-                  </div>
-                  <p className="text-sm font-bold mb-1 text-center">🤖 Asistente</p>
-                  <p className="text-xs text-indigo-100 leading-tight text-center">Consulta IA</p>
-                </div>
-              </Link>
-
-              <Link to={createPageUrl("CoordinatorChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(coordinatorConversations?.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0) || 0) > 0 && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{coordinatorConversations?.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0)}</span>
-                    </div>
-                  )}
-                  <p className="text-sm font-bold mb-1 text-center">💬 Coordinador</p>
-                  <p className="text-xs text-cyan-100 leading-tight text-center">Familias</p>
-                </div>
-              </Link>
-
-              <Link to={createPageUrl("CoachParentChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(() => {
-                    let coachUnread = 0;
-                    if (coachConversations) {
-                      coachUnread += coachConversations.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
-                    }
-                    if (user && messages) {
-                      const myCoachCategories = user.categorias_entrena || [];
-                      const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-                      for (const cat of myCoachCategories) {
-                        const groupId = normalizeId(cat);
-                        coachUnread += messages?.filter(msg => 
-                          msg.grupo_id === groupId &&
-                          msg.tipo === 'padre_a_grupo' &&
-                          msg.remitente_email !== user.email &&
-                          (!msg.leido_por || !msg.leido_por.some(r => r.email === user.email))
-                        ).length || 0;
-                      }
-                    }
-                    return coachUnread > 0;
-                  })() && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{(() => {
-                        let coachUnread = 0;
-                        if (coachConversations) {
-                          coachUnread += coachConversations.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
-                        }
-                        if (user && messages) {
-                          const myCoachCategories = user.categorias_entrena || [];
-                          const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-                          for (const cat of myCoachCategories) {
-                            const groupId = normalizeId(cat);
-                            coachUnread += messages?.filter(msg => 
-                              msg.grupo_id === groupId &&
-                              msg.tipo === 'padre_a_grupo' &&
-                              msg.remitente_email !== user.email &&
-                              (!msg.leido_por || !msg.leido_por.some(r => r.email === user.email))
-                            ).length || 0;
-                          }
-                        }
-                        return coachUnread;
-                      })()}</span>
-                    </div>
-                  )}
-                  <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
-                  <p className="text-xs text-blue-100 leading-tight text-center">Familias</p>
-                </div>
-              </Link>
-              
-              <Link to={createPageUrl("StaffChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(staffMessagesHome?.filter(m => m.autor_email !== user?.email && !(m.leido_por || []).some(l => l.email === user?.email)).length || 0) > 0 && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{staffMessagesHome?.filter(m => m.autor_email !== user?.email && !(m.leido_por || []).some(l => l.email === user?.email)).length || 0}</span>
-                    </div>
-                  )}
-                  <p className="text-sm font-bold mb-1 text-center">💼 Staff</p>
-                  <p className="text-xs text-slate-100 leading-tight text-center">Interno</p>
-                </div>
-              </Link>
-            </div>
+      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <SocialLinks />
+            <Link to={createPageUrl("Chatbot")}>
+              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800">
+                <Sparkles className="w-4 h-4 mr-1" />
+                🤖 IA
+              </Button>
+            </Link>
+            <Link to={createPageUrl("AdminChatsHub")}>
+              <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                <MessageCircle className="w-4 h-4 mr-1" />
+                💬 Chats
+              </Button>
+            </Link>
           </div>
-        )}
-
-        {/* Accesos rápidos a chats - Para Coordinadores y Entrenadores */}
-        {(isCoordinator || (isCoach && user?.es_entrenador)) && !isAdmin && (
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-purple-900">💬 Mensajes</h3>
-                <p className="text-xs text-purple-700">Comunicación</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-              <Link to={createPageUrl("Chatbot")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center">
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-                    <Sparkles className="w-3 h-3 text-white" />
-                  </div>
-                  <p className="text-sm font-bold mb-1 text-center">🤖 Asistente</p>
-                  <p className="text-xs text-indigo-100 leading-tight text-center">Consulta IA</p>
-                </div>
-              </Link>
-
-              <Link to={createPageUrl("CoordinatorChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(coordinatorConversations?.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0) || 0) > 0 && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{coordinatorConversations?.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0)}</span>
-                    </div>
-                  )}
-                  <p className="text-sm font-bold mb-1 text-center">💬 Coordinador</p>
-                  <p className="text-xs text-cyan-100 leading-tight text-center">Familias</p>
-                </div>
-              </Link>
-
-              {user?.es_entrenador && (
-                <Link to={createPageUrl("CoachParentChat")} className="relative flex-1">
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                    {(() => {
-                      let coachUnread = 0;
-                      if (coachConversations) {
-                        coachUnread += coachConversations.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
-                      }
-                      if (user && messages) {
-                        const myCoachCategories = user.categorias_entrena || [];
-                        const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-                        for (const cat of myCoachCategories) {
-                          const groupId = normalizeId(cat);
-                          coachUnread += messages?.filter(msg => 
-                            msg.grupo_id === groupId &&
-                            msg.tipo === 'padre_a_grupo' &&
-                            msg.remitente_email !== user.email &&
-                            (!msg.leido_por || !msg.leido_por.some(r => r.email === user.email))
-                          ).length || 0;
-                        }
-                      }
-                      return coachUnread;
-                    })() > 0 && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                        <span className="text-white text-xs font-bold">{(() => {
-                          let coachUnread = 0;
-                          if (coachConversations) {
-                            coachUnread += coachConversations.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
-                          }
-                          if (user && messages) {
-                            const myCoachCategories = user.categorias_entrena || [];
-                            const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-                            for (const cat of myCoachCategories) {
-                              const groupId = normalizeId(cat);
-                              coachUnread += messages?.filter(msg => 
-                                msg.grupo_id === groupId &&
-                                msg.tipo === 'padre_a_grupo' &&
-                                msg.remitente_email !== user.email &&
-                                (!msg.leido_por || !msg.leido_por.some(r => r.email === user.email))
-                              ).length || 0;
-                            }
-                          }
-                          return coachUnread;
-                        })()}</span>
-                      </div>
-                    )}
-                    <p className="text-sm font-bold mb-1 text-center">⚽ Entrenador</p>
-                    <p className="text-xs text-blue-100 leading-tight text-center">Familias</p>
-                  </div>
-                </Link>
-              )}
-              
-              <Link to={createPageUrl("StaffChat")} className="relative flex-1">
-                <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-3 text-white hover:scale-105 transition-all shadow-lg h-full flex flex-col justify-center relative">
-                  {(staffMessagesHome?.filter(m => m.autor_email !== user?.email && !(m.leido_por || []).some(l => l.email === user?.email)).length || 0) > 0 && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                      <span className="text-white text-xs font-bold">{staffMessagesHome?.filter(m => m.autor_email !== user?.email && !(m.leido_por || []).some(l => l.email === user?.email)).length || 0}</span>
-                    </div>
-                  )}
-                  <p className="text-sm font-bold mb-1 text-center">💼 Staff</p>
-                  <p className="text-xs text-slate-100 leading-tight text-center">Interno</p>
-                </div>
-              </Link>
-            </div>
-          </div>
-        )}
+          <ShareFormButton />
+        </div>
 
 
 
