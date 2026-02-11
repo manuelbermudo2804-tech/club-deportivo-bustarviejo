@@ -43,8 +43,7 @@ Deno.serve(async (req) => {
           const unread = allChatMessages.filter(m =>
             toGroupId(m.grupo_id || m.deporte) === gid &&
             m.remitente_email !== email &&
-            m.created_date > lastRead &&
-            (!m.leido_por || !m.leido_por.some(lp => lp.email === email))
+            m.created_date > lastRead
           ).length;
           if (unread > 0) result.team_chats[gid] = unread;
         }
@@ -66,8 +65,7 @@ Deno.serve(async (req) => {
           const unread = allChatMessages.filter(m =>
             toGroupId(m.grupo_id || m.deporte) === gid &&
             m.remitente_email !== email &&
-            m.created_date > lastRead &&
-            (!m.leido_por || !m.leido_por.some(lp => lp.email === email))
+            m.created_date > lastRead
           ).length;
           if (unread > 0) result.team_chats[gid] = unread;
         }

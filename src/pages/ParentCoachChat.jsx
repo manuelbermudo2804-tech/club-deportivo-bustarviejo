@@ -37,7 +37,7 @@ export default function ParentCoachChat() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [lockedCategory, setLockedCategory] = useState(null);
-  const { markRead, clearActiveChat } = useChatUnreadCounts(user);
+  const { counts, markRead, clearActiveChat } = useChatUnreadCounts(user);
   const [uploading, setUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -127,6 +127,10 @@ export default function ParentCoachChat() {
   const getUnreadCountByCategory = (categoria) => {
     if (!user) return 0;
     const key = toGroupId(categoria);
+    // 1) Usa el contador oficial del backend (evita parpadeos)
+    const backendCount = counts?.team_chats?.[key];
+    if (typeof backendCount === 'number') return backendCount;
+    // 2) Fallback con mensajes locales si aún no tenemos el mapeo
     const normCat = normalizeCategory(categoria);
     return messages.filter(m => {
       const normMsgCat = normalizeCategory(m.deporte || "");

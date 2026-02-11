@@ -77,7 +77,13 @@ export function useChatUnreadCounts(user) {
             return merged;
           });
         } else {
-          setCounts(data);
+          // Normalizar claves de equipo del backend por si llegan con nombre en vez de id
+          const normalized = { ...data, team_chats: {} };
+          for (const k of Object.keys(data.team_chats || {})) {
+            const nk = toGroupId(k);
+            normalized.team_chats[nk] = (normalized.team_chats[nk] || 0) + (data.team_chats[k] || 0);
+          }
+          setCounts(normalized);
         }
       }
     } catch (e) {
@@ -112,7 +118,7 @@ export function useChatUnreadCounts(user) {
 
     const debouncedFetch = () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => fetchCounts(), 5000);
+      debounceTimer = setTimeout(() => fetchCounts(), 5500);
     };
 
     // Determine chat type from entity event and optimistically increment

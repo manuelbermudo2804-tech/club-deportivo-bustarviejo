@@ -8,6 +8,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub', 'CoachChatsHub', 'CoordinatorChatsHub', 'AdminChatsHub'];
   const isInChat = chatPages.includes(currentPageName);
   // Recalcular badge total de chat en el botón inferior para padres/jugadores
+  // familyTotal ahora usa el contador oficial del backend para grupos cuando esté disponible (inyectado vía props cuando exista)
   const familyTotal = (chatBadges?.coachForFamilyCount || 0) + (chatBadges?.coordinatorForFamilyCount || 0) + (chatBadges?.systemMessagesCount || 0);
   // Botones dinámicos según el rol
   let tabs = [];
