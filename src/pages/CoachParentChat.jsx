@@ -187,8 +187,8 @@ export default function CoachParentChat({ embedded = false }) {
               </Button>
             </div>
           
-          {/* Banner de avisos - solo si hay mensajes nuevos */}
-          {Object.values(unreadByCategory).some(count => count > 0) && (
+          {/* Banner de avisos y pestañas - solo si NO viene con categoría fija */}
+          {!lockedCategory && Object.values(unreadByCategory).some(count => count > 0) && (
             <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
               <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
               {categories.filter(cat => unreadByCategory[cat] > 0).map(cat => (
@@ -206,7 +206,8 @@ export default function CoachParentChat({ embedded = false }) {
             </div>
           )}
 
-         {/* Pestañas de categorías - más compactas */}
+         {/* Pestañas de categorías - solo si NO viene con categoría fija */}
+          {!lockedCategory && (
           <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
             {categories.map(cat => {
               const catKey = typeof cat === 'string' ? cat : (cat?.nombre || String(cat));
@@ -243,6 +244,7 @@ export default function CoachParentChat({ embedded = false }) {
               );
             })}
           </div>
+          )}
         </div>
 
         {/* Ventana de chat */}
@@ -307,6 +309,11 @@ export default function CoachParentChat({ embedded = false }) {
                  </Button>
                  <MessageCircle className="w-5 h-5" />
                  Chat Grupal Equipo
+                 {lockedCategory && (
+                   <span className="text-xs font-normal opacity-80 ml-1">
+                     · {lockedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                   </span>
+                 )}
                </h1>
              </div>
              <Button
@@ -320,8 +327,8 @@ export default function CoachParentChat({ embedded = false }) {
             </Button>
           </div>
         
-        {/* Banner de avisos - solo si hay mensajes nuevos */}
-        {Object.values(unreadByCategory).some(count => count > 0) && (
+        {/* Banner de avisos y pestañas - solo si NO viene con categoría fija */}
+        {!lockedCategory && Object.values(unreadByCategory).some(count => count > 0) && (
           <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
             <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
             {categories.filter(cat => unreadByCategory[cat] > 0).map(cat => (
@@ -339,7 +346,8 @@ export default function CoachParentChat({ embedded = false }) {
           </div>
         )}
 
-        {/* Pestañas de categorías - más compactas */}
+        {/* Pestañas de categorías - solo si NO viene con categoría fija */}
+        {!lockedCategory && (
         <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
           {categories.map(cat => {
             const categoryPlayers = cat === "Todas las categorías" 
@@ -375,6 +383,7 @@ export default function CoachParentChat({ embedded = false }) {
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Ventana de chat */}
