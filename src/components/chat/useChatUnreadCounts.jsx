@@ -113,7 +113,9 @@ export function useChatUnreadCounts(user) {
       if (entityType === 'ChatMessage') {
         isFromMe = d?.remitente_email === myEmail;
         const cat = d?.deporte || d?.grupo_id;
-        const isViewingThis = active?.type === 'team' && cat && active.id === cat;
+        const gid = d?.grupo_id;
+        // Compare using normalized grupo_id since active.id is stored as normalized grupo_id
+        const isViewingThis = active?.type === 'team' && (active.id === cat || active.id === gid);
         if (!isFromMe && d?.grupo_id && !isViewingThis) {
           suppressFetchUntilRef.current = Date.now() + 3000;
           setCounts(prev => {
