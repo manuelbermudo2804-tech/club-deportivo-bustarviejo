@@ -15,7 +15,6 @@ import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinat
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 
@@ -128,67 +127,10 @@ export default function ParentCoachChat() {
     }).length;
   };
 
-  // Marcar mensajes como leídos cuando se abre la categoría - INMEDIATO
+  // Marcar mensajes como leídos - DESACTIVADO (sistema nuevo)
   useEffect(() => {
     if (!user?.email || !selectedCategory) return;
-
-    // PASO 1: Calcular no leídos de ESTA pestaña específica
-    const categoryKey = toGroupId(selectedCategory || "");
-    const normSel = normalizeCategory(selectedCategory || "");
-    const unreadInThisTab = messages.filter(m => {
-      const normMsgCat = normalizeCategory(m.deporte || "");
-      const matchGroup = m.grupo_id === categoryKey;
-      const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
-      return (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
-    }).length;
-
-    console.log(`📊 [ParentCoachChat] Mensajes no leídos en ${selectedCategory}:`, unreadInThisTab);
-
-    // PASO 2: Decrementar badge EXACTAMENTE por los no leídos de esta pestaña
-    if (unreadInThisTab > 0) {
-      for (let i = 0; i < unreadInThisTab; i++) {
-        UnifiedChatNotificationStore.decrement(user.email, 'coachForFamily');
-      }
-      console.log(`✅ [ParentCoachChat] Badge decrementado x${unreadInThisTab}`);
-    }
-
-    // PASO 3: Actualizar BD en paralelo (no bloquear)
-    (async () => {
-      try {
-        const categoryKey = toGroupId(selectedCategory || "");
-        const normSel = normalizeCategory(selectedCategory || "");
-        const unreadMessages = messages.filter(m => {
-          const normMsgCat = normalizeCategory(m.deporte || "");
-          const matchGroup = m.grupo_id === categoryKey;
-          const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
-          return (matchGroup || matchName) && (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
-        });
-        
-        if (unreadMessages.length > 0) {
-          await Promise.all(unreadMessages.map(msg => {
-            const leidoPor = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
-            return base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
-          }));
-        }
-        
-        const notifs = await base44.entities.AppNotification.filter({
-          usuario_email: user.email,
-          enlace: "ParentCoachChat",
-          vista: false
-        });
-        await Promise.all(notifs.map(n =>
-          base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })
-        ));
-
-        const convId = toGroupId(selectedCategory);
-        await base44.functions.invoke('chatMarkRead', { chatType: 'coachForFamily', conversationId: convId });
-
-        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
-        queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
-      } catch (error) {
-        console.error("Error marking parent-coach messages as read:", error);
-      }
-    })();
+    // TODO: Implementar nuevo sistema last_read_at
   }, [user?.email, selectedCategory, messages]);
 
   const categoryKey = toGroupId(selectedCategory || "");
