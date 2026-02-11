@@ -157,7 +157,7 @@ export default function PlayerDashboard() {
     staleTime: 300000,
   });
 
-  // Conversación con admin (si existe)
+  // Conversación con admin (si existe - para AlertCenter)
   const { data: adminConversation } = useQuery({
     queryKey: ['playerAdminConversation', user?.email],
     queryFn: async () => {
@@ -168,63 +168,6 @@ export default function PlayerDashboard() {
       return convs[0] || null;
     },
     enabled: !!user?.email,
-  });
-
-  // Unread counts for badges in Mensajes tiles
-  const { data: privateConversations = [] } = useQuery({
-    queryKey: ['playerPrivateConversations', user?.email],
-    queryFn: async () => {
-      return await base44.entities.PrivateConversation.filter({ participante_familia_email: user?.email }, '-ultimo_mensaje_fecha', 30);
-    },
-    enabled: !!user,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
-  });
-  const unreadPrivateMessages = privateConversations.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
-
-  const { data: coordinatorConversations = [] } = useQuery({
-    queryKey: ['playerCoordinatorConversations', user?.email],
-    queryFn: async () => {
-      return await base44.entities.CoordinatorConversation.filter({ padre_email: user?.email });
-    },
-    enabled: !!user,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
-  });
-  const unreadCoordinatorMessages = coordinatorConversations.reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
-
-  const { data: allChatMessages = [] } = useQuery({
-    queryKey: ['playerAllChatMessages', player?.deporte],
-    queryFn: async () => {
-      if (!player?.deporte) return [];
-      return await base44.entities.ChatMessage.filter(
-        { tipo: 'entrenador_a_grupo', deporte: player?.deporte },
-        '-created_date',
-        50
-      );
-    },
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
-    enabled: !!player?.deporte,
-  });
-  const unreadCoachMessages = allChatMessages.filter(m => m.tipo === 'entrenador_a_grupo' && !(m.leido_por || []).some(l => l.email === user?.email)).length;
-
-  // Mensajes sin leer
-  const { data: unreadMessages } = useQuery({
-    queryKey: ['playerUnreadMessages', player?.deporte],
-    queryFn: async () => {
-      if (!player?.deporte) return [];
-      const msgs = await base44.entities.ChatMessage.filter(
-        { tipo: 'admin_a_grupo', $or: [{ grupo_id: player?.deporte }, { deporte: player?.deporte }] },
-        '-created_date',
-        50
-      );
-      return msgs.filter(m => !m.leido).slice(0, 5);
-    },
-    enabled: !!player?.deporte,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
-    initialData: [],
   });
 
   // Anuncios importantes
