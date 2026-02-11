@@ -13,7 +13,6 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function AdminCoordinatorChats() {
   const [user, setUser] = useState(null);
@@ -88,37 +87,11 @@ export default function AdminCoordinatorChats() {
     return unsub;
   }, [isAdmin, queryClient]);
 
-  // Marcar como leído AL ABRIR conversación - INMEDIATO
+  // Marcar como leído AL ABRIR conversación - DESACTIVADO (sistema nuevo)
   useEffect(() => {
     if (!selectedConversation?.id || !user) return;
     
-    // Limpiar badge de ADMIN inmediatamente
-    UnifiedChatNotificationStore.clearChatOnly(user.email, 'admin');
-    
-    // BD en segundo plano
-    (async () => {
-      try {
-        // Si esta vista abre una conversación del coordinador, no tocar aquí.
-        // Para admin, sincronizamos contra AdminConversation si existe relación.
-        try {
-          const adminConvs = await base44.entities.AdminConversation.filter({ padre_email: selectedConversation.padre_email, resuelta: false });
-          for (const ac of adminConvs) {
-            if ((ac.no_leidos_admin || 0) > 0) {
-              await base44.entities.AdminConversation.update(ac.id, { no_leidos_admin: 0 });
-              await base44.functions.invoke('chatMarkRead', { chatType: 'admin', conversationId: ac.id });
-            }
-          }
-        } catch {}
-        
-        // Limpiar posibles notificaciones antiguas
-        const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: 'AdminChat', vista: false });
-        for (const n of notifs) {
-          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-        }
-      } catch (err) {
-        console.error('Error marking admin as read:', err);
-      }
-    })();
+    // TODO: Implementar nuevo sistema de last_read_at
   }, [selectedConversation?.id, user?.email]);
 
   const openAdminChatMutation = useMutation({

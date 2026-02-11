@@ -26,7 +26,6 @@ import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
-import { ChatNotificationSync } from "./components/notifications/ChatNotificationSync";
 import ChatNotificationBubbles from "./components/notifications/ChatNotificationBubbles";
 import { useChatNotificationMenuSidebar } from "./components/notifications/useChatNotificationMenuSidebar";
 
@@ -1124,119 +1123,7 @@ export default function Layout({ children, currentPageName }) {
 
         setIsPlayer(playerDetected);
 
-        // ===== CARGA INICIAL INMEDIATA DE CONTADORES DE CHAT =====
-        // CRÍTICO: Cargar ANTES de mostrar UI para que los badges aparezcan inmediatamente
-        try {
-          const { UnifiedChatNotificationStore } = await import("./components/notifications/UnifiedChatNotificationStore");
-          
-          // 1. Staff chat - Usar StaffMessage (NO StaffConversation que no existe)
-          if (currentUser.es_coordinador === true || currentUser.es_entrenador === true || currentUser.role === 'admin') {
-            const staffMessages = await base44.entities.StaffMessage.list('-created_date', 50);
-            let staffUnread = 0;
-            
-            for (const msg of staffMessages) {
-              if (msg.autor_email === currentUser.email) continue;
-              
-              const destinatarios = msg.staff_destinatarios || [];
-              let autorizado = destinatarios.length === 0;
-              if (destinatarios.length > 0) {
-                autorizado = (
-                  (currentUser.es_coordinador === true && destinatarios.includes('coordinator')) ||
-                  (currentUser.es_entrenador === true && destinatarios.includes('coach')) ||
-                  (currentUser.role === 'admin' && destinatarios.includes('admin'))
-                );
-              }
-              if (autorizado) staffUnread++;
-            }
-            
-            UnifiedChatNotificationStore.updateCount(currentUser.email, 'staff', staffUnread);
-          }
-
-          // 2. Admin - conversaciones escaladas
-          if (currentUser.role === 'admin') {
-            const adminConvs = await base44.entities.AdminConversation.filter({});
-            const adminUnread = adminConvs.reduce((sum, c) => sum + (c.no_leidos_admin || 0), 0);
-            UnifiedChatNotificationStore.updateCount(currentUser.email, 'admin', adminUnread);
-          }
-
-          // 3. Coordinador - familias
-          if (currentUser.es_coordinador) {
-            const coordConvs = await base44.entities.CoordinatorConversation.filter({});
-            const coordUnread = coordConvs.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
-            UnifiedChatNotificationStore.updateCount(currentUser.email, 'coordinator', coordUnread);
-          }
-
-          // 4. Entrenador - familias (1-a-1 + grupo)
-          if (currentUser.es_entrenador) {
-            // 3a. Conversaciones 1-a-1
-            const coachConvs = await base44.entities.CoachConversation.filter({ entrenador_email: currentUser.email });
-            let coachUnread = coachConvs.reduce((sum, c) => sum + (c.no_leidos_entrenador || 0), 0);
-            
-            // 3b. Mensajes de grupo (ChatMessage) - MÁXIMO 20 items TOTAL, no por categoría
-             const myCoachCategories = currentUser.categorias_entrena || [];
-            const coachMessages = await base44.entities.ChatMessage.filter({ tipo: 'padre_a_grupo' }, '-created_date', 20);
-            for (const cat of myCoachCategories) {
-              const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-              const groupId = normalizeId(cat);
-
-              const unreadInGroup = coachMessages.filter(msg => 
-                msg.grupo_id === groupId &&
-                msg.remitente_email !== currentUser.email &&
-                (!msg.leido_por || !msg.leido_por.some(r => r.email === currentUser.email))
-              ).length;
-
-              coachUnread += unreadInGroup;
-            }
-            
-            UnifiedChatNotificationStore.updateCount(currentUser.email, 'coach', coachUnread);
-          }
-
-          // 5. Familias - todos sus chats
-          if (!currentUser.es_entrenador && !currentUser.es_coordinador && currentUser.role !== 'admin') {
-            // 5a. Coordinador
-            const coordConvs = await base44.entities.CoordinatorConversation.filter({ padre_email: currentUser.email });
-            const coordUnread = coordConvs.reduce((sum, c) => sum + (c.no_leidos_padre || 0), 0);
-            UnifiedChatNotificationStore.updateCount(currentUser.email, 'coordinatorForFamily', coordUnread);
-
-            // 5b. Mensajes del club
-            const privateConvs = await base44.entities.PrivateConversation.filter({ participante_familia_email: currentUser.email });
-            const privateUnread = privateConvs.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0);
-            UnifiedChatNotificationStore.updateCount(currentUser.email, 'systemMessages', privateUnread);
-
-            // 5c. Entrenador (grupo) - MÁXIMO 20 items TOTAL, no por categoría
-            const myPlayers = await base44.entities.Player.filter({
-              $or: [
-                { email_padre: currentUser.email },
-                { email_tutor_2: currentUser.email },
-                { email_jugador: currentUser.email }
-              ],
-              activo: true
-            });
-
-            const myCategories = [...new Set(myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
-            let coachUnread = 0;
-
-            const familyMessages = await base44.entities.ChatMessage.filter({ tipo: { $in: ['entrenador_a_grupo', 'padre_a_grupo'] } }, '-created_date', 20);
-            for (const cat of myCategories) {
-              const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-              const groupId = normalizeId(cat);
-              
-              const unreadInGroup = familyMessages.filter(msg => 
-                msg.grupo_id === groupId &&
-                msg.remitente_email !== currentUser.email &&
-                (!msg.leido_por || !msg.leido_por.some(r => r.email === currentUser.email))
-              ).length;
-              
-              coachUnread += unreadInGroup;
-            }
-
-            UnifiedChatNotificationStore.updateCount(currentUser.email, 'coachForFamily', coachUnread);
-          }
-
-          console.log('✅ [LAYOUT] Contadores de chat cargados inmediatamente');
-        } catch (e) {
-          console.error('❌ [LAYOUT] Error cargando contadores:', e);
-        }
+        // Sistema de contadores eliminado - se implementará nuevo sistema last_read_at
 
         // Fast path: render UI immediately while background data loads
         setIsLoading(false);
@@ -2102,7 +1989,6 @@ export default function Layout({ children, currentPageName }) {
             <SeasonProvider externalConfig={activeSeasonConfig}>
             <>
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
-              <ChatNotificationSync user={user} />
               <ChatNotificationBubbles 
                 user={user} 
                 isCoordinator={isCoordinator}
