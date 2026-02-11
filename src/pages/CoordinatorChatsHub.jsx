@@ -7,6 +7,15 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
+// Normalización consistente con backend
+const toGroupId = (s = "") =>
+  s.toString()
+    .replace(/\(.*?\)/g, "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .toLowerCase();
+
 function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
     <Link to={url} className="block">
@@ -84,18 +93,19 @@ export default function CoordinatorChatsHub() {
           iconBg="bg-red-600"
         />
 
-        {/* Chat con Familias (si también es entrenador) */}
-        {user?.es_entrenador && (
+        {/* Chats de ENTRENADOR por categoría (individuales) */}
+        {user?.es_entrenador && (user?.categorias_entrena || []).map((cat) => (
           <ConversationRow
-            title="⚽ Chat con Familias (Entrenador)"
-            subtitle="Comunicación grupal con los padres de tu equipo"
-            unreadCount={Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0)}
-            url={createPageUrl("CoachParentChat")}
+            key={cat}
+            title={`⚽ ${cat.replace('Fútbol ', '').replace(' (Mixto)', '')}`}
+            subtitle="Chat grupal con familias"
+            unreadCount={(chatCounts.team_chats || {})[toGroupId(cat)] || 0}
+            url={createPageUrl(`CoachParentChat?category=${encodeURIComponent(cat)}`)}
             icon={Users}
             color="#3b82f6"
             iconBg="bg-blue-600"
           />
-        )}
+        ))}
 
         {/* Chat Staff */}
         <ConversationRow
