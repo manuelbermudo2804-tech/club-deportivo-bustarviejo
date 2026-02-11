@@ -157,7 +157,7 @@ export default function FamilyChatsHub() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-6 pb-24 space-y-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
