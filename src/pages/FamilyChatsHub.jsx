@@ -48,31 +48,33 @@ export default function FamilyChatsHub() {
   const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
 
   // Cargar últimos mensajes por cada categoría (Chat Equipo)
+  // SIEMPRE mostrar una fila por categoría, aunque no haya mensajes
   const { data: teamChats = [] } = useQuery({
-    queryKey: ['teamChatsHub', user?.email],
+    queryKey: ['teamChatsHub', user?.email, myCategories.join(',')],
     queryFn: async () => {
       if (myCategories.length === 0) return [];
       
       const allMessages = await base44.entities.ChatMessage.list('-created_date', 100);
       
-      // Agrupar por grupo_id
-      const groupedByTeam = {};
-      myCategories.forEach(cat => {
+      // Crear una entrada por CADA categoría (tenga o no mensajes)
+      return myCategories.map(cat => {
         const groupId = normalizeId(cat);
         const messagesInGroup = allMessages.filter(m => m.grupo_id === groupId);
-        if (messagesInGroup.length > 0) {
-          groupedByTeam[groupId] = {
-            categoryName: cat,
-            groupId,
-            lastMessage: messagesInGroup[0],
-            unreadCount: 0 // TODO: Implementar con nuevo sistema
-          };
+        return {
+          categoryName: cat,
+          groupId,
+          lastMessage: messagesInGroup.length > 0 ? messagesInGroup[0] : null,
+          unreadCount: 0
+        };
+      }).sort((a, b) => {
+        // Las que tienen mensajes primero, luego por fecha
+        if (a.lastMessage && !b.lastMessage) return -1;
+        if (!a.lastMessage && b.lastMessage) return 1;
+        if (a.lastMessage && b.lastMessage) {
+          return new Date(b.lastMessage.created_date) - new Date(a.lastMessage.created_date);
         }
+        return 0;
       });
-      
-      return Object.values(groupedByTeam).sort((a, b) => 
-        new Date(b.lastMessage.created_date) - new Date(a.lastMessage.created_date)
-      );
     },
     enabled: !!user && myCategories.length > 0,
   });
