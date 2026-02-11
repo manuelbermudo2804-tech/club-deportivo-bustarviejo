@@ -135,14 +135,14 @@ export function useChatUnreadCounts(user) {
 
       if (entityType === 'ChatMessage') {
         isFromMe = d?.remitente_email === myEmail;
-        const gid = d?.grupo_id;
+        const gidNorm = toGroupId(d?.grupo_id || d?.deporte || '');
         // Active chat is tracked by normalized grupo_id
-        const isViewingThis = active?.type === 'team' && active.id === gid;
-        if (!isFromMe && gid && !isViewingThis) {
+        const isViewingThis = active?.type === 'team' && active.id === gidNorm;
+        if (!isFromMe && gidNorm && !isViewingThis) {
           suppressFetchUntilRef.current = Date.now() + 6000;
           setCounts(prev => {
             const newTeam = { ...prev.team_chats };
-            newTeam[gid] = (newTeam[gid] || 0) + 1;
+            newTeam[gidNorm] = (newTeam[gidNorm] || 0) + 1;
             return { ...prev, team_chats: newTeam, total: (prev.total || 0) + 1 };
           });
         }
