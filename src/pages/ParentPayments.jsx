@@ -513,45 +513,61 @@ export default function ParentPayments() {
       alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.');
       return;
     }
-    const items = await ensureRealPayments(cartSelected);
-    const total = items.reduce((s, it) => s + Number(it.cantidad || 0), 0);
-    const batch = await base44.entities.BatchPayment.create({
-      code: generateConceptCode(),
-      user_email: user.email,
-      metodo: 'Tarjeta',
-      status: 'draft',
-      total,
-      items
-    });
-    // Crear sesión Stripe con múltiples conceptos
-    const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
-    const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
-    const lineItems = items.map((it) => ({
-      price_data: {
-        currency: 'eur',
-        product_data: { name: `Cuota ${it.mes} - ${it.jugador_nombre} (${it.temporada})` },
-        unit_amount: Math.round(Number(it.cantidad) * 100)
-      },
-      quantity: 1
-    }));
-    const response = await base44.functions.invoke('stripeCheckout', {
-      lineItems,
-      successUrl,
-      cancelUrl,
-      metadata: {
-        tipo: 'pago_cuota_batch',
-        batch_id: batch.id,
-        user_email: user?.email
+    
+    toast.loading('Preparando pago con Stripe...', { id: 'stripe-loading' });
+    
+    try {
+      const items = await ensureRealPayments(cartSelected);
+      const total = items.reduce((s, it) => s + Number(it.cantidad || 0), 0);
+      const batch = await base44.entities.BatchPayment.create({
+        code: generateConceptCode(),
+        user_email: user.email,
+        metodo: 'Tarjeta',
+        status: 'draft',
+        total,
+        items
+      });
+      
+      // Crear sesión Stripe con múltiples conceptos
+      const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
+      const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
+      const lineItems = items.map((it) => ({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `Cuota ${it.mes} - ${it.jugador_nombre} (${it.temporada})` },
+          unit_amount: Math.round(Number(it.cantidad) * 100)
+        },
+        quantity: 1
+      }));
+      
+      const response = await base44.functions.invoke('stripeCheckout', {
+        lineItems,
+        successUrl,
+        cancelUrl,
+        metadata: {
+          tipo: 'pago_cuota_batch',
+          batch_id: batch.id,
+          user_email: user?.email
+        }
+      });
+      
+      const data = response.data || response;
+      
+      if (data?.id) {
+        await base44.entities.BatchPayment.update(batch.id, { stripe_session_id: data.id });
       }
-    });
-    const data = response.data || response;
-    if (data?.id) {
-      await base44.entities.BatchPayment.update(batch.id, { stripe_session_id: data.id });
-    }
-    if (data?.url) {
-      window.location.href = data.url;
-    } else {
-      toast.error(data?.error || 'No se pudo iniciar el pago con tarjeta');
+      
+      if (data?.url) {
+        toast.success('Redirigiendo a Stripe...', { id: 'stripe-loading' });
+        setTimeout(() => {
+          window.location.href = data.url;
+        }, 500);
+      } else {
+        toast.error(data?.error || 'No se pudo iniciar el pago con tarjeta', { id: 'stripe-loading' });
+      }
+    } catch (error) {
+      console.error('Error en pago con tarjeta:', error);
+      toast.error('Error al procesar el pago', { id: 'stripe-loading' });
     }
   };
 

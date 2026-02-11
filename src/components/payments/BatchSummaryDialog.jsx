@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function BatchSummaryDialog({ open, onClose, items = [], total = 0, onPayCard, onTransfer }) {
+  const [isProcessingCard, setIsProcessingCard] = useState(false);
+  const [isProcessingTransfer, setIsProcessingTransfer] = useState(false);
   return (
     <Dialog open={open} onOpenChange={(v)=>{ if(!v) onClose(); }}>
       <DialogContent className="w-[92vw] max-w-lg max-h-[85vh] rounded-2xl sm:mt-8">
@@ -56,9 +59,51 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
             <div className="text-right font-bold shrink-0">Total: {Number(total).toFixed(2)}€</div>
           </div>
           <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
-            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Seguir seleccionando</Button>
-            <Button onClick={onTransfer} variant="secondary" className="w-full sm:w-auto">🧾 Transferencia</Button>
-            <Button className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto" onClick={onPayCard}>💳 Pagar con tarjeta</Button>
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              className="w-full sm:w-auto"
+              disabled={isProcessingCard || isProcessingTransfer}
+            >
+              Seguir seleccionando
+            </Button>
+            <Button 
+              onClick={async () => {
+                setIsProcessingTransfer(true);
+                await onTransfer();
+                setIsProcessingTransfer(false);
+              }} 
+              variant="secondary" 
+              className="w-full sm:w-auto"
+              disabled={isProcessingCard || isProcessingTransfer}
+            >
+              {isProcessingTransfer ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Preparando...
+                </>
+              ) : (
+                <>🧾 Transferencia</>
+              )}
+            </Button>
+            <Button 
+              className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto" 
+              onClick={async () => {
+                setIsProcessingCard(true);
+                await onPayCard();
+                // No resetear aquí - se redirige a Stripe
+              }}
+              disabled={isProcessingCard || isProcessingTransfer}
+            >
+              {isProcessingCard ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Abriendo Stripe...
+                </>
+              ) : (
+                <>💳 Pagar con tarjeta</>
+              )}
+            </Button>
           </div>
         </div>
       </DialogContent>
