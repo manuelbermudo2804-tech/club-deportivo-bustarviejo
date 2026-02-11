@@ -20,6 +20,9 @@ export default function CoachParentChat({ embedded = false }) {
   const [showSettings, setShowSettings] = useState(false);
   const [unreadByCategory, setUnreadByCategory] = useState({});
 
+  // Contadores y helpers de lectura (debe ir ANTES de usarlos en efectos)
+  const { counts: chatCounts, markRead, clearActiveChat } = useChatUnreadCounts(user);
+
   // Normalización consistente con backend y useChatUnreadCounts
   const toGroupId = (s = "") =>
     s.toString()
@@ -89,14 +92,11 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     if (!chatCounts || !user) return;
     const teamChats = chatCounts.team_chats || {};
-    // Solo categorías que el usuario ENTRENA
     const allCats = [...new Set(user.categorias_entrena || [])];
     const unreadCounts = {};
     for (const cat of allCats) {
       const gid = toGroupId(cat);
-      if (teamChats[gid] > 0) {
-        unreadCounts[cat] = teamChats[gid];
-      }
+      unreadCounts[cat] = teamChats[gid] || 0;
     }
     setUnreadByCategory(unreadCounts);
   }, [chatCounts, user]);
@@ -112,7 +112,6 @@ export default function CoachParentChat({ embedded = false }) {
   }, [selectedCategory]);
   
   // Marcar como leído via backend persistente
-  const { counts: chatCounts, markRead, clearActiveChat } = useChatUnreadCounts(user);
   useEffect(() => {
     if (!selectedCategory || !user?.email) return;
     const gid = toGroupId(selectedCategory);
@@ -325,7 +324,7 @@ export default function CoachParentChat({ embedded = false }) {
                    <ChevronLeft className="w-4 h-4" />
                  </Button>
                  <MessageCircle className="w-5 h-5" />
-                 Chat Grupal Equipo
+                 Chat Entrenador-Familias
                  {lockedCategory && (
                    <span className="text-xs font-normal opacity-80 ml-1">
                      · {lockedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
