@@ -222,45 +222,63 @@ export default function CoachParentChat({ embedded = false }) {
             </div>
           )}
 
-         {/* Pestañas de categorías - solo si NO viene con categoría fija */}
-          {!lockedCategory && (
-          <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
-            {categories.map(cat => {
-              const catKey = typeof cat === 'string' ? cat : (cat?.nombre || String(cat));
-              const categoryPlayers = cat === "Todas las categorías" 
-                ? allPlayers 
-                : allPlayers.filter(p => (p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)));
-              
-              const parentCount = new Set(categoryPlayers.flatMap(p => 
-                [p.email_padre, p.email_tutor_2].filter(Boolean)
-              )).size;
-
-              const unreadCount = unreadByCategory[cat] || 0;
-
-              return (
-                <Button
-                  key={cat}
-                  variant={selectedCategory === cat ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`whitespace-nowrap text-xs px-2 py-1 h-7 relative ${
-                    selectedCategory === cat 
-                      ? 'bg-white text-green-700 hover:bg-white/90' 
-                      : 'text-white hover:bg-white/20'
-                  }`}
-                >
-                  {cat === "Todas las categorías" ? "📋 Todas" : catKey.replace?.('Fútbol ', '').replace?.(' (Mixto)', '') || String(catKey)}
-                  <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
-                  {unreadCount > 0 && (
-                    <Badge className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">
-                      {unreadCount}
-                    </Badge>
-                  )}
-                </Button>
-              );
-            })}
-          </div>
-          )}
+         {/* Selección de categoría para coordinadores (chats INDIVIDUALES) o pestañas para entrenadores */}
+         {!lockedCategory && (
+           isCoordinator ? (
+             <div className="px-2 pb-2 space-y-2">
+               {[...new Set(user?.categorias_entrena || [])].map(cat => {
+                 const categoryPlayers = allPlayers.filter(p => (
+                   p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)
+                 ));
+                 const parentCount = new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
+                 const unreadCount = unreadByCategory[cat] || 0;
+                 return (
+                   <button
+                     key={cat}
+                     onClick={() => { setSelectedCategory(cat); setLockedCategory(cat); }}
+                     className="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 text-white rounded-xl px-3 py-2 transition-colors border border-white/20"
+                   >
+                     <span className="text-xs font-semibold">
+                       {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                       <span className="ml-1.5 opacity-70 font-normal">({parentCount})</span>
+                     </span>
+                     {unreadCount > 0 && (
+                       <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 h-4">
+                         {unreadCount}
+                       </Badge>
+                     )}
+                   </button>
+                 );
+               })}
+             </div>
+           ) : (
+             <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
+               {categories.map(cat => {
+                 const catKey = typeof cat === 'string' ? cat : (cat?.nombre || String(cat));
+                 const categoryPlayers = cat === "Todas las categorías" 
+                   ? allPlayers 
+                   : allPlayers.filter(p => (p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)));
+                 const parentCount = new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
+                 const unreadCount = unreadByCategory[cat] || 0;
+                 return (
+                   <Button
+                     key={cat}
+                     variant={selectedCategory === cat ? "secondary" : "ghost"}
+                     size="sm"
+                     onClick={() => setSelectedCategory(cat)}
+                     className={`whitespace-nowrap text-xs px-2 py-1 h-7 relative ${selectedCategory === cat ? 'bg-white text-green-700 hover:bg-white/90' : 'text-white hover:bg-white/20'}`}
+                   >
+                     {cat === "Todas las categorías" ? "📋 Todas" : catKey.replace?.('Fútbol ', '').replace?.(' (Mixto)', '') || String(catKey)}
+                     <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
+                     {unreadCount > 0 && (
+                       <Badge className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">{unreadCount}</Badge>
+                     )}
+                   </Button>
+                 );
+               })}
+             </div>
+           )
+         )}
         </div>
 
         {/* Ventana de chat */}
@@ -362,43 +380,59 @@ export default function CoachParentChat({ embedded = false }) {
           </div>
         )}
 
-        {/* Pestañas de categorías - solo si NO viene con categoría fija */}
+        {/* Selección de categoría para coordinadores (chats INDIVIDUALES) o pestañas para entrenadores */}
         {!lockedCategory && (
-        <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
-          {categories.map(cat => {
-            const categoryPlayers = cat === "Todas las categorías" 
-              ? allPlayers 
-              : allPlayers.filter(p => (p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)));
-            
-            const parentCount = new Set(categoryPlayers.flatMap(p => 
-              [p.email_padre, p.email_tutor_2].filter(Boolean)
-            )).size;
-
-            const unreadCount = unreadByCategory[cat] || 0;
-
-            return (
-              <Button
-                key={cat}
-                variant={selectedCategory === cat ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setSelectedCategory(cat)}
-                className={`whitespace-nowrap text-xs px-2 py-1 h-7 relative ${
-                  selectedCategory === cat 
-                    ? 'bg-white text-green-700 hover:bg-white/90' 
-                    : 'text-white hover:bg-white/20'
-                }`}
-              >
-                {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
-                {unreadCount > 0 && (
-                  <Badge className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Button>
-            );
-          })}
-        </div>
+          isCoordinator ? (
+            <div className="px-2 pb-2 space-y-2">
+              {[...new Set(user?.categorias_entrena || [])].map(cat => {
+                const categoryPlayers = allPlayers.filter(p => (
+                  p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)
+                ));
+                const parentCount = new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
+                const unreadCount = unreadByCategory[cat] || 0;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => { setSelectedCategory(cat); setLockedCategory(cat); }}
+                    className="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 text-white rounded-xl px-3 py-2 transition-colors border border-white/20"
+                  >
+                    <span className="text-xs font-semibold">
+                      {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                      <span className="ml-1.5 opacity-70 font-normal">({parentCount})</span>
+                    </span>
+                    {unreadCount > 0 && (
+                      <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 h-4">{unreadCount}</Badge>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
+              {categories.map(cat => {
+                const categoryPlayers = cat === "Todas las categorías" 
+                  ? allPlayers 
+                  : allPlayers.filter(p => (p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)));
+                const parentCount = new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
+                const unreadCount = unreadByCategory[cat] || 0;
+                return (
+                  <Button
+                    key={cat}
+                    variant={selectedCategory === cat ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`whitespace-nowrap text-xs px-2 py-1 h-7 relative ${selectedCategory === cat ? 'bg-white text-green-700 hover:bg-white/90' : 'text-white hover:bg-white/20'}`}
+                  >
+                    {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                    <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
+                    {unreadCount > 0 && (
+                      <Badge className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">{unreadCount}</Badge>
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
+          )
         )}
       </div>
 
