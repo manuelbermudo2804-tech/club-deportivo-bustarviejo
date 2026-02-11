@@ -92,7 +92,7 @@ export function useChatUnreadCounts(user) {
 
     const debouncedFetch = () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => fetchCounts(), 2000);
+      debounceTimer = setTimeout(() => fetchCounts(), 5000);
     };
 
     // Determine chat type from entity event and optimistically increment
