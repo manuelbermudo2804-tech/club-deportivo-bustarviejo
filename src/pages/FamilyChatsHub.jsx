@@ -171,27 +171,32 @@ export default function FamilyChatsHub() {
           </div>
         </div>
 
-        {/* SECCIÓN 1: EQUIPOS */}
-        {teamChats.length > 0 && (
+        {/* SECCIÓN 1: EQUIPOS - siempre una fila por cada categoría de mis hijos */}
+        {myCategories.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-slate-600" />
               <h2 className="font-bold text-slate-900">Chats de Equipo</h2>
             </div>
-            {teamChats.map(chat => (
-              <ConversationRow
-                key={chat.groupId}
-                title={chat.categoryName}
-                subtitle="Chat grupal con entrenador y familias"
-                lastMessage={chat.lastMessage.mensaje}
-                lastMessageDate={chat.lastMessage.created_date}
-                unreadCount={chat.unreadCount}
-                url={createPageUrl("ParentCoachChat") + `?category=${encodeURIComponent(chat.categoryName)}`}
-                icon={Users}
-                color="#3b82f6"
-                iconBg="bg-blue-600"
-              />
-            ))}
+            {myCategories.map(cat => {
+              const chatData = teamChats.find(c => c.categoryName === cat);
+              const playersInCat = players.filter(p => (p.categoria_principal || p.deporte) === cat);
+              const playerNames = playersInCat.map(p => p.nombre?.split(' ')[0]).join(', ');
+              return (
+                <ConversationRow
+                  key={cat}
+                  title={`⚽ ${cat}`}
+                  subtitle={playerNames ? `${playerNames} · Chat grupal con entrenador` : "Chat grupal con entrenador y familias"}
+                  lastMessage={chatData?.lastMessage?.mensaje || null}
+                  lastMessageDate={chatData?.lastMessage?.created_date || null}
+                  unreadCount={chatData?.unreadCount || 0}
+                  url={createPageUrl("ParentCoachChat") + `?category=${encodeURIComponent(cat)}`}
+                  icon={Users}
+                  color="#3b82f6"
+                  iconBg="bg-blue-600"
+                />
+              );
+            })}
           </div>
         )}
 
