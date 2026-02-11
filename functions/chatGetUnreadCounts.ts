@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
             m.remitente_email !== email &&
             m.created_date > lastRead
           ).length;
-          if (unread > 0) result.team_chats[cat] = unread;
+          if (unread > 0) result.team_chats[gid] = unread;
         }
       }
     } else if (!isAdmin && !isTreasurer) {
