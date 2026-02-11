@@ -14,7 +14,6 @@ import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorAwayMode from "../components/coordinator/CoordinatorAwayMode";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function CoordinatorChat({ embedded = false }) {
   const navigate = useNavigate();
@@ -67,43 +66,11 @@ export default function CoordinatorChat({ embedded = false }) {
     return unsub;
   }, [isCoordinator, queryClient]);
 
-  // ✅ CRÍTICO: Marcar como leído AL ENTRAR en conversación - Persiste en BD con last_read_at
+  // Marcar como leído AL ENTRAR - DESACTIVADO (sistema nuevo)
   useEffect(() => {
     if (!selectedConversation?.id || !user?.email) return;
-
-    // ENTRAR: marca como leído Y decrementa badge
-    (async () => {
-      try {
-        // 1. Decrementar badge en memoria
-        const unreadInThisConv = selectedConversation.no_leidos_coordinador || 0;
-        if (unreadInThisConv > 0) {
-          for (let i = 0; i < unreadInThisConv; i++) {
-            UnifiedChatNotificationStore.decrement(user.email, 'coordinator');
-          }
-          console.log(`✅ [CoordinatorChat] Badge decrementado x${unreadInThisConv} al ENTRAR`);
-        }
-
-        // 2. Actualizar BD: marcar como leído
-        await base44.entities.CoordinatorConversation.update(selectedConversation.id, {
-          no_leidos_coordinador: 0,
-          last_read_coordinador_at: new Date().toISOString()
-        });
-
-        // 3. Marcar AppNotifications como vistas
-        const notifs = await base44.entities.AppNotification.filter({
-          usuario_email: user.email,
-          enlace: "CoordinatorChat",
-          vista: false
-        });
-        for (const n of notifs) {
-          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-        }
-
-        await base44.functions.invoke('chatMarkRead', { chatType: 'coordinator', conversationId: selectedConversation.id });
-      } catch (err) {
-        console.error('Error marking as read on enter:', err);
-      }
-    })();
+    
+    // TODO: Implementar nuevo sistema last_read_at
   }, [selectedConversation?.id, user?.email]);
 
   const archiveMutation = useMutation({
