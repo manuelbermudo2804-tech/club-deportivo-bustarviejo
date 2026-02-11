@@ -259,29 +259,10 @@ export default function FamilyChatsHub() {
             />
           ))}
 
-          {/* Mensaje cuando no hay conversaciones privadas */}
-          {systemConv.length === 0 && coordinatorConv.length === 0 && adminConv.length === 0 && (
-            <Card className="bg-slate-50 border-slate-200">
-              <CardContent className="p-6 text-center">
-                <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">No tienes conversaciones privadas activas</p>
-              </CardContent>
-            </Card>
-          )}
+          {/* Mensaje eliminado - el coordinador siempre está visible */}
         </div>
 
-        {/* Mensaje cuando no hay ningún chat */}
-        {teamChats.length === 0 && systemConv.length === 0 && coordinatorConv.length === 0 && adminConv.length === 0 && (
-          <Card className="bg-white border-orange-200 mt-8">
-            <CardContent className="p-8 text-center">
-              <MessageCircle className="w-16 h-16 text-orange-300 mx-auto mb-3" />
-              <h3 className="font-bold text-slate-900 text-lg mb-2">Sin conversaciones</h3>
-              <p className="text-sm text-slate-600">
-                Tus conversaciones con entrenadores, coordinación y administración aparecerán aquí
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Mensaje eliminado - el coordinador siempre está visible */}
       </div>
     </div>
   );
