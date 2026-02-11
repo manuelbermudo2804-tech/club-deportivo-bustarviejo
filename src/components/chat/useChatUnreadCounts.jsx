@@ -170,7 +170,8 @@ export function useChatUnreadCounts(user) {
       } else if (entityType === 'PrivateMessage') {
         isFromMe = d?.remitente_email === myEmail;
         const isViewingThis = active?.type === 'system';
-        if (!isFromMe && !isViewingThis) {
+        const isFromStaff = d?.remitente_tipo === 'staff';
+        if (!isFromMe && isFromStaff && !isViewingThis) {
           suppressFetchUntilRef.current = Date.now() + 3000;
           setCounts(prev => ({ ...prev, system: (prev.system || 0) + 1, total: (prev.total || 0) + 1 }));
         }
