@@ -200,20 +200,18 @@ export default function FamilyChatsHub() {
             <h2 className="font-bold text-slate-900">Conversaciones Privadas</h2>
           </div>
 
-          {/* Mensajes del Club - AGRUPADO */}
-          {systemConv.length > 0 && (
-            <ConversationRow
-              title="🔔 Mensajes del Club"
-              subtitle="Comunicación oficial del club"
-              lastMessage={systemConv[0]?.ultimo_mensaje}
-              lastMessageDate={systemConv[0]?.ultimo_mensaje_fecha}
-              unreadCount={systemConv.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0)}
-              url={createPageUrl("ParentSystemMessages")}
-              icon={Bell}
-              color="#a855f7"
-              iconBg="bg-purple-600"
-            />
-          )}
+          {/* Mensajes del Club - SIEMPRE VISIBLE */}
+          <ConversationRow
+            title="🔔 Mensajes del Club"
+            subtitle="Comunicación oficial del club"
+            lastMessage={systemConv[0]?.ultimo_mensaje}
+            lastMessageDate={systemConv[0]?.ultimo_mensaje_fecha}
+            unreadCount={systemConv.reduce((sum, c) => sum + (c.no_leidos_familia || 0), 0)}
+            url={createPageUrl("ParentSystemMessages")}
+            icon={Bell}
+            color="#a855f7"
+            iconBg="bg-purple-600"
+          />
 
           {/* Coordinador */}
           {coordinatorConv.map(conv => (
