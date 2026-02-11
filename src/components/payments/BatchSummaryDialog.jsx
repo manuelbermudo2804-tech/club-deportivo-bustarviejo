@@ -90,8 +90,11 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
               className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto" 
               onClick={async () => {
                 setIsProcessingCard(true);
-                await onPayCard();
-                // No resetear aquí - se redirige a Stripe
+                try {
+                  await onPayCard();
+                } catch (error) {
+                  setIsProcessingCard(false);
+                }
               }}
               disabled={isProcessingCard || isProcessingTransfer}
             >
