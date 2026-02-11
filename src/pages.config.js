@@ -90,6 +90,7 @@ import ExerciseLibrary from './pages/ExerciseLibrary';
 import ExtraCharges from './pages/ExtraCharges';
 import ExtraPayments from './pages/ExtraPayments';
 import FamilyChats from './pages/FamilyChats';
+import FamilyChatsHub from './pages/FamilyChatsHub';
 import FamilyGuide from './pages/FamilyGuide';
 import FederationSignatures from './pages/FederationSignatures';
 import FederationSignaturesAdmin from './pages/FederationSignaturesAdmin';
@@ -156,7 +157,6 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import FamilyChatsHub from './pages/FamilyChatsHub';
 import __Layout from './Layout.jsx';
 
 
@@ -204,6 +204,7 @@ export const PAGES = {
     "ExtraCharges": ExtraCharges,
     "ExtraPayments": ExtraPayments,
     "FamilyChats": FamilyChats,
+    "FamilyChatsHub": FamilyChatsHub,
     "FamilyGuide": FamilyGuide,
     "FederationSignatures": FederationSignatures,
     "FederationSignaturesAdmin": FederationSignaturesAdmin,
@@ -270,7 +271,6 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "FamilyChatsHub": FamilyChatsHub,
 }
 
 export const pagesConfig = {

@@ -9,7 +9,6 @@ import { MessageCircle, Settings, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function CoachParentChat({ embedded = false }) {
   const navigate = useNavigate();
@@ -99,59 +98,10 @@ export default function CoachParentChat({ embedded = false }) {
     if (cat && !selectedCategory) setSelectedCategory(cat);
   }, [selectedCategory]);
   
-  // ✅ CRÍTICO: Marcar como leído AL ENTRAR en pestaña - Persiste en BD
+  // Marcar como leído AL ENTRAR - DESACTIVADO (sistema nuevo)
   useEffect(() => {
-    if (!selectedCategory || !user?.email || !messages) return;
-
-    // ENTRAR: marca como leído Y decrementa badge
-    (async () => {
-      try {
-        const catId = toGroupId(selectedCategory);
-        const unreadInThisTab = messages.filter(m => {
-          if (m.tipo !== 'padre_a_grupo') return false;
-          if (m.grupo_id !== catId && normalizeCategory(m.deporte || '') !== normalizeCategory(selectedCategory)) return false;
-          return !m.leido_por?.some(lp => lp.email === user.email);
-        }).length;
-
-        console.log(`📊 [CoachChat] Al ENTRAR: Mensajes no leídos en ${selectedCategory}:`, unreadInThisTab);
-
-        // 1. Decrementar badge
-        if (unreadInThisTab > 0) {
-          for (let i = 0; i < unreadInThisTab; i++) {
-            UnifiedChatNotificationStore.decrement(user.email, 'coach');
-          }
-          console.log(`✅ [CoachChat] Badge decrementado x${unreadInThisTab} al ENTRAR`);
-        }
-
-        // 2. Decrementar contador en CoachConversation si existe
-        const coachConv = await base44.entities.CoachConversation.filter({ entrenador_email: user.email, categoria: selectedCategory });
-        if (coachConv.length > 0) {
-          await base44.entities.CoachConversation.update(coachConv[0].id, {
-            no_leidos_entrenador: 0,
-            last_read_entrenador_at: new Date().toISOString()
-          });
-        }
-
-        // 3. Marcar mensajes como leídos
-        const allMsgs = await base44.entities.ChatMessage.filter({ grupo_id: catId, tipo: 'padre_a_grupo' });
-        const unread = allMsgs.filter(m => !m.leido_por?.some(lp => lp.email === user.email));
-        
-        if (unread.length > 0) {
-          await Promise.all(unread.map(msg => {
-            const leidoPor = [...(msg.leido_por || []), { email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }];
-            return base44.entities.ChatMessage.update(msg.id, { leido_por: leidoPor });
-          }));
-        }
-
-        // 4. Marcar AppNotifications como vistas
-        const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: "CoachParentChat", vista: false });
-        await Promise.all(notifs.map(n => base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() })));
-        
-        await base44.functions.invoke('chatMarkRead', { chatType: 'coach', conversationId: catId });
-      } catch (e) {
-        console.error('Error marking as read on enter:', e);
-      }
-    })();
+    if (!selectedCategory || !user?.email) return;
+    // TODO: Implementar nuevo sistema last_read_at
   }, [selectedCategory, user?.email]);
 
   if (!user) {

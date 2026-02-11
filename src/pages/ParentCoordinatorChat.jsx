@@ -17,7 +17,6 @@ import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -157,9 +156,7 @@ export default function ParentCoordinatorChat() {
             await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
           }
 
-          // LIMPIAR SOLO el contador de Coordinador para familias - NO tocar otros chats
-          UnifiedChatNotificationStore.clearChatOnly(user.email, 'coordinatorForFamily');
-          // Sincronizar contador global (ChatCounter)
+          // TODO: Implementar nuevo sistema last_read_at
           try { await base44.functions.invoke('chatMarkRead', { chatType: 'coordinatorForFamily', conversationId: conversation.id }); } catch {}
 
           await Promise.all([
@@ -365,79 +362,8 @@ export default function ParentCoordinatorChat() {
           })));
       } catch (_) {}
 
-       // VERIFICAR CONFIGURACIÓN DEL COORDINADOR Y ENVIAR RESPUESTAS AUTOMÁTICAS
-      console.log('🔍 [PADRE COORDINADOR] Buscando settings del coordinador...');
-      const allSettings = await base44.entities.CoordinatorSettings.list();
-      console.log('📋 [PADRE COORDINADOR] Todos los settings:', allSettings);
-      
-      const coordinatorSettings = allSettings.find(s => s.coordinador_email);
-      console.log('📋 [PADRE COORDINADOR] Settings encontrados:', coordinatorSettings);
-
-      const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-
-      if (coordinatorSettings) {
-        // 1. VERIFICAR MODO AUSENTE (prioridad máxima)
-        if (coordinatorSettings.modo_ausente === true && coordinatorSettings.mensaje_ausente) {
-          console.log('🤖 [PADRE COORDINADOR] ✅ MODO AUSENTE ACTIVO - enviando respuesta automática');
-          
-          await base44.entities.CoordinatorMessage.create({
-            conversacion_id: conversation.id,
-            autor: "coordinador",
-            autor_email: "sistema@coordinador",
-            autor_nombre: "🤖 Coordinador (automático)",
-            mensaje: coordinatorSettings.mensaje_ausente,
-            archivos_adjuntos: [],
-            leido_padre: false,
-            leido_coordinador: true,
-            fecha_leido_coordinador: new Date().toISOString()
-          });
-          
-          console.log('✅ [PADRE COORDINADOR] Respuesta automática enviada');
-          return newMessage;
-        }
-
-        // 2. VERIFICAR HORARIO LABORAL (solo si NO está ausente)
-        if (coordinatorSettings.horario_laboral_activo === true && 
-            coordinatorSettings.horario_inicio && 
-            coordinatorSettings.horario_fin && 
-            coordinatorSettings.dias_laborales?.length > 0) {
-          
-          const now = new Date();
-          const dayName = DIAS_SEMANA[now.getDay() === 0 ? 6 : now.getDay() - 1];
-          const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-          const isWorkingDay = coordinatorSettings.dias_laborales.includes(dayName);
-          const isWithinHours = currentTime >= coordinatorSettings.horario_inicio && currentTime <= coordinatorSettings.horario_fin;
-
-          console.log('🕐 [PADRE COORDINADOR] Verificación horario:', {
-            dayName,
-            currentTime,
-            horario_inicio: coordinatorSettings.horario_inicio,
-            horario_fin: coordinatorSettings.horario_fin,
-            dias_laborales: coordinatorSettings.dias_laborales,
-            isWorkingDay,
-            isWithinHours
-          });
-
-          if (!isWorkingDay || !isWithinHours) {
-            console.log('⏰ [PADRE COORDINADOR] FUERA DE HORARIO - enviando mensaje automático');
-
-            await base44.entities.CoordinatorMessage.create({
-              conversacion_id: conversation.id,
-              autor: "coordinador",
-              autor_email: "sistema@coordinador",
-              autor_nombre: "🤖 Coordinador (automático)",
-              mensaje: coordinatorSettings.mensaje_fuera_horario || "Tu mensaje ha sido recibido. El coordinador te responderá en su horario laboral.",
-              archivos_adjuntos: [],
-              leido_padre: false,
-              leido_coordinador: true,
-              fecha_leido_coordinador: new Date().toISOString()
-            });
-
-            console.log('✅ [PADRE COORDINADOR] Respuesta automática (fuera horario) enviada');
-          }
-        }
-      }
+       // Configuración del coordinador (respuestas automáticas)
+       // TODO: Implementar respuestas automáticas
 
       return newMessage;
     },
