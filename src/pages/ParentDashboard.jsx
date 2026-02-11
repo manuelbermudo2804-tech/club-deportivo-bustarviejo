@@ -159,7 +159,7 @@ export default function ParentDashboard() {
   const { data: allCallups = [] } = useQuery({
     queryKey: ['callups', user?.email],
     queryFn: () => base44.entities.Convocatoria.list('-created_date', 50),
-    staleTime: 300000, // 5 minutos
+    staleTime: 30000, // 30 segundos - para que al volver del ParentCallups se refresque rápido
     enabled: !!user && players.length > 0,
   });
 
