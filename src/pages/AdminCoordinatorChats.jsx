@@ -179,12 +179,12 @@ export default function AdminCoordinatorChats() {
 
   // Separar conversaciones: escaladas (urgentes), normales activas, archivadas
   const parentsWithAdminChats = new Set((adminConversations || []).filter(ac => ac.resuelta === false).map(ac => ac.padre_email));
-  const escalatedConversations = conversations.filter(c =>
-    !c.archivada && (c.escalada_desde_entrenador === true || parentsWithAdminChats.has(c.padre_email))
-  );
-  const normalActiveConversations = conversations.filter(c =>
-    !c.archivada && !(c.escalada_desde_entrenador === true || parentsWithAdminChats.has(c.padre_email))
-  );
+  const escalatedConversations = isAdmin
+    ? conversations.filter(c => !c.archivada && (c.escalada_desde_entrenador === true || parentsWithAdminChats.has(c.padre_email)))
+    : conversations.filter(c => !c.archivada && c.escalada_desde_entrenador === true);
+  const normalActiveConversations = isAdmin
+    ? conversations.filter(c => !c.archivada && !(c.escalada_desde_entrenador === true || parentsWithAdminChats.has(c.padre_email)))
+    : conversations.filter(c => !c.archivada && !c.escalada_desde_entrenador);
   const archivedConversations = conversations.filter(c => c.archivada);
 
   // Aplicar filtros
@@ -386,7 +386,7 @@ export default function AdminCoordinatorChats() {
               <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-3 text-xs">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertCircle className="w-4 h-4 text-orange-600" />
-                  <span className="text-orange-900 font-bold">🚨 Conversaciones escaladas por coordinador</span>
+                  <span className="text-orange-900 font-bold">{isAdmin ? '🚨 Conversaciones escaladas por coordinador' : '🚨 Conversaciones escaladas por entrenadores'}</span>
                 </div>
                 <p className="text-orange-800 text-xs">
                   Tienes {escalatedConversations.length} conversaciones que requieren intervención de administración
