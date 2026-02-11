@@ -61,8 +61,15 @@ export default function ParentCoachChat() {
         setMyPlayers(players);
         
         if (players.length > 0 && !selectedCategory) {
-          const firstCat = players[0].categoria_principal || players[0].deporte;
-          setSelectedCategory(firstCat);
+          // Si viene ?category=... desde el hub, preseleccionar esa categoría
+          const urlParams = new URLSearchParams(window.location.search);
+          const urlCategory = urlParams.get('category');
+          if (urlCategory && players.some(p => (p.categoria_principal || p.deporte) === urlCategory)) {
+            setSelectedCategory(urlCategory);
+          } else {
+            const firstCat = players[0].categoria_principal || players[0].deporte;
+            setSelectedCategory(firstCat);
+          }
         }
       } catch (error) {
         console.error("Error loading chat:", error);
