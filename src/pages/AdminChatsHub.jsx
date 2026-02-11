@@ -5,7 +5,7 @@ import { createPageUrl } from "@/utils";
 import { Briefcase, AlertCircle, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useChatNotificationMenuSidebar } from "@/components/notifications/useChatNotificationMenuSidebar";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
@@ -36,7 +36,7 @@ function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unread
 
 export default function AdminChatsHub() {
   const [user, setUser] = useState(null);
-  const chatCounts = useChatNotificationMenuSidebar(user);
+  const { counts: chatCounts } = useChatUnreadCounts(user);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -66,7 +66,7 @@ export default function AdminChatsHub() {
         <ConversationRow
           title="🚨 Chats Escalados (Admin)"
           subtitle="Conversaciones que requieren tu atención como administrador"
-          unreadCount={chatCounts.adminCount || 0}
+          unreadCount={chatCounts.admin || 0}
           url={createPageUrl("AdminCoordinatorChats")}
           icon={AlertCircle}
           color="#ef4444"
@@ -77,7 +77,7 @@ export default function AdminChatsHub() {
         <ConversationRow
           title="💼 Chat Staff"
           subtitle="Conversaciones internas del personal del club"
-          unreadCount={chatCounts.staffCount || 0}
+          unreadCount={chatCounts.staff || 0}
           url={createPageUrl("StaffChat")}
           icon={Briefcase}
           color="#8b5cf6"

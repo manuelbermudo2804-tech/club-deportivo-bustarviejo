@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageCircle, Users, Briefcase, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useChatNotificationMenuSidebar } from "@/components/notifications/useChatNotificationMenuSidebar";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -44,7 +44,7 @@ function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unread
 
 export default function CoachChatsHub() {
   const [user, setUser] = useState(null);
-  const chatCounts = useChatNotificationMenuSidebar(user);
+  const { counts: chatCounts } = useChatUnreadCounts(user);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -83,33 +83,8 @@ export default function CoachChatsHub() {
     staleTime: 30000,
   });
 
-  // Calcular no leídos por categoría
-  const { data: unreadByCategory = {} } = useQuery({
-    queryKey: ['coachUnreadByCategory', user?.email],
-    queryFn: async () => {
-      if (!user?.email || myCategories.length === 0) return {};
-      
-      const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
-      
-      const messages = await base44.entities.ChatMessage.list('-created_date', 200);
-      
-      const unreadCounts = {};
-      for (const cat of myCategories) {
-        const groupId = normalizeId(cat);
-        const unread = messages.filter(m => 
-          m.grupo_id === groupId &&
-          m.tipo === 'padre_a_grupo' &&
-          m.remitente_email !== user.email &&
-          (!m.leido_por || !m.leido_por.some(r => r.email === user.email))
-        ).length;
-        unreadCounts[cat] = unread;
-      }
-      
-      return unreadCounts;
-    },
-    enabled: !!user && myCategories.length > 0,
-    staleTime: 30000,
-  });
+  // No leídos por categoría - viene del backend
+  const unreadByCategory = chatCounts.team_chats || {};
 
   if (!user) {
     return (
@@ -156,7 +131,7 @@ export default function CoachChatsHub() {
           <ConversationRow
             title="⚽ Chat con Familias"
             subtitle="Comunicación grupal con los padres de tu equipo"
-            unreadCount={chatCounts.coachCount || 0}
+            unreadCount={Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0)}
             url={createPageUrl("CoachParentChat")}
             icon={Users}
             color="#3b82f6"
@@ -170,7 +145,7 @@ export default function CoachChatsHub() {
           <ConversationRow
             title="💼 Chat Staff"
             subtitle="Conversaciones internas del personal del club"
-            unreadCount={chatCounts.staffCount || 0}
+            unreadCount={chatCounts.staff || 0}
             url={createPageUrl("StaffChat")}
             icon={Briefcase}
             color="#8b5cf6"

@@ -5,7 +5,7 @@ import { createPageUrl } from "@/utils";
 import { MessageCircle, Users, Briefcase, AlertCircle, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useChatNotificationMenuSidebar } from "@/components/notifications/useChatNotificationMenuSidebar";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
@@ -36,7 +36,7 @@ function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unread
 
 export default function CoordinatorChatsHub() {
   const [user, setUser] = useState(null);
-  const chatCounts = useChatNotificationMenuSidebar(user);
+  const { counts: chatCounts } = useChatUnreadCounts(user);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -66,7 +66,7 @@ export default function CoordinatorChatsHub() {
         <ConversationRow
           title="💬 Chat con Familias (1-a-1)"
           subtitle="Conversaciones privadas con los padres"
-          unreadCount={chatCounts.coordinatorCount || 0}
+          unreadCount={chatCounts.coordinator || 0}
           url={createPageUrl("CoordinatorChat")}
           icon={MessageCircle}
           color="#06b6d4"
@@ -77,7 +77,7 @@ export default function CoordinatorChatsHub() {
         <ConversationRow
           title="🚨 Chats Escalados"
           subtitle="Conversaciones escaladas que requieren atención de administración"
-          unreadCount={chatCounts.adminCount || 0}
+          unreadCount={chatCounts.admin || 0}
           url={createPageUrl("AdminCoordinatorChats")}
           icon={AlertCircle}
           color="#ef4444"
@@ -89,7 +89,7 @@ export default function CoordinatorChatsHub() {
           <ConversationRow
             title="⚽ Chat con Familias (Entrenador)"
             subtitle="Comunicación grupal con los padres de tu equipo"
-            unreadCount={chatCounts.coachCount || 0}
+            unreadCount={Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0)}
             url={createPageUrl("CoachParentChat")}
             icon={Users}
             color="#3b82f6"
@@ -101,7 +101,7 @@ export default function CoordinatorChatsHub() {
         <ConversationRow
           title="💼 Chat Staff"
           subtitle="Conversaciones internas del personal del club"
-          unreadCount={chatCounts.staffCount || 0}
+          unreadCount={chatCounts.staff || 0}
           url={createPageUrl("StaffChat")}
           icon={Briefcase}
           color="#8b5cf6"
