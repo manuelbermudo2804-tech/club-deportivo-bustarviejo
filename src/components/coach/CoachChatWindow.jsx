@@ -82,9 +82,11 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       }
 
       const grupo_id = toGroupId(selectedCategory);
-      // Traer por grupo_id y también por deporte para compatibilidad antigua
-      const byGroup = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date');
-      const bySport = await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date');
+      // Traer por grupo_id, deporte Y categoria_principal para compatibilidad
+      const [byGroup, bySport] = await Promise.all([
+        base44.entities.ChatMessage.filter({ grupo_id }, 'created_date'),
+        base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date'),
+      ]);
       const merged = [...byGroup, ...bySport].reduce((acc, m) => {
         acc[m.id] = m; return acc;
       }, {});
@@ -101,8 +103,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     if (!selectedCategory) return;
     
     const unsub = base44.entities.ChatMessage.subscribe((event) => {
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      if (event.data?.grupo_id === grupo_id || selectedCategory === "Todas las categorías") {
+      const gid = toGroupId(selectedCategory);
+      const eventGid = toGroupId(event.data?.grupo_id || event.data?.deporte || '');
+      if (eventGid === gid || selectedCategory === "Todas las categorías") {
         queryClient.invalidateQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
       }
     });
@@ -114,8 +117,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     queryKey: ['coachChatState', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return null;
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
-      const logs = await base44.entities.CoachChatLog.filter({ grupo_id });
+      const gid = toGroupId(selectedCategory);
+      const logs = await base44.entities.CoachChatLog.filter({ grupo_id: gid });
       return logs[0] || null;
     },
     refetchInterval: false,
@@ -144,7 +147,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   // Marcar como leídos los mensajes de familias - SISTEMA UNIFICADO
   useEffect(() => {
     if (!user || !selectedCategory || messages.length === 0) return;
-    const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+    const grupo_id = toGroupId(selectedCategory);
 
     const unreadFromParents = messages.filter((m) =>
       m.tipo === 'padre_a_grupo' &&
@@ -424,7 +427,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       await queryClient.cancelQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
       const previousMessages = queryClient.getQueryData(['coachGroupMessages', selectedCategory]);
       
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      const grupo_id = toGroupId(selectedCategory);
       const optimisticMessage = {
         id: `temp-${Date.now()}`,
         mensaje: messageData.mensaje,
@@ -449,7 +452,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
-      const grupo_id = selectedCategory.toLowerCase().replace(/\s+/g, '_');
+      const grupo_id = toGroupId(selectedCategory);
       
       const newMessage = await base44.entities.ChatMessage.create({
         grupo_id,
@@ -654,7 +657,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
   const categoryPlayers = selectedCategory === "Todas las categorías" 
     ? allPlayers.filter(p => p.activo === true)
-    : allPlayers.filter(p => p.deporte === selectedCategory && p.activo === true);
+    : allPlayers.filter(p => (p.deporte === selectedCategory || p.categoria_principal === selectedCategory || (p.categorias || []).includes(selectedCategory)) && p.activo === true);
 
   const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
     [p.email_padre, p.email_tutor_2].filter(Boolean)
