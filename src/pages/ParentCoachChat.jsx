@@ -138,13 +138,11 @@ export default function ParentCoachChat() {
     }).length;
   };
 
-  // Marcar como leído via backend persistente (solo una vez al seleccionar categoría)
-  const markedCategoriesRef = useRef(new Set());
+  // Marcar como leído cada vez que se entra en una categoría (con lógica anti-parpadeo en el hook)
   useEffect(() => {
     if (!user?.email || !selectedCategory) return;
     const gid = toGroupId(selectedCategory);
-    if (gid && !markedCategoriesRef.current.has(gid)) {
-      markedCategoriesRef.current.add(gid);
+    if (gid) {
       markRead('team', gid);
     }
   }, [user?.email, selectedCategory]);

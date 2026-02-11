@@ -139,7 +139,7 @@ export function useChatUnreadCounts(user) {
         // Active chat is tracked by normalized grupo_id
         const isViewingThis = active?.type === 'team' && active.id === gid;
         if (!isFromMe && gid && !isViewingThis) {
-          suppressFetchUntilRef.current = Date.now() + 3000;
+          suppressFetchUntilRef.current = Date.now() + 6000;
           setCounts(prev => {
             const newTeam = { ...prev.team_chats };
             newTeam[gid] = (newTeam[gid] || 0) + 1;
@@ -150,21 +150,21 @@ export function useChatUnreadCounts(user) {
         isFromMe = d?.autor_email === myEmail;
         const isViewingThis = active?.type === 'coordinator';
         if (!isFromMe && !isViewingThis) {
-          suppressFetchUntilRef.current = Date.now() + 3000;
+          suppressFetchUntilRef.current = Date.now() + 6000;
           setCounts(prev => ({ ...prev, coordinator: (prev.coordinator || 0) + 1, total: (prev.total || 0) + 1 }));
         }
       } else if (entityType === 'AdminMessage') {
         isFromMe = d?.autor_email === myEmail;
         const isViewingThis = active?.type === 'admin';
         if (!isFromMe && !isViewingThis) {
-          suppressFetchUntilRef.current = Date.now() + 3000;
+          suppressFetchUntilRef.current = Date.now() + 6000;
           setCounts(prev => ({ ...prev, admin: (prev.admin || 0) + 1, total: (prev.total || 0) + 1 }));
         }
       } else if (entityType === 'StaffMessage') {
         isFromMe = d?.autor_email === myEmail;
         const isViewingThis = active?.type === 'staff';
         if (!isFromMe && !isViewingThis) {
-          suppressFetchUntilRef.current = Date.now() + 3000;
+          suppressFetchUntilRef.current = Date.now() + 6000;
           setCounts(prev => ({ ...prev, staff: (prev.staff || 0) + 1, total: (prev.total || 0) + 1 }));
         }
       } else if (entityType === 'PrivateMessage') {
@@ -172,7 +172,7 @@ export function useChatUnreadCounts(user) {
         const isViewingThis = active?.type === 'system';
         const isFromStaff = d?.remitente_tipo === 'staff';
         if (!isFromMe && isFromStaff && !isViewingThis) {
-          suppressFetchUntilRef.current = Date.now() + 3000;
+          suppressFetchUntilRef.current = Date.now() + 6000;
           setCounts(prev => ({ ...prev, system: (prev.system || 0) + 1, total: (prev.total || 0) + 1 }));
         }
       }
