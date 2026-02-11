@@ -28,6 +28,8 @@ export default function AdminCoordinatorChats() {
   
   const queryClient = useQueryClient();
 
+  const [isCoordinator, setIsCoordinator] = useState(false);
+
   useEffect(() => {
     if (userLoaded) return;
     
@@ -36,6 +38,7 @@ export default function AdminCoordinatorChats() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser.role === "admin");
+        setIsCoordinator(currentUser.es_coordinador === true);
         setUserLoaded(true);
       } catch (error) {
         console.error("Error loading user:", error);
@@ -45,13 +48,14 @@ export default function AdminCoordinatorChats() {
     fetchUser();
   }, [userLoaded]);
 
+  const canAccess = isAdmin || isCoordinator;
+
   const { data: conversations = [] } = useQuery({
     queryKey: ['adminCoordinatorConversations'],
     queryFn: async () => {
-      // Traer muchas conversaciones ordenadas por último mensaje para no perder escaladas recientes
       return await base44.entities.CoordinatorConversation.filter({}, '-ultimo_mensaje_fecha', 200);
     },
-    enabled: isAdmin,
+    enabled: canAccess,
     refetchInterval: false,
     staleTime: 60000,
   });
@@ -62,30 +66,30 @@ export default function AdminCoordinatorChats() {
     queryFn: async () => {
       return await base44.entities.AdminConversation.filter({ escalada_desde_coordinador: true, resuelta: false }, '-ultimo_mensaje_fecha', 200);
     },
-    enabled: isAdmin,
+    enabled: canAccess,
     refetchInterval: false,
     staleTime: 60000,
   });
 
   // REAL-TIME: Suscripción a conversaciones
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canAccess) return;
     
     const unsub = base44.entities.CoordinatorConversation.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: ['adminCoordinatorConversations'] });
     });
     
     return unsub;
-  }, [isAdmin, queryClient]);
+  }, [canAccess, queryClient]);
 
   // REAL-TIME: Suscripción a AdminConversation
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canAccess) return;
     const unsub = base44.entities.AdminConversation.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: ['adminConversationsFromCoordinator'] });
     });
     return unsub;
-  }, [isAdmin, queryClient]);
+  }, [canAccess, queryClient]);
 
   // Marcar como leído AL ABRIR conversación - DESACTIVADO (sistema nuevo)
   useEffect(() => {
@@ -165,10 +169,10 @@ export default function AdminCoordinatorChats() {
     },
   });
 
-  if (!isAdmin) {
+  if (!canAccess) {
     return (
       <div className="p-6 text-center">
-        <p className="text-slate-500">Solo administradores pueden acceder a esta sección</p>
+        <p className="text-slate-500">Solo administradores y coordinadores pueden acceder a esta sección</p>
       </div>
     );
   }
