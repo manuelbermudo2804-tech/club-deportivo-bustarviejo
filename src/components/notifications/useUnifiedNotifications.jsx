@@ -186,35 +186,7 @@ export function useUnifiedNotifications(user, options = {}) {
     });
     unsubscribers.push(unsubAppNotif);
 
-    // Private Conversations (System Messages)
-    const loadPrivateConvs = async () => {
-      let convs = [];
-      if (options?.testModeLoadAll) {
-        convs = await run(() => base44.entities.PrivateConversation.list('-updated_date', 30));
-      } else {
-        convs = await run(() => base44.entities.PrivateConversation.filter({ $or: [ { participante_familia_email: user?.email }, { participante_staff_email: user?.email } ] }, '-updated_date', 40));
-      }
-      setRawData(prev => ({ ...prev, privateConversations: convs }));
-    };
-    if (forceRefreshKey > 0) {
-      run(loadPrivateConvs);
-    } else {
-      setTimeout(() => run(loadPrivateConvs), 6500);
-    }
-    let lastPrivateConvUpdate = 0;
-    const unsubPrivateConv = base44.entities.PrivateConversation.subscribe((event) => {
-        const now = Date.now();
-        if (now - lastPrivateConvUpdate < 1000) return;
-        lastPrivateConvUpdate = now;
-        setRawData(prev => {
-          let updated = [...prev.privateConversations];
-          if (event.type === 'create') updated = [event.data, ...updated];
-          else if (event.type === 'update') updated = updated.map(c => c.id === event.id ? event.data : c);
-          else if (event.type === 'delete') updated = updated.filter(c => c.id !== event.id);
-          return { ...prev, privateConversations: updated };
-        });
-    });
-    unsubscribers.push(unsubPrivateConv);
+    // Private Conversations - DESACTIVADO (se reimplementará con nuevo sistema)
 
     // ===== CONVOCATORIAS =====
     const loadConvocatorias = async () => {
