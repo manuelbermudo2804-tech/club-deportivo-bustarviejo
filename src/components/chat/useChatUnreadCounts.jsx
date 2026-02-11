@@ -19,6 +19,9 @@ export function useChatUnreadCounts(user) {
   const fetchingRef = useRef(false);
   const mountedRef = useRef(true);
   const userEmailRef = useRef(null);
+  // Track which chat the user is currently viewing so we suppress fetch overwrite
+  const activeChatRef = useRef(null); // e.g. { type: 'team', id: 'futbol_alevin' }
+  const suppressFetchUntilRef = useRef(0); // timestamp until which fetch results are ignored for active chat
 
   // Keep user email in ref for realtime handlers
   useEffect(() => { userEmailRef.current = user?.email; }, [user?.email]);
