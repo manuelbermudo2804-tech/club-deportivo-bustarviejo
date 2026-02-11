@@ -77,10 +77,11 @@ export default function CoachParentChat({ embedded = false }) {
   useEffect(() => {
     if (!user) return;
     const coachCats = user.categorias_entrena || [];
-    if (coachCats.length > 0 && (!selectedCategory || !coachCats.includes(selectedCategory))) {
+    // No auto-cambiar si venimos bloqueados por URL (?category=...)
+    if (!lockedCategory && coachCats.length > 0 && (!selectedCategory || !coachCats.includes(selectedCategory))) {
       setSelectedCategory(coachCats[0]);
     }
-  }, [user, selectedCategory]);
+  }, [user, selectedCategory, lockedCategory]);
 
   // Contar mensajes no leídos por categoría (desde ChatMessage)
   const { data: messages = [] } = useQuery({
