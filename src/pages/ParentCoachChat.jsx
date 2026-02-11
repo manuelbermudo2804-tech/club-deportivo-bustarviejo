@@ -459,7 +459,7 @@ export default function ParentCoachChat() {
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 bg-white min-h-0">
+          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
             {selectedCategory && getUnreadCountByCategory(selectedCategory) > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs px-3 py-2 rounded-lg">
                 Tienes {getUnreadCountByCategory(selectedCategory)} mensajes nuevos en {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
