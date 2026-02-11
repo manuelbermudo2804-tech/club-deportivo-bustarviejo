@@ -49,10 +49,11 @@ export function useChatUnreadCounts(user) {
   const refetchPendingRef = useRef(false);
   const latestRequestIdRef = useRef(0);
 
-  const fetchCounts = useCallback(async () => {
+  const fetchCounts = useCallback(async (force = false) => {
     if (!user) return;
-    if (fetchingRef.current) { refetchPendingRef.current = true; return; }
-    fetchingRef.current = true;
+    if (fetchingRef.current && !force) { refetchPendingRef.current = true; return; }
+    let setFlag = false;
+    if (!fetchingRef.current) { fetchingRef.current = true; setFlag = true; }
     const requestId = ++latestRequestIdRef.current;
     try {
       const { data } = await base44.functions.invoke('chatGetUnreadCounts', {});
@@ -70,8 +71,8 @@ export function useChatUnreadCounts(user) {
     } catch (e) {
       console.error('[useChatUnreadCounts] fetch error:', e);
     } finally {
-      fetchingRef.current = false;
-      if (refetchPendingRef.current) {
+      if (setFlag) fetchingRef.current = false;
+      if (setFlag && refetchPendingRef.current) {
         refetchPendingRef.current = false;
         fetchCounts();
       }
@@ -127,37 +128,21 @@ export function useChatUnreadCounts(user) {
 
     // 2) Limpieza local inmediata (sin incrementos optimistas, sin debounce, sin suppress)
     setCounts(prev => {
-      const next = { ...prev };
+      const next = { ...prev, team_chats: { ...(prev.team_chats || {}) } };
       if (type === 'team' && chatId) {
         const gid = toGroupId(chatId);
-        const curr = (next.team_chats?.[gid] || 0);
-        if (curr > 0) {
-          next.total = Math.max(0, (next.total || 0) - curr);
-          next.team_chats = { ...(next.team_chats || {}), [gid]: 0 };
-        }
+        next.team_chats[gid] = 0;
       } else if (type === 'coordinator') {
-        if (next.coordinator > 0) {
-          next.total = Math.max(0, (next.total || 0) - next.coordinator);
-          next.coordinator = 0;
-        }
+        next.coordinator = 0;
       } else if (type === 'admin') {
-        if (next.admin > 0) {
-          next.total = Math.max(0, (next.total || 0) - next.admin);
-          next.admin = 0;
-        }
+        next.admin = 0;
       } else if (type === 'staff') {
-        if (next.staff > 0) {
-          next.total = Math.max(0, (next.total || 0) - next.staff);
-          next.staff = 0;
-        }
+        next.staff = 0;
       } else if (type === 'system') {
-        if (next.system > 0) {
-          next.total = Math.max(0, (next.total || 0) - next.system);
-          next.system = 0;
-        }
+        next.system = 0;
       }
-      // 2.b) Asegurar que nunca sea negativo
-      next.total = Math.max(0, next.total || 0);
+      const teamTotal = Object.values(next.team_chats || {}).reduce((s, v) => s + (v || 0), 0);
+      next.total = Math.max(0, teamTotal + (next.coordinator || 0) + (next.admin || 0) + (next.staff || 0) + (next.system || 0));
       return next;
     });
 
@@ -167,7 +152,7 @@ export function useChatUnreadCounts(user) {
     } catch (e) {
       console.error('[useChatUnreadCounts] markRead error:', e);
     } finally {
-      await fetchCounts();
+      await fetchCounts(true);
       inFlightRef.current.delete(key);
     }
   }, [fetchCounts]);
