@@ -8,7 +8,6 @@ import { Bell, CheckCircle2, Clock, AlertCircle, ChevronDown } from "lucide-reac
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import SocialLinks from "../components/SocialLinks";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 
 export default function ParentSystemMessages() {
   const [user, setUser] = useState(null);
@@ -115,12 +114,7 @@ export default function ParentSystemMessages() {
           }
         }
 
-        // CORRECCIÓN #3: Sincronizar con UnifiedChatNotificationStore
-        UnifiedChatNotificationStore.clearChatOnly(user.email, 'systemMessages');
-        // Sincronizar contador global (ChatCounter) para todas las conversaciones privadas
-        try {
-          await Promise.all((conversations || []).map(c => base44.functions.invoke('chatMarkRead', { chatType: 'private', conversationId: c.id })));
-        } catch {}
+        // TODO: Implementar nuevo sistema last_read_at
       }
 
       // 2. MARCAR NOTIFICACIONES COMO VISTAS
