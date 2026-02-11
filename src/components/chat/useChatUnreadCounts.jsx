@@ -98,8 +98,11 @@ export function useChatUnreadCounts(user) {
     // Determine chat type from entity event and optimistically increment
     const makeHandler = (entityType) => (event) => {
       if (event.type !== 'create') {
-        // For updates/deletes just re-fetch
-        debouncedFetch();
+        // For updates/deletes, only re-fetch if suppress period is over
+        // (markRead triggers entity updates which would otherwise cause flicker)
+        if (suppressFetchUntilRef.current <= Date.now()) {
+          debouncedFetch();
+        }
         return;
       }
 
