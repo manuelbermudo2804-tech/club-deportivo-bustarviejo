@@ -586,8 +586,16 @@ export default function Layout({ children, currentPageName }) {
   const pauseRealtime = rateLimited || window.__BASE44_PAUSE_REALTIME__;
   const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
-  // SISTEMA UNIFICADO DE CHATS (misma fuente que burbujas)
-  const chatMenuCounts = useChatNotificationMenuSidebar(user);
+  // SISTEMA DE CHATS - desactivado temporalmente, se reimplementará
+  const chatMenuCounts = {
+    staffCount: 0,
+    coordinatorCount: 0,
+    coachCount: 0,
+    coordinatorForFamilyCount: 0,
+    coachForFamilyCount: 0,
+    systemMessagesCount: 0,
+    adminCount: 0,
+  };
   
   // Mapear a variables legacy para compatibilidad (filtrando ruido para Admin)
   const sanitize = (v) => (isAdmin ? 0 : (v || 0));
@@ -1989,13 +1997,7 @@ export default function Layout({ children, currentPageName }) {
             <SeasonProvider externalConfig={activeSeasonConfig}>
             <>
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
-              <ChatNotificationBubbles 
-                user={user} 
-                isCoordinator={isCoordinator}
-                isCoach={isCoach}
-                isFamily={!isAdmin && !isCoach && !isCoordinator && !isTreasurer && !isPlayer}
-                isAdmin={isAdmin}
-              />
+              {/* Chat notification bubbles - desactivadas, se reimplementarán */}
 
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
@@ -2280,7 +2282,7 @@ export default function Layout({ children, currentPageName }) {
                                           <AutomaticRenewalClosure />
                                           <RenewalNotificationEngine />
                                           <PostRenewalPaymentReminder />
-                                          <ChatSoundNotifier user={user} chatType="all" />
+                                          {/* ChatSoundNotifier eliminado - se reimplementará */}
                                           <CallupSoundNotifier user={user} />
                                           <AnnouncementSoundNotifier user={user} />
                                           <PaymentSoundNotifier user={user} />
