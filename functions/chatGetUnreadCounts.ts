@@ -76,15 +76,19 @@ Deno.serve(async (req) => {
 
     // ===== 2. COORDINATOR CHAT (CoordinatorConversation) =====
     if (isCoordinator || isAdmin) {
-      // Coordinador ve mensajes de padres sin leer
-      const convs = await base44.asServiceRole.entities.CoordinatorConversation.filter({ archivada: false });
-      for (const conv of convs) {
-        const lastRead = conv.last_read_coordinador_at || '1970-01-01T00:00:00.000Z';
-        const msgs = await base44.asServiceRole.entities.CoordinatorMessage.filter({
-          conversacion_id: conv.id, autor: 'padre'
-        }, '-created_date', 50);
-        const unread = msgs.filter(m => m.created_date > lastRead).length;
-        result.coordinator += unread;
+      // Coordinador/Admin ve mensajes de padres sin leer
+      try {
+        const convs = await base44.asServiceRole.entities.CoordinatorConversation.filter({ archivada: false });
+        for (const conv of convs) {
+          const lastRead = conv.last_read_coordinador_at || '1970-01-01T00:00:00.000Z';
+          const msgs = await base44.asServiceRole.entities.CoordinatorMessage.filter({
+            conversacion_id: conv.id, autor: 'padre'
+          }, '-created_date', 50);
+          const unread = msgs.filter(m => m.created_date > lastRead).length;
+          result.coordinator += unread;
+        }
+      } catch (e) {
+        console.error('Error counting coordinator messages:', e);
       }
     } else if (!isStaff) {
       // Padre ve mensajes del coordinador sin leer
