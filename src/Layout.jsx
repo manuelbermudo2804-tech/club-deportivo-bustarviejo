@@ -26,8 +26,8 @@ import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
-import ChatNotificationBubbles from "./components/notifications/ChatNotificationBubbles";
-import { useChatNotificationMenuSidebar } from "./components/notifications/useChatNotificationMenuSidebar";
+
+
 
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
@@ -43,7 +43,7 @@ import RenewalNotificationEngine from "./components/renewals/RenewalNotification
 import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPaymentReminder.jsx";
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
 const ClothingApprovalNotifier = React.lazy(() => import("./components/payments/ClothingApprovalNotifier"));
-import ChatSoundNotifier from "./components/notifications/ChatSoundNotifier";
+
 import CallupSoundNotifier from "./components/notifications/CallupSoundNotifier";
 import AnnouncementSoundNotifier from "./components/notifications/AnnouncementSoundNotifier";
 import PaymentSoundNotifier from "./components/notifications/PaymentSoundNotifier";
