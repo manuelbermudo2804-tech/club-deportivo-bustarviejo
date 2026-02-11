@@ -32,7 +32,33 @@ export function useChatUnreadCounts(user) {
     try {
       const { data } = await base44.functions.invoke('chatGetUnreadCounts', {});
       if (mountedRef.current && data && !data.error) {
-        setCounts(data);
+        // If we recently did an optimistic increment, don't let the backend overwrite it to 0
+        // The backend might not yet reflect the new message if user is actively in that chat
+        if (suppressFetchUntilRef.current > Date.now()) {
+          // Merge: keep local optimistic values that are HIGHER than backend
+          setCounts(prev => {
+            const merged = { ...data };
+            merged.team_chats = { ...data.team_chats };
+            // Keep any local team_chat counts that are higher
+            for (const key of Object.keys(prev.team_chats || {})) {
+              if ((prev.team_chats[key] || 0) > (merged.team_chats[key] || 0)) {
+                merged.team_chats[key] = prev.team_chats[key];
+              }
+            }
+            // Keep local counts that are higher for other chat types
+            for (const k of ['coordinator', 'admin', 'staff', 'system']) {
+              if ((prev[k] || 0) > (merged[k] || 0)) {
+                merged[k] = prev[k];
+              }
+            }
+            // Recalculate total
+            const teamTotal = Object.values(merged.team_chats).reduce((s, v) => s + v, 0);
+            merged.total = teamTotal + merged.coordinator + merged.admin + merged.staff + merged.system;
+            return merged;
+          });
+        } else {
+          setCounts(data);
+        }
       }
     } catch (e) {
       console.error('[useChatUnreadCounts] fetch error:', e);
