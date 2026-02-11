@@ -20,11 +20,14 @@ export default function CoachParentChat({ embedded = false }) {
   const [showSettings, setShowSettings] = useState(false);
   const [unreadByCategory, setUnreadByCategory] = useState({});
 
-  // Convertir categoría a group_id (ej: "Fútbol Pre-Benjamín (Mixto)" -> "futbol_pre_benjamin_mixto")
-  const toGroupId = (cat) => {
-   if (!cat) return '';
-   return cat.toLowerCase().replace(/\s+/g, '_').replace(/[()]/g, '').replace(/ó/g, 'o').replace(/á/g, 'a');
-  };
+  // Normalización consistente con backend y useChatUnreadCounts
+  const toGroupId = (s = "") =>
+    s.toString()
+      .replace(/\(.*?\)/g, "")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .replace(/\s+/g, "_")
+      .toLowerCase();
 
   const normalizeCategory = (cat) => {
    if (!cat) return '';
@@ -36,9 +39,15 @@ export default function CoachParentChat({ embedded = false }) {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      const categories = currentUser.role === "admin" 
-        ? ["Todas las categorías"]
-        : (currentUser.categorias_entrena || []);
+      // Coordinador que también es entrenador: fusionar ambas listas de categorías
+      let categories;
+      if (currentUser.role === "admin") {
+        categories = ["Todas las categorías"];
+      } else {
+        const coachCats = currentUser.categorias_entrena || [];
+        const coordCats = currentUser.es_coordinador ? (currentUser.categorias_coordina || []) : [];
+        categories = [...new Set([...coachCats, ...coordCats])];
+      }
       
       if (categories.length > 0 && !selectedCategory) {
         setSelectedCategory(categories[0]);
@@ -68,30 +77,21 @@ export default function CoachParentChat({ embedded = false }) {
     refetchOnWindowFocus: false,
   });
 
+  // Usar contadores del backend en vez de calcular localmente
   useEffect(() => {
-    if (!messages || !user) return;
-
-    const coachCatIds = (user?.categorias_entrena || []).map(toGroupId);
-    const isAdminUser = user?.role === "admin";
+    if (!chatCounts || !user) return;
+    const teamChats = chatCounts.team_chats || {};
+    // Mapear de gid a nombre de categoría para mostrar en las pestañas
+    const allCats = [...new Set([...(user.categorias_entrena || []), ...(user.es_coordinador ? (user.categorias_coordina || []) : [])])];
     const unreadCounts = {};
-
-    messages.forEach(msg => {
-      const catKey = msg.deporte || msg.grupo_id;
-      if (!catKey) return;
-
-      if (msg.tipo === 'padre_a_grupo') {
-        const isRead = msg.leido_por?.some(lp => lp.email === user.email);
-        if (isRead) return;
-        const belongs = isAdminUser || coachCatIds.includes(msg.grupo_id) || coachCatIds.includes(toGroupId(catKey));
-        if (belongs) {
-          const key = msg.deporte || msg.grupo_id;
-          unreadCounts[key] = (unreadCounts[key] || 0) + 1;
-        }
+    for (const cat of allCats) {
+      const gid = toGroupId(cat);
+      if (teamChats[gid] > 0) {
+        unreadCounts[cat] = teamChats[gid];
       }
-    });
-
+    }
     setUnreadByCategory(unreadCounts);
-  }, [messages, user]);
+  }, [chatCounts, user]);
 
   // Si hay ?category= o ?categoria= en la URL, abrir directamente esa categoría y ocultar pestañas
   useEffect(() => {
@@ -104,13 +104,17 @@ export default function CoachParentChat({ embedded = false }) {
   }, [selectedCategory]);
   
   // Marcar como leído via backend persistente
-  const { markRead } = useChatUnreadCounts(user);
+  const { counts: chatCounts, markRead, clearActiveChat } = useChatUnreadCounts(user);
   useEffect(() => {
     if (!selectedCategory || !user?.email) return;
-    const toGid = (s) => (s || '').toLowerCase().replace(/\s+/g, '_').replace(/[()]/g, '').replace(/ó/g, 'o').replace(/á/g, 'a');
-    const gid = toGid(selectedCategory);
+    const gid = toGroupId(selectedCategory);
     if (gid) markRead('team', gid);
   }, [selectedCategory, user?.email]);
+  
+  // Al salir del chat, limpiar para que vuelvan a contar los +1
+  useEffect(() => {
+    return () => { try { clearActiveChat(); } catch {} };
+  }, []);
 
   if (!user) {
     return (
@@ -121,18 +125,19 @@ export default function CoachParentChat({ embedded = false }) {
   }
 
   const isCoach = user?.es_entrenador === true || user?.role === "admin";
+  const isCoordinator = user?.es_coordinador === true;
 
-  if (!isCoach) {
+  if (!isCoach && !isCoordinator) {
     return (
       <div className="p-6 text-center">
-        <p className="text-slate-500">Solo entrenadores pueden acceder a esta sección</p>
+        <p className="text-slate-500">Solo entrenadores y coordinadores pueden acceder a esta sección</p>
       </div>
     );
   }
 
   const categories = user?.role === "admin" 
     ? ["Todas las categorías", ...new Set(allPlayers.map(p => p.deporte).filter(Boolean))]
-    : (user?.categorias_entrena || []);
+    : [...new Set([...(user?.categorias_entrena || []), ...(isCoordinator ? (user?.categorias_coordina || []) : [])])];
 
   if (categories.length === 0) {
     return (
