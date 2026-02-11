@@ -1157,6 +1157,9 @@ export default function ParentPayments() {
               alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.');
               return;
             }
+            
+            toast.loading('Conectando con Stripe...', { id: 'stripe-single' });
+            
             const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
             const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
             const response = await base44.functions.invoke('stripeCheckout', {
@@ -1178,12 +1181,16 @@ export default function ParentPayments() {
             });
             const data = response.data || response;
             if (data?.url) {
-              window.location.href = data.url;
+              toast.success('Redirigiendo...', { id: 'stripe-single' });
+              setTimeout(() => {
+                window.location.href = data.url;
+              }, 500);
             } else {
-              toast.error(data?.error || 'No se pudo iniciar el pago con tarjeta');
+              toast.error(data?.error || 'No se pudo iniciar el pago con tarjeta', { id: 'stripe-single' });
             }
           } catch (e) {
             console.error('Stripe checkout error', e);
+            toast.error('Error al procesar el pago', { id: 'stripe-single' });
           }
         }}
         onChooseTransfer={() => {
