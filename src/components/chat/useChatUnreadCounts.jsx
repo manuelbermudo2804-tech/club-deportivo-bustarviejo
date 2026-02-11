@@ -170,13 +170,19 @@ export function useChatUnreadCounts(user) {
 
   // Optimistic markRead: set counter to 0 immediately, then confirm with backend
   const markRead = useCallback(async (chatType, chatId) => {
+    // Record which chat user is currently viewing
+    activeChatRef.current = { type: chatType, id: chatId };
+
     // Optimistic: zero out the relevant counter immediately
     setCounts(prev => {
       const next = { ...prev };
       if (chatType === 'team' && chatId) {
         const newTeam = { ...prev.team_chats };
-        const oldVal = newTeam[chatId] || 0;
-        newTeam[chatId] = 0;
+        // Try exact match first, then look for key containing chatId
+        let oldVal = 0;
+        for (const key of Object.keys(newTeam)) {
+          if (key === chatId) { oldVal = newTeam[key] || 0; newTeam[key] = 0; break; }
+        }
         next.team_chats = newTeam;
         next.total = Math.max(0, (prev.total || 0) - oldVal);
       } else if (chatType === 'coordinator') {
@@ -195,14 +201,22 @@ export function useChatUnreadCounts(user) {
       return next;
     });
 
+    // Suppress backend overwrite for a few seconds
+    suppressFetchUntilRef.current = Date.now() + 5000;
+
     // Confirm with backend
     try {
       await base44.functions.invoke('chatMarkRead', { chatType, chatId });
-      fetchCounts();
+      // Don't re-fetch immediately; let suppressFetchUntil expire first
     } catch (e) {
       console.error('[useChatUnreadCounts] markRead error:', e);
     }
   }, [fetchCounts]);
 
-  return { counts, refresh: fetchCounts, markRead };
+  // Allow clearing the active chat (e.g. when navigating away)
+  const clearActiveChat = useCallback(() => {
+    activeChatRef.current = null;
+  }, []);
+
+  return { counts, refresh: fetchCounts, markRead, clearActiveChat };
 }
