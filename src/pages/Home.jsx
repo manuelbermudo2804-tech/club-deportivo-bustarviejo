@@ -1297,26 +1297,6 @@ export default function Home() {
           <ShareFormButton />
         </div>
 
-      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <SocialLinks />
-            <Link to={createPageUrl("Chatbot")}>
-              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800">
-                <Sparkles className="w-4 h-4 mr-1" />
-                🤖 IA
-              </Button>
-            </Link>
-            <Link to={createPageUrl("AdminChatsHub")}>
-              <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                <MessageCircle className="w-4 h-4 mr-1" />
-                💬 Chats
-              </Button>
-            </Link>
-          </div>
-          <ShareFormButton />
-        </div>
-
 
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
