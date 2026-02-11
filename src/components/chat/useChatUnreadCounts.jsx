@@ -142,8 +142,11 @@ export function useChatUnreadCounts(user) {
           suppressFetchUntilRef.current = Date.now() + 6000;
           setCounts(prev => {
             const newTeam = { ...prev.team_chats };
-            newTeam[gidNorm] = (newTeam[gidNorm] || 0) + 1;
-            return { ...prev, team_chats: newTeam, total: (prev.total || 0) + 1 };
+            const prevVal = newTeam[gidNorm] || 0;
+            // Evitar duplicar el +1 si backend ya lo contempló
+            newTeam[gidNorm] = Math.max(prevVal + 1, (prev.team_chats[gidNorm] || 0));
+            const teamTotal = Object.values(newTeam).reduce((s, v) => s + v, 0);
+            return { ...prev, team_chats: newTeam, total: teamTotal + (prev.coordinator||0) + (prev.admin||0) + (prev.staff||0) + (prev.system||0) };
           });
         }
       } else if (entityType === 'CoordinatorMessage') {
