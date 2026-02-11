@@ -24,6 +24,7 @@ import FeedbackModal from "./components/feedback/FeedbackModal";
 
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
+import { useChatUnreadCounts } from "./components/chat/useChatUnreadCounts";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 
@@ -586,15 +587,17 @@ export default function Layout({ children, currentPageName }) {
   const pauseRealtime = rateLimited || window.__BASE44_PAUSE_REALTIME__;
   const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
-  // SISTEMA DE CHATS - desactivado temporalmente, se reimplementará
+  // SISTEMA DE CHATS - persistente via backend
+  const { counts: chatCounts, markRead: chatMarkRead } = useChatUnreadCounts(user);
+  const teamChatsTotal = Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0);
   const chatMenuCounts = {
-    staffCount: 0,
-    coordinatorCount: 0,
-    coachCount: 0,
-    coordinatorForFamilyCount: 0,
-    coachForFamilyCount: 0,
-    systemMessagesCount: 0,
-    adminCount: 0,
+    staffCount: chatCounts.staff || 0,
+    coordinatorCount: chatCounts.coordinator || 0,
+    coachCount: teamChatsTotal,
+    coordinatorForFamilyCount: chatCounts.coordinator || 0,
+    coachForFamilyCount: teamChatsTotal,
+    systemMessagesCount: chatCounts.system || 0,
+    adminCount: chatCounts.admin || 0,
   };
   
   // Mapear a variables legacy para compatibilidad (filtrando ruido para Admin)
