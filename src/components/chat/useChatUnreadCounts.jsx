@@ -34,6 +34,15 @@ export function useChatUnreadCounts(user) {
   const activeChatRef = useRef(null); // e.g. { type: 'team', id: 'futbol_alevin' }
   const suppressFetchUntilRef = useRef(0); // timestamp until which fetch results are ignored for active chat
 
+  // Map chat types to canonical keys used internally
+  const normalizeType = (t) => {
+    if (!t) return t;
+    if (t === 'team' || t === 'staff' || t === 'system' || t === 'coordinator' || t === 'admin') return t;
+    if (String(t).startsWith('coordinator')) return 'coordinator';
+    if (String(t).startsWith('admin')) return 'admin';
+    return t;
+  };
+
   // Keep user email in ref for realtime handlers
   useEffect(() => { userEmailRef.current = user?.email; }, [user?.email]);
 
@@ -185,13 +194,14 @@ export function useChatUnreadCounts(user) {
 
   // Optimistic markRead: set counter to 0 immediately, then confirm with backend
   const markRead = useCallback(async (chatType, chatId) => {
-    // Record which chat user is currently viewing
-    activeChatRef.current = { type: chatType, id: chatId };
+    const type = normalizeType(chatType);
+    // Record which chat user is currently viewing (canonical type)
+    activeChatRef.current = { type, id: chatId };
 
     // Optimistic: zero out the relevant counter immediately
     setCounts(prev => {
       const next = { ...prev };
-      if (chatType === 'team' && chatId) {
+      if (type === 'team' && chatId) {
         const newTeam = { ...prev.team_chats };
         let delta = 0;
         for (const key of Object.keys(newTeam)) {
@@ -206,16 +216,16 @@ export function useChatUnreadCounts(user) {
         }
         next.team_chats = newTeam;
         next.total = Math.max(0, (prev.total || 0) - delta);
-      } else if (chatType === 'coordinator') {
+      } else if (type === 'coordinator') {
         next.total = Math.max(0, (prev.total || 0) - (prev.coordinator || 0));
         next.coordinator = 0;
-      } else if (chatType === 'admin') {
+      } else if (type === 'admin') {
         next.total = Math.max(0, (prev.total || 0) - (prev.admin || 0));
         next.admin = 0;
-      } else if (chatType === 'staff') {
+      } else if (type === 'staff') {
         next.total = Math.max(0, (prev.total || 0) - (prev.staff || 0));
         next.staff = 0;
-      } else if (chatType === 'system') {
+      } else if (type === 'system') {
         next.total = Math.max(0, (prev.total || 0) - (prev.system || 0));
         next.system = 0;
       }
