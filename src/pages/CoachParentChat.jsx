@@ -92,11 +92,14 @@ export default function CoachParentChat({ embedded = false }) {
     setUnreadByCategory(unreadCounts);
   }, [messages, user]);
 
-  // Si hay ?category= en la URL, abrir directamente esa pestaña
+  // Si hay ?category= o ?categoria= en la URL, abrir directamente esa categoría y ocultar pestañas
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const cat = params.get('category');
-    if (cat && !selectedCategory) setSelectedCategory(cat);
+    const cat = params.get('category') || params.get('categoria');
+    if (cat && !selectedCategory) {
+      setSelectedCategory(cat);
+      setLockedCategory(cat);
+    }
   }, [selectedCategory]);
   
   // Marcar como leído AL ENTRAR - DESACTIVADO (sistema nuevo)
