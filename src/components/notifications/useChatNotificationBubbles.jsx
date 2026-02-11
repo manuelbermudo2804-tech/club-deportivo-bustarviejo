@@ -1,49 +1,32 @@
 import { useState, useEffect } from 'react';
-import { UnifiedChatNotificationStore } from './UnifiedChatNotificationStore';
 
 /**
  * Hook para las BURBUJAS (parte superior)
- * 
- * Características:
- * - Lee del estado unificado GLOBAL
- * - Se actualiza en tiempo real
- * - NO se limpia al entrar en otros chats
- * - SOLO se limpia cuando el usuario abre ESE chat específico
+ * DESACTIVADO - Sistema antiguo eliminado
+ * TODO: Reimplementar con nuevo sistema last_read_at
  */
 export function useChatNotificationBubbles(user) {
   const [counts, setCounts] = useState({});
 
   useEffect(() => {
     if (!user?.email) {
-      // CRÍTICO: Limpiar al logout
-      UnifiedChatNotificationStore.reset();
       setCounts({});
       return;
     }
 
-    UnifiedChatNotificationStore.initUser(user.email);
-    const unsubscribe = UnifiedChatNotificationStore.subscribe(
-      user.email,
-      (state) => {
-        setCounts(state);
-      }
-    );
+    // TODO: Implementar nuevo sistema last_read_at
+    setCounts({});
 
-    return () => {
-      unsubscribe();
-      // Limpiar al desmontar
-      UnifiedChatNotificationStore.resetUser(user.email);
-    };
   }, [user?.email]);
 
   return {
-    staffBubble: counts.staff || 0,
-    coordinatorBubble: counts.coordinator || 0,
-    coachBubble: counts.coach || 0,
-    coordinatorForFamilyBubble: counts.coordinatorForFamily || 0,
-    coachForFamilyBubble: counts.coachForFamily || 0,
-    systemMessagesBubble: counts.systemMessages || 0,
-    adminBubble: counts.admin || 0,
-    hasAnyUnread: Object.values(counts).some(c => c > 0)
+    staffBubble: 0,
+    coordinatorBubble: 0,
+    coachBubble: 0,
+    coordinatorForFamilyBubble: 0,
+    coachForFamilyBubble: 0,
+    systemMessagesBubble: 0,
+    adminBubble: 0,
+    hasAnyUnread: false
   };
 }
