@@ -1,6 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 
+// Normalization helpers to align keys
+const normalize = (s = "") =>
+  s.toString()
+    .replace(/\(.*?\)/g, "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+const toGroupId = (s = "") => normalize(s).replace(/\s+/g, "_");
+
 /**
  * Hook that fetches chat unread counts from backend.
  * Returns { counts, refresh, markRead }
@@ -115,15 +126,14 @@ export function useChatUnreadCounts(user) {
 
       if (entityType === 'ChatMessage') {
         isFromMe = d?.remitente_email === myEmail;
-        const cat = d?.deporte || d?.grupo_id;
         const gid = d?.grupo_id;
-        // Compare using normalized grupo_id since active.id is stored as normalized grupo_id
-        const isViewingThis = active?.type === 'team' && (active.id === cat || active.id === gid);
-        if (!isFromMe && d?.grupo_id && !isViewingThis) {
+        // Active chat is tracked by normalized grupo_id
+        const isViewingThis = active?.type === 'team' && active.id === gid;
+        if (!isFromMe && gid && !isViewingThis) {
           suppressFetchUntilRef.current = Date.now() + 3000;
           setCounts(prev => {
             const newTeam = { ...prev.team_chats };
-            newTeam[cat] = (newTeam[cat] || 0) + 1;
+            newTeam[gid] = (newTeam[gid] || 0) + 1;
             return { ...prev, team_chats: newTeam, total: (prev.total || 0) + 1 };
           });
         }
@@ -183,13 +193,19 @@ export function useChatUnreadCounts(user) {
       const next = { ...prev };
       if (chatType === 'team' && chatId) {
         const newTeam = { ...prev.team_chats };
-        // Try exact match first, then look for key containing chatId
-        let oldVal = 0;
+        let delta = 0;
         for (const key of Object.keys(newTeam)) {
-          if (key === chatId) { oldVal = newTeam[key] || 0; newTeam[key] = 0; break; }
+          if (key === chatId || toGroupId(key) === chatId) {
+            delta += (newTeam[key] || 0);
+            newTeam[key] = 0;
+          }
+        }
+        if (newTeam[chatId]) {
+          delta += newTeam[chatId] || 0;
+          newTeam[chatId] = 0;
         }
         next.team_chats = newTeam;
-        next.total = Math.max(0, (prev.total || 0) - oldVal);
+        next.total = Math.max(0, (prev.total || 0) - delta);
       } else if (chatType === 'coordinator') {
         next.total = Math.max(0, (prev.total || 0) - (prev.coordinator || 0));
         next.coordinator = 0;
