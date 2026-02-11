@@ -47,9 +47,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: Users, label: 'Socios', url: createPageUrl('ClubMembersManagement'), key: 'members' },
     ];
   } else if (isPlayer) {
-    const totalChatBadge = (chatBadges?.coachForFamilyCount || 0) + 
-                           (chatBadges?.coordinatorForFamilyCount || 0) + 
-                           (chatBadges?.systemMessagesCount || 0);
+    const totalChatBadge = familyTotal;
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('PlayerDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
