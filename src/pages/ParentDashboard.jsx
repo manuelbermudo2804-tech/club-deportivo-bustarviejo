@@ -449,12 +449,6 @@ export default function ParentDashboard() {
                 🤖 IA
               </Button>
             </Link>
-            <Link to={createPageUrl("FamilyChatsHub")}>
-              <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                <MessageCircle className="w-4 h-4 mr-1" />
-                💬 Chats
-              </Button>
-            </Link>
           </div>
           <ShareFormButton />
         </div>
