@@ -213,21 +213,35 @@ export default function FamilyChatsHub() {
             iconBg="bg-purple-600"
           />
 
-          {/* Coordinador */}
-          {coordinatorConv.map(conv => (
+          {/* Coordinador - SIEMPRE visible */}
+          {coordinatorConv.length > 0 ? (
+            coordinatorConv.map(conv => (
+              <ConversationRow
+                key={conv.id}
+                title="🏟️ Coordinador Deportivo"
+                subtitle="Conversación 1 a 1 con el coordinador"
+                lastMessage={conv.ultimo_mensaje}
+                lastMessageDate={conv.ultimo_mensaje_fecha}
+                unreadCount={conv.no_leidos_padre || 0}
+                url={createPageUrl("ParentCoordinatorChat")}
+                icon={MessageCircle}
+                color="#06b6d4"
+                iconBg="bg-cyan-600"
+              />
+            ))
+          ) : (
             <ConversationRow
-              key={conv.id}
               title="🏟️ Coordinador Deportivo"
-              subtitle="Conversación 1 a 1 con el coordinador"
-              lastMessage={conv.ultimo_mensaje}
-              lastMessageDate={conv.ultimo_mensaje_fecha}
-              unreadCount={conv.no_leidos_padre || 0}
+              subtitle="Escribe tu primera consulta al coordinador"
+              lastMessage={null}
+              lastMessageDate={null}
+              unreadCount={0}
               url={createPageUrl("ParentCoordinatorChat")}
               icon={MessageCircle}
               color="#06b6d4"
               iconBg="bg-cyan-600"
             />
-          ))}
+          )}
 
           {/* Administración */}
           {adminConv.map(conv => (
