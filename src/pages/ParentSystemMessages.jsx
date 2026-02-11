@@ -8,6 +8,7 @@ import { Bell, CheckCircle2, Clock, AlertCircle, ChevronDown } from "lucide-reac
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import SocialLinks from "../components/SocialLinks";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 export default function ParentSystemMessages() {
   const [user, setUser] = useState(null);
@@ -85,71 +86,12 @@ export default function ParentSystemMessages() {
     return unsubMsg;
   }, [conversations, queryClient]);
 
-   // Marcar mensajes como leídos INMEDIATAMENTE + LIMPIAR NOTIFICACIONES
+  // Marcar como leído via backend persistente
+  const { markRead } = useChatUnreadCounts(user);
   useEffect(() => {
-    const markAsRead = async () => {
-      if (!user) return;
-      
-      console.log(`🔍 [ParentSystemMessages] Conversaciones:`, conversations.length);
-      console.log(`🔍 [ParentSystemMessages] Mensajes:`, allMessages.length);
-      
-      // 1. Marcar MENSAJES como leídos
-      if (allMessages.length > 0) {
-        const unreadMessages = allMessages.filter(m => 
-          m.remitente_tipo === 'staff' && !m.leido
-        );
-        
-        console.log(`🔍 [ParentSystemMessages] Mensajes sin leer:`, unreadMessages.length);
-        
-        for (const msg of unreadMessages) {
-          await base44.entities.PrivateMessage.update(msg.id, { leido: true });
-        }
-        
-        // Actualizar contador de no leídos en conversaciones
-        for (const conv of conversations) {
-          if (conv.no_leidos_familia > 0) {
-            await base44.entities.PrivateConversation.update(conv.id, {
-              no_leidos_familia: 0
-            });
-          }
-        }
-
-        // TODO: Implementar nuevo sistema last_read_at
-      }
-
-      // 2. MARCAR NOTIFICACIONES COMO VISTAS
-      try {
-        const allNotifications = await base44.entities.AppNotification.list();
-        const notificationsToMark = allNotifications.filter(n => 
-          n.usuario_email === user.email &&
-          n.enlace === "ParentSystemMessages" &&
-          n.vista === false
-        );
-
-        console.log(`🔔 [ParentSystemMessages] Notificaciones sin ver:`, notificationsToMark.length);
-
-        for (const notif of notificationsToMark) {
-          await base44.entities.AppNotification.update(notif.id, {
-            vista: true,
-            fecha_vista: new Date().toISOString()
-          });
-        }
-
-        // 3. INVALIDAR queries GLOBALES para actualizar INMEDIATAMENTE el dashboard
-        if (notificationsToMark.length > 0 || allMessages.some(m => !m.leido)) {
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['privateConversationsParent'] }),
-            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
-            queryClient.refetchQueries({ queryKey: ['privateConversationsParent'] }),
-          ]);
-        }
-      } catch (error) {
-        console.error("Error marking notifications as read:", error);
-      }
-    };
-    
-    markAsRead();
-  }, [allMessages.length, user, conversations.length, queryClient]);
+    if (!user) return;
+    markRead('system', 'all');
+  }, [user?.email]);
 
 
 

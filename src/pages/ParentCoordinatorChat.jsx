@@ -17,6 +17,7 @@ import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -32,6 +33,7 @@ export default function ParentCoordinatorChat() {
   const [showReactions, setShowReactions] = useState(null);
   const messagesEndRef = useRef(null);
 
+  const { markRead } = useChatUnreadCounts(user);
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -127,45 +129,11 @@ export default function ParentCoordinatorChat() {
     gcTime: 300000,
   });
 
-  // Auto-marcar como leídos los mensajes del coordinador - SISTEMA UNIFICADO
+  // Marcar como leído via backend persistente
   useEffect(() => {
     if (!conversation?.id || !user) return;
-    const unreadFromCoordinator = messages.filter(m => m.autor === 'coordinador' && !m.leido_padre);
-    if (unreadFromCoordinator.length === 0 && ((conversation.no_leidos_padre || 0) === 0)) return;
-    (async () => {
-      try {
-        if (unreadFromCoordinator.length > 0) {
-          for (const msg of unreadFromCoordinator) {
-            await base44.entities.CoordinatorMessage.update(msg.id, {
-              leido_padre: true,
-              fecha_leido_padre: new Date().toISOString()
-            });
-          }
-        }
-        if ((conversation.no_leidos_familia || 0) > 0) {
-            await base44.entities.CoordinatorConversation.update(conversation.id, { no_leidos_familia: 0 });
-          }
-
-          // Marcar AppNotifications como vistas (SOLO ParentCoordinatorChat)
-          const notifs = await base44.entities.AppNotification.filter({
-            usuario_email: user.email,
-            enlace: "ParentCoordinatorChat",
-            vista: false
-          });
-          for (const n of notifs) {
-            await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-          }
-
-          // TODO: Implementar nuevo sistema last_read_at
-          try { await base44.functions.invoke('chatMarkRead', { chatType: 'coordinatorForFamily', conversationId: conversation.id }); } catch {}
-
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
-            queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
-          ]);
-      } catch {}
-    })();
-  }, [messages, conversation?.id, user?.email]);
+    markRead('coordinatorForFamily', conversation.id);
+  }, [conversation?.id, user?.email]);
 
   // REAL-TIME: Suscripción a mensajes nuevos
   useEffect(() => {

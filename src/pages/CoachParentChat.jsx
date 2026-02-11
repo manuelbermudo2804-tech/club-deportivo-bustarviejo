@@ -9,6 +9,7 @@ import { MessageCircle, Settings, ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 export default function CoachParentChat({ embedded = false }) {
   const navigate = useNavigate();
@@ -102,10 +103,13 @@ export default function CoachParentChat({ embedded = false }) {
     }
   }, [selectedCategory]);
   
-  // Marcar como leído AL ENTRAR - DESACTIVADO (sistema nuevo)
+  // Marcar como leído via backend persistente
+  const { markRead } = useChatUnreadCounts(user);
   useEffect(() => {
     if (!selectedCategory || !user?.email) return;
-    // TODO: Implementar nuevo sistema last_read_at
+    const toGid = (s) => (s || '').toLowerCase().replace(/\s+/g, '_').replace(/[()]/g, '').replace(/ó/g, 'o').replace(/á/g, 'a');
+    const gid = toGid(selectedCategory);
+    if (gid) markRead('team', gid);
   }, [selectedCategory, user?.email]);
 
   if (!user) {

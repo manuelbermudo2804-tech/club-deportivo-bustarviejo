@@ -14,6 +14,7 @@ import { es } from "date-fns/locale";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorAwayMode from "../components/coordinator/CoordinatorAwayMode";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 export default function CoordinatorChat({ embedded = false }) {
   const navigate = useNavigate();
@@ -66,11 +67,11 @@ export default function CoordinatorChat({ embedded = false }) {
     return unsub;
   }, [isCoordinator, queryClient]);
 
-  // Marcar como leído AL ENTRAR - DESACTIVADO (sistema nuevo)
+  // Marcar como leído via backend persistente
+  const { markRead } = useChatUnreadCounts(user);
   useEffect(() => {
     if (!selectedConversation?.id || !user?.email) return;
-    
-    // TODO: Implementar nuevo sistema last_read_at
+    markRead('coordinatorForStaff', selectedConversation.id);
   }, [selectedConversation?.id, user?.email]);
 
   const archiveMutation = useMutation({

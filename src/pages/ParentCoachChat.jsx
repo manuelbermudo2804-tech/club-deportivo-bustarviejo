@@ -15,6 +15,7 @@ import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinat
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 
@@ -35,7 +36,8 @@ export default function ParentCoachChat() {
   const [myPlayers, setMyPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [lockedCategory, setLockedCategory] = useState(null); // Si viene de URL, bloquear en esa categoría
+  const [lockedCategory, setLockedCategory] = useState(null);
+  const { markRead } = useChatUnreadCounts(user);
   const [uploading, setUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -136,11 +138,12 @@ export default function ParentCoachChat() {
     }).length;
   };
 
-  // Marcar mensajes como leídos - DESACTIVADO (sistema nuevo)
+  // Marcar como leído via backend persistente
   useEffect(() => {
     if (!user?.email || !selectedCategory) return;
-    // TODO: Implementar nuevo sistema last_read_at
-  }, [user?.email, selectedCategory, messages]);
+    const gid = toGroupId(selectedCategory);
+    if (gid) markRead('team', gid);
+  }, [user?.email, selectedCategory]);
 
   const categoryKey = toGroupId(selectedCategory || "");
   const categoryMessages = selectedCategory

@@ -26,6 +26,7 @@ import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
 import StaffChatInput from "../components/chat/StaffChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
+import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -229,11 +230,12 @@ export default function StaffChat() {
     };
   }, [conversation?.id, queryClient]);
 
-  // Marcar como leído AL ENTRAR - DESACTIVADO (sistema nuevo)
+  // Marcar como leído via backend persistente
+  const { markRead } = useChatUnreadCounts(user);
   useEffect(() => {
     if (!conversation?.id || !user?.email) return;
-    // TODO: Implementar nuevo sistema last_read_at
-  }, [conversation?.id, user?.email, messages]);
+    markRead('staff', conversation.id);
+  }, [conversation?.id, user?.email]);
 
   const allSharedFiles = messages.flatMap(m => m.adjuntos || m.archivos_adjuntos || []);
 
