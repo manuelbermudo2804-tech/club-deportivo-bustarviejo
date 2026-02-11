@@ -35,6 +35,7 @@ export default function ParentCoachChat() {
   const [myPlayers, setMyPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [lockedCategory, setLockedCategory] = useState(null); // Si viene de URL, bloquear en esa categoría
   const [uploading, setUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
