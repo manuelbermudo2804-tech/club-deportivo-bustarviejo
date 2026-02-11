@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Send, User, MessageCircle, Shield, GraduationCap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UnifiedChatNotificationStore } from "../components/notifications/UnifiedChatNotificationStore";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -80,7 +79,7 @@ export default function ParentDirectMessages() {
         });
       });
 
-      // Marcar AppNotifications (DM) como vistas y limpiar burbuja inmediata
+      // Marcar AppNotifications (DM) como vistas - DESACTIVADO (sistema nuevo)
       (async () => {
         try {
           const notifs = await base44.entities.AppNotification.filter({ usuario_email: user.email, enlace: 'ParentDirectMessages', vista: false });
@@ -88,9 +87,7 @@ export default function ParentDirectMessages() {
             await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
           }
         } catch {}
-        UnifiedChatNotificationStore.clearChatOnly(user.email, 'private');
-        // Sincronizar contador global (ChatCounter) usando email del contacto como ID estable
-        try { await base44.functions.invoke('chatMarkRead', { chatType: 'private', conversationId: `dm:${selectedContact.email}` }); } catch {}
+        // TODO: Implementar nuevo sistema last_read_at
       })();
     }
   }, [selectedContact, user, allMessages]);
