@@ -15,16 +15,32 @@ export default function MobileBackButton() {
     createPageUrl('CoachDashboard'),
     createPageUrl('CoordinatorDashboard'),
     createPageUrl('TreasurerDashboard'),
+    createPageUrl('FamilyChatsHub'),
   ].map(url => url.toLowerCase());
 
   const isRootPage = rootPages.some(root => location.pathname.toLowerCase() === root);
 
   if (isRootPage) return null;
 
+  // Detectar si estamos en un chat individual (familia) -> volver a FamilyChatsHub
+  const familyChatPages = [
+    createPageUrl('ParentCoachChat'),
+    createPageUrl('ParentCoordinatorChat'),
+    createPageUrl('ParentSystemMessages'),
+  ].map(url => url.toLowerCase());
+
+  const isFamilyChat = familyChatPages.some(chat => location.pathname.toLowerCase() === chat);
+
   return (
     <button
-      onClick={() => navigate(-1)}
-      className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors no-select"
+      onClick={() => {
+        if (isFamilyChat) {
+          navigate(createPageUrl('FamilyChatsHub'));
+        } else {
+          navigate(-1);
+        }
+      }}
+      className="lg:hidden p-2 text-white hover:bg-white/20 rounded-lg transition-colors no-select"
       title="Atrás"
     >
       <ChevronLeft className="w-6 h-6" />
