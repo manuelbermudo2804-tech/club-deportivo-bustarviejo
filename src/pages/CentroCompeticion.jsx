@@ -608,36 +608,7 @@ export default function CentroCompeticion() {
         </Card>
       )}
 
-      {/* URLs GUARDADAS - Visible para Admin SIEMPRE, fuera de las pestañas */}
-      {isAdmin && (
-        <Card className="mb-4 bg-blue-50 border-2 border-blue-300">
-          <CardContent className="p-4 space-y-3">
-            <p className="text-sm font-bold text-blue-900">🔗 URLs Guardadas para {category}</p>
-            
-            <div className="space-y-2">
-              <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <p className="text-xs font-semibold text-slate-600 mb-1">Resultados:</p>
-                <div className="flex items-center gap-2">
-                  <Input className="flex-1 text-xs h-8" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL de RFFM/RFEF para resultados" />
-                  <Button size="sm" variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
-                  <Button size="sm" variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_results_url: resultsUrl })} disabled={!resultsUrl}>💾</Button>
-                </div>
-              </div>
 
-              <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <p className="text-xs font-semibold text-slate-600 mb-1">Goleadores:</p>
-                <div className="flex items-center gap-2">
-                  <Input className="flex-1 text-xs h-8" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL de RFFM/RFEF para goleadores" />
-                  <Button size="sm" variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
-                  <Button size="sm" variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_scorers_url: scorersUrl })} disabled={!scorersUrl}>💾</Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Categorías */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
