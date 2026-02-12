@@ -110,7 +110,7 @@ export function useChatUnreadCounts(user) {
       } catch {}
     };
 
-    ['ChatMessage','CoordinatorMessage','StaffMessage','PrivateMessage','AdminMessage','CoordinatorConversation','AdminConversation','PrivateConversation','StaffConversation'].forEach(subscribe);
+    ['ChatMessage','CoordinatorMessage','StaffMessage','PrivateMessage','AdminMessage','CoordinatorConversation','AdminConversation','PrivateConversation','StaffConversation','User'].forEach(subscribe);
 
     return () => {
       unsubs.forEach(fn => { try { fn(); } catch {} });

@@ -194,7 +194,7 @@ export default function FamilyChatsHub() {
                   subtitle={playerNames ? `${playerNames} · Chat grupal con entrenador` : "Chat grupal con entrenador y familias"}
                   lastMessage={chatData?.lastMessage?.mensaje || null}
                   lastMessageDate={chatData?.lastMessage?.created_date || null}
-                  unreadCount={(chatCounts.team_chats || {})[cat] || 0}
+                  unreadCount={(chatCounts.team_chats || {})[normalizeId(cat)] || 0}
                   url={createPageUrl("ParentCoachChat") + `?category=${encodeURIComponent(cat)}`}
                   icon={Users}
                   color="#3b82f6"
