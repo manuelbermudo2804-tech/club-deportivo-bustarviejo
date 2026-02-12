@@ -19,7 +19,7 @@ const normalizeType = (t) => {
   return t;
 };
 
-const EMPTY = { team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0, total: 0 };
+const EMPTY = { team_chats: {}, coordinator: 0, escalated: 0, admin: 0, staff: 0, system: 0, total: 0 };
 
 const ChatUnreadContext = createContext({
   counts: EMPTY,

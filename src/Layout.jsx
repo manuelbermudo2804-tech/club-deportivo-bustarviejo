@@ -1558,6 +1558,7 @@ export default function Layout({ children, currentPageName }) {
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💬 Familias - Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
+    { title: "🚨 Chats Escalados", url: createPageUrl("AdminCoordinatorChats"), icon: MessageCircle, badge: chatMenuCounts.escalatedCount > 0 ? chatMenuCounts.escalatedCount : null, urgentBadge: chatMenuCounts.escalatedCount > 0 },
     ...(user?.es_entrenador ? [{ title: "⚽ Familias - Entrenador", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount }] : []),
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
 
