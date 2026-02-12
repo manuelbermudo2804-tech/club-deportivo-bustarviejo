@@ -76,8 +76,8 @@ Deno.serve(async (req) => {
     }
 
     // ===== 2. COORDINATOR CHAT (CoordinatorConversation) =====
-    if (isCoordinator || isAdmin) {
-      // Coordinador/Admin: separar escaladas de normales
+    if (isCoordinator && !isAdmin) {
+      // Coordinador: ve conversaciones normales + escaladas por entrenadores
       try {
         const convs = await base44.asServiceRole.entities.CoordinatorConversation.filter({ archivada: false });
         for (const conv of convs) {
@@ -94,6 +94,22 @@ Deno.serve(async (req) => {
         }
       } catch (e) {
         console.error('Error counting coordinator messages:', e);
+      }
+    } else if (isAdmin) {
+      // Admin: conversaciones normales del coordinador (si quiere verlas) + NO ve escaladas de entrenador
+      // El admin ve sus escaladas en result.admin (AdminConversation, sección 3)
+      try {
+        const convs = await base44.asServiceRole.entities.CoordinatorConversation.filter({ archivada: false, escalada_desde_entrenador: false });
+        for (const conv of convs) {
+          const lastRead = conv.last_read_coordinador_at || '1970-01-01T00:00:00.000Z';
+          const msgs = await base44.asServiceRole.entities.CoordinatorMessage.filter({
+            conversacion_id: conv.id, autor: 'padre'
+          }, '-created_date', 50);
+          const unread = msgs.filter(m => m.created_date > lastRead).length;
+          result.coordinator += unread;
+        }
+      } catch (e) {
+        console.error('Error counting admin coordinator messages:', e);
       }
     } else if (!isStaff) {
       // Padre ve mensajes del coordinador sin leer
