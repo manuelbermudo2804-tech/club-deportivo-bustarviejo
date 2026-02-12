@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
 
     // Total
     const teamTotal = Object.values(result.team_chats).reduce((s, v) => s + v, 0);
-    result.total = teamTotal + result.coordinator + result.admin + result.staff + result.system;
+    result.total = teamTotal + result.coordinator + result.escalated + result.admin + result.staff + result.system;
 
     return Response.json(result);
   } catch (error) {
