@@ -92,6 +92,12 @@ export default function UserManagement() {
     initialData: [],
   });
 
+  const { data: categoryConfigs } = useQuery({
+    queryKey: ['categoryConfigs'],
+    queryFn: () => base44.entities.CategoryConfig.filter({ activa: true }),
+    initialData: [],
+  });
+
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, userData }) => {
       // Clean the data - remove null/undefined values
