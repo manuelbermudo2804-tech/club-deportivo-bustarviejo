@@ -10,6 +10,9 @@ import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
+const toGroupId = (s = "") =>
+  (s || "").toString().replace(/\(.*?\)/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, "_").toLowerCase();
+
 function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
     <Link to={url} className="block">
@@ -108,7 +111,7 @@ export default function CoachChatsHub() {
             <h2 className="text-lg font-bold text-slate-800 px-2">⚽ Chats por Equipo</h2>
             {myCategories.map((categoria) => {
               const lastMsg = latestMessages[categoria];
-              const unread = unreadByCategory[categoria] || 0;
+              const unread = unreadByCategory[toGroupId(categoria)] || 0;
               
               return (
                 <ConversationRow
