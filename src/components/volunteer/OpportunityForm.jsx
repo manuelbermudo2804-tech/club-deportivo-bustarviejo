@@ -29,7 +29,7 @@ export default function OpportunityForm({ onSubmit, initial }) {
         </Select>
         <Input type="number" min={1} value={form.necesitados} onChange={(e)=>setForm({...form,necesitados:Number(e.target.value||1)})} />
       </div>
-      <Button onClick={()=>onSubmit(form)} className="w-full">Crear oportunidad</Button>
+      <Button onClick={()=>onSubmit(form)} className="w-full">{isEditing ? 'Guardar cambios' : 'Crear oportunidad'}</Button>
     </div>
   );
 }
