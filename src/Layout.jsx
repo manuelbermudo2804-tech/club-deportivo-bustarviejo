@@ -588,8 +588,11 @@ export default function Layout({ children, currentPageName }) {
   const pauseRealtime = rateLimited || window.__BASE44_PAUSE_REALTIME__;
   const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
-  // SISTEMA DE CHATS - persistente via backend (single source of truth from Provider)
-  const { counts: chatCounts, markRead: chatMarkRead } = useChatUnread();
+  // SISTEMA DE CHATS - contadores se obtienen directamente del Provider
+  // ChatUnreadProvider está dentro del JSX, así que usamos estado local
+  // actualizado por un componente hijo (ChatCountsBridge)
+  const [chatCounts, setChatCounts] = useState({ team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0, total: 0 });
+  const chatMarkRead = useRef(null);
   const teamChatsTotal = Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0);
   const chatMenuCounts = {
     staffCount: chatCounts.staff || 0,
