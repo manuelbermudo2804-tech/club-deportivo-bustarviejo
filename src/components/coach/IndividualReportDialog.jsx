@@ -173,7 +173,7 @@ export default function IndividualReportDialog({
                 }`}
               >
                 <MessageCircle className="w-5 h-5" />
-                <span className="font-medium text-xs">Chat</span>
+                <span className="font-medium text-xs">Mensajes Club</span>
               </button>
               <button
                 onClick={() => setSendMethod("both")}
@@ -195,7 +195,7 @@ export default function IndividualReportDialog({
           {/* Resumen */}
           <div className="bg-green-50 p-3 rounded-lg border border-green-200">
             <p className="text-xs text-green-800">
-              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Chat Privado" : "Email + Chat Privado"}</strong>
+              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Mensajes del Club" : "Email + Mensajes del Club"}</strong>
               {(sendMethod === "email" || sendMethod === "both") && player?.email_padre && (
                 <>
                   <br />• Al padre: {player.email_padre}
@@ -204,7 +204,7 @@ export default function IndividualReportDialog({
               )}
               {(sendMethod === "chat" || sendMethod === "both") && (
                 <>
-                  <br />• 🔒 Al <strong>chat privado</strong> con la familia (no al grupo)
+                  <br />• 🔔 A <strong>"Mensajes del Club"</strong> de la familia (solo ellos lo ven)
                 </>
               )}
             </p>
@@ -214,10 +214,10 @@ export default function IndividualReportDialog({
           {(sendMethod === "chat" || sendMethod === "both") && (
             <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-300">
               <p className="text-sm text-blue-900 font-semibold mb-1">
-                🔒 El reporte se envía al CHAT PRIVADO
+                🔔 El reporte llega a "Mensajes del Club"
               </p>
               <p className="text-xs text-blue-800">
-                El reporte de asistencia y evaluación se enviará <strong>únicamente a la conversación privada con la familia</strong> del jugador. No se publicará en el chat del grupo. Solo la familia verá esta información.
+                La familia lo recibirá en su sección <strong>"Mensajes del Club"</strong> (🔔). Es privado: <strong>solo la familia de este jugador lo verá</strong>, no se publica en ningún chat grupal.
               </p>
             </div>
           )}

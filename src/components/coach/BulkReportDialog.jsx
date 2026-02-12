@@ -162,7 +162,7 @@ export default function BulkReportDialog({
                 }`}
               >
                 <MessageCircle className="w-5 h-5" />
-                <span className="font-medium text-xs">Chat</span>
+                <span className="font-medium text-xs">Mensajes Club</span>
               </button>
               <button
                 onClick={() => setSendMethod("both")}
@@ -184,7 +184,7 @@ export default function BulkReportDialog({
           {/* Resumen */}
           <div className="bg-green-50 p-3 rounded-lg border border-green-200">
             <p className="text-xs text-green-800">
-              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Chat Privado" : "Email + Chat Privado"}</strong>
+              <strong>Se enviará:</strong> Reporte de <strong>{getPeriodLabel()}</strong> por <strong>{sendMethod === "email" ? "Email" : sendMethod === "chat" ? "Mensajes del Club" : "Email + Mensajes del Club"}</strong>
               <br />• A todos los padres de jugadores que asistieron
               <br />• Categoría: {selectedCategory}
             </p>
@@ -194,10 +194,10 @@ export default function BulkReportDialog({
           {(sendMethod === "chat" || sendMethod === "both") && (
             <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-300">
               <p className="text-sm text-blue-900 font-semibold mb-1">
-                🔒 Los reportes se envían al CHAT PRIVADO
+                🔔 Los reportes llegan a "Mensajes del Club"
               </p>
               <p className="text-xs text-blue-800">
-                Cada reporte de asistencia y evaluación se enviará <strong>únicamente a la conversación privada de cada familia</strong>. No se publicarán en el chat del grupo. Cada padre solo verá el reporte de su hijo.
+                Cada familia recibirá el reporte de su hijo en su sección <strong>"Mensajes del Club"</strong> (🔔). Es privado: <strong>cada padre solo verá el reporte de su hijo</strong>, no se publica en ningún chat grupal.
               </p>
             </div>
           )}

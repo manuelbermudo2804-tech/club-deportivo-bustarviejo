@@ -521,8 +521,8 @@ CD Bustarviejo
                   <Label htmlFor="chat" className="flex items-center gap-2 cursor-pointer flex-1">
                     <MessageCircle className="w-4 h-4 text-green-600" />
                     <div>
-                      <p className="font-medium">Chat del Grupo</p>
-                      <p className="text-xs text-slate-500">Publicar en el chat de la categoría</p>
+                      <p className="font-medium">Mensajes del Club (Privado)</p>
+                      <p className="text-xs text-slate-500">Solo lo verá la familia del jugador en su sección "Mensajes del Club"</p>
                     </div>
                   </Label>
                 </div>
@@ -532,7 +532,7 @@ CD Bustarviejo
                     <Send className="w-4 h-4 text-orange-600" />
                     <div>
                       <p className="font-medium">Ambos</p>
-                      <p className="text-xs text-slate-500">Email + Chat del grupo</p>
+                      <p className="text-xs text-slate-500">Email + Mensajes del Club (privado)</p>
                     </div>
                   </Label>
                 </div>
