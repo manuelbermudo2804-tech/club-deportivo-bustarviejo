@@ -589,11 +589,12 @@ export default function Layout({ children, currentPageName }) {
   const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
   // SISTEMA DE CHATS - estado local sincronizado via ChatCountsBridge dentro del Provider
-  const [chatCounts, setChatCounts] = useState({ team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0, total: 0 });
+  const [chatCounts, setChatCounts] = useState({ team_chats: {}, coordinator: 0, escalated: 0, admin: 0, staff: 0, system: 0, total: 0 });
   const teamChatsTotal = Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0);
   const chatMenuCounts = {
     staffCount: chatCounts.staff || 0,
     coordinatorCount: chatCounts.coordinator || 0,
+    escalatedCount: chatCounts.escalated || 0,
     coachCount: teamChatsTotal,
     coordinatorForFamilyCount: chatCounts.coordinator || 0,
     coachForFamilyCount: teamChatsTotal,
