@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Clock, MessageCircle, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, BookOpen, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles, Award, RotateCw } from "lucide-react";
+import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, MessageCircle, Bell, Settings, CheckCircle2, Star, TrendingUp, FileText, Clover, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles, Award, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -13,29 +13,17 @@ import ShareFormButton from "../components/players/ShareFormButton";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_ADMIN_BUTTONS, DEFAULT_ADMIN_BUTTONS } from "../components/dashboard/AdminDashboardButtons";
 
-import ClubStats from "../components/dashboard/ClubStats";
-import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
-import PaymentApprovalNotifier from "../components/payments/PaymentApprovalNotifier";
-
-const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/uploads/2/4/0/4/2404974/logo-cd-bustarviejo-cuadrado-xpeq_orig.png";
 
 export default function Home() {
-  console.log('🏠 [Home] Componente montado');
-  
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isCoach, setIsCoach] = useState(false);
-  const [isCoordinator, setIsCoordinator] = useState(false);
   const [hasPlayers, setHasPlayers] = useState(false);
-  const [userRole, setUserRole] = useState("parent");
   const [loteriaVisible, setLoteriaVisible] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-  // Pausa global de consultas cuando el Layout detecta 429/503
   const realtimePaused = typeof window !== 'undefined' && window.__BASE44_PAUSE_REALTIME__ === true;
-  const queriesEnabled = !!user && !realtimePaused && !shouldRedirect;
+  const queriesEnabled = !!user && !realtimePaused;
 
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
@@ -51,9 +39,6 @@ export default function Home() {
     enabled: queriesEnabled,
   });
 
-  const clothingStoreUrl = seasonConfig?.tienda_ropa_url || null;
-  const merchStoreUrl = seasonConfig?.tienda_merch_url || null;
-
   useEffect(() => {
     if (seasonConfig) {
       setLoteriaVisible(seasonConfig.loteria_navidad_abierta === true);
@@ -63,43 +48,24 @@ export default function Home() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        console.log('👤 [Home] Cargando usuario...');
         const currentUser = await base44.auth.me();
-        console.log('✅ [Home] Usuario cargado:', currentUser.email, 'role:', currentUser.role);
         setUser(currentUser);
         const adminCheck = currentUser.role === "admin";
-        const coordinatorCheck = currentUser.es_coordinador === true;
-        const coachCheck = currentUser.es_entrenador === true && !coordinatorCheck && !adminCheck;
         setIsAdmin(adminCheck);
-        setIsCoordinator(coordinatorCheck);
-        setIsCoach(coachCheck);
 
         if (adminCheck) {
-          setUserRole("admin");
+          setHasPlayers(currentUser.tiene_hijos_jugando === true);
         } else if (currentUser.es_junta === true) {
-          // Miembro de Junta: se queda en Home con banner de KPIs
-          setUserRole("junta");
-        } else if (coordinatorCheck) {
-          console.log('🎓 [Home] Coordinador en Home - redirigiendo a CoordinatorDashboard');
-          setUserRole("coordinator");
+          // Junta se queda en Home
+        } else if (currentUser.es_coordinador) {
           window.location.href = createPageUrl('CoordinatorDashboard');
           return;
-        } else if (coachCheck) {
-          console.log('🏃 [Home] Entrenador en Home - redirigiendo a CoachDashboard');
-          setUserRole("coach");
+        } else if (currentUser.es_entrenador) {
           window.location.href = createPageUrl('CoachDashboard');
           return;
         } else {
-          console.log('👨‍👩‍👧 [Home] Usuario padre en Home - redirigiendo a ParentDashboard');
-          setUserRole("parent");
           window.location.href = createPageUrl('ParentDashboard');
           return;
-        }
-
-        if (adminCheck || currentUser.es_entrenador || currentUser.es_coordinador) {
-          // Para admin/entrenadores/coordinadores, SOLO usar el campo manual
-          const tienehijos = currentUser.tiene_hijos_jugando === true;
-          setHasPlayers(tienehijos);
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -116,8 +82,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    refetchInterval: false,
-    enabled: queriesEnabled && (isAdmin || isCoach || isCoordinator || hasPlayers),
+    enabled: queriesEnabled && isAdmin,
   });
 
   const { data: payments } = useQuery({
@@ -128,32 +93,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    refetchInterval: false,
-    enabled: queriesEnabled && (isAdmin || hasPlayers || user?.es_junta),
-  });
-
-  const { data: messages } = useQuery({
-    queryKey: ['chatMessages'],
-    queryFn: () => base44.entities.ChatMessage.list('-created_date', 50),
-    initialData: [],
-    staleTime: 5000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true, // ✅ Actualizar SIEMPRE al volver
-    refetchOnMount: true,
-    refetchInterval: 10000,
-    enabled: queriesEnabled && (hasPlayers || isAdmin || isCoordinator || isCoach),
-  });
-
-  const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversationsHome'],
-    queryFn: () => base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30),
-    initialData: [],
-    staleTime: 30000,
-    gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: queriesEnabled && (isAdmin || isCoordinator || hasPlayers),
+    enabled: queriesEnabled && (isAdmin || user?.es_junta),
   });
 
   const { data: callups } = useQuery({
@@ -164,55 +104,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    refetchInterval: false,
-    enabled: queriesEnabled && (isAdmin || isCoach || isCoordinator || hasPlayers),
-  });
-
-  const { data: matchObservations = [] } = useQuery({
-    queryKey: ['matchObservations'],
-    queryFn: () => base44.entities.MatchObservation.list(),
-    initialData: [],
-    staleTime: 60000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    enabled: queriesEnabled && (isCoach || isCoordinator),
-  });
-
-  const { data: attendances } = useQuery({
-    queryKey: ['attendances'],
-    queryFn: () => base44.entities.Attendance.list(),
-    initialData: [],
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: queriesEnabled && (isAdmin || user?.es_junta),
-  });
-
-  const { data: evaluations } = useQuery({
-    queryKey: ['evaluations'],
-    queryFn: () => base44.entities.PlayerEvaluation.list(),
-    initialData: [],
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
     enabled: queriesEnabled && isAdmin,
-  });
-
-  const { data: surveys } = useQuery({
-    queryKey: ['surveys'],
-    queryFn: () => base44.entities.Survey.list('-created_date'),
-    initialData: [],
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: queriesEnabled && (isCoach || isCoordinator) && hasPlayers,
   });
 
   const { data: surveyResponses } = useQuery({
@@ -223,72 +115,53 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    refetchInterval: false,
-    enabled: queriesEnabled && ((isCoach || isCoordinator) && hasPlayers || isAdmin),
-  });
-
-  // Encuestas para admin (ver todas las respuestas nuevas)
-  const { data: allSurveys } = useQuery({
-    queryKey: ['allSurveys'],
-    queryFn: () => base44.entities.Survey.list('-created_date'),
-    initialData: [],
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
     enabled: queriesEnabled && isAdmin,
   });
 
-  // Eventos para admin (ver confirmaciones recientes)
   const { data: events } = useQuery({
     queryKey: ['eventsHome'],
     queryFn: () => base44.entities.Event.list('-fecha'),
     initialData: [],
-    staleTime: 300000, // 5 minutos
+    staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     enabled: queriesEnabled && isAdmin,
   });
 
-  // Pedidos de ropa para admin
   const { data: clothingOrders } = useQuery({
     queryKey: ['clothingOrdersHome'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
     initialData: [],
-    staleTime: 30000, // 30 segundos
+    staleTime: 30000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    refetchInterval: false,
     enabled: queriesEnabled && isAdmin,
   });
 
-  // Solicitudes de socios para admin
   const { data: clubMembers } = useQuery({
     queryKey: ['clubMembersHome'],
     queryFn: () => base44.entities.ClubMember.list('-created_date'),
     initialData: [],
-    staleTime: 300000, // 5 minutos
+    staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     enabled: queriesEnabled && isAdmin,
   });
 
-  // Pedidos de lotería para admin
   const { data: lotteryOrders } = useQuery({
     queryKey: ['lotteryOrdersHome'],
     queryFn: () => base44.entities.LotteryOrder.list('-created_date'),
     initialData: [],
-    staleTime: 300000, // 5 minutos
+    staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     enabled: queriesEnabled && isAdmin && loteriaVisible,
   });
 
-  // Solicitudes de invitación pendientes (jugadores +18)
   const { data: invitationRequests = [] } = useQuery({
     queryKey: ['invitationRequestsHome'],
     queryFn: () => base44.entities.InvitationRequest.list('-created_date'),
@@ -299,42 +172,6 @@ export default function Home() {
   });
 
   const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
-
-  const { data: coordinatorConversations = [] } = useQuery({
-    queryKey: ['coordinatorConversations'],
-    queryFn: () => base44.entities.CoordinatorConversation.list(),
-    staleTime: 30000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true, // ✅ Actualizar al volver al Home
-    refetchOnMount: true, // ✅ Actualizar al montar
-    refetchInterval: false,
-    enabled: queriesEnabled,
-  });
-
-  const { data: adminConversations = [] } = useQuery({
-    queryKey: ['adminConversationsHome'],
-    queryFn: () => base44.entities.AdminConversation.list(),
-    staleTime: 30000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true, // ✅ Actualizar al volver al Home
-    refetchOnMount: true, // ✅ Actualizar al montar
-    refetchInterval: false,
-    enabled: queriesEnabled && !isAdmin,
-  });
-
-  // Queries DIRECTAS para badges de chat (fuente verdad = BD)
-  const { data: coachConversations = [] } = useQuery({
-    queryKey: ['coachConversationsHome'],
-    queryFn: async () => {
-      if (!user?.es_entrenador) return [];
-      return await base44.entities.CoachConversation.filter({ entrenador_email: user.email });
-    },
-    staleTime: 30000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true, // ✅ Actualizar al volver
-    refetchOnMount: true,
-    enabled: queriesEnabled && (user?.es_entrenador || isAdmin),
-  });
 
   // Configuración de botones del dashboard
   const { data: buttonConfigs = [] } = useQuery({
