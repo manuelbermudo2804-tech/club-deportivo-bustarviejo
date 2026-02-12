@@ -588,8 +588,8 @@ export default function Layout({ children, currentPageName }) {
   const pauseRealtime = rateLimited || window.__BASE44_PAUSE_REALTIME__;
   const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
-  // SISTEMA DE CHATS - persistente via backend
-  const { counts: chatCounts, markRead: chatMarkRead } = useChatUnreadCounts(user);
+  // SISTEMA DE CHATS - persistente via backend (single source of truth from Provider)
+  const { counts: chatCounts, markRead: chatMarkRead } = useChatUnread();
   const teamChatsTotal = Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0);
   const chatMenuCounts = {
     staffCount: chatCounts.staff || 0,
