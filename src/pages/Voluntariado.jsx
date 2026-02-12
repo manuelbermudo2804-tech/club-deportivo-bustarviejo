@@ -14,6 +14,7 @@ export default function Voluntariado() {
   const [user, setUser] = useState(null);
   const [openProfile, setOpenProfile] = useState(false);
   const [openOpp, setOpenOpp] = useState(false);
+  const [editingOpp, setEditingOpp] = useState(null);
   const [openSuccess, setOpenSuccess] = useState(false);
 
   useEffect(()=>{ base44.auth.me().then(setUser).catch(()=>{}); },[]);
