@@ -9,14 +9,14 @@ export default function SocialLinks() {
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-2 flex items-center justify-center gap-4">
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-1.5 flex items-center justify-center gap-1.5">
       {links.map((link) => (
         <a
           key={link.name}
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`flex items-center gap-1 ${link.color} transition-colors`}
+          className={`flex items-center gap-0.5 ${link.color} transition-colors px-1`}
           title={link.name}
         >
           <link.icon className="w-4 h-4" />
