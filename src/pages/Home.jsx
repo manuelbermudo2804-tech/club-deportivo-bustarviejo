@@ -285,7 +285,7 @@ export default function Home() {
         p.is_deleted !== true && 
         p.reconciliado_banco !== true
       ).length || 0;
-    } else if (user && !isAdmin && !isCoach && !isCoordinator) {
+    } else if (user && !isAdmin) {
       // Padres ven SOLO pagos de sus jugadores
       const myPlayerIds = players?.filter(p => 
         (p.email_padre === user.email || p.email_tutor_2 === user.email) && p.activo === true
@@ -339,7 +339,7 @@ export default function Home() {
     }
     
     const paidPayments = payments?.filter(p => p.estado === "Pagado").length || 0;
-    const unreadMessages = messages?.filter(m => !m.leido && m.tipo === "padre_a_grupo").length || 0;
+    const unreadMessages = 0;
 
     let pendingCallups = 0;
     let pendingSignatures = 0;
@@ -463,7 +463,7 @@ export default function Home() {
 
     // Calcular mensajes privados no leídos
     let unreadPrivateMessages = 0;
-    if (user && privateConversations) {
+    if (user && false) { // privateConversations not loaded in Home
       privateConversations.forEach(conv => {
         if (conv.participante_familia_email === user.email) {
           unreadPrivateMessages += (conv.no_leidos_familia || 0);
@@ -488,7 +488,7 @@ export default function Home() {
 
     // Calcular respuestas pendientes de convocatorias (para entrenadores/admin)
     let pendingCallupResponses = 0;
-    if ((isAdmin || isCoach || isCoordinator) && callups) {
+    if (isAdmin && callups) {
       const today = new Date().toISOString().split('T')[0];
       const coachCategories = user?.categorias_entrena || [];
       
@@ -513,7 +513,7 @@ export default function Home() {
     let hasActiveAdminChat = false;
     let unresolvedAdminChats = 0;
     
-    if (user && adminConversations && !isAdmin) {
+    if (false) { // adminConversations not loaded in Home
       const myAdminConv = adminConversations.find(c => 
         c.padre_email === user.email && !c.resuelta
       );
@@ -524,13 +524,13 @@ export default function Home() {
     }
     
     // Para admin: contar conversaciones críticas sin resolver
-    if (isAdmin && adminConversations) {
+    if (false) { // adminConversations not loaded
       unresolvedAdminChats = adminConversations.filter(c => !c.resuelta).length;
     }
 
     // Calcular partidos pendientes de observación (para entrenadores/coordinadores)
     let pendingMatchObservations = 0;
-    if ((isCoach || isCoordinator) && user && callups && matchObservations) {
+    if (false) { // matchObservations not loaded in Home
       const now = new Date();
       
       const myCallups = callups.filter(c => {
@@ -575,7 +575,7 @@ export default function Home() {
       recentSurveyResponses, pendingEventConfirmations, pendingCallupResponses,
       unreadAdminMessages, hasActiveAdminChat, overduePayments, pendingMatchObservations, unresolvedAdminChats
     };
-  }, [players, payments, messages, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, privateConversations, adminConversations, isCoordinator, isCoach, coordinatorConversations, matchObservations, staffMessagesHome, seasonConfig]);
+  }, [players, payments, callups, user, hasPlayers, isAdmin, allUsers, clothingOrders, lotteryOrders, clubMembers, surveyResponses, events, staffMessagesHome, seasonConfig]);
 
 
 
@@ -903,164 +903,12 @@ export default function Home() {
           });
         }
       }
-    } else if (isCoach || isCoordinator) {
-      // ENTRENADOR/COORDINADOR: Ordenado por uso diario
-      
-      // 1. LO MÁS URGENTE - Convocatorias y Chat
-      items.push({
-        title: "🎓 Convocatorias",
-        icon: Bell,
-        url: createPageUrl("CoachCallups"),
-        gradient: "from-yellow-600 to-yellow-700",
-      });
-
-      // 2. GESTIÓN DEPORTIVA
-      items.push(
-        {
-          title: "📋 Asistencia y Evaluación",
-          icon: CheckCircle2,
-          url: createPageUrl("TeamAttendanceEvaluation"),
-          gradient: "from-green-600 to-green-700",
-        },
-        {
-          title: "🎓 Plantillas",
-          icon: Users,
-          url: createPageUrl("TeamRosters"),
-          gradient: "from-blue-600 to-blue-700",
-        },
-        {
-          title: "📊 Reportes",
-          icon: Star,
-          url: createPageUrl("CoachEvaluationReports"),
-          gradient: "from-purple-600 to-purple-700",
-        },
-        {
-          title: "📚 Biblioteca Ejercicios",
-          icon: BookOpen,
-          url: createPageUrl("ExerciseLibrary"),
-          gradient: "from-cyan-600 to-cyan-700",
-        },
-        {
-          title: "🎯 Pizarra Táctica",
-          icon: BarChart3,
-          url: createPageUrl("TacticsBoard"),
-          gradient: "from-slate-600 to-slate-700",
-        }
-      );
-
-      // Firmas Federación solo si tiene permiso
-      if (user?.puede_gestionar_firmas) {
-        items.push({
-          title: "🖊️ Firmas Federación",
-          icon: FileSignature,
-          url: createPageUrl("FederationSignaturesAdmin"),
-          gradient: "from-yellow-600 to-orange-600",
-        });
-      }
-
-      // 3. CALENDARIO E INFO
-      items.push(
-        {
-          title: "📅 Calendario",
-          icon: Calendar,
-          url: createPageUrl("CalendarAndSchedules"),
-          gradient: "from-purple-600 to-purple-700",
-        },
-        {
-          title: "📢 Anuncios",
-          icon: Megaphone,
-          url: createPageUrl("Announcements"),
-          gradient: "from-pink-600 to-pink-700",
-        },
-        {
-          title: "🎉 Eventos Club",
-          icon: Calendar,
-          url: createPageUrl("ParentEventRSVP"),
-          gradient: "from-indigo-600 to-indigo-700",
-        },
-        {
-          title: "📊 Clasificaciones",
-          icon: BarChart3,
-          url: createPageUrl("Clasificaciones"),
-          gradient: "from-blue-600 to-cyan-700",
-        },
-        {
-          title: "🖼️ Galería",
-          icon: Image,
-          url: createPageUrl("Gallery"),
-          gradient: "from-indigo-600 to-indigo-700",
-        }
-      );
-
-      // 4. SECCIÓN FAMILIA (si tiene hijos) - Agrupado
-      if (hasPlayers) {
-        items.push(
-          {
-            title: "👨‍👩‍👧 Mis Hijos",
-            icon: Users,
-            url: createPageUrl("ParentPlayers"),
-            gradient: "from-indigo-600 to-indigo-700",
-          },
-          {
-            title: "💳 Pagos Mis Hijos",
-            icon: CreditCard,
-            url: createPageUrl("ParentPayments"),
-            gradient: "from-green-600 to-green-700",
-          },
-          {
-            title: "🏆 Convocatorias Hijos",
-            icon: ClipboardCheck,
-            url: createPageUrl("ParentCallups"),
-            gradient: "from-yellow-600 to-yellow-700",
-            badge: stats.pendingCallups,
-            badgeLabel: "pendientes"
-          },
-          {
-            title: "🛍️ Tienda Equipación",
-            icon: ShoppingBag,
-            url: clothingStoreUrl || "#",
-            gradient: "from-teal-600 to-teal-700",
-          }
-        );
-        if (stats.pendingSignatures > 0) {
-          items.push({
-            title: "🖊️ Firmas Hijos",
-            icon: FileSignature,
-            url: createPageUrl("FederationSignatures"),
-            gradient: "from-orange-600 to-red-600",
-            badge: stats.pendingSignatures,
-            badgeLabel: "pendientes"
-          });
-        }
-      }
-
-      // 5. EXTRAS (menos prioritario)
-      if (loteriaVisible) {
-        items.push({
-          title: "🍀 Gestión Lotería",
-          icon: Clover,
-          url: createPageUrl("LotteryManagement"),
-          gradient: "from-green-600 to-green-700",
-        });
-        items.push({
-          title: "🍀 Mi Lotería",
-          icon: Clover,
-          url: createPageUrl("ParentLottery"),
-          gradient: "from-red-600 to-green-700",
-        });
-      }
     }
 
     return items;
-  }, [isAdmin, isCoach, isCoordinator, hasPlayers, loteriaVisible, stats, displayAdminButtons, pendingInvitationRequests, clothingStoreUrl]);
+  }, [isAdmin, hasPlayers, loteriaVisible, stats, displayAdminButtons, pendingInvitationRequests]);
 
-  // Redirigir padres normales a ParentDashboard
-  useEffect(() => {
-    if (shouldRedirect && user && userRole === "parent") {
-      console.log('🔄 [Home] Redirigiendo a ParentDashboard...');
-      window.location.href = createPageUrl("ParentDashboard");
-    }
-  }, [shouldRedirect, user, userRole]);
+  // Redirección ya gestionada en fetchUser
 
   // Mostrar loading mientras carga el usuario
   if (!user) {
@@ -1079,29 +927,12 @@ export default function Home() {
     );
   }
 
-  // Si es padre normal y está redirigiendo, mostrar loading
-  if (shouldRedirect && userRole === "parent") {
-    console.log('⏳ [Home] Mostrando loading (redirigiendo a ParentDashboard)');
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
-        <div className="px-4 lg:px-8 py-6">
-          <div className="flex items-center justify-center min-h-[200px]">
-            <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-3"></div>
-              <p className="text-white text-sm">Redirigiendo...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  console.log('🎨 [Home] Renderizando dashboard para rol:', userRole);
+  console.log('🎨 [Home] Renderizando dashboard');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
 
-      <PaymentApprovalNotifier isAdmin={isAdmin} />
+      
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -1119,7 +950,7 @@ export default function Home() {
 
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
-        {(isAdmin || isCoach || isCoordinator || hasPlayers) && (
+        {(isAdmin || hasPlayers) && (
           <AlertCenter 
             pendingCallups={stats.pendingCallups}
             pendingDocuments={0}
@@ -1140,9 +971,9 @@ export default function Home() {
             pendingMatchObservations={stats.pendingMatchObservations}
             unresolvedAdminChats={stats.unresolvedAdminChats}
             isAdmin={isAdmin}
-            isCoach={isCoach || isCoordinator}
+            isCoach={false}
             isParent={hasPlayers}
-            isCoordinator={isCoordinator}
+            isCoordinator={false}
             userEmail={user?.email}
             userSports={myPlayersSports}
           />
@@ -1151,7 +982,7 @@ export default function Home() {
         {/* Alerta de Jugadores Duplicados - Solo Admin */}
         {isAdmin && <DuplicatePlayersAlert />}
 
-        {isCoach && hasPlayers && activeSurveys.length > 0 && (
+        {false && (
           <Link to={createPageUrl("Surveys")}>
             <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-3 lg:p-4 shadow-xl transition-all hover:scale-105 active:scale-95 border-2 border-purple-500 animate-pulse">
               <div className="flex items-start gap-2 lg:gap-3">
