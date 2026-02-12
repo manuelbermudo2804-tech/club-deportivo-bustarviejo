@@ -245,6 +245,39 @@ Email: cdbustarviejo@gmail.com
       
       await Promise.all(emailPromises);
       
+      // Send chat message to the team group
+      try {
+        const grupoId = callup.categoria?.replace(/\s+/g, '_') || 'general';
+        const fechaFormateada = format(new Date(callup.fecha_partido), "EEEE d 'de' MMMM", { locale: es });
+        const horaTexto = callup.hora_partido ? ` a las ${callup.hora_partido}` : '';
+        const rivalTexto = callup.rival ? ` vs ${callup.rival}` : '';
+        const localVisitante = callup.local_visitante ? ` (${callup.local_visitante})` : '';
+        
+        const chatMsg = `🏆 ¡NUEVA CONVOCATORIA!
+
+📋 ${callup.titulo}${rivalTexto}${localVisitante}
+📅 ${fechaFormateada}${horaTexto}
+📍 ${callup.ubicacion || 'Por confirmar'}
+${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}` : ''}
+
+👥 ${callup.jugadores_convocados.length} jugadores convocados
+
+⚠️ Por favor, confirma la asistencia de tu hijo/a lo antes posible desde la sección "Convocatorias" de la app.`;
+
+        await base44.entities.ChatMessage.create({
+          remitente_email: user.email,
+          remitente_nombre: user.full_name || 'Entrenador',
+          mensaje: chatMsg,
+          tipo: 'entrenador_a_grupo',
+          grupo_id: grupoId,
+          deporte: callup.categoria,
+          prioridad: 'Importante'
+        });
+        console.log('💬 [CoachCallups] Mensaje de convocatoria enviado al chat del grupo:', grupoId);
+      } catch (chatError) {
+        console.error('⚠️ [CoachCallups] Error enviando mensaje al chat:', chatError);
+      }
+
       // Mark as sent
       await base44.entities.Convocatoria.update(callup.id, {
         ...callup,
