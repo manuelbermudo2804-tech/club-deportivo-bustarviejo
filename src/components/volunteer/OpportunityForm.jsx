@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function OpportunityForm({ onSubmit }) {
-  const [form, setForm] = useState({ categoria: 'evento', necesitados: 1, estado: 'abierta' });
+export default function OpportunityForm({ onSubmit, initial }) {
+  const [form, setForm] = useState(initial || { categoria: 'evento', necesitados: 1, estado: 'abierta' });
+  const isEditing = !!initial;
   return (
     <div className="space-y-3">
       <Input placeholder="Título" value={form.titulo||''} onChange={(e)=>setForm({...form,titulo:e.target.value})} />
