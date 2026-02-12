@@ -177,15 +177,17 @@ export default function AdminCoordinatorChats() {
     );
   }
 
-  // Separar conversaciones: escaladas (urgentes), normales activas, archivadas
+  // Separar conversaciones según rol:
+  // - Coordinador: ve SOLO las escaladas por entrenadores (CoordinatorConversation con escalada_desde_entrenador)
+  // - Admin: ve SOLO las escaladas por coordinador (AdminConversation) - NO ve las de entrenadores
   const parentsWithAdminChats = new Set((adminConversations || []).filter(ac => ac.resuelta === false).map(ac => ac.padre_email));
   const escalatedConversations = isAdmin
-    ? conversations.filter(c => !c.archivada && (c.escalada_desde_entrenador === true || parentsWithAdminChats.has(c.padre_email)))
+    ? [] // Admin NO ve escaladas de entrenadores aquí, las ve como AdminConversation en la pestaña "admin"
     : conversations.filter(c => !c.archivada && c.escalada_desde_entrenador === true);
-  const normalActiveConversations = isAdmin
-    ? conversations.filter(c => !c.archivada && !(c.escalada_desde_entrenador === true || parentsWithAdminChats.has(c.padre_email)))
-    : conversations.filter(c => !c.archivada && !c.escalada_desde_entrenador);
-  const archivedConversations = conversations.filter(c => c.archivada);
+  const normalActiveConversations = [];
+  const archivedConversations = isAdmin
+    ? [] // Admin no gestiona archivo de CoordinatorConversation
+    : conversations.filter(c => c.archivada && c.escalada_desde_entrenador === true);
 
   // Aplicar filtros
   const applyFilters = (convList) => {
