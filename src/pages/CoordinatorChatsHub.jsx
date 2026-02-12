@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MessageCircle, Users, Briefcase, AlertCircle, ChevronRight } from "lucide-react";
+import { MessageCircle, Users, Briefcase, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
@@ -80,17 +80,6 @@ export default function CoordinatorChatsHub() {
           icon={MessageCircle}
           color="#06b6d4"
           iconBg="bg-cyan-600"
-        />
-
-        {/* Chats Escalados (Admin) */}
-        <ConversationRow
-          title="🚨 Chats Escalados"
-          subtitle="Conversaciones escaladas que requieren atención de administración"
-          unreadCount={chatCounts.admin || 0}
-          url={createPageUrl("AdminCoordinatorChats")}
-          icon={AlertCircle}
-          color="#ef4444"
-          iconBg="bg-red-600"
         />
 
         {/* Chats de ENTRENADOR por categoría (individuales) */}
