@@ -14,7 +14,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   let tabs = [];
 
   if (isAdmin) {
-    const totalChatBadge = (chatBadges?.staffCount || 0) + (chatBadges?.adminCount || 0);
+    const totalChatBadge = (chatBadges?.staffCount || 0) + (chatBadges?.coordinatorCount || 0);
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('Home'), key: 'home' },
       { icon: Users, label: 'Jugadores', url: createPageUrl('Players'), key: 'players' },
@@ -23,7 +23,6 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     ];
   } else if (isCoordinator) {
     const totalChatBadge = (chatBadges?.coordinatorCount || 0) + 
-                           (chatBadges?.adminCount || 0) + 
                            (chatBadges?.staffCount || 0) +
                            (chatBadges?.coachCount || 0);
     tabs = [
