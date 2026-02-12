@@ -24,9 +24,8 @@ import FeedbackModal from "./components/feedback/FeedbackModal";
 
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
-import { useChatUnread } from "./components/chat/ChatUnreadProvider";
+import { useChatUnread, ChatUnreadProvider } from "./components/chat/ChatUnreadProvider";
 import { SeasonProvider } from "./components/season/SeasonProvider";
-import { ChatUnreadProvider } from "./components/chat/ChatUnreadProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 
 
