@@ -11,7 +11,7 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "renovaciones", title: "🔄 Dashboard Renovaciones", icon: RotateCcw, url: createPageUrl("RenewalDashboard"), gradient: "from-cyan-600 to-cyan-700", priority: 6 },
   { id: "calendario", title: "📅 Calendario", icon: Calendar, url: createPageUrl("CalendarAndSchedules"), gradient: "from-purple-600 to-purple-700", priority: 7 },
   { id: "convocatorias", title: "🎓 Convocatorias", icon: Bell, url: createPageUrl("CoachCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 8 },
-  { id: "chat_critico", title: "🛡️ Conversaciones Críticas", icon: ShieldAlert, url: createPageUrl("AdminChat"), gradient: "from-red-600 to-red-700", priority: 9 },
+  { id: "chat_coordinador_familias", title: "💬 Chat Familias", icon: MessageCircle, url: createPageUrl("CoordinatorChat"), gradient: "from-red-600 to-red-700", priority: 9 },
   { id: "usuarios", title: "👤 Usuarios", icon: Users, url: createPageUrl("UserManagement"), gradient: "from-blue-600 to-blue-700", priority: 10 },
   { id: "recordatorios", title: "🔔 Recordatorios", icon: Bell, url: createPageUrl("PaymentReminders"), gradient: "from-red-600 to-orange-700", priority: 11 },
   { id: "historico", title: "📁 Histórico", icon: Archive, url: createPageUrl("PaymentHistory"), gradient: "from-slate-600 to-slate-700", priority: 12 },
