@@ -25,6 +25,7 @@ import FeedbackModal from "./components/feedback/FeedbackModal";
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 import { ChatUnreadProvider } from "./components/chat/ChatUnreadProvider";
+import ChatCountsBridge from "./components/chat/ChatCountsBridge";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 
@@ -2000,6 +2001,7 @@ export default function Layout({ children, currentPageName }) {
             <SeasonProvider externalConfig={activeSeasonConfig}>
             <ChatUnreadProvider user={user}>
             <>
+              <ChatCountsBridge onCounts={setChatCounts} />
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
               {/* Chat notification bubbles - desactivadas, se reimplementarán */}
 
