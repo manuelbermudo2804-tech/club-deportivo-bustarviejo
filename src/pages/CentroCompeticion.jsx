@@ -587,32 +587,6 @@ export default function CentroCompeticion() {
 
             {adminTab === 'resultados' && (
               <>
-                <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 mb-3">
-                  <p className="text-sm font-bold text-blue-900 mb-3">🔗 URL Guardada para Resultados de {category}</p>
-                  {config?.rfef_results_url ? (
-                    <div className="bg-white rounded-lg p-3 border border-blue-200">
-                      <div className="flex items-center justify-between gap-2">
-                        <code className="text-xs text-slate-700 flex-1 truncate" title={config.rfef_results_url}>
-                          {config.rfef_results_url}
-                        </code>
-                        <Button size="sm" variant="outline" onClick={() => window.open(config.rfef_results_url, '_blank')}>
-                          Abrir →
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-500 italic">No hay URL guardada para esta categoría</p>
-                  )}
-                </div>
-
-                <div className="grid md:grid-cols-6 gap-2 mb-3">
-                  <Input className="md:col-span-4" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="Pega aquí la URL de RFFM/RFEF para resultados" />
-                  <div className="flex gap-2 md:col-span-2">
-                    <Button variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
-                    <Button variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
-                    <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_results_url: resultsUrl })} disabled={!resultsUrl}>💾 Guardar</Button>
-                  </div>
-                </div>
                 {!resultsDraft ? (
                   <UploadResultsForm categoria={category} onDataExtracted={(d) => setResultsDraft(d)} onCancel={() => setResultsDraft(null)} />
                 ) : (
@@ -623,32 +597,6 @@ export default function CentroCompeticion() {
 
             {adminTab === 'goleadores' && (
               <>
-                <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 mb-3">
-                  <p className="text-sm font-bold text-blue-900 mb-3">🔗 URL Guardada para Goleadores de {category}</p>
-                  {config?.rfef_scorers_url ? (
-                    <div className="bg-white rounded-lg p-3 border border-blue-200">
-                      <div className="flex items-center justify-between gap-2">
-                        <code className="text-xs text-slate-700 flex-1 truncate" title={config.rfef_scorers_url}>
-                          {config.rfef_scorers_url}
-                        </code>
-                        <Button size="sm" variant="outline" onClick={() => window.open(config.rfef_scorers_url, '_blank')}>
-                          Abrir →
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-500 italic">No hay URL guardada para esta categoría</p>
-                  )}
-                </div>
-
-                <div className="grid md:grid-cols-6 gap-2 mb-3">
-                  <Input className="md:col-span-4" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="Pega aquí la URL de RFFM/RFEF para goleadores" />
-                  <div className="flex gap-2 md:col-span-2">
-                    <Button variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
-                    <Button variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>
-                    <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_scorers_url: scorersUrl })} disabled={!scorersUrl}>💾 Guardar</Button>
-                  </div>
-                </div>
                 {!scorersDraft ? (
                   <UploadScorersForm categoria={category} onDataExtracted={(d) => setScorersDraft(d)} onCancel={() => setScorersDraft(null)} />
                 ) : (
