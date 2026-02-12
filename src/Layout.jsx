@@ -587,13 +587,8 @@ export default function Layout({ children, currentPageName }) {
   const pauseRealtime = rateLimited || window.__BASE44_PAUSE_REALTIME__;
   const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
-  // SISTEMA DE CHATS - ChatUnreadProvider está en el JSX así que no podemos usar useChatUnread() aquí.
-  // Creamos un mini-bridge: el Provider provee counts y markRead a sus hijos.
-  // En su lugar, consumimos directamente del Provider dentro del render via un bridge component.
-  // Para mantener compatibilidad: usamos estado local y lo sincronizamos.
-  const chatCountsRef = useRef({ team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0, total: 0 });
-  const [chatCounts, setChatCounts] = useState(chatCountsRef.current);
-  const chatMarkReadRef = useRef(async () => {});
+  // SISTEMA DE CHATS - persistente via backend (single source of truth from Provider)
+  const { counts: chatCounts, markRead: chatMarkRead } = useChatUnread();
   const teamChatsTotal = Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0);
   const chatMenuCounts = {
     staffCount: chatCounts.staff || 0,
