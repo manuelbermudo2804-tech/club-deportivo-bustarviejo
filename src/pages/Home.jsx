@@ -197,10 +197,10 @@ export default function Home() {
       return convs[0] || null;
     },
     staleTime: 5000,
-    refetchOnWindowFocus: true, // ✅ Actualizar SIEMPRE al volver
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchInterval: 10000,
-    enabled: queriesEnabled && (isCoordinator || isCoach || isAdmin),
+    enabled: queriesEnabled && isAdmin,
   });
 
   const { data: staffMessagesHome = [] } = useQuery({
