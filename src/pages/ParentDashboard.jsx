@@ -521,7 +521,7 @@ export default function ParentDashboard() {
               return overduePayments;
             })()}
             pendingSurveys={activeSurveys.length}
-            pendingSignatures={pendingFederationSignatures}
+            pendingSignatures={notifications?.pendingSignatures || pendingFederationSignatures}
             upcomingEvents={0}
             newGalleryPhotos={0}
             hasActiveAdminChat={notifications?.hasActiveAdminConversation || hasActiveAdminChat}
