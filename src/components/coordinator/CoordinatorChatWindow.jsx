@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import ChatMessageActions from "../chat/ChatMessageActions";
 import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
-import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
 import CoordinatorChatInput from "../chat/CoordinatorChatInput";
