@@ -1999,6 +1999,7 @@ export default function Layout({ children, currentPageName }) {
 
     return (
             <SeasonProvider externalConfig={activeSeasonConfig}>
+            <ChatUnreadProvider user={user}>
             <>
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
               {/* Chat notification bubbles - desactivadas, se reimplementarán */}
