@@ -297,7 +297,7 @@ export default function AdminCoordinatorChats() {
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-base font-bold flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
-              Conversaciones Escaladas
+              {isAdmin ? 'Escaladas por Coordinador' : 'Escaladas por Entrenadores'}
             </h1>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
