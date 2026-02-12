@@ -239,7 +239,7 @@ export default function CoordinatorChat({ embedded = false }) {
                   key={conv.id}
                   className={`mb-2 cursor-pointer hover:shadow-md transition-all ${
                     selectedConversation?.id === conv.id ? 'ring-2 ring-cyan-500' : ''
-                  } ${conv.escalada_desde_entrenador ? 'border-l-4 border-orange-500' : ''}`}
+                  }`}
                   onClick={() => setSelectedConversation(conv)}
                 >
                   <CardContent className="p-3">
@@ -247,11 +247,6 @@ export default function CoordinatorChat({ embedded = false }) {
                       <div className="flex-1 min-w-0">
                          <div className="flex items-center gap-2 flex-wrap">
                            <p className="font-bold text-sm text-slate-900 truncate">{conv.padre_nombre}</p>
-                           {conv.escalada_desde_entrenador && (
-                             <Badge className="bg-orange-100 text-orange-700 text-xs flex-shrink-0">
-                               ⚽ Escalada
-                             </Badge>
-                           )}
                            {conv.prioritaria && <Star className="w-3 h-3 text-orange-500 fill-orange-500 flex-shrink-0" />}
                          </div>
                          <div className="flex items-center gap-2 flex-wrap mt-0.5">
@@ -260,11 +255,6 @@ export default function CoordinatorChat({ embedded = false }) {
                              {conv.jugadores_asociados?.map(j => `${j.jugador_nombre} (${j.categoria})`).join(', ')}
                            </p>
                          </div>
-                         {conv.escalada_desde_entrenador && (
-                           <p className="text-xs text-orange-600 mt-1">
-                             Escalado por {conv.entrenador_nombre_que_escalo || 'Entrenador'}
-                           </p>
-                         )}
                        </div>
                        {conv.no_leidos_coordinador > 0 && (
                          <Badge className="bg-red-500 text-white font-bold text-xs flex-shrink-0 px-2 py-1 rounded-full min-w-6 text-center">{conv.no_leidos_coordinador}</Badge>

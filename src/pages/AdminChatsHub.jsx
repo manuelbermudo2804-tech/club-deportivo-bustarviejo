@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Briefcase, AlertCircle, ChevronRight } from "lucide-react";
+import { Briefcase, MessageCircle, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
-function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unreadCount, url, icon: Icon, color, iconBg }) {
+function ConversationRow({ title, subtitle, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
     <Link to={url} className="block">
       <Card className="p-4 hover:shadow-md transition-all border-l-4" style={{ borderLeftColor: color }}>
@@ -23,9 +23,6 @@ function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unread
               )}
             </div>
             <p className="text-sm text-slate-600 truncate">{subtitle}</p>
-            {lastMessage && (
-              <p className="text-xs text-slate-500 truncate mt-1">{lastMessage}</p>
-            )}
           </div>
           <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0" />
         </div>
@@ -62,15 +59,15 @@ export default function AdminChatsHub() {
           <p className="text-slate-600">Todas tus conversaciones en un solo lugar</p>
         </div>
 
-        {/* Chats Escalados */}
+        {/* Chat Familias (Coordinador) */}
         <ConversationRow
-          title="🚨 Chats Escalados (Admin)"
-          subtitle="Conversaciones que requieren tu atención como administrador"
-          unreadCount={chatCounts.admin || 0}
-          url={createPageUrl("AdminCoordinatorChats")}
-          icon={AlertCircle}
-          color="#ef4444"
-          iconBg="bg-red-600"
+          title="💬 Chat Familias (Coordinador)"
+          subtitle="Conversaciones con familias del club"
+          unreadCount={chatCounts.coordinator || 0}
+          url={createPageUrl("CoordinatorChat")}
+          icon={MessageCircle}
+          color="#06b6d4"
+          iconBg="bg-cyan-600"
         />
 
         {/* Chat Staff */}
