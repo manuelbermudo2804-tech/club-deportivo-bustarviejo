@@ -1376,17 +1376,24 @@ CD Bustarviejo`);
                 <div className="space-y-2">
                   <Label>Categorías que Entrena (selecciona una o varias) *</Label>
                   <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto border-2 border-slate-200 rounded-lg p-3">
-                    {[
-                      "Fútbol Pre-Benjamín (Mixto)",
-                      "Fútbol Benjamín (Mixto)",
-                      "Fútbol Alevín (Mixto)",
-                      "Fútbol Infantil (Mixto)",
-                      "Fútbol Cadete",
-                      "Fútbol Juvenil",
-                      "Fútbol Aficionado",
-                      "Fútbol Femenino",
-                      "Baloncesto (Mixto)"
-                    ].map(category => (
+                    {(() => {
+                      // Usar categorías dinámicas de CategoryConfig + fallback a las base
+                      const baseCats = [
+                        "Fútbol Pre-Benjamín (Mixto)",
+                        "Fútbol Benjamín (Mixto)",
+                        "Fútbol Alevín (Mixto)",
+                        "Fútbol Infantil (Mixto)",
+                        "Fútbol Cadete",
+                        "Fútbol Juvenil",
+                        "Fútbol Aficionado",
+                        "Fútbol Femenino",
+                        "Baloncesto (Mixto)"
+                      ];
+                      const extraCats = (categoryConfigs || [])
+                        .map(c => c.nombre)
+                        .filter(n => n && !baseCats.includes(n));
+                      return [...baseCats, ...extraCats];
+                    })().map(category => (
                       <div
                         key={category}
                         onClick={() => toggleCategory(category)}
