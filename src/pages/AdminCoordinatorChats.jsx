@@ -382,16 +382,29 @@ export default function AdminCoordinatorChats() {
             </div>
           </div>
 
-          {/* Banner de conversaciones escaladas */}
-          {escalatedConversations.length > 0 && (
+          {/* Banner informativo según rol */}
+          {isAdmin && adminConversations.length > 0 && (
+            <div className="px-4">
+              <div className="bg-red-50 border-2 border-red-400 rounded-lg p-3 text-xs">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-4 h-4 text-red-600" />
+                  <span className="text-red-900 font-bold">🚨 Conversaciones escaladas por el coordinador</span>
+                </div>
+                <p className="text-red-800 text-xs">
+                  Tienes {adminConversations.length} conversaciones que requieren tu intervención directa con los padres
+                </p>
+              </div>
+            </div>
+          )}
+          {!isAdmin && escalatedConversations.length > 0 && (
             <div className="px-4">
               <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-3 text-xs">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertCircle className="w-4 h-4 text-orange-600" />
-                  <span className="text-orange-900 font-bold">{isAdmin ? '🚨 Conversaciones escaladas por coordinador' : '🚨 Conversaciones escaladas por entrenadores'}</span>
+                  <span className="text-orange-900 font-bold">🚨 Conversaciones escaladas por entrenadores</span>
                 </div>
                 <p className="text-orange-800 text-xs">
-                  Tienes {escalatedConversations.length} conversaciones que requieren intervención de administración
+                  Tienes {escalatedConversations.length} conversaciones que requieren tu intervención como coordinador
                 </p>
               </div>
             </div>
