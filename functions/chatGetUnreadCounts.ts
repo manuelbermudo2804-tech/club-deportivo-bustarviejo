@@ -36,8 +36,10 @@ Deno.serve(async (req) => {
       const coordCats = user.categorias_coordina || [];
       const cats = [...new Set([...coachCats, ...coordCats])];
       if (cats.length > 0) {
+        // Traer TODOS los mensajes (padre_a_grupo + entrenador_a_grupo) para que
+        // un entrenador B vea los mensajes del entrenador A y de los padres
         const allChatMessages = await base44.asServiceRole.entities.ChatMessage.filter(
-          { tipo: 'padre_a_grupo' }, '-created_date', 500
+          { tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } }, '-created_date', 500
         );
         for (const cat of cats) {
           const gid = toGroupId(cat);
