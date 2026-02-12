@@ -72,14 +72,23 @@ export default function CentroCompeticion() {
   });
   const [resultsUrl, setResultsUrl] = React.useState('');
   const [scorersUrl, setScorersUrl] = React.useState('');
+  const [rfefUrlState, setRfefUrlState] = React.useState('');
+  const [grupoText, setGrupoText] = React.useState('');
+  const [configId, setConfigId] = React.useState(null);
   React.useEffect(() => {
     // Al cambiar de categoría, NO heredar URLs de otras categorías
     if (config?.categoria === category) {
       setResultsUrl(config.rfef_results_url || '');
       setScorersUrl(config.rfef_scorers_url || '');
+      setRfefUrlState(config.rfef_url || '');
+      setGrupoText(config.grupo || '');
+      setConfigId(config.id || null);
     } else {
       setResultsUrl('');
       setScorersUrl('');
+      setRfefUrlState('');
+      setGrupoText('');
+      setConfigId(null);
     }
   }, [config, category]);
   React.useEffect(() => { if (isAdmin) setAdminTab(view); }, [view, isAdmin]);
