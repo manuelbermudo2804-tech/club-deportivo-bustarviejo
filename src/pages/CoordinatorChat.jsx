@@ -93,8 +93,9 @@ export default function CoordinatorChat({ embedded = false }) {
     );
   }
 
-  const activeConversations = conversations.filter(c => !c.archivada);
-  const archivedConversations = conversations.filter(c => c.archivada);
+  // Excluir conversaciones escaladas desde entrenador - van SOLO en AdminCoordinatorChats
+  const activeConversations = conversations.filter(c => !c.archivada && !c.escalada_desde_entrenador);
+  const archivedConversations = conversations.filter(c => c.archivada && !c.escalada_desde_entrenador);
 
   const filteredActive = activeConversations.filter(conv => {
     const matchesSearch = conv.padre_nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
