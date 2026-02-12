@@ -17,7 +17,6 @@ Deno.serve(async (req) => {
     const result = {
       team_chats: {},
       coordinator: 0,
-      escalated: 0,
       admin: 0,
       staff: 0,
       system: 0,
@@ -76,30 +75,10 @@ Deno.serve(async (req) => {
     }
 
     // ===== 2. COORDINATOR CHAT (CoordinatorConversation) =====
-    if (isCoordinator && !isAdmin) {
-      // Coordinador: ve conversaciones normales + escaladas por entrenadores
+    if (isCoordinator || isAdmin) {
+      // Coordinador/Admin: contar mensajes sin leer de padres
       try {
         const convs = await base44.asServiceRole.entities.CoordinatorConversation.filter({ archivada: false });
-        for (const conv of convs) {
-          const lastRead = conv.last_read_coordinador_at || '1970-01-01T00:00:00.000Z';
-          const msgs = await base44.asServiceRole.entities.CoordinatorMessage.filter({
-            conversacion_id: conv.id, autor: 'padre'
-          }, '-created_date', 50);
-          const unread = msgs.filter(m => m.created_date > lastRead).length;
-          if (conv.escalada_desde_entrenador) {
-            result.escalated += unread;
-          } else {
-            result.coordinator += unread;
-          }
-        }
-      } catch (e) {
-        console.error('Error counting coordinator messages:', e);
-      }
-    } else if (isAdmin) {
-      // Admin: conversaciones normales del coordinador (si quiere verlas) + NO ve escaladas de entrenador
-      // El admin ve sus escaladas en result.admin (AdminConversation, sección 3)
-      try {
-        const convs = await base44.asServiceRole.entities.CoordinatorConversation.filter({ archivada: false, escalada_desde_entrenador: false });
         for (const conv of convs) {
           const lastRead = conv.last_read_coordinador_at || '1970-01-01T00:00:00.000Z';
           const msgs = await base44.asServiceRole.entities.CoordinatorMessage.filter({
@@ -109,7 +88,7 @@ Deno.serve(async (req) => {
           result.coordinator += unread;
         }
       } catch (e) {
-        console.error('Error counting admin coordinator messages:', e);
+        console.error('Error counting coordinator messages:', e);
       }
     } else if (!isStaff) {
       // Padre ve mensajes del coordinador sin leer
@@ -124,18 +103,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ===== 3. ADMIN CHAT (AdminConversation) =====
-    if (isAdmin) {
-      const adminConvs = await base44.asServiceRole.entities.AdminConversation.filter({ resuelta: false });
-      for (const conv of adminConvs) {
-        const lastRead = conv.last_read_admin_at || '1970-01-01T00:00:00.000Z';
-        const msgs = await base44.asServiceRole.entities.AdminMessage.filter({
-          conversacion_id: conv.id, autor: 'padre'
-        }, '-created_date', 50);
-        const unread = msgs.filter(m => m.created_date > lastRead).length;
-        result.admin += unread;
-      }
-    }
+    // ===== 3. ADMIN CHAT (AdminConversation) - REMOVED (escalation system removed) =====
 
     // ===== 4. STAFF CHAT (StaffConversation) =====
     if (isStaff) {
@@ -172,7 +140,7 @@ Deno.serve(async (req) => {
 
     // Total
     const teamTotal = Object.values(result.team_chats).reduce((s, v) => s + v, 0);
-    result.total = teamTotal + result.coordinator + result.escalated + result.admin + result.staff + result.system;
+    result.total = teamTotal + result.coordinator + result.staff + result.system;
 
     return Response.json(result);
   } catch (error) {

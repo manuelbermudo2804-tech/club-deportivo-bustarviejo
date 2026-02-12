@@ -15,7 +15,6 @@ import ChatMessageActions from "../chat/ChatMessageActions";
 import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
 import CoordinatorQuickReplies from "./CoordinatorQuickReplies";
-import EscalateToAdminButton from "./EscalateToAdminButton";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
 import CoordinatorChatInput from "../chat/CoordinatorChatInput";
@@ -648,11 +647,6 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
               </Button>
             </div>
             <div className="flex items-center gap-2">
-              <EscalateToAdminButton 
-                conversation={conversation}
-                recentMessages={messages}
-                coordinatorUser={user}
-              />
             </div>
           </div>
         )}
