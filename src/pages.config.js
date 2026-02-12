@@ -49,7 +49,6 @@
  */
 import AdminChat from './pages/AdminChat';
 import AdminChatsHub from './pages/AdminChatsHub';
-import AdminCoordinatorChats from './pages/AdminCoordinatorChats';
 import AdminGallery from './pages/AdminGallery';
 import AdminStats from './pages/AdminStats';
 import Announcements from './pages/Announcements';
@@ -166,7 +165,6 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "AdminChat": AdminChat,
     "AdminChatsHub": AdminChatsHub,
-    "AdminCoordinatorChats": AdminCoordinatorChats,
     "AdminGallery": AdminGallery,
     "AdminStats": AdminStats,
     "Announcements": Announcements,
