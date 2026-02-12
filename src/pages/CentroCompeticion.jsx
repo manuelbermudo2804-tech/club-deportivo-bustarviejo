@@ -616,35 +616,23 @@ export default function CentroCompeticion() {
             
             <div className="space-y-2">
               <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <p className="text-xs font-semibold text-slate-600 mb-2">Resultados:</p>
-                {config?.rfef_results_url ? (
-                  <div className="flex items-center justify-between gap-2">
-                    <code className="text-xs text-slate-700 flex-1 truncate" title={config.rfef_results_url}>
-                      {config.rfef_results_url}
-                    </code>
-                    <Button size="sm" variant="outline" onClick={() => window.open(config.rfef_results_url, '_blank')}>
-                      Abrir →
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400 italic">Sin URL guardada</p>
-                )}
+                <p className="text-xs font-semibold text-slate-600 mb-1">Resultados:</p>
+                <div className="flex items-center gap-2">
+                  <Input className="flex-1 text-xs h-8" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL de RFFM/RFEF para resultados" />
+                  <Button size="sm" variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
+                  <Button size="sm" variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
+                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_results_url: resultsUrl })} disabled={!resultsUrl}>💾</Button>
+                </div>
               </div>
 
               <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <p className="text-xs font-semibold text-slate-600 mb-2">Goleadores:</p>
-                {config?.rfef_scorers_url ? (
-                  <div className="flex items-center justify-between gap-2">
-                    <code className="text-xs text-slate-700 flex-1 truncate" title={config.rfef_scorers_url}>
-                      {config.rfef_scorers_url}
-                    </code>
-                    <Button size="sm" variant="outline" onClick={() => window.open(config.rfef_scorers_url, '_blank')}>
-                      Abrir →
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400 italic">Sin URL guardada</p>
-                )}
+                <p className="text-xs font-semibold text-slate-600 mb-1">Goleadores:</p>
+                <div className="flex items-center gap-2">
+                  <Input className="flex-1 text-xs h-8" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL de RFFM/RFEF para goleadores" />
+                  <Button size="sm" variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
+                  <Button size="sm" variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>
+                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_scorers_url: scorersUrl })} disabled={!scorersUrl}>💾</Button>
+                </div>
               </div>
             </div>
           </CardContent>
