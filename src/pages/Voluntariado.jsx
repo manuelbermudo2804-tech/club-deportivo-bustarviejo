@@ -76,14 +76,34 @@ export default function Voluntariado() {
 
       <div className="grid gap-3">
         {opportunities.map((opp)=>{
-          const count = signups.filter((s)=> s.opportunity_id === opp.id).length;
+          const oppSignups = signups.filter((s)=> s.opportunity_id === opp.id);
+          const count = oppSignups.length;
+          const alreadySignedUp = oppSignups.some(s => s.volunteer_email === user?.email);
+          const isCreator = opp.creado_por === user?.email;
           return (
-            <OpportunityCard key={opp.id} opp={opp} count={count} onSignup={()=>{
-              const nombre = prompt('¿A nombre de quién? (tú u otra persona)') || '';
-              const telefono = prompt('Teléfono de contacto (opcional)') || '';
-              const por_quien = nombre && (nombre !== (myProfile?.nombre || user?.full_name || user?.email)) ? 'familiar' : 'yo';
-              doSignup.mutate({ opp, por_quien, nombre, telefono });
-            }} />
+            <OpportunityCard 
+              key={opp.id} 
+              opp={opp} 
+              count={count} 
+              alreadySignedUp={alreadySignedUp}
+              isCreator={isCreator}
+              isStaff={isStaff}
+              onSignup={()=>{
+                const nombre = prompt('¿A nombre de quién? (tú u otra persona)') || '';
+                const telefono = prompt('Teléfono de contacto (opcional)') || '';
+                const por_quien = nombre && (nombre !== (myProfile?.nombre || user?.full_name || user?.email)) ? 'familiar' : 'yo';
+                doSignup.mutate({ opp, por_quien, nombre, telefono });
+              }}
+              onEdit={()=>{
+                setEditingOpp(opp);
+                setOpenOpp(true);
+              }}
+              onDelete={()=>{
+                if (window.confirm(`¿Eliminar la oportunidad "${opp.titulo}"?`)) {
+                  deleteOpp.mutate(opp.id);
+                }
+              }}
+            />
           );
         })}
       </div>
