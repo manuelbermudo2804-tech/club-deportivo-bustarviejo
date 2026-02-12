@@ -16,51 +16,8 @@ export default function UploadStandingsForm({ onDataExtracted, onCancel, presele
   // Calcular jornada automáticamente
   const [jornadaActual, setJornadaActual] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [rfefUrlState, setRfefUrlState] = useState(rfefUrl || "");
-  const [grupoText, setGrupoText] = useState("");
-  const [configId, setConfigId] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Cargar configuración RFEF guardada para la categoría
-  useEffect(() => {
-    if (!categoria) return;
-    (async () => {
-      try {
-        const list = await base44.entities.StandingsConfig.filter({ categoria });
-        const cfg = list?.[0];
-        if (cfg) {
-          setRfefUrlState(cfg.rfef_url || "");
-          setGrupoText(cfg.grupo || "");
-          setConfigId(cfg.id);
-        } else {
-          // Si no hay config para esta categoría, limpiar estados para NO reutilizar de otra categoría
-          setRfefUrlState("");
-          setGrupoText("");
-          setConfigId(null);
-        }
-      } catch (e) {
-        setRfefUrlState("");
-        setGrupoText("");
-        setConfigId(null);
-      }
-    })();
-  }, [categoria]);
-
-  // Si hay URL RFEF guardada, usar su jornada (Actual) y temporada
-  useEffect(() => {
-    const run = async () => {
-      if (!rfefUrlState) return;
-      try {
-        const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrlState });
-        if (res?.data?.jornada_actual) setJornadaActual(res.data.jornada_actual);
-        if (res?.data?.temporada) setTemporada(res.data.temporada);
-      } catch (e) {
-        // silencioso
-      }
-    };
-    run();
-  }, [rfefUrlState]);
 
   // Calcular jornada actual automáticamente al cargar (fallback BD)
   useEffect(() => {
