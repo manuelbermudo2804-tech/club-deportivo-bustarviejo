@@ -34,8 +34,15 @@ export default function Voluntariado() {
   }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_profile"]}); setOpenProfile(false); setOpenSuccess(true); }});
 
   const createOpp = useMutation({ mutationFn: async (payload) => {
+    if (editingOpp) {
+      return base44.entities.VolunteerOpportunity.update(editingOpp.id, payload);
+    }
     return base44.entities.VolunteerOpportunity.create({ ...payload, creado_por: user.email });
-  }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_opps"]}); setOpenOpp(false); }});
+  }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_opps"]}); setOpenOpp(false); setEditingOpp(null); }});
+
+  const deleteOpp = useMutation({ mutationFn: async (id) => {
+    return base44.entities.VolunteerOpportunity.delete(id);
+  }, onSuccess:()=>{ qc.invalidateQueries({queryKey:["volunteer_opps"]}); }});
 
   const doSignup = useMutation({ mutationFn: async ({ opp, por_quien, nombre, telefono, mensaje }) => {
     const name = nombre || myProfile?.nombre || user?.full_name || user?.email;
