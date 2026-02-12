@@ -379,35 +379,59 @@ CD Bustarviejo
       }
 
       if (sendMethod === 'chat' || sendMethod === 'both') {
-        if (player.email_padre) {
-          await base44.entities.ChatMessage.create({
-            remitente_email: user.email,
-            remitente_nombre: user.full_name,
-            destinatario_email: player.email_padre,
-            destinatario_nombre: `Padre de ${player.nombre}`,
-            mensaje: reportText,
-            prioridad: "Normal",
-            tipo: "admin_a_grupo",
-            deporte: player.deporte,
-            grupo_id: player.deporte,
-            leido: false,
-            archivos_adjuntos: []
-          });
-        }
+        // Enviar como PrivateMessage (Mensajes del Club) - chat privado staff→familia
+        const parentEmails = [player.email_padre, player.email_tutor_2].filter(Boolean);
+        const uniqueEmails = [...new Set(parentEmails)];
         
-        if (player.email_tutor_2) {
-          await base44.entities.ChatMessage.create({
+        for (const parentEmail of uniqueEmails) {
+          // Buscar o crear PrivateConversation entre el entrenador y esta familia
+          let convs = await base44.entities.PrivateConversation.filter({
+            participante_familia_email: parentEmail,
+            participante_staff_email: user.email
+          });
+          
+          let conv = convs[0];
+          if (!conv) {
+            conv = await base44.entities.PrivateConversation.create({
+              participante_familia_email: parentEmail,
+              participante_familia_nombre: player.nombre_tutor_legal || parentEmail.split('@')[0],
+              participante_staff_email: user.email,
+              participante_staff_nombre: user.full_name || 'Entrenador',
+              participante_staff_rol: user.es_coordinador ? 'coordinador' : 'entrenador',
+              categoria: player.categoria_principal || player.deporte || '',
+              jugadores_relacionados: [{ jugador_id: player.id, jugador_nombre: player.nombre }],
+              ultimo_mensaje: reportText.substring(0, 100),
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_de: 'staff'
+            });
+          }
+          
+          // Crear el mensaje privado
+          await base44.entities.PrivateMessage.create({
+            conversacion_id: conv.id,
             remitente_email: user.email,
-            remitente_nombre: user.full_name,
-            destinatario_email: player.email_tutor_2,
-            destinatario_nombre: `Tutor 2 de ${player.nombre}`,
+            remitente_nombre: user.full_name || 'Entrenador',
+            remitente_tipo: 'staff',
             mensaje: reportText,
-            prioridad: "Normal",
-            tipo: "admin_a_grupo",
-            deporte: player.deporte,
-            grupo_id: player.deporte,
-            leido: false,
-            archivos_adjuntos: []
+            leido: false
+          });
+          
+          // Actualizar la conversación con último mensaje
+          await base44.entities.PrivateConversation.update(conv.id, {
+            ultimo_mensaje: reportText.substring(0, 100),
+            ultimo_mensaje_fecha: new Date().toISOString(),
+            ultimo_mensaje_de: 'staff'
+          });
+          
+          // Notificación
+          await base44.entities.AppNotification.create({
+            usuario_email: parentEmail,
+            titulo: `📊 Reporte de ${player.nombre}`,
+            mensaje: `Tu entrenador ha enviado un reporte de evaluación`,
+            tipo: 'importante',
+            icono: '📊',
+            enlace: 'ParentSystemMessages',
+            vista: false
           });
         }
       }
