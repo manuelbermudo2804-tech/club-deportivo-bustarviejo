@@ -360,35 +360,38 @@ CD Bustarviejo
       
       if (sendMethod === 'email' || sendMethod === 'both') {
         const emailsSent = [];
+        const emailErrors = [];
         
-        if (player.email_padre) {
-          console.log('📧 Enviando email reporte a:', player.email_padre);
-          const result = await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo - Evaluaciones",
-            to: player.email_padre,
-            subject: `Reporte de Asistencia y Evaluación - ${player.nombre}`,
-            body: reportHTML
-          });
-          console.log('📧 Resultado email padre:', result);
-          emailsSent.push(player.email_padre);
-        }
+        const recipients = [
+          player.email_padre,
+          ...(player.email_tutor_2 && player.email_tutor_2 !== player.email_padre ? [player.email_tutor_2] : [])
+        ].filter(Boolean);
         
-        if (player.email_tutor_2 && player.email_tutor_2 !== player.email_padre) {
-          console.log('📧 Enviando email reporte a tutor 2:', player.email_tutor_2);
-          const result2 = await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo - Evaluaciones",
-            to: player.email_tutor_2,
-            subject: `Reporte de Asistencia y Evaluación - ${player.nombre}`,
-            body: reportHTML
-          });
-          console.log('📧 Resultado email tutor2:', result2);
-          emailsSent.push(player.email_tutor_2);
-        }
-        
-        if (emailsSent.length === 0) {
+        if (recipients.length === 0) {
           toast.warning(`⚠️ ${player.nombre} no tiene email de padre/tutor registrado`);
         } else {
-          toast.success(`📧 Email enviado a: ${emailsSent.join(', ')}`);
+          for (const recipientEmail of recipients) {
+            try {
+              console.log('📧 [REPORT] Enviando email a:', recipientEmail);
+              await base44.integrations.Core.SendEmail({
+                to: recipientEmail,
+                subject: `Reporte de Evaluación - ${player.nombre} - CD Bustarviejo`,
+                body: reportHTML
+              });
+              console.log('📧 [REPORT] Email enviado OK a:', recipientEmail);
+              emailsSent.push(recipientEmail);
+            } catch (emailError) {
+              console.error('❌ [REPORT] Error enviando email a:', recipientEmail, emailError);
+              emailErrors.push(recipientEmail);
+            }
+          }
+          
+          if (emailsSent.length > 0) {
+            toast.success(`📧 Email enviado a: ${emailsSent.join(', ')}`);
+          }
+          if (emailErrors.length > 0) {
+            toast.error(`❌ Error enviando email a: ${emailErrors.join(', ')}`);
+          }
         }
       }
 
