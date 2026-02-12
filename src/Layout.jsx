@@ -589,12 +589,11 @@ export default function Layout({ children, currentPageName }) {
   const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
   // SISTEMA DE CHATS - estado local sincronizado via ChatCountsBridge dentro del Provider
-  const [chatCounts, setChatCounts] = useState({ team_chats: {}, coordinator: 0, escalated: 0, admin: 0, staff: 0, system: 0, total: 0 });
+  const [chatCounts, setChatCounts] = useState({ team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0, total: 0 });
   const teamChatsTotal = Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0);
   const chatMenuCounts = {
     staffCount: chatCounts.staff || 0,
     coordinatorCount: chatCounts.coordinator || 0,
-    escalatedCount: chatCounts.escalated || 0,
     coachCount: teamChatsTotal,
     coordinatorForFamilyCount: chatCounts.coordinator || 0,
     coachForFamilyCount: teamChatsTotal,
@@ -1413,7 +1412,6 @@ export default function Layout({ children, currentPageName }) {
 
     // 💬 CHATS Y ESTADÍSTICAS
     { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
-    { title: "🚨 Chats Escalados", url: createPageUrl("AdminCoordinatorChats"), icon: MessageCircle, badge: chatMenuCounts.escalatedCount > 0 ? chatMenuCounts.escalatedCount : (chatMenuCounts.adminCount > 0 ? chatMenuCounts.adminCount : null), urgentBadge: (chatMenuCounts.escalatedCount || 0) + (chatMenuCounts.adminCount || 0) > 0 },
     { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
     { title: "📊 Estadísticas de Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
@@ -1558,7 +1556,6 @@ export default function Layout({ children, currentPageName }) {
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💬 Familias - Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
-    { title: "🚨 Chats Escalados", url: createPageUrl("AdminCoordinatorChats"), icon: MessageCircle, badge: chatMenuCounts.escalatedCount > 0 ? chatMenuCounts.escalatedCount : null, urgentBadge: chatMenuCounts.escalatedCount > 0 },
     ...(user?.es_entrenador ? [{ title: "⚽ Familias - Entrenador", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount }] : []),
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
 
