@@ -237,25 +237,13 @@ export default function Home() {
   });
 
   const myPlayers = useMemo(() => {
-    if (!user || !isCoach || !hasPlayers || !players) return [];
+    if (!user || !hasPlayers || !players) return [];
     return players.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
-  }, [user, isCoach, hasPlayers, players]);
+  }, [user, hasPlayers, players]);
 
   const myPlayersSports = useMemo(() => {
     return [...new Set(myPlayers.map(p => p.deporte))];
   }, [myPlayers]);
-
-  const activeSurveys = useMemo(() => {
-    if (!isCoach || !hasPlayers || !surveys || !surveyResponses || !user) return [];
-    const now = new Date();
-    return surveys.filter(s => {
-      if (!s.activa || new Date(s.fecha_fin) < now) return false;
-      if (s.destinatarios === "Todos" || myPlayersSports.includes(s.destinatarios)) {
-        return !surveyResponses.some(r => r.survey_id === s.id && r.respondente_email === user.email);
-      }
-      return false;
-    });
-  }, [isCoach, hasPlayers, surveys, surveyResponses, user, myPlayersSports]);
 
   const { data: allUsers } = useQuery({
     queryKey: ['allUsersForPlayerCheck'],
