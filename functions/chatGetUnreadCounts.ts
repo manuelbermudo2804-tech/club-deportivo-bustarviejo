@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
     const result = {
       team_chats: {},
       coordinator: 0,
+      escalated: 0,
       admin: 0,
       staff: 0,
       system: 0,
