@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import DropzoneWithPreview from "../upload/DropzoneWithPreview";
 import { toast } from "sonner";
 
-export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData, rfefUrl }) {
+export default function UploadStandingsForm({ onDataExtracted, onCancel, preselectedCategory, prefillData }) {
   const [temporada, setTemporada] = React.useState(prefillData?.temporada || "2025/2026");
   const categoria = preselectedCategory || prefillData?.categoria || "";
   
