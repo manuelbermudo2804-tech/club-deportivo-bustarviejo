@@ -1408,8 +1408,6 @@ export default function Layout({ children, currentPageName }) {
     // 💬 CHATS (destacado al inicio)
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
 
-    { title: "📧 Emails y Notificaciones", url: createPageUrl("EmailTemplates"), icon: Mail },
-
     // 💬 CHATS Y ESTADÍSTICAS
     { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
     { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
@@ -1420,7 +1418,6 @@ export default function Layout({ children, currentPageName }) {
     // 💰 FINANZAS
     { title: "─ FINANZAS ─", section: true },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
-    { title: "📊 Presupuestos", url: createPageUrl("TreasurerFinancialPanel?tab=presupuestos"), icon: BarChart3 },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
     { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
     { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
