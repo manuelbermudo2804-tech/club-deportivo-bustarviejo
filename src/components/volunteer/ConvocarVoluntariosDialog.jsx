@@ -73,9 +73,9 @@ function buildEmailHtml(asunto, mensaje, fecha, hora, lugar) {
     </div>` : ''}
     <div style="color:#334155;line-height:1.7;font-size:15px">${mensajeHtml}</div>
   </div>
-  <div style="background:#f1f5f9;padding:20px 24px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;border-top:none;text-align:center">
-    <p style="color:#64748b;font-size:12px;margin:0">🤝 Gracias por ser parte del voluntariado del club</p>
-    <p style="color:#94a3b8;font-size:11px;margin:6px 0 0">CD Bustarviejo · <a href="https://app.cdbustarviejo.com" style="color:#16a34a;text-decoration:none">app.cdbustarviejo.com</a></p>
+  <div style="background:#1e293b;padding:20px 24px;border-radius:0 0 16px 16px;text-align:center">
+    <p style="color:#f1f5f9;font-size:12px;margin:0;font-weight:600">🤝 Gracias por ser parte del voluntariado del club</p>
+    <p style="color:#94a3b8;font-size:11px;margin:6px 0 0">CD Bustarviejo · <a href="https://app.cdbustarviejo.com" style="color:#fb923c;text-decoration:none;font-weight:600">app.cdbustarviejo.com</a></p>
   </div>
 </div>`;
 }
