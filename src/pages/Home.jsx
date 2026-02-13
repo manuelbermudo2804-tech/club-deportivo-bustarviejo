@@ -15,7 +15,8 @@ import { ALL_ADMIN_BUTTONS, DEFAULT_ADMIN_BUTTONS } from "../components/dashboar
 
 import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
-import AdminDesktopHeader from "../components/dashboard/AdminDesktopHeader";
+import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
+import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -959,9 +960,18 @@ export default function Home() {
 
         {/* Desktop: header mejorado con saludo, fecha y KPIs */}
         {isAdmin && (
-          <div className="hidden lg:block">
-            <AdminDesktopHeader user={user} stats={stats} currentSeason={getCurrentSeason()} />
-          </div>
+          <DesktopDashboardHeader
+            user={user}
+            roleName="Panel Admin"
+            roleEmoji="🛡️"
+            subtitle={`Temporada ${getCurrentSeason()}`}
+            kpis={[
+              { icon: Users, label: "Jugadores activos", value: stats.activePlayers || 0, color: "from-orange-600 to-orange-700" },
+              { icon: CreditCard, label: "Pagos en revisión", value: stats.reviewPayments || 0, color: "from-green-600 to-green-700", sub: stats.reviewPayments > 0 ? "requieren atención" : null },
+              { icon: FileSignature, label: "Firmas pendientes", value: stats.adminPendingSignatures || 0, color: "from-yellow-600 to-orange-600", sub: stats.adminPendingSignatures > 0 ? "sin completar" : null },
+              { icon: Bell, label: "Respuestas convocatorias", value: stats.pendingCallupResponses || 0, color: "from-blue-600 to-blue-700", sub: stats.pendingCallupResponses > 0 ? "por confirmar" : null },
+            ]}
+          />
         )}
 
 
