@@ -22,6 +22,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [shareMode, setShareMode] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [quickUploading, setQuickUploading] = useState(false);
   const quickUploadRef = useRef(null);
@@ -135,17 +136,66 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
     setDownloading(false);
   };
 
-  // Share album via WhatsApp - includes first photo URL so WhatsApp generates a preview
-  const handleShareWhatsApp = () => {
-    const firstPhotoUrl = album.fotos?.[0]?.url || "";
-    const text = `📸 *${album.titulo}*\n\n` +
-      `📅 ${format(new Date(album.fecha_evento), "dd 'de' MMMM 'de' yyyy", { locale: es })}\n` +
-      `🏷️ ${album.categoria}\n` +
-      `📷 ${album.fotos?.length || 0} fotos\n\n` +
-      (firstPhotoUrl ? `👇 Mira la foto:\n${firstPhotoUrl}` : `Mira el álbum en la app del CD Bustarviejo`);
+  // Download selected photos so user can share them from their phone gallery
+  const handleDownloadSelected = async () => {
+    if (selectedPhotos.length === 0) return;
+    setDownloading(true);
     
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(whatsappUrl, "_blank");
+    const photosToDownload = selectedPhotos.map(i => album.fotos[i]).filter(Boolean);
+    
+    // On mobile, try native share with files (user picks WhatsApp, Telegram, etc.)
+    if (navigator.share && photosToDownload.length <= 10) {
+      try {
+        const files = [];
+        for (let i = 0; i < photosToDownload.length; i++) {
+          const res = await fetch(photosToDownload[i].url);
+          const blob = await res.blob();
+          files.push(new File([blob], `${album.titulo.replace(/\s+/g, '_')}_${selectedPhotos[i] + 1}.jpg`, { type: blob.type || 'image/jpeg' }));
+        }
+        if (navigator.canShare && navigator.canShare({ files })) {
+          await navigator.share({
+            title: `📸 ${album.titulo}`,
+            text: `${photosToDownload.length} foto(s) del álbum ${album.titulo}`,
+            files
+          });
+          setSelectedPhotos([]);
+          setShareMode(false);
+          setDownloading(false);
+          return;
+        }
+      } catch (err) {
+        if (err.name === "AbortError") { setDownloading(false); return; }
+        // Fall through to download
+      }
+    }
+    
+    // Fallback: download files
+    toast.info(`📥 Descargando ${photosToDownload.length} foto(s)...`);
+    for (let i = 0; i < photosToDownload.length; i++) {
+      try {
+        const res = await fetch(photosToDownload[i].url);
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${album.titulo.replace(/\s+/g, '_')}_${selectedPhotos[i] + 1}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        await new Promise(r => setTimeout(r, 300));
+      } catch {}
+    }
+    toast.success(`✅ ${photosToDownload.length} foto(s) descargadas. Compártelas desde tu galería.`);
+    setSelectedPhotos([]);
+    setShareMode(false);
+    setDownloading(false);
+  };
+
+  const toggleSharePhoto = (index) => {
+    setSelectedPhotos(prev =>
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+    );
   };
 
   const openLightbox = (index) => {
@@ -236,16 +286,18 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
                   </>
                 )}
 
-                {/* Share and Download buttons for everyone */}
+                {/* Share button opens gallery in share mode */}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleShareWhatsApp();
+                    setShareMode(true);
+                    setSelectedPhotos([]);
+                    setShowGallery(true);
                   }}
                   className="h-6 w-6 p-0"
-                  title="Compartir por WhatsApp"
+                  title="Compartir fotos"
                 >
                   <Share2 className="w-3 h-3 text-green-600" />
                 </Button>
@@ -309,95 +361,129 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
               <div>
                 <DialogTitle className="text-lg">{album.titulo}</DialogTitle>
                 <p className="text-xs text-slate-500">
-                  {selectionMode 
+                  {(selectionMode || shareMode)
                     ? `${selectedPhotos.length} foto(s) seleccionada(s)`
                     : `${album.fotos?.length || 0} fotos`
                   }
                 </p>
               </div>
-              <div className="flex gap-2">
-                {/* Quick upload in gallery view */}
-                {isAdmin && onQuickUpload && (
+              <div className="flex gap-2 flex-wrap justify-end">
+                {/* SHARE MODE: select photos to share/download */}
+                {shareMode ? (
                   <>
-                    <input
-                      type="file"
-                      accept="image/*,video/*"
-                      multiple
-                      onChange={handleQuickUpload}
-                      className="hidden"
-                      id={`quick-upload-gallery-${album.id}`}
-                      disabled={quickUploading}
-                    />
                     <Button
                       size="sm"
-                      onClick={() => document.getElementById(`quick-upload-gallery-${album.id}`).click()}
-                      disabled={quickUploading}
-                      className="gap-1 bg-green-600 hover:bg-green-700"
+                      variant="outline"
+                      onClick={() => {
+                        // Select all / deselect all
+                        if (selectedPhotos.length === (album.fotos?.length || 0)) {
+                          setSelectedPhotos([]);
+                        } else {
+                          setSelectedPhotos((album.fotos || []).map((_, i) => i));
+                        }
+                      }}
+                      className="gap-1 text-xs"
                     >
-                      {quickUploading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Plus className="w-4 h-4" />
-                      )}
-                      {quickUploading ? 'Subiendo...' : 'Añadir fotos'}
+                      <Check className="w-3 h-3" />
+                      {selectedPhotos.length === (album.fotos?.length || 0) ? 'Ninguna' : 'Todas'}
+                    </Button>
+                    {selectedPhotos.length > 0 && (
+                      <Button
+                        size="sm"
+                        onClick={handleDownloadSelected}
+                        disabled={downloading}
+                        className="gap-1 bg-green-600 hover:bg-green-700"
+                      >
+                        <Share2 className={`w-4 h-4 ${downloading ? 'animate-spin' : ''}`} />
+                        {downloading ? 'Preparando...' : `Compartir (${selectedPhotos.length})`}
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setShareMode(false); setSelectedPhotos([]); }}
+                    >
+                      Cancelar
                     </Button>
                   </>
-                )}
-
-                {/* Download and Share for everyone */}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleShareWhatsApp}
-                  className="gap-1"
-                >
-                  <Share2 className="w-4 h-4 text-green-600" />
-                  WhatsApp
-                </Button>
-                {album.fotos?.length > 0 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleDownloadAll}
-                    disabled={downloading}
-                    className="gap-1"
-                  >
-                    <Download className={`w-4 h-4 ${downloading ? 'animate-bounce' : ''}`} />
-                    {downloading ? 'Descargando...' : 'Descargar todo'}
-                  </Button>
-                )}
-
-                {isAdmin && onEdit && (
+                ) : selectionMode ? (
+                  /* ADMIN DELETE MODE */
                   <>
-                    {selectionMode ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setSelectionMode(false); setSelectedPhotos([]); }}
+                    >
+                      Cancelar
+                    </Button>
+                    {selectedPhotos.length > 0 && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={handleDeleteSelectedPhotos}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Eliminar ({selectedPhotos.length})
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  /* NORMAL MODE */
+                  <>
+                    {/* Quick upload for admins */}
+                    {isAdmin && onQuickUpload && (
                       <>
+                        <input
+                          type="file"
+                          accept="image/*,video/*"
+                          multiple
+                          onChange={handleQuickUpload}
+                          className="hidden"
+                          id={`quick-upload-gallery-${album.id}`}
+                          disabled={quickUploading}
+                        />
                         <Button
                           size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectionMode(false);
-                            setSelectedPhotos([]);
-                          }}
+                          onClick={() => document.getElementById(`quick-upload-gallery-${album.id}`).click()}
+                          disabled={quickUploading}
+                          className="gap-1 bg-green-600 hover:bg-green-700"
                         >
-                          Cancelar
+                          {quickUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                          {quickUploading ? 'Subiendo...' : 'Añadir'}
                         </Button>
-                        {selectedPhotos.length > 0 && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={handleDeleteSelectedPhotos}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Eliminar ({selectedPhotos.length})
-                          </Button>
-                        )}
                       </>
-                    ) : (
+                    )}
+
+                    {/* Share button */}
+                    {album.fotos?.length > 0 && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectionMode(true)}
+                        onClick={() => { setShareMode(true); setSelectedPhotos([]); }}
+                        className="gap-1"
                       >
+                        <Share2 className="w-4 h-4 text-green-600" />
+                        Compartir
+                      </Button>
+                    )}
+
+                    {/* Download all */}
+                    {album.fotos?.length > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleDownloadAll}
+                        disabled={downloading}
+                        className="gap-1"
+                      >
+                        <Download className={`w-4 h-4 ${downloading ? 'animate-bounce' : ''}`} />
+                        {downloading ? '...' : 'Todo'}
+                      </Button>
+                    )}
+
+                    {/* Admin select to delete */}
+                    {isAdmin && onEdit && (
+                      <Button size="sm" variant="outline" onClick={() => setSelectionMode(true)}>
                         Seleccionar
                       </Button>
                     )}
@@ -410,37 +496,41 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
           <div className="flex-1 overflow-y-auto p-4 bg-slate-100">
             {album.fotos && album.fotos.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {album.fotos.map((foto, index) => (
-                  <div 
-                    key={index} 
-                    className="relative cursor-pointer group aspect-square"
-                    onClick={() => selectionMode ? togglePhotoSelection(index) : openLightbox(index)}
-                  >
-                    <img
-                      src={foto.url}
-                      alt={`Foto ${index + 1}`}
-                      className={`w-full h-full object-cover rounded-lg transition-all ${
-                        selectedPhotos.includes(index) 
-                          ? 'ring-4 ring-orange-500 opacity-75' 
-                          : 'group-hover:scale-105 group-hover:shadow-lg'
-                      }`}
-                    />
-                    {selectedPhotos.includes(index) && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="bg-orange-500 rounded-full p-2">
-                          <Check className="w-6 h-6 text-white" />
+                {album.fotos.map((foto, index) => {
+                  const isSelectMode = selectionMode || shareMode;
+                  const isSelected = selectedPhotos.includes(index);
+                  return (
+                    <div 
+                      key={index} 
+                      className="relative cursor-pointer group aspect-square"
+                      onClick={() => isSelectMode ? toggleSharePhoto(index) : openLightbox(index)}
+                    >
+                      <img
+                        src={foto.url}
+                        alt={`Foto ${index + 1}`}
+                        className={`w-full h-full object-cover rounded-lg transition-all ${
+                          isSelected
+                            ? (shareMode ? 'ring-4 ring-green-500 opacity-80' : 'ring-4 ring-orange-500 opacity-75')
+                            : 'group-hover:scale-105 group-hover:shadow-lg'
+                        }`}
+                      />
+                      {isSelected && (
+                        <div className="absolute top-2 right-2">
+                          <div className={`${shareMode ? 'bg-green-500' : 'bg-orange-500'} rounded-full p-1.5`}>
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {!selectionMode && (
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
-                        <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium">
-                          Ver
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                      {!isSelectMode && (
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
+                          <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium">
+                            Ver
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
