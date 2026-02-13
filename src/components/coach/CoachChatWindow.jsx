@@ -756,9 +756,12 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         )}
 
         {/* Renderizar mensajes con separadores de día y agrupación */}
-         {groupConsecutiveMessages(messages.filter(m => !m.eliminado)).map((msg, idx, arr) => {
+         {groupConsecutiveMessages((messages || []).filter(m => !m.eliminado)).map((msg, idx, arr) => {
            const prevMsg = idx > 0 ? arr[idx - 1] : null;
-           const showDateSeparator = !prevMsg || !isSameDay(new Date(prevMsg.created_date), new Date(msg.created_date));
+           let showDateSeparator = false;
+           try {
+             showDateSeparator = !prevMsg || !prevMsg.created_date || !msg.created_date || !isSameDay(new Date(prevMsg.created_date), new Date(msg.created_date));
+           } catch { showDateSeparator = true; }
 
            const isMine = msg.remitente_email === user?.email;
            const isCoachMsg = msg.tipo === "entrenador_a_grupo";
