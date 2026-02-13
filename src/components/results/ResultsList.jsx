@@ -18,12 +18,12 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
     },
     initialData: () => queryClient.getQueryData(['resultados', categoryFullName]) || [],
     placeholderData: () => queryClient.getQueryData(['resultados', categoryFullName]) || [],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     keepPreviousData: true,
     gcTime: 60 * 60_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     refetchOnMount: true,
-    refetchOnReconnect: true,
+    refetchOnReconnect: false,
   });
 
   if (isLoading && results.length === 0) {
