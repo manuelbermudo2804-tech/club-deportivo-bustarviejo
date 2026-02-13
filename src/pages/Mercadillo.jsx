@@ -305,6 +305,9 @@ export default function Mercadillo() {
                   {isMine && (
                     <Button variant="destructive" size="sm" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'vendido' }); await load(); }}>Vendido</Button>
                   )}
+                  {isMine && isReserved && (
+                    <Button variant="outline" size="sm" className="border-blue-500 text-blue-600" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'activo', reservado_por_email: '', reservado_por_nombre: '', reservado_fecha: '' }); await load(); }}>Liberar</Button>
+                  )}
                   {!isMine && (
                     <Button size="sm" className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:opacity-60" disabled={isReserved} onClick={() => reserve(item)}>
                       {isReserved ? '🔒 Reservado' : '🛒 Reservar'}
