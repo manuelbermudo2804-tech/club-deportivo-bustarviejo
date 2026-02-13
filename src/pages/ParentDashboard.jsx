@@ -506,6 +506,9 @@ export default function ParentDashboard() {
 
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - SIEMPRE VISIBLE */}
+        {(() => {
+          const payStats = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
+          return (
         <AlertCenter 
             pendingCallups={notifications?.pendingCallups || pendingCallups}
             pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
@@ -523,18 +526,9 @@ export default function ParentDashboard() {
                 return firma && !firma.firmado && !firma.confirmado_firma_externa;
               });
             }).length : 0}
-            pendingPayments={(() => {
-              const { pendingPayments } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
-              return pendingPayments;
-            })()}
-            paymentsInReview={(() => {
-              const { paymentsInReview } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
-              return paymentsInReview;
-            })()}
-            overduePayments={(() => {
-              const { overduePayments } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
-              return overduePayments;
-            })()}
+            pendingPayments={payStats.pendingPayments}
+            paymentsInReview={payStats.paymentsInReview}
+            overduePayments={payStats.overduePayments}
             pendingSurveys={activeSurveys.length}
             pendingSignatures={notifications?.pendingSignatures || pendingFederationSignatures}
             upcomingEvents={0}
