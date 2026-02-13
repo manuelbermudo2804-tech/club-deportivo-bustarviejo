@@ -833,8 +833,9 @@ export default function SeasonManagement() {
       await safeDeleteAll('Goleador');
       await safeDeleteAll('MatchObservation');
       await safeDeleteAll('CompetitionAsset');
-      // Pizarra táctica
+      // Pizarra táctica y ejercicios
       await safeDeleteAll('TacticaPizarra');
+      await safeDeleteAll('Exercise');
       // Logs de chat
       await safeDeleteAll('CommunicationLog');
       await safeDeleteAll('CoordinatorChatLog');
