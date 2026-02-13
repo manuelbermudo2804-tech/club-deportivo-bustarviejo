@@ -140,10 +140,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Total
-    const teamTotal = Object.values(result.team_chats).reduce((s, v) => s + v, 0);
-    result.total = teamTotal + result.coordinator + result.staff + result.system;
-
+    // No 'total' field — frontend derives it as a pure function
     return Response.json(result);
   } catch (error) {
     console.error('chatGetUnreadCounts error:', error);
