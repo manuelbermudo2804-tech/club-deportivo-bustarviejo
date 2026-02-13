@@ -177,13 +177,36 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
   const handleSend = async () => {
     const finalMsg = replacePlaceholders(mensaje);
     if (!finalMsg.trim()) { toast.error("Escribe un mensaje"); return; }
+    if (!plazas || plazas < 1) { toast.error("Indica cuántas plazas necesitas"); return; }
     setSending(true);
 
     let successCount = 0;
 
+    // 0. Crear oportunidad de voluntariado automáticamente
+    let oppId = null;
+    try {
+      const opp = await base44.entities.VolunteerOpportunity.create({
+        titulo: asunto.replace(/^[^\w]*/, '').substring(0, 100) || "Convocatoria de voluntariado",
+        descripcion: finalMsg.substring(0, 500),
+        categoria: "evento",
+        fecha: fecha || undefined,
+        hora: hora || undefined,
+        ubicacion: lugar || undefined,
+        plazas: plazas,
+        creado_por: senderUser?.email || "",
+        creado_por_nombre: senderUser?.full_name || senderUser?.email || "",
+        estado: "abierta",
+        publicada: true
+      });
+      oppId = opp.id;
+    } catch (e) { console.error("Error creando oportunidad:", e); }
+
+    const appLink = "https://app.cdbustarviejo.com/voluntariado";
+
     // 1. Mensaje en la app (Mensajes del Club)
     if (viaApp) {
       let appOk = 0;
+      const appMsg = `🤝 ${asunto}\n\n${finalMsg}\n\n━━━━━━━━━━━━━━━\n📋 Plazas: ${plazas}\n✅ Confirma tu asistencia en la sección de Voluntariado de la app`;
       for (const email of emails) {
         try {
           const existingConvs = await base44.entities.PrivateConversation.filter({
@@ -221,7 +244,7 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
             remitente_email: SYSTEM_EMAIL,
             remitente_nombre: SYSTEM_NAME,
             remitente_tipo: "staff",
-            mensaje: `🤝 ${asunto}\n\n${finalMsg}`,
+            mensaje: appMsg,
             leido: false
           });
           appOk++;
@@ -233,10 +256,10 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
       }
     }
 
-    // 2. Email vía Resend
+    // 2. Email vía Resend (con botón de confirmación)
     if (viaEmail) {
       let emailOk = 0;
-      const html = buildEmailHtml(asunto, finalMsg, fecha, hora, lugar);
+      const html = buildEmailHtml(asunto, finalMsg, fecha, hora, lugar, plazas, appLink);
       for (const email of emails) {
         try {
           await base44.functions.invoke('sendEmail', {
