@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 
 export default function OpportunityForm({ onSubmit, initial }) {
-  const [form, setForm] = useState(initial || { categoria: 'evento', necesitados: 1, estado: 'abierta' });
+  const [form, setForm] = useState(initial || { categoria: 'evento', plazas: 4, estado: 'abierta' });
   const isEditing = !!initial;
   return (
     <div className="space-y-3">
@@ -27,9 +27,22 @@ export default function OpportunityForm({ onSubmit, initial }) {
             <SelectItem value="otro">Otro</SelectItem>
           </SelectContent>
         </Select>
-        <Input type="number" min={1} value={form.necesitados} onChange={(e)=>setForm({...form,necesitados:Number(e.target.value||1)})} />
+        <div>
+          <Input type="number" min={1} max={50} placeholder="Plazas" value={form.plazas||''} onChange={(e)=>setForm({...form,plazas:Number(e.target.value||0)})} />
+          <p className="text-xs text-slate-500 mt-0.5">Plazas necesarias</p>
+        </div>
       </div>
-      <Button onClick={()=>onSubmit(form)} className="w-full">{isEditing ? 'Guardar cambios' : 'Crear oportunidad'}</Button>
+      {isEditing && (
+        <Select value={form.estado || 'abierta'} onValueChange={(v)=>setForm({...form,estado:v})}>
+          <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="abierta">Abierta</SelectItem>
+            <SelectItem value="completa">Completa</SelectItem>
+            <SelectItem value="cerrada">Cerrada</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+      <Button onClick={()=>onSubmit(form)} className="w-full bg-green-600 hover:bg-green-700">{isEditing ? 'Guardar cambios' : 'Crear oportunidad'}</Button>
     </div>
   );
 }
