@@ -64,13 +64,15 @@ export default function CoachParentChat({ embedded = false }) {
     fetchUser();
   }, []);
 
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      const players = await base44.entities.Player.list();
-      setAllPlayers(players);
-    };
-    fetchPlayers();
-  }, []);
+  // Cargar TODOS los jugadores activos con useQuery para que sea reactivo
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['allActivePlayers'],
+    queryFn: async () => {
+      const players = await base44.entities.Player.filter({ activo: true }, '-created_date', 500);
+      return players;
+    },
+    staleTime: 120000,
+  });
 
   // Asegurar que siempre haya una categoría válida seleccionada para ENTRENADOR
   useEffect(() => {
