@@ -1687,11 +1687,20 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+              { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
               { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
               { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
 
+              // 🛍️ PEDIDOS
+              ...(clothingStoreUrl ? [{ title: "🛍️ Tienda Equipación", externalUrl: clothingStoreUrl, icon: ShoppingBag }] : []),
+              ...(merchStoreUrl ? [{ title: "🛒 Merchandising", externalUrl: merchStoreUrl, icon: ShoppingBag }] : []),
+              ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+
               // 🎫 EXTRAS
               { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+
+              // ⚙️ CONFIGURACIÓN
+              { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
   ];
 
   const treasurerNavigationItems = [
