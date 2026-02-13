@@ -18,6 +18,8 @@ import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
 import CoordinatorChatInput from "../chat/CoordinatorChatInput";
 import EmojiScaler from "../chat/EmojiScaler";
+import ChatImageBubble from "../chat/ChatImageBubble";
+import ChatAudioBubble from "../chat/ChatAudioBubble";
 import { useAudioRecording } from "../chat/useAudioRecording";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
@@ -693,16 +695,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 </div>
 
                 {msg.audio_url ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <Button 
-                      size="sm" 
-                      variant={isMine ? "secondary" : "outline"}
-                      onClick={() => togglePlayAudio(msg.audio_url)}
-                      className="h-7"
-                    >
-                      {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                    </Button>
-                    <span className="text-xs">{msg.audio_duracion}s</span>
+                  <div className="mt-1">
+                    <ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} />
                   </div>
                 ) : (
                  <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
@@ -724,33 +718,23 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                   />
                 )}
 
-                {msg.archivos_adjuntos?.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {msg.archivos_adjuntos.map((file, idx) => (
-                      file.tipo?.startsWith('image/') ? (
-                        <img 
-                          key={idx}
-                          src={file.url} 
-                          alt={file.nombre}
-                          className="rounded max-w-full h-auto cursor-pointer hover:opacity-80"
-                          onClick={() => setShowImagePreview(file.url)}
-                        />
-                      ) : (
-                        <a
-                          key={idx}
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-cyan-700' : 'bg-slate-100'}`}
-                        >
-                          <FileText className="w-3 h-3" />
-                          <span className="flex-1 truncate">{file.nombre}</span>
-                          <Download className="w-3 h-3" />
+                {(() => {
+                  const attachments = msg.archivos_adjuntos || [];
+                  const images = attachments.filter(f => f.tipo?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+                  const audios = attachments.filter(f => f.tipo?.startsWith('audio/'));
+                  const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
+                  return (
+                    <>
+                      {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isMine} /></div>}
+                      {audios.map((file, idx) => <div key={`a-${idx}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} /></div>)}
+                      {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, idx) => (
+                        <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-cyan-700' : 'bg-slate-100'}`}>
+                          <FileText className="w-3 h-3" /><span className="flex-1 truncate">{file.nombre}</span><Download className="w-3 h-3" />
                         </a>
-                      )
-                    ))}
-                  </div>
-                )}
+                      ))}</div>}
+                    </>
+                  );
+                })()}
 
                 <div className="flex items-center gap-1 justify-end mt-1">
                   <p style={{fontSize: '11px', opacity: 0.6}}>

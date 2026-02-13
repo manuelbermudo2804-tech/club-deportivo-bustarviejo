@@ -26,6 +26,8 @@ import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
 import StaffChatInput from "../components/chat/StaffChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
+import ChatImageBubble from "../components/chat/ChatImageBubble";
+import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 const QUICK_REPLIES = [
@@ -843,14 +845,8 @@ export default function StaffChat() {
                         </div>
 
                         {msg.audio_url ? (
-                          <div className="flex items-center gap-2">
-                            <button 
-                              onClick={() => togglePlayAudio(msg.audio_url)}
-                              className="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-white/20"
-                            >
-                              {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                            </button>
-                            <span className="text-sm">🎤 {msg.audio_duracion}s</span>
+                          <div className="mt-1">
+                            <ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} />
                           </div>
                         ) : (
                          <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
@@ -871,39 +867,23 @@ export default function StaffChat() {
                           />
                         )}
 
-                        {msg.adjuntos?.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {msg.adjuntos.map((file, idx) => (
-                              file.tipo?.startsWith('audio/') ? (
-                                <audio key={idx} controls className="max-w-full">
-                                  <source src={file.url} type={file.tipo} />
-                                </audio>
-                              ) : file.tipo?.startsWith('image/') ? (
-                                <img 
-                                  key={idx}
-                                  src={file.url}
-                                  alt={file.nombre}
-                                  className="rounded cursor-pointer max-w-full h-auto hover:opacity-80"
-                                  onClick={() => setShowImagePreview(file.url)}
-                                />
-                              ) : (
-                                <a
-                                  key={idx}
-                                  href={file.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`flex items-center gap-2 text-xs p-2 rounded ${
-                                    isMine ? 'bg-purple-700' : 'bg-slate-100'
-                                  }`}
-                                >
-                                  <FileText className="w-3 h-3" />
-                                  <span className="flex-1 truncate">{file.nombre}</span>
-                                  <Download className="w-3 h-3" />
+                        {(() => {
+                          const attachments = msg.adjuntos || [];
+                          const images = attachments.filter(f => f.tipo?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+                          const audios = attachments.filter(f => f.tipo?.startsWith('audio/'));
+                          const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
+                          return (
+                            <>
+                              {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isMine} /></div>}
+                              {audios.map((file, idx) => <div key={`a-${idx}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} /></div>)}
+                              {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, idx) => (
+                                <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-purple-700' : 'bg-slate-100'}`}>
+                                  <FileText className="w-3 h-3" /><span className="flex-1 truncate">{file.nombre}</span><Download className="w-3 h-3" />
                                 </a>
-                              )
-                            ))}
-                          </div>
-                        )}
+                              ))}</div>}
+                            </>
+                          );
+                        })()}
 
                         {msg.reacciones?.length > 0 && (
                           <EmojiScaler reactions={msg.reacciones} />

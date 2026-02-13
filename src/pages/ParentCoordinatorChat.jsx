@@ -17,6 +17,8 @@ import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
+import ChatImageBubble from "../components/chat/ChatImageBubble";
+import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 export default function ParentCoordinatorChat() {
@@ -529,50 +531,31 @@ export default function ParentCoordinatorChat() {
                       )}
                       
                       {msg.audio_url ? (
-                        <div className="flex items-center gap-2 mt-1">
-                          <Button 
-                            size="sm" 
-                            variant={isPadre ? "secondary" : "outline"}
-                            onClick={() => togglePlayAudio(msg.audio_url)}
-                            className="h-7"
-                          >
-                            {playingAudio === msg.audio_url ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                          </Button>
-                          <span className="text-xs">{msg.audio_duracion}s</span>
+                        <div className="mt-1">
+                          <ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isPadre} />
                         </div>
                       ) : (
                         <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
                           <EmojiScaler content={msg.mensaje} />
                         </p>
                       )}
-                      {(msg.archivos_adjuntos || msg.adjuntos)?.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {(msg.archivos_adjuntos || msg.adjuntos).map((file, idx) => (
-                            file.tipo?.startsWith('image/') ? (
-                              <img 
-                                key={idx}
-                                src={file.url}
-                                alt={file.nombre}
-                                loading="lazy"
-                                className="rounded cursor-pointer max-w-full h-auto hover:opacity-80 bg-slate-100"
-                                onClick={() => setShowImagePreview(file.url)}
-                              />
-                            ) : (
-                              <a
-                                key={idx}
-                                href={file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`flex items-center gap-2 text-xs p-2 rounded ${isPadre ? 'bg-slate-700' : 'bg-slate-100'}`}
-                              >
-                                <FileText className="w-3 h-3" />
-                                <span className="flex-1 truncate">{file.nombre}</span>
-                                <Download className="w-3 h-3" />
+                      {(() => {
+                        const attachments = msg.archivos_adjuntos || msg.adjuntos || [];
+                        const images = attachments.filter(f => f.tipo?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+                        const audios = attachments.filter(f => f.tipo?.startsWith('audio/'));
+                        const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
+                        return (
+                          <>
+                            {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isPadre} /></div>}
+                            {audios.map((file, idx) => <div key={`a-${idx}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isPadre} /></div>)}
+                            {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, idx) => (
+                              <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isPadre ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                                <FileText className="w-3 h-3" /><span className="flex-1 truncate">{file.nombre}</span><Download className="w-3 h-3" />
                               </a>
-                            )
-                          ))}
-                        </div>
-                      )}
+                            ))}</div>}
+                          </>
+                        );
+                      })()}
                       <div className="flex items-center gap-1 justify-end mt-1">
                         <p className="text-[11px]" style={{color: '#667781'}}>
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
