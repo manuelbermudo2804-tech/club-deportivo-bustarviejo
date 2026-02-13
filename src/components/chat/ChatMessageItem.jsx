@@ -4,6 +4,8 @@ import { FileText, Download, Check, CheckCheck } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import EmojiScaler from "./EmojiScaler";
+import ChatImageBubble from "./ChatImageBubble";
+import ChatAudioBubble from "./ChatAudioBubble";
 
 export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true, showReadStatus = false, isGroupStart = true, marginTop = '12px' }) {
   // CRÍTICO: Soportar AMBOS remitente_email (ChatMessage) Y autor_email (StaffMessage)
@@ -37,50 +39,51 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
           <EmojiScaler content={message.mensaje} />
         </p>
         {message.audio_url && (
-          <div className="mt-2 w-full">
-            <audio controls className="w-full max-w-[280px]">
-              <source src={message.audio_url} />
-            </audio>
-            {message.audio_duracion ? (
-              <span className="text-[11px] opacity-70 ml-1">{message.audio_duracion}s</span>
-            ) : null}
+          <div className="mt-1">
+            <ChatAudioBubble url={message.audio_url} duration={message.audio_duracion} isMine={isMine} />
           </div>
         )}
 
-        {message.archivos_adjuntos?.length > 0 && (
-          <div className="mt-2 space-y-1">
-            {message.archivos_adjuntos.map((file, idx) => (
-              file.tipo?.startsWith('audio/') ? (
-                <div key={idx} className="w-full">
-                  <audio controls className="w-full max-w-[280px]" style={{ aspectRatio: '16/9' }}>
-                    <source src={file.url} type={file.tipo} />
-                  </audio>
+        {(() => {
+          const attachments = message.archivos_adjuntos || [];
+          const images = attachments.filter(f => f.tipo?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+          const audios = attachments.filter(f => f.tipo?.startsWith('audio/'));
+          const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
+
+          return (
+            <>
+              {images.length > 0 && (
+                <div className="mt-1">
+                  <ChatImageBubble images={images} isMine={isMine} />
                 </div>
-              ) : file.tipo?.startsWith('image/') ? (
-                <img 
-                  key={idx}
-                  src={file.url}
-                  alt={file.nombre}
-                  className="rounded-lg max-w-[280px] h-auto"
-                />
-              ) : (
-                <a
-                  key={idx}
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-2 text-xs p-2 rounded ${
-                    isMine || isCoach || isBot ? 'bg-black/20' : 'bg-slate-100'
-                  }`}
-                >
-                  <FileText className="w-3 h-3" />
-                  <span className="flex-1 truncate">{file.nombre}</span>
-                  <Download className="w-3 h-3" />
-                </a>
-              )
-            ))}
-          </div>
-        )}
+              )}
+              {audios.map((file, idx) => (
+                <div key={`audio-${idx}`} className="mt-1">
+                  <ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} />
+                </div>
+              ))}
+              {files.length > 0 && (
+                <div className="mt-1 space-y-1">
+                  {files.map((file, idx) => (
+                    <a
+                      key={idx}
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex items-center gap-2 text-xs p-2 rounded ${
+                        isMine ? 'bg-black/20' : 'bg-slate-100'
+                      }`}
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span className="flex-1 truncate">{file.nombre}</span>
+                      <Download className="w-3 h-3" />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
         
         <div className="flex items-center gap-1 justify-end mt-0.5">
           <p className="text-[11px] opacity-70">
