@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
           if (unread > 0) result.team_chats[gid] = unread;
         }
       }
-    } else if (!isAdmin && !isTreasurer) {
-      // Padre/Jugador: contar mensajes del entrenador no leídos en categorías de sus hijos
+    } else if (!isAdmin) {
+      // Padre/Jugador/Tesorero: contar mensajes no leídos en categorías de sus hijos
       const myPlayers = await base44.asServiceRole.entities.Player.filter({
         $or: [{ email_padre: email }, { email_tutor_2: email }, { email_jugador: email }],
         activo: true
