@@ -208,12 +208,12 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
           <div>
             <label className="text-sm font-medium text-slate-700 mb-2 block">Enviar por:</label>
             <div className="space-y-2">
-              <label className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors">
+              <label className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors border-2 border-blue-200">
                 <Checkbox checked={viaApp} onCheckedChange={setViaApp} />
                 <Bell className="w-5 h-5 text-blue-600" />
                 <div className="flex-1">
-                  <span className="font-medium text-sm">Notificación en la app</span>
-                  <p className="text-xs text-slate-500">Les llega como mensaje del club</p>
+                  <span className="font-medium text-sm">Mensaje en la app</span>
+                  <p className="text-xs text-slate-500">Les llega a "Mensajes del Club" (chat privado)</p>
                 </div>
                 <Badge className="bg-blue-100 text-blue-700 text-[10px]">Recomendado</Badge>
               </label>
@@ -223,7 +223,7 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
                 <Mail className="w-5 h-5 text-orange-600" />
                 <div className="flex-1">
                   <span className="font-medium text-sm">Email</span>
-                  <p className="text-xs text-slate-500">Correo electrónico a {emails.length} direcciones</p>
+                  <p className="text-xs text-slate-500">Correo a {emails.length} direcciones (puede tardar)</p>
                 </div>
               </label>
 
@@ -232,7 +232,7 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
                 <MessageCircle className="w-5 h-5 text-green-600" />
                 <div className="flex-1">
                   <span className="font-medium text-sm">WhatsApp</span>
-                  <p className="text-xs text-slate-500">Copia enlaces wa.me individuales ({phones.length} teléfonos)</p>
+                  <p className="text-xs text-slate-500">Copia {phones.length} enlaces al portapapeles (tú los pegas donde quieras)</p>
                 </div>
               </label>
             </div>
