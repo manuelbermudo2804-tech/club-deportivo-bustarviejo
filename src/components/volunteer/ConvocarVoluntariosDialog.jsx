@@ -223,7 +223,7 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
                 <Mail className="w-5 h-5 text-orange-600" />
                 <div className="flex-1">
                   <span className="font-medium text-sm">Email</span>
-                  <p className="text-xs text-slate-500">Correo a {emails.length} direcciones (puede tardar)</p>
+                  <p className="text-xs text-slate-500">Correo vía Resend a {emails.length} direcciones</p>
                 </div>
               </label>
 
