@@ -88,15 +88,11 @@ function buildEmailHtml(asunto, mensaje, fecha, hora, lugar, plazas, appLink) {
             </td>
           </tr>
         </table>` : ''}
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f9ff;border:2px solid #93c5fd;border-radius:10px;margin-top:20px">
           <tr>
-            <td align="center">
-              <a href="${appLink || 'https://app.cdbustarviejo.com/voluntariado'}" style="display:inline-block;background:#16a34a;color:#ffffff;font-size:16px;font-weight:800;padding:14px 32px;border-radius:10px;text-decoration:none">✅ ¡Me apunto! Confirmar en la app</a>
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding-top:8px">
-              <span style="color:#64748b;font-size:12px">Confirma tu asistencia y ve cu&aacute;ntos compa&ntilde;eros se han apuntado</span>
+            <td align="center" style="padding:16px">
+              <p style="color:#1e40af;font-size:15px;font-weight:700;margin:0 0 6px">📲 ¿Quieres apuntarte?</p>
+              <p style="color:#334155;font-size:13px;margin:0">Abre la app <strong>CD Bustarviejo</strong> y ve a la secci&oacute;n <strong>🤝 Voluntariado</strong> para confirmar tu asistencia y ver cu&aacute;ntos compa&ntilde;eros se han apuntado.</p>
             </td>
           </tr>
         </table>
@@ -229,7 +225,8 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
     // 1. Mensaje en la app (Mensajes del Club)
     if (viaApp) {
       let appOk = 0;
-      const appMsg = `🤝 ${asunto}\n\n${finalMsg}\n\n━━━━━━━━━━━━━━━\n📋 Plazas: ${plazas}\n✅ Confirma tu asistencia en Voluntariado → ${appLink}`;
+      const confirmLink = oppId ? `/voluntariado?opp_id=${oppId}` : `/voluntariado`;
+      const appMsg = `🤝 ${asunto}\n\n${finalMsg}\n\n━━━━━━━━━━━━━━━\n📋 Plazas: ${plazas}\n\n👉 [✅ ¡Me apunto! Confirmar asistencia](${confirmLink})`;
       for (const email of emails) {
         try {
           const existingConvs = await base44.entities.PrivateConversation.filter({

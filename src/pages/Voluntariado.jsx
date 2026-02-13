@@ -207,11 +207,21 @@ export default function Voluntariado() {
   useEffect(() => {
     if (pendingOppId && opportunities.length > 0 && user) {
       const opp = opportunities.find(o => o.id === pendingOppId);
-      if (opp && opp.estado !== "cerrada") {
+      if (!opp) {
+        toast.error("Esta oportunidad ya no existe");
+      } else if (opp.estado === "cerrada") {
+        toast.error("Esta oportunidad está cerrada");
+      } else if (opp.fecha && opp.fecha < new Date().toISOString().split("T")[0]) {
+        toast.error("Este evento ya ha pasado");
+      } else {
         const oppSignups = signups.filter(s => s.opportunity_id === opp.id);
         const alreadySignedUp = oppSignups.some(s => s.email === user?.email);
         const isFull = opp.plazas > 0 && oppSignups.length >= opp.plazas;
-        if (!alreadySignedUp && !isFull) {
+        if (alreadySignedUp) {
+          toast.info("Ya estás apuntado a esta oportunidad ✅");
+        } else if (isFull) {
+          toast.info("Las plazas ya están cubiertas");
+        } else {
           setSignupOpp(opp);
         }
       }
