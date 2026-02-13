@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Send, X, Loader2 } from "lucide-react";
+import { Mic, Send, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
@@ -21,14 +21,18 @@ function pickMimeType() {
 }
 
 /**
- * Flujo simplificado:
- * 1. Toque en micrófono → empieza a grabar INMEDIATAMENTE (barra roja con timer)
- * 2. Toque en enviar → sube y envía directamente
- * 3. Botón X → cancela
- * Sin preview, sin mantener pulsado, sin deslizar.
+ * Self-contained audio record button.
+ * - Tap mic → starts recording immediately (replaces itself with recording bar)
+ * - Tap send → uploads and sends
+ * - Tap X → cancels
+ * 
+ * Props:
+ * - onAudioSent({ audio_url, audio_duracion })
+ * - disabled
+ * - onRecordingChange(bool) - optional, notifies parent when recording starts/stops
  */
-export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChange, autoStart = false }) {
-  const [state, setState] = useState(autoStart ? "starting" : "idle"); // idle | starting | recording | sending
+export default function AudioRecordButton({ onAudioSent, disabled, onRecordingChange }) {
+  const [state, setState] = useState("idle"); // idle | starting | recording | sending
   const [seconds, setSeconds] = useState(0);
 
   const mediaRef = useRef(null);
@@ -37,7 +41,6 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
   const fileInputRef = useRef(null);
-  const hasAutoStarted = useRef(false);
 
   const isIframe = (() => { 
     try { 
@@ -52,13 +55,11 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
     return !hasMedia || isIframe;
   });
 
-  // Auto-start recording when mounted with autoStart=true
+  // Notify parent of recording state changes
   useEffect(() => {
-    if (autoStart && !hasAutoStarted.current && !fallbackMode) {
-      hasAutoStarted.current = true;
-      startRecording();
-    }
-  }, [autoStart, fallbackMode]);
+    const isRecording = state === "starting" || state === "recording" || state === "sending";
+    try { onRecordingChange?.(isRecording); } catch {}
+  }, [state]);
 
   // Cleanup
   useEffect(() => {
@@ -103,7 +104,6 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
         toast.error('Error al acceder al micrófono');
       }
       setState("idle");
-      try { onPreviewChange?.(false); } catch {}
     }
   };
 
@@ -115,19 +115,16 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
     chunksRef.current = [];
     setState("idle");
     setSeconds(0);
-    try { onPreviewChange?.(false); } catch {}
   };
 
   const stopAndSend = async () => {
     if (state !== "recording") return;
 
-    // Stop timer
     try { timerRef.current && clearInterval(timerRef.current); } catch {}
     const finalDuration = Math.max(1, Math.floor((Date.now() - startTimeRef.current) / 1000));
 
     setState("sending");
 
-    // Stop recorder and wait for data
     const blob = await new Promise((resolve) => {
       const mr = mediaRef.current;
       if (!mr || mr.state === 'inactive') {
@@ -141,24 +138,20 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
       mr.stop();
     });
 
-    // Stop stream
     try { streamRef.current?.getTracks()?.forEach(t => t.stop()); } catch {}
     streamRef.current = null;
 
     if (!blob || blob.size === 0) {
       toast.error("Audio vacío, inténtalo de nuevo");
       setState("idle");
-      try { onPreviewChange?.(false); } catch {}
       return;
     }
 
-    // Upload and send
     try {
       const type = blob.type || "audio/webm";
       const ext = type.includes("mp4") ? "m4a" : type.includes("ogg") ? "ogg" : "webm";
       const file = new File([blob], `audio_${Date.now()}.${ext}`, { type });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
       onAudioSent?.({ audio_url: file_url, audio_duracion: finalDuration });
     } catch (err) {
       console.error("Upload audio error", err);
@@ -168,7 +161,6 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
     setState("idle");
     setSeconds(0);
     chunksRef.current = [];
-    try { onPreviewChange?.(false); } catch {}
   };
 
   // Fallback: file upload
@@ -198,89 +190,6 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  // ============ STARTING (waiting for mic permission) ============
-  if (state === "starting") {
-    return (
-      <div className="flex items-center gap-2 w-full">
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => { setState("idle"); try { onPreviewChange?.(false); } catch {} }}
-          className="h-10 w-10 text-red-500 hover:bg-red-50 flex-shrink-0 rounded-full"
-        >
-          <X className="w-5 h-5" />
-        </Button>
-        <div className="flex-1 flex items-center gap-2.5 bg-orange-50 border border-orange-200 rounded-full px-4 py-2.5">
-          <Loader2 className="w-4 h-4 text-orange-500 animate-spin flex-shrink-0" />
-          <span className="text-sm font-medium text-orange-600">Accediendo al micrófono...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // ============ RECORDING BAR ============
-  if (state === "recording") {
-    return (
-      <div className="flex items-center gap-2 w-full">
-        {/* Cancel */}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={cancelRecording}
-          className="h-10 w-10 text-red-500 hover:bg-red-50 flex-shrink-0 rounded-full"
-        >
-          <X className="w-5 h-5" />
-        </Button>
-
-        {/* Recording indicator */}
-        <div className="flex-1 flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-full px-4 py-2">
-          <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
-          <span className="text-sm font-semibold text-red-600">Grabando</span>
-
-          {/* Mini waveform */}
-          <div className="flex items-center gap-[2px] flex-1 justify-center">
-            {[...Array(16)].map((_, i) => (
-              <div
-                key={i}
-                className="w-[3px] bg-red-400 rounded-full animate-pulse"
-                style={{
-                  height: `${6 + Math.sin(Date.now() / 200 + i) * 8 + Math.random() * 4}px`,
-                  animationDelay: `${i * 80}ms`,
-                  animationDuration: '0.5s',
-                }}
-              />
-            ))}
-          </div>
-
-          <span className="text-sm font-mono font-bold text-red-700 tabular-nums flex-shrink-0">
-            {formatTime(seconds)}
-          </span>
-        </div>
-
-        {/* Send */}
-        <Button
-          size="icon"
-          onClick={stopAndSend}
-          className="h-11 w-11 bg-green-600 hover:bg-green-700 rounded-full flex-shrink-0 shadow-md"
-        >
-          <Send className="w-5 h-5 text-white" />
-        </Button>
-      </div>
-    );
-  }
-
-  // ============ SENDING ============
-  if (state === "sending") {
-    return (
-      <div className="flex items-center gap-2 w-full">
-        <div className="flex-1 flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-full px-4 py-2.5">
-          <Loader2 className="w-4 h-4 text-green-600 animate-spin flex-shrink-0" />
-          <span className="text-sm font-medium text-green-700">Enviando audio...</span>
-        </div>
-      </div>
-    );
-  }
-
   // ============ FALLBACK (iframe / no mic) ============
   if (fallbackMode) {
     return (
@@ -307,16 +216,31 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
     );
   }
 
-  // ============ IDLE — Mic button ============
-  return (
-    <Button
-      size="icon"
-      onClick={startRecording}
-      disabled={disabled}
-      className="h-11 w-11 bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-full flex-shrink-0"
-      title="Grabar audio"
-    >
-      <Mic className="w-5 h-5 text-white" />
-    </Button>
-  );
+  // ============ IDLE — Mic button only ============
+  if (state === "idle") {
+    return (
+      <Button
+        size="icon"
+        onClick={startRecording}
+        disabled={disabled}
+        className="h-11 w-11 bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-full flex-shrink-0"
+        title="Grabar audio"
+      >
+        <Mic className="w-5 h-5 text-white" />
+      </Button>
+    );
+  }
+
+  // ============ FULL-WIDTH STATES (starting, recording, sending) ============
+  // These are rendered by the parent via the "expanded" slot
+  return null;
+}
+
+/**
+ * Separate component for the expanded recording bar.
+ * Parent renders this INSTEAD of the normal input row when recording is active.
+ */
+export function AudioRecordingBar({ audioRef }) {
+  // This is now handled inline — kept for backward compat
+  return null;
 }
