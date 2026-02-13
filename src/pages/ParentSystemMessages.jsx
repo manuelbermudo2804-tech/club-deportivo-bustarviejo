@@ -24,12 +24,25 @@ function RenderMessageText({ text }) {
           const href = match[2];
           // Rutas internas (empiezan con /)
           if (href.startsWith("/")) {
-            const pageName = href.split("?")[0].replace("/", "");
+            // Mapear rutas conocidas a nombres de página
+            const routeBase = href.split("?")[0].replace("/", "").toLowerCase();
             const query = href.includes("?") ? "?" + href.split("?")[1] : "";
+            const pageMap = {
+              voluntariado: "Voluntariado",
+              parentdashboard: "ParentDashboard",
+              parentpayments: "ParentPayments",
+              parentplayers: "ParentPlayers",
+              parentcallups: "ParentCallups",
+              announcements: "Announcements",
+              calendarandschedules: "CalendarAndSchedules",
+              gallery: "Gallery",
+              surveys: "Surveys",
+            };
+            const pageName = pageMap[routeBase] || routeBase;
             return (
               <Link
                 key={i}
-                to={createPageUrl(pageName.charAt(0).toUpperCase() + pageName.slice(1)) + query}
+                to={createPageUrl(pageName) + query}
                 className="inline-block mt-2 px-4 py-2 bg-green-600 text-white font-bold rounded-xl text-sm hover:bg-green-700 transition-colors no-underline"
               >
                 {label}
