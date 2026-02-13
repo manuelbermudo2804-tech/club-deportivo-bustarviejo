@@ -27,6 +27,12 @@ export default function Voluntariado() {
 
   useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
 
+  // Deep link: si viene ?opp_id=xxx abre el diálogo de signup automáticamente
+  const [pendingOppId, setPendingOppId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("opp_id") || null;
+  });
+
   // Mi perfil propio de voluntario
   const { data: myProfile } = useQuery({
     queryKey: ["volunteer_profile", user?.email],
@@ -197,6 +203,33 @@ export default function Voluntariado() {
 
   const isStaff = !!(user?.role === "admin" || user?.es_entrenador || user?.es_coordinador);
 
+  // Deep link: cuando opportunities se cargan y hay un pendingOppId, abrir signup
+  useEffect(() => {
+    if (pendingOppId && opportunities.length > 0 && user) {
+      const opp = opportunities.find(o => o.id === pendingOppId);
+      if (opp && opp.estado !== "cerrada") {
+        const oppSignups = signups.filter(s => s.opportunity_id === opp.id);
+        const alreadySignedUp = oppSignups.some(s => s.email === user?.email);
+        const isFull = opp.plazas > 0 && oppSignups.length >= opp.plazas;
+        if (!alreadySignedUp && !isFull) {
+          setSignupOpp(opp);
+        }
+      }
+      setPendingOppId(null);
+      // Limpiar URL sin recargar
+      const url = new URL(window.location.href);
+      url.searchParams.delete("opp_id");
+      window.history.replaceState({}, "", url.pathname + (url.search || ""));
+    }
+  }, [pendingOppId, opportunities, signups, user]);
+
+  // Filtrar oportunidades pasadas (fecha anterior a hoy)
+  const today = new Date().toISOString().split("T")[0];
+  const activeOpportunities = opportunities.filter(opp => {
+    if (!opp.fecha) return true; // Sin fecha = siempre visible
+    return opp.fecha >= today || opp.estado === "abierta";
+  });
+
   const openEditMyProfile = () => {
     setEditingProfile(myProfile || { email: user?.email, nombre: user?.full_name || "" });
     setOpenProfile(true);
@@ -268,13 +301,13 @@ export default function Voluntariado() {
       {/* 5. Oportunidades activas (arriba las abiertas) */}
       <div>
         <h2 className="text-xl font-bold mb-3">📢 Oportunidades de voluntariado</h2>
-        {opportunities.length === 0 && (
+        {activeOpportunities.length === 0 && (
           <div className="text-center py-8 text-slate-500 bg-white rounded-xl border">
             No hay oportunidades publicadas en este momento.
           </div>
         )}
         <div className="grid gap-3">
-          {[...opportunities]
+          {[...activeOpportunities]
             .sort((a, b) => {
               // Abiertas primero, luego completas, luego cerradas
               const order = { abierta: 0, completa: 1, cerrada: 2 };
