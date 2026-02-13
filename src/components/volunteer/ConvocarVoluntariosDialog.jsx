@@ -56,27 +56,41 @@ const PLANTILLAS = [
 function buildEmailHtml(asunto, mensaje, fecha, hora, lugar) {
   const mensajeHtml = mensaje.replace(/\n/g, '<br/>');
   return `
-<div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:20px">
-  <div style="background:linear-gradient(135deg,#ea580c,#c2410c,#9a3412);padding:32px 24px;border-radius:16px 16px 0 0;text-align:center">
-    <img src="${CLUB_LOGO}" alt="CD Bustarviejo" style="width:72px;height:72px;border-radius:14px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,0.4);object-fit:cover;border:3px solid rgba(255,255,255,0.4)"/>
-    <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${asunto}</h1>
-    <p style="color:#fed7aa;margin:8px 0 0;font-size:13px;font-weight:600">CD Bustarviejo · Voluntariado</p>
-  </div>
-  <div style="background:white;padding:28px 24px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0">
-    ${(fecha || hora || lugar) ? `
-    <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:2px solid #86efac;border-radius:12px;padding:16px;margin-bottom:20px">
-      <div style="display:flex;flex-wrap:wrap;gap:12px">
-        ${fecha ? `<div style="flex:1;min-width:140px"><span style="color:#166534;font-weight:700;font-size:13px">📅 Fecha</span><br/><span style="color:#15803d;font-size:15px;font-weight:600">${fecha}</span></div>` : ''}
-        ${hora ? `<div style="flex:1;min-width:140px"><span style="color:#166534;font-weight:700;font-size:13px">⏰ Hora</span><br/><span style="color:#15803d;font-size:15px;font-weight:600">${hora}</span></div>` : ''}
-        ${lugar ? `<div style="flex:1;min-width:140px"><span style="color:#166534;font-weight:700;font-size:13px">📍 Lugar</span><br/><span style="color:#15803d;font-size:15px;font-weight:600">${lugar}</span></div>` : ''}
-      </div>
-    </div>` : ''}
-    <div style="color:#334155;line-height:1.7;font-size:15px">${mensajeHtml}</div>
-  </div>
-  <div style="background:#1e293b;padding:20px 24px;border-radius:0 0 16px 16px;text-align:center">
-    <p style="color:#f1f5f9;font-size:12px;margin:0;font-weight:600">🤝 Gracias por ser parte del voluntariado del club</p>
-    <p style="color:#94a3b8;font-size:11px;margin:6px 0 0">CD Bustarviejo · <a href="https://app.cdbustarviejo.com" style="color:#fb923c;text-decoration:none;font-weight:600">app.cdbustarviejo.com</a></p>
-  </div>
+<div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#f5f5f5;padding:20px">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#ea580c;border-radius:16px 16px 0 0">
+    <tr>
+      <td align="center" style="padding:28px 24px">
+        <table cellpadding="0" cellspacing="0"><tr><td style="font-size:40px;line-height:1">⚽</td></tr></table>
+        <h1 style="color:#ffffff;margin:12px 0 0;font-size:20px;font-weight:800">${asunto}</h1>
+        <p style="color:#ffffff;margin:6px 0 0;font-size:13px;font-weight:600;opacity:0.85">CD Bustarviejo &middot; Voluntariado</p>
+      </td>
+    </tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border-left:1px solid #e0e0e0;border-right:1px solid #e0e0e0">
+    <tr>
+      <td style="padding:24px">
+        ${(fecha || hora || lugar) ? `
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;margin-bottom:20px">
+          <tr>
+            <td style="padding:14px">
+              ${fecha ? `<div style="margin-bottom:8px"><strong style="color:#166534;font-size:13px">📅 Fecha:</strong> <span style="color:#000000;font-size:15px;font-weight:700">${fecha}</span></div>` : ''}
+              ${hora ? `<div style="margin-bottom:8px"><strong style="color:#166534;font-size:13px">⏰ Hora:</strong> <span style="color:#000000;font-size:15px;font-weight:700">${hora}</span></div>` : ''}
+              ${lugar ? `<div><strong style="color:#166534;font-size:13px">📍 Lugar:</strong> <span style="color:#000000;font-size:15px;font-weight:700">${lugar}</span></div>` : ''}
+            </td>
+          </tr>
+        </table>` : ''}
+        <div style="color:#1a1a1a;line-height:1.7;font-size:15px">${mensajeHtml}</div>
+      </td>
+    </tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e293b;border-radius:0 0 16px 16px">
+    <tr>
+      <td align="center" style="padding:18px 24px">
+        <p style="color:#f1f5f9;font-size:12px;margin:0;font-weight:600">🤝 Gracias por ser parte del voluntariado del club</p>
+        <p style="color:#94a3b8;font-size:11px;margin:6px 0 0">CD Bustarviejo &middot; <a href="https://app.cdbustarviejo.com" style="color:#fb923c;text-decoration:none;font-weight:600">app.cdbustarviejo.com</a></p>
+      </td>
+    </tr>
+  </table>
 </div>`;
 }
 
