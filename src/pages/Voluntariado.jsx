@@ -73,7 +73,7 @@ export default function Voluntariado() {
   });
 
   // Mis inscripciones a oportunidades
-  const mySignups = signups.filter(s => s.volunteer_email === user?.email);
+  const mySignups = signups.filter(s => s.email === user?.email);
 
   // CRUD perfil
   const saveProfile = useMutation({
