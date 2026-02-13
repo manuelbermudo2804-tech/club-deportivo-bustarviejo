@@ -60,16 +60,21 @@ export default function Gallery() {
   }, []);
 
   const { data: players } = useQuery({
-    queryKey: ['myPlayers', user?.email],
+    queryKey: ['myPlayers', user?.email, userRole],
     queryFn: async () => {
-      const allPlayers = await base44.entities.Player.list();
-      
       if (userRole === "player") {
-        return allPlayers.filter(p => p.id === user?.jugador_id);
+        if (user?.player_id) {
+          return await base44.entities.Player.filter({ id: user.player_id, activo: true });
+        }
+        return await base44.entities.Player.filter({ email_jugador: user.email, activo: true });
       } else {
-        return allPlayers.filter(p => 
-          p.email_padre === user?.email || p.email_tutor_2 === user?.email
-        );
+        const [byParent, byTutor2] = await Promise.all([
+          base44.entities.Player.filter({ email_padre: user.email, activo: true }),
+          base44.entities.Player.filter({ email_tutor_2: user.email, activo: true })
+        ]);
+        const map = new Map();
+        [...byParent, ...byTutor2].forEach(p => map.set(p.id, p));
+        return [...map.values()];
       }
     },
     enabled: !!user?.email && (userRole === "parent" || userRole === "player"),
@@ -78,8 +83,13 @@ export default function Gallery() {
 
   useEffect(() => {
     if (players.length > 0) {
-      const categories = [...new Set(players.map(p => p.deporte))];
-      setMyCategories(categories);
+      const cats = new Set();
+      players.forEach(p => {
+        if (p.categoria_principal) cats.add(p.categoria_principal);
+        (p.categorias || []).forEach(c => cats.add(c));
+        if (p.deporte) cats.add(p.deporte); // fallback legacy
+      });
+      setMyCategories([...cats]);
     }
   }, [players]);
 
@@ -140,14 +150,20 @@ export default function Gallery() {
   const coachCategories = user?.categorias_entrena || [];
 
   // Filter albums based on role and visibility
-  // Por defecto los álbumes son visibles (visible_para_padres !== false)
   const visibleAlbums = (() => {
     if (userRole === "admin") {
       return albums;
-    } else {
-      // Mostrar álbumes donde visible_para_padres no sea explícitamente false
+    }
+    // Staff (coach/coordinator) see all visible albums
+    if (userRole === "coach") {
       return albums.filter(album => album.visible_para_padres !== false);
     }
+    // Parents and players: only their categories + "Todas las Categorías"
+    return albums.filter(album => {
+      if (album.visible_para_padres === false) return false;
+      if (album.categoria === "Todas las Categorías") return true;
+      return myCategories.includes(album.categoria);
+    });
   })();
 
   // Apply search and category filters
@@ -157,12 +173,6 @@ export default function Gallery() {
     
     if (categoryFilter === "all") {
       return matchesSearch;
-    } else if (categoryFilter === "my") {
-      // Show albums from my players' categories + "Todas las Categorías"
-      return matchesSearch && (
-        album.categoria === "Todas las Categorías" || 
-        myCategories.includes(album.categoria)
-      );
     } else {
       return matchesSearch && album.categoria === categoryFilter;
     }
@@ -254,20 +264,19 @@ export default function Gallery() {
         )}
       </AnimatePresence>
 
-      {/* Category Filter */}
-      <Tabs value={categoryFilter} onValueChange={setCategoryFilter}>
-        <TabsList className="flex flex-wrap h-auto p-1">
-          <TabsTrigger value="all" className="text-xs px-2 py-1">Todas</TabsTrigger>
-          {isParentOrPlayer && (
-            <TabsTrigger value="my" className="text-xs px-2 py-1">Mis Jugadores</TabsTrigger>
-          )}
-          {filterCategories.map(cat => (
-            <TabsTrigger key={cat} value={cat} className="text-[10px] px-2 py-1">
-              {cat.includes("Baloncesto") ? "🏀" : "⚽"} {cat.split(" ")[1]}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      {/* Category Filter - only show if more than one category available */}
+      {filterCategories.length > 1 && (
+        <Tabs value={categoryFilter} onValueChange={setCategoryFilter}>
+          <TabsList className="flex flex-wrap h-auto p-1">
+            <TabsTrigger value="all" className="text-xs px-2 py-1">Todas</TabsTrigger>
+            {filterCategories.map(cat => (
+              <TabsTrigger key={cat} value={cat} className="text-[10px] px-2 py-1">
+                {cat.includes("Baloncesto") ? "🏀" : "⚽"} {cat.split(" ")[1] || cat}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      )}
 
       {/* Search */}
       <div className="relative">

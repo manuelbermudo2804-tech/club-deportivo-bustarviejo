@@ -135,13 +135,14 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
     setDownloading(false);
   };
 
-  // Share album via WhatsApp
+  // Share album via WhatsApp - includes first photo URL so WhatsApp generates a preview
   const handleShareWhatsApp = () => {
+    const firstPhotoUrl = album.fotos?.[0]?.url || "";
     const text = `📸 *${album.titulo}*\n\n` +
       `📅 ${format(new Date(album.fecha_evento), "dd 'de' MMMM 'de' yyyy", { locale: es })}\n` +
       `🏷️ ${album.categoria}\n` +
       `📷 ${album.fotos?.length || 0} fotos\n\n` +
-      `Mira el álbum en la app del CD Bustarviejo`;
+      (firstPhotoUrl ? `👇 Mira la foto:\n${firstPhotoUrl}` : `Mira el álbum en la app del CD Bustarviejo`);
     
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, "_blank");

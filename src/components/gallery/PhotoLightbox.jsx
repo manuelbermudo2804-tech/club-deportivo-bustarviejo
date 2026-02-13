@@ -66,21 +66,41 @@ export default function PhotoLightbox({
     const photo = photos[currentIndex];
     if (!photo?.url) return;
 
+    // Try native share with actual image file (works great on mobile → WhatsApp, Telegram, etc.)
     if (navigator.share) {
+      try {
+        // Attempt to share as file (best experience on mobile)
+        const response = await fetch(photo.url);
+        const blob = await response.blob();
+        const file = new File([blob], `${albumTitle}_${currentIndex + 1}.jpg`, { type: blob.type || 'image/jpeg' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: albumTitle,
+            text: `📸 Foto del álbum: ${albumTitle}`,
+            files: [file]
+          });
+          return;
+        }
+      } catch (err) {
+        // File share not supported, fall through to URL share
+      }
+
+      // Fallback: share URL (still generates preview on WhatsApp)
       try {
         await navigator.share({
           title: albumTitle,
-          text: `Foto del álbum: ${albumTitle}`,
+          text: `📸 Foto del álbum: ${albumTitle}`,
           url: photo.url
         });
+        return;
       } catch (err) {
-        if (err.name !== "AbortError") {
-          copyToClipboard(photo.url);
-        }
+        if (err.name === "AbortError") return;
       }
-    } else {
-      copyToClipboard(photo.url);
     }
+
+    // Desktop fallback: copy URL
+    copyToClipboard(photo.url);
   };
 
   const copyToClipboard = (url) => {
