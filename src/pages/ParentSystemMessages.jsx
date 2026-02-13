@@ -7,8 +7,42 @@ import { Button } from "@/components/ui/button";
 import { Bell, CheckCircle2, Clock, AlertCircle, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import SocialLinks from "../components/SocialLinks";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+
+// Renderiza texto con enlaces markdown [texto](ruta) como links internos de la app
+function RenderMessageText({ text }) {
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  return (
+    <span>
+      {parts.map((part, i) => {
+        const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (match) {
+          const label = match[1];
+          const href = match[2];
+          // Rutas internas (empiezan con /)
+          if (href.startsWith("/")) {
+            const pageName = href.split("?")[0].replace("/", "");
+            const query = href.includes("?") ? "?" + href.split("?")[1] : "";
+            return (
+              <Link
+                key={i}
+                to={createPageUrl(pageName.charAt(0).toUpperCase() + pageName.slice(1)) + query}
+                className="inline-block mt-2 px-4 py-2 bg-green-600 text-white font-bold rounded-xl text-sm hover:bg-green-700 transition-colors no-underline"
+              >
+                {label}
+              </Link>
+            );
+          }
+          return <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">{label}</a>;
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </span>
+  );
+}
 
 export default function ParentSystemMessages() {
   const [user, setUser] = useState(null);
@@ -237,7 +271,9 @@ export default function ParentSystemMessages() {
                               {isSystem ? '🤖 Sistema de Recordatorios' : msg.remitente_nombre}
                             </p>
                           </div>
-                          <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>{msg.mensaje}</p>
+                          <p className="whitespace-pre-wrap" style={{color: '#000000', fontSize: '14.2px', lineHeight: '19px'}}>
+                            <RenderMessageText text={msg.mensaje} />
+                          </p>
                           
                           {msg.archivos_adjuntos?.length > 0 && (
                             <div className="mt-2 space-y-1">
