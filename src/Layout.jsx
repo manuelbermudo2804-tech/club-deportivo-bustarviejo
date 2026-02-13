@@ -1756,22 +1756,7 @@ export default function Layout({ children, currentPageName }) {
     } else if (isCoach) {
       navigationItems = coachNavigationItems;
     } else if (isPlayer) {
-        navigationItems = [
-          { title: "🏠 Mi Dashboard", url: createPageUrl("PlayerDashboard"), icon: Home },
-          { title: "👤 Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserCircle },
-        { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
-        { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
-        { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
-
-        { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-          { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-          { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
-        { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
-        { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-        { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
-        { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-        { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
-      ];
+        navigationItems = playerNavigationItems;
     } else {
       // Usuario normal de familia (padre/madre sin roles especiales)
       navigationItems = parentNavigationItems;
