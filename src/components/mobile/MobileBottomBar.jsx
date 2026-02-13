@@ -40,10 +40,11 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
     ];
   } else if (isTreasurer) {
+    const treasurerChatBadge = familyTotal + (chatBadges?.staffCount || 0);
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('TreasurerDashboard'), key: 'home' },
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('Payments'), key: 'payments' },
-      { icon: MessageCircle, label: 'Chat', url: createPageUrl('StaffChat'), key: 'chat', badge: chatBadges?.staffCount },
+      { icon: MessageCircle, label: 'Chat', url: createPageUrl('FamilyChatsHub'), key: 'chat', badge: treasurerChatBadge },
       { icon: Users, label: 'Socios', url: createPageUrl('ClubMembersManagement'), key: 'members' },
     ];
   } else if (isPlayer) {
