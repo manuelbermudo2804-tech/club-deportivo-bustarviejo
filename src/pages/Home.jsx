@@ -191,32 +191,9 @@ export default function Home() {
 
   const userButtonConfig = buttonConfigs[0];
 
-  // Staff conversation (para badge de no leídos en "Staff")
-  const { data: staffConversationHome } = useQuery({
-    queryKey: ['staffConversationHome'],
-    queryFn: async () => {
-      const convs = await base44.entities.StaffConversation.filter({ categoria: 'General' });
-      return convs[0] || null;
-    },
-    staleTime: 5000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchInterval: 10000,
-    enabled: queriesEnabled && isAdmin,
-  });
-
-  const { data: staffMessagesHome = [] } = useQuery({
-    queryKey: ['staffMessagesHome', staffConversationHome?.id],
-    queryFn: async () => {
-      if (!staffConversationHome?.id) return [];
-      return await base44.entities.StaffMessage.filter({ conversacion_id: staffConversationHome.id }, 'created_date');
-    },
-    staleTime: 5000,
-    refetchOnWindowFocus: true, // ✅ Actualizar SIEMPRE al volver
-    refetchOnMount: true,
-    refetchInterval: 10000,
-    enabled: queriesEnabled && !!staffConversationHome?.id,
-  });
+  // Staff conversation badge - eliminado polling agresivo (10s), ahora usa staleTime largo
+  // Los contadores de chat se gestionan desde ChatUnreadProvider en el Layout
+  const staffMessagesHome = [];
 
   const saveButtonConfigMutation = useMutation({
     mutationFn: async (selectedButtonIds) => {
