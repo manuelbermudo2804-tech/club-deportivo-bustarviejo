@@ -41,7 +41,9 @@ export default function PendingTasksBar({ notifications, forceShow = false }) {
   return (
     <div className="sticky top-[100px] lg:top-0 z-30 bg-gradient-to-r from-green-600 to-green-700 border-b border-green-700/50 text-white">
       <div className="max-w-6xl mx-auto px-3 py-2 flex flex-wrap gap-2 items-center">
-        <span className="text-sm font-semibold mr-2">Tareas pendientes</span>
+        <span className="text-sm font-semibold mr-2">
+          {notifications?.isPlayer ? 'Mis tareas' : 'Tareas pendientes'}
+        </span>
         <Chip
           label="Coord."
           count={coordTotal}

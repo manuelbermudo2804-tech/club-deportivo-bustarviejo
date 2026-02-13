@@ -25,6 +25,7 @@ import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSucc
 import ContactCard from "../components/ContactCard";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
 import ShareFormButton from "../components/players/ShareFormButton";
+import SocialLinks from "../components/SocialLinks";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -52,41 +53,52 @@ export default function PlayerDashboard() {
     fetchUser();
   }, []);
 
-  // Obtener ficha del jugador vinculada
-  const { data: player, isLoading: loadingPlayer, error: playerError } = useQuery({
+  // Obtener ficha del jugador vinculada - OPTIMIZADO
+  const { data: player, isLoading: loadingPlayer, isFetched: playerFetched } = useQuery({
     queryKey: ['myPlayerProfile', user?.player_id, user?.email],
     queryFn: async () => {
       if (!user) return null;
-      try {
-        const conditions = [];
-        if (user.player_id) conditions.push({ id: user.player_id });
-        conditions.push({ email_jugador: user.email }, { email_padre: user.email }, { email_tutor_2: user.email });
-        const candidates = await base44.entities.Player.filter({ $or: conditions }, '-updated_date', 1);
-        const found = candidates?.[0] || null;
-        if (found && !user.player_id) { await base44.auth.updateMe({ player_id: found.id }); }
-        return found;
-      } catch (_) { return null; }
+      // Fast path: si ya tenemos player_id, buscar directamente
+      if (user.player_id) {
+        try {
+          const byId = await base44.entities.Player.filter({ id: user.player_id }, '-updated_date', 1);
+          if (byId?.[0]) return byId[0];
+        } catch {}
+      }
+      // Fallback: buscar por email
+      const candidates = await base44.entities.Player.filter({ 
+        $or: [
+          { email_jugador: user.email }, 
+          { email_padre: user.email }, 
+          { email_tutor_2: user.email }
+        ] 
+      }, '-updated_date', 1);
+      const found = candidates?.[0] || null;
+      if (found && !user.player_id) { 
+        base44.auth.updateMe({ player_id: found.id }).catch(() => {}); 
+      }
+      return found;
     },
     enabled: !!user,
     retry: 1,
-    staleTime: 30000, // 30 segundos
+    staleTime: 60000,
+    gcTime: 5 * 60000,
   });
 
+  // Mostrar "Crear perfil" solo cuando la query ya terminó y no encontró nada
   useEffect(() => {
-    if (loadingPlayer) { setAllowCreatePrompt(false); return; }
-    if (!player) {
-      const t = setTimeout(() => setAllowCreatePrompt(true), 3000);
-      return () => clearTimeout(t);
+    if (playerFetched && !player) {
+      setAllowCreatePrompt(true);
     } else {
       setAllowCreatePrompt(false);
     }
-  }, [loadingPlayer, player]);
-  // Convocatorias del jugador
+  }, [playerFetched, player]);
+  // Convocatorias del jugador - OPTIMIZADO: menos datos
   const { data: callups } = useQuery({
     queryKey: ['playerCallups', player?.id],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      const convs = await base44.entities.Convocatoria.filter({ publicada: true, cerrada: false }, '-fecha_partido', 30);
+      const convs = await base44.entities.Convocatoria.filter({ publicada: true, cerrada: false }, '-fecha_partido', 10);
       return convs
         .filter(c => c.fecha_partido >= today && c.jugadores_convocados?.some(j => j.jugador_id === player?.id))
         .slice(0, 5);
@@ -113,15 +125,15 @@ export default function PlayerDashboard() {
     initialData: [],
   });
 
-  // Asistencias para logros
+  // Asistencias para logros - LAZY: solo cargar las últimas 20
   const { data: attendances } = useQuery({
     queryKey: ['playerAttendances', player?.deporte],
     queryFn: async () => {
       if (!player?.deporte) return [];
-      return await base44.entities.Attendance.filter({ categoria: player?.deporte }, '-fecha', 100);
+      return await base44.entities.Attendance.filter({ categoria: player?.deporte }, '-fecha', 20);
     },
     enabled: !!player?.deporte,
-    staleTime: 300000,
+    staleTime: 600000,
     refetchOnWindowFocus: false,
     initialData: [],
   });
@@ -147,80 +159,29 @@ export default function PlayerDashboard() {
       const configs = await base44.entities.SeasonConfig.filter({ activa: true });
       return configs?.[0] || null;
     },
+    staleTime: 300000,
     initialData: null,
   });
 
-  // Configuración de categorías
+  // Configuración de categorías - solo si se necesita crear perfil
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs'],
     queryFn: () => base44.entities.CategoryConfig.list(),
-    staleTime: 300000,
+    staleTime: 600000,
+    enabled: showCreateProfile || showPaymentFlow,
   });
 
-  // Conversación con admin (si existe - para AlertCenter)
-  const { data: adminConversation } = useQuery({
-    queryKey: ['playerAdminConversation', user?.email],
-    queryFn: async () => {
-      const convs = await base44.entities.AdminConversation.filter({ 
-        padre_email: user?.email,
-        resuelta: false
-      });
-      return convs[0] || null;
-    },
-    enabled: !!user?.email,
-  });
-
-  // Anuncios importantes
-  const { data: announcements } = useQuery({
-    queryKey: ['playerAnnouncements', player?.deporte],
-    queryFn: async () => {
-      const all = await base44.entities.Announcement.list('-created_date', 30);
-      const today = new Date().toISOString().split('T')[0];
-      return all.filter(a => 
-        a.publicado && 
-        (!a.fecha_expiracion || a.fecha_expiracion >= today) &&
-        (a.destinatarios_tipo === "Todos" || a.destinatarios_tipo === player?.deporte)
-      ).slice(0, 3);
-    },
-    enabled: !!player,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-    initialData: [],
-  });
-
-  // Compañeros de equipo
-  const { data: teammates = [] } = useQuery({
-    queryKey: ['teammates', player?.deporte],
-    queryFn: async () => {
-      const mates = await base44.entities.Player.filter({ deporte: player?.deporte, activo: true }, '-created_date', 60);
-      return mates.filter(p => p.id !== player?.id).slice(0, 12);
-    },
-    enabled: !!player?.deporte,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-    initialData: [],
-  });
+  // Compañeros de equipo - DESACTIVADO para mejorar rendimiento (no se usa en la UI)
+  const teammates = [];
 
   // Pedidos de ropa del jugador
   const { data: clothingOrders = [] } = useQuery({
     queryKey: ['playerClothingOrders', player?.id],
     queryFn: async () => {
-      return await base44.entities.ClothingOrder.filter({ jugador_id: player?.id }, '-created_date', 20);
+      return await base44.entities.ClothingOrder.filter({ jugador_id: player?.id }, '-created_date', 5);
     },
     enabled: !!player?.id,
-    staleTime: 300000,
-    refetchOnWindowFocus: false,
-    initialData: [],
-  });
-
-  // Evaluaciones del jugador
-  const { data: evaluations = [] } = useQuery({
-    queryKey: ['playerEvaluations', player?.id],
-    queryFn: async () => {
-      return await base44.entities.PlayerEvaluation.filter({ jugador_id: player?.id }, '-fecha_evaluacion', 20);
-    },
-    enabled: !!player?.id,
-    staleTime: 300000,
+    staleTime: 600000,
     refetchOnWindowFocus: false,
     initialData: [],
   });
@@ -503,6 +464,7 @@ export default function PlayerDashboard() {
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
+            <SocialLinks />
             <Link to={createPageUrl("Chatbot")}>
               <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800">
                 <Sparkles className="w-4 h-4 mr-1" />
@@ -526,7 +488,7 @@ export default function PlayerDashboard() {
           pendingPayments={pagosPendientesNoVencidos}
           paymentsInReview={pagosEnRevisionNoVencidos}
           overduePayments={overduePaymentsCount}
-          hasActiveAdminChat={!!adminConversation}
+          hasActiveAdminChat={false}
           isParent={true}
           userEmail={user?.email}
           userSports={player?.deporte ? [player.deporte] : []}
