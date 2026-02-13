@@ -7,37 +7,171 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { Send, Mail, MessageCircle, Bell, Loader2, Copy } from "lucide-react";
+import { Send, Mail, Bell, Loader2, Sparkles, Calendar, Clock, MapPin, ChevronDown } from "lucide-react";
 
 const SYSTEM_EMAIL = "sistema@cdbustarviejo.com";
 const SYSTEM_NAME = "Voluntariado CD Bustarviejo";
 
+const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+
+const PLANTILLAS = [
+  {
+    emoji: "🍺",
+    nombre: "Barra en partido",
+    asunto: "🍺 ¡Necesitamos ayuda en la barra!",
+    mensaje: "¡Hola voluntarios! 👋\n\nEl próximo {fecha} a las {hora} somos sede de partido y necesitamos gente para la barra del campo.\n\n🏟️ Lugar: {lugar}\n📅 Fecha: {fecha}\n⏰ Hora de llegada: {hora}\n\nLas tareas son sencillas: preparar bocadillos, servir bebidas y recoger al final.\n\n¡Cualquier ayuda es bienvenida! Si puedes venir aunque sea un rato, nos viene genial. 💪\n\n¡Gracias de corazón!",
+  },
+  {
+    emoji: "🏆",
+    nombre: "Torneo / Jornada especial",
+    asunto: "🏆 ¡Torneo en casa! Necesitamos voluntarios",
+    mensaje: "¡Hola a todos! 🎉\n\nTenemos un torneo/jornada especial el {fecha} y necesitamos toda la ayuda posible.\n\n🏟️ Lugar: {lugar}\n📅 Fecha: {fecha}\n⏰ Hora: {hora}\n\n🔹 Barra y cocina\n🔹 Organización y logística\n🔹 Montaje y desmontaje\n🔹 Acompañamiento de equipos\n\nVa a ser un día genial para el club. ¡Cuantos más seamos, mejor saldrá todo!\n\n¿Te animas? 🙌",
+  },
+  {
+    emoji: "🎉",
+    nombre: "Fiesta / Evento social",
+    asunto: "🎉 ¡Evento del club! ¿Nos echas una mano?",
+    mensaje: "¡Hola familia! 🎊\n\nEstamos organizando un evento especial del club el {fecha} y necesitamos voluntarios para que salga redondo.\n\n📍 Lugar: {lugar}\n📅 Fecha: {fecha}\n⏰ Hora: {hora}\n\nNecesitamos ayuda con:\n🔹 Preparación del espacio\n🔹 Atención a los asistentes\n🔹 Barra / comida\n🔹 Recogida al final\n\n¡Va a ser un planazo! ¿Te apuntas? 😊",
+  },
+  {
+    emoji: "🚛",
+    nombre: "Logística / Transporte",
+    asunto: "🚛 Necesitamos ayuda con transporte",
+    mensaje: "¡Hola! 👋\n\nEl {fecha} necesitamos ayuda con el transporte y la logística para un desplazamiento.\n\n📍 Destino: {lugar}\n📅 Fecha: {fecha}\n⏰ Hora de salida: {hora}\n\nSi tienes coche y puedes llevar a algunos jugadores, nos vendría genial. También necesitamos ayuda para cargar/descargar material.\n\n¡Gracias por vuestro apoyo! 🙏",
+  },
+  {
+    emoji: "📸",
+    nombre: "Fotografía / Vídeo",
+    asunto: "📸 ¿Puedes hacer fotos en el próximo evento?",
+    mensaje: "¡Hola! 📷\n\nEl {fecha} tenemos un evento importante y nos encantaría tener fotos y/o vídeos para recordarlo.\n\n📍 Lugar: {lugar}\n📅 Fecha: {fecha}\n⏰ Hora: {hora}\n\nSi te gusta la fotografía o simplemente puedes sacar unas fotos con el móvil, ¡nos ayudaría mucho!\n\nLas fotos se compartirán en la galería del club. 🖼️\n\n¡Gracias!",
+  },
+  {
+    emoji: "🔧",
+    nombre: "Mantenimiento / Montaje",
+    asunto: "🔧 Jornada de mantenimiento del campo",
+    mensaje: "¡Hola voluntarios! 🛠️\n\nVamos a organizar una jornada de mantenimiento y mejoras en las instalaciones el {fecha}.\n\n📍 Lugar: {lugar}\n📅 Fecha: {fecha}\n⏰ Hora: {hora}\n\nTareas previstas:\n🔹 Limpieza general\n🔹 Pequeñas reparaciones\n🔹 Pintura / acondicionamiento\n🔹 Preparación de vestuarios\n\n¡Entre todos lo dejamos como nuevo! 💪\n\n¿Puedes venir?",
+  },
+];
+
+function buildEmailHtml(asunto, mensaje, fecha, hora, lugar) {
+  const mensajeHtml = mensaje.replace(/\n/g, '<br/>');
+  return `
+<div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:20px">
+  <div style="background:linear-gradient(135deg,#166534,#15803d,#22c55e);padding:32px 24px;border-radius:16px 16px 0 0;text-align:center">
+    <img src="${CLUB_LOGO}" alt="CD Bustarviejo" style="width:64px;height:64px;border-radius:12px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);object-fit:cover"/>
+    <h1 style="color:white;margin:0;font-size:22px;font-weight:800;letter-spacing:-0.5px">${asunto}</h1>
+    <p style="color:#bbf7d0;margin:8px 0 0;font-size:13px">CD Bustarviejo · Voluntariado</p>
+  </div>
+  <div style="background:white;padding:28px 24px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0">
+    ${(fecha || hora || lugar) ? `
+    <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:2px solid #86efac;border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        ${fecha ? `<div style="flex:1;min-width:140px"><span style="color:#166534;font-weight:700;font-size:13px">📅 Fecha</span><br/><span style="color:#15803d;font-size:15px;font-weight:600">${fecha}</span></div>` : ''}
+        ${hora ? `<div style="flex:1;min-width:140px"><span style="color:#166534;font-weight:700;font-size:13px">⏰ Hora</span><br/><span style="color:#15803d;font-size:15px;font-weight:600">${hora}</span></div>` : ''}
+        ${lugar ? `<div style="flex:1;min-width:140px"><span style="color:#166534;font-weight:700;font-size:13px">📍 Lugar</span><br/><span style="color:#15803d;font-size:15px;font-weight:600">${lugar}</span></div>` : ''}
+      </div>
+    </div>` : ''}
+    <div style="color:#334155;line-height:1.7;font-size:15px">${mensajeHtml}</div>
+  </div>
+  <div style="background:#f1f5f9;padding:20px 24px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;border-top:none;text-align:center">
+    <p style="color:#64748b;font-size:12px;margin:0">🤝 Gracias por ser parte del voluntariado del club</p>
+    <p style="color:#94a3b8;font-size:11px;margin:6px 0 0">CD Bustarviejo · <a href="https://app.cdbustarviejo.com" style="color:#16a34a;text-decoration:none">app.cdbustarviejo.com</a></p>
+  </div>
+</div>`;
+}
+
 export default function ConvocarVoluntariosDialog({ open, onOpenChange, volunteers, senderUser }) {
-  const [asunto, setAsunto] = useState("Voluntariado CD Bustarviejo");
+  const [asunto, setAsunto] = useState("🤝 Voluntariado CD Bustarviejo");
   const [mensaje, setMensaje] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [hora, setHora] = useState("");
+  const [lugar, setLugar] = useState("Campo de Fútbol de Bustarviejo");
   const [viaApp, setViaApp] = useState(true);
   const [viaEmail, setViaEmail] = useState(true);
-  const [viaWhatsapp, setViaWhatsapp] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const [whatsappCopied, setWhatsappCopied] = useState(false);
+  const [showPlantillas, setShowPlantillas] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const activeVolunteers = (volunteers || []).filter(v => v.activo !== false);
   const emails = [...new Set(activeVolunteers.map(v => v.email).filter(Boolean))];
-  const phones = activeVolunteers.filter(v => v.telefono).map(v => ({ nombre: v.nombre, telefono: v.telefono }));
+
+  const applyPlantilla = (plantilla) => {
+    let msg = plantilla.mensaje;
+    if (fecha) msg = msg.replace(/\{fecha\}/g, fecha);
+    if (hora) msg = msg.replace(/\{hora\}/g, hora);
+    if (lugar) msg = msg.replace(/\{lugar\}/g, lugar);
+    // Si no hay fecha/hora/lugar aún, dejar los placeholders visibles para que el usuario los rellene
+    setAsunto(plantilla.asunto);
+    setMensaje(msg);
+    setShowPlantillas(false);
+  };
+
+  const generateWithAI = async () => {
+    if (!fecha && !hora) {
+      toast.error("Indica al menos la fecha o la hora para generar un mensaje");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Genera un mensaje corto, cercano y motivador para convocar voluntarios de un club de fútbol (CD Bustarviejo).
+Datos del evento:
+- Fecha: ${fecha || "por determinar"}
+- Hora: ${hora || "por determinar"}
+- Lugar: ${lugar || "Campo de Fútbol de Bustarviejo"}
+- Contexto adicional del usuario: "${mensaje || "necesitamos voluntarios"}"
+
+El mensaje debe:
+- Ser informal y cercano (tú, no usted)
+- Incluir emojis pero sin pasarse
+- Mencionar claramente la fecha, hora y lugar
+- Ser breve (máximo 8-10 líneas)
+- Terminar con una frase motivadora
+- Estar en español de España
+
+Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            asunto: { type: "string", description: "Asunto corto con emoji" },
+            mensaje: { type: "string", description: "Mensaje completo" }
+          }
+        }
+      });
+      if (result.asunto) setAsunto(result.asunto);
+      if (result.mensaje) setMensaje(result.mensaje);
+      toast.success("✨ Mensaje generado con IA");
+    } catch (e) {
+      console.error("Error IA:", e);
+      toast.error("Error al generar con IA");
+    }
+    setAiLoading(false);
+  };
+
+  const replacePlaceholders = (text) => {
+    let result = text;
+    if (fecha) result = result.replace(/\{fecha\}/g, fecha);
+    else result = result.replace(/\{fecha\}/g, "___");
+    if (hora) result = result.replace(/\{hora\}/g, hora);
+    else result = result.replace(/\{hora\}/g, "___");
+    if (lugar) result = result.replace(/\{lugar\}/g, lugar);
+    else result = result.replace(/\{lugar\}/g, "___");
+    return result;
+  };
 
   const handleSend = async () => {
-    if (!mensaje.trim()) { toast.error("Escribe un mensaje"); return; }
+    const finalMsg = replacePlaceholders(mensaje);
+    if (!finalMsg.trim()) { toast.error("Escribe un mensaje"); return; }
     setSending(true);
 
     let successCount = 0;
 
-    // 1. Mensaje en la app → PrivateConversation + PrivateMessage (Mensajes del Club)
+    // 1. Mensaje en la app (Mensajes del Club)
     if (viaApp) {
       let appOk = 0;
       for (const email of emails) {
         try {
-          // Buscar conversación existente con este padre desde sistema
           const existingConvs = await base44.entities.PrivateConversation.filter({
             participante_familia_email: email,
             participante_staff_email: SYSTEM_EMAIL
@@ -48,14 +182,12 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
           
           if (existingConvs.length > 0) {
             convId = existingConvs[0].id;
-            // Actualizar último mensaje
             await base44.entities.PrivateConversation.update(convId, {
-              ultimo_mensaje: mensaje.substring(0, 200),
+              ultimo_mensaje: finalMsg.substring(0, 200),
               ultimo_mensaje_fecha: new Date().toISOString(),
               ultimo_mensaje_de: "staff"
             });
           } else {
-            // Crear nueva conversación
             const newConv = await base44.entities.PrivateConversation.create({
               participante_familia_email: email,
               participante_familia_nombre: volunteer?.nombre || email,
@@ -63,20 +195,19 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
               participante_staff_nombre: SYSTEM_NAME,
               participante_staff_rol: "admin",
               categoria: "General",
-              ultimo_mensaje: mensaje.substring(0, 200),
+              ultimo_mensaje: finalMsg.substring(0, 200),
               ultimo_mensaje_fecha: new Date().toISOString(),
               ultimo_mensaje_de: "staff"
             });
             convId = newConv.id;
           }
 
-          // Crear mensaje
           await base44.entities.PrivateMessage.create({
             conversacion_id: convId,
             remitente_email: SYSTEM_EMAIL,
             remitente_nombre: SYSTEM_NAME,
             remitente_tipo: "staff",
-            mensaje: `🤝 ${asunto || "Voluntariado"}\n\n${mensaje}`,
+            mensaje: `🤝 ${asunto}\n\n${finalMsg}`,
             leido: false
           });
           appOk++;
@@ -88,24 +219,16 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
       }
     }
 
-    // 2. Email masivo vía Resend (función backend sendEmail)
+    // 2. Email vía Resend
     if (viaEmail) {
       let emailOk = 0;
+      const html = buildEmailHtml(asunto, finalMsg, fecha, hora, lugar);
       for (const email of emails) {
         try {
           await base44.functions.invoke('sendEmail', {
             to: email,
-            subject: asunto || "🤝 Voluntariado CD Bustarviejo",
-            html: `<div style="font-family:system-ui;max-width:600px;margin:0 auto">
-              <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:20px;border-radius:12px 12px 0 0;text-align:center">
-                <h2 style="color:white;margin:0">🤝 Voluntariado CD Bustarviejo</h2>
-              </div>
-              <div style="background:white;padding:24px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px">
-                <p style="white-space:pre-wrap;color:#334155;line-height:1.6">${mensaje}</p>
-                <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0"/>
-                <p style="color:#94a3b8;font-size:13px;text-align:center">CD Bustarviejo · Voluntariado</p>
-              </div>
-            </div>`
+            subject: asunto,
+            html
           });
           emailOk++;
         } catch (e) { console.error("Error email:", email, e); }
@@ -116,25 +239,6 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
       }
     }
 
-    // 3. WhatsApp: copiar TODOS los enlaces al portapapeles de una vez
-    if (viaWhatsapp && phones.length > 0) {
-      const encodedMsg = encodeURIComponent(mensaje);
-      const phoneList = phones.map(p => {
-        const clean = p.telefono.replace(/\D/g, "");
-        const intl = clean.startsWith("34") ? clean : `34${clean}`;
-        return `${p.nombre}: https://wa.me/${intl}?text=${encodedMsg}`;
-      }).join("\n\n");
-      
-      try {
-        await navigator.clipboard.writeText(phoneList);
-        setWhatsappCopied(true);
-        toast.success(`💬 ${phones.length} enlaces WhatsApp copiados. Pégalos donde quieras.`);
-        successCount++;
-      } catch {
-        toast.error("No se pudo copiar al portapapeles");
-      }
-    }
-
     setSending(false);
     if (successCount > 0) setSent(true);
   };
@@ -142,6 +246,9 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
   const reset = () => {
     setSent(false);
     setMensaje("");
+    setFecha("");
+    setHora("");
+    setShowPlantillas(false);
     onOpenChange(false);
   };
 
@@ -152,7 +259,8 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
           <div className="text-6xl">✅</div>
           <h3 className="text-xl font-bold">¡Convocatoria enviada!</h3>
           <p className="text-slate-600 text-sm">
-            Se ha contactado con {activeVolunteers.length} voluntarios por las vías seleccionadas.
+            Se ha contactado con {activeVolunteers.length} voluntarios
+            {viaApp && viaEmail ? " por la app y por email" : viaApp ? " por la app" : " por email"}.
           </p>
           <Button onClick={reset} className="w-full bg-green-600 hover:bg-green-700">Cerrar</Button>
         </DialogContent>
@@ -177,14 +285,77 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
               👥 {activeVolunteers.length} voluntarios seleccionados
             </p>
             <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
-              {activeVolunteers.slice(0, 15).map(v => (
+              {activeVolunteers.slice(0, 10).map(v => (
                 <Badge key={v.id} variant="secondary" className="text-xs">{v.nombre}</Badge>
               ))}
-              {activeVolunteers.length > 15 && (
-                <Badge variant="outline" className="text-xs">+{activeVolunteers.length - 15} más</Badge>
+              {activeVolunteers.length > 10 && (
+                <Badge variant="outline" className="text-xs">+{activeVolunteers.length - 10} más</Badge>
               )}
             </div>
           </div>
+
+          {/* Fecha, Hora, Lugar */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600 mb-1 flex items-center gap-1">
+                <Calendar className="w-3 h-3" /> Fecha
+              </label>
+              <Input type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600 mb-1 flex items-center gap-1">
+                <Clock className="w-3 h-3" /> Hora
+              </label>
+              <Input type="time" value={hora} onChange={e => setHora(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 flex items-center gap-1">
+              <MapPin className="w-3 h-3" /> Lugar
+            </label>
+            <Input value={lugar} onChange={e => setLugar(e.target.value)} placeholder="Campo de Fútbol de Bustarviejo" />
+          </div>
+
+          {/* Plantillas rápidas */}
+          <div>
+            <button
+              onClick={() => setShowPlantillas(!showPlantillas)}
+              className="w-full flex items-center justify-between p-3 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors border border-purple-200"
+            >
+              <span className="text-sm font-medium text-purple-800 flex items-center gap-2">
+                ✨ Mensajes precargados
+              </span>
+              <ChevronDown className={`w-4 h-4 text-purple-600 transition-transform ${showPlantillas ? 'rotate-180' : ''}`} />
+            </button>
+            {showPlantillas && (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {PLANTILLAS.map((p, i) => (
+                  <button
+                    key={i}
+                    onClick={() => applyPlantilla(p)}
+                    className="p-3 bg-white border-2 border-slate-200 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all text-left"
+                  >
+                    <span className="text-xl block mb-1">{p.emoji}</span>
+                    <span className="text-xs font-medium text-slate-700">{p.nombre}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Botón IA */}
+          <Button
+            onClick={generateWithAI}
+            disabled={aiLoading}
+            variant="outline"
+            className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+          >
+            {aiLoading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generando con IA...</>
+            ) : (
+              <><Sparkles className="w-4 h-4 mr-2" /> Generar mensaje con IA</>
+            )}
+          </Button>
 
           {/* Asunto */}
           <div>
@@ -198,10 +369,15 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
             <Textarea
               value={mensaje}
               onChange={e => setMensaje(e.target.value)}
-              placeholder="Ej: Mañana somos sede y necesitamos abrir el bar a las 9h. ¿Puedes venir?"
-              rows={4}
+              placeholder="Escribe tu mensaje o usa una plantilla de arriba..."
+              rows={6}
               className="resize-none"
             />
+            {mensaje && (mensaje.includes('{fecha}') || mensaje.includes('{hora}') || mensaje.includes('{lugar}')) && (
+              <p className="text-xs text-amber-600 mt-1">
+                💡 Los campos {'{fecha}'}, {'{hora}'} y {'{lugar}'} se reemplazarán automáticamente al enviar
+              </p>
+            )}
           </div>
 
           {/* Vías de contacto */}
@@ -213,26 +389,17 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
                 <Bell className="w-5 h-5 text-blue-600" />
                 <div className="flex-1">
                   <span className="font-medium text-sm">Mensaje en la app</span>
-                  <p className="text-xs text-slate-500">Les llega a "Mensajes del Club" (chat privado)</p>
+                  <p className="text-xs text-slate-500">Les llega a "Mensajes del Club"</p>
                 </div>
                 <Badge className="bg-blue-100 text-blue-700 text-[10px]">Recomendado</Badge>
               </label>
 
-              <label className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl cursor-pointer hover:bg-orange-100 transition-colors">
+              <label className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl cursor-pointer hover:bg-orange-100 transition-colors border-2 border-orange-200">
                 <Checkbox checked={viaEmail} onCheckedChange={setViaEmail} />
                 <Mail className="w-5 h-5 text-orange-600" />
                 <div className="flex-1">
                   <span className="font-medium text-sm">Email</span>
-                  <p className="text-xs text-slate-500">Correo vía Resend a {emails.length} direcciones</p>
-                </div>
-              </label>
-
-              <label className="flex items-center gap-3 p-3 bg-green-50 rounded-xl cursor-pointer hover:bg-green-100 transition-colors">
-                <Checkbox checked={viaWhatsapp} onCheckedChange={setViaWhatsapp} />
-                <MessageCircle className="w-5 h-5 text-green-600" />
-                <div className="flex-1">
-                  <span className="font-medium text-sm">WhatsApp</span>
-                  <p className="text-xs text-slate-500">Copia {phones.length} enlaces al portapapeles (tú los pegas donde quieras)</p>
+                  <p className="text-xs text-slate-500">Correo bonito a {emails.length} direcciones</p>
                 </div>
               </label>
             </div>
@@ -240,7 +407,7 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
 
           <Button
             onClick={handleSend}
-            disabled={sending || !mensaje.trim() || (!viaApp && !viaEmail && !viaWhatsapp)}
+            disabled={sending || !mensaje.trim() || (!viaApp && !viaEmail)}
             className="w-full bg-green-600 hover:bg-green-700 py-6 text-base font-bold"
           >
             {sending ? (
