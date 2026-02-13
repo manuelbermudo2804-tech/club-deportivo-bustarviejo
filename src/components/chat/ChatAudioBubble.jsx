@@ -1,5 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Play, Pause } from "lucide-react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { Play, Pause, Mic } from "lucide-react";
+
+// Genera una forma de onda falsa pero consistente por URL
+function generateWaveform(seed = "", bars = 28) {
+  const wave = [];
+  let h = 0.5;
+  for (let i = 0; i < bars; i++) {
+    h += (((seed.charCodeAt(i % seed.length) * (i + 1)) % 17) - 8) / 20;
+    h = Math.max(0.15, Math.min(1, h));
+    wave.push(h);
+  }
+  return wave;
+}
 
 export default function ChatAudioBubble({ url, duration, isMine = false }) {
   const audioRef = useRef(null);
@@ -7,6 +19,8 @@ export default function ChatAudioBubble({ url, duration, isMine = false }) {
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(duration || 0);
+
+  const waveform = useMemo(() => generateWaveform(url || "", 32), [url]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -19,7 +33,7 @@ export default function ChatAudioBubble({ url, duration, isMine = false }) {
         setTotalDuration(audio.duration);
       }
     };
-    const onEnd = () => { setPlaying(false); setProgress(0); setCurrentTime(0); };
+    const onEnd = () => { setPlaying(false); setProgress(100); };
     const onLoaded = () => { if (audio.duration && isFinite(audio.duration)) setTotalDuration(audio.duration); };
 
     audio.addEventListener("timeupdate", onTime);
@@ -35,7 +49,12 @@ export default function ChatAudioBubble({ url, duration, isMine = false }) {
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (playing) { audio.pause(); } else { audio.play(); }
+    if (playing) {
+      audio.pause();
+    } else {
+      if (progress >= 100) { audio.currentTime = 0; setProgress(0); }
+      audio.play();
+    }
     setPlaying(!playing);
   };
 
@@ -54,47 +73,52 @@ export default function ChatAudioBubble({ url, duration, isMine = false }) {
     return `${m}:${sec < 10 ? '0' : ''}${sec}`;
   };
 
-  const barColor = isMine ? "bg-white/40" : "bg-slate-300";
-  const fillColor = isMine ? "bg-white" : "bg-green-500";
-  const btnBg = isMine ? "bg-white/20 hover:bg-white/30" : "bg-green-500 hover:bg-green-600";
-  const btnIcon = isMine ? "text-white" : "text-white";
-  const textColor = isMine ? "text-white/80" : "text-slate-500";
+  // Colores estilo WhatsApp real
+  const playBtnBg = isMine ? "bg-[#075E54]" : "bg-[#00A884]";
+  const barActive = isMine ? "#075E54" : "#00A884";
+  const barInactive = isMine ? "rgba(7,94,84,0.3)" : "rgba(0,168,132,0.3)";
+  const timeColor = isMine ? "text-[#075E54]/70" : "text-slate-500";
 
   return (
-    <div className="flex items-center gap-2 min-w-[200px] max-w-[280px] py-1">
+    <div className="flex items-center gap-2.5 min-w-[220px] max-w-[280px] py-1">
       <audio ref={audioRef} src={url} preload="metadata" />
 
-      {/* Play/Pause Button */}
+      {/* Play/Pause — círculo sólido de color */}
       <button
         onClick={togglePlay}
-        className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${btnBg} transition-colors`}
+        className={`w-10 h-10 ${playBtnBg} rounded-full flex items-center justify-center flex-shrink-0 shadow-sm active:scale-95 transition-transform`}
       >
         {playing ? (
-          <Pause className={`w-4 h-4 ${btnIcon}`} fill="currentColor" />
+          <Pause className="w-4 h-4 text-white" fill="white" />
         ) : (
-          <Play className={`w-4 h-4 ${btnIcon} ml-0.5`} fill="currentColor" />
+          <Play className="w-4 h-4 text-white ml-0.5" fill="white" />
         )}
       </button>
 
-      {/* Waveform / Progress */}
-      <div className="flex-1 flex flex-col gap-1">
-        <div
-          className={`h-[6px] ${barColor} rounded-full cursor-pointer relative overflow-hidden`}
-          onClick={seek}
-        >
-          <div
-            className={`h-full ${fillColor} rounded-full transition-all duration-100`}
-            style={{ width: `${progress}%` }}
-          />
-          {/* Thumb */}
-          <div
-            className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 ${fillColor} rounded-full shadow-md transition-all duration-100`}
-            style={{ left: `calc(${progress}% - 6px)` }}
-          />
+      {/* Waveform + time */}
+      <div className="flex-1 flex flex-col gap-1.5">
+        {/* Barras de onda */}
+        <div className="flex items-end gap-[2px] h-[24px] cursor-pointer" onClick={seek}>
+          {waveform.map((h, i) => {
+            const barPct = ((i + 1) / waveform.length) * 100;
+            const isPlayed = barPct <= progress;
+            return (
+              <div
+                key={i}
+                className="flex-1 rounded-full min-w-[2px] transition-colors duration-75"
+                style={{
+                  height: `${Math.max(4, h * 22)}px`,
+                  backgroundColor: isPlayed ? barActive : barInactive,
+                }}
+              />
+            );
+          })}
         </div>
-        <div className={`flex justify-between text-[10px] ${textColor}`}>
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(totalDuration)}</span>
+
+        {/* Duración */}
+        <div className={`flex items-center gap-1.5 text-[10px] ${timeColor}`}>
+          <span>{playing || currentTime > 0 ? formatTime(currentTime) : formatTime(totalDuration)}</span>
+          <Mic className="w-2.5 h-2.5 opacity-50" />
         </div>
       </div>
     </div>
