@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileSignature, ExternalLink, CheckCircle2, Clock, AlertCircle, User, Search, Save, Loader2, Mail, Filter } from "lucide-react";
+import { FileSignature, ExternalLink, CheckCircle2, Clock, AlertCircle, User, Search, Save, Loader2, Mail, Filter, Send } from "lucide-react";
 import { toast } from "sonner";
 
 export default function FederationSignaturesAdmin() {
@@ -314,9 +314,14 @@ export default function FederationSignaturesAdmin() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-semibold text-slate-900 truncate">{player.nombre}</p>
-                        <p className="text-xs text-slate-500 truncate">{player.deporte}</p>
-                        <p className="text-xs text-slate-400 truncate">{player.email_padre}</p>
+                       <p className="font-semibold text-slate-900 truncate">{player.nombre}</p>
+                       <p className="text-xs text-slate-500 truncate">{player.deporte}</p>
+                       <p className="text-xs text-slate-400 truncate">{player.email_padre}</p>
+                       {status === "pendiente" && player.updated_date && (
+                         <p className="text-[10px] text-orange-600 font-medium mt-0.5">
+                           ⏳ {Math.floor((new Date() - new Date(player.updated_date)) / (1000 * 60 * 60 * 24))} días pendiente
+                         </p>
+                       )}
                       </div>
                     </div>
 
@@ -440,13 +445,52 @@ export default function FederationSignaturesAdmin() {
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          onClick={() => handleStartEdit(player)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          {status === "sin_enlaces" ? "Añadir enlaces" : "Editar"}
-                        </Button>
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            onClick={() => handleStartEdit(player)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            {status === "sin_enlaces" ? "Añadir enlaces" : "Editar"}
+                          </Button>
+                          {status === "pendiente" && player.email_padre && (
+                            <Button
+                              onClick={async () => {
+                                try {
+                                  const pendientes = [];
+                                  if (player.enlace_firma_jugador && !player.firma_jugador_completada) pendientes.push("Firma del Jugador");
+                                  if (player.enlace_firma_tutor && !player.firma_tutor_completada && !(calcularEdad(player.fecha_nacimiento) >= 18)) pendientes.push("Firma del Tutor");
+                                  await base44.functions.invoke('sendEmail', {
+                                    to: player.email_padre,
+                                    subject: `⏰ Recordatorio: Firmas pendientes - ${player.nombre}`,
+                                    html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                                      <div style="background:linear-gradient(135deg,#f59e0b,#ea580c);padding:20px;text-align:center;border-radius:10px 10px 0 0;">
+                                        <h1 style="color:white;margin:0;">🖊️ Firmas Pendientes</h1>
+                                      </div>
+                                      <div style="background:#fff;padding:30px;border:1px solid #e5e7eb;">
+                                        <p>Hola,</p>
+                                        <p>Te recordamos que <strong>${player.nombre}</strong> tiene firmas de federación <strong>pendientes</strong>:</p>
+                                        <ul>${pendientes.map(p => `<li><strong>${p}</strong></li>`).join('')}</ul>
+                                        <p>Por favor, accede a la app y completa las firmas lo antes posible.</p>
+                                        <div style="text-align:center;margin:24px 0;">
+                                          <a href="https://app.cdbustarviejo.com" style="background:#ea580c;color:#fff;padding:12px 20px;text-decoration:none;border-radius:10px;font-weight:bold;display:inline-block;">Abrir la app →</a>
+                                        </div>
+                                      </div>
+                                    </div>`
+                                  });
+                                  toast.success(`📧 Recordatorio enviado a ${player.email_padre}`);
+                                } catch (e) {
+                                  toast.error("Error al enviar recordatorio");
+                                }
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="text-orange-600 border-orange-300 hover:bg-orange-50 text-xs"
+                            >
+                              <Send className="w-3 h-3 mr-1" /> Recordar
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

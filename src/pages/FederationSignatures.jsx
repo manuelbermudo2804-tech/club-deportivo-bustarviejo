@@ -318,9 +318,14 @@ export default function FederationSignatures() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <FileSignature className={`w-5 h-5 ${firmaTutorOk ? 'text-green-600' : 'text-yellow-600'}`} />
-                  <span className="font-semibold">Firma del Padre/Tutor</span>
-                </div>
-                {firmaTutorOk ? (
+                  <span className="font-semibold">
+                   Firma del Padre/Tutor
+                   {player.nombre_tutor_legal && (
+                     <span className="font-normal text-xs text-slate-500 ml-1">({player.nombre_tutor_legal})</span>
+                   )}
+                  </span>
+                  </div>
+                  {firmaTutorOk ? (
                   <Badge className="bg-green-100 text-green-700">
                     <CheckCircle2 className="w-3 h-3 mr-1" /> Completada
                   </Badge>
