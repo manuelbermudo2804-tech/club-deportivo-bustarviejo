@@ -9,8 +9,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
   const [currentMessage, setCurrentMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [isAudioMode, setIsAudioMode] = useState(false);
-
+  const [audioExpanded, setAudioExpanded] = useState(false);
 
   const handleSend = async () => {
     if (!currentMessage.trim() && attachments.length === 0) return;
@@ -40,10 +39,6 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
     setAttachments([]);
   };
 
-  const handleFileSelect = (e) => {
-    // Dummy - las subidas se manejan desde el parent
-  };
-
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -53,8 +48,6 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
 
   return (
     <div className="border-t bg-white flex-shrink-0 p-3">
-
-
       {attachments.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {attachments.map((file, idx) => (
@@ -70,7 +63,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
       )}
 
       <div className="flex items-end gap-2">
-        {isAudioMode ? (
+        {audioExpanded ? (
           <AudioRecordButton
             onAudioSent={async ({ audio_url, audio_duracion }) => {
               onSendMessage({
@@ -82,8 +75,8 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
               setAttachments([]);
             }}
             disabled={uploading}
-            onPreviewChange={setIsAudioMode}
-            autoStart
+            expanded={true}
+            onExpandedChange={setAudioExpanded}
           />
         ) : (
           <>
@@ -136,7 +129,8 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
                   setAttachments([]);
                 }}
                 disabled={uploading}
-                onPreviewChange={setIsAudioMode}
+                expanded={false}
+                onExpandedChange={setAudioExpanded}
               />
             ) : (
               <div className="flex gap-1">

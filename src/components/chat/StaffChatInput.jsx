@@ -18,7 +18,7 @@ const StaffChatInput = memo(function StaffChatInput({
   const [localAttachments, setLocalAttachments] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
-  const [isAudioMode, setIsAudioMode] = useState(false);
+  const [audioExpanded, setAudioExpanded] = useState(false);
   const fileInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
 
@@ -101,12 +101,12 @@ const StaffChatInput = memo(function StaffChatInput({
       )}
 
       <div className="flex items-end gap-2">
-        {isAudioMode ? (
+        {audioExpanded ? (
           <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
-            onPreviewChange={setIsAudioMode}
-            autoStart
+            expanded={true}
+            onExpandedChange={setAudioExpanded}
           />
         ) : (
           <>
@@ -128,52 +128,40 @@ const StaffChatInput = memo(function StaffChatInput({
                   <div className="fixed bottom-[70px] left-1/2 -translate-x-1/2 bg-white rounded-3xl shadow-2xl p-4 z-50 border-2 border-slate-200 w-[340px]">
                     <div className="grid grid-cols-4 gap-3">
                       <button
-                        onClick={() => {
-                          fileInputRef.current?.click();
-                          setShowAttachMenu(false);
-                        }}
+                        onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }}
                         className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
                       >
                         <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center shadow-sm">
                           <Paperclip className="w-6 h-6 text-blue-600" />
                         </div>
-                        <span className="text-xs font-medium text-slate-700 leading-tight text-center">Archivos</span>
+                        <span className="text-xs font-medium text-slate-700">Archivos</span>
                       </button>
                       <button
-                        onClick={() => {
-                          cameraInputRef.current?.click();
-                          setShowAttachMenu(false);
-                        }}
+                        onClick={() => { cameraInputRef.current?.click(); setShowAttachMenu(false); }}
                         className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
                       >
                         <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center shadow-sm">
                           <Camera className="w-6 h-6 text-green-600" />
                         </div>
-                        <span className="text-xs font-medium text-slate-700 leading-tight text-center">Cámara</span>
+                        <span className="text-xs font-medium text-slate-700">Cámara</span>
                       </button>
                       <button
-                        onClick={() => {
-                          onLocationClick?.();
-                          setShowAttachMenu(false);
-                        }}
+                        onClick={() => { onLocationClick?.(); setShowAttachMenu(false); }}
                         className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
                       >
                         <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center shadow-sm">
                           <MapPin className="w-6 h-6 text-orange-600" />
                         </div>
-                        <span className="text-xs font-medium text-slate-700 leading-tight text-center">Ubicación</span>
+                        <span className="text-xs font-medium text-slate-700">Ubicación</span>
                       </button>
                       <button
-                        onClick={() => {
-                          onPollClick?.();
-                          setShowAttachMenu(false);
-                        }}
+                        onClick={() => { onPollClick?.(); setShowAttachMenu(false); }}
                         className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-slate-50 active:bg-slate-100 transition-all"
                       >
                         <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center shadow-sm">
                           <BarChart3 className="w-6 h-6 text-purple-600" />
                         </div>
-                        <span className="text-xs font-medium text-slate-700 leading-tight text-center">Encuesta</span>
+                        <span className="text-xs font-medium text-slate-700">Encuesta</span>
                       </button>
                     </div>
                   </div>
@@ -223,14 +211,14 @@ const StaffChatInput = memo(function StaffChatInput({
               rows={1}
             />
 
-            {!(!!localText.trim()) && (
+            {!localText.trim() && localAttachments.length === 0 ? (
               <AudioRecordButton 
                 onAudioSent={handleAudioSent}
                 disabled={uploading}
-                onPreviewChange={setIsAudioMode}
+                expanded={false}
+                onExpandedChange={setAudioExpanded}
               />
-            )}
-            {(!!localText.trim() || localAttachments.length > 0) && (
+            ) : (
               <Button
                 size="icon"
                 onClick={handleSend}

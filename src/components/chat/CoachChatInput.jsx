@@ -19,7 +19,7 @@ const CoachChatInput = memo(function CoachChatInput({
   const [localAttachments, setLocalAttachments] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
-  const [isAudioMode, setIsAudioMode] = useState(false);
+  const [audioExpanded, setAudioExpanded] = useState(false);
   const fileInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
 
@@ -110,12 +110,12 @@ const CoachChatInput = memo(function CoachChatInput({
       )}
 
       <div className="flex items-end gap-2">
-        {isAudioMode ? (
+        {audioExpanded ? (
           <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
-            onPreviewChange={setIsAudioMode}
-            autoStart
+            expanded={true}
+            onExpandedChange={setAudioExpanded}
           />
         ) : (
           <>
@@ -199,14 +199,14 @@ const CoachChatInput = memo(function CoachChatInput({
               rows={1}
             />
 
-            {!(!!localText.trim()) && (
+            {!localText.trim() && localAttachments.length === 0 ? (
               <AudioRecordButton 
                 onAudioSent={handleAudioSent}
                 disabled={uploading}
-                onPreviewChange={setIsAudioMode}
+                expanded={false}
+                onExpandedChange={setAudioExpanded}
               />
-            )}
-            {(!!localText.trim() || localAttachments.length > 0) && (
+            ) : (
               <Button
                 size="icon"
                 onClick={handleSend}

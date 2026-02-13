@@ -12,7 +12,7 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
 }) {
   const [localText, setLocalText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [isAudioMode, setIsAudioMode] = useState(false);
+  const [audioExpanded, setAudioExpanded] = useState(false);
 
   const handleSend = useCallback(() => {
     if (!localText.trim()) return;
@@ -39,12 +39,12 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
   return (
     <div className="border-t bg-white flex-shrink-0 p-2">
       <div className="flex items-end gap-2">
-        {isAudioMode ? (
+        {audioExpanded ? (
           <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
-            onPreviewChange={setIsAudioMode}
-            autoStart
+            expanded={true}
+            onExpandedChange={setAudioExpanded}
           />
         ) : (
           <>
@@ -90,14 +90,7 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
               rows={1}
             />
 
-            {!localText.trim() && (
-              <AudioRecordButton 
-                onAudioSent={handleAudioSent}
-                disabled={uploading}
-                onPreviewChange={setIsAudioMode}
-              />
-            )}
-            {localText.trim() && (
+            {localText.trim() ? (
               <Button
                 size="icon"
                 onClick={handleSend}
@@ -106,6 +99,13 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
               >
                 <Send className="w-5 h-5" />
               </Button>
+            ) : (
+              <AudioRecordButton 
+                onAudioSent={handleAudioSent}
+                disabled={uploading}
+                expanded={false}
+                onExpandedChange={setAudioExpanded}
+              />
             )}
           </>
         )}
