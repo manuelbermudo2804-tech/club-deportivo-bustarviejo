@@ -673,17 +673,21 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         return normDeporte === normalizedSelected || normPrincipal === normalizedSelected || normCats.includes(normalizedSelected);
       });
 
-  console.log('🔍 [CoachChatWindow] Participantes debug:', {
-    selectedCategory,
-    normalizedSelected,
-    totalPlayers: safePlayers.length,
-    matchedPlayers: categoryPlayers.length,
-    sampleDeportes: safePlayers.slice(0, 5).map(p => ({ deporte: p.deporte, cat_principal: p.categoria_principal, nombre: p.nombre })),
-  });
-
-  const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
+  // Emails de padres/tutores desde fichas de jugadores
+  const parentEmailsFromPlayers = [...new Set(categoryPlayers.flatMap(p => 
     [p.email_padre, p.email_tutor_2].filter(Boolean)
   ))];
+
+  // TAMBIÉN contar familias que han escrito en el chat (usuarios reales de la app)
+  const parentEmailsFromMessages = [...new Set(
+    messages
+      .filter(m => m.tipo === 'padre_a_grupo')
+      .map(m => m.remitente_email)
+      .filter(Boolean)
+  )];
+
+  // Unir ambas fuentes: familias registradas + familias que han escrito
+  const parentEmails = [...new Set([...parentEmailsFromPlayers, ...parentEmailsFromMessages])];
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-white min-h-0">
