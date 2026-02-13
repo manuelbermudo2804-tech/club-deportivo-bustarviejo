@@ -282,7 +282,7 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
     // 2. Email vía Resend (con botón de confirmación)
     if (viaEmail) {
       let emailOk = 0;
-      const html = buildEmailHtml(asunto, finalMsg, fecha, hora, lugar, plazas, appLink);
+      const html = buildEmailHtml(asunto, finalMsg, fecha, hora, lugar, plazas || 0, appLink);
       for (const email of emails) {
         try {
           await base44.functions.invoke('sendEmail', {
