@@ -286,6 +286,25 @@ export default function ParentCallups() {
                   )}
 
                   <div className="border-t pt-4">
+                    {/* Resumen de confirmaciones del equipo */}
+                    {(() => {
+                      const total = callup.jugadores_convocados?.length || 0;
+                      const confirmados = callup.jugadores_convocados?.filter(j => j.confirmacion === "asistire").length || 0;
+                      const noAsisten = callup.jugadores_convocados?.filter(j => j.confirmacion === "no_asistire").length || 0;
+                      const pendientes = total - confirmados - noAsisten;
+                      const pct = total > 0 ? Math.round((confirmados / total) * 100) : 0;
+                      return (
+                        <div className="flex items-center gap-3 mb-4 p-3 bg-slate-100 rounded-lg flex-wrap">
+                          <Users className="w-5 h-5 text-slate-600" />
+                          <span className="text-sm font-medium text-slate-700">Equipo:</span>
+                          <Badge className="bg-green-100 text-green-700 text-xs">✅ {confirmados} confirmados</Badge>
+                          {noAsisten > 0 && <Badge className="bg-red-100 text-red-700 text-xs">❌ {noAsisten}</Badge>}
+                          {pendientes > 0 && <Badge className="bg-yellow-100 text-yellow-700 text-xs">⏳ {pendientes} pendientes</Badge>}
+                          <span className="text-xs text-slate-500 ml-auto">{confirmados}/{total} ({pct}%)</span>
+                        </div>
+                      );
+                    })()}
+
                     <div className="flex items-center gap-2 mb-3">
                       <Users className="w-5 h-5 text-orange-600" />
                       <span className="font-semibold text-slate-900">Mis Jugadores Convocados:</span>
