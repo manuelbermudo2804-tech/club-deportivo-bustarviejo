@@ -57,10 +57,10 @@ function buildEmailHtml(asunto, mensaje, fecha, hora, lugar) {
   const mensajeHtml = mensaje.replace(/\n/g, '<br/>');
   return `
 <div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:20px">
-  <div style="background:linear-gradient(135deg,#166534,#15803d,#22c55e);padding:32px 24px;border-radius:16px 16px 0 0;text-align:center">
-    <img src="${CLUB_LOGO}" alt="CD Bustarviejo" style="width:64px;height:64px;border-radius:12px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);object-fit:cover"/>
-    <h1 style="color:white;margin:0;font-size:22px;font-weight:800;letter-spacing:-0.5px">${asunto}</h1>
-    <p style="color:#bbf7d0;margin:8px 0 0;font-size:13px">CD Bustarviejo · Voluntariado</p>
+  <div style="background:linear-gradient(135deg,#ea580c,#c2410c,#9a3412);padding:32px 24px;border-radius:16px 16px 0 0;text-align:center">
+    <img src="${CLUB_LOGO}" alt="CD Bustarviejo" style="width:72px;height:72px;border-radius:14px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,0.4);object-fit:cover;border:3px solid rgba(255,255,255,0.4)"/>
+    <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-shadow:0 2px 4px rgba(0,0,0,0.3)">${asunto}</h1>
+    <p style="color:#fed7aa;margin:8px 0 0;font-size:13px;font-weight:600">CD Bustarviejo · Voluntariado</p>
   </div>
   <div style="background:white;padding:28px 24px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0">
     ${(fecha || hora || lugar) ? `
