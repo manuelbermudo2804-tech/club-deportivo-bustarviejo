@@ -511,58 +511,65 @@ export default function CentroCompeticion() {
             </div>
             <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
 
-            {/* URLs Guardadas - las 3 secciones juntas */}
+            {/* URL Guardada - solo la correspondiente a la pestaña activa */}
             <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-300 space-y-2">
-              <p className="text-sm font-bold text-blue-900">🔗 URLs Guardadas para {category}</p>
+              <p className="text-sm font-bold text-blue-900">🔗 URL Guardada para {category} — {adminTab === 'clasificacion' ? 'Clasificación' : adminTab === 'resultados' ? 'Resultados' : 'Goleadores'}</p>
               
-              <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <p className="text-xs font-semibold text-slate-600 mb-1">Clasificación:</p>
-                <div className="flex items-center gap-2">
-                  <Input className="flex-1 text-xs h-8" value={rfefUrlState} onChange={(e) => setRfefUrlState(e.target.value)} placeholder="URL de RFFM/RFEF para clasificación" />
-                  <Input className="w-28 text-xs h-8" value={grupoText} onChange={(e) => setGrupoText(e.target.value)} placeholder="Ej: Grupo 72" />
-                  <Button size="sm" variant="outline" onClick={() => rfefUrlState && window.open(rfefUrlState, '_blank')} disabled={!rfefUrlState}>Abrir</Button>
-                  <Button size="sm" variant="outline" onClick={async () => {
-                    if (!rfefUrlState) return;
-                    try {
-                      const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrlState });
-                      const j = res.data?.jornada_actual;
-                      const t = res.data?.temporada;
-                      toast.success(`Detectado: Temporada ${t || '?'}, Jornada ${j || '?'}`);
-                    } catch { toast.error('No se pudo detectar'); }
-                  }} disabled={!rfefUrlState}>Probar</Button>
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={async () => {
-                    try {
-                      if (configId) {
-                        await base44.entities.StandingsConfig.update(configId, { grupo: grupoText, rfef_url: rfefUrlState });
-                      } else {
-                        const created = await base44.entities.StandingsConfig.create({ categoria: category, grupo: grupoText, rfef_url: rfefUrlState });
-                        setConfigId(created.id);
-                      }
-                      toast.success('URL guardada');
-                    } catch { toast.error('Error al guardar'); }
-                  }}>💾</Button>
+              {adminTab === 'clasificacion' && (
+                <div className="bg-white rounded-lg p-3 border border-blue-200">
+                  <p className="text-xs font-semibold text-slate-600 mb-1">Clasificación:</p>
+                  <div className="flex items-center gap-2">
+                    <Input className="flex-1 text-xs h-8" value={rfefUrlState} onChange={(e) => setRfefUrlState(e.target.value)} placeholder="URL de RFFM/RFEF para clasificación" />
+                    <Input className="w-28 text-xs h-8" value={grupoText} onChange={(e) => setGrupoText(e.target.value)} placeholder="Ej: Grupo 72" />
+                    <Button size="sm" variant="outline" onClick={() => rfefUrlState && window.open(rfefUrlState, '_blank')} disabled={!rfefUrlState}>Abrir</Button>
+                    <Button size="sm" variant="outline" onClick={async () => {
+                      if (!rfefUrlState) return;
+                      try {
+                        const res = await base44.functions.invoke('fetchRfefStandings', { url: rfefUrlState });
+                        const j = res.data?.jornada_actual;
+                        const t = res.data?.temporada;
+                        toast.success(`Detectado: Temporada ${t || '?'}, Jornada ${j || '?'}`);
+                      } catch { toast.error('No se pudo detectar'); }
+                    }} disabled={!rfefUrlState}>Probar</Button>
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={async () => {
+                      try {
+                        if (configId) {
+                          await base44.entities.StandingsConfig.update(configId, { grupo: grupoText, rfef_url: rfefUrlState });
+                        } else {
+                          const created = await base44.entities.StandingsConfig.create({ categoria: category, grupo: grupoText, rfef_url: rfefUrlState });
+                          setConfigId(created.id);
+                        }
+                        queryClient.invalidateQueries({ queryKey: ['standings-config', category] });
+                        toast.success('URL guardada');
+                      } catch { toast.error('Error al guardar'); }
+                    }}>💾</Button>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <p className="text-xs font-semibold text-slate-600 mb-1">Resultados:</p>
-                <div className="flex items-center gap-2">
-                  <Input className="flex-1 text-xs h-8" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL de RFFM/RFEF para resultados" />
-                  <Button size="sm" variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
-                  <Button size="sm" variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_results_url: resultsUrl })} disabled={!resultsUrl}>💾</Button>
+              {adminTab === 'resultados' && (
+                <div className="bg-white rounded-lg p-3 border border-blue-200">
+                  <p className="text-xs font-semibold text-slate-600 mb-1">Resultados:</p>
+                  <div className="flex items-center gap-2">
+                    <Input className="flex-1 text-xs h-8" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL de RFFM/RFEF para resultados" />
+                    <Button size="sm" variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
+                    <Button size="sm" variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_results_url: resultsUrl })} disabled={!resultsUrl}>💾</Button>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <p className="text-xs font-semibold text-slate-600 mb-1">Goleadores:</p>
-                <div className="flex items-center gap-2">
-                  <Input className="flex-1 text-xs h-8" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL de RFFM/RFEF para goleadores" />
-                  <Button size="sm" variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
-                  <Button size="sm" variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_scorers_url: scorersUrl })} disabled={!scorersUrl}>💾</Button>
+              {adminTab === 'goleadores' && (
+                <div className="bg-white rounded-lg p-3 border border-blue-200">
+                  <p className="text-xs font-semibold text-slate-600 mb-1">Goleadores:</p>
+                  <div className="flex items-center gap-2">
+                    <Input className="flex-1 text-xs h-8" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL de RFFM/RFEF para goleadores" />
+                    <Button size="sm" variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
+                    <Button size="sm" variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_scorers_url: scorersUrl })} disabled={!scorersUrl}>💾</Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Checklist Lunes (integrado) */}
