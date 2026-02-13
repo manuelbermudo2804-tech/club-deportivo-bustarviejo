@@ -229,7 +229,7 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
     // 1. Mensaje en la app (Mensajes del Club)
     if (viaApp) {
       let appOk = 0;
-      const appMsg = `🤝 ${asunto}\n\n${finalMsg}\n\n━━━━━━━━━━━━━━━\n📋 Plazas: ${plazas}\n✅ Confirma tu asistencia en la sección de Voluntariado de la app`;
+      const appMsg = `🤝 ${asunto}\n\n${finalMsg}\n\n━━━━━━━━━━━━━━━\n📋 Plazas: ${plazas}\n✅ Confirma tu asistencia en Voluntariado → ${appLink}`;
       for (const email of emails) {
         try {
           const existingConvs = await base44.entities.PrivateConversation.filter({
