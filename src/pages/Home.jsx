@@ -1077,22 +1077,29 @@ export default function Home() {
                   <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
                   <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
                   
-                  <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                    <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                      <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
+                  {/* Móvil */}
+                  <div className="relative z-10 p-4 flex flex-col items-center justify-center min-h-[140px] lg:hidden">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 shadow-2xl`}>
+                      <item.icon className="w-6 h-6 text-white" />
                     </div>
-                    
-                    <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
-                      {item.title}
-                    </h3>
-                    
+                    <h3 className="text-white font-bold text-center text-sm mb-2">{item.title}</h3>
                     {item.badge !== undefined && item.badge > 0 && (
                       <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                        <p className="text-white text-[10px] lg:text-xs font-semibold">
-                          {item.badge} {item.badgeLabel}
-                        </p>
+                        <p className="text-white text-[10px] font-semibold">{item.badge} {item.badgeLabel}</p>
                       </div>
                     )}
+                  </div>
+                  {/* Desktop */}
+                  <div className="relative z-10 p-4 hidden lg:flex items-center gap-4 min-h-[90px]">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                      <item.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold text-sm truncate">{item.title}</h3>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <p className="text-orange-400 text-xs font-medium mt-0.5">{item.badge} {item.badgeLabel}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </a>
