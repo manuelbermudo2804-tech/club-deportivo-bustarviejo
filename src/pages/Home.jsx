@@ -934,17 +934,17 @@ export default function Home() {
 
       
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <SocialLinks />
             <Link to={createPageUrl("Chatbot")}>
-              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800">
-                <Sparkles className="w-4 h-4 mr-1" />
-                🤖 IA
+              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 h-8 px-2.5 text-xs">
+                <Sparkles className="w-3.5 h-3.5 mr-1" />
+                IA
               </Button>
             </Link>
+            <ShareFormButton />
           </div>
-          <ShareFormButton />
         </div>
 
 
