@@ -101,19 +101,23 @@ export default function CentroCompeticion() {
             window.history.replaceState({}, '', newUrl);
           }, [category, view]);
 
-          // Prefetch resultados y goleadores para carga instantánea al cambiar de categoría/vista
+          // Prefetch resultados y goleadores para carga instantánea al cambiar de vista
           React.useEffect(() => {
-            queryClient.prefetchQuery({
-              queryKey: ['resultados', category],
-              queryFn: async () => base44.entities.Resultado.filter({ categoria: category }, '-jornada', 500),
-              staleTime: 60_000,
-            });
-            queryClient.prefetchQuery({
-              queryKey: ['goleadores', category],
-              queryFn: async () => base44.entities.Goleador.filter({ categoria: category }, '-goles', 500),
-              staleTime: 60_000,
-            });
-          }, [category, queryClient]);
+            if (view !== 'resultados') {
+              queryClient.prefetchQuery({
+                queryKey: ['resultados', category],
+                queryFn: async () => base44.entities.Resultado.filter({ categoria: category }, '-jornada', 500),
+                staleTime: 5 * 60_000,
+              });
+            }
+            if (view !== 'goleadores') {
+              queryClient.prefetchQuery({
+                queryKey: ['goleadores', category],
+                queryFn: async () => base44.entities.Goleador.filter({ categoria: category }, '-goles', 500),
+                staleTime: 5 * 60_000,
+              });
+            }
+          }, [category, view, queryClient]);
 
   const toggleFav = () => {
     if (fav) {
