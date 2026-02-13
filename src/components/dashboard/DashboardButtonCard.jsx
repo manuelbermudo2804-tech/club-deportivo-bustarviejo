@@ -10,21 +10,21 @@ export default function DashboardButtonCard({ item, isExternal, extraBadge }) {
 
   return (
     <Wrapper>
-      <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-        <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-        <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
+      <div className="relative bg-slate-800 rounded-2xl lg:rounded-3xl overflow-hidden shadow-lg lg:shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-[0.97] border border-slate-700/80 lg:border-2 hover:border-orange-500/60 btn-hover-shine">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 to-black/70 opacity-60"></div>
+        <div className={`absolute bottom-0 right-0 w-28 h-28 lg:w-32 lg:h-32 bg-gradient-to-tl ${item.gradient} opacity-25 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
+        <div className={`absolute top-0 left-0 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br ${item.gradient} opacity-15 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
         
-        {/* Móvil: centrado vertical */}
-        <div className="relative z-10 p-4 flex flex-col items-center justify-center min-h-[140px] lg:hidden">
-          <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 shadow-2xl icon-hover-bounce`}>
-            <item.icon className="w-6 h-6 text-white" />
+        {/* Móvil: compacto y refinado */}
+        <div className="relative z-10 p-3 flex flex-col items-center justify-center min-h-[115px] lg:hidden">
+          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-2 shadow-lg ring-1 ring-white/10`}>
+            <item.icon className="w-5 h-5 text-white drop-shadow-sm" />
           </div>
-          <h3 className="text-white font-bold text-center text-sm mb-2">{item.title}</h3>
+          <h3 className="text-white font-semibold text-center text-[13px] leading-tight mb-1">{item.title}</h3>
           {badge && (
-            <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-              <p className="text-white text-[10px] font-semibold">{badge.value} {badge.label}</p>
-            </div>
+            <span className="bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md">
+              {badge.value} {badge.label}
+            </span>
           )}
         </div>
 
