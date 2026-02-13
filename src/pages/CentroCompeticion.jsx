@@ -67,8 +67,10 @@ export default function CentroCompeticion() {
       const list = await base44.entities.StandingsConfig.filter({ categoria: category });
       return list?.[0] || null;
     },
-    staleTime: 60_000,
-    refetchOnWindowFocus: false
+    staleTime: 10 * 60_000,
+    gcTime: 60 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
   const [resultsUrl, setResultsUrl] = React.useState('');
   const [scorersUrl, setScorersUrl] = React.useState('');
