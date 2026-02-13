@@ -14,7 +14,6 @@ import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 export default function CoachParentChat({ embedded = false }) {
   const navigate = useNavigate();
    const [user, setUser] = useState(null);
-   const [allPlayers, setAllPlayers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [lockedCategory, setLockedCategory] = useState(null); // Si viene de URL, ocultar pestañas
   const [showSettings, setShowSettings] = useState(false);
