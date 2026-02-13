@@ -19,17 +19,27 @@ const normalizeType = (t) => {
   return t;
 };
 
-const EMPTY = { team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0, total: 0 };
+const EMPTY_RAW = { team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0 };
+
+// Derive total as a pure function — never stored
+const deriveTotal = (raw) => {
+  const teamTotal = Object.values(raw.team_chats || {}).reduce((s, v) => s + (v || 0), 0);
+  return teamTotal + (raw.coordinator || 0) + (raw.admin || 0) + (raw.staff || 0) + (raw.system || 0);
+};
+
+const withTotal = (raw) => ({ ...raw, total: deriveTotal(raw) });
 
 const ChatUnreadContext = createContext({
-  counts: EMPTY,
+  counts: withTotal(EMPTY_RAW),
   refresh: () => {},
   markRead: () => {},
   clearActiveChat: () => {},
 });
 
 export function ChatUnreadProvider({ user, children }) {
-  const [counts, setCounts] = useState(EMPTY);
+  // Raw state never contains 'total' — it's always derived on read
+  const [rawCounts, setRawCounts] = useState(EMPTY_RAW);
+  const counts = withTotal(rawCounts);
   const fetchingRef = useRef(false);
   const mountedRef = useRef(true);
   const refetchPendingRef = useRef(false);
@@ -45,13 +55,13 @@ export function ChatUnreadProvider({ user, children }) {
     try {
       const { data } = await base44.functions.invoke("chatGetUnreadCounts", {});
       if (mountedRef.current && data && !data.error) {
-        const normalized = { ...data, team_chats: {} };
+        const normalized = { team_chats: {}, coordinator: data.coordinator || 0, admin: data.admin || 0, staff: data.staff || 0, system: data.system || 0 };
         for (const k of Object.keys(data.team_chats || {})) {
           const nk = toGroupId(k);
           normalized.team_chats[nk] = (normalized.team_chats[nk] || 0) + (data.team_chats[k] || 0);
         }
         if (requestId !== latestRequestIdRef.current) return;
-        setCounts(normalized);
+        setRawCounts(normalized);
       }
     } catch (e) {
       console.error("[ChatUnreadProvider] fetch error:", e);
