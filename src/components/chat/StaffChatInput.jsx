@@ -80,6 +80,13 @@ const StaffChatInput = memo(function StaffChatInput({
         disabled={uploading} 
       />
 
+      {uploading && (
+        <div className="mb-2 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          <span className="text-sm text-blue-700 font-medium">Subiendo archivo...</span>
+        </div>
+      )}
+
       {localAttachments.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {localAttachments.map((file, idx) => (
