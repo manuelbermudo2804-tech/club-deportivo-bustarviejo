@@ -429,8 +429,27 @@ export default function PaymentReminders() {
           });
         }
 
-        // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
-
+        // Crear notificación en Centro de Alertas
+        await base44.entities.AppNotification.create({
+        usuario_email: family.email,
+        titulo: "💳 Recordatorio de Pagos Pendientes",
+        mensaje: `Tienes ${family.totalPendingPayments} pago(s) pendiente(s) por ${family.totalFamilyDue}€. Revisa Mensajes del Club.`,
+        tipo: "importante",
+        icono: "💳",
+        enlace: "ParentSystemMessages",
+        vista: false
+        });
+        if (family.email_tutor_2) {
+        await base44.entities.AppNotification.create({
+        usuario_email: family.email_tutor_2,
+        titulo: "💳 Recordatorio de Pagos Pendientes",
+        mensaje: `Tienes ${family.totalPendingPayments} pago(s) pendiente(s) por ${family.totalFamilyDue}€. Revisa Mensajes del Club.`,
+        tipo: "importante",
+        icono: "💳",
+        enlace: "ParentSystemMessages",
+        vista: false
+        });
+        }
 
         sent++;
         console.log(`✅ Recordatorio enviado a ${family.email}`);
@@ -553,8 +572,27 @@ export default function PaymentReminders() {
         });
       }
 
-      // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
-
+      // Crear notificación en Centro de Alertas
+      await base44.entities.AppNotification.create({
+        usuario_email: family.email,
+        titulo: "💳 Recordatorio de Pagos Pendientes",
+        mensaje: `Tienes pagos pendientes por ${totalRecordatorio}€. Revisa Mensajes del Club.`,
+        tipo: "importante",
+        icono: "💳",
+        enlace: "ParentSystemMessages",
+        vista: false
+      });
+      if (family.email_tutor_2) {
+        await base44.entities.AppNotification.create({
+          usuario_email: family.email_tutor_2,
+          titulo: "💳 Recordatorio de Pagos Pendientes",
+          mensaje: `Tienes pagos pendientes por ${totalRecordatorio}€. Revisa Mensajes del Club.`,
+          tipo: "importante",
+          icono: "💳",
+          enlace: "ParentSystemMessages",
+          vista: false
+        });
+      }
 
       toast.dismiss(`selective-${family.email}`);
       setSuccessMessage(`✅ Recordatorio enviado a ${family.nombre_tutor}`);
@@ -870,7 +908,20 @@ export default function PaymentReminders() {
                        )}
                      </div>
                      <p className="text-xs text-slate-600">{family.email}</p>
-                     {family.telefono && <p className="text-xs text-slate-500">📱 {family.telefono}</p>}
+                     {family.telefono && (
+                       <div className="flex items-center gap-2">
+                         <p className="text-xs text-slate-500">📱 {family.telefono}</p>
+                         <a
+                           href={`https://wa.me/${family.telefono.replace(/[^0-9]/g, '').replace(/^(?!34)/, '34')}`}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="inline-flex items-center gap-1 text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full hover:bg-green-600 transition-colors"
+                           onClick={(e) => e.stopPropagation()}
+                         >
+                           💬 WhatsApp
+                         </a>
+                       </div>
+                     )}
                     </div>
                     </div>
                   <div className="text-right">
@@ -1014,8 +1065,27 @@ export default function PaymentReminders() {
                           });
                         }
 
-                        // 🆕 CREAR NOTIFICACIÓN PARA QUE APAREZCA EN CENTRO DE ALERTAS
-
+                        // Crear notificación en Centro de Alertas
+                        await base44.entities.AppNotification.create({
+                          usuario_email: family.email,
+                          titulo: "💳 Recordatorio de Pagos Pendientes",
+                          mensaje: `Tienes ${family.totalPendingPayments} pago(s) pendiente(s) por ${family.totalFamilyDue}€. Revisa Mensajes del Club.`,
+                          tipo: "importante",
+                          icono: "💳",
+                          enlace: "ParentSystemMessages",
+                          vista: false
+                        });
+                        if (family.email_tutor_2) {
+                          await base44.entities.AppNotification.create({
+                            usuario_email: family.email_tutor_2,
+                            titulo: "💳 Recordatorio de Pagos Pendientes",
+                            mensaje: `Tienes ${family.totalPendingPayments} pago(s) pendiente(s) por ${family.totalFamilyDue}€. Revisa Mensajes del Club.`,
+                            tipo: "importante",
+                            icono: "💳",
+                            enlace: "ParentSystemMessages",
+                            vista: false
+                          });
+                        }
 
                         console.log(`✅ Recordatorio enviado a ${family.email}`);
                         toast.dismiss(`reminder-${family.email}`);
