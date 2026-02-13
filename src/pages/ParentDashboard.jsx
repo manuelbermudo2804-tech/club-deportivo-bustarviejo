@@ -607,21 +607,21 @@ export default function ParentDashboard() {
           ))}
         </div>
 
-        {/* Stats footer - solo móvil (desktop los tiene en KPIs) */}
+        {/* Stats footer - solo móvil */}
         {!playersLoading && (
-          <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-500 mb-1">{myPlayers.length}</div>
-                <div className="text-slate-400 text-[10px]">Jugadores</div>
+          <div className="lg:hidden bg-slate-800/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-slate-700/60">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center bg-slate-700/30 rounded-xl py-2">
+                <div className="text-xl font-bold text-orange-400">{myPlayers.length}</div>
+                <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Jugadores</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-500 mb-1">{pagosPendientesCount}</div>
-                <div className="text-slate-400 text-[10px]">Pagos</div>
+              <div className="text-center bg-slate-700/30 rounded-xl py-2">
+                <div className="text-xl font-bold text-red-400">{pagosPendientesCount}</div>
+                <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Pagos</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-500 mb-1">{pendingCallups}</div>
-                <div className="text-slate-400 text-[10px]">Convocatorias</div>
+              <div className="text-center bg-slate-700/30 rounded-xl py-2">
+                <div className="text-xl font-bold text-yellow-400">{pendingCallups}</div>
+                <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Convocatorias</div>
               </div>
             </div>
           </div>

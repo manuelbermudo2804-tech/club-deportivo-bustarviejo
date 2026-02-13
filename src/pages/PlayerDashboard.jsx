@@ -567,23 +567,23 @@ export default function PlayerDashboard() {
         </div>
 
         {/* Stats footer - solo móvil */}
-        <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-500 mb-1">{paymentStats.pagados}</div>
-              <div className="text-slate-400 text-[10px]">Pagos OK</div>
+        <div className="lg:hidden bg-slate-800/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-slate-700/60">
+          <div className="grid grid-cols-4 gap-2">
+            <div className="text-center bg-slate-700/30 rounded-xl py-2">
+              <div className="text-lg font-bold text-green-400">{paymentStats.pagados}</div>
+              <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Pagos OK</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-500 mb-1">{paymentStats.pendientes + paymentStats.vencidos}</div>
-              <div className="text-slate-400 text-[10px]">Pagos Pend.</div>
+            <div className="text-center bg-slate-700/30 rounded-xl py-2">
+              <div className="text-lg font-bold text-red-400">{paymentStats.pendientes + paymentStats.vencidos}</div>
+              <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Pendiente</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-500 mb-1">{pendingCallups.length}</div>
-              <div className="text-slate-400 text-[10px]">Convocatorias</div>
+            <div className="text-center bg-slate-700/30 rounded-xl py-2">
+              <div className="text-lg font-bold text-yellow-400">{pendingCallups.length}</div>
+              <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Convoc.</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-500 mb-1">{attendanceStreak}</div>
-              <div className="text-slate-400 text-[10px]">🔥 Racha</div>
+            <div className="text-center bg-slate-700/30 rounded-xl py-2">
+              <div className="text-lg font-bold text-purple-400">{attendanceStreak}</div>
+              <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">🔥 Racha</div>
             </div>
           </div>
         </div>

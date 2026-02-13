@@ -188,19 +188,19 @@ export default function CoordinatorDashboard() {
         </div>
 
         {/* Stats Footer - solo móvil */}
-        <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-500 mb-1">{stats.totalPlayers}</div>
-              <div className="text-slate-400 text-[10px]">Jugadores</div>
+        <div className="lg:hidden bg-slate-800/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-slate-700/60">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="text-center bg-slate-700/30 rounded-xl py-2">
+              <div className="text-xl font-bold text-blue-400">{stats.totalPlayers}</div>
+              <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Jugadores</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-500 mb-1">{stats.categories}</div>
-              <div className="text-slate-400 text-[10px]">Categorías</div>
+            <div className="text-center bg-slate-700/30 rounded-xl py-2">
+              <div className="text-xl font-bold text-green-400">{stats.categories}</div>
+              <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Categorías</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-500 mb-1">{stats.upcomingEvents}</div>
-              <div className="text-slate-400 text-[10px]">Eventos 7d</div>
+            <div className="text-center bg-slate-700/30 rounded-xl py-2">
+              <div className="text-xl font-bold text-orange-400">{stats.upcomingEvents}</div>
+              <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Eventos 7d</div>
             </div>
           </div>
         </div>
