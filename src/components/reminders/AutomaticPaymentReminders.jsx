@@ -290,6 +290,28 @@ export default function AutomaticPaymentReminders({ user }) {
               });
             }
             
+            // Crear notificación en Centro de Alertas
+            await base44.entities.AppNotification.create({
+              usuario_email: family.email,
+              titulo: `💳 ${mensajeTipo.titulo}`,
+              mensaje: `Tienes ${family.jugadores.length} pago(s) pendiente(s) de ${mesRecordatorio} por ${totalFamilia}€. Revisa Mensajes del Club.`,
+              tipo: "importante",
+              icono: "💳",
+              enlace: "ParentSystemMessages",
+              vista: false
+            });
+            if (family.email_tutor_2) {
+              await base44.entities.AppNotification.create({
+                usuario_email: family.email_tutor_2,
+                titulo: `💳 ${mensajeTipo.titulo}`,
+                mensaje: `Tienes ${family.jugadores.length} pago(s) pendiente(s) de ${mesRecordatorio} por ${totalFamilia}€. Revisa Mensajes del Club.`,
+                tipo: "importante",
+                icono: "💳",
+                enlace: "ParentSystemMessages",
+                vista: false
+              });
+            }
+            
             // Registrar que se envió
             await base44.entities.AutomaticReminder.create({
               temporada: currentSeason,
