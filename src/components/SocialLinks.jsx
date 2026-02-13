@@ -9,18 +9,17 @@ export default function SocialLinks() {
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-1.5 flex items-center justify-center gap-1.5">
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-1 flex items-center justify-center gap-1">
       {links.map((link) => (
         <a
           key={link.name}
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`flex items-center gap-0.5 ${link.color} transition-colors px-1`}
+          className={`flex items-center ${link.color} transition-colors p-1 rounded hover:bg-slate-50`}
           title={link.name}
         >
           <link.icon className="w-4 h-4" />
-          <span className="text-xs font-medium hidden sm:inline">{link.name}</span>
         </a>
       ))}
     </div>
