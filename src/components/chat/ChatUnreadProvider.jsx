@@ -112,8 +112,8 @@ export function ChatUnreadProvider({ user, children }) {
     if (inFlightRef.current.has(key)) return;
     inFlightRef.current.add(key);
 
-    // Optimistic local clear
-    setCounts(prev => {
+    // Optimistic local clear — total is always derived, never set directly
+    setRawCounts(prev => {
       const next = { ...prev, team_chats: { ...(prev.team_chats || {}) } };
       if (type === "team" && chatId) {
         next.team_chats[toGroupId(chatId)] = 0;
@@ -126,8 +126,6 @@ export function ChatUnreadProvider({ user, children }) {
       } else if (type === "system") {
         next.system = 0;
       }
-      const teamTotal = Object.values(next.team_chats || {}).reduce((s, v) => s + (v || 0), 0);
-      next.total = Math.max(0, teamTotal + (next.coordinator || 0) + (next.admin || 0) + (next.staff || 0) + (next.system || 0));
       return next;
     });
 
