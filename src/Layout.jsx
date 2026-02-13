@@ -1667,6 +1667,7 @@ export default function Layout({ children, currentPageName }) {
 
           // 🏠 INICIO
           { title: "🏠 Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
+          { title: "👤 Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserCircle },
 
     // 💬 CHATS
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },

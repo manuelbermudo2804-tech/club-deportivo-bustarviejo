@@ -3,8 +3,9 @@ import { Bell, CreditCard, Calendar, Megaphone, Image, FileText, BarChart3, Hear
 import { createPageUrl } from "@/utils";
 
 export const ALL_PLAYER_BUTTONS = [
-  { id: "convocatorias", title: "🏆 Convocatorias", icon: Bell, url: createPageUrl("ParentCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 1 },
-  { id: "firmas", title: "🖊️ Firmas", icon: FileSignature, url: createPageUrl("FederationSignatures"), gradient: "from-red-600 to-red-700", priority: 2 },
+  { id: "perfil", title: "👤 Mi Perfil", icon: Users, url: createPageUrl("PlayerProfile"), gradient: "from-indigo-600 to-indigo-700", priority: 1 },
+  { id: "convocatorias", title: "🏆 Convocatorias", icon: Bell, url: createPageUrl("ParentCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 2 },
+  { id: "firmas", title: "🖊️ Firmas", icon: FileSignature, url: createPageUrl("FederationSignatures"), gradient: "from-red-600 to-red-700", priority: 3 },
   { id: "pagos", title: "💳 Mis Pagos", icon: CreditCard, url: createPageUrl("ParentPayments"), gradient: "from-green-600 to-green-700", priority: 3 },
   { id: "mensajes_club", title: "🔔 Mensajes Club", icon: Bell, url: createPageUrl("ParentSystemMessages"), gradient: "from-orange-600 to-orange-700", priority: 4 },
   { id: "chat_coordinador", title: "🎓 Chat Coordinador", icon: MessageCircle, url: createPageUrl("ParentCoordinatorChat"), gradient: "from-cyan-600 to-cyan-700", priority: 5 },
