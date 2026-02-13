@@ -306,6 +306,7 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
     setMensaje("");
     setFecha("");
     setHora("");
+    setPlazas(4);
     setShowPlantillas(false);
     onOpenChange(false);
   };
