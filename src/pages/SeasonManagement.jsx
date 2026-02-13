@@ -758,15 +758,21 @@ export default function SeasonManagement() {
           await base44.entities.CoordinatorMessage.delete(msg.id);
         }
         
-        // También eliminar conversaciones y mensajes de entrenador
-        const coachConvs = await base44.entities.CoachConversation.list();
-        for (const conv of coachConvs) {
-          await base44.entities.CoachConversation.delete(conv.id);
-        }
-        const coachMsgs = await base44.entities.CoachMessage.list();
-        for (const msg of coachMsgs) {
-          await base44.entities.CoachMessage.delete(msg.id);
-        }
+        // Eliminar StaffConversation y StaffMessage
+        try {
+          const staffConvs = await base44.entities.StaffConversation.list();
+          for (const conv of staffConvs) { await base44.entities.StaffConversation.delete(conv.id); }
+          const staffMsgs = await base44.entities.StaffMessage.list();
+          for (const msg of staffMsgs) { await base44.entities.StaffMessage.delete(msg.id); }
+        } catch (e) { console.log('⚠️ StaffConversation/Message skip:', e.message); }
+
+        // Eliminar AdminConversation y AdminMessage
+        try {
+          const adminConvs = await base44.entities.AdminConversation.list();
+          for (const conv of adminConvs) { await base44.entities.AdminConversation.delete(conv.id); }
+          const adminMsgs = await base44.entities.AdminMessage.list();
+          for (const msg of adminMsgs) { await base44.entities.AdminMessage.delete(msg.id); }
+        } catch (e) { console.log('⚠️ AdminConversation/Message skip:', e.message); }
 
         // Eliminar PrivateConversation y PrivateMessage
         for (const conv of privateConversations) {
@@ -792,6 +798,56 @@ export default function SeasonManagement() {
           await base44.entities.Certificate.delete(cert.id);
         }
       }
+
+      // 12.4 Eliminar entidades adicionales de temporada
+      setProcessingStep("Eliminando datos adicionales de temporada...");
+      const safeDeleteAll = async (entityName) => {
+        try {
+          const items = await base44.entities[entityName].list();
+          for (const item of items) { await base44.entities[entityName].delete(item.id); }
+          return items.length;
+        } catch (e) { console.log(`⚠️ ${entityName} skip:`, e.message); return 0; }
+      };
+      // AutomaticReminder (recordatorios automáticos)
+      await safeDeleteAll('AutomaticReminder');
+      // CustomPaymentPlan (planes especiales de pago)
+      await safeDeleteAll('CustomPaymentPlan');
+      // ExtraCharge y ExtraChargePayment (cobros extra)
+      await safeDeleteAll('ExtraChargePayment');
+      await safeDeleteAll('ExtraCharge');
+      // BatchPayment (pagos por lotes)
+      await safeDeleteAll('BatchPayment');
+      // Voluntariado
+      await safeDeleteAll('VolunteerSignup');
+      await safeDeleteAll('VolunteerOpportunity');
+      // Mercadillo
+      await safeDeleteAll('MarketReservation');
+      await safeDeleteAll('MarketListing');
+      // Tareas de Junta
+      await safeDeleteAll('BoardTask');
+      // Feedback
+      await safeDeleteAll('Feedback');
+      // Competición
+      await safeDeleteAll('Clasificacion');
+      await safeDeleteAll('Resultado');
+      await safeDeleteAll('Goleador');
+      await safeDeleteAll('MatchObservation');
+      await safeDeleteAll('CompetitionAsset');
+      // Pizarra táctica
+      await safeDeleteAll('TacticaPizarra');
+      // Logs de chat
+      await safeDeleteAll('CommunicationLog');
+      await safeDeleteAll('CoordinatorChatLog');
+      await safeDeleteAll('CoachChatLog');
+      await safeDeleteAll('ChatbotLog');
+      // ReferralReward y ReferralHistory
+      await safeDeleteAll('ReferralReward');
+      await safeDeleteAll('ReferralHistory');
+      // FemeninoInterest
+      await safeDeleteAll('FemeninoInterest');
+      // StripePaymentLog
+      await safeDeleteAll('StripePaymentLog');
+      // PushNotification / PushSubscription se mantienen (son de dispositivo, no de temporada)
 
       // 13. Eliminar encuestas y respuestas
       if (resetConfig.deleteSurveys) {
