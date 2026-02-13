@@ -12,6 +12,7 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
 }) {
   const [localText, setLocalText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isAudioMode, setIsAudioMode] = useState(false);
 
   const handleSend = useCallback(() => {
     if (!localText.trim()) return;
@@ -38,63 +39,74 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
   return (
     <div className="border-t bg-white flex-shrink-0 p-2">
       <div className="flex items-end gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          className="h-9 w-9 p-0 flex-shrink-0"
-          disabled={uploading}
-        >
-          <Smile className="w-5 h-5 text-slate-600" />
-        </Button>
-
-        {showEmojiPicker && (
-          <div className="absolute bottom-16 left-4 z-50">
-            <EmojiPicker 
-              autoOpen
-              showInlineButton={false}
-              onEmojiSelect={(emoji) => {
-                setLocalText(prev => prev + emoji);
-              }}
-              onClose={() => setShowEmojiPicker(false)}
-            />
-          </div>
-        )}
-
-        <Textarea
-          value={localText}
-          onChange={(e) => {
-            setLocalText(e.target.value);
-            e.target.style.height = 'auto';
-            e.target.style.height = Math.min(e.target.scrollHeight, 6*24) + 'px';
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          placeholder={placeholder}
-          className="flex-1 min-h-[44px] max-h-[144px] resize-none text-sm rounded-3xl"
-          disabled={uploading}
-          rows={1}
-        />
-
-        {!localText.trim() && (
+        {isAudioMode ? (
           <AudioRecordButton 
             onAudioSent={handleAudioSent}
             disabled={uploading}
+            onPreviewChange={setIsAudioMode}
           />
-        )}
-        {localText.trim() && (
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={uploading}
-            className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
-          >
-            <Send className="w-5 h-5" />
-          </Button>
+        ) : (
+          <>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="h-9 w-9 p-0 flex-shrink-0"
+              disabled={uploading}
+            >
+              <Smile className="w-5 h-5 text-slate-600" />
+            </Button>
+
+            {showEmojiPicker && (
+              <div className="absolute bottom-16 left-4 z-50">
+                <EmojiPicker 
+                  autoOpen
+                  showInlineButton={false}
+                  onEmojiSelect={(emoji) => {
+                    setLocalText(prev => prev + emoji);
+                  }}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
+              </div>
+            )}
+
+            <Textarea
+              value={localText}
+              onChange={(e) => {
+                setLocalText(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 6*24) + 'px';
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={placeholder}
+              className="flex-1 min-h-[44px] max-h-[144px] resize-none text-sm rounded-3xl"
+              disabled={uploading}
+              rows={1}
+            />
+
+            {!localText.trim() && (
+              <AudioRecordButton 
+                onAudioSent={handleAudioSent}
+                disabled={uploading}
+                onPreviewChange={setIsAudioMode}
+              />
+            )}
+            {localText.trim() && (
+              <Button
+                size="icon"
+                onClick={handleSend}
+                disabled={uploading}
+                className="h-11 w-11 bg-green-600 hover:bg-green-700 flex-shrink-0 rounded-full"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>
