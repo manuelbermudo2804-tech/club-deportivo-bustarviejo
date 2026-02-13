@@ -7,16 +7,20 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { Send, Mail, MessageCircle, Bell, Loader2, ExternalLink } from "lucide-react";
+import { Send, Mail, MessageCircle, Bell, Loader2, Copy } from "lucide-react";
 
-export default function ConvocarVoluntariosDialog({ open, onOpenChange, volunteers }) {
+const SYSTEM_EMAIL = "sistema@cdbustarviejo.com";
+const SYSTEM_NAME = "Voluntariado CD Bustarviejo";
+
+export default function ConvocarVoluntariosDialog({ open, onOpenChange, volunteers, senderUser }) {
   const [asunto, setAsunto] = useState("Voluntariado CD Bustarviejo");
   const [mensaje, setMensaje] = useState("");
   const [viaApp, setViaApp] = useState(true);
-  const [viaEmail, setViaEmail] = useState(true);
+  const [viaEmail, setViaEmail] = useState(false);
   const [viaWhatsapp, setViaWhatsapp] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [whatsappCopied, setWhatsappCopied] = useState(false);
 
   const activeVolunteers = (volunteers || []).filter(v => v.activo !== false);
   const emails = [...new Set(activeVolunteers.map(v => v.email).filter(Boolean))];
@@ -28,28 +32,63 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
 
     let successCount = 0;
 
-    // 1. Notificación en la app (Announcement dirigido a voluntarios)
+    // 1. Mensaje en la app → PrivateConversation + PrivateMessage (Mensajes del Club)
     if (viaApp) {
-      try {
-        await base44.entities.Announcement.create({
-          titulo: asunto || "Voluntariado",
-          contenido: mensaje,
-          prioridad: "Importante",
-          destinatarios_tipo: "Todos",
-          destinatarios_emails: emails,
-          publicado: true,
-          enviar_email: false,
-          fecha_publicacion: new Date().toISOString()
-        });
+      let appOk = 0;
+      for (const email of emails) {
+        try {
+          // Buscar conversación existente con este padre desde sistema
+          const existingConvs = await base44.entities.PrivateConversation.filter({
+            participante_familia_email: email,
+            participante_staff_email: SYSTEM_EMAIL
+          });
+
+          let convId;
+          const volunteer = activeVolunteers.find(v => v.email === email);
+          
+          if (existingConvs.length > 0) {
+            convId = existingConvs[0].id;
+            // Actualizar último mensaje
+            await base44.entities.PrivateConversation.update(convId, {
+              ultimo_mensaje: mensaje.substring(0, 200),
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_de: "staff"
+            });
+          } else {
+            // Crear nueva conversación
+            const newConv = await base44.entities.PrivateConversation.create({
+              participante_familia_email: email,
+              participante_familia_nombre: volunteer?.nombre || email,
+              participante_staff_email: SYSTEM_EMAIL,
+              participante_staff_nombre: SYSTEM_NAME,
+              participante_staff_rol: "admin",
+              categoria: "General",
+              ultimo_mensaje: mensaje.substring(0, 200),
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_de: "staff"
+            });
+            convId = newConv.id;
+          }
+
+          // Crear mensaje
+          await base44.entities.PrivateMessage.create({
+            conversacion_id: convId,
+            remitente_email: SYSTEM_EMAIL,
+            remitente_nombre: SYSTEM_NAME,
+            remitente_tipo: "staff",
+            mensaje: `🤝 ${asunto || "Voluntariado"}\n\n${mensaje}`,
+            leido: false
+          });
+          appOk++;
+        } catch (e) { console.error("Error mensaje app:", email, e); }
+      }
+      if (appOk > 0) {
         successCount++;
-        toast.success(`📱 Notificación enviada a ${emails.length} voluntarios en la app`);
-      } catch (e) {
-        console.error("Error notificación app:", e);
-        toast.error("Error al enviar notificación en la app");
+        toast.success(`📱 Mensaje enviado a ${appOk}/${emails.length} voluntarios en la app`);
       }
     }
 
-    // 2. Email masivo
+    // 2. Email masivo (usando integración Core.SendEmail que SÍ funciona)
     if (viaEmail) {
       let emailOk = 0;
       for (const email of emails) {
@@ -77,29 +116,22 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
       }
     }
 
-    // 3. WhatsApp: copiar teléfonos y abrir enlaces
+    // 3. WhatsApp: copiar TODOS los enlaces al portapapeles de una vez
     if (viaWhatsapp && phones.length > 0) {
       const encodedMsg = encodeURIComponent(mensaje);
-      // Copiar lista al portapapeles
       const phoneList = phones.map(p => {
         const clean = p.telefono.replace(/\D/g, "");
         const intl = clean.startsWith("34") ? clean : `34${clean}`;
-        return `${p.nombre}: wa.me/${intl}?text=${encodedMsg}`;
-      }).join("\n");
+        return `${p.nombre}: https://wa.me/${intl}?text=${encodedMsg}`;
+      }).join("\n\n");
       
       try {
         await navigator.clipboard.writeText(phoneList);
-        toast.success(`💬 ${phones.length} enlaces WhatsApp copiados al portapapeles`);
+        setWhatsappCopied(true);
+        toast.success(`💬 ${phones.length} enlaces WhatsApp copiados. Pégalos donde quieras.`);
         successCount++;
       } catch {
         toast.error("No se pudo copiar al portapapeles");
-      }
-
-      // Abrir el primer enlace como ejemplo
-      if (phones.length > 0) {
-        const first = phones[0].telefono.replace(/\D/g, "");
-        const firstIntl = first.startsWith("34") ? first : `34${first}`;
-        window.open(`https://wa.me/${firstIntl}?text=${encodedMsg}`, "_blank");
       }
     }
 
