@@ -28,8 +28,8 @@ import { groupConsecutiveMessages } from "../chat/MessageGrouping";
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
-const normalizeCategory = (s = '') =>
-  s
+const normalizeCategory = (s) =>
+  (s || '')
     .toString()
     .replace(/\(.*?\)/g, '')
     .normalize('NFD')
@@ -37,7 +37,7 @@ const normalizeCategory = (s = '') =>
     .trim()
     .replace(/\s+/g, ' ')
     .toLowerCase();
-const toGroupId = (s = '') => normalizeCategory(s).replace(/\s+/g, '_');
+const toGroupId = (s) => normalizeCategory(s).replace(/\s+/g, '_');
 
 export default function CoachChatWindow({ selectedCategory, user, allPlayers }) {
   const [uploading, setUploading] = useState(false);
