@@ -118,21 +118,80 @@ export default function Voluntariado() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["volunteer_opps"] })
   });
 
-  // Signup
+  // Signup con notificación al organizador
   const doSignup = useMutation({
     mutationFn: async ({ opp, nombre, telefono, por_quien, mensaje }) => {
+      // Crear signup
       await base44.entities.VolunteerSignup.create({
         opportunity_id: opp.id,
-        volunteer_email: user.email,
-        volunteer_nombre: nombre,
-        volunteer_telefono: telefono,
-        por_quien: por_quien || "yo",
+        nombre: nombre,
+        email: user.email,
+        telefono: telefono || "",
+        relacion: por_quien || "yo",
         mensaje: mensaje || ""
       });
+
+      // Contar apuntados después de este
+      const allSignupsForOpp = signups.filter(s => s.opportunity_id === opp.id);
+      const newCount = allSignupsForOpp.length + 1;
+      const plazas = opp.plazas || 0;
+
+      // Si se cubren las plazas, marcar como completa
+      if (plazas > 0 && newCount >= plazas) {
+        await base44.entities.VolunteerOpportunity.update(opp.id, { estado: "completa" });
+      }
+
+      // Notificar al organizador
+      if (opp.creado_por) {
+        const msg = plazas > 0 && newCount >= plazas
+          ? `🎉 ¡Plazas cubiertas! ${nombre} se ha apuntado a "${opp.titulo}" (${newCount}/${plazas}). ¡Ya tenéis el equipo completo!`
+          : `✅ ${nombre} se ha apuntado a "${opp.titulo}" (${newCount}${plazas ? `/${plazas}` : ''} personas)`;
+        
+        try {
+          // Buscar conversación existente con el organizador
+          const SYSTEM_EMAIL = "sistema@cdbustarviejo.com";
+          const SYSTEM_NAME = "Voluntariado CD Bustarviejo";
+          const existingConvs = await base44.entities.PrivateConversation.filter({
+            participante_familia_email: opp.creado_por,
+            participante_staff_email: SYSTEM_EMAIL
+          });
+          let convId;
+          if (existingConvs.length > 0) {
+            convId = existingConvs[0].id;
+            await base44.entities.PrivateConversation.update(convId, {
+              ultimo_mensaje: msg.substring(0, 200),
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_de: "staff"
+            });
+          } else {
+            const newConv = await base44.entities.PrivateConversation.create({
+              participante_familia_email: opp.creado_por,
+              participante_familia_nombre: opp.creado_por_nombre || opp.creado_por,
+              participante_staff_email: SYSTEM_EMAIL,
+              participante_staff_nombre: SYSTEM_NAME,
+              participante_staff_rol: "admin",
+              categoria: "General",
+              ultimo_mensaje: msg.substring(0, 200),
+              ultimo_mensaje_fecha: new Date().toISOString(),
+              ultimo_mensaje_de: "staff"
+            });
+            convId = newConv.id;
+          }
+          await base44.entities.PrivateMessage.create({
+            conversacion_id: convId,
+            remitente_email: SYSTEM_EMAIL,
+            remitente_nombre: SYSTEM_NAME,
+            remitente_tipo: "staff",
+            mensaje: msg,
+            leido: false
+          });
+        } catch (e) { console.error("Error notificando organizador:", e); }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["volunteer_signups"] });
-      toast.success("¡Te has apuntado!");
+      qc.invalidateQueries({ queryKey: ["volunteer_opps"] });
+      toast.success("🎉 ¡Te has apuntado! El organizador ha sido notificado.");
     }
   });
 
