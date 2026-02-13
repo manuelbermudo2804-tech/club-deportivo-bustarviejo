@@ -53,7 +53,7 @@ const PLANTILLAS = [
   },
 ];
 
-function buildEmailHtml(asunto, mensaje, fecha, hora, lugar) {
+function buildEmailHtml(asunto, mensaje, fecha, hora, lugar, plazas, appLink) {
   const mensajeHtml = mensaje.replace(/\n/g, '<br/>');
   return `
 <div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#f5f5f5;padding:20px">
@@ -80,6 +80,26 @@ function buildEmailHtml(asunto, mensaje, fecha, hora, lugar) {
           </tr>
         </table>` : ''}
         <div style="color:#1a1a1a;line-height:1.7;font-size:15px">${mensajeHtml}</div>
+        ${plazas ? `
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef3c7;border:2px solid #fbbf24;border-radius:10px;margin-top:20px">
+          <tr>
+            <td align="center" style="padding:12px">
+              <strong style="color:#92400e;font-size:14px">🎯 Se necesitan ${plazas} voluntarios</strong>
+            </td>
+          </tr>
+        </table>` : ''}
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px">
+          <tr>
+            <td align="center">
+              <a href="${appLink || 'https://app.cdbustarviejo.com/voluntariado'}" style="display:inline-block;background:#16a34a;color:#ffffff;font-size:16px;font-weight:800;padding:14px 32px;border-radius:10px;text-decoration:none">✅ ¡Me apunto! Confirmar en la app</a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:8px">
+              <span style="color:#64748b;font-size:12px">Confirma tu asistencia y ve cu&aacute;ntos compa&ntilde;eros se han apuntado</span>
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
   </table>
@@ -100,6 +120,7 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
   const [lugar, setLugar] = useState("Campo de Fútbol de Bustarviejo");
+  const [plazas, setPlazas] = useState(4);
   const [viaApp, setViaApp] = useState(true);
   const [viaEmail, setViaEmail] = useState(true);
   const [sending, setSending] = useState(false);
@@ -351,6 +372,15 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
               <MapPin className="w-3 h-3" /> Lugar
             </label>
             <Input value={lugar} onChange={e => setLugar(e.target.value)} placeholder="Campo de Fútbol de Bustarviejo" />
+          </div>
+
+          {/* Plazas necesarias */}
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 flex items-center gap-1">
+              🎯 Plazas necesarias
+            </label>
+            <Input type="number" min={1} max={50} value={plazas} onChange={e => setPlazas(Number(e.target.value) || 1)} />
+            <p className="text-xs text-slate-500 mt-1">Cuando se cubran, ya no se podrán apuntar más personas</p>
           </div>
 
           {/* Plantillas rápidas */}
