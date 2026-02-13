@@ -265,7 +265,7 @@ export default function Voluntariado() {
         />
       )}
 
-      {/* 5. Oportunidades */}
+      {/* 5. Oportunidades activas (arriba las abiertas) */}
       <div>
         <h2 className="text-xl font-bold mb-3">📢 Oportunidades de voluntariado</h2>
         {opportunities.length === 0 && (
@@ -274,23 +274,30 @@ export default function Voluntariado() {
           </div>
         )}
         <div className="grid gap-3">
-          {opportunities.map((opp) => {
-            const oppSignups = signups.filter(s => s.opportunity_id === opp.id);
-            const alreadySignedUp = oppSignups.some(s => s.volunteer_email === user?.email);
-            return (
-              <OpportunityCard
-                key={opp.id}
-                opp={opp}
-                count={oppSignups.length}
-                alreadySignedUp={alreadySignedUp}
-                isCreator={opp.creado_por === user?.email}
-                isStaff={isStaff}
-                onSignup={() => setSignupOpp(opp)}
-                onEdit={() => { setEditingOpp(opp); setOpenOpp(true); }}
-                onDelete={() => { if (window.confirm(`¿Eliminar "${opp.titulo}"?`)) deleteOpp.mutate(opp.id); }}
-              />
-            );
-          })}
+          {[...opportunities]
+            .sort((a, b) => {
+              // Abiertas primero, luego completas, luego cerradas
+              const order = { abierta: 0, completa: 1, cerrada: 2 };
+              return (order[a.estado] || 0) - (order[b.estado] || 0);
+            })
+            .map((opp) => {
+              const oppSignups = signups.filter(s => s.opportunity_id === opp.id);
+              const alreadySignedUp = oppSignups.some(s => s.email === user?.email);
+              const isFull = opp.plazas > 0 && oppSignups.length >= opp.plazas;
+              return (
+                <OpportunityCard
+                  key={opp.id}
+                  opp={opp}
+                  signups={oppSignups}
+                  alreadySignedUp={alreadySignedUp}
+                  isCreator={opp.creado_por === user?.email}
+                  isStaff={isStaff}
+                  onSignup={(!isFull && opp.estado !== "cerrada") ? () => setSignupOpp(opp) : null}
+                  onEdit={() => { setEditingOpp(opp); setOpenOpp(true); }}
+                  onDelete={() => { if (window.confirm(`¿Eliminar "${opp.titulo}"?`)) deleteOpp.mutate(opp.id); }}
+                />
+              );
+            })}
         </div>
       </div>
 
