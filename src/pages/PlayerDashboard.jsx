@@ -303,12 +303,23 @@ export default function PlayerDashboard() {
   );
   const attendanceStreak = myAttendances.slice(0, 10).length; // Últimas 10 asistencias
 
-  if (!user || loadingPlayer) {
+  if (!user) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
           <p className="text-slate-500">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingPlayer) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
+          <p className="text-slate-500">Cargando tu ficha de jugador...</p>
         </div>
       </div>
     );
@@ -385,17 +396,7 @@ export default function PlayerDashboard() {
     );
   }
 
-  if (!player) {
-    if (!allowCreatePrompt) {
-      return (
-        <div className="p-6 flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-4"></div>
-            <p className="text-slate-500">Buscando tu ficha...</p>
-          </div>
-        </div>
-      );
-    }
+  if (!player && allowCreatePrompt) {
 
     if (showCreateProfile && !showPaymentFlow) {
       return (
