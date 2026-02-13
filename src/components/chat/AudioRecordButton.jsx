@@ -28,7 +28,7 @@ function pickMimeType() {
  * Sin preview, sin mantener pulsado, sin deslizar.
  */
 export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChange, autoStart = false }) {
-  const [state, setState] = useState("idle"); // idle | recording | sending
+  const [state, setState] = useState(autoStart ? "starting" : "idle"); // idle | starting | recording | sending
   const [seconds, setSeconds] = useState(0);
 
   const mediaRef = useRef(null);
@@ -54,7 +54,7 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
 
   // Auto-start recording when mounted with autoStart=true
   useEffect(() => {
-    if (autoStart && !hasAutoStarted.current && !fallbackMode && state === "idle") {
+    if (autoStart && !hasAutoStarted.current && !fallbackMode) {
       hasAutoStarted.current = true;
       startRecording();
     }
@@ -69,6 +69,7 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   }, []);
 
   const startRecording = async () => {
+    setState("starting");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
@@ -101,7 +102,7 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
       } else {
         toast.error('Error al acceder al micrófono');
       }
-      // Si falla, volver al modo normal
+      setState("idle");
       try { onPreviewChange?.(false); } catch {}
     }
   };
@@ -196,6 +197,26 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
+  // ============ STARTING (waiting for mic permission) ============
+  if (state === "starting") {
+    return (
+      <div className="flex items-center gap-2 w-full">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => { setState("idle"); try { onPreviewChange?.(false); } catch {} }}
+          className="h-10 w-10 text-red-500 hover:bg-red-50 flex-shrink-0 rounded-full"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+        <div className="flex-1 flex items-center gap-2.5 bg-orange-50 border border-orange-200 rounded-full px-4 py-2.5">
+          <Loader2 className="w-4 h-4 text-orange-500 animate-spin flex-shrink-0" />
+          <span className="text-sm font-medium text-orange-600">Accediendo al micrófono...</span>
+        </div>
+      </div>
+    );
+  }
 
   // ============ RECORDING BAR ============
   if (state === "recording") {
