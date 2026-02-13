@@ -867,7 +867,22 @@ export default function Payments() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Jugador</label>
+                    <Select value={playerFilter} onValueChange={setPlayerFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todos los jugadores" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos los jugadores</SelectItem>
+                        {(players || []).filter(p => p.activo).sort((a,b) => (a.nombre||'').localeCompare(b.nombre||'')).map(p => (
+                          <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Temporada</label>
                     <Select value={temporadaFilter} onValueChange={setTemporadaFilter}>
@@ -1314,15 +1329,26 @@ export default function Payments() {
                                            📄
                                          </Button>
                                        )}
-                                       {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && !payment.isVirtual && (
-                                         <Button
-                                           size="sm"
-                                           onClick={() => handleStatusChange(payment, "Pagado")}
-                                           className="bg-green-600 hover:bg-green-700 text-[10px] lg:text-xs h-6 px-2"
-                                         >
-                                           ✓ Pagado
-                                         </Button>
-                                       )}
+                                       {isAdmin && payment.estado === "En revisión" && !payment.isVirtual && (
+                                                          <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleStatusChange(payment, "Pendiente")}
+                                                            className="border-red-400 text-red-600 hover:bg-red-50 text-[10px] lg:text-xs h-6 px-2"
+                                                            title="Rechazar justificante y volver a Pendiente"
+                                                          >
+                                                            ✗ Rechazar
+                                                          </Button>
+                                                        )}
+                                                        {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && !payment.isVirtual && (
+                                                          <Button
+                                                            size="sm"
+                                                            onClick={() => handleStatusChange(payment, "Pagado")}
+                                                            className="bg-green-600 hover:bg-green-700 text-[10px] lg:text-xs h-6 px-2"
+                                                          >
+                                                            ✓ Pagado
+                                                          </Button>
+                                                        )}
                                       </div>
                                     </div>
                                   );
