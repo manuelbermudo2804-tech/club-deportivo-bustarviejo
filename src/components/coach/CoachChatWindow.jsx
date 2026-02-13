@@ -1251,8 +1251,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
               <div>
                 <p className="text-sm font-bold text-slate-900 mb-2">👨‍👩‍👧 Familias ({parentEmails.length})</p>
                 <div className="space-y-2">
+                  {/* Jugadores registrados con sus padres */}
                   {categoryPlayers.map((player, idx) => (
-                    <div key={idx} className="bg-slate-50 rounded-lg p-3 border">
+                    <div key={`p-${idx}`} className="bg-slate-50 rounded-lg p-3 border">
                       <p className="text-sm font-medium text-slate-900">{player.nombre}</p>
                       <div className="text-xs text-slate-600 mt-1 space-y-0.5">
                         {player.email_padre && <p>📧 {player.email_padre}</p>}
@@ -1260,6 +1261,19 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                       </div>
                     </div>
                   ))}
+                  {/* Padres que han escrito pero no están en fichas de jugadores */}
+                  {parentEmailsFromMessages
+                    .filter(email => !parentEmailsFromPlayers.includes(email))
+                    .map((email, idx) => {
+                      const msg = messages.find(m => m.remitente_email === email && m.tipo === 'padre_a_grupo');
+                      return (
+                        <div key={`m-${idx}`} className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                          <p className="text-sm font-medium text-slate-900">{msg?.remitente_nombre || email}</p>
+                          <p className="text-xs text-slate-600 mt-1">📧 {email}</p>
+                          <p className="text-[10px] text-blue-600">(Activo en el chat)</p>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             </div>
