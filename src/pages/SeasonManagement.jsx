@@ -883,15 +883,10 @@ export default function SeasonManagement() {
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
 
-      // 16. Eliminar mensajes privados
-      if (resetConfig.deletePrivateMessages) {
-        setProcessingStep("Eliminando conversaciones privadas...");
-        for (const msg of privateMessages) {
-          await base44.entities.PrivateMessage.delete(msg.id);
-        }
-        currentStep++;
-        setProcessingProgress((currentStep / totalSteps) * 100);
-      }
+      // 16. Eliminar mensajes privados - SKIP: ya eliminados en paso 12.1 (deletePrivateConversations)
+      // No duplicar borrado de PrivateMessage
+      currentStep++;
+      setProcessingProgress((currentStep / totalSteps) * 100);
 
       // 17. Eliminar pedidos de ropa
       if (resetConfig.deleteClothingOrders) {
