@@ -28,25 +28,42 @@ export default function PlayerProfile() {
   const { data: user } = useQuery({
     queryKey: ["me"],
     queryFn: () => base44.auth.me(),
-    staleTime: 60_000,
+    staleTime: 300_000,
+    gcTime: 600_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: player, isLoading } = useQuery({
-    queryKey: ["player", user?.email],
+    queryKey: ["myPlayerProfile", user?.player_id, user?.email],
     enabled: !!user,
     queryFn: async () => {
       if (!user) return null;
-      const conditions = [
-        { email_jugador: user.email },
-        { created_by: user.email },
-        { email_padre: user.email },
-      ];
-      if (user.player_id) conditions.unshift({ id: user.player_id });
-      const candidates = await base44.entities.Player.filter({ $or: conditions }, "-updated_date", 1);
-      return candidates?.[0] || null;
+      // Fast path: buscar por player_id directamente
+      if (user.player_id) {
+        try {
+          const byId = await base44.entities.Player.filter({ id: user.player_id }, "-updated_date", 1);
+          if (byId?.[0]) return byId[0];
+        } catch {}
+      }
+      // Fallback: buscar por email
+      const candidates = await base44.entities.Player.filter({
+        $or: [
+          { email_jugador: user.email },
+          { email_padre: user.email },
+          { email_tutor_2: user.email },
+        ]
+      }, "-updated_date", 1);
+      const found = candidates?.[0] || null;
+      if (found && !user.player_id) {
+        base44.auth.updateMe({ player_id: found.id }).catch(() => {});
+      }
+      return found;
     },
     initialData: null,
-    staleTime: 60_000,
+    staleTime: 120_000,
+    gcTime: 300_000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   const { data: seasonConfig } = useQuery({
@@ -55,13 +72,18 @@ export default function PlayerProfile() {
       const configs = await base44.entities.SeasonConfig.filter({ activa: true });
       return configs?.[0] || null;
     },
-    staleTime: 60_000,
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
   });
 
+  // Solo cargar categorías cuando se necesitan (renovación)
+  const needsRenewal = player?.estado_renovacion === "pendiente";
   const { data: categoryConfigs } = useQuery({
     queryKey: ["categoryConfigs"],
     queryFn: () => base44.entities.CategoryConfig.list(),
-    staleTime: 60_000,
+    staleTime: 600_000,
+    refetchOnWindowFocus: false,
+    enabled: needsRenewal || showPaymentFlow,
   });
 
   const [form, setForm] = useState({
