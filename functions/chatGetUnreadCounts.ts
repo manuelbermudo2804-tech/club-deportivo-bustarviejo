@@ -92,8 +92,8 @@ Deno.serve(async (req) => {
       } catch (e) {
         console.error('Error counting coordinator messages:', e);
       }
-    } else if (!isStaff) {
-      // Padre ve mensajes del coordinador sin leer
+    } else if (!isStaff || isTreasurer) {
+      // Padre/Jugador/Tesorero ve mensajes del coordinador sin leer
       const convs = await base44.asServiceRole.entities.CoordinatorConversation.filter({ padre_email: email });
       for (const conv of convs) {
         const lastRead = conv.last_read_padre_at || '1970-01-01T00:00:00.000Z';
