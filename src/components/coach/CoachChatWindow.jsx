@@ -657,20 +657,29 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     initialData: [],
   });
 
+  const safePlayers = Array.isArray(allPlayers) ? allPlayers : [];
   const normalizedSelected = normalizeCategory(selectedCategory);
   const categoryPlayers = selectedCategory === "Todas las categorías" 
-    ? (allPlayers || []).filter(p => p.activo !== false)
-    : (allPlayers || []).filter(p => {
+    ? safePlayers.filter(p => p.activo !== false)
+    : safePlayers.filter(p => {
         if (p.activo === false) return false;
         // Match directo
         if (p.deporte === selectedCategory || p.categoria_principal === selectedCategory) return true;
         if ((p.categorias || []).includes(selectedCategory)) return true;
-        // Match normalizado (sin acentos, sin paréntesis)
+        // Match normalizado (sin acentos, sin paréntesis, case-insensitive)
         const normDeporte = normalizeCategory(p.deporte);
         const normPrincipal = normalizeCategory(p.categoria_principal);
         const normCats = (p.categorias || []).map(normalizeCategory);
         return normDeporte === normalizedSelected || normPrincipal === normalizedSelected || normCats.includes(normalizedSelected);
       });
+
+  console.log('🔍 [CoachChatWindow] Participantes debug:', {
+    selectedCategory,
+    normalizedSelected,
+    totalPlayers: safePlayers.length,
+    matchedPlayers: categoryPlayers.length,
+    sampleDeportes: safePlayers.slice(0, 5).map(p => ({ deporte: p.deporte, cat_principal: p.categoria_principal, nombre: p.nombre })),
+  });
 
   const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
     [p.email_padre, p.email_tutor_2].filter(Boolean)
