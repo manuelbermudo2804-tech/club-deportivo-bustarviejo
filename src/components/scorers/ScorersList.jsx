@@ -18,12 +18,12 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
     },
     initialData: () => queryClient.getQueryData(['goleadores', categoryFullName]) || [],
     placeholderData: () => queryClient.getQueryData(['goleadores', categoryFullName]) || [],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     keepPreviousData: true,
     gcTime: 60 * 60_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     refetchOnMount: true,
-    refetchOnReconnect: true,
+    refetchOnReconnect: false,
   });
 
   if (isLoading && scorers.length === 0) {
