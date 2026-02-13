@@ -544,6 +544,8 @@ export default function ParentDashboard() {
             userEmail={user?.email}
             userSports={myPlayersSports}
           />
+          );
+        })()}
 
         {/* HAZTE SOCIO BANNER - COMPACTO */}
         <Link to={createPageUrl("ClubMembership")}>
