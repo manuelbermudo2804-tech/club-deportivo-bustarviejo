@@ -506,9 +506,6 @@ export default function ParentDashboard() {
 
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - SIEMPRE VISIBLE */}
-        {(() => {
-          const payStats = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
-          return (
         <AlertCenter 
             pendingCallups={notifications?.pendingCallups || pendingCallups}
             pendingDocuments={allDocuments.length > 0 ? allDocuments.filter(d => {
@@ -526,9 +523,9 @@ export default function ParentDashboard() {
                 return firma && !firma.firmado && !firma.confirmado_firma_externa;
               });
             }).length : 0}
-            pendingPayments={payStats.pendingPayments}
-            paymentsInReview={payStats.paymentsInReview}
-            overduePayments={payStats.overduePayments}
+            pendingPayments={pagosPendientesCount}
+            paymentsInReview={allPayments.filter(p => players.some(pl => pl.id === p.jugador_id) && p.estado === "En revisión" && p.is_deleted !== true).length}
+            overduePayments={0}
             pendingSurveys={activeSurveys.length}
             pendingSignatures={notifications?.pendingSignatures || pendingFederationSignatures}
             upcomingEvents={0}
@@ -544,8 +541,6 @@ export default function ParentDashboard() {
             userEmail={user?.email}
             userSports={myPlayersSports}
           />
-          );
-        })()}
 
         {/* HAZTE SOCIO BANNER - COMPACTO */}
         <Link to={createPageUrl("ClubMembership")}>
