@@ -22,12 +22,12 @@ function pickMimeType() {
 
 /**
  * Flujo simplificado:
- * 1. Toque en micrófono → empieza a grabar (barra roja con timer)
- * 2. Toque en enviar (o en el botón de parar) → sube y envía directamente
+ * 1. Toque en micrófono → empieza a grabar INMEDIATAMENTE (barra roja con timer)
+ * 2. Toque en enviar → sube y envía directamente
  * 3. Botón X → cancela
  * Sin preview, sin mantener pulsado, sin deslizar.
  */
-export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChange }) {
+export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChange, autoStart = false }) {
   const [state, setState] = useState("idle"); // idle | recording | sending
   const [seconds, setSeconds] = useState(0);
 
@@ -37,6 +37,7 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
   const fileInputRef = useRef(null);
+  const hasAutoStarted = useRef(false);
 
   const isIframe = (() => { 
     try { 
@@ -50,6 +51,14 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
     const hasMedia = !!(navigator?.mediaDevices?.getUserMedia && window?.MediaRecorder);
     return !hasMedia || isIframe;
   });
+
+  // Auto-start recording when mounted with autoStart=true
+  useEffect(() => {
+    if (autoStart && !hasAutoStarted.current && !fallbackMode && state === "idle") {
+      hasAutoStarted.current = true;
+      startRecording();
+    }
+  }, [autoStart, fallbackMode]);
 
   // Cleanup
   useEffect(() => {
