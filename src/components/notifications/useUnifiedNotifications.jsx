@@ -496,13 +496,25 @@ export function useUnifiedNotifications(user, options = {}) {
     const pendingPayments = myPayments.filter(p => p.estado === 'Pendiente').length;
     const paymentsInReview = myPayments.filter(p => p.estado === 'En revisión').length;
     
-    // Vencidos (fecha límite superada)
+    // Vencidos (fecha límite superada) - cálculo dinámico basado en temporada
     let overduePayments = 0;
+    const nowDate = new Date();
     myPayments.forEach(p => {
       if (p.estado !== 'Pendiente') return;
-      const limits = { 'Junio': '2026-06-30', 'Septiembre': '2026-09-30', 'Diciembre': '2026-12-31' };
+      // Calcular año de inicio de temporada desde el campo temporada del pago
+      const getStartYear = (temp) => {
+        if (!temp || typeof temp !== 'string') return nowDate.getFullYear();
+        const match = temp.match(/(\d{4})[\/-]/);
+        return match ? parseInt(match[1], 10) : nowDate.getFullYear();
+      };
+      const startYear = getStartYear(p.temporada);
+      const limits = {
+        'Junio': new Date(startYear + 1, 5, 30),       // 30 junio del año siguiente
+        'Septiembre': new Date(startYear, 8, 30),       // 30 septiembre del año inicio
+        'Diciembre': new Date(startYear, 11, 31)        // 31 diciembre del año inicio
+      };
       const limit = limits[p.mes];
-      if (limit && new Date() > new Date(limit)) overduePayments++;
+      if (limit && nowDate > limit) overduePayments++;
     });
 
     // FIRMAS
