@@ -88,15 +88,15 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
       }
     }
 
-    // 2. Email masivo (usando integración Core.SendEmail que SÍ funciona)
+    // 2. Email masivo vía Resend (función backend sendEmail)
     if (viaEmail) {
       let emailOk = 0;
       for (const email of emails) {
         try {
-          await base44.integrations.Core.SendEmail({
+          await base44.functions.invoke('sendEmail', {
             to: email,
-            subject: asunto || "Voluntariado CD Bustarviejo",
-            body: `<div style="font-family:system-ui;max-width:600px;margin:0 auto">
+            subject: asunto || "🤝 Voluntariado CD Bustarviejo",
+            html: `<div style="font-family:system-ui;max-width:600px;margin:0 auto">
               <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:20px;border-radius:12px 12px 0 0;text-align:center">
                 <h2 style="color:white;margin:0">🤝 Voluntariado CD Bustarviejo</h2>
               </div>
