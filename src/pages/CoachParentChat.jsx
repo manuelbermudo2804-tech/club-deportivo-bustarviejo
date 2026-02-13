@@ -23,8 +23,8 @@ export default function CoachParentChat({ embedded = false }) {
   const { counts: chatCounts, markRead, clearActiveChat } = useChatUnreadCounts(user);
 
   // Normalización consistente con backend y useChatUnreadCounts
-  const toGroupId = (s = "") =>
-    s.toString()
+  const toGroupId = (s) =>
+    (s || "").toString()
       .replace(/\(.*?\)/g, "")
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .trim()

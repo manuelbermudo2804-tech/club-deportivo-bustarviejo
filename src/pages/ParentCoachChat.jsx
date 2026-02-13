@@ -22,8 +22,8 @@ import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 
 // Normalización de categorías (ignora paréntesis/acentos y espacios)
-const normalizeCategory = (s = "") =>
-  s
+const normalizeCategory = (s) =>
+  (s || "")
     .toString()
     .replace(/\(.*?\)/g, "")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -31,7 +31,7 @@ const normalizeCategory = (s = "") =>
     .replace(/\s+/g, " ")
     .toLowerCase();
 
-const toGroupId = (s = "") => normalizeCategory(s).replace(/\s+/g, "_");
+const toGroupId = (s) => normalizeCategory(s).replace(/\s+/g, "_");
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);
