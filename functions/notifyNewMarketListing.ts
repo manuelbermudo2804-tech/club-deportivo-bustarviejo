@@ -77,9 +77,9 @@ Deno.serve(async (req) => {
     </div>
     ${listing.descripcion ? `<p style="color:#475569;font-size:14px;margin:12px 0;">${listing.descripcion.substring(0, 200)}${listing.descripcion.length > 200 ? '...' : ''}</p>` : ''}
     <p style="margin:20px 0 0;text-align:center;">
-      <span style="display:inline-block;background:#ea580c;color:white;padding:12px 24px;border-radius:8px;font-weight:bold;font-size:14px;">
-        Abre la app para verlo → Mercadillo
-      </span>
+      <a href="https://app.cdbustarviejo.com/Mercadillo" target="_blank" style="display:inline-block;background:#ea580c;color:white;padding:12px 24px;border-radius:8px;font-weight:bold;font-size:14px;text-decoration:none;">
+        Abrir Mercadillo en la App →
+      </a>
     </p>
   </div>
   <p style="text-align:center;color:#94a3b8;font-size:11px;margin-top:12px;">CD Bustarviejo · Mercadillo Deportivo</p>
