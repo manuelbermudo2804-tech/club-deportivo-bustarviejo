@@ -16,13 +16,13 @@ export default function DashboardButtonCard({ item, isExternal, extraBadge }) {
         <div className={`absolute top-0 left-0 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br ${item.gradient} opacity-15 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
         
         {/* Móvil: compacto y refinado */}
-        <div className="relative z-10 p-3 flex flex-col items-center justify-center min-h-[115px] lg:hidden">
-          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-2 shadow-lg ring-1 ring-white/10`}>
-            <item.icon className="w-5 h-5 text-white drop-shadow-sm" />
+        <div className="relative z-10 p-2.5 flex flex-col items-center justify-center min-h-[100px] lg:hidden">
+          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-1.5 shadow-md ring-1 ring-white/10`}>
+            <item.icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />
           </div>
-          <h3 className="text-white font-semibold text-center text-[13px] leading-tight mb-1">{item.title}</h3>
+          <h3 className="text-white font-semibold text-center text-[12px] leading-tight">{item.title}</h3>
           {badge && (
-            <span className="bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md">
+            <span className="bg-orange-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-md mt-1">
               {badge.value} {badge.label}
             </span>
           )}

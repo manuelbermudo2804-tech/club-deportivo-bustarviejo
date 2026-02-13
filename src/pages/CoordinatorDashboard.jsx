@@ -177,7 +177,7 @@ export default function CoordinatorDashboard() {
         </div>
 
         {/* GRID DE BOTONES CENTRALES */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 stagger-animation">
+        <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
           {(userButtonConfig?.selected_buttons || DEFAULT_COORDINATOR_BUTTONS)
             .map(id => ALL_COORDINATOR_BUTTONS.find(b => b.id === id))
             .filter(Boolean)

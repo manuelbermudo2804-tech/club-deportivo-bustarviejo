@@ -552,7 +552,7 @@ export default function PlayerDashboard() {
         </div>
 
         {/* Grid de botones principales */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 stagger-animation">
+        <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
           {(userButtonConfig?.selected_buttons || DEFAULT_PLAYER_BUTTONS)
             .map(id => ALL_PLAYER_BUTTONS.find(b => b.id === id))
             .filter(Boolean)
