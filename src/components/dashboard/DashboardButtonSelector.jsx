@@ -10,8 +10,8 @@ export default function DashboardButtonSelector({
   allButtons, 
   selectedButtonIds, 
   onSave, 
-  minButtons = 8, 
-  maxButtons = 25,
+  minButtons = 4, 
+  maxButtons = 999,
   defaultButtons,
   panelName = "Dashboard"
 }) {
@@ -26,10 +26,6 @@ export default function DashboardButtonSelector({
       }
       setLocalSelected(localSelected.filter(id => id !== buttonId));
     } else {
-      if (localSelected.length >= maxButtons) {
-        toast.error(`Máximo ${maxButtons} botones permitidos`);
-        return;
-      }
       setLocalSelected([...localSelected, buttonId]);
     }
   };
@@ -75,7 +71,7 @@ export default function DashboardButtonSelector({
           <DialogHeader>
             <DialogTitle>⚙️ Personalizar {panelName}</DialogTitle>
             <p className="text-sm text-slate-600">
-              Elige entre {minButtons} y {maxButtons} botones. Arrastra para reordenar.
+              Elige los botones que quieras ver. Arrastra para reordenar.
             </p>
           </DialogHeader>
 
@@ -84,7 +80,7 @@ export default function DashboardButtonSelector({
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-slate-900">
-                  ✅ Tus Botones ({localSelected.length}/{maxButtons})
+                  ✅ Tus Botones ({localSelected.length})
                 </h3>
                 <Badge className={localSelected.length < minButtons ? "bg-red-500" : "bg-green-500"}>
                   {localSelected.length < minButtons ? `Faltan ${minButtons - localSelected.length}` : "Válido"}
@@ -157,7 +153,6 @@ export default function DashboardButtonSelector({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleToggle(button.id)}
-                        disabled={localSelected.length >= maxButtons}
                       >
                         <Eye className="w-4 h-4 text-green-500" />
                       </Button>
