@@ -9,6 +9,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
   const [currentMessage, setCurrentMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isAudioMode, setIsAudioMode] = useState(false);
 
 
   const handleSend = async () => {
@@ -69,44 +70,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
       )}
 
       <div className="flex items-end gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          className="h-9 w-9 p-0"
-          disabled={uploading}
-        >
-          <Smile className="w-5 h-5" />
-        </Button>
-
-        {showEmojiPicker && (
-          <div className="absolute bottom-16 left-4 z-50">
-            <EmojiPicker 
-              autoOpen
-              showInlineButton={false}
-              onEmojiSelect={(emoji) => {
-                setCurrentMessage(prev => prev + emoji);
-              }}
-              onClose={() => setShowEmojiPicker(false)}
-            />
-          </div>
-        )}
-
-        <Textarea
-          value={currentMessage}
-          onChange={(e) => {
-            setCurrentMessage(e.target.value);
-            e.target.style.height = 'auto';
-            e.target.style.height = Math.min(e.target.scrollHeight, 6*24) + 'px';
-          }}
-          onKeyDown={handleKeyDown}
-          placeholder="Escribe un mensaje..."
-          className="flex-1 min-h-[44px] max-h-[144px] resize-none text-sm"
-          disabled={uploading}
-          rows={1}
-        />
-
-        {!currentMessage.trim() ? (
+        {isAudioMode ? (
           <AudioRecordButton
             onAudioSent={async ({ audio_url, audio_duracion }) => {
               onSendMessage({
@@ -118,28 +82,84 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
               setAttachments([]);
             }}
             disabled={uploading}
+            onPreviewChange={setIsAudioMode}
           />
         ) : (
-          <div className="flex gap-1">
+          <>
             <Button
               size="sm"
-              variant="outline"
-              onClick={handleSendInternalNote}
-              disabled={uploading || !currentMessage.trim()}
-              className="h-9"
-              title="Enviar como nota interna (solo admins)"
+              variant="ghost"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="h-9 w-9 p-0"
+              disabled={uploading}
             >
-              <StickyNote className="w-4 h-4" />
+              <Smile className="w-5 h-5" />
             </Button>
-            <Button
-              size="sm"
-              onClick={handleSend}
-              disabled={uploading || !currentMessage.trim()}
-              className="h-9 bg-green-600 hover:bg-green-700"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
+
+            {showEmojiPicker && (
+              <div className="absolute bottom-16 left-4 z-50">
+                <EmojiPicker 
+                  autoOpen
+                  showInlineButton={false}
+                  onEmojiSelect={(emoji) => {
+                    setCurrentMessage(prev => prev + emoji);
+                  }}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
+              </div>
+            )}
+
+            <Textarea
+              value={currentMessage}
+              onChange={(e) => {
+                setCurrentMessage(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 6*24) + 'px';
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="Escribe un mensaje..."
+              className="flex-1 min-h-[44px] max-h-[144px] resize-none text-sm"
+              disabled={uploading}
+              rows={1}
+            />
+
+            {!currentMessage.trim() ? (
+              <AudioRecordButton
+                onAudioSent={async ({ audio_url, audio_duracion }) => {
+                  onSendMessage({
+                    mensaje: "",
+                    adjuntos: [...attachments],
+                    audio_url,
+                    audio_duracion
+                  });
+                  setAttachments([]);
+                }}
+                disabled={uploading}
+                onPreviewChange={setIsAudioMode}
+              />
+            ) : (
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSendInternalNote}
+                  disabled={uploading || !currentMessage.trim()}
+                  className="h-9"
+                  title="Enviar como nota interna (solo admins)"
+                >
+                  <StickyNote className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSend}
+                  disabled={uploading || !currentMessage.trim()}
+                  className="h-9 bg-green-600 hover:bg-green-700"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
