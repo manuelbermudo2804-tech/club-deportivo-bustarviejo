@@ -222,7 +222,9 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
       oppId = opp.id;
     } catch (e) { console.error("Error creando oportunidad:", e); }
 
-    const appLink = "https://app.cdbustarviejo.com/voluntariado";
+    const appLink = oppId 
+      ? `https://app.cdbustarviejo.com/voluntariado?opp_id=${oppId}` 
+      : "https://app.cdbustarviejo.com/voluntariado";
 
     // 1. Mensaje en la app (Mensajes del Club)
     if (viaApp) {
