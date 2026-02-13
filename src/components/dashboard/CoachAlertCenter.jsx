@@ -22,11 +22,11 @@ export default function CoachAlertCenter({
   pendingMatchObservations,
 }) {
   return (
-    <Card className="border-2 border-orange-200 bg-white shadow-lg overflow-hidden">
+    <Card className="border border-orange-200 bg-white shadow-md overflow-hidden rounded-xl">
       <CardContent className="p-0">
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:divide-x divide-orange-200">
           {/* Columna Izquierda - Tareas como Padre */}
-          <RoleAlertBlock color="blue" icon="👨‍👩‍👧" title="Mis Tareas como Padre" subtitle="Gestión familiar">
+          <RoleAlertBlock color="blue" icon="👨‍👩‍👧" title="Tareas Padre" subtitle="Familia">
             <AlertCenter 
               pendingCallups={pendingCallupsParent}
               pendingPayments={pendingPaymentsParent}
@@ -43,8 +43,8 @@ export default function CoachAlertCenter({
           </RoleAlertBlock>
 
           {/* Columna Derecha - Tareas como Entrenador */}
-          <div className="p-4 border-t lg:border-t-0 border-orange-200">
-            <RoleAlertBlock color="blue" icon="🏃" title="Mis Tareas como Entrenador" subtitle="Gestión deportiva">
+          <div className="p-3 border-t lg:border-t-0 border-orange-200">
+            <RoleAlertBlock color="blue" icon="🏃" title="Tareas Entrenador" subtitle="Deportiva">
               <AlertCenter 
                 pendingCallupResponses={pendingCallupResponsesCoach}
                 pendingMatchObservations={pendingMatchObservations}

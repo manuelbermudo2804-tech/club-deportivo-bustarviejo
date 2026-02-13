@@ -143,41 +143,41 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
 
   return (
     <>
-      <Card className="border-2 border-slate-300 shadow-lg overflow-hidden">
+      <Card className="border border-slate-200 shadow-md overflow-hidden rounded-xl">
         <CardContent className="p-0">
-          <div className="grid grid-cols-2 divide-x divide-slate-300">
+          <div className="grid grid-cols-2 divide-x divide-slate-200">
             {/* IZQUIERDA: CLASIFICACIONES */}
             <button
               onClick={() => additionalCategories > 0 ? setShowAllStandings(true) : window.location.href = createPageUrl("CentroCompeticionTecnico")}
               className="hover:bg-orange-50/50 transition-colors text-left"
             >
-              <div className="p-4 bg-gradient-to-br from-orange-50 to-white h-full">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-orange-600" />
-                    <p className="font-bold text-slate-900 text-sm">📊 {additionalCategories > 0 ? 'Clasificaciones' : 'Mi Clasificación'}</p>
+              <div className="p-3 bg-gradient-to-br from-orange-50 to-white h-full">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Trophy className="w-4 h-4 text-orange-600" />
+                    <p className="font-bold text-slate-900 text-xs">Clasificación</p>
                   </div>
                   {additionalCategories > 0 && (
-                    <Badge className="bg-orange-500 text-white text-xs">+{additionalCategories}</Badge>
+                    <Badge className="bg-orange-500 text-white text-[9px] px-1.5 py-0">+{additionalCategories}</Badge>
                   )}
                 </div>
                 
                 {bestStanding ? (
                   <div>
-                    <p className="text-xs text-slate-600 mb-1">{bestStanding.categoria.split(' ')[1] || bestStanding.categoria}</p>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-2xl font-bold ${positionClass} flex items-center gap-1`}>
+                    <p className="text-[10px] text-slate-500 mb-0.5">{bestStanding.categoria.split(' ')[1] || bestStanding.categoria}</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-xl font-bold ${positionClass} flex items-center gap-0.5`}>
                         {bestStanding.posicion}º
                         {trendIcon && <span className={trendColor}>{trendIcon}</span>}
                       </span>
                       <div>
-                        <p className="text-lg font-bold text-orange-600">{bestStanding.puntos} pts</p>
-                        <p className="text-xs text-slate-500">J{bestStanding.jornada}</p>
+                        <p className="text-sm font-bold text-orange-600">{bestStanding.puntos} pts</p>
+                        <p className="text-[10px] text-slate-400">J{bestStanding.jornada}</p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">Sin clasificaciones</p>
+                  <p className="text-xs text-slate-500">Sin datos</p>
                 )}
               </div>
             </button>
@@ -187,47 +187,44 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
               {nextMatch ? (
                 <button
                   onClick={() => setShowAllMatches(true)}
-                  className="w-full h-full text-left p-4 hover:bg-green-100/50 transition-colors"
+                  className="w-full h-full text-left p-3 hover:bg-green-100/50 transition-colors"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Trophy className="w-5 h-5 text-green-700" />
-                      <p className="font-bold text-slate-900 text-sm">⚽ Próximo Partido</p>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <Trophy className="w-4 h-4 text-green-700" />
+                      <p className="font-bold text-slate-900 text-xs">Próximo Partido</p>
                     </div>
                     {additionalMatches > 0 && (
-                      <Badge className="bg-green-600 text-white text-xs">+{additionalMatches}</Badge>
+                      <Badge className="bg-green-600 text-white text-[9px] px-1.5 py-0">+{additionalMatches}</Badge>
                     )}
                   </div>
-                  <p className="text-xs text-slate-600 mb-1">{nextMatch.categoria.split(' ')[1] || nextMatch.categoria}</p>
-                  <p className="font-bold text-slate-900 text-sm mb-2">{nextMatch.rival || nextMatch.titulo}</p>
-                  <div className="flex items-center gap-2 text-xs text-slate-600 mb-2">
-                    <span className="flex items-center gap-1">
+                  <p className="text-[10px] text-slate-500 mb-0.5">{nextMatch.categoria.split(' ')[1] || nextMatch.categoria}</p>
+                  <p className="font-bold text-slate-900 text-xs mb-1 line-clamp-1">{nextMatch.rival || nextMatch.titulo}</p>
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-600 mb-1.5">
+                    <span className="flex items-center gap-0.5">
                       <Calendar className="w-3 h-3" />
                       {format(new Date(nextMatch.fecha_partido), "EEE d MMM", { locale: es })}
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-0.5">
                       <Clock className="w-3 h-3" />
                       {nextMatch.hora_partido}
                     </span>
                   </div>
                   <Button 
                     size="sm" 
-                    className="w-full bg-green-600 hover:bg-green-700 text-white text-xs"
+                    className="w-full h-7 bg-green-600 hover:bg-green-700 text-white text-[10px]"
                     onClick={(e) => {
                       e.stopPropagation();
                       openGoogleMaps(nextMatch);
                     }}
                   >
                     <MapPin className="w-3 h-3 mr-1" />
-                    📍 Cómo Llegar
+                    Cómo Llegar
                   </Button>
                 </button>
               ) : (
-                <div className="p-4 text-center flex items-center justify-center h-full">
-                  <div>
-                    <Trophy className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                    <p className="text-sm text-slate-600">Sin partidos próximos</p>
-                  </div>
+                <div className="p-3 text-center flex items-center justify-center h-full">
+                  <p className="text-xs text-slate-500">Sin partidos próximos</p>
                 </div>
               )}
             </div>
