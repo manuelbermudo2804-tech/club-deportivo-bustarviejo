@@ -21,17 +21,17 @@ function pickMimeType() {
 }
 
 /**
- * Self-contained audio recording component.
+ * Two modes based on `expanded` prop:
  * 
- * Renders EITHER:
- *   - A mic button (idle state)
- *   - A full-width recording bar (recording/sending states)
+ * 1) expanded=false (default): Renders a mic BUTTON only. 
+ *    When tapped, calls onExpandedChange(true).
  * 
- * The parent should give this component the full width of the input area.
- * Use the `isExpanded` callback to know when to hide other input elements.
+ * 2) expanded=true: Immediately starts recording and renders a FULL-WIDTH bar.
+ *    Parent should hide other input elements and give this the full row.
+ *    When done (sent/cancelled), calls onExpandedChange(false).
  */
-export default function AudioRecordButton({ onAudioSent, disabled }) {
-  const [state, setState] = useState("idle"); // idle | starting | recording | sending
+export default function AudioRecordButton({ onAudioSent, disabled, expanded = false, onExpandedChange }) {
+  const [phase, setPhase] = useState("idle"); // idle | starting | recording | sending
   const [seconds, setSeconds] = useState(0);
 
   const mediaRef = useRef(null);
@@ -40,6 +40,7 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
   const fileInputRef = useRef(null);
+  const didStartRef = useRef(false);
 
   const isIframe = (() => { 
     try { 
@@ -54,7 +55,18 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     return !hasMedia || isIframe;
   });
 
-  // Cleanup
+  // Auto-start when expanded becomes true
+  useEffect(() => {
+    if (expanded && !didStartRef.current && !fallbackMode) {
+      didStartRef.current = true;
+      startRecording();
+    }
+    if (!expanded) {
+      didStartRef.current = false;
+    }
+  }, [expanded, fallbackMode]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       try { timerRef.current && clearInterval(timerRef.current); } catch {}
@@ -62,8 +74,14 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     };
   }, []);
 
-  const startRecording = useCallback(async () => {
-    setState("starting");
+  const collapse = useCallback(() => {
+    setPhase("idle");
+    setSeconds(0);
+    try { onExpandedChange?.(false); } catch {}
+  }, [onExpandedChange]);
+
+  const startRecording = async () => {
+    setPhase("starting");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
@@ -81,7 +99,7 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
       };
 
       mr.start();
-      setState("recording");
+      setPhase("recording");
       setSeconds(0);
 
       timerRef.current = setInterval(() => {
@@ -95,25 +113,24 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
       } else {
         toast.error('Error al acceder al micrófono');
       }
-      setState("idle");
+      collapse();
     }
-  }, []);
+  };
 
-  const cancelRecording = useCallback(() => {
+  const cancelRecording = () => {
     try { timerRef.current && clearInterval(timerRef.current); } catch {}
     try { if (mediaRef.current?.state === 'recording') mediaRef.current.stop(); } catch {}
     try { streamRef.current?.getTracks()?.forEach(t => t.stop()); } catch {}
     streamRef.current = null;
     chunksRef.current = [];
-    setState("idle");
-    setSeconds(0);
-  }, []);
+    collapse();
+  };
 
-  const stopAndSend = useCallback(async () => {
+  const stopAndSend = async () => {
     try { timerRef.current && clearInterval(timerRef.current); } catch {}
     const finalDuration = Math.max(1, Math.floor((Date.now() - startTimeRef.current) / 1000));
 
-    setState("sending");
+    setPhase("sending");
 
     const blob = await new Promise((resolve) => {
       const mr = mediaRef.current;
@@ -121,10 +138,7 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
         resolve(new Blob(chunksRef.current, { type: mr?.mimeType || 'audio/webm' }));
         return;
       }
-      mr.onstop = () => {
-        const b = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' });
-        resolve(b);
-      };
+      mr.onstop = () => resolve(new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' }));
       mr.stop();
     });
 
@@ -133,7 +147,7 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
 
     if (!blob || blob.size === 0) {
       toast.error("Audio vacío, inténtalo de nuevo");
-      setState("idle");
+      collapse();
       return;
     }
 
@@ -148,16 +162,15 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
       toast.error("Error al enviar el audio");
     }
 
-    setState("idle");
-    setSeconds(0);
     chunksRef.current = [];
-  }, [onAudioSent]);
+    collapse();
+  };
 
   // Fallback: file upload
   const handleFileChange = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    setState("sending");
+    setPhase("sending");
     try {
       let dur = 0;
       if (f.type.startsWith("audio")) {
@@ -174,15 +187,13 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     } catch (err) {
       toast.error("Error subiendo el audio");
     }
-    setState("idle");
     if (fileInputRef.current) fileInputRef.current.value = "";
+    collapse();
   };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  const isExpanded = state !== "idle";
-
-  // ============ FALLBACK (iframe / no mic) ============
+  // ============ FALLBACK (iframe / no mic) — always just a button ============
   if (fallbackMode) {
     return (
       <>
@@ -208,12 +219,12 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     );
   }
 
-  // ============ IDLE — Just the mic button ============
-  if (state === "idle") {
+  // ============ COLLAPSED — Just the mic button ============
+  if (!expanded) {
     return (
       <Button
         size="icon"
-        onClick={startRecording}
+        onClick={() => onExpandedChange?.(true)}
         disabled={disabled}
         className="h-11 w-11 bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-full flex-shrink-0"
         title="Grabar audio"
@@ -223,14 +234,16 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     );
   }
 
-  // ============ STARTING ============
-  if (state === "starting") {
+  // ============ EXPANDED STATES ============
+
+  // Starting (waiting for mic permission)
+  if (phase === "starting" || phase === "idle") {
     return (
       <div className="flex items-center gap-2 w-full">
         <Button
           size="icon"
           variant="ghost"
-          onClick={() => setState("idle")}
+          onClick={cancelRecording}
           className="h-10 w-10 text-red-500 hover:bg-red-50 flex-shrink-0 rounded-full"
         >
           <X className="w-5 h-5" />
@@ -243,8 +256,8 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     );
   }
 
-  // ============ RECORDING ============
-  if (state === "recording") {
+  // Recording
+  if (phase === "recording") {
     return (
       <div className="flex items-center gap-2 w-full">
         <Button
@@ -258,9 +271,9 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
 
         <div className="flex-1 flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-full px-4 py-2">
           <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
-          <span className="text-sm font-semibold text-red-600">Grabando</span>
+          <span className="text-sm font-semibold text-red-600 flex-shrink-0">Grabando</span>
 
-          <div className="flex items-center gap-[2px] flex-1 justify-center">
+          <div className="flex items-center gap-[2px] flex-1 justify-center overflow-hidden">
             {[...Array(16)].map((_, i) => (
               <div
                 key={i}
@@ -290,7 +303,7 @@ export default function AudioRecordButton({ onAudioSent, disabled }) {
     );
   }
 
-  // ============ SENDING ============
+  // Sending
   return (
     <div className="flex items-center gap-2 w-full">
       <div className="flex-1 flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-full px-4 py-2.5">
