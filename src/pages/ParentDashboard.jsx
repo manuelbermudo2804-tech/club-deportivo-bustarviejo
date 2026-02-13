@@ -20,6 +20,8 @@ import DashboardButtonSelector from "../components/dashboard/DashboardButtonSele
 import ShareFormButton from "../components/players/ShareFormButton";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
+import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
+import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
@@ -440,7 +442,8 @@ export default function ParentDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <div className="flex items-center justify-between gap-3">
+        {/* Móvil: botones rápidos */}
+        <div className="lg:hidden flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <SocialLinks />
             <Link to={createPageUrl("Chatbot")}>
@@ -452,6 +455,18 @@ export default function ParentDashboard() {
           </div>
           <ShareFormButton />
         </div>
+
+        {/* Desktop: header mejorado */}
+        <DesktopDashboardHeader
+          user={user}
+          roleName="Panel Familias"
+          roleEmoji="👨‍👩‍👧"
+          kpis={[
+            { icon: Users, label: "Jugadores", value: myPlayers.length, color: "from-orange-600 to-orange-700" },
+            { icon: CreditCard, label: "Pagos pendientes", value: pagosPendientesCount, color: "from-green-600 to-green-700", sub: pagosPendientesCount > 0 ? "por realizar" : null },
+            { icon: Bell, label: "Convocatorias", value: pendingCallups, color: "from-yellow-600 to-yellow-700", sub: pendingCallups > 0 ? "por confirmar" : null },
+          ]}
+        />
 
         {/* Aviso renovaciones (aunque estén inactivos) */}
         {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (
@@ -586,87 +601,30 @@ export default function ParentDashboard() {
 
 
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
+        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 stagger-animation">
           {menuItems.map((item, index) => (
-                        item.url?.startsWith('http') ? (
-                          <a key={index} href={item.url} target="_blank" rel="noopener noreferrer" className="group">
-                            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-                              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-                              <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-                              <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
-
-                              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                                <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                                  <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                                </div>
-
-                                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
-                                  {item.title}
-                                </h3>
-                              </div>
-                            </div>
-                          </a>
-                        ) : (
-                          <Link key={index} to={item.url} className="group">
-                            <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-                              <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-                              <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-                              <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
-
-                              <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                                <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                                  <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                                </div>
-
-                                <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
-                                  {item.title}
-                                </h3>
-                              </div>
-                            </div>
-                          </Link>
-                        )
-                      ))}
+            <DashboardButtonCard key={index} item={item} isExternal={item.url?.startsWith('http')} />
+          ))}
         </div>
 
-        {playersLoading ? (
-          <DashboardCardSkeleton />
-        ) : (
-          (() => {
-            const { pendingPayments: pagosPendientes, overduePayments: pagosVencidos, paymentsInReview: pagosRevision } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
-            const totalPayments = pagosPendientes + pagosVencidos + pagosRevision;
-            
-            return (
-              <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl lg:text-4xl font-bold text-orange-500 mb-1">
-                      {myPlayers.length}
-                    </div>
-                    <div className="text-slate-400 text-[10px] lg:text-sm">Jugadores</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
-                      {totalPayments}
-                    </div>
-                    <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Totales</div>
-                    <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
-                      {pagosVencidos > 0 && `${pagosVencidos} vencidos`}
-                      {pagosVencidos > 0 && (pagosPendientes > 0 || pagosRevision > 0) && ' • '}
-                      {pagosPendientes > 0 && `${pagosPendientes} pendientes`}
-                      {pagosPendientes > 0 && pagosRevision > 0 && ' • '}
-                      {pagosRevision > 0 && `${pagosRevision} en revisión`}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl lg:text-4xl font-bold text-yellow-500 mb-1">
-                      {pendingCallups}
-                    </div>
-                    <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
-                  </div>
-                </div>
+        {/* Stats footer - solo móvil (desktop los tiene en KPIs) */}
+        {!playersLoading && (
+          <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-500 mb-1">{myPlayers.length}</div>
+                <div className="text-slate-400 text-[10px]">Jugadores</div>
               </div>
-            );
-          })()
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-500 mb-1">{pagosPendientesCount}</div>
+                <div className="text-slate-400 text-[10px]">Pagos</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-500 mb-1">{pendingCallups}</div>
+                <div className="text-slate-400 text-[10px]">Convocatorias</div>
+              </div>
+            </div>
+          </div>
         )}
 
         <ContactCard />

@@ -26,6 +26,8 @@ import ContactCard from "../components/ContactCard";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
 import ShareFormButton from "../components/players/ShareFormButton";
 import SocialLinks from "../components/SocialLinks";
+import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
+import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -463,7 +465,7 @@ export default function PlayerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <div className="flex items-center justify-between gap-3">
+        <div className="lg:hidden flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <SocialLinks />
             <Link to={createPageUrl("Chatbot")}>
@@ -475,6 +477,19 @@ export default function PlayerDashboard() {
           </div>
           <ShareFormButton />
         </div>
+
+        <DesktopDashboardHeader
+          user={user}
+          roleName="Panel Jugador"
+          roleEmoji="⚽"
+          subtitle={player?.categoria_principal || player?.deporte}
+          kpis={[
+            { icon: CheckCircle2, label: "Pagos OK", value: paymentStats.pagados, color: "from-green-600 to-green-700" },
+            { icon: CreditCard, label: "Pagos Pendientes", value: paymentStats.pendientes + paymentStats.vencidos, color: "from-red-600 to-red-700", sub: paymentStats.vencidos > 0 ? `${paymentStats.vencidos} vencidos` : null },
+            { icon: Bell, label: "Convocatorias", value: pendingCallups.length, color: "from-yellow-600 to-yellow-700", sub: pendingCallups.length > 0 ? "por confirmar" : null },
+            { icon: Award, label: "Racha", value: `🔥 ${attendanceStreak}`, color: "from-purple-600 to-purple-700" },
+          ]}
+        />
 
         {/* Banner Clasificaciones y Próximo Partido */}
         <ClassificationsAndMatchesBanner 
@@ -537,88 +552,38 @@ export default function PlayerDashboard() {
         </div>
 
         {/* Grid de botones principales */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
+        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 stagger-animation">
           {(userButtonConfig?.selected_buttons || DEFAULT_PLAYER_BUTTONS)
             .map(id => ALL_PLAYER_BUTTONS.find(b => b.id === id))
             .filter(Boolean)
-            .map((item, index) => (
-            <Link key={index} to={item.url} className="group">
-              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-                <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-                <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
-                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                    <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                  </div>
-                  <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">{item.title}</h3>
-                  {item.id === "convocatorias" && pendingCallups.length > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                      <p className="text-white text-[10px] lg:text-xs font-semibold">
-                        {pendingCallups.length} pendientes
-                      </p>
-                    </div>
-                  )}
-                  {item.id === "firmas" && pendingSignatures > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                      <p className="text-white text-[10px] lg:text-xs font-semibold">
-                        {pendingSignatures} pendientes
-                      </p>
-                    </div>
-                  )}
-                  {item.id === "pagos" && paymentStats.pendientes > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                      <p className="text-white text-[10px] lg:text-xs font-semibold">
-                        {paymentStats.pendientes} pendientes
-                      </p>
-                    </div>
-                  )}
-                  {item.id === "ropa" && clothingOrders.filter(o => o.estado !== "Entregado").length > 0 && (
-                    <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-                      <p className="text-white text-[10px] lg:text-xs font-semibold">
-                        {clothingOrders.filter(o => o.estado !== "Entregado").length} activos
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
+            .map((item, index) => {
+              let extraBadge = null;
+              if (item.id === "convocatorias" && pendingCallups.length > 0) extraBadge = { value: pendingCallups.length, label: "pendientes" };
+              if (item.id === "firmas" && pendingSignatures > 0) extraBadge = { value: pendingSignatures, label: "pendientes" };
+              if (item.id === "pagos" && paymentStats.pendientes > 0) extraBadge = { value: paymentStats.pendientes, label: "pendientes" };
+              if (item.id === "ropa" && clothingOrders.filter(o => o.estado !== "Entregado").length > 0) extraBadge = { value: clothingOrders.filter(o => o.estado !== "Entregado").length, label: "activos" };
+              return <DashboardButtonCard key={index} item={item} extraBadge={extraBadge} />;
+            })}
         </div>
 
-        {/* Stats footer */}
-        <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        {/* Stats footer - solo móvil */}
+        <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
+          <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
-                {paymentStats.pagados}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos OK</div>
+              <div className="text-2xl font-bold text-green-500 mb-1">{paymentStats.pagados}</div>
+              <div className="text-slate-400 text-[10px]">Pagos OK</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
-                {paymentStats.pendientes + paymentStats.enRevision + paymentStats.vencidos}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Total</div>
-              <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
-                {paymentStats.vencidos > 0 && `${paymentStats.vencidos} vencidos`}
-                {paymentStats.vencidos > 0 && (paymentStats.pendientes > 0 || paymentStats.enRevision > 0) && ' • '}
-                {paymentStats.pendientes > 0 && `${paymentStats.pendientes} pendientes`}
-                {paymentStats.pendientes > 0 && paymentStats.enRevision > 0 && ' • '}
-                {paymentStats.enRevision > 0 && `${paymentStats.enRevision} revisión`}
-              </div>
+              <div className="text-2xl font-bold text-red-500 mb-1">{paymentStats.pendientes + paymentStats.vencidos}</div>
+              <div className="text-slate-400 text-[10px]">Pagos Pend.</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-yellow-500 mb-1">
-                {pendingCallups.length}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
+              <div className="text-2xl font-bold text-yellow-500 mb-1">{pendingCallups.length}</div>
+              <div className="text-slate-400 text-[10px]">Convocatorias</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-purple-500 mb-1">
-                {attendanceStreak}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">🔥 Racha</div>
+              <div className="text-2xl font-bold text-purple-500 mb-1">{attendanceStreak}</div>
+              <div className="text-slate-400 text-[10px]">🔥 Racha</div>
             </div>
           </div>
         </div>

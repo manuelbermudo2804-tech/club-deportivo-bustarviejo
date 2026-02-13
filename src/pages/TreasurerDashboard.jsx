@@ -17,6 +17,9 @@ import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_TREASURER_BUTTONS, DEFAULT_TREASURER_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/TreasurerDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
+import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
+import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import { CreditCard, Users, Bell } from "lucide-react";
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
@@ -331,7 +334,7 @@ export default function TreasurerDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6 pb-28">
-        <div className="flex items-center justify-between gap-3">
+        <div className="lg:hidden flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <SocialLinks />
             <Link to={createPageUrl("Chatbot")}>
@@ -343,6 +346,18 @@ export default function TreasurerDashboard() {
           </div>
           <ShareFormButton />
         </div>
+
+        <DesktopDashboardHeader
+          user={user}
+          roleName="Panel Tesorero"
+          roleEmoji="💰"
+          kpis={[
+            { icon: CreditCard, label: "Pagos en revisión (Club)", value: paymentsInReviewTreasurer, color: "from-green-600 to-green-700", sub: paymentsInReviewTreasurer > 0 ? "requieren atención" : null },
+            { icon: Users, label: "Mis Jugadores", value: myPlayers.length, color: "from-orange-600 to-orange-700" },
+            { icon: Bell, label: "Convocatorias Hijos", value: pendingCallupsParent, color: "from-yellow-600 to-yellow-700", sub: pendingCallupsParent > 0 ? "por confirmar" : null },
+            { icon: CreditCard, label: "Pagos Mis Hijos", value: totalPendingPaymentsParent, color: "from-red-600 to-red-700", sub: overduePaymentsCount > 0 ? `${overduePaymentsCount} vencidos` : null },
+          ]}
+        />
 
         {/* Widget Clasificaciones y Próximo Partido */}
         {!playersLoading && myPlayers.length > 0 && (
@@ -385,86 +400,32 @@ export default function TreasurerDashboard() {
           />
         </div>
 
-        {/* Botones de Acceso Rápido - Aspecto ParentDashboard */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
+        {/* Botones de Acceso Rápido */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 stagger-animation">
           {menuItems.map((item, index) => (
-            item.url?.startsWith('http') ? (
-              <a key={index} href={item.url} target="_blank" rel="noopener noreferrer" className="group">
-                <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-                  <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-                  <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
-
-                  <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                    <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                      <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                    </div>
-
-                    <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
-                      {item.title}
-                    </h3>
-                  </div>
-                </div>
-              </a>
-            ) : (
-              <Link key={index} to={createPageUrl(item.url.replace('/', ''))} className="group">
-                <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-                  <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-                  <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
-
-                  <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                    <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                      <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                    </div>
-
-                    <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
-                      {item.title}
-                    </h3>
-                  </div>
-                </div>
-              </Link>
-            )
+            <DashboardButtonCard key={index} item={item} isExternal={item.url?.startsWith('http')} />
           ))}
         </div>
 
-        {/* Estadísticas del Footer */}
-        {playersLoading ? (
-          <DashboardCardSkeleton />
-        ) : (
-          <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        {/* Stats Footer - solo móvil */}
+        {!playersLoading && (
+          <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
+            <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
-                <div className="text-2xl lg:text-4xl font-bold text-orange-500 mb-1">
-                  {myPlayers.length}
-                </div>
-                <div className="text-slate-400 text-[10px] lg:text-sm">Mis Jugadores</div>
+                <div className="text-2xl font-bold text-orange-500 mb-1">{myPlayers.length}</div>
+                <div className="text-slate-400 text-[10px]">Mis Jugadores</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl lg:text-4xl font-bold text-red-500 mb-1">
-                  {totalPendingPaymentsParent}
-                </div>
-                <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Mis Hijos</div>
-                <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">
-                  {overduePaymentsCount > 0 && `${overduePaymentsCount} vencidos`}
-                  {overduePaymentsCount > 0 && (pagosPendientesNoVencidos > 0 || pagosEnRevisionNoVencidos > 0) && ' • '}
-                  {pagosPendientesNoVencidos > 0 && `${pagosPendientesNoVencidos} pendientes`}
-                  {pagosPendientesNoVencidos > 0 && pagosEnRevisionNoVencidos > 0 && ' • '}
-                  {pagosEnRevisionNoVencidos > 0 && `${pagosEnRevisionNoVencidos} en revisión`}
-                </div>
+                <div className="text-2xl font-bold text-green-500 mb-1">{paymentsInReviewTreasurer}</div>
+                <div className="text-slate-400 text-[10px]">Pagos Club</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl lg:text-4xl font-bold text-yellow-500 mb-1">
-                  {pendingCallupsParent}
-                </div>
-                <div className="text-slate-400 text-[10px] lg:text-sm">Convocatorias</div>
+                <div className="text-2xl font-bold text-yellow-500 mb-1">{pendingCallupsParent}</div>
+                <div className="text-slate-400 text-[10px]">Convocatorias</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
-                  {paymentsInReviewTreasurer}
-                </div>
-                <div className="text-slate-400 text-[10px] lg:text-sm">Pagos Club</div>
-                <div className="text-slate-500 text-[8px] lg:text-[10px] mt-1">en revisión</div>
+                <div className="text-2xl font-bold text-red-500 mb-1">{totalPendingPaymentsParent}</div>
+                <div className="text-slate-400 text-[10px]">Pagos Hijos</div>
               </div>
             </div>
           </div>

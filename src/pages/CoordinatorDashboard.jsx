@@ -15,6 +15,9 @@ import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCent
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
 import ShareFormButton from "../components/players/ShareFormButton";
+import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
+import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import { Users, Calendar, Bell } from "lucide-react";
 
 
 
@@ -125,7 +128,7 @@ export default function CoordinatorDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
 
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <div className="flex items-center justify-between gap-3">
+        <div className="lg:hidden flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <SocialLinks />
             <Link to={createPageUrl("Chatbot")}>
@@ -138,17 +141,21 @@ export default function CoordinatorDashboard() {
           <ShareFormButton />
         </div>
         
-        {/* Header */}
-
-
-        <div className="text-center lg:text-left">
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
-            🎓 Panel Coordinador Deportivo
-          </h1>
-          <p className="text-slate-400 text-sm lg:text-base">
-            {user?.full_name} - Vista global del club
-          </p>
+        <div className="lg:hidden text-center">
+          <h1 className="text-3xl font-bold text-white mb-2">🎓 Panel Coordinador</h1>
+          <p className="text-slate-400 text-sm">{user?.full_name} - Vista global</p>
         </div>
+
+        <DesktopDashboardHeader
+          user={user}
+          roleName="Coordinador Deportivo"
+          roleEmoji="🎓"
+          kpis={[
+            { icon: Users, label: "Jugadores Activos", value: stats.totalPlayers, color: "from-blue-600 to-blue-700" },
+            { icon: Calendar, label: "Categorías", value: stats.categories, color: "from-green-600 to-green-700" },
+            { icon: Bell, label: "Eventos 7 días", value: stats.upcomingEvents, color: "from-orange-600 to-orange-700" },
+          ]}
+        />
 
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
         <CoordinatorClassificationsMatchesBanner />
@@ -170,48 +177,30 @@ export default function CoordinatorDashboard() {
         </div>
 
         {/* GRID DE BOTONES CENTRALES */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 stagger-animation">
+        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 stagger-animation">
           {(userButtonConfig?.selected_buttons || DEFAULT_COORDINATOR_BUTTONS)
             .map(id => ALL_COORDINATOR_BUTTONS.find(b => b.id === id))
             .filter(Boolean)
             .filter(b => !b.conditional || (b.conditionKey === "canManageSignatures" && user?.puede_gestionar_firmas))
             .map((item, index) => (
-            <Link key={index} to={item.url} className="group">
-              <div className="relative bg-slate-800 rounded-3xl overflow-hidden shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-95 border-2 border-slate-700 hover:border-orange-500 btn-hover-shine">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/50 to-black/80 opacity-60"></div>
-                <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
-                <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
-                <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                  <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                    <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
-                  </div>
-                  <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">{item.title}</h3>
-                </div>
-              </div>
-            </Link>
+            <DashboardButtonCard key={index} item={item} />
           ))}
         </div>
 
-        {/* Stats Footer */}
-        <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        {/* Stats Footer - solo móvil */}
+        <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
+          <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-blue-500 mb-1">
-                {stats.totalPlayers}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Jugadores Activos</div>
+              <div className="text-2xl font-bold text-blue-500 mb-1">{stats.totalPlayers}</div>
+              <div className="text-slate-400 text-[10px]">Jugadores</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-green-500 mb-1">
-                {stats.categories}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Categorías</div>
+              <div className="text-2xl font-bold text-green-500 mb-1">{stats.categories}</div>
+              <div className="text-slate-400 text-[10px]">Categorías</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl lg:text-4xl font-bold text-orange-500 mb-1">
-                {stats.upcomingEvents}
-              </div>
-              <div className="text-slate-400 text-[10px] lg:text-sm">Eventos 7 días</div>
+              <div className="text-2xl font-bold text-orange-500 mb-1">{stats.upcomingEvents}</div>
+              <div className="text-slate-400 text-[10px]">Eventos 7d</div>
             </div>
           </div>
         </div>
