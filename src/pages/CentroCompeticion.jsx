@@ -250,8 +250,10 @@ export default function CentroCompeticion() {
       const fecha_actualizacion = latest.updated_date || new Date().toISOString();
       return { categoria: category, temporada, jornada: maxJornada ?? '-', fecha_actualizacion, data: rows };
     },
-    staleTime: 5 * 60_000,
+    staleTime: 10 * 60_000,
     gcTime: 60 * 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
 
   const filteredStandingsPack = React.useMemo(() => {
