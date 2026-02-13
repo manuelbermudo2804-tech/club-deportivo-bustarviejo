@@ -28,10 +28,10 @@ export default function ShareFormButton() {
         onClick={() => setOpen(true)}
         variant="outline"
         size="sm"
-        className="gap-2 border-blue-500 text-blue-700 hover:bg-blue-50"
+        className="gap-1 border-blue-500 text-blue-700 hover:bg-blue-50 h-8 px-2.5 text-xs"
       >
-        <Share2 className="w-4 h-4" />
-        <span className="hidden sm:inline">Compartir Formulario</span>
+        <Share2 className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">Formulario</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
