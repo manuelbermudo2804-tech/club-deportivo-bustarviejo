@@ -88,7 +88,6 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
       mr.start();
       setState("recording");
       setSeconds(0);
-      try { onPreviewChange?.(true); } catch {}
 
       timerRef.current = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
@@ -102,6 +101,8 @@ export default function AudioRecordButton({ onAudioSent, disabled, onPreviewChan
       } else {
         toast.error('Error al acceder al micrófono');
       }
+      // Si falla, volver al modo normal
+      try { onPreviewChange?.(false); } catch {}
     }
   };
 
