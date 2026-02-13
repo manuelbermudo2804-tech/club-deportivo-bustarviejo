@@ -99,6 +99,7 @@ const StaffChatInput = memo(function StaffChatInput({
             onAudioSent={handleAudioSent}
             disabled={uploading}
             onPreviewChange={setIsAudioMode}
+            autoStart
           />
         ) : (
           <>

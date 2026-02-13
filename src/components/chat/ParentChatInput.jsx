@@ -46,6 +46,7 @@ const ParentChatInput = memo(function ParentChatInput({ onSendMessage, uploading
             onAudioSent={handleAudioSent}
             disabled={uploading}
             onPreviewChange={setIsAudioMode}
+            autoStart
           />
         ) : (
           <>

@@ -108,6 +108,7 @@ const CoachChatInput = memo(function CoachChatInput({
             onAudioSent={handleAudioSent}
             disabled={uploading}
             onPreviewChange={setIsAudioMode}
+            autoStart
           />
         ) : (
           <>

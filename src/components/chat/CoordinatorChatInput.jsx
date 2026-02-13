@@ -44,6 +44,7 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
             onAudioSent={handleAudioSent}
             disabled={uploading}
             onPreviewChange={setIsAudioMode}
+            autoStart
           />
         ) : (
           <>

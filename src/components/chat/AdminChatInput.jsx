@@ -83,6 +83,7 @@ export default function AdminChatInput({ onSendMessage, onSendInternalNote, uplo
             }}
             disabled={uploading}
             onPreviewChange={setIsAudioMode}
+            autoStart
           />
         ) : (
           <>
