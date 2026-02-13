@@ -15,6 +15,7 @@ import { ALL_ADMIN_BUTTONS, DEFAULT_ADMIN_BUTTONS } from "../components/dashboar
 
 import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
+import AdminDesktopHeader from "../components/dashboard/AdminDesktopHeader";
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -929,12 +930,21 @@ export default function Home() {
 
   console.log('🎨 [Home] Renderizando dashboard');
 
+  const getCurrentSeason = () => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    if (currentMonth >= 9) return `${currentYear}/${currentYear + 1}`;
+    return `${currentYear - 1}/${currentYear}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
 
       
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <div className="flex items-center justify-between gap-2">
+        {/* Móvil: botones rápidos compactos (sin cambios) */}
+        <div className="lg:hidden flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
             <SocialLinks />
             <Link to={createPageUrl("Chatbot")}>
@@ -946,6 +956,13 @@ export default function Home() {
             <ShareFormButton />
           </div>
         </div>
+
+        {/* Desktop: header mejorado con saludo, fecha y KPIs */}
+        {isAdmin && (
+          <div className="hidden lg:block">
+            <AdminDesktopHeader user={user} stats={stats} currentSeason={getCurrentSeason()} />
+          </div>
+        )}
 
 
 
@@ -1036,7 +1053,21 @@ export default function Home() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-6 stagger-animation">
+        {/* Desktop: accesos rápidos inline (SocialLinks, IA, Compartir) */}
+        {isAdmin && (
+          <div className="hidden lg:flex items-center gap-2">
+            <SocialLinks />
+            <Link to={createPageUrl("Chatbot")}>
+              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 h-8 px-2.5 text-xs">
+                <Sparkles className="w-3.5 h-3.5 mr-1" />
+                Asistente IA
+              </Button>
+            </Link>
+            <ShareFormButton />
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 stagger-animation">
           {menuItems.map((item, index) => {
             const isExternal = typeof item.url === 'string' && item.url.startsWith('http');
             return isExternal ? (
@@ -1072,22 +1103,30 @@ export default function Home() {
                   <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl ${item.gradient} opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
                   <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${item.gradient} opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
                   
-                  <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-center min-h-[140px] lg:min-h-[200px]">
-                    <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 lg:mb-4 shadow-2xl icon-hover-bounce transition-all duration-300`}>
-                      <item.icon className="w-6 h-6 lg:w-10 lg:h-10 text-white transition-transform duration-300" />
+                  {/* Móvil: diseño original */}
+                  <div className="relative z-10 p-4 flex flex-col items-center justify-center min-h-[140px] lg:hidden">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-3 shadow-2xl icon-hover-bounce transition-all duration-300`}>
+                      <item.icon className="w-6 h-6 text-white transition-transform duration-300" />
                     </div>
-                    
-                    <h3 className="text-white font-bold text-center text-sm lg:text-lg mb-2">
-                      {item.title}
-                    </h3>
-                    
+                    <h3 className="text-white font-bold text-center text-sm mb-2">{item.title}</h3>
                     {item.badge !== undefined && item.badge > 0 && (
                       <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full badge-pulse">
-                        <p className="text-white text-[10px] lg:text-xs font-semibold">
-                          {item.badge} {item.badgeLabel}
-                        </p>
+                        <p className="text-white text-[10px] font-semibold">{item.badge} {item.badgeLabel}</p>
                       </div>
                     )}
+                  </div>
+
+                  {/* Desktop: diseño compacto horizontal */}
+                  <div className="relative z-10 p-4 hidden lg:flex items-center gap-4 min-h-[90px]">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg flex-shrink-0 icon-hover-bounce transition-all duration-300`}>
+                      <item.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold text-sm truncate">{item.title}</h3>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <p className="text-orange-400 text-xs font-medium mt-0.5">{item.badge} {item.badgeLabel}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>
@@ -1095,41 +1134,29 @@ export default function Home() {
           })}
         </div>
 
-        {/* Botón de prueba de notificación - Solo Admin */}
+        {/* Botón de prueba de notificación - Solo Admin, solo móvil */}
         {isAdmin && (
-          <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
+          <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
             <div className="text-center space-y-3">
-              <p className="text-white font-bold text-sm lg:text-base">🔔 Probar Notificaciones</p>
+              <p className="text-white font-bold text-sm">🔔 Probar Notificaciones</p>
               <p className="text-slate-400 text-xs">Minimiza la app y pulsa el botón para recibir una notificación de prueba</p>
               <Button
                 onClick={() => {
-                  // Verificar si hay permiso
                   if (typeof window !== 'undefined' && 'Notification' in window) {
                     if (Notification.permission === 'granted') {
-                      // Enviar notificación de prueba después de 3 segundos
-                      console.log("⏰ Notificación programada en 3 segundos");
                       setTimeout(() => {
                         new Notification("🎉 CD Bustarviejo - Prueba", {
-                          body: "¡Las notificaciones funcionan correctamente! Este mensaje llegó con la app en segundo plano.",
+                          body: "¡Las notificaciones funcionan correctamente!",
                           icon: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg"
                         });
                       }, 3000);
-                    } else if (Notification.permission === 'denied') {
-                      console.log("❌ Notificaciones bloqueadas");
-                    } else {
-                      Notification.requestPermission().then(permission => {
-                        if (permission === 'granted') {
-                          console.log("✅ Permiso concedido");
-                        } else {
-                          console.log("❌ Permiso denegado");
-                        }
-                      });
+                    } else if (Notification.permission !== 'denied') {
+                      Notification.requestPermission();
                     }
-                  } else {
-                    console.log("❌ Navegador no soporta notificaciones");
                   }
                 }}
                 className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold"
+                size="sm"
               >
                 <BellRing className="w-4 h-4 mr-2" />
                 Enviar Notificación de Prueba
@@ -1138,13 +1165,13 @@ export default function Home() {
           </div>
         )}
 
-        {/* Resumen de jugadores */}
-        <div className="bg-slate-800 rounded-3xl p-4 lg:p-6 shadow-2xl border-2 border-slate-700">
+        {/* Resumen de jugadores - solo móvil (en desktop ya está en KPIs) */}
+        <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
           <div className="text-center">
-            <div className="text-3xl lg:text-5xl font-bold text-orange-500 mb-2">
+            <div className="text-3xl font-bold text-orange-500 mb-2">
               {stats.activePlayers}
             </div>
-            <div className="text-slate-400 text-sm lg:text-base">Jugadores Activos</div>
+            <div className="text-slate-400 text-sm">Jugadores Activos</div>
           </div>
         </div>
       </div>
