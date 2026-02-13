@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, RefreshCw, AlertTriangle, CheckCircle2, Clock, 
   Mail, Search, Filter, Send, XCircle, RotateCcw, Download,
-  Settings, BarChart3, MessageSquare, Zap
+  Settings, BarChart3, MessageSquare, Zap, Phone
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -26,6 +26,8 @@ export default function RenewalDashboard() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const queryClient = useQueryClient();
+
+  const [daysFilter, setDaysFilter] = useState("all");
 
   const { data: seasonConfig } = useQuery({
     queryKey: ['seasonConfig'],
@@ -43,6 +45,11 @@ export default function RenewalDashboard() {
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
     queryFn: () => base44.entities.User.list(),
+  });
+
+  const { data: allReminders = [] } = useQuery({
+    queryKey: ['renewalReminders'],
+    queryFn: () => base44.entities.Reminder.list(),
   });
 
   // Estadísticas
@@ -95,17 +102,25 @@ export default function RenewalDashboard() {
       const email = player.email_padre;
       if (!familias[email]) {
         const usuario = allUsers.find(u => u.email === email);
+        // Buscar último recordatorio enviado a esta familia
+        const reminders = allReminders
+          .filter(r => r.email_padre === email && r.enviado)
+          .sort((a, b) => new Date(b.fecha_enviado || b.created_date) - new Date(a.fecha_enviado || a.created_date));
+        const lastReminder = reminders[0];
+        
         familias[email] = {
           email,
           nombre: usuario?.full_name || email,
-          jugadores: []
+          telefono: player.telefono || null,
+          jugadores: [],
+          ultimoRecordatorio: lastReminder ? (lastReminder.fecha_enviado || lastReminder.created_date) : null
         };
       }
       familias[email].jugadores.push(player);
     });
 
     return Object.values(familias);
-  }, [allPlayers, allUsers, seasonConfig]);
+  }, [allPlayers, allUsers, allReminders, seasonConfig]);
 
   const sendReminderMutation = useMutation({
     mutationFn: async (familias) => {
@@ -177,7 +192,19 @@ CD Bustarviejo`
     const matchesCategory = categoryFilter === "all" ||
       familia.jugadores.some(j => j.deporte === categoryFilter);
 
-    return matchesSearch && matchesCategory;
+    // Filtro por días sin responder
+    let matchesDays = true;
+    if (daysFilter !== "all") {
+      const days = parseInt(daysFilter);
+      if (familia.ultimoRecordatorio) {
+        const daysSinceReminder = Math.floor((new Date() - new Date(familia.ultimoRecordatorio)) / (1000 * 60 * 60 * 24));
+        matchesDays = daysSinceReminder >= days;
+      } else {
+        matchesDays = true; // Nunca se les envió → siempre mostrar
+      }
+    }
+
+    return matchesSearch && matchesCategory && matchesDays;
   });
 
   const handleSelectAll = (checked) => {
@@ -462,18 +489,18 @@ CD Bustarviejo`
               <CardContent className="pt-6">
                 <div className="text-center space-y-3">
                   <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                    <Users className="w-8 h-8 text-purple-600" />
+                    <MessageSquare className="w-8 h-8 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">Renovar Familias Completas</h3>
-                    <p className="text-sm text-slate-600">Acción administrativa directa</p>
+                    <h3 className="font-bold text-lg">Contactar por WhatsApp</h3>
+                    <p className="text-sm text-slate-600">Ver teléfonos en la pestaña Familias</p>
                   </div>
                   <Button
+                    onClick={() => setActiveTab("families")}
                     variant="outline"
-                    disabled
-                    className="w-full border-purple-600 text-purple-600"
+                    className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
                   >
-                    Próximamente
+                    Ir a Familias
                   </Button>
                 </div>
               </CardContent>
@@ -572,6 +599,17 @@ CD Bustarviejo`
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+            <select
+              value={daysFilter}
+              onChange={(e) => setDaysFilter(e.target.value)}
+              className="px-4 py-2 border rounded-lg"
+            >
+              <option value="all">Sin filtro de días</option>
+              <option value="3">+3 días sin responder</option>
+              <option value="7">+7 días sin responder</option>
+              <option value="15">+15 días sin responder</option>
+              <option value="30">+30 días sin responder</option>
+            </select>
           </div>
 
           {filteredFamilias.length > 0 && (
@@ -607,10 +645,26 @@ CD Bustarviejo`
                           <div>
                             <p className="font-bold text-slate-900">{familia.nombre}</p>
                             <p className="text-xs text-slate-500">{familia.email}</p>
+                            {familia.telefono && (
+                              <a href={`https://wa.me/34${familia.telefono.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 hover:underline flex items-center gap-1 mt-0.5">
+                                <Phone className="w-3 h-3" /> {familia.telefono}
+                              </a>
+                            )}
                           </div>
-                          <Badge className="bg-orange-500">
-                            {familia.jugadores.length} jugador(es)
-                          </Badge>
+                          <div className="text-right space-y-1">
+                            <Badge className="bg-orange-500">
+                              {familia.jugadores.length} jugador(es)
+                            </Badge>
+                            {familia.ultimoRecordatorio ? (
+                              <p className="text-[10px] text-slate-500">
+                                📧 Último: {format(new Date(familia.ultimoRecordatorio), "d MMM", { locale: es })}
+                              </p>
+                            ) : (
+                              <p className="text-[10px] text-red-500 font-medium">
+                                ⚠️ Nunca notificada
+                              </p>
+                            )}
+                          </div>
                         </div>
                         
                         <div className="space-y-1">
@@ -661,15 +715,28 @@ CD Bustarviejo`
               <div className="space-y-2">
                 {allPlayers
                   .filter(p => 
-                    p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                    p.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) &&
                     p.temporada_renovacion === seasonConfig?.temporada
                   )
-                  .slice(0, 20)
+                  .slice(0, 30)
                   .map(player => (
                     <div key={player.id} className="flex items-center justify-between bg-slate-50 rounded-lg p-3 border">
-                      <div>
-                        <p className="font-bold">{player.nombre}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold truncate">{player.nombre}</p>
                         <p className="text-xs text-slate-600">{player.deporte}</p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+                          {player.email_padre && <span>📧 {player.email_padre}</span>}
+                          {player.telefono && (
+                            <a href={`https://wa.me/34${player.telefono.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline flex items-center gap-1">
+                              <Phone className="w-3 h-3" /> {player.telefono}
+                            </a>
+                          )}
+                        </div>
+                        {player.fecha_renovacion && (
+                          <p className="text-[10px] text-slate-400 mt-1">
+                            Actualizado: {format(new Date(player.fecha_renovacion), "d MMM yyyy", { locale: es })}
+                          </p>
+                        )}
                       </div>
                       <Badge className={
                         player.estado_renovacion === "renovado" ? "bg-green-500" :
