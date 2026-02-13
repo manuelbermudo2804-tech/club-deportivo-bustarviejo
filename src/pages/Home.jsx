@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, MessageCircle, Bell, Settings, CheckCircle2, Star, TrendingUp, FileText, Clover, Archive, BarChart3, FileSignature, Heart, BellRing, Sparkles, Award, RotateCw } from "lucide-react";
+import { Users, CreditCard, Bell, FileSignature, BellRing, Sparkles, Clover } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
