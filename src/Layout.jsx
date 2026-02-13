@@ -625,6 +625,7 @@ export default function Layout({ children, currentPageName }) {
     role: user?.role,
     isCoordinator,
     isCoach,
+    isPlayer,
   };
 
   const [showSpecialScreen, setShowSpecialScreen] = useState(null);
