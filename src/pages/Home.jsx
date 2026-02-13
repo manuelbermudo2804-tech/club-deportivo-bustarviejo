@@ -440,112 +440,30 @@ export default function Home() {
       });
     }
 
-    // Calcular mensajes privados no leídos
+    // Mensajes privados - no se cargan en Home, usar 0
     let unreadPrivateMessages = 0;
-    if (user && false) { // privateConversations not loaded in Home
-      privateConversations.forEach(conv => {
-        if (conv.participante_familia_email === user.email) {
-          unreadPrivateMessages += (conv.no_leidos_familia || 0);
-        } else if (conv.participante_staff_email === user.email) {
-          // Staff asignado directamente
-          unreadPrivateMessages += (conv.no_leidos_staff || 0);
-        } else if (isAdmin || isCoordinator) {
-          // Admin y Coordinador ven TODAS las conversaciones con mensajes no leídos
-          unreadPrivateMessages += (conv.no_leidos_staff || 0);
-        }
-      });
-    }
-
-    // Calcular mensajes de Staff no leídos (para badge en "Staff")
     let unreadStaffMessages = 0;
-    if (user && staffMessagesHome) {
-      unreadStaffMessages = staffMessagesHome.filter(m =>
-        m.autor_email !== user.email &&
-        !(m.leido_por || []).some(l => l.email === user.email)
-      ).length;
-    }
 
     // Calcular respuestas pendientes de convocatorias (para entrenadores/admin)
     let pendingCallupResponses = 0;
     if (isAdmin && callups) {
       const today = new Date().toISOString().split('T')[0];
-      const coachCategories = user?.categorias_entrena || [];
-      
       callups.forEach(callup => {
         if (callup.publicada && callup.fecha_partido >= today && !callup.cerrada) {
-          const isMyCategory = isAdmin || coachCategories.includes(callup.categoria);
-          if (isMyCategory) {
-            callup.jugadores_convocados?.forEach(jugador => {
-              if (jugador.confirmacion === "pendiente") {
-                pendingCallupResponses++;
-              }
-            });
-          }
+          callup.jugadores_convocados?.forEach(jugador => {
+            if (jugador.confirmacion === "pendiente") {
+              pendingCallupResponses++;
+            }
+          });
         }
       });
     }
 
-
-
-    // Calcular mensajes admin no leídos
+    // Chat/admin counters - not loaded in Home, always 0
     let unreadAdminMessages = 0;
     let hasActiveAdminChat = false;
     let unresolvedAdminChats = 0;
-    
-    if (false) { // adminConversations not loaded in Home
-      const myAdminConv = adminConversations.find(c => 
-        c.padre_email === user.email && !c.resuelta
-      );
-      if (myAdminConv) {
-        hasActiveAdminChat = true;
-        unreadAdminMessages = myAdminConv.no_leidos_padre || 0;
-      }
-    }
-    
-    // Para admin: contar conversaciones críticas sin resolver
-    if (false) { // adminConversations not loaded
-      unresolvedAdminChats = adminConversations.filter(c => !c.resuelta).length;
-    }
-
-    // Calcular partidos pendientes de observación (para entrenadores/coordinadores)
     let pendingMatchObservations = 0;
-    if (false) { // matchObservations not loaded in Home
-      const now = new Date();
-      
-      const myCallups = callups.filter(c => {
-        if (c.entrenador_email !== user.email || !c.publicada) return false;
-        
-        // Calcular hora estimada de finalización del partido
-        const matchDate = new Date(c.fecha_partido);
-        if (matchDate > now) return false; // Partido no ha empezado aún
-        
-        // Si tiene hora_partido, calcular fin estimado (2h + 15min)
-        if (c.hora_partido) {
-          const [hours, minutes] = c.hora_partido.split(':').map(Number);
-          const matchStart = new Date(matchDate);
-          matchStart.setHours(hours, minutes, 0, 0);
-          
-          // Duración partido (2h) + margen (15min) = 135 minutos
-          const matchEnd = new Date(matchStart.getTime() + 135 * 60000);
-          
-          return now >= matchEnd;
-        }
-        
-        // Si no tiene hora, esperar al día siguiente
-        const nextDay = new Date(matchDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        return now >= nextDay;
-      });
-
-      pendingMatchObservations = myCallups.filter(callup => {
-        const hasObservation = matchObservations.some(obs =>
-          obs.categoria === callup.categoria &&
-          obs.rival === callup.rival &&
-          obs.fecha_partido === callup.fecha_partido
-        );
-        return !hasObservation;
-      }).length;
-    }
 
     return { 
       activePlayers, pendingPayments, reviewPayments, paidPayments, unreadMessages, unreadPrivateMessages, unreadStaffMessages,
