@@ -230,63 +230,96 @@ export default function Mercadillo() {
         </Card>
       )}
 
-      <div className="divide-y rounded-xl bg-white/50">
+      {filtered.length === 0 && (
+        <div className="text-center py-16 space-y-3">
+          <div className="text-6xl">📦</div>
+          <p className="text-lg font-semibold text-slate-700">No hay anuncios</p>
+          <p className="text-sm text-slate-500">Sé el primero en publicar algo en el mercadillo del club.</p>
+          <Button onClick={() => { setEditing(null); setShowForm(true); }} className="bg-orange-600 hover:bg-orange-700">Publicar anuncio</Button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.slice(0, visibleCount).map(item => {
           const firstImg = Array.isArray(item.imagenes) && item.imagenes[0] ? item.imagenes[0] : null;
           const isNew = (() => { try { return (Date.now() - new Date(item.created_date).getTime()) < 7*24*60*60*1000; } catch { return false; }})();
           const price = item.tipo === 'donacion' || Number(item.precio||0) === 0 ? 'GRATIS' : `${Number(item.precio||0).toFixed(2)} €`;
+          const isMine = user && item.created_by === user.email;
+          const isReserved = item.estado === 'reservado';
+
           return (
-            <div key={item.id} className="flex items-center gap-3 p-3">
-              <div className="h-20 w-20 flex-shrink-0 rounded-lg overflow-hidden bg-slate-100">
-                {firstImg ? (
-                  <img src={firstImg} alt={item.titulo} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full grid place-items-center text-slate-400">📦</div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)} className="font-semibold truncate max-w-[60vw] md:max-w-[500px] hover:underline">{item.titulo}</Link>
-                  {isNew && <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Nuevo</span>}
-                  {item.estado === 'reservado' && (
-                    <span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">Reservado</span>
+            <Card key={item.id} className={`overflow-hidden transition-shadow hover:shadow-lg ${isReserved ? 'opacity-75' : ''}`}>
+              {/* Imagen */}
+              <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)}>
+                <div className="h-44 bg-slate-100 relative">
+                  {firstImg ? (
+                    <img src={firstImg} alt={item.titulo} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full grid place-items-center text-5xl text-slate-300">📦</div>
                   )}
-                  {item.estado === 'entregado' && (
-                    <span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Entregado</span>
-                  )}
+                  {/* Badges encima de la imagen */}
+                  <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap">
+                    {item.tipo === 'donacion' && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-500 text-white font-bold shadow">Gratis</span>
+                    )}
+                    {isNew && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500 text-white font-bold shadow">Nuevo</span>
+                    )}
+                    {isReserved && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500 text-white font-bold shadow">Reservado</span>
+                    )}
+                    {item.estado === 'entregado' && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-600 text-white font-bold shadow">Entregado</span>
+                    )}
+                  </div>
+                  {/* Precio */}
+                  <div className="absolute bottom-2 right-2">
+                    <span className={`text-sm font-black px-3 py-1 rounded-full shadow ${price === 'GRATIS' ? 'bg-green-500 text-white' : 'bg-white text-slate-900'}`}>
+                      {price}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-xs text-slate-500 truncate">
-                  {item.categoria} · {item.tipo === 'donacion' ? 'Donación' : 'Venta'}
+              </Link>
+
+              <CardContent className="p-3 space-y-2">
+                <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)} className="block">
+                  <h3 className="font-bold text-base truncate hover:underline">{item.titulo}</h3>
+                </Link>
+                <div className="text-xs text-slate-500 flex items-center gap-1.5">
+                  <span className="bg-slate-100 px-2 py-0.5 rounded">{item.categoria}</span>
+                  <span>·</span>
+                  <span>{item.vendedor_nombre || 'Anónimo'}</span>
                 </div>
                 {item.descripcion && (
-                  <div className="text-xs text-slate-600 line-clamp-2 mt-0.5">{item.descripcion}</div>
+                  <p className="text-xs text-slate-600 line-clamp-2">{item.descripcion}</p>
                 )}
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <div className="font-bold text-slate-900">{price}</div>
-                <div className="flex gap-2">
-                  {user && (item.created_by === user.email) && (
-                    <Button variant="outline" size="sm" onClick={() => { setEditing(item); setShowForm(true); }}>Editar</Button>
+
+                {/* Botones */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {isMine && (
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditing(item); setShowForm(true); }}>Editar</Button>
                   )}
-                  {user && (item.created_by === user.email) && item.tipo === 'donacion' && (
+                  {isMine && item.tipo === 'donacion' && (
                     <Button variant="outline" size="sm" className="border-green-600 text-green-700" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'entregado' }); await load(); }}>Entregado</Button>
                   )}
-                  {user && (item.created_by === user.email) && (
+                  {isMine && (
                     <Button variant="destructive" size="sm" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'vendido' }); await load(); }}>Vendido</Button>
                   )}
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700 disabled:opacity-60" disabled={item.estado === 'reservado' || (user && item.created_by === user.email)} onClick={() => reserve(item)}>
-                    {item.estado === 'reservado' ? 'Reservado' : 'Reservar'}
-                  </Button>
+                  {!isMine && (
+                    <Button size="sm" className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:opacity-60" disabled={isReserved} onClick={() => reserve(item)}>
+                      {isReserved ? '🔒 Reservado' : '🛒 Reservar'}
+                    </Button>
+                  )}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           );
         })}
-        <div ref={sentinelRef} />
-        {visibleCount < filtered.length && (
-          <div className="text-center py-3 text-slate-500">Cargando más...</div>
-        )}
       </div>
+      <div ref={sentinelRef} />
+      {visibleCount < filtered.length && (
+        <div className="text-center py-3 text-slate-500">Cargando más...</div>
+      )}
 
       <Card className="bg-yellow-50 border-yellow-200">
         <CardHeader>
