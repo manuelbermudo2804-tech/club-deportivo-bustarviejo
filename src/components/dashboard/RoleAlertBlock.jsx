@@ -26,18 +26,18 @@ const COLOR_MAP = {
 export default function RoleAlertBlock({ color = "blue", icon, title, subtitle, children }) {
   const c = COLOR_MAP[color] || COLOR_MAP.blue;
   return (
-    <div className="p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`w-10 h-10 bg-gradient-to-br ${c.iconBg} rounded-full flex items-center justify-center flex-shrink-0`}>
+    <div className="p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <div className={`w-8 h-8 bg-gradient-to-br ${c.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
           {typeof icon === "string" ? (
-            <span className="text-white text-lg">{icon}</span>
+            <span className="text-white text-sm">{icon}</span>
           ) : (
             icon
           )}
         </div>
         <div>
-          <h3 className={`font-bold ${c.title}`}>{title}</h3>
-          {subtitle && <p className={`text-xs ${c.subtitle}`}>{subtitle}</p>}
+          <h3 className={`font-bold text-sm ${c.title}`}>{title}</h3>
+          {subtitle && <p className={`text-[10px] ${c.subtitle}`}>{subtitle}</p>}
         </div>
       </div>
       {children}
