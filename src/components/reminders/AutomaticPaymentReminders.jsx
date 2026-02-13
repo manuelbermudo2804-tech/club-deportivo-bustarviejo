@@ -231,12 +231,12 @@ export default function AutomaticPaymentReminders({ user }) {
             mensaje += `Si ya realizaste el pago, ignora este mensaje.\n\n`;
             mensaje += `Atentamente,\nCD Bustarviejo`;
             
-            // Buscar o crear conversación privada
-            const allConvs = await base44.entities.PrivateConversation.list();
-            let conv = allConvs.find(c => 
-              c.participante_familia_email === family.email &&
-              c.participante_staff_email === 'sistema@cdbustarviejo.com'
-            );
+            // Buscar o crear conversación privada (usar filter en vez de list para rendimiento)
+            const matchingConvs = await base44.entities.PrivateConversation.filter({
+              participante_familia_email: family.email,
+              participante_staff_email: 'sistema@cdbustarviejo.com'
+            });
+            let conv = matchingConvs[0];
             
             if (!conv) {
               conv = await base44.entities.PrivateConversation.create({
