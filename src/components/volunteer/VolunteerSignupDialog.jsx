@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Users } from "lucide-react";
 
 export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, myProfile, onSubmit }) {
   const [form, setForm] = useState({
@@ -18,7 +19,6 @@ export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, m
 
   const submit = () => {
     if (!form.nombre.trim()) { setError("El nombre es obligatorio"); return; }
-    if (!form.telefono.trim()) { setError("El teléfono es obligatorio"); return; }
     setError("");
     onSubmit({
       opp,
@@ -30,14 +30,29 @@ export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, m
     onOpenChange(false);
   };
 
+  if (!opp) return null;
+
+  const plazas = opp.plazas || 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Apuntarse: {opp?.titulo}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-green-600" />
+            Apuntarse: {opp?.titulo}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           {error && <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-md p-2">{error}</div>}
+
+          {/* Info del evento */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm space-y-1">
+            {opp.fecha && <div>📅 <strong>{opp.fecha}</strong></div>}
+            {opp.hora && <div>⏰ <strong>{opp.hora}</strong></div>}
+            {opp.ubicacion && <div>📍 <strong>{opp.ubicacion}</strong></div>}
+            {plazas > 0 && <div className="text-orange-700 font-medium mt-1">🎯 Plazas: {plazas}</div>}
+          </div>
           
           <div>
             <label className="text-sm font-medium text-slate-700 mb-1 block">¿Para quién?</label>
@@ -61,7 +76,7 @@ export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, m
           </div>
 
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">Teléfono de contacto</label>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Teléfono (opcional)</label>
             <Input
               value={form.telefono}
               onChange={(e) => handle("telefono", e.target.value)}
@@ -79,9 +94,13 @@ export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, m
             />
           </div>
 
-          <Button onClick={submit} className="w-full bg-green-600 hover:bg-green-700">
-            ✅ Confirmar inscripción
+          <Button onClick={submit} className="w-full bg-green-600 hover:bg-green-700 py-5 text-base font-bold">
+            ✅ ¡Me apunto!
           </Button>
+
+          <p className="text-xs text-slate-500 text-center">
+            El organizador recibirá una notificación al instante
+          </p>
         </div>
       </DialogContent>
     </Dialog>
