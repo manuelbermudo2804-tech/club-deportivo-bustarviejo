@@ -16,7 +16,7 @@ export default function ConvocarVoluntariosDialog({ open, onOpenChange, voluntee
   const [asunto, setAsunto] = useState("Voluntariado CD Bustarviejo");
   const [mensaje, setMensaje] = useState("");
   const [viaApp, setViaApp] = useState(true);
-  const [viaEmail, setViaEmail] = useState(false);
+  const [viaEmail, setViaEmail] = useState(true);
   const [viaWhatsapp, setViaWhatsapp] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
