@@ -382,58 +382,23 @@ Para completar tu registro, haz clic en el botón:
             {/* Estado de invitación */}
             {isEditing && currentPlayer.email_tutor_2 && (
               <div className="bg-slate-50 rounded-lg p-4">
-                {pendingInvitation ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-yellow-700">
-                      <Clock className="w-5 h-5" />
-                      <span className="text-sm font-medium">
-                        Solicitud enviada el {new Date(pendingInvitation.fecha_envio).toLocaleDateString('es-ES')} - Pendiente de invitación por el admin
+                <div className="flex items-center gap-2 text-slate-600">
+                  {hasCompleteSecondParent ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      <span className="text-sm font-medium text-green-700">
+                        El segundo progenitor ya está registrado y recibirá invitación automáticamente al guardar
                       </span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={sendInvitation}
-                      disabled={isSendingInvitation}
-                      className="text-orange-600 border-orange-300"
-                    >
-                      {isSendingInvitation ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4 mr-1" />
-                          Reenviar
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Mail className="w-5 h-5" />
-                      <span className="text-sm">
-                        {hasCompleteSecondParent 
-                          ? "El segundo progenitor ya está registrado"
-                          : "Solicitar que el admin envíe invitación"}
+                    </>
+                  ) : (
+                    <>
+                      <Info className="w-5 h-5 text-blue-600" />
+                      <span className="text-sm text-blue-700">
+                        Al guardar, se enviará automáticamente una invitación al email indicado
                       </span>
-                    </div>
-                    {!hasCompleteSecondParent && (
-                      <Button
-                        type="button"
-                        onClick={sendInvitation}
-                        disabled={isSendingInvitation || !currentPlayer.email_tutor_2}
-                        className="bg-orange-600 hover:bg-orange-700"
-                      >
-                        {isSendingInvitation ? (
-                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
-                        ) : (
-                          <><Send className="w-4 h-4 mr-2" />Solicitar Invitación</>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>
