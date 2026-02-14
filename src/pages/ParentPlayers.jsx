@@ -659,16 +659,21 @@ Email: cdbustarviejo@gmail.com
                   console.log('Error enviando email informativo segundo progenitor:', e);
                 }
 
-                // Invitar automáticamente al segundo progenitor
+                // Invitar al segundo progenitor (backend gestiona flujo directo o solicitud admin)
                 try {
-                  await base44.functions.invoke('inviteSecondParent', {
+                  const result = await base44.functions.invoke('inviteSecondParent', {
                     email: nextEmail2,
                     playerName: safeData.nombre || editingPlayer?.nombre || '',
-                    inviterName: user?.full_name || ''
+                    inviterName: user?.full_name || '',
+                    playerId: id
                   });
-                  console.log('✅ Invitación automática enviada a:', nextEmail2);
+                  if (result.data?.needsAdmin) {
+                    console.log('📨 Solicitud creada para admin:', nextEmail2);
+                  } else {
+                    console.log('✅ Invitación procesada para:', nextEmail2);
+                  }
                 } catch (e) {
-                  console.log('Error invitando automáticamente a segundo progenitor:', e);
+                  console.log('Error invitando a segundo progenitor:', e);
                 }
               }
 
