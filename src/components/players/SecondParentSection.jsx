@@ -295,16 +295,46 @@ Para completar tu registro, haz clic en el botón:
               </Alert>
             )}
 
-            {/* Alerta informativa */}
-            <Alert className="bg-blue-50 border-blue-200">
-              <Info className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800 text-sm">
-                <strong>👥 Acceso compartido:</strong> Al guardar el jugador con el email del segundo progenitor, se creará una <strong>solicitud de invitación</strong> que el administrador procesará.
-                <p className="mt-2 text-xs">
-                  ✅ Una vez que el admin la apruebe, recibirá un email para acceder a la app con acceso completo: pagos, convocatorias, chat, calendario, etc.
+            {/* Timeline de pasos de invitación */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
+              <p className="font-bold text-blue-900 mb-3 text-sm">👥 ¿Cómo funciona la invitación?</p>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white font-bold text-xs">1</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900">Rellenas sus datos aquí</p>
+                    <p className="text-xs text-blue-700">Nombre, email y teléfono del segundo progenitor</p>
+                  </div>
+                </div>
+                <div className="w-px h-3 bg-blue-300 ml-3.5" />
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white font-bold text-xs">2</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-orange-900">El club revisa y envía la invitación</p>
+                    <p className="text-xs text-orange-700">El administrador procesa la solicitud y envía un email de acceso</p>
+                  </div>
+                </div>
+                <div className="w-px h-3 bg-blue-300 ml-3.5" />
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white font-bold text-xs">3</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-green-900">Acepta y accede a la app</p>
+                    <p className="text-xs text-green-700">Verá la misma ficha del jugador: pagos, convocatorias, chat, calendario…</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 bg-white/70 rounded-lg p-2 border border-blue-200">
+                <p className="text-xs text-blue-800 text-center">
+                  ⏱️ Normalmente se procesa en <strong>menos de 24-48 horas</strong>
                 </p>
-              </AlertDescription>
-            </Alert>
+              </div>
+            </div>
 
             {/* Si ya existe segundo progenitor en otros hijos */}
             {existingSecondParent && !hasCompleteSecondParent && (
