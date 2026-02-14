@@ -32,10 +32,12 @@ export default function StepMedical({ currentPlayer, setCurrentPlayer }) {
         </div>
         <div className="space-y-2">
           <Label>Grupo Sanguíneo</Label>
-          <Select value={fm.grupo_sanguineo || ""} onValueChange={(v) => update("grupo_sanguineo", v)}>
-            <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-            <SelectContent>
-              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+          <Select value={fm.grupo_sanguineo || undefined} onValueChange={(v) => update("grupo_sanguineo", v)}>
+            <SelectTrigger className="min-h-[44px]"><SelectValue placeholder="Seleccionar grupo..." /></SelectTrigger>
+            <SelectContent position="popper" sideOffset={4} className="z-[9999]">
+              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(g => (
+                <SelectItem key={g} value={g} className="py-3 text-base cursor-pointer">{g}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
