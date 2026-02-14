@@ -410,30 +410,44 @@ export default function ParentPlayers() {
           console.error('Error enviando aviso a segundo progenitor:', invError);
         }
 
-        // Crear solicitud para admin (SecondParentInvitation)
+        // Invitar automáticamente al segundo progenitor (sin pasar por admin)
         try {
           const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
-          const existingInv = await base44.entities.SecondParentInvitation.filter({
-            email_destino: email2,
-            jugador_id: newPlayer.id,
-            estado: 'pendiente'
+          const result = await base44.functions.invoke('inviteSecondParent', {
+            email: email2,
+            playerName: newPlayer.nombre,
+            inviterName: currentUser?.full_name || ''
           });
-          if (existingInv.length === 0) {
-            await base44.entities.SecondParentInvitation.create({
-              token: `${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
-              email_destino: email2,
-              nombre_destino: dataWithParentEmail.nombre_tutor_2 || '',
-              jugador_id: newPlayer.id,
-              jugador_nombre: newPlayer.nombre,
-              invitado_por_email: currentUser?.email,
-              invitado_por_nombre: currentUser?.full_name,
-              estado: 'pendiente',
-              fecha_envio: new Date().toISOString()
-            });
-            console.log('✅ Solicitud de invitación creada para admin:', email2);
+          if (result.data?.alreadyExists) {
+            console.log('ℹ️ Segundo progenitor ya tiene cuenta:', email2);
+          } else {
+            console.log('✅ Invitación automática enviada a segundo progenitor:', email2);
           }
         } catch (e) {
-          console.error('Error creando solicitud de invitación de segundo progenitor:', e);
+          console.error('Error invitando automáticamente a segundo progenitor:', e);
+          // Fallback: crear solicitud para admin
+          try {
+            const existingInv = await base44.entities.SecondParentInvitation.filter({
+              email_destino: dataWithParentEmail.email_tutor_2.trim().toLowerCase(),
+              jugador_id: newPlayer.id,
+              estado: 'pendiente'
+            });
+            if (existingInv.length === 0) {
+              await base44.entities.SecondParentInvitation.create({
+                token: `${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
+                email_destino: dataWithParentEmail.email_tutor_2.trim().toLowerCase(),
+                nombre_destino: dataWithParentEmail.nombre_tutor_2 || '',
+                jugador_id: newPlayer.id,
+                jugador_nombre: newPlayer.nombre,
+                invitado_por_email: currentUser?.email,
+                invitado_por_nombre: currentUser?.full_name,
+                estado: 'pendiente',
+                fecha_envio: new Date().toISOString()
+              });
+            }
+          } catch (e2) {
+            console.error('Error en fallback de solicitud:', e2);
+          }
         }
       }
       
