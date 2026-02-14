@@ -155,6 +155,24 @@ export default function InscriptionSuccessScreen({
             </Link>
           </div>
 
+          {/* Aviso del segundo progenitor si se incluyó */}
+          {player.email_tutor_2 && player.email_tutor_2.trim() && (
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-300 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-white text-sm">👥</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-indigo-900 text-sm mb-1">Invitación al segundo progenitor</p>
+                  <p className="text-xs text-indigo-800 leading-relaxed">
+                    Se ha solicitado invitación para <strong>{player.email_tutor_2}</strong>. 
+                    El club la procesará y recibirá un email de acceso en las <strong>próximas 24-48 horas</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-800 text-center">
               💡 <strong>Recuerda:</strong> Realiza la transferencia bancaria y luego registra el pago en la app subiendo el justificante
