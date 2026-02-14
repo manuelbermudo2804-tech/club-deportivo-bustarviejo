@@ -1,0 +1,394 @@
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+
+import WizardProgress from "./wizard/WizardProgress";
+import WizardNavButtons from "./wizard/WizardNavButtons";
+import StepPlayerData from "./wizard/StepPlayerData";
+import StepCategory from "./wizard/StepCategory";
+import StepDocuments from "./wizard/StepDocuments";
+import StepTutor from "./wizard/StepTutor";
+import StepMedical from "./wizard/StepMedical";
+import StepAuthorizations from "./wizard/StepAuthorizations";
+import StepSummary from "./wizard/StepSummary";
+import SecondParentSection from "./SecondParentSection";
+import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
+
+// --- Helpers (same as original PlayerForm) ---
+const calculateAge = (birthDate) => {
+  if (!birthDate || birthDate.length !== 10) return null;
+  const year = birthDate.substring(0, 4);
+  if (!year.startsWith('19') && !year.startsWith('20')) return null;
+  const yearNum = parseInt(year);
+  if (yearNum < 1900 || yearNum > new Date().getFullYear()) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  if (isNaN(birth.getTime())) return null;
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+};
+
+const suggestCategoryByAge = (birthDate) => {
+  const age = calculateAge(birthDate);
+  if (age === null) return null;
+  if (age <= 7) return "Fútbol Pre-Benjamín (Mixto)";
+  if (age <= 9) return "Fútbol Benjamín (Mixto)";
+  if (age <= 11) return "Fútbol Alevín (Mixto)";
+  if (age <= 13) return "Fútbol Infantil (Mixto)";
+  if (age <= 15) return "Fútbol Cadete";
+  if (age <= 18) return "Fútbol Juvenil";
+  return "Fútbol Aficionado";
+};
+
+const useCategoriesFromConfig = () => {
+  const [categories, setCategories] = React.useState([
+    { value: "Fútbol Pre-Benjamín (Mixto)", label: "⚽ Fútbol Pre-Benjamín (Mixto) - 6-7 años" },
+    { value: "Fútbol Benjamín (Mixto)", label: "⚽ Fútbol Benjamín (Mixto) - 8-9 años" },
+    { value: "Fútbol Alevín (Mixto)", label: "⚽ Fútbol Alevín (Mixto) - 10-11 años" },
+    { value: "Fútbol Infantil (Mixto)", label: "⚽ Fútbol Infantil (Mixto) - 12-13 años" },
+    { value: "Fútbol Cadete", label: "⚽ Fútbol Cadete - 14-15 años" },
+    { value: "Fútbol Juvenil", label: "⚽ Fútbol Juvenil - 16-18 años" },
+    { value: "Fútbol Aficionado", label: "⚽ Fútbol Aficionado - 19+ años" },
+    { value: "Fútbol Femenino", label: "⚽ Fútbol Femenino" },
+    { value: "Baloncesto (Mixto)", label: "🏀 Baloncesto (Mixto)" }
+  ]);
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const configs = await base44.entities.CategoryConfig.filter({ activa: true });
+        const activeSeasons = await base44.entities.SeasonConfig.filter({ activa: true });
+        const currentSeason = activeSeasons[0]?.temporada;
+        const seasonCategories = configs.filter(c => c.temporada === currentSeason && c.activa);
+        if (seasonCategories.length > 0) {
+          setCategories(seasonCategories.map(c => ({ value: c.nombre, label: c.nombre })));
+        }
+      } catch {}
+    })();
+  }, []);
+  return categories;
+};
+
+// --- STEPS for new player ---
+// 0: PlayerData, 1: Category, 2: Documents, 3: Tutor, 4: SecondParent, 5: Medical, 6: Authorizations, 7: Summary
+const NEW_STEP_LABELS = ["Jugador", "Categoría", "Documentos", "Tutor", "2º Progenitor", "Médica", "Autorizaciones", "Resumen"];
+const NEW_TOTAL = 8;
+
+// --- STEPS for edit (reduced: no authorizations step, no summary) ---
+
+export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [], isAdultPlayerSelfRegistration = false }) {
+  const formRef = useRef(null);
+  const [step, setStep] = useState(0);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const isEditing = !!player;
+
+  // Determine steps
+  const totalSteps = isEditing ? 6 : NEW_TOTAL;
+  const stepLabels = isEditing
+    ? ["Jugador", "Categoría", "Documentos", "Tutor", "2º Progenitor", "Médica"]
+    : NEW_STEP_LABELS;
+
+  const [currentPlayer, setCurrentPlayer] = useState(() => {
+    if (player) return player;
+    return {
+      nombre: "", foto_url: "", deporte: "Fútbol Pre-Benjamín (Mixto)", tipo_inscripcion: "Nueva Inscripción",
+      fecha_nacimiento: "", es_mayor_edad: false, tipo_documento: "DNI", dni_jugador: "", dni_jugador_url: "",
+      libro_familia_url: "", tipo_documento_tutor: "DNI", nombre_tutor_legal: "", dni_tutor_legal: "",
+      dni_tutor_legal_url: "", enlace_firma_jugador: "", enlace_firma_tutor: "", firma_jugador_completada: false,
+      firma_tutor_completada: false, documentos_adicionales: [], telefono: "", email_padre: "",
+      nombre_tutor_2: "", telefono_tutor_2: "", email_tutor_2: "", direccion: "", municipio: "",
+      activo: true, tiene_descuento_hermano: false, descuento_aplicado: 0, incluye_seguro_accidentes: true,
+      incluye_ficha_federativa: true, observaciones: "", acepta_politica_privacidad: false,
+      fecha_aceptacion_privacidad: null, autorizacion_fotografia: "",
+      ficha_medica: { alergias: "", medicacion_habitual: "", condiciones_medicas: "", grupo_sanguineo: "",
+        contacto_emergencia_nombre: "", contacto_emergencia_telefono: "", contacto_emergencia_2_nombre: "",
+        contacto_emergencia_2_telefono: "", lesiones: "", observaciones_medicas: "" }
+    };
+  });
+
+  const [usePreviousTutorData, setUsePreviousTutorData] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingDNI, setUploadingDNI] = useState(false);
+  const [uploadingLibroFamilia, setUploadingLibroFamilia] = useState(false);
+  const [uploadingDNITutor, setUploadingDNITutor] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const categories = useCategoriesFromConfig();
+
+  const existingFamilyPlayers = allPlayers.filter(p =>
+    currentUser && (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email)
+  );
+
+  const playerAge = useMemo(() => calculateAge(currentPlayer.fecha_nacimiento), [currentPlayer.fecha_nacimiento]);
+  const isMayorDeEdad = playerAge !== null && playerAge >= 18;
+  const requiresDNI = playerAge !== null && playerAge >= 14;
+
+  const siblingDiscount = useMemo(() => {
+    if (isMayorDeEdad) return { hasDiscount: false, amount: 0, reason: "mayor_edad" };
+    if (!currentUser || !allPlayers.length) return { hasDiscount: false, amount: 0 };
+    const familyPlayers = allPlayers.filter(p => {
+      if (p.id === player?.id) return false;
+      if (p.email_padre !== currentUser.email && p.email_padre !== currentPlayer.email_padre) return false;
+      if (!p.activo) return false;
+      const age = calculateAge(p.fecha_nacimiento);
+      if (age !== null && age >= 18) return false;
+      return true;
+    });
+    if (familyPlayers.length === 0) return { hasDiscount: false, amount: 0 };
+    const allBirthDates = [...familyPlayers.map(p => p.fecha_nacimiento), currentPlayer.fecha_nacimiento].filter(Boolean);
+    if (allBirthDates.length <= 1) return { hasDiscount: false, amount: 0 };
+    const sortedDates = allBirthDates.sort((a, b) => new Date(a) - new Date(b));
+    if (currentPlayer.fecha_nacimiento && currentPlayer.fecha_nacimiento !== sortedDates[0]) return { hasDiscount: true, amount: 25 };
+    return { hasDiscount: false, amount: 0 };
+  }, [currentUser, allPlayers, currentPlayer.fecha_nacimiento, currentPlayer.email_padre, player?.id, isMayorDeEdad]);
+
+  useEffect(() => {
+    setCurrentPlayer(prev => ({ ...prev, es_mayor_edad: isMayorDeEdad, tiene_descuento_hermano: siblingDiscount.hasDiscount, descuento_aplicado: siblingDiscount.amount }));
+  }, [isMayorDeEdad, siblingDiscount]);
+
+  useEffect(() => {
+    if (!player && currentPlayer.fecha_nacimiento && currentPlayer.deporte !== "Fútbol Femenino") {
+      const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
+      if (suggested) setCurrentPlayer(prev => ({ ...prev, deporte: suggested }));
+    }
+  }, [currentPlayer.fecha_nacimiento, player]);
+
+  useEffect(() => {
+    if (formRef.current) formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [step]);
+
+  useEffect(() => {
+    if (isParent || isAdultPlayerSelfRegistration) {
+      base44.auth.me().then(user => {
+        setCurrentUser(user);
+        if (!player) {
+          if (isAdultPlayerSelfRegistration) {
+            setCurrentPlayer(prev => ({ ...prev, email_padre: user.email, email_jugador: user.email, nombre_tutor_legal: user.full_name || "", es_mayor_edad: true }));
+          } else {
+            setCurrentPlayer(prev => ({ ...prev, email_padre: user.email }));
+          }
+        }
+      }).catch(console.error);
+    }
+  }, [isParent, isAdultPlayerSelfRegistration, player]);
+
+  // File upload helper
+  const handleFileUpload = async (file, setUploading) => {
+    if (!file) return null;
+    setUploading(true);
+    try {
+      const response = await base44.integrations.Core.UploadFile({ file });
+      toast.success("Archivo subido correctamente");
+      return response.file_url;
+    } catch { toast.error("Error al subir el archivo"); return null; } finally { setUploading(false); }
+  };
+
+  const handlePhotoUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingPhoto); if (url) setCurrentPlayer(p => ({ ...p, foto_url: url })); };
+  const handleDNIUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingDNI); if (url) setCurrentPlayer(p => ({ ...p, dni_jugador_url: url })); };
+  const handleLibroFamiliaUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingLibroFamilia); if (url) setCurrentPlayer(p => ({ ...p, libro_familia_url: url })); };
+  const handleDNITutorUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingDNITutor); if (url) setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url })); };
+
+  const handleLoadPreviousTutorData = (playerId) => {
+    const source = allPlayers.find(p => p.id === playerId);
+    if (source) {
+      setCurrentPlayer(prev => ({
+        ...prev, nombre_tutor_legal: source.nombre_tutor_legal || "", dni_tutor_legal: source.dni_tutor_legal || "",
+        dni_tutor_legal_url: source.dni_tutor_legal_url || "", telefono: source.telefono || "",
+        email_padre: source.email_padre || "", nombre_tutor_2: source.nombre_tutor_2 || "",
+        telefono_tutor_2: source.telefono_tutor_2 || "", email_tutor_2: source.email_tutor_2 || "",
+        direccion: source.direccion || "", municipio: source.municipio || ""
+      }));
+      setUsePreviousTutorData(true);
+    }
+  };
+
+  const handleClearTutorData = () => {
+    setCurrentPlayer(prev => ({
+      ...prev, nombre_tutor_legal: "", dni_tutor_legal: "", dni_tutor_legal_url: "", telefono: "",
+      email_padre: isParent && currentUser ? currentUser.email : "", nombre_tutor_2: "",
+      telefono_tutor_2: "", email_tutor_2: "", direccion: "", municipio: ""
+    }));
+    setUsePreviousTutorData(false);
+  };
+
+  // --- Per-step validation ---
+  const validateStep = (s) => {
+    const errors = {};
+    if (s === 0) {
+      if (!currentPlayer.nombre?.trim()) errors.nombre = "El nombre es obligatorio";
+      if (!currentPlayer.fecha_nacimiento) errors.fecha_nacimiento = "La fecha es obligatoria";
+      if (!currentPlayer.foto_url) errors.foto_url = "La foto es obligatoria";
+    }
+    if (s === 2) {
+      if (requiresDNI && !currentPlayer.dni_jugador?.trim()) errors.dni_jugador = "DNI obligatorio (mayor de 14)";
+      if (requiresDNI && !currentPlayer.dni_jugador_url) errors.dni_jugador_url = "Documento escaneado obligatorio";
+      if (!requiresDNI && !isAdultPlayerSelfRegistration && !currentPlayer.dni_jugador_url && !currentPlayer.libro_familia_url)
+        errors.libro_familia_url = "Libro de Familia obligatorio (menor sin DNI)";
+    }
+    if (s === 3) {
+      if (!isAdultPlayerSelfRegistration && !isMayorDeEdad) {
+        if (!currentPlayer.nombre_tutor_legal?.trim()) errors.nombre_tutor_legal = "Nombre del tutor obligatorio";
+        if (!currentPlayer.dni_tutor_legal?.trim()) errors.dni_tutor_legal = "DNI del tutor obligatorio";
+        if (!currentPlayer.dni_tutor_legal_url) errors.dni_tutor_legal_url = "Documento del tutor obligatorio";
+      }
+      if (!currentPlayer.email_padre?.trim()) errors.email_padre = "Email obligatorio";
+      if (!currentPlayer.telefono?.trim()) errors.telefono = "Teléfono obligatorio";
+      if (!currentPlayer.direccion?.trim()) errors.direccion = "Dirección obligatoria";
+      if (!currentPlayer.municipio?.trim()) errors.municipio = "Municipio obligatorio";
+    }
+    if (s === 6 && !isEditing) {
+      if (!currentPlayer.acepta_politica_privacidad) errors.acepta_politica_privacidad = "Debes aceptar la política";
+      if (!currentPlayer.autorizacion_fotografia) errors.autorizacion_fotografia = "Selecciona una opción";
+    }
+    return errors;
+  };
+
+  const handleNext = () => {
+    const errors = validateStep(step);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      const firstMsg = Object.values(errors)[0];
+      toast.error(firstMsg);
+      return;
+    }
+    setFieldErrors({});
+    setStep(s => Math.min(s + 1, totalSteps - 1));
+  };
+
+  const handleBack = () => { setFieldErrors({}); setStep(s => Math.max(s - 1, 0)); };
+
+  const handleFinalSubmit = () => {
+    // Validate authorizations step if new
+    if (!isEditing) {
+      const authErrors = validateStep(6);
+      if (Object.keys(authErrors).length > 0) {
+        setFieldErrors(authErrors);
+        toast.error(Object.values(authErrors)[0]);
+        setStep(6);
+        return;
+      }
+    }
+
+    // Build category validation
+    let categoriaRequiereRevision = false;
+    let motivoRevision = "";
+    if (currentPlayer.fecha_nacimiento && currentPlayer.deporte && currentPlayer.deporte !== "Fútbol Femenino") {
+      const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
+      if (suggested && suggested !== currentPlayer.deporte) {
+        const order = ["Fútbol Pre-Benjamín (Mixto)", "Fútbol Benjamín (Mixto)", "Fútbol Alevín (Mixto)", "Fútbol Infantil (Mixto)", "Fútbol Cadete", "Fútbol Juvenil", "Fútbol Aficionado"];
+        if (Math.abs(order.indexOf(suggested) - order.indexOf(currentPlayer.deporte)) > 1) {
+          categoriaRequiereRevision = true;
+          motivoRevision = `Edad: ${playerAge} años → sugerido ${suggested}, seleccionado ${currentPlayer.deporte}`;
+        }
+      }
+    }
+
+    const finalData = {
+      ...currentPlayer,
+      categoria_requiere_revision: categoriaRequiereRevision,
+      motivo_revision_categoria: categoriaRequiereRevision ? motivoRevision : "",
+    };
+    if (!player && !finalData.fecha_aceptacion_privacidad) {
+      finalData.fecha_aceptacion_privacidad = new Date().toISOString();
+    }
+    onSubmit(finalData);
+  };
+
+  // Block +18 from parent registration (not self-registration)
+  if (isMayorDeEdad && isParent && !isAdultPlayerSelfRegistration && currentPlayer.fecha_nacimiento?.length === 10) {
+    return (
+      <motion.div ref={formRef} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+        <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
+          <CardHeader className="border-b border-slate-100">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl">Nuevo Jugador</CardTitle>
+              <Button variant="ghost" size="icon" onClick={onCancel}><X className="w-5 h-5" /></Button>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {/* Show date + name fields so user can see the issue */}
+            <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={{}} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto} onPhotoUpload={handlePhotoUpload} />
+            <div className="mt-4">
+              <AdultPlayerInvitationRequest playerAge={playerAge} playerData={currentPlayer} parentEmail={currentUser?.email} parentName={currentUser?.full_name} onCancel={onCancel} />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  // --- Render current step ---
+  const renderStep = () => {
+    switch (step) {
+      case 0: return <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto} onPhotoUpload={handlePhotoUpload} />;
+      case 1: return <StepCategory currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} categories={categories} playerAge={playerAge} suggestCategoryByAge={suggestCategoryByAge} />;
+      case 2: return <StepDocuments currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} requiresDNI={requiresDNI} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} uploadingDNI={uploadingDNI} uploadingLibroFamilia={uploadingLibroFamilia} onDNIUpload={handleDNIUpload} onLibroFamiliaUpload={handleLibroFamiliaUpload} />;
+      case 3: return <StepTutor currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isParent={isParent} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} existingFamilyPlayers={existingFamilyPlayers} usePreviousTutorData={usePreviousTutorData} onLoadPreviousTutorData={handleLoadPreviousTutorData} onClearTutorData={handleClearTutorData} uploadingDNITutor={uploadingDNITutor} onDNITutorUpload={handleDNITutorUpload} />;
+      case 4: return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-bold text-slate-900">👥 Segundo Progenitor/Tutor (Opcional)</h3>
+          <p className="text-sm text-slate-600">Si hay un segundo progenitor, introduce sus datos aquí. Si no, puedes saltar este paso.</p>
+          <SecondParentSection currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} existingFamilyPlayers={existingFamilyPlayers} isEditing={isEditing} />
+        </div>
+      );
+      case 5: return <StepMedical currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} />;
+      case 6: return isEditing ? null : <StepAuthorizations currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} isEditing={isEditing} />;
+      case 7: return isEditing ? null : <StepSummary currentPlayer={currentPlayer} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} siblingDiscount={siblingDiscount} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} />;
+      default: return null;
+    }
+  };
+
+  const isLastStep = step === totalSteps - 1;
+
+  return (
+    <motion.div ref={formRef} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+      <Card className="border-none shadow-xl bg-white/90 backdrop-blur-sm">
+        <CardHeader className="border-b border-slate-100 space-y-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl">
+              {isEditing ? "Editar Jugador" : isMayorDeEdad ? "Inscripción Jugador +18" : "Nuevo Jugador"}
+            </CardTitle>
+            <Button variant="ghost" size="icon" onClick={onCancel}><X className="w-5 h-5" /></Button>
+          </div>
+          <WizardProgress currentStep={step} totalSteps={totalSteps} stepLabels={stepLabels} />
+        </CardHeader>
+        <CardContent className="pt-6">
+          {siblingDiscount.hasDiscount && step === 0 && (
+            <Alert className="mb-4 bg-green-50 border-green-200">
+              <AlertCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <strong>🎉 Descuento familiar:</strong> {siblingDiscount.amount}€ por tener hermanos inscritos.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <AnimatePresence mode="wait">
+            <motion.div key={step} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }}>
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+
+          <WizardNavButtons
+            currentStep={step}
+            totalSteps={totalSteps}
+            onBack={handleBack}
+            onNext={handleNext}
+            onSubmit={handleFinalSubmit}
+            isSubmitting={isSubmitting}
+            isLastStep={isLastStep}
+            submitLabel={isEditing ? "Actualizar" : isAdultPlayerSelfRegistration ? "Completar Mi Registro" : "Confirmar Inscripción"}
+            canAdvance={true}
+          />
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
