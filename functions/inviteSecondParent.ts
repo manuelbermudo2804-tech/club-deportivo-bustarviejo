@@ -107,14 +107,22 @@ Deno.serve(async (req) => {
 
       console.log(`📨 Solicitud de invitación creada para ${cleanEmail} (pendiente admin)`);
 
-      // Notificar al admin por email
+      // Notificar al admin por email (usar función sendEmail con Resend)
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
+        await base44.asServiceRole.functions.invoke('sendEmail', {
           to: 'cdbustarviejo@gmail.com',
-          subject: `🔔 Nueva solicitud: invitar a ${cleanEmail}`,
-          body: `<p>${user.full_name} (${user.email}) solicita que invites a <strong>${cleanEmail}</strong> como segundo progenitor del jugador <strong>${playerName || 'sin nombre'}</strong>.</p>
-<p>Ve a la app → Solicitudes de Invitación para procesarla.</p>`
+          subject: `🔔 Nueva solicitud: invitar a ${cleanEmail} como 2º progenitor`,
+          html: `<div style="font-family:Arial,sans-serif;line-height:1.5">
+            <h2>👥 Nueva solicitud de invitación de segundo progenitor</h2>
+            <p><strong>${user.full_name}</strong> (${user.email}) solicita que invites a:</p>
+            <div style="background:#f1f5f9;padding:12px;border-radius:8px;margin:12px 0">
+              <p style="margin:4px 0"><strong>Email a invitar:</strong> ${cleanEmail}</p>
+              <p style="margin:4px 0"><strong>Jugador:</strong> ${playerName || 'sin nombre'}</p>
+            </div>
+            <p>Ve a la app → <strong>Solicitudes de Invitación</strong> para procesarla.</p>
+          </div>`
         });
+        console.log('✅ Notificación enviada al admin via sendEmail');
       } catch (emailErr) {
         console.log('⚠️ No se pudo notificar al admin:', emailErr.message);
       }
