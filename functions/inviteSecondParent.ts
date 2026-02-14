@@ -32,12 +32,12 @@ Deno.serve(async (req) => {
       }
     } catch (e) {
       console.log('⚠️ Error verificando usuario existente:', e.message);
-      // Continuar con la invitación igualmente
     }
 
-    // Invitar al segundo progenitor usando service role
+    // Invitar al segundo progenitor
+    // Intentar primero con auth.inviteUser (funciona si el SDK lo permite)
     try {
-      await base44.asServiceRole.auth.inviteUser(cleanEmail, 'user');
+      await base44.auth.inviteUser(cleanEmail, 'user');
       console.log(`✅ Invitación enviada automáticamente a: ${cleanEmail}`);
       return Response.json({ 
         success: true, 
@@ -45,16 +45,19 @@ Deno.serve(async (req) => {
         message: `Invitación enviada a ${cleanEmail}` 
       });
     } catch (inviteError) {
-      console.error('❌ Error invitando usuario:', inviteError.message);
+      console.error('❌ Error con auth.inviteUser:', inviteError.message);
       
       // Si el error es porque ya existe, no es un error real
       if (inviteError.message?.includes('already') || inviteError.message?.includes('exists')) {
         return Response.json({ success: true, alreadyExists: true, message: 'El usuario ya tiene cuenta' });
       }
-      
+
+      // Si falla por permisos, devolver error específico para que el frontend haga fallback
       return Response.json({ 
-        error: 'Error al enviar la invitación: ' + inviteError.message 
-      }, { status: 500 });
+        success: false,
+        needsAdmin: true,
+        error: 'Se necesita aprobación del administrador para completar la invitación'
+      }, { status: 200 });
     }
 
   } catch (error) {
