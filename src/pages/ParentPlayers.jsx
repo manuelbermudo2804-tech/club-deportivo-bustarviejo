@@ -11,6 +11,7 @@ import { useActiveSeason } from "../components/season/SeasonProvider";
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerFormWizard from "../components/players/PlayerFormWizard";
 import PlayerForm from "../components/players/PlayerForm";
+import FullscreenFormModal from "../components/players/FullscreenFormModal";
 import ContactCard from "../components/ContactCard";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
