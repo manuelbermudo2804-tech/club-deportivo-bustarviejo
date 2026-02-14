@@ -1473,6 +1473,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
+    { title: "👁️ Preview Flujo Alta", url: createPageUrl("OnboardingPreview"), icon: UserIcon },
     // Eliminado: Clasificaciones (migrado a Centro de Competición)
     ];
 
