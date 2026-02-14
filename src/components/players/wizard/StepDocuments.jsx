@@ -1,0 +1,112 @@
+import React from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload, Loader2, Download, FileText } from "lucide-react";
+
+export default function StepDocuments({
+  currentPlayer,
+  setCurrentPlayer,
+  fieldErrors,
+  setFieldErrors,
+  requiresDNI,
+  isAdultPlayerSelfRegistration,
+  uploadingDNI,
+  uploadingLibroFamilia,
+  onDNIUpload,
+  onLibroFamiliaUpload
+}) {
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+        <FileText className="w-5 h-5 text-blue-600" /> Documentación del Jugador
+      </h3>
+
+      {/* Tipo de documento */}
+      <div className="space-y-2">
+        <Label>Tipo de Documento del Jugador</Label>
+        <Select value={currentPlayer.tipo_documento || "DNI"} onValueChange={(v) => setCurrentPlayer({ ...currentPlayer, tipo_documento: v })}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="DNI">🪪 DNI</SelectItem>
+            <SelectItem value="Pasaporte">🛂 Pasaporte</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* DNI/Pasaporte número */}
+      <div className="space-y-2">
+        <Label className={fieldErrors.dni_jugador ? "text-red-600 font-bold" : ""}>
+          {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"} del Jugador {requiresDNI ? "*" : "(opcional si menor de 14)"}
+        </Label>
+        <Input
+          id="wiz-dni"
+          value={currentPlayer.dni_jugador || ""}
+          onChange={(e) => {
+            setCurrentPlayer({ ...currentPlayer, dni_jugador: e.target.value });
+            if (fieldErrors.dni_jugador) setFieldErrors(prev => ({ ...prev, dni_jugador: null }));
+          }}
+          placeholder={currentPlayer.tipo_documento === "Pasaporte" ? "ABC123456" : "12345678A"}
+          className={fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : ""}
+        />
+        {fieldErrors.dni_jugador && <p className="text-xs text-red-600">{fieldErrors.dni_jugador}</p>}
+      </div>
+
+      {/* Subir DNI escaneado */}
+      <div className="space-y-2">
+        <Label className={fieldErrors.dni_jugador_url ? "text-red-600 font-bold" : ""}>
+          Subir {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"} Jugador (escaneado) {requiresDNI ? "*" : ""}
+        </Label>
+        <div className="flex items-center gap-2">
+          <input type="file" accept="image/*,application/pdf" onChange={onDNIUpload} className="hidden" id="wiz-dni-upload" />
+          <Button
+            type="button"
+            variant={fieldErrors.dni_jugador_url ? "destructive" : "outline"}
+            onClick={() => document.getElementById('wiz-dni-upload').click()}
+            disabled={uploadingDNI}
+            className="flex-1"
+          >
+            {uploadingDNI ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+            {currentPlayer.dni_jugador_url ? "✓ Cambiar documento" : "Subir documento"}
+          </Button>
+          {currentPlayer.dni_jugador_url && (
+            <a href={currentPlayer.dni_jugador_url} target="_blank" rel="noopener noreferrer">
+              <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
+            </a>
+          )}
+        </div>
+        {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
+      </div>
+
+      {/* Libro de Familia (menores sin DNI) */}
+      {!requiresDNI && !isAdultPlayerSelfRegistration && (
+        <div className="space-y-2">
+          <Label className={fieldErrors.libro_familia_url ? "text-red-600 font-bold" : ""}>
+            Libro de Familia (si no tiene DNI) *
+          </Label>
+          <div className="flex items-center gap-2">
+            <input type="file" accept="image/*,application/pdf" onChange={onLibroFamiliaUpload} className="hidden" id="wiz-libro-upload" />
+            <Button
+              type="button"
+              variant={fieldErrors.libro_familia_url ? "destructive" : "outline"}
+              onClick={() => document.getElementById('wiz-libro-upload').click()}
+              disabled={uploadingLibroFamilia}
+              className="flex-1"
+            >
+              {uploadingLibroFamilia ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+              {currentPlayer.libro_familia_url ? "✓ Cambiar Libro" : "Subir Libro de Familia"}
+            </Button>
+            {currentPlayer.libro_familia_url && (
+              <a href={currentPlayer.libro_familia_url} target="_blank" rel="noopener noreferrer">
+                <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
+              </a>
+            )}
+          </div>
+          <p className="text-xs text-blue-700">Si el jugador es menor de 14 años y no tiene DNI, sube el libro de familia</p>
+          {fieldErrors.libro_familia_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.libro_familia_url}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
