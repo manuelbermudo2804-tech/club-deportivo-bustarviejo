@@ -46,12 +46,12 @@ export default function StepPlayerData({
           <input type="file" accept="image/*" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" />
 
           <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Button type="button" variant="default" className="flex-1 bg-orange-600 hover:bg-orange-700" disabled={uploadingPhoto} onClick={() => document.getElementById('wiz-photo-camera').click()}>
-              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+            <Button type="button" variant="default" className="flex-1 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 min-h-[48px] text-base font-semibold" disabled={uploadingPhoto} onClick={() => document.getElementById('wiz-photo-camera').click()}>
+              {uploadingPhoto ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Camera className="w-5 h-5 mr-2" />}
               📸 Hacer Foto
             </Button>
-            <Button type="button" variant="outline" className="flex-1" disabled={uploadingPhoto} onClick={() => document.getElementById('wiz-photo-gallery').click()}>
-              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+            <Button type="button" variant="outline" className="flex-1 min-h-[48px] text-base font-semibold" disabled={uploadingPhoto} onClick={() => document.getElementById('wiz-photo-gallery').click()}>
+              {uploadingPhoto ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Upload className="w-5 h-5 mr-2" />}
               Subir desde galería
             </Button>
           </div>

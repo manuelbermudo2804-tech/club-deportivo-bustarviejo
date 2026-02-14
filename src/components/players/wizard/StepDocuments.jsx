@@ -27,10 +27,10 @@ export default function StepDocuments({
       <div className="space-y-2">
         <Label>Tipo de Documento del Jugador</Label>
         <Select value={currentPlayer.tipo_documento || "DNI"} onValueChange={(v) => setCurrentPlayer({ ...currentPlayer, tipo_documento: v })}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="DNI">🪪 DNI</SelectItem>
-            <SelectItem value="Pasaporte">🛂 Pasaporte</SelectItem>
+          <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
+          <SelectContent position="popper" sideOffset={4} className="z-[9999]">
+            <SelectItem value="DNI" className="py-3 text-base cursor-pointer">🪪 DNI</SelectItem>
+            <SelectItem value="Pasaporte" className="py-3 text-base cursor-pointer">🛂 Pasaporte</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -65,7 +65,7 @@ export default function StepDocuments({
             variant={fieldErrors.dni_jugador_url ? "destructive" : "outline"}
             onClick={() => document.getElementById('wiz-dni-upload').click()}
             disabled={uploadingDNI}
-            className="flex-1"
+            className="flex-1 min-h-[44px]"
           >
             {uploadingDNI ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
             {currentPlayer.dni_jugador_url ? "✓ Cambiar documento" : "Subir documento"}
@@ -92,7 +92,7 @@ export default function StepDocuments({
               variant={fieldErrors.libro_familia_url ? "destructive" : "outline"}
               onClick={() => document.getElementById('wiz-libro-upload').click()}
               disabled={uploadingLibroFamilia}
-              className="flex-1"
+              className="flex-1 min-h-[44px]"
             >
               {uploadingLibroFamilia ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
               {currentPlayer.libro_familia_url ? "✓ Cambiar Libro" : "Subir Libro de Familia"}

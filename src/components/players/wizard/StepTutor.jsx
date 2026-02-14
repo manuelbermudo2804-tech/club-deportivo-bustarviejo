@@ -75,12 +75,12 @@ export default function StepTutor({
           </div>
           {!usePreviousTutorData ? (
             <Select onValueChange={onLoadPreviousTutorData}>
-              <SelectTrigger className="bg-white border-2 border-blue-300">
+              <SelectTrigger className="bg-white border-2 border-blue-300 min-h-[44px]">
                 <SelectValue placeholder="📋 Copiar datos de otro hijo..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" sideOffset={4} className="z-[9999]">
                 {existingFamilyPlayers.map(p => (
-                  <SelectItem key={p.id} value={p.id}>👤 {p.nombre} - {p.deporte}</SelectItem>
+                  <SelectItem key={p.id} value={p.id} className="py-3 cursor-pointer">👤 {p.nombre} - {p.deporte}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -118,10 +118,10 @@ export default function StepTutor({
         <div className="space-y-2">
           <Label>Tipo de Documento</Label>
           <Select value={currentPlayer.tipo_documento_tutor || "DNI"} onValueChange={(v) => setCurrentPlayer({ ...currentPlayer, tipo_documento_tutor: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="DNI">🪪 DNI</SelectItem>
-              <SelectItem value="Pasaporte">🛂 Pasaporte</SelectItem>
+            <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
+            <SelectContent position="popper" sideOffset={4} className="z-[9999]">
+              <SelectItem value="DNI" className="py-3 text-base cursor-pointer">🪪 DNI</SelectItem>
+              <SelectItem value="Pasaporte" className="py-3 text-base cursor-pointer">🛂 Pasaporte</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -154,7 +154,7 @@ export default function StepTutor({
             variant={fieldErrors.dni_tutor_legal_url ? "destructive" : "outline"}
             onClick={() => document.getElementById('wiz-dni-tutor-upload').click()}
             disabled={uploadingDNITutor}
-            className="flex-1"
+            className="flex-1 min-h-[44px]"
           >
             {uploadingDNITutor ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
             {currentPlayer.dni_tutor_legal_url ? "✓ Cambiar documento" : "Subir documento"}
