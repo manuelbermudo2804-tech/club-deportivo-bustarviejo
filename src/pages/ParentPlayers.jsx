@@ -679,27 +679,16 @@ Email: cdbustarviejo@gmail.com
                   console.log('Error enviando email informativo segundo progenitor:', e);
                 }
 
+                // Invitar automáticamente al segundo progenitor
                 try {
-                  const existingInv = await base44.entities.SecondParentInvitation.filter({
-                    email_destino: nextEmail2,
-                    jugador_id: id,
-                    estado: 'pendiente'
+                  await base44.functions.invoke('inviteSecondParent', {
+                    email: nextEmail2,
+                    playerName: safeData.nombre || editingPlayer?.nombre || '',
+                    inviterName: user?.full_name || ''
                   });
-                  if (existingInv.length === 0) {
-                    await base44.entities.SecondParentInvitation.create({
-                      token: `${Date.now()}-${Math.random().toString(36).slice(2,10)}`,
-                      email_destino: nextEmail2,
-                      nombre_destino: safeData.nombre_tutor_2 || '',
-                      jugador_id: id,
-                      jugador_nombre: safeData.nombre || editingPlayer?.nombre || '',
-                      invitado_por_email: user?.email,
-                      invitado_por_nombre: user?.full_name,
-                      estado: 'pendiente',
-                      fecha_envio: new Date().toISOString()
-                    });
-                  }
+                  console.log('✅ Invitación automática enviada a:', nextEmail2);
                 } catch (e) {
-                  console.log('Error creando solicitud de invitación segundo progenitor:', e);
+                  console.log('Error invitando automáticamente a segundo progenitor:', e);
                 }
               }
 
