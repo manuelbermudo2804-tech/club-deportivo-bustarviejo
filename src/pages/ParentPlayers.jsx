@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 
 import PlayerCard from "../components/players/PlayerCard";
+import PlayerFormWizard from "../components/players/PlayerFormWizard";
 import PlayerForm from "../components/players/PlayerForm";
 import ContactCard from "../components/ContactCard";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
@@ -1091,21 +1092,38 @@ Email: cdbustarviejo@gmail.com
                 </p>
               </div>
             )}
-            <PlayerForm
-              player={editingPlayer}
-              allPlayers={players}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setShowForm(false);
-                setEditingPlayer(null);
-                setSuggestedCategory(null);
-                setIsAdultPlayerSelfRegistration(false);
-              }}
-              isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
-              isParent={true}
-              parentEmail={user?.email}
-              isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
-            />
+            {editingPlayer ? (
+              <PlayerForm
+                player={editingPlayer}
+                allPlayers={players}
+                onSubmit={handleSubmit}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditingPlayer(null);
+                  setSuggestedCategory(null);
+                  setIsAdultPlayerSelfRegistration(false);
+                }}
+                isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
+                isParent={true}
+                parentEmail={user?.email}
+                isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
+              />
+            ) : (
+              <PlayerFormWizard
+                player={null}
+                allPlayers={players}
+                onSubmit={handleSubmit}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditingPlayer(null);
+                  setSuggestedCategory(null);
+                  setIsAdultPlayerSelfRegistration(false);
+                }}
+                isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
+                isParent={true}
+                isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
+              />
+            )}
           </div>
         )}
       </AnimatePresence>
