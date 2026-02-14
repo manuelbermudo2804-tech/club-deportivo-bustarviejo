@@ -173,7 +173,17 @@ export default function Home() {
     enabled: queriesEnabled && isAdmin,
   });
 
+  const { data: secondParentInvitations = [] } = useQuery({
+    queryKey: ['secondParentInvitationsHome'],
+    queryFn: () => base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+    enabled: queriesEnabled && isAdmin,
+  });
+
   const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
+  const pendingSecondParentInvitationsCount = secondParentInvitations.length;
 
   // Configuración de botones del dashboard
   const { data: buttonConfigs = [] } = useQuery({
@@ -623,6 +633,7 @@ export default function Home() {
             pendingMemberRequests={stats.pendingMemberRequests}
             pendingLotteryOrders={stats.pendingLotteryOrders}
             pendingInvitations={pendingInvitationRequests}
+            pendingSecondParentInvitations={pendingSecondParentInvitationsCount}
             recentSurveyResponses={stats.recentSurveyResponses}
             pendingEventConfirmations={stats.pendingEventConfirmations}
             pendingPlayerAccess={stats.pendingPlayerAccess}
