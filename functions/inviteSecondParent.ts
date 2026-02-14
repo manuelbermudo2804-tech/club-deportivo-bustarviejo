@@ -4,13 +4,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verificar que hay un usuario autenticado
     const user = await base44.auth.me();
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { email, playerName, inviterName } = await req.json();
+    const { email, playerName, inviterName, playerId } = await req.json();
 
     if (!email || !email.trim()) {
       return Response.json({ error: 'Email es obligatorio' }, { status: 400 });
@@ -18,46 +17,112 @@ Deno.serve(async (req) => {
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // Verificar que no se está invitando a sí mismo
+    // No invitarse a sí mismo
     if (cleanEmail === user.email?.toLowerCase()) {
-      return Response.json({ error: 'No puedes invitarte a ti mismo', alreadyExists: true }, { status: 400 });
+      return Response.json({ success: true, alreadyExists: true, message: 'No puedes invitarte a ti mismo' });
     }
 
     // Verificar si el usuario ya existe en la app
     try {
       const existingUsers = await base44.asServiceRole.entities.User.filter({ email: cleanEmail });
       if (existingUsers.length > 0) {
-        console.log(`ℹ️ Usuario ${cleanEmail} ya existe en la app, no se necesita invitación`);
+        console.log(`ℹ️ Usuario ${cleanEmail} ya existe en la app`);
+        // Marcar como segundo progenitor si no lo está
+        const existingUser = existingUsers[0];
+        if (!existingUser.es_segundo_progenitor) {
+          try {
+            await base44.asServiceRole.entities.User.update(existingUser.id, { 
+              es_segundo_progenitor: true, 
+              tipo_panel: existingUser.tipo_panel || 'familia' 
+            });
+            console.log(`✅ Usuario ${cleanEmail} marcado como segundo progenitor`);
+          } catch (e) {
+            console.log('⚠️ No se pudo marcar como segundo progenitor:', e.message);
+          }
+        }
         return Response.json({ success: true, alreadyExists: true, message: 'El usuario ya tiene cuenta en la app' });
       }
     } catch (e) {
       console.log('⚠️ Error verificando usuario existente:', e.message);
     }
 
-    // Invitar al segundo progenitor
-    // Intentar primero con auth.inviteUser (funciona si el SDK lo permite)
+    // App privada: solo admins pueden invitar directamente.
+    // Intentar con inviteUser (funcionará si quien llama es admin)
     try {
       await base44.auth.inviteUser(cleanEmail, 'user');
-      console.log(`✅ Invitación enviada automáticamente a: ${cleanEmail}`);
-      return Response.json({ 
-        success: true, 
-        alreadyExists: false, 
-        message: `Invitación enviada a ${cleanEmail}` 
-      });
-    } catch (inviteError) {
-      console.error('❌ Error con auth.inviteUser:', inviteError.message);
+      console.log(`✅ Invitación enviada directamente a: ${cleanEmail}`);
       
-      // Si el error es porque ya existe, no es un error real
-      if (inviteError.message?.includes('already') || inviteError.message?.includes('exists')) {
-        return Response.json({ success: true, alreadyExists: true, message: 'El usuario ya tiene cuenta' });
+      // Registrar en SecondParentInvitation como completada
+      try {
+        await base44.asServiceRole.entities.SecondParentInvitation.create({
+          token: crypto.randomUUID(),
+          email_destino: cleanEmail,
+          nombre_destino: '',
+          jugador_id: playerId || '',
+          jugador_nombre: playerName || '',
+          invitado_por_email: user.email,
+          invitado_por_nombre: inviterName || user.full_name,
+          estado: 'aceptada',
+          fecha_envio: new Date().toISOString(),
+          fecha_expiracion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        });
+      } catch (e) {
+        console.log('⚠️ Error registrando invitación:', e.message);
       }
 
-      // Si falla por permisos, devolver error específico para que el frontend haga fallback
-      return Response.json({ 
-        success: false,
-        needsAdmin: true,
-        error: 'Se necesita aprobación del administrador para completar la invitación'
-      }, { status: 200 });
+      return Response.json({ success: true, alreadyExists: false, method: 'direct' });
+    } catch (inviteError) {
+      console.log('ℹ️ inviteUser falló (usuario no admin):', inviteError.message);
+      
+      if (inviteError.message?.includes('already') || inviteError.message?.includes('exists')) {
+        return Response.json({ success: true, alreadyExists: true });
+      }
+    }
+
+    // Fallback: crear solicitud para que el admin la procese
+    try {
+      // Verificar si ya existe una solicitud pendiente
+      const existing = await base44.asServiceRole.entities.SecondParentInvitation.filter({
+        email_destino: cleanEmail,
+        estado: 'pendiente'
+      });
+
+      if (existing.length > 0) {
+        console.log(`ℹ️ Ya existe solicitud pendiente para ${cleanEmail}`);
+        return Response.json({ success: true, needsAdmin: true, message: 'Ya hay una solicitud pendiente para este email' });
+      }
+
+      await base44.asServiceRole.entities.SecondParentInvitation.create({
+        token: crypto.randomUUID(),
+        email_destino: cleanEmail,
+        nombre_destino: '',
+        jugador_id: playerId || '',
+        jugador_nombre: playerName || '',
+        invitado_por_email: user.email,
+        invitado_por_nombre: inviterName || user.full_name,
+        estado: 'pendiente',
+        fecha_envio: new Date().toISOString(),
+        fecha_expiracion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      });
+
+      console.log(`📨 Solicitud de invitación creada para ${cleanEmail} (pendiente admin)`);
+
+      // Notificar al admin por email
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: 'cdbustarviejo@gmail.com',
+          subject: `🔔 Nueva solicitud: invitar a ${cleanEmail}`,
+          body: `<p>${user.full_name} (${user.email}) solicita que invites a <strong>${cleanEmail}</strong> como segundo progenitor del jugador <strong>${playerName || 'sin nombre'}</strong>.</p>
+<p>Ve a la app → Solicitudes de Invitación para procesarla.</p>`
+        });
+      } catch (emailErr) {
+        console.log('⚠️ No se pudo notificar al admin:', emailErr.message);
+      }
+
+      return Response.json({ success: true, needsAdmin: true, message: 'Solicitud enviada al administrador' });
+    } catch (fallbackError) {
+      console.error('❌ Error creando solicitud:', fallbackError.message);
+      return Response.json({ error: 'Error al crear la solicitud: ' + fallbackError.message }, { status: 500 });
     }
 
   } catch (error) {
