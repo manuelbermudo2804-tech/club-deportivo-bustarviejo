@@ -1040,82 +1040,94 @@ Email: cdbustarviejo@gmail.com
         </div>
       </div>
 
-      <AnimatePresence>
-        {showForm && (
-          <div className="mb-6">
-            {/* Banner para auto-registro de jugador +18 */}
-            {isAdultPlayerSelfRegistration && (
-              <div className="mb-4 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-400 rounded-xl p-4">
-                <p className="text-sm font-bold text-green-900 mb-2">
-                  👤 Auto-registro como Jugador Mayor de 18 años
-                </p>
-                <p className="text-xs text-green-800 mb-3 leading-relaxed">
-                  Estás registrándote <strong>a ti mismo</strong> como jugador del club. 
-                  Completa tus datos personales. Al finalizar, tu panel se convertirá automáticamente en <strong>"Panel Jugador"</strong>.
-                </p>
-                <div className="bg-white rounded-lg p-3 border border-green-200">
-                  <p className="text-xs text-green-700">
-                    ℹ️ <strong>Importante:</strong> Los campos de "tutor legal" no son necesarios ya que eres mayor de edad. 
-                    Introduce tu propio email y teléfono en los campos principales.
-                  </p>
-                </div>
-              </div>
-            )}
-            {suggestedCategory && (
-              <div className="mb-4 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-xl p-4 animate-pulse">
-                <p className="text-sm font-bold text-purple-900 mb-2">
-                  💡 Sugerencia de Cambio de Categoría
-                </p>
-                <p className="text-xs text-purple-800 mb-3 leading-relaxed">
-                  Hemos actualizado automáticamente la categoría de <strong>{editingPlayer?.nombre}</strong> a <strong>{suggestedCategory}</strong> según su edad. Revisa los datos y confirma la renovación.
-                </p>
-              </div>
-            )}
-            {editingPlayer && editingPlayer.tipo_inscripcion === "Renovación" && !suggestedCategory && (
-              <div className="mb-4 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-400 rounded-xl p-4">
-                <p className="text-sm font-bold text-blue-900 mb-2">
-                  🔄 Renovación de Jugador
-                </p>
-                <p className="text-xs text-blue-800 mb-3 leading-relaxed">
-                  Estás renovando a <strong>{editingPlayer?.nombre}</strong>. Revisa que todos los datos estén actualizados y completa la renovación.
+      {showForm && (
+        <FullscreenFormModal
+          title={editingPlayer ? `Editar: ${editingPlayer.nombre}` : "Registrar Nuevo Jugador"}
+          subtitle={
+            isAdultPlayerSelfRegistration ? "Auto-registro como jugador +18" :
+            editingPlayer?.tipo_inscripcion === "Renovación" ? "Renovación de jugador" :
+            suggestedCategory ? `Cambio de categoría sugerido: ${suggestedCategory}` :
+            "Completa los datos del jugador paso a paso"
+          }
+          onClose={() => {
+            setShowForm(false);
+            setEditingPlayer(null);
+            setSuggestedCategory(null);
+            setIsAdultPlayerSelfRegistration(false);
+          }}
+        >
+          {/* Banners informativos */}
+          {isAdultPlayerSelfRegistration && (
+            <div className="mb-4 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-400 rounded-xl p-4">
+              <p className="text-sm font-bold text-green-900 mb-2">
+                👤 Auto-registro como Jugador Mayor de 18 años
+              </p>
+              <p className="text-xs text-green-800 mb-3 leading-relaxed">
+                Estás registrándote <strong>a ti mismo</strong> como jugador del club. 
+                Completa tus datos personales. Al finalizar, tu panel se convertirá automáticamente en <strong>"Panel Jugador"</strong>.
+              </p>
+              <div className="bg-white rounded-lg p-3 border border-green-200">
+                <p className="text-xs text-green-700">
+                  ℹ️ <strong>Importante:</strong> Los campos de "tutor legal" no son necesarios ya que eres mayor de edad. 
+                  Introduce tu propio email y teléfono en los campos principales.
                 </p>
               </div>
-            )}
-            {editingPlayer ? (
-              <PlayerForm
-                player={editingPlayer}
-                allPlayers={players}
-                onSubmit={handleSubmit}
-                onCancel={() => {
-                  setShowForm(false);
-                  setEditingPlayer(null);
-                  setSuggestedCategory(null);
-                  setIsAdultPlayerSelfRegistration(false);
-                }}
-                isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
-                isParent={true}
-                parentEmail={user?.email}
-                isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
-              />
-            ) : (
-              <PlayerFormWizard
-                player={null}
-                allPlayers={players}
-                onSubmit={handleSubmit}
-                onCancel={() => {
-                  setShowForm(false);
-                  setEditingPlayer(null);
-                  setSuggestedCategory(null);
-                  setIsAdultPlayerSelfRegistration(false);
-                }}
-                isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
-                isParent={true}
-                isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
-              />
-            )}
-          </div>
-        )}
-      </AnimatePresence>
+            </div>
+          )}
+          {suggestedCategory && (
+            <div className="mb-4 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-xl p-4 animate-pulse">
+              <p className="text-sm font-bold text-purple-900 mb-2">
+                💡 Sugerencia de Cambio de Categoría
+              </p>
+              <p className="text-xs text-purple-800 mb-3 leading-relaxed">
+                Hemos actualizado automáticamente la categoría de <strong>{editingPlayer?.nombre}</strong> a <strong>{suggestedCategory}</strong> según su edad. Revisa los datos y confirma la renovación.
+              </p>
+            </div>
+          )}
+          {editingPlayer && editingPlayer.tipo_inscripcion === "Renovación" && !suggestedCategory && (
+            <div className="mb-4 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-400 rounded-xl p-4">
+              <p className="text-sm font-bold text-blue-900 mb-2">
+                🔄 Renovación de Jugador
+              </p>
+              <p className="text-xs text-blue-800 mb-3 leading-relaxed">
+                Estás renovando a <strong>{editingPlayer?.nombre}</strong>. Revisa que todos los datos estén actualizados y completa la renovación.
+              </p>
+            </div>
+          )}
+          {editingPlayer ? (
+            <PlayerForm
+              player={editingPlayer}
+              allPlayers={players}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingPlayer(null);
+                setSuggestedCategory(null);
+                setIsAdultPlayerSelfRegistration(false);
+              }}
+              isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
+              isParent={true}
+              parentEmail={user?.email}
+              isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
+            />
+          ) : (
+            <PlayerFormWizard
+              player={null}
+              allPlayers={players}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingPlayer(null);
+                setSuggestedCategory(null);
+                setIsAdultPlayerSelfRegistration(false);
+              }}
+              isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
+              isParent={true}
+              isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
+            />
+          )}
+        </FullscreenFormModal>
+      )}
 
       {/* Alerta de Jugadores Pendientes de Renovación - Solo si permitir_renovaciones está activo */}
       {seasonConfig?.permitir_renovaciones && playersToRenew.length > 0 && (
