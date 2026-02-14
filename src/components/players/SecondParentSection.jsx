@@ -382,23 +382,32 @@ Para completar tu registro, haz clic en el botón:
             {/* Estado de invitación */}
             {isEditing && currentPlayer.email_tutor_2 && (
               <div className="bg-slate-50 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-slate-600">
-                  {hasCompleteSecondParent ? (
-                    <>
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span className="text-sm font-medium text-green-700">
-                        El segundo progenitor ya está registrado y recibirá invitación automáticamente al guardar
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Info className="w-5 h-5 text-blue-600" />
-                      <span className="text-sm text-blue-700">
-                        Al guardar, se enviará automáticamente una invitación al email indicado
-                      </span>
-                    </>
-                  )}
-                </div>
+                {pendingInvitation ? (
+                  <div className="flex items-center gap-2 text-yellow-700">
+                    <Clock className="w-5 h-5" />
+                    <span className="text-sm font-medium">
+                      Solicitud enviada — pendiente de aprobación del administrador
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-slate-600">
+                    {hasCompleteSecondParent ? (
+                      <>
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                        <span className="text-sm font-medium text-green-700">
+                          Datos guardados. Al guardar se creará la solicitud de invitación.
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Info className="w-5 h-5 text-blue-600" />
+                        <span className="text-sm text-blue-700">
+                          Al guardar, se enviará una solicitud al administrador para invitar a este email
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
