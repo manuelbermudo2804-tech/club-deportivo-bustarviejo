@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus, Info } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
+// AnimatePresence se usa en las listas de jugadores
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useActiveSeason } from "../components/season/SeasonProvider";
