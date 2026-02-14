@@ -63,6 +63,7 @@ export default function AlertCenter({
   pendingMatchObservations = 0,
   unresolvedAdminChats = 0,
   unreadStaffMessages = 0,
+  pendingSecondParentInvitations = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true,
@@ -507,6 +508,18 @@ const alerts = [];
         url: createPageUrl("InvitationRequests"),
         color: "bg-cyan-600",
         priority: 3
+      });
+    }
+
+    if (pendingSecondParentInvitations > 0) {
+      alerts.push({
+        id: "second-parent-invitations",
+        icon: Users,
+        title: "👥 Invitaciones 2º Progenitor",
+        description: `${pendingSecondParentInvitations} solicitud${pendingSecondParentInvitations > 1 ? 'es' : ''} de segundo progenitor pendiente${pendingSecondParentInvitations > 1 ? 's' : ''}`,
+        url: createPageUrl("InvitationRequests"),
+        color: "bg-indigo-600",
+        priority: 2
       });
     }
   }
