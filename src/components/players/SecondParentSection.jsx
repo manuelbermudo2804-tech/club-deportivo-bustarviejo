@@ -299,9 +299,9 @@ Para completar tu registro, haz clic en el botón:
             <Alert className="bg-blue-50 border-blue-200">
               <Info className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 text-sm">
-                <strong>👥 Acceso compartido:</strong> Al guardar el jugador con el email del segundo progenitor, se le enviará <strong>automáticamente</strong> una invitación para acceder a la app.
+                <strong>👥 Acceso compartido:</strong> Al guardar el jugador con el email del segundo progenitor, se creará una <strong>solicitud de invitación</strong> que el administrador procesará.
                 <p className="mt-2 text-xs">
-                  ✅ Una vez que acepte la invitación, tendrá acceso completo: pagos, convocatorias, chat con entrenadores, calendario, documentos, etc.
+                  ✅ Una vez que el admin la apruebe, recibirá un email para acceder a la app con acceso completo: pagos, convocatorias, chat, calendario, etc.
                 </p>
               </AlertDescription>
             </Alert>
