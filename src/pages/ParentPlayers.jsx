@@ -994,12 +994,28 @@ Email: cdbustarviejo@gmail.com
       {showImportantBanner && (
         <div className="bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 border-2 border-orange-500 rounded-2xl p-4 lg:p-6 shadow-glow-orange">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold">!</div>
-            <div className="flex-1">
-              <h3 className="text-orange-900 font-extrabold text-base lg:text-lg">IMPORTANTE</h3>
-              <ul className="mt-2 space-y-2 text-sm lg:text-base text-slate-800">
-                <li>• Añade el email del segundo progenitor; le enviaremos una invitación y, al aceptarla, ambos veréis y gestionaréis la misma ficha del jugador.</li>
-                <li>• Familias con varios hijos: inscribe primero al hermano MAYOR; el descuento de 25€ se aplicará automáticamente a los menores. Si te equivocas, el sistema lo recalcula solo.</li>
+            <div className="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold flex-shrink-0">!</div>
+            <div className="flex-1 space-y-3">
+              <h3 className="text-orange-900 font-extrabold text-base lg:text-lg">IMPORTANTE - Lee antes de inscribir</h3>
+              
+              {/* AVISO SEGUNDO PROGENITOR */}
+              <div className="bg-white border-2 border-red-400 rounded-xl p-3 lg:p-4">
+                <p className="text-red-800 font-bold text-sm lg:text-base mb-2">
+                  🚫 ¿Tu pareja ya inscribió a vuestro hijo/a?
+                </p>
+                <p className="text-sm text-slate-800 leading-relaxed">
+                  <strong>NO lo inscribas otra vez.</strong> Si tu pareja ya dio de alta al jugador, no debes crear otra ficha. 
+                  El primer progenitor debe añadir tu email como <strong>"segundo progenitor"</strong> editando la ficha del jugador. 
+                  Así ambos tendréis acceso a la <strong>misma ficha</strong> (pagos, convocatorias, chat, etc.) sin duplicar datos.
+                </p>
+                <p className="text-xs text-red-700 mt-2 font-semibold">
+                  ⚠️ Si ambos padres inscriben al mismo hijo por separado, se creará un jugador duplicado y habrá problemas con los pagos.
+                </p>
+              </div>
+
+              <ul className="space-y-2 text-sm lg:text-base text-slate-800">
+                <li>• <strong>Segundo progenitor:</strong> Dentro de la ficha del jugador, rellena la sección "Segundo Progenitor" con nombre, email y teléfono. El club enviará la invitación.</li>
+                <li>• <strong>Familias con varios hijos:</strong> Inscribe primero al hermano MAYOR; el descuento de 25€ se aplica automáticamente a los menores.</li>
               </ul>
             </div>
           </div>
