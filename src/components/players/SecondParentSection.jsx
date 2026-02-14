@@ -391,7 +391,7 @@ Para completar tu registro, haz clic en el botón:
                   />
                 </div>
                 <p className="text-xs text-slate-500">
-                  Se enviará una invitación automática a este email
+                  Al guardar, se solicitará la invitación al club
                 </p>
               </div>
               
