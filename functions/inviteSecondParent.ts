@@ -22,6 +22,37 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, alreadyExists: true, message: 'No puedes invitarte a ti mismo' });
     }
 
+    // Prevenir duplicados: verificar si ese email ya es email_padre de este jugador
+    if (playerId) {
+      try {
+        const playerData = await base44.asServiceRole.entities.Player.filter({ id: playerId });
+        if (playerData.length > 0) {
+          const player = playerData[0];
+          if (player.email_padre?.toLowerCase() === cleanEmail) {
+            return Response.json({ success: false, error: 'Ese email ya es el progenitor principal de este jugador' }, { status: 400 });
+          }
+          // Verificar si el segundo progenitor ya está registrado con ese email
+          if (player.email_tutor_2?.toLowerCase() === cleanEmail) {
+            console.log(`ℹ️ Email ${cleanEmail} ya está como email_tutor_2 del jugador`);
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Error verificando jugador:', e.message);
+      }
+    }
+
+    // Prevenir duplicados: si ese email ya tiene jugadores como email_padre, avisar
+    try {
+      const playersAsParent = await base44.asServiceRole.entities.Player.filter({ email_padre: cleanEmail, activo: true });
+      if (playersAsParent.length > 0) {
+        const playerNames = playersAsParent.map(p => p.nombre).join(', ');
+        console.log(`⚠️ Email ${cleanEmail} ya es progenitor principal de: ${playerNames}`);
+        // No bloquear, pero registrar - puede ser legítimo (familias recompuestas)
+      }
+    } catch (e) {
+      console.log('⚠️ Error verificando jugadores del email:', e.message);
+    }
+
     // Verificar si el usuario ya existe en la app
     try {
       const existingUsers = await base44.asServiceRole.entities.User.filter({ email: cleanEmail });
