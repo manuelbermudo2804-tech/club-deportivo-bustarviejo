@@ -197,11 +197,12 @@ export default function CentroCompeticionTecnico() {
 
   // Análisis de rival (usa el mismo patrón de CoachStandingsAnalysis)
   const [isAnalyzingRival, setIsAnalyzingRival] = React.useState(false);
+  const [rivalAnalysis, setRivalAnalysis] = React.useState(null);
+  const [showAnalysisModal, setShowAnalysisModal] = React.useState(false);
   const analyzeRival = async () => {
     if (!nextCallup) return alert("No hay próximo partido para analizar");
     setIsAnalyzingRival(true);
     try {
-      // Cargar apoyo de clasificación y goleadores/resultados
       const latest = standingsPack;
       const rivalName = nextCallup.rival;
       const rivalStanding = latest?.data?.find((s) => s.nombre_equipo?.toLowerCase().includes((rivalName || "").toLowerCase()));
@@ -231,7 +232,8 @@ export default function CentroCompeticionTecnico() {
           },
         },
       });
-      alert(`Racha: ${result.racha || '-'}\n\nPuntos fuertes:\n- ${(result.puntos_fuertes || []).join("\n- ")}\n\nDebilidades:\n- ${(result.debilidades || []).join("\n- ")}\n\nPlan táctico:\n- ${(result.plan_tactico || []).join("\n- ")}`);
+      setRivalAnalysis(result);
+      setShowAnalysisModal(true);
     } catch (e) {
       console.error(e);
       alert("No se pudo generar el análisis");
