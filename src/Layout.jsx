@@ -2002,6 +2002,7 @@ export default function Layout({ children, currentPageName }) {
       );
     }
 
+    console.log('🔷 [LAYOUT] Renderizando con ChatUnreadProvider', { user: user?.email });
     return (
             <SeasonProvider externalConfig={activeSeasonConfig}>
             <ChatUnreadProvider user={user}>
