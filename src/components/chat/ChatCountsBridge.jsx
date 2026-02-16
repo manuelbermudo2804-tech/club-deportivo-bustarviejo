@@ -12,7 +12,10 @@ export default function ChatCountsBridge({ onCounts }) {
 
   useEffect(() => {
     console.log("🌉 [ChatCountsBridge] useEffect - propagando counts:", counts);
-    if (onCounts) onCounts(counts);
+    if (onCounts) {
+      console.log("🌉 [ChatCountsBridge] Llamando onCounts callback");
+      onCounts(counts);
+    }
   }, [counts, onCounts]);
 
   return null;
