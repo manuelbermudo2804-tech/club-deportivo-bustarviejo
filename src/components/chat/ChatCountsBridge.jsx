@@ -7,15 +7,9 @@ import { useChatUnread } from "./ChatUnreadProvider";
  */
 export default function ChatCountsBridge({ onCounts }) {
   const { counts } = useChatUnread();
-  
-  console.log("🌉 [ChatCountsBridge] counts actuales:", counts);
 
   useEffect(() => {
-    console.log("🌉 [ChatCountsBridge] useEffect - propagando counts:", counts);
-    if (onCounts) {
-      console.log("🌉 [ChatCountsBridge] Llamando onCounts callback");
-      onCounts(counts);
-    }
+    if (onCounts) onCounts(counts);
   }, [counts, onCounts]);
 
   return null;

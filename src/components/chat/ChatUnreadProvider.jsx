@@ -37,7 +37,6 @@ const ChatUnreadContext = createContext({
 });
 
 export function ChatUnreadProvider({ user, children }) {
-  console.log("🟡 [ChatUnreadProvider] MONTADO", { user: user?.email });
   // Raw state never contains 'total' — it's always derived on read
   const [rawCounts, setRawCounts] = useState(EMPTY_RAW);
   const counts = withTotal(rawCounts);
@@ -48,19 +47,13 @@ export function ChatUnreadProvider({ user, children }) {
   const inFlightRef = useRef(new Set());
 
   const fetchCounts = useCallback(async (force = false) => {
-    if (!user) {
-      console.log("🔴 [ChatUnreadProvider] fetchCounts abortado - no user");
-      return;
-    }
-    console.log("🟢 [ChatUnreadProvider] fetchCounts iniciado", { force, user: user.email });
+    if (!user) return;
     if (fetchingRef.current && !force) { refetchPendingRef.current = true; return; }
     let setFlag = false;
     if (!fetchingRef.current) { fetchingRef.current = true; setFlag = true; }
     const requestId = ++latestRequestIdRef.current;
     try {
-      console.log("🔵 [ChatUnreadProvider] Llamando a chatGetUnreadCounts...");
       const { data } = await base44.functions.invoke("chatGetUnreadCounts", {});
-      console.log("🟢 [ChatUnreadProvider] Respuesta recibida:", data);
       if (mountedRef.current && data && !data.error) {
         const normalized = { team_chats: {}, coordinator: data.coordinator || 0, admin: data.admin || 0, staff: data.staff || 0, system: data.system || 0 };
         for (const k of Object.keys(data.team_chats || {})) {
@@ -69,7 +62,6 @@ export function ChatUnreadProvider({ user, children }) {
         }
         if (requestId !== latestRequestIdRef.current) return;
         setRawCounts(normalized);
-        console.log("✅ [ChatUnreadProvider] Contadores actualizados:", normalized);
       }
     } catch (e) {
       console.error("❌ [ChatUnreadProvider] fetch error:", e);
@@ -84,7 +76,6 @@ export function ChatUnreadProvider({ user, children }) {
 
   // Initial fetch
   useEffect(() => {
-    console.log("🟡 [ChatUnreadProvider] useEffect inicial ejecutado", { user: user?.email });
     mountedRef.current = true;
     if (user) fetchCounts();
     return () => { mountedRef.current = false; };

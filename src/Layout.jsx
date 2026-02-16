@@ -525,12 +525,6 @@ function RestrictedAccessScreen({ user, restriction }) {
 }
 
 export default function Layout({ children, currentPageName }) {
-  console.log('🏗️ [LAYOUT] Layout montado con:', { 
-    currentPageName, 
-    pathname: window.location.pathname,
-    childrenType: typeof children,
-    childrenExists: !!children 
-  });
 
 
   const location = useLocation();
@@ -1914,7 +1908,7 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  console.log('🎨 [LAYOUT] Pasó loading, isLoading:', isLoading, 'isPublicPage:', isPublicPage, 'user:', user?.email);
+
 
   // Reubicación de returns: después de declarar todos los hooks
   if (isPublicLoading) {
@@ -1986,8 +1980,6 @@ export default function Layout({ children, currentPageName }) {
       }
 
 
-    console.log('✅ [LAYOUT] Renderizando contenido principal con children');
-
     // Mostrar WelcomeScreen si es primera vez
     if (showWelcome) {
       return (
@@ -2002,7 +1994,6 @@ export default function Layout({ children, currentPageName }) {
       );
     }
 
-    console.log('🔷 [LAYOUT] Renderizando con ChatUnreadProvider', { user: user?.email });
     return (
             <SeasonProvider externalConfig={activeSeasonConfig}>
             <ChatUnreadProvider user={user}>
