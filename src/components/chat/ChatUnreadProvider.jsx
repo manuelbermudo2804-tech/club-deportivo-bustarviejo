@@ -37,6 +37,7 @@ const ChatUnreadContext = createContext({
 });
 
 export function ChatUnreadProvider({ user, children }) {
+  console.log("🟡 [ChatUnreadProvider] MONTADO", { user: user?.email });
   // Raw state never contains 'total' — it's always derived on read
   const [rawCounts, setRawCounts] = useState(EMPTY_RAW);
   const counts = withTotal(rawCounts);
@@ -83,10 +84,11 @@ export function ChatUnreadProvider({ user, children }) {
 
   // Initial fetch
   useEffect(() => {
+    console.log("🟡 [ChatUnreadProvider] useEffect inicial ejecutado", { user: user?.email });
     mountedRef.current = true;
     if (user) fetchCounts();
     return () => { mountedRef.current = false; };
-  }, [user?.email]);
+  }, [user?.email, fetchCounts]);
 
   // Re-fetch on visibility change
   useEffect(() => {
