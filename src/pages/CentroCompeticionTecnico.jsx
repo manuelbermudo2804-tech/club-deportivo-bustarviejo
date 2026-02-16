@@ -397,6 +397,16 @@ export default function CentroCompeticionTecnico() {
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Modal análisis rival */}
+    <RivalAnalysisModal
+      open={showAnalysisModal}
+      onClose={setShowAnalysisModal}
+      analysis={rivalAnalysis}
+      rival={nextCallup?.rival}
+      categoria={category}
+      fecha={nextCallup?.fecha_partido}
+    />
   </div>
   );
 }
