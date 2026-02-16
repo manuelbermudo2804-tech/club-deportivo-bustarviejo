@@ -10,6 +10,7 @@ import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
 import QuickMatchObservationForm from "../components/coach/QuickMatchObservationForm";
+import RivalAnalysisModal from "../components/coach/RivalAnalysisModal";
 import { Trophy, List, Users, Target, Zap, Search, Star, StarOff, Settings } from "lucide-react";
 
 const CATEGORIES = [
