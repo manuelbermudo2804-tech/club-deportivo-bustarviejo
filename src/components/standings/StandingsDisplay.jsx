@@ -63,7 +63,7 @@ export default function StandingsDisplay({ data, onClose, fullPage = false }) {
                 <tr 
                   key={index}
                   className={`border-b hover:bg-slate-50 ${
-                    isBustarviejo ? 'bg-orange-100 font-bold' :
+                    isBustarviejo ? 'bg-gradient-to-r from-orange-100 via-orange-50 to-orange-100 font-bold ring-2 ring-orange-400 ring-inset shadow-sm' :
                     standing.posicion === 1 ? 'bg-yellow-50' :
                     standing.posicion === 2 ? 'bg-slate-100' :
                     standing.posicion === 3 ? 'bg-orange-50' :
