@@ -26,6 +26,9 @@ export default function StandingsDisplay({ data, onClose, fullPage = false }) {
         </div>
       </div>
 
+      {/* Resumen visual del equipo */}
+      <TeamSummaryBanner standings={sortedData} categoria={data.categoria} />
+
       {/* Próximo partido y comparativa */}
       <NextMatchStats categoria={data.categoria} standings={sortedData} />
 
