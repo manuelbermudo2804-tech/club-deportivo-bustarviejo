@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 
 const normalize = (s = "") =>
@@ -39,7 +39,8 @@ const ChatUnreadContext = createContext({
 export function ChatUnreadProvider({ user, children }) {
   // Raw state never contains 'total' — it's always derived on read
   const [rawCounts, setRawCounts] = useState(EMPTY_RAW);
-  const counts = withTotal(rawCounts);
+  // Memoize to prevent infinite re-render loop (ChatCountsBridge → Layout → Provider)
+  const counts = useMemo(() => withTotal(rawCounts), [rawCounts]);
   const fetchingRef = useRef(false);
   const mountedRef = useRef(true);
   const refetchPendingRef = useRef(false);
