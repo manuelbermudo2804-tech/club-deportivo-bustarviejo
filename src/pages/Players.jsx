@@ -420,8 +420,9 @@ export default function Players() {
       (statusRenewalFilter === "pendiente" && player.estado_renovacion === "pendiente" && player.temporada_renovacion === activeSeason?.temporada) ||
       (statusRenewalFilter === "no_renueva" && player.estado_renovacion === "no_renueva" && player.temporada_renovacion === activeSeason?.temporada);
     
-    // Filtro de categoría: comparación exacta con la categoría completa
-    const matchesCategory = categoryFilter === "all" || player.deporte === categoryFilter;
+    // Filtro de categoría: comparar con categoria_principal Y con deporte (legacy)
+    const playerCat = player.categoria_principal || player.deporte;
+    const matchesCategory = categoryFilter === "all" || playerCat === categoryFilter || player.deporte === categoryFilter;
     
     const matchesRevision = !filterRevisionCategoria || player.categoria_requiere_revision === true;
     
