@@ -23,7 +23,7 @@ import StepPago from "../components/membership/StepPago";
 const CUOTA_SOCIO = 25;
 
 export default function ClubMembership() {
-  console.log('🎫 [ClubMembership] ===== COMPONENTE MONTADO/RENDERIZADO =====');
+
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [uploadingJustificante, setUploadingJustificante] = useState(false);
@@ -136,38 +136,26 @@ export default function ClubMembership() {
   }, [isCheckingAuth]);
 
   useEffect(() => {
-    console.log('🔍 [ClubMembership] useEffect FETCH USER iniciado');
     const fetchUser = async () => {
       try {
-        console.log('🔐 [ClubMembership] Verificando autenticación...');
         const isAuthenticated = await base44.auth.isAuthenticated();
-        console.log('🔐 [ClubMembership] isAuthenticated:', isAuthenticated);
         
         if (isAuthenticated) {
           try {
-            console.log('👤 [ClubMembership] Obteniendo datos de usuario...');
             const currentUser = await base44.auth.me();
-            console.log('✅ [ClubMembership] Usuario obtenido:', currentUser?.email);
             setUser(currentUser);
           } catch (userError) {
-            // Token existe pero usuario no está en BD - acceso público
-            console.log("⚠️ [ClubMembership] Usuario con token pero no en BD, acceso público");
             setUser(null);
             setIsPublicAccess(true);
           }
         } else {
-          // No autenticado - marcar como acceso público
-          console.log("👤 [ClubMembership] No autenticado - modo público");
           setUser(null);
           setIsPublicAccess(true);
         }
       } catch (error) {
-        // Error general - permitir acceso público
-        console.log("❌ [ClubMembership] Error auth, permitiendo acceso público:", error);
         setUser(null);
         setIsPublicAccess(true);
       } finally {
-        console.log('🏁 [ClubMembership] setIsCheckingAuth(false)');
         setIsCheckingAuth(false);
       }
     };
@@ -178,7 +166,6 @@ export default function ClubMembership() {
   useEffect(() => {
     if (!isCheckingAuth) return;
     const t = setTimeout(() => {
-      console.warn('[ClubMembership] Auth check timeout, continuando en modo público');
       setIsCheckingAuth(false);
     }, 2000);
     return () => clearTimeout(t);
@@ -188,10 +175,8 @@ export default function ClubMembership() {
     queryKey: ['myMemberships', user?.email],
     queryFn: async () => {
       try {
-        console.log('📊 [ClubMembership] Query myMemberships ejecutándose...');
         return user ? await base44.entities.ClubMember.filter({ email: user.email }) : [];
       } catch (error) {
-        console.error("❌ [ClubMembership] Error loading my memberships:", error);
         return [];
       }
     },
@@ -210,12 +195,8 @@ export default function ClubMembership() {
     queryKey: ['allMemberships'],
     queryFn: async () => {
       try {
-        console.log('📊 [ClubMembership] Query allMemberships ejecutándose...');
-        const result = await base44.entities.ClubMember.list();
-        console.log('✅ [ClubMembership] allMemberships obtenido:', result?.length, 'socios');
-        return result;
+        return await base44.entities.ClubMember.list();
       } catch (error) {
-        console.error("❌ [ClubMembership] Error loading memberships:", error);
         return [];
       }
     },
@@ -250,14 +231,10 @@ export default function ClubMembership() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       try {
-        console.log('📊 [ClubMembership] Query myPlayers ejecutándose...');
         if (!user) return [];
         const allPlayers = await base44.entities.Player.list();
-        const filtered = allPlayers.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
-        console.log('✅ [ClubMembership] myPlayers obtenido:', filtered?.length, 'jugadores');
-        return filtered;
+        return allPlayers.filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email);
       } catch (error) {
-        console.error("❌ [ClubMembership] Error loading my players:", error);
         return [];
       }
     },
@@ -374,7 +351,7 @@ export default function ClubMembership() {
 
           const currentUserEmail = user?.email?.toLowerCase().trim();
 
-          console.log("🔍 DEBUG Referidos:", {
+          console.log("DEBUG Referidos:", {
             currentUserEmail,
             myPlayersCount: myPlayers.length,
             parentEmailsCount: parentEmails.size,
@@ -387,16 +364,16 @@ export default function ClubMembership() {
           // Usamos directamente el objeto user en lugar de buscar en User.list() (que requiere permisos de admin)
           if (user && currentUserEmail && myPlayers.length > 0 && parentEmails.has(currentUserEmail)) {
             referrer = user; // Usar el usuario actual directamente
-            console.log("🎯 Referido automático por user actual:", currentUserEmail, "->", referrer?.full_name);
+            
           }
           // CASO 2: Usuario externo con referido_por manual - NO podemos procesar sin permisos de admin
           // El referido manual se procesará cuando un admin apruebe el pago
           else if (data.referido_por) {
-            console.log("⚠️ Referido manual detectado pero no se puede procesar sin permisos. Se guardará para revisión admin.");
+            
             // Guardamos el nombre del referidor en el socio para que el admin lo procese manualmente
           }
           
-          console.log("📊 Referrer final:", referrer ? `${referrer.full_name} (${referrer.email})` : "NINGUNO");
+          
           
           if (referrer) {
             // Guardar referidor en la ficha del socio
@@ -472,8 +449,7 @@ export default function ClubMembership() {
                 raffle_entries_total: newRaffles
               });
 
-              console.log(`✅ Referido procesado: ${referrer.full_name} ahora tiene ${newCount} referidos`);
-              console.log(`💰 Nuevos valores: ${newCount} referidos, ${newCredit}€ crédito, ${newRaffles} participaciones`);
+              
             }
           }
         } catch (error) {
@@ -496,7 +472,7 @@ export default function ClubMembership() {
             sorteos_otorgados: 0,
             fecha_referido: new Date().toISOString()
           });
-          console.log("✅ ReferralHistory creado correctamente");
+          
         } catch (error) {
           console.error("Error guardando histórico de referido:", error);
         }
@@ -667,19 +643,7 @@ export default function ClubMembership() {
 
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.estado_pago === 'Pagado').length;
 
-  // AHORA SÍ, returns condicionales DESPUÉS de TODOS los hooks
-  console.log('📊 [ClubMembership] Estado antes de render:', {
-    isCheckingAuth,
-    isPublicAccess,
-    hasSeasonConfig: !!seasonConfig,
-    hasUser: !!user,
-    showForm,
-    isRenewal,
-    loadingRenewal
-  });
-
   if (loadingRenewal) {
-    console.log('⏳ [ClubMembership] Mostrando loading (renewal)...');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
@@ -688,7 +652,6 @@ export default function ClubMembership() {
   }
 
   if (isCheckingAuth || (isPublicAccess && !seasonConfig)) {
-    console.log('⏳ [ClubMembership] Mostrando LOADING...');
     return (
       <>
         <InvitationPWAGuide />
@@ -699,12 +662,11 @@ export default function ClubMembership() {
     );
   }
 
-  console.log('✅ [ClubMembership] Renderizando página COMPLETA');
   return (
     <>
       <InvitationPWAGuide />
-      <div className="p-4 lg:p-6 max-w-4xl mx-auto overflow-x-hidden">
-        <div className="space-y-6 min-h-screen overflow-x-hidden">
+      <div className="p-4 lg:p-6 max-w-4xl mx-auto overflow-x-hidden" style={{ overflowX: 'hidden' }}>
+        <div className="space-y-6 min-h-screen overflow-x-hidden" style={{ overflowX: 'hidden' }}>
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center relative" onClick={(e)=>e.stopPropagation()}>
@@ -813,8 +775,8 @@ export default function ClubMembership() {
 
       {/* Beneficios de ser socio */}
       <Card className="border-none shadow-xl bg-gradient-to-br from-green-50 to-orange-50 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-200 rounded-full -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-green-200 rounded-full -ml-12 -mb-12 opacity-50 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-200 rounded-full -mr-16 -mt-16 opacity-50 pointer-events-none" style={{ pointerEvents: 'none' }}></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-green-200 rounded-full -ml-12 -mb-12 opacity-50 pointer-events-none" style={{ pointerEvents: 'none' }}></div>
         <CardHeader className="relative">
           <CardTitle className="flex items-center gap-2 text-xl">
             <Star className="w-6 h-6 text-yellow-500" />
