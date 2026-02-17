@@ -185,7 +185,9 @@ export default function Home() {
   const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
   const pendingSecondParentInvitationsCount = secondParentInvitations.length;
 
-  // Configuración de botones del dashboard
+  // Configuración de botones del dashboard - con cache en localStorage
+  const localStorageKey = user?.email ? `dashboard_buttons_admin_${user.email}` : null;
+
   const { data: buttonConfigs = [] } = useQuery({
     queryKey: ['dashboardButtonConfig', user?.email],
     queryFn: async () => {
@@ -193,6 +195,10 @@ export default function Home() {
         user_email: user?.email,
         panel_type: "admin"
       });
+      // Guardar en localStorage al recibir datos del servidor
+      if (configs[0]?.selected_buttons && localStorageKey) {
+        try { localStorage.setItem(localStorageKey, JSON.stringify(configs[0].selected_buttons)); } catch(e) {}
+      }
       return configs;
     },
     staleTime: 600000,
@@ -200,6 +206,15 @@ export default function Home() {
   });
 
   const userButtonConfig = buttonConfigs[0];
+
+  // Leer cache de localStorage como fallback inmediato
+  const cachedButtonIds = useMemo(() => {
+    if (!localStorageKey) return null;
+    try {
+      const cached = localStorage.getItem(localStorageKey);
+      return cached ? JSON.parse(cached) : null;
+    } catch(e) { return null; }
+  }, [localStorageKey]);
 
   // Staff conversation badge - eliminado polling agresivo (10s), ahora usa staleTime largo
   // Los contadores de chat se gestionan desde ChatUnreadProvider en el Layout
