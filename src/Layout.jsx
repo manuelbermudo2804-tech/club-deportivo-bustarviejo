@@ -2734,13 +2734,7 @@ export default function Layout({ children, currentPageName }) {
           {extraChargeVisible && (
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}
-          <PullToRefresh>
-            <AnimatePresence mode="wait">
-              <RouteTransition locationKey={location.pathname}>
-                {children}
-              </RouteTransition>
-            </AnimatePresence>
-          </PullToRefresh>
+          {children}
           <ActiveBanner position="bottom" user={user} />
 
           <ExtraChargePayModal
