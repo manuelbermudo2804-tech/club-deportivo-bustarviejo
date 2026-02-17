@@ -501,6 +501,7 @@ export default function ClubMembership() {
         
         // Cerrar el formulario y volver arriba INMEDIATAMENTE
         setShowForm(false);
+        setWizardStep(1);
         
         // Limpiar formulario para nuevo registro
         setFormData({
