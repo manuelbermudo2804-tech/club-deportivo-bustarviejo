@@ -1,23 +1,21 @@
 import React, { useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 
-// Store scroll positions per tab key
-const scrollPositions = {};
+// Persist last visited path + scroll per tab across renders
+const tabState = {};
 
 export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, currentPageName }) {
   const navigate = useNavigate();
   const currentTabRef = useRef(null);
-  // Ocultar visualmente en páginas de chat pero mantener en DOM para badges
+
   const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub', 'CoachChatsHub', 'CoordinatorChatsHub', 'AdminChatsHub'];
   const isInChat = chatPages.includes(currentPageName);
-  // Recalcular badge total de chat en el botón inferior para padres/jugadores
-  // familyTotal ahora usa el contador oficial del backend para grupos cuando esté disponible (inyectado vía props cuando exista)
-  const familyTotal = (chatBadges?.coachForFamilyCount || 0) + (chatBadges?.coordinatorForFamilyCount || 0) + (chatBadges?.systemMessagesCount || 0);
-  // Botones dinámicos según el rol
-  let tabs = [];
 
+  const familyTotal = (chatBadges?.coachForFamilyCount || 0) + (chatBadges?.coordinatorForFamilyCount || 0) + (chatBadges?.systemMessagesCount || 0);
+
+  let tabs = [];
   if (isAdmin) {
     const totalChatBadge = (chatBadges?.staffCount || 0) + (chatBadges?.coordinatorCount || 0);
     tabs = [
@@ -27,9 +25,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('Payments'), key: 'payments' },
     ];
   } else if (isCoordinator) {
-    const totalChatBadge = (chatBadges?.coordinatorCount || 0) + 
-                           (chatBadges?.staffCount || 0) +
-                           (chatBadges?.coachCount || 0);
+    const totalChatBadge = (chatBadges?.coordinatorCount || 0) + (chatBadges?.staffCount || 0) + (chatBadges?.coachCount || 0);
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('CoordinatorDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
@@ -61,9 +57,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('FamilyChatsHub'), key: 'chat', badge: totalChatBadge },
     ];
   } else {
-    // Familia (padre)
     const totalChatBadge = familyTotal;
-    
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('ParentDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
@@ -72,34 +66,47 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     ];
   }
 
-  // Detect which tab is active
-  const activeTabKey = tabs.find(t => location?.pathname === new URL(t.url, window.location.origin).pathname)?.key || null;
+  // Determine which tab "owns" the current path
+  const currentPath = location?.pathname || '';
+  const getTabRootPath = (url) => {
+    try { return new URL(url, window.location.origin).pathname; } catch { return url; }
+  };
+  const activeTabKey = tabs.find(t => currentPath === getTabRootPath(t.url))?.key
+    // If exact match fails, check if we're on a page that was saved under a tab
+    || tabs.find(t => tabState[t.key]?.path === currentPath)?.key
+    || null;
 
-  const handleTabClick = useCallback((tab, e) => {
-    // Save current scroll position for the current tab
-    if (currentTabRef.current) {
-      scrollPositions[currentTabRef.current] = window.scrollY;
-    }
-    currentTabRef.current = tab.key;
-
-    // Navigate
-    navigate(tab.url);
-
-    // Restore scroll position for the target tab (next tick)
-    requestAnimationFrame(() => {
-      const saved = scrollPositions[tab.key];
-      if (saved != null) {
-        window.scrollTo(0, saved);
-      } else {
-        window.scrollTo(0, 0);
-      }
-    });
-  }, [navigate]);
-
-  // Keep ref in sync
-  if (activeTabKey && currentTabRef.current !== activeTabKey) {
+  // Track the current page under its owning tab
+  if (activeTabKey) {
+    tabState[activeTabKey] = { path: currentPath, scroll: window.scrollY };
     currentTabRef.current = activeTabKey;
   }
+
+  const handleTabClick = useCallback((tab) => {
+    // Save current scroll before leaving
+    if (currentTabRef.current && tabState[currentTabRef.current]) {
+      tabState[currentTabRef.current].scroll = window.scrollY;
+    }
+
+    // Determine target: use saved path if exists (preserves navigation stack), else tab root
+    const saved = tabState[tab.key];
+    const targetUrl = saved?.path || getTabRootPath(tab.url);
+
+    // If we're already on this tab's current page, scroll to top instead
+    if (targetUrl === currentPath) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    currentTabRef.current = tab.key;
+    navigate(targetUrl);
+
+    // Restore scroll for target tab
+    requestAnimationFrame(() => {
+      const savedScroll = tabState[tab.key]?.scroll;
+      window.scrollTo(0, savedScroll ?? 0);
+    });
+  }, [navigate, currentPath]);
 
   return (
     <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-bottom ${isInChat ? 'hidden' : ''}`}>
@@ -109,18 +116,18 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
           return (
             <button
               key={key}
-              onClick={(e) => handleTabClick({ key, url }, e)}
-              className={`flex-1 flex flex-col items-center justify-center py-3 min-h-[60px] relative transition-colors ${isActive ? 'bg-orange-50' : 'hover:bg-slate-50'}`}
+              onClick={() => handleTabClick({ key, url })}
+              className={`flex-1 flex flex-col items-center justify-center py-2 pb-1 min-h-[56px] relative transition-colors no-select ${isActive ? 'bg-orange-50' : 'active:bg-slate-100'}`}
             >
               <div className="relative">
-                <Icon className={`w-6 h-6 ${isActive ? 'text-orange-600' : 'text-slate-600'}`} />
+                <Icon className={`w-6 h-6 transition-colors ${isActive ? 'text-orange-600' : 'text-slate-500'}`} />
                 {badge > 0 && (
-                  <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                    {badge}
+                  <div className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1">
+                    {badge > 99 ? '99+' : badge}
                   </div>
                 )}
               </div>
-              <span className={`text-xs mt-1 ${isActive ? 'text-orange-600 font-semibold' : 'text-slate-600'}`}>{label}</span>
+              <span className={`text-[10px] mt-0.5 leading-tight ${isActive ? 'text-orange-600 font-semibold' : 'text-slate-500'}`}>{label}</span>
             </button>
           );
         })}
