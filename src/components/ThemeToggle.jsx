@@ -26,10 +26,10 @@ export default function ThemeToggle() {
     body.style.transition = "background 0.3s ease, color 0.3s ease";
     
     if (selectedTheme === "auto") {
-      const hour = new Date().getHours();
-      const isNight = hour >= 20 || hour < 7;
+      // Use system preference (prefers-color-scheme) for Android/iOS integration
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       
-      if (isNight) {
+      if (prefersDark) {
         root.classList.add("dark");
         body.classList.remove("theme-light");
         body.classList.add("theme-dark");
@@ -53,6 +53,15 @@ export default function ThemeToggle() {
       body.style.transition = "";
     }, 300);
   };
+
+  // Listen for system theme changes when in "auto" mode
+  useEffect(() => {
+    if (theme !== "auto") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => applyTheme("auto");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [theme]);
 
   const changeTheme = (newTheme) => {
     setTheme(newTheme);
