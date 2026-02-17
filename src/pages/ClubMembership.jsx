@@ -698,8 +698,8 @@ export default function ClubMembership() {
   return (
     <>
       <InvitationPWAGuide />
-      <div className="p-4 lg:p-6 max-w-4xl mx-auto">
-        <div className="space-y-6 min-h-screen">
+      <div className="p-4 lg:p-6 max-w-4xl mx-auto overflow-x-hidden">
+        <div className="space-y-6 min-h-screen overflow-x-hidden">
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center relative" onClick={(e)=>e.stopPropagation()}>
@@ -807,9 +807,9 @@ export default function ClubMembership() {
       </div>
 
       {/* Beneficios de ser socio */}
-      <Card className="border-none shadow-xl bg-gradient-to-br from-green-50 to-orange-50 overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-200 rounded-full -mr-16 -mt-16 opacity-50"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-green-200 rounded-full -ml-12 -mb-12 opacity-50"></div>
+      <Card className="border-none shadow-xl bg-gradient-to-br from-green-50 to-orange-50 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-200 rounded-full -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-green-200 rounded-full -ml-12 -mb-12 opacity-50 pointer-events-none"></div>
         <CardHeader className="relative">
           <CardTitle className="flex items-center gap-2 text-xl">
             <Star className="w-6 h-6 text-yellow-500" />
@@ -979,8 +979,8 @@ export default function ClubMembership() {
       {/* Invitar familiares y amigos - Visible para todos los usuarios logueados y SI el programa está activo */}
       {/* Usamos activeSeasonConfig del contexto si existe, o el seasonConfig local */}
       {user && (seasonConfig?.programa_referidos_activo) && (
-        <Card className="border-none shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+        <Card className="border-none shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 pointer-events-none"></div>
           <CardContent className="pt-6 relative">
             <div className="flex items-start gap-4">
               <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
