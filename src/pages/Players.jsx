@@ -691,7 +691,7 @@ export default function Players() {
                       <SelectItem value="all">Todas</SelectItem>
                       {allCategories.map(cat => (
                         <SelectItem key={cat} value={cat}>
-                          {cat} ({players.filter(p => p.deporte === cat).length})
+                          {cat} ({players.filter(p => (p.categoria_principal || p.deporte) === cat).length})
                         </SelectItem>
                       ))}
                     </SelectContent>
