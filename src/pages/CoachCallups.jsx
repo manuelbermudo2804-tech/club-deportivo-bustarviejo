@@ -110,16 +110,15 @@ export default function CoachCallups() {
   // Filter players by selected category (or editing callup's category)
   const players = allPlayers.filter(p => {
     const targetCategory = editingCallup?.categoria || selectedCategory;
+    const playerCat = p.categoria_principal || p.deporte;
     
     if (targetCategory === "all" || targetCategory === "admin") {
-      // If "all" or "admin" is selected, show players from all coach's categories (or all players for admin)
       if (user?.role === "admin") {
-        return p.activo; // Admins can see all active players
+        return p.activo;
       }
-      return coachCategories.includes(p.deporte) && p.activo;
+      return coachCategories.includes(playerCat) && p.activo;
     }
-    // Otherwise, show players from the specific selected category
-    return p.deporte === targetCategory && p.activo;
+    return playerCat === targetCategory && p.activo;
   });
 
   const createCallupMutation = useMutation({
