@@ -68,6 +68,8 @@ export default function CoordinatorDashboard() {
     refetchOnWindowFocus: false,
   });
 
+  const coordLocalStorageKey = user?.email ? `dashboard_buttons_coordinator_${user.email}` : null;
+
   const { data: buttonConfigs = [] } = useQuery({
     queryKey: ['dashboardButtonConfig', user?.email],
     queryFn: async () => {
@@ -75,6 +77,9 @@ export default function CoordinatorDashboard() {
         user_email: user?.email,
         panel_type: "coordinator"
       });
+      if (configs[0]?.selected_buttons && coordLocalStorageKey) {
+        try { localStorage.setItem(coordLocalStorageKey, JSON.stringify(configs[0].selected_buttons)); } catch(e) {}
+      }
       return configs;
     },
     staleTime: 600000,
@@ -83,23 +88,33 @@ export default function CoordinatorDashboard() {
 
   const userButtonConfig = buttonConfigs[0];
 
+  const cachedCoordButtonIds = useMemo(() => {
+    if (!coordLocalStorageKey) return null;
+    try {
+      const cached = localStorage.getItem(coordLocalStorageKey);
+      return cached ? JSON.parse(cached) : null;
+    } catch(e) { return null; }
+  }, [coordLocalStorageKey]);
+
   const saveButtonConfigMutation = useMutation({
-    mutationFn: async (selectedButtonIds) => {
+    mutationFn: async (newSelectedIds) => {
+      if (coordLocalStorageKey) {
+        try { localStorage.setItem(coordLocalStorageKey, JSON.stringify(newSelectedIds)); } catch(e) {}
+      }
       if (userButtonConfig) {
         return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
-          selected_buttons: selectedButtonIds
+          selected_buttons: newSelectedIds
         });
       } else {
         return await base44.entities.DashboardButtonConfig.create({
           user_email: user?.email,
           panel_type: "coordinator",
-          selected_buttons: selectedButtonIds
+          selected_buttons: newSelectedIds
         });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
-      toast.success("✅ Configuración guardada");
     },
   });
 
@@ -167,7 +182,7 @@ export default function CoordinatorDashboard() {
         <div className="flex justify-end">
           <DashboardButtonSelector
             allButtons={ALL_COORDINATOR_BUTTONS.filter(b => !b.conditional || (b.conditionKey === "canManageSignatures" && user?.puede_gestionar_firmas))}
-            selectedButtonIds={userButtonConfig?.selected_buttons || DEFAULT_COORDINATOR_BUTTONS}
+            selectedButtonIds={userButtonConfig?.selected_buttons || cachedCoordButtonIds || DEFAULT_COORDINATOR_BUTTONS}
             onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
             minButtons={MIN_BUTTONS}
             maxButtons={MAX_BUTTONS}
@@ -178,7 +193,7 @@ export default function CoordinatorDashboard() {
 
         {/* GRID DE BOTONES CENTRALES */}
         <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
-          {(userButtonConfig?.selected_buttons || DEFAULT_COORDINATOR_BUTTONS)
+          {(userButtonConfig?.selected_buttons || cachedCoordButtonIds || DEFAULT_COORDINATOR_BUTTONS)
             .map(id => ALL_COORDINATOR_BUTTONS.find(b => b.id === id))
             .filter(Boolean)
             .filter(b => !b.conditional || (b.conditionKey === "canManageSignatures" && user?.puede_gestionar_firmas))

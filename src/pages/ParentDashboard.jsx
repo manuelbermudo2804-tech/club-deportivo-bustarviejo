@@ -225,7 +225,9 @@ export default function ParentDashboard() {
     enabled: !!user && players.length > 0,
   });
 
-  // Cargar configuración de botones del usuario
+  // Cargar configuración de botones del usuario - con cache en localStorage
+  const parentLocalStorageKey = user?.email ? `dashboard_buttons_parent_${user.email}` : null;
+
   const { data: buttonConfigs = [] } = useQuery({
     queryKey: ['dashboardButtonConfig', user?.email],
     queryFn: async () => {
@@ -233,32 +235,45 @@ export default function ParentDashboard() {
         user_email: user?.email,
         panel_type: "parent"
       });
+      if (configs[0]?.selected_buttons && parentLocalStorageKey) {
+        try { localStorage.setItem(parentLocalStorageKey, JSON.stringify(configs[0].selected_buttons)); } catch(e) {}
+      }
       return configs;
     },
-    staleTime: 600000, // 10 minutos
+    staleTime: 600000,
     enabled: !!user,
   });
 
   const userButtonConfig = buttonConfigs[0];
 
+  const cachedParentButtonIds = useMemo(() => {
+    if (!parentLocalStorageKey) return null;
+    try {
+      const cached = localStorage.getItem(parentLocalStorageKey);
+      return cached ? JSON.parse(cached) : null;
+    } catch(e) { return null; }
+  }, [parentLocalStorageKey]);
+
   // Mutation para guardar configuración
   const saveButtonConfigMutation = useMutation({
-    mutationFn: async (selectedButtonIds) => {
+    mutationFn: async (newSelectedIds) => {
+      if (parentLocalStorageKey) {
+        try { localStorage.setItem(parentLocalStorageKey, JSON.stringify(newSelectedIds)); } catch(e) {}
+      }
       if (userButtonConfig) {
         return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
-          selected_buttons: selectedButtonIds
+          selected_buttons: newSelectedIds
         });
       } else {
         return await base44.entities.DashboardButtonConfig.create({
           user_email: user?.email,
           panel_type: "parent",
-          selected_buttons: selectedButtonIds
+          selected_buttons: newSelectedIds
         });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
-      toast.success("✅ Configuración guardada");
     },
   });
 
@@ -371,8 +386,8 @@ export default function ParentDashboard() {
     return count;
   }, 0);
 
-  // Determinar qué botones mostrar según configuración del usuario
-  const selectedButtonIds = userButtonConfig?.selected_buttons || DEFAULT_PARENT_BUTTONS;
+  // Determinar qué botones mostrar según configuración del usuario (BD > localStorage > default)
+  const selectedButtonIds = userButtonConfig?.selected_buttons || cachedParentButtonIds || DEFAULT_PARENT_BUTTONS;
 
   // Filtrar botones disponibles (excluir condicionales si no aplican)
   const availableButtons = ALL_PARENT_BUTTONS.filter(button => {
