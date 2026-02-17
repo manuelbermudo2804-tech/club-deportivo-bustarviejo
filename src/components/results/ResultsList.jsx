@@ -53,6 +53,8 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
     return (parts[0][0] || '').toUpperCase();
   };
 
+  const isBustarviejo = (name) => /bustarviejo/i.test(String(name || ''));
+
   if (groups.length === 0) {
     return (
       <Card className="border-2 border-dashed border-slate-300">
@@ -94,20 +96,21 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
               .sort((a, b) => (a.local || '').localeCompare(b.local || ''))
               .map((m) => {
                 const hasScore = Number.isFinite(m.goles_local) && Number.isFinite(m.goles_visitante);
+                const isBust = isBustarviejo(m.local) || isBustarviejo(m.visitante);
                 return (
-                  <div key={m.id} className="grid grid-cols-[1fr_auto_1fr] items-center py-3 gap-2">
-                    <div className="pr-2 text-slate-800 text-sm whitespace-normal break-words font-medium text-left">
-                      {m.local}
+                  <div key={m.id} className={`grid grid-cols-[1fr_auto_1fr] items-center py-3 gap-2 rounded-lg ${isBust ? 'bg-orange-50 border border-orange-300 px-2 -mx-1 my-1' : ''}`}>
+                    <div className={`pr-2 text-sm whitespace-normal break-words font-medium text-left ${isBustarviejo(m.local) ? 'text-orange-700 font-bold' : 'text-slate-800'}`}>
+                      {isBustarviejo(m.local) && '⚽ '}{m.local}
                     </div>
 
                     <div className="px-3 text-center flex-shrink-0 min-w-[60px]">
-                      <div className={`text-lg font-extrabold whitespace-nowrap ${hasScore ? 'text-slate-900' : 'text-slate-400'}`}>
+                      <div className={`text-lg font-extrabold whitespace-nowrap ${hasScore ? (isBust ? 'text-orange-700' : 'text-slate-900') : 'text-slate-400'}`}>
                         {hasScore ? `${m.goles_local} - ${m.goles_visitante}` : ' - '}
                       </div>
                     </div>
 
-                    <div className="pl-2 text-slate-800 text-sm whitespace-normal break-words font-medium text-right">
-                      {m.visitante}
+                    <div className={`pl-2 text-sm whitespace-normal break-words font-medium text-right ${isBustarviejo(m.visitante) ? 'text-orange-700 font-bold' : 'text-slate-800'}`}>
+                      {m.visitante}{isBustarviejo(m.visitante) && ' ⚽'}
                     </div>
                   </div>
                 );

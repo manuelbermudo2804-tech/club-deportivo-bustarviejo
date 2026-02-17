@@ -50,6 +50,7 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
   const temporadas = Object.keys(groupedByTemporada).sort((a, b) => b.localeCompare(a));
 
   const normalize = (s) => String(s || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').toUpperCase();
+  const isBustarviejo = (name) => /bustarviejo/i.test(String(name || ''));
 
   if (scorers.length === 0) {
     return (
@@ -108,14 +109,17 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
                       if (!cur || (s.goles ?? 0) > (cur.goles ?? 0)) map.set(key, s);
                     }
                     const deduped = Array.from(map.values()).sort((a, b) => (b.goles ?? 0) - (a.goles ?? 0));
-                    return deduped.map((s, i) => (
-                      <tr key={s.id || `${i}-${s.jugador_nombre}`} className="border-b last:border-0">
-                        <td className="py-2 pr-3">{i + 1}</td>
-                        <td className="py-2 pr-3">{s.jugador_nombre}</td>
-                        <td className="py-2 pr-3">{s.equipo}</td>
-                        <td className="py-2 pr-3 font-semibold">{s.goles}</td>
-                      </tr>
-                    ));
+                    return deduped.map((s, i) => {
+                      const bust = isBustarviejo(s.equipo);
+                      return (
+                        <tr key={s.id || `${i}-${s.jugador_nombre}`} className={`border-b last:border-0 ${bust ? 'bg-orange-50' : ''}`}>
+                          <td className="py-2 pr-3">{i + 1}</td>
+                          <td className={`py-2 pr-3 ${bust ? 'text-orange-700 font-bold' : ''}`}>{bust && '⚽ '}{s.jugador_nombre}</td>
+                          <td className={`py-2 pr-3 ${bust ? 'text-orange-700 font-semibold' : ''}`}>{s.equipo}</td>
+                          <td className={`py-2 pr-3 font-semibold ${bust ? 'text-orange-700' : ''}`}>{s.goles}</td>
+                        </tr>
+                      );
+                    });
                   })()}
                 </tbody>
               </table>
