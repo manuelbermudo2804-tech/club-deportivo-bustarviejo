@@ -295,6 +295,13 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
           )}
         </CardContent>
       </Card>
+
+      <AdminQuickConfirmDialog
+        open={showQuickConfirm}
+        onOpenChange={setShowQuickConfirm}
+        callup={callup}
+        onUpdated={onRefresh}
+      />
     </motion.div>
   );
 }
