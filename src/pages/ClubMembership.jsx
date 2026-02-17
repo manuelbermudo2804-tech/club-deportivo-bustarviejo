@@ -44,6 +44,7 @@ export default function ClubMembership() {
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastRegisteredName, setLastRegisteredName] = useState("");
+  const [wizardStep, setWizardStep] = useState(1);
   const [isRenewal, setIsRenewal] = useState(false);
   const [renewalMember, setRenewalMember] = useState(null);
   const [loadingRenewal, setLoadingRenewal] = useState(false);
