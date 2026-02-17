@@ -8,9 +8,9 @@ import AdminQuickConfirmDialog from "./AdminQuickConfirmDialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseNow, onReopen }) {
+export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseNow, onReopen, isAdmin, onRefresh }) {
+  const [showQuickConfirm, setShowQuickConfirm] = React.useState(false);
   const jugadores = callup.jugadores_convocados || [];
-  console.log('Jugadores en CallupCard:', jugadores);
   const confirmed = jugadores.filter(j => j.confirmacion === "asistire").length;
   const declined = jugadores.filter(j => j.confirmacion === "no_asistire").length;
   const pending = jugadores.filter(j => j.confirmacion === "pendiente").length;
