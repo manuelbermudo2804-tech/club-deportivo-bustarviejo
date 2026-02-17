@@ -9,12 +9,16 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle } from "lucide-react";
+import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import { toast } from "sonner";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
 import { Link } from "react-router-dom";
 import { useActiveSeason } from "../components/season/SeasonProvider";
+import MembershipWizard from "../components/membership/MembershipWizard";
+import StepTipoInscripcion from "../components/membership/StepTipoInscripcion";
+import StepDatosPersonales from "../components/membership/StepDatosPersonales";
+import StepPago from "../components/membership/StepPago";
 
 const CUOTA_SOCIO = 25;
 
