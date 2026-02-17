@@ -45,21 +45,40 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const [useManualInput, setUseManualInput] = useState(false);
   const [manualLocationEdit, setManualLocationEdit] = useState(false);
 
-  // Cargar equipos rivales desde clasificaciones
+  // Cargar equipos rivales desde clasificaciones (última jornada de la temporada activa)
   useEffect(() => {
     const loadTeams = async () => {
       setIsLoadingTeams(true);
       try {
         const { base44 } = await import("@/api/base44Client");
-        const clasificaciones = await base44.entities.Clasificacion.list();
         
-        // Filtrar por la categoría actual y obtener equipos únicos
-        const teamsInCategory = clasificaciones
-          .filter(c => c.categoria === category)
-          .map(c => c.nombre_equipo)
-          .filter(name => !name.toLowerCase().includes('bustarviejo')); // Excluir nuestro equipo
+        // Obtener temporada activa
+        const seasonConfigs = await base44.entities.SeasonConfig.filter({ activa: true });
+        const activeSeason = seasonConfigs[0]?.temporada;
         
-        const uniqueTeams = [...new Set(teamsInCategory)].sort();
+        // Filtrar clasificaciones por categoría y temporada activa
+        const filter = { categoria: category };
+        if (activeSeason) filter.temporada = activeSeason;
+        
+        const clasificaciones = await base44.entities.Clasificacion.filter(filter);
+        
+        if (clasificaciones.length === 0) {
+          setRivalTeams([]);
+          return;
+        }
+        
+        // Obtener solo la jornada más reciente para evitar duplicados
+        const maxJornada = Math.max(...clasificaciones.map(c => c.jornada || 0));
+        const latestRound = clasificaciones.filter(c => (c.jornada || 0) === maxJornada);
+        
+        // Equipos únicos, excluyendo Bustarviejo
+        const uniqueTeams = [...new Set(
+          latestRound
+            .map(c => c.nombre_equipo?.trim())
+            .filter(Boolean)
+            .filter(name => !name.toLowerCase().includes('bustarviejo'))
+        )].sort();
+        
         setRivalTeams(uniqueTeams);
       } catch (error) {
         console.log("No se pudieron cargar equipos:", error);
