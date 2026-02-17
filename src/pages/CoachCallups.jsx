@@ -607,6 +607,8 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
                   onCloseNow={handleCloseNow}
                   onReopen={handleReopen}
                   isCoach={user?.es_entrenador || user?.role === "admin"}
+                  isAdmin={user?.role === "admin"}
+                  onRefresh={() => queryClient.invalidateQueries({ queryKey: ['convocatorias'] })}
                 />
               ))}
             </AnimatePresence>
