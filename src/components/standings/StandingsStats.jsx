@@ -44,44 +44,6 @@ export default function StandingsStats({ data }) {
 
   return (
     <div className="space-y-3 mb-4">
-      {/* Posición CD Bustarviejo - Compacto */}
-      {bustarviejo && (
-        <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-orange-100">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Trophy className="w-4 h-4 text-orange-600" />
-              <h3 className="font-bold text-orange-700">CD Bustarviejo</h3>
-            </div>
-            <div className="grid grid-cols-4 gap-2 text-center">
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-orange-600">{bustarviejo.posicion}°</p>
-                <p className="text-xs text-slate-600">Pos</p>
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-green-600">{bustarviejo.puntos}</p>
-                <p className="text-xs text-slate-600">Pts</p>
-              </div>
-              {bustarviejo.goles_favor !== undefined && (
-                <div>
-                  <p className="text-xl sm:text-2xl font-bold text-blue-600">
-                    {bustarviejo.goles_favor}-{bustarviejo.goles_contra}
-                  </p>
-                  <p className="text-xs text-slate-600">Goles</p>
-                </div>
-              )}
-              {bustarviejo.partidos_jugados && (
-                <div>
-                  <p className="text-xl sm:text-2xl font-bold text-purple-600">
-                    {Math.round(((bustarviejo.ganados || 0) / bustarviejo.partidos_jugados) * 100)}%
-                  </p>
-                  <p className="text-xs text-slate-600">Vict.</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Estadísticas de Liga - Muy Compactas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Card className="border border-green-300">
