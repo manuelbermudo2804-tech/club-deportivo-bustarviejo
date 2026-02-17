@@ -72,26 +72,58 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     ];
   }
 
+  // Detect which tab is active
+  const activeTabKey = tabs.find(t => location?.pathname === new URL(t.url, window.location.origin).pathname)?.key || null;
+
+  const handleTabClick = useCallback((tab, e) => {
+    // Save current scroll position for the current tab
+    if (currentTabRef.current) {
+      scrollPositions[currentTabRef.current] = window.scrollY;
+    }
+    currentTabRef.current = tab.key;
+
+    // Navigate
+    navigate(tab.url);
+
+    // Restore scroll position for the target tab (next tick)
+    requestAnimationFrame(() => {
+      const saved = scrollPositions[tab.key];
+      if (saved != null) {
+        window.scrollTo(0, saved);
+      } else {
+        window.scrollTo(0, 0);
+      }
+    });
+  }, [navigate]);
+
+  // Keep ref in sync
+  if (activeTabKey && currentTabRef.current !== activeTabKey) {
+    currentTabRef.current = activeTabKey;
+  }
+
   return (
     <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-bottom ${isInChat ? 'hidden' : ''}`}>
       <div className="flex items-center justify-around">
-        {tabs.map(({ icon: Icon, label, url, key, badge }) => (
-          <Link
-            key={key}
-            to={url}
-            className="flex-1 flex flex-col items-center justify-center py-3 min-h-[60px] relative transition-colors hover:bg-slate-50"
-          >
-            <div className="relative">
-              <Icon className="w-6 h-6 text-slate-600" />
-              {badge > 0 && (
-                <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {badge}
-                </div>
-              )}
-            </div>
-            <span className="text-xs text-slate-600 mt-1">{label}</span>
-          </Link>
-        ))}
+        {tabs.map(({ icon: Icon, label, url, key, badge }) => {
+          const isActive = activeTabKey === key;
+          return (
+            <button
+              key={key}
+              onClick={(e) => handleTabClick({ key, url }, e)}
+              className={`flex-1 flex flex-col items-center justify-center py-3 min-h-[60px] relative transition-colors ${isActive ? 'bg-orange-50' : 'hover:bg-slate-50'}`}
+            >
+              <div className="relative">
+                <Icon className={`w-6 h-6 ${isActive ? 'text-orange-600' : 'text-slate-600'}`} />
+                {badge > 0 && (
+                  <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {badge}
+                  </div>
+                )}
+              </div>
+              <span className={`text-xs mt-1 ${isActive ? 'text-orange-600 font-semibold' : 'text-slate-600'}`}>{label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
