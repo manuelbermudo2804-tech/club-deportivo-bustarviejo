@@ -13,7 +13,6 @@ function parseResultsText(raw) {
   let jornada = 1;
   const matches = [];
 
-  // Detectar temporada y jornada
   for (const l of lines) {
     if (/^\d{4}[-\/]\d{4}$/.test(l)) {
       temporada = l.replace('-', '/');
@@ -33,10 +32,6 @@ function parseResultsText(raw) {
     temporada = m >= 9 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
   }
 
-  // Buscar patrones de resultados:
-  // "EQUIPO LOCAL 2 - 1 EQUIPO VISITANTE" o "EQUIPO LOCAL - EQUIPO VISITANTE" (sin jugar)
-  // También: líneas separadas con formato RFFM (local, resultado, visitante en líneas separadas)
-
   // Patrón 1: todo en una línea "Local X - Y Visitante"
   for (const l of lines) {
     const matchFull = l.match(/^(.+?)\s+(\d+)\s*[-–]\s*(\d+)\s+(.+)$/);
@@ -49,12 +44,10 @@ function parseResultsText(raw) {
       });
       continue;
     }
-    // "Local - Visitante" (sin resultado)
     const matchNoScore = l.match(/^(.+?)\s*[-–]\s+(.+)$/);
     if (matchNoScore && !/grupo|jornada|aficionado|juvenil|cadete|infantil|alevin|benjamin|femenin/i.test(l)) {
       const local = matchNoScore[1].trim();
       const visitante = matchNoScore[2].trim();
-      // Evitar falsos positivos (líneas de cabecera)
       if (local.length > 3 && visitante.length > 3 && !/^\d{4}/.test(local)) {
         matches.push({ local, visitante });
       }
@@ -62,7 +55,6 @@ function parseResultsText(raw) {
   }
 
   // Patrón 2: RFFM formato multi-línea
-  // Buscar secuencias: nombre equipo, "X - Y" o "X-Y", nombre equipo
   if (matches.length === 0) {
     for (let i = 0; i < lines.length - 2; i++) {
       const scoreMatch = lines[i + 1]?.match(/^(\d+)\s*[-–]\s*(\d+)$/);

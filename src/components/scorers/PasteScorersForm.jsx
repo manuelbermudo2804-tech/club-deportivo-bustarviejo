@@ -12,7 +12,6 @@ function parseScorersText(raw) {
   let temporada = "";
   const players = [];
 
-  // Detectar temporada
   for (const l of lines) {
     if (/^\d{4}[-\/]\d{4}$/.test(l)) {
       temporada = l.replace('-', '/');
@@ -27,7 +26,7 @@ function parseScorersText(raw) {
     temporada = m >= 9 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
   }
 
-  // Patrón 1: línea completa "JUGADOR EQUIPO GOLES" o "POS JUGADOR EQUIPO GOLES"
+  // Patrón 1: línea completa "POS JUGADOR EQUIPO GOLES"
   for (const l of lines) {
     const matchFull = l.match(/^(\d+)\s+(.+?)\s+(.+?)\s+(\d+)$/);
     if (matchFull) {
@@ -36,36 +35,29 @@ function parseScorersText(raw) {
         equipo: matchFull[3].trim(),
         goles: parseInt(matchFull[4], 10),
       });
-      continue;
     }
   }
 
-  // Patrón 2: RFFM multi-línea (posición, nombre, equipo, goles en líneas separadas)
+  // Patrón 2: RFFM multi-línea (posición, nombre, equipo, goles)
   if (players.length === 0) {
     let i = 0;
     while (i < lines.length) {
       const l = lines[i];
 
-      // ¿Es un número de posición (1-99)?
       if (/^\d{1,2}$/.test(l)) {
-        const pos = parseInt(l, 10);
-        // Buscar nombre (siguiente línea no numérica)
         let nombre = "";
         let equipo = "";
         let goles = 0;
         let j = i + 1;
 
-        // Nombre del jugador
         if (j < lines.length && !/^\d+$/.test(lines[j])) {
           nombre = lines[j];
           j++;
         }
-        // Equipo
         if (j < lines.length && !/^\d+$/.test(lines[j])) {
           equipo = lines[j];
           j++;
         }
-        // Goles (número)
         if (j < lines.length && /^\d+$/.test(lines[j])) {
           goles = parseInt(lines[j], 10);
           j++;
