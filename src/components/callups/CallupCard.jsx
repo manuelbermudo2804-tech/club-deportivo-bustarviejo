@@ -230,6 +230,19 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
             </div>
           )}
 
+          {/* Admin Quick Confirm */}
+          {isAdmin && pending > 0 && !canDelete && (
+            <Button
+              onClick={() => setShowQuickConfirm(true)}
+              variant="outline"
+              size="sm"
+              className="w-full border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800"
+            >
+              <UserCheck className="w-4 h-4 mr-2" />
+              ⚡ Confirmar asistencia manualmente ({pending} pendientes)
+            </Button>
+          )}
+
           {/* Actions */}
           {isCoach && (
             <div className="flex flex-wrap gap-2 pt-2">
