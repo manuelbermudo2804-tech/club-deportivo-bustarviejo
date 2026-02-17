@@ -221,22 +221,25 @@ export default function Home() {
   const staffMessagesHome = [];
 
   const saveButtonConfigMutation = useMutation({
-    mutationFn: async (selectedButtonIds) => {
+    mutationFn: async (newSelectedIds) => {
+      // Guardar en localStorage inmediatamente
+      if (localStorageKey) {
+        try { localStorage.setItem(localStorageKey, JSON.stringify(newSelectedIds)); } catch(e) {}
+      }
       if (userButtonConfig) {
         return await base44.entities.DashboardButtonConfig.update(userButtonConfig.id, {
-          selected_buttons: selectedButtonIds
+          selected_buttons: newSelectedIds
         });
       } else {
         return await base44.entities.DashboardButtonConfig.create({
           user_email: user?.email,
           panel_type: "admin",
-          selected_buttons: selectedButtonIds
+          selected_buttons: newSelectedIds
         });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboardButtonConfig'] });
-      toast.success("✅ Configuración guardada");
     },
   });
 
@@ -501,8 +504,8 @@ export default function Home() {
 
 
 
-  // Determinar botones a mostrar según configuración
-  const selectedButtonIds = userButtonConfig?.selected_buttons || DEFAULT_ADMIN_BUTTONS;
+  // Determinar botones a mostrar según configuración (BD > localStorage > default)
+  const selectedButtonIds = userButtonConfig?.selected_buttons || cachedButtonIds || DEFAULT_ADMIN_BUTTONS;
   
   const availableAdminButtons = ALL_ADMIN_BUTTONS.filter(button => {
     if (button.conditional && button.conditionKey === "loteriaVisible") return loteriaVisible;
