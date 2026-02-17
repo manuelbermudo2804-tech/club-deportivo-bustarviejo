@@ -28,7 +28,7 @@ export default function TeamRosters() {
       // Coordinador ve todas las categorías
       if (currentUser.es_coordinador) {
         const allPlayers = await base44.entities.Player.list();
-        const allCategories = [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+        const allCategories = [...new Set(allPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
         setCoachCategories(allCategories);
         if (allCategories.length > 0) {
           setSelectedCategory(allCategories[0]);
@@ -76,8 +76,9 @@ export default function TeamRosters() {
 
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || player.deporte === selectedCategory;
-    const isInMyTeams = coachCategories.includes(player.deporte);
+    const playerCat = player.categoria_principal || player.deporte;
+    const matchesCategory = selectedCategory === "all" || playerCat === selectedCategory;
+    const isInMyTeams = coachCategories.includes(playerCat);
     const isRenewed = !player.estado_renovacion || player.estado_renovacion === "renovado";
     
     // Aplicar filtro de estado
@@ -89,9 +90,9 @@ export default function TeamRosters() {
   });
 
   const activePlayers = filteredPlayers.length;
-  const totalActiveInTeams = players.filter(p => coachCategories.includes(p.deporte) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
-  const totalInactiveInTeams = players.filter(p => coachCategories.includes(p.deporte) && !p.activo).length;
-  const unavailablePlayers = players.filter(p => coachCategories.includes(p.deporte) && (p.lesionado || p.sancionado)).length;
+  const totalActiveInTeams = players.filter(p => coachCategories.includes(p.categoria_principal || p.deporte) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+  const totalInactiveInTeams = players.filter(p => coachCategories.includes(p.categoria_principal || p.deporte) && !p.activo).length;
+  const unavailablePlayers = players.filter(p => coachCategories.includes(p.categoria_principal || p.deporte) && (p.lesionado || p.sancionado)).length;
 
   if (!user || coachCategories.length === 0) {
     return (
@@ -242,7 +243,7 @@ export default function TeamRosters() {
                     Todas
                   </Badge>
                   {coachCategories.map((categoria) => {
-                    const count = players.filter(p => p.deporte === categoria && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+                    const count = players.filter(p => (p.categoria_principal || p.deporte) === categoria && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
                     return (
                       <Badge
                         key={categoria}

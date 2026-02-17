@@ -70,8 +70,9 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const [showDetail, setShowDetail] = useState(false);
 
   // Derived data
+  const playerCategory = player.categoria_principal || player.deporte;
   const playerSchedules = schedules
-    .filter(s => s.categoria === player.deporte && s.activo)
+    .filter(s => s.categoria === playerCategory && s.activo)
     .sort((a, b) => DIAS_ORDEN[a.dia_semana] - DIAS_ORDEN[b.dia_semana]);
 
   const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
@@ -81,8 +82,8 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const firmaTutorOk = player.firma_tutor_completada === true;
   const esMayorDeEdad = calcularEdad(player.fecha_nacimiento) >= 18;
   const edadActual = calcularEdad(player.fecha_nacimiento);
-  const categorySuggested = getSuggestedCategory(edadActual, player.deporte);
-  const needsCategoryChange = categorySuggested && player.deporte !== categorySuggested;
+  const categorySuggested = getSuggestedCategory(edadActual, playerCategory);
+  const needsCategoryChange = categorySuggested && playerCategory !== categorySuggested;
 
   // Firmas status
   const getFirmasStatus = () => {
@@ -187,8 +188,8 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             <div>
               <h3 className="font-bold text-lg text-slate-900 mb-2">{player.nombre}</h3>
               <div className="flex flex-wrap gap-2">
-                <Badge className={categoryColors[player.categoria]}>
-                  {player.categoria}
+                <Badge className={categoryColors[player.categoria] || "bg-slate-100 text-slate-700"}>
+                  {playerCategory || player.categoria || "Sin categoría"}
                 </Badge>
                 {player.posicion && (
                   <Badge className={`${positionColors[player.posicion]} text-white`}>
