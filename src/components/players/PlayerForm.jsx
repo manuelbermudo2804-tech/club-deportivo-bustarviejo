@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { uploadPrivateFile } from "../utils/privateUpload";
+import PrivateFileViewer from "../utils/PrivateFileViewer";
 
 // Hook para cargar categorías dinámicas desde CategoryConfig
 const useCategoriesFromConfig = () => {
@@ -361,11 +363,20 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       dniTutor: setUploadingDNITutor
     }[type];
 
+    // Documentos sensibles van a almacenamiento PRIVADO
+    const isSensitive = ['dni', 'libro', 'dniTutor'].includes(type);
+
     setUploading(true);
     try {
-      const response = await base44.integrations.Core.UploadFile({ file });
-      toast.success("Archivo subido correctamente");
-      return response.file_url;
+      if (isSensitive) {
+        const file_uri = await uploadPrivateFile(file);
+        toast.success("🔒 Documento subido de forma segura");
+        return file_uri;
+      } else {
+        const response = await base44.integrations.Core.UploadFile({ file });
+        toast.success("Archivo subido correctamente");
+        return response.file_url;
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error("Error al subir el archivo");
@@ -978,17 +989,15 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                       {currentPlayer.dni_jugador_url ? `✓ Cambiar ${currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"}` : `Subir ${currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"}`}
                     </Button>
                     {currentPlayer.dni_jugador_url && (
-                      <a href={currentPlayer.dni_jugador_url} target="_blank" rel="noopener noreferrer">
-                        <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-                      </a>
+                      <PrivateFileViewer fileUri={currentPlayer.dni_jugador_url} playerId={player?.id} label="Ver DNI" />
                     )}
-                  </div>
-                  {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
-                </div>
+                    </div>
+                    {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
+                    </div>
 
-                {/* Libro de Familia (solo menores sin DNI y NO auto-registro +18) */}
-                {!requiresDNI && !isAdultPlayerSelfRegistration && (
-                  <>
+                    {/* Libro de Familia (solo menores sin DNI y NO auto-registro +18) */}
+                    {!requiresDNI && !isAdultPlayerSelfRegistration && (
+                    <>
                     <div className={`space-y-2 md:col-span-2 ${fieldErrors.libro_familia_url ? 'animate-pulse' : ''}`}>
                       <Label className={fieldErrors.libro_familia_url ? "text-red-600 font-bold" : ""}>
                         Libro de Familia (si no tiene DNI) * {fieldErrors.libro_familia_url && <span className="text-red-500 text-xs ml-1">⚠️ OBLIGATORIO</span>}
@@ -1006,9 +1015,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                           {currentPlayer.libro_familia_url ? "✓ Cambiar Libro" : "Subir Libro de Familia"}
                         </Button>
                         {currentPlayer.libro_familia_url && (
-                          <a href={currentPlayer.libro_familia_url} target="_blank" rel="noopener noreferrer">
-                            <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-                          </a>
+                          <PrivateFileViewer fileUri={currentPlayer.libro_familia_url} playerId={player?.id} label="Ver Libro" />
                         )}
                       </div>
                       <p className="text-xs text-blue-700">Si el jugador es menor de 14 años y no tiene DNI, sube el libro de familia</p>
@@ -1157,9 +1164,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                             {currentPlayer.dni_tutor_legal_url ? `✓ Cambiar ${currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte" : "DNI"}` : `Subir ${currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte" : "DNI"} Tutor`}
                           </Button>
                           {currentPlayer.dni_tutor_legal_url && (
-                            <a href={currentPlayer.dni_tutor_legal_url} target="_blank" rel="noopener noreferrer">
-                              <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-                            </a>
+                            <PrivateFileViewer fileUri={currentPlayer.dni_tutor_legal_url} playerId={player?.id} label="Ver DNI Tutor" />
                           )}
                         </div>
                         {fieldErrors.dni_tutor_legal_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_tutor_legal_url}</p>}
