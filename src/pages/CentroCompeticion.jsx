@@ -220,6 +220,7 @@ export default function CentroCompeticion() {
     return assetsForSection.filter(a => !(Array.isArray(a.reviewed_weeks) && a.reviewed_weeks.includes(wk))).length;
   }, [assetsForSection]);
 
+  const [uploadMode, setUploadMode] = React.useState('paste'); // 'paste' | 'image'
   const [showAddUrls, setShowAddUrls] = React.useState(false);
   const [pasteUrls, setPasteUrls] = React.useState("");
 
