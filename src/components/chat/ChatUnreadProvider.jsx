@@ -21,6 +21,23 @@ const normalizeType = (t) => {
 
 const EMPTY_RAW = { team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0 };
 
+const STORAGE_KEY = "chat_unread_counts";
+
+const loadCachedCounts = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && parsed.team_chats) return parsed;
+    }
+  } catch {}
+  return null;
+};
+
+const saveCachedCounts = (counts) => {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(counts)); } catch {}
+};
+
 // Derive total as a pure function — never stored
 const deriveTotal = (raw) => {
   const teamTotal = Object.values(raw.team_chats || {}).reduce((s, v) => s + (v || 0), 0);
@@ -38,7 +55,8 @@ const ChatUnreadContext = createContext({
 
 export function ChatUnreadProvider({ user, children }) {
   // Raw state never contains 'total' — it's always derived on read
-  const [rawCounts, setRawCounts] = useState(EMPTY_RAW);
+  // Initialize from localStorage cache to survive refreshes
+  const [rawCounts, setRawCounts] = useState(() => loadCachedCounts() || EMPTY_RAW);
   // Memoize to prevent infinite re-render loop (ChatCountsBridge → Layout → Provider)
   const counts = useMemo(() => withTotal(rawCounts), [rawCounts]);
   const fetchingRef = useRef(false);
@@ -63,6 +81,7 @@ export function ChatUnreadProvider({ user, children }) {
         }
         if (requestId !== latestRequestIdRef.current) return;
         setRawCounts(normalized);
+        saveCachedCounts(normalized);
       }
     } catch (e) {
       console.error("❌ [ChatUnreadProvider] fetch error:", e);
