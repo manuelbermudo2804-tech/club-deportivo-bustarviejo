@@ -13,6 +13,7 @@ import { base44 } from "@/api/base44Client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import PaymentInstructions from "./PaymentInstructions";
+import { uploadPrivateFile } from "../utils/privateUpload";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -385,12 +386,12 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
 
     setUploadingFile(true);
     try {
-      const response = await base44.integrations.Core.UploadFile({ file });
+      const file_uri = await uploadPrivateFile(file);
       setCurrentPayment(prev => ({
         ...prev,
-        justificante_url: response.file_url
+        justificante_url: file_uri
       }));
-      toast.success("Justificante subido correctamente");
+      toast.success("🔒 Justificante subido de forma segura");
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error("Error al subir el justificante. Intenta con un archivo más pequeño.");

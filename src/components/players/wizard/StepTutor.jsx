@@ -5,7 +5,8 @@ import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, Loader2, Download, Users, X, CheckCircle2 } from "lucide-react";
+import { Upload, Loader2, Download, Users, X, CheckCircle2, Lock } from "lucide-react";
+import PrivateFileViewer from "../../utils/PrivateFileViewer";
 
 export default function StepTutor({
   currentPlayer,
@@ -160,9 +161,7 @@ export default function StepTutor({
             {currentPlayer.dni_tutor_legal_url ? "✓ Cambiar documento" : "Subir documento"}
           </Button>
           {currentPlayer.dni_tutor_legal_url && (
-            <a href={currentPlayer.dni_tutor_legal_url} target="_blank" rel="noopener noreferrer">
-              <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-            </a>
+            <PrivateFileViewer fileUri={currentPlayer.dni_tutor_legal_url} label="Ver DNI Tutor" />
           )}
         </div>
         {fieldErrors.dni_tutor_legal_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_tutor_legal_url}</p>}

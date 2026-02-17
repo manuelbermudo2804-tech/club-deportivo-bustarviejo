@@ -3,7 +3,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Loader2, Download, FileText } from "lucide-react";
+import { Upload, Loader2, Download, FileText, Lock } from "lucide-react";
+import PrivateFileViewer from "../../utils/PrivateFileViewer";
 
 export default function StepDocuments({
   currentPlayer,
@@ -71,9 +72,7 @@ export default function StepDocuments({
             {currentPlayer.dni_jugador_url ? "✓ Cambiar documento" : "Subir documento"}
           </Button>
           {currentPlayer.dni_jugador_url && (
-            <a href={currentPlayer.dni_jugador_url} target="_blank" rel="noopener noreferrer">
-              <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-            </a>
+            <PrivateFileViewer fileUri={currentPlayer.dni_jugador_url} label="Ver DNI" />
           )}
         </div>
         {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
@@ -98,9 +97,7 @@ export default function StepDocuments({
               {currentPlayer.libro_familia_url ? "✓ Cambiar Libro" : "Subir Libro de Familia"}
             </Button>
             {currentPlayer.libro_familia_url && (
-              <a href={currentPlayer.libro_familia_url} target="_blank" rel="noopener noreferrer">
-                <Button type="button" variant="ghost" size="icon"><Download className="w-4 h-4" /></Button>
-              </a>
+              <PrivateFileViewer fileUri={currentPlayer.libro_familia_url} label="Ver Libro" />
             )}
           </div>
           <p className="text-xs text-blue-700">Si el jugador es menor de 14 años y no tiene DNI, sube el libro de familia</p>
