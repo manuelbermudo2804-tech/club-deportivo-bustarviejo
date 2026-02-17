@@ -1,9 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useRef, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 
+// Store scroll positions per tab key
+const scrollPositions = {};
+
 export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, currentPageName }) {
+  const navigate = useNavigate();
+  const currentTabRef = useRef(null);
   // Ocultar visualmente en páginas de chat pero mantener en DOM para badges
   const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub', 'CoachChatsHub', 'CoordinatorChatsHub', 'AdminChatsHub'];
   const isInChat = chatPages.includes(currentPageName);
