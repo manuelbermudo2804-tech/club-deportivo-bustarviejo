@@ -439,8 +439,8 @@ export default function Players() {
     setCurrentPage(1);
   }, [searchTerm, sportFilter, statusFilter, categoryFilter]);
 
-  // Obtener todas las categorías únicas
-  const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))].sort();
+  // Obtener todas las categorías únicas (usar categoria_principal con fallback a deporte)
+  const allCategories = [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))].sort();
 
   // Contar jugadores por estado
   const allCount = players.length;
