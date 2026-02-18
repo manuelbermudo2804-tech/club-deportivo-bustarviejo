@@ -928,6 +928,7 @@ Email: cdbustarviejo@gmail.com
               categoryConfigs={categoryConfigs}
               descuentoHermano={pendingPlayerData._descuentoCalculado || 0}
               onContinue={handlePaymentFlowContinue}
+              userEmail={user?.email}
             />
           </div>
         </div>
