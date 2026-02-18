@@ -1322,7 +1322,7 @@ export default function Payments() {
                             <div className="mb-3">
                               <div className="flex justify-between text-xs mb-1">
                                 <span className="text-slate-600">
-                                  {hasPlanEspecial ? "Progreso Plan Especial" : hasPagoUnico ? "Pago Único" : "Progreso Cuotas"}
+                                  {hasPlanEspecial ? "Progreso Plan Especial" : hasPlanMensual ? "Plan Mensual" : hasPagoUnico ? "Pago Único" : "Progreso Cuotas"}
                                 </span>
                                 <span className="font-bold text-slate-900">{porcentajePagado}%</span>
                               </div>
