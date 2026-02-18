@@ -893,6 +893,10 @@ export default function ParentPayments() {
                   const numB = parseInt(b.mes?.replace('Cuota ', '') || '0');
                   return numA - numB;
                 });
+              } else if (hasPlanMensual) {
+                // Plan Mensual: mostrar SOLO los pagos reales (el pago inicial de Junio).
+                // Las mensualidades se cobran automáticamente por Stripe, no se crean virtuales.
+                displayPayments = allPlayerPayments.filter(p => p.tipo_pago === "Plan Mensual");
               } else {
                 // Determinar los meses que debería tener este jugador
                 const allMonths = hasPagoUnico
