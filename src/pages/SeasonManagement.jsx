@@ -1619,6 +1619,45 @@ export default function SeasonManagement() {
                 <p className="text-xs text-emerald-700">
                   💡 El padre paga el {activeSeason?.plan_mensual_porcentaje_inicial || 60}% en Junio. El resto se divide en mensualidades automáticas (Sept → {activeSeason?.plan_mensual_mes_fin || "Mayo"}) cobradas por tarjeta vía Stripe.
                 </p>
+
+                {/* Modo Test */}
+                <div className="mt-4 pt-4 border-t border-emerald-300 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-amber-600" />
+                      <div>
+                        <p className="font-medium text-sm">🧪 Modo Test</p>
+                        <p className="text-xs text-slate-600">Solo los emails de la lista podrán ver el Plan Mensual</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={activeSeason?.plan_mensual_modo_test || false}
+                      onCheckedChange={(checked) => toggleFeature('plan_mensual_modo_test', checked)}
+                    />
+                  </div>
+
+                  {activeSeason?.plan_mensual_modo_test && (
+                    <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-3 space-y-2">
+                      <Label className="text-xs font-bold text-amber-900">📧 Emails autorizados para test:</Label>
+                      <p className="text-xs text-amber-700">Escribe un email por línea. Solo estos verán la opción "Plan Mensual" al inscribir.</p>
+                      <Textarea
+                        value={(activeSeason?.plan_mensual_emails_test || []).join('\n')}
+                        onChange={(e) => {
+                          const emails = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
+                          updateSeasonMutation.mutate({
+                            id: activeSeason.id,
+                            data: { plan_mensual_emails_test: emails }
+                          });
+                        }}
+                        placeholder="padre1@gmail.com&#10;madre2@hotmail.com"
+                        className="text-sm h-24 font-mono"
+                      />
+                      <p className="text-xs text-amber-800">
+                        ✅ <strong>{(activeSeason?.plan_mensual_emails_test || []).length}</strong> email(s) en la lista de test
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
