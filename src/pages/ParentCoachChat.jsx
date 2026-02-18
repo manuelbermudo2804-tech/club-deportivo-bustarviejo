@@ -109,22 +109,22 @@ export default function ParentCoachChat() {
     }
   }, [selectedCategory]);
 
-  // Obtener todos los mensajes del chat entrenador-familias
-  const { data: messages = [] } = useQuery({
-    queryKey: ['coachParentChatMessages'],
+  // Obtener mensajes SOLO del grupo seleccionado (evita cargar todo)
+  const { data: messages = [], isLoading: messagesLoading } = useQuery({
+    queryKey: ['coachParentChatMessages', categoryKey],
     queryFn: async () => {
-      if (!user) return [];
-      const [byType, byMine] = await Promise.all([
-        base44.entities.ChatMessage.filter({ tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } }, 'created_date'),
-        base44.entities.ChatMessage.filter({ remitente_email: user.email }, 'created_date')
-      ]);
-      const merged = [...byType, ...byMine].reduce((acc, m) => { acc[m.id] = m; return acc; }, {});
-      return Object.values(merged).sort((a,b)=>new Date(a.created_date)-new Date(b.created_date));
+      if (!user || !categoryKey) return [];
+      return base44.entities.ChatMessage.filter(
+        { grupo_id: categoryKey, tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } },
+        'created_date'
+      );
     },
-    enabled: !!user,
+    enabled: !!user && !!categoryKey,
     refetchInterval: false,
     refetchOnWindowFocus: false,
     staleTime: 60000,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(2000 * Math.pow(2, attempt), 10000),
   });
 
   // REAL-TIME: Suscripción a mensajes
