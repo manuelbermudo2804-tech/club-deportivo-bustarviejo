@@ -3,8 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Phone, ChevronDown, ChevronUp, Clock } from "lucide-react";
 
-export default function CoachProfilePreview({ coach }) {
-  const [isOpen, setIsOpen] = React.useState(false);
+export default function CoachProfilePreview({ coach, defaultOpen = false }) {
+  const [isOpen, setIsOpen] = React.useState(defaultOpen);
 
   if (!coach) {
     console.log('⚠️ CoachProfilePreview: No coach data');
