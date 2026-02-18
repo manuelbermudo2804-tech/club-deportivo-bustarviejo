@@ -110,20 +110,27 @@ export function ChatUnreadProvider({ user, children }) {
     return () => document.removeEventListener("visibilitychange", onVis);
   }, [user?.email, fetchCounts]);
 
-  // Subscribe to real-time events
+  // Subscribe to real-time events — debounced to avoid rate-limit storms
   useEffect(() => {
     if (!user) return;
     const unsubs = [];
+    let debounceTimer = null;
+    const debouncedFetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => fetchCounts(), 3000);
+    };
     const subscribe = (entity) => {
       try {
-        const unsub = base44.entities[entity].subscribe(() => { fetchCounts(); });
+        const unsub = base44.entities[entity].subscribe(() => { debouncedFetch(); });
         unsubs.push(unsub);
       } catch {}
     };
-    ["ChatMessage","CoordinatorMessage","StaffMessage","PrivateMessage","AdminMessage",
-     "CoordinatorConversation","AdminConversation","PrivateConversation","StaffConversation","User"
-    ].forEach(subscribe);
-    return () => { unsubs.forEach(fn => { try { fn(); } catch {} }); };
+    // Only subscribe to the most critical entities to reduce noise
+    ["ChatMessage","CoordinatorMessage","StaffMessage","PrivateMessage"].forEach(subscribe);
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      unsubs.forEach(fn => { try { fn(); } catch {} });
+    };
   }, [user?.email, fetchCounts]);
 
   const markRead = useCallback(async (chatType, chatId) => {
