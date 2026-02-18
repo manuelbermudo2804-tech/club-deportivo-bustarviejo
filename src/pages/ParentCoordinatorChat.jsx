@@ -459,7 +459,7 @@ export default function ParentCoordinatorChat() {
           tipoChat="coordinador"
         />
       )}
-      <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 lg:pl-72 pb-0">
+      <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0 lg:relative lg:inset-auto lg:h-[calc(100vh-0px)]">
         <Card className="border-cyan-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-2 flex-shrink-0">
           <div className="flex items-center justify-between">
