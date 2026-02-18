@@ -242,17 +242,17 @@ export default function ParentCoachChat() {
         audio_url: messageData.audio_url,
         audio_duracion: messageData.audio_duracion,
         created_date: new Date().toISOString(),
-        grupo_id: categoryKey,
+        grupo_id: gid,
         deporte: selectedCategory,
         leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
       };
 
-      queryClient.setQueryData(['coachParentChatMessages', categoryKey], (old = []) => [...old, optimisticMessage]);
-      return { previousMessages, tempId: optimisticMessage.id };
+      queryClient.setQueryData(['coachParentChatMessages', gid], (old = []) => [...old, optimisticMessage]);
+      return { previousMessages, tempId: optimisticMessage.id, gid };
     },
     onError: (err, vars, context) => {
       if (context?.previousMessages) {
-        queryClient.setQueryData(['coachParentChatMessages', categoryKey], context.previousMessages);
+        queryClient.setQueryData(['coachParentChatMessages', context.gid], context.previousMessages);
       }
       toast.error("Error al enviar mensaje");
     },
