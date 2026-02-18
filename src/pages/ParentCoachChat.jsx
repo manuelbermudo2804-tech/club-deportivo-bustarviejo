@@ -344,7 +344,7 @@ export default function ParentCoachChat() {
       reacciones: newReactions
     });
 
-    queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
+    queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
     setShowReactions(null);
   };
 
