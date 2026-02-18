@@ -1558,6 +1558,70 @@ export default function SeasonManagement() {
               </div>
             )}
 
+            {/* Plan Mensual */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-5 h-5 text-emerald-600" />
+                <div>
+                  <p className="font-medium">Plan Mensual (Domiciliación Tarjeta)</p>
+                  <p className="text-xs text-slate-600">Permite pago inicial + mensualidades automáticas por tarjeta</p>
+                </div>
+              </div>
+              <Switch
+                checked={activeSeason?.permitir_plan_mensual || false}
+                onCheckedChange={(checked) => toggleFeature('permitir_plan_mensual', checked)}
+              />
+            </div>
+
+            {activeSeason?.permitir_plan_mensual && (
+              <div className="ml-8 space-y-3 bg-emerald-50 rounded-xl p-4 border-2 border-emerald-200">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium">💰 % Pago Inicial (Junio):</Label>
+                  <Input
+                    type="number"
+                    min={10}
+                    max={90}
+                    value={activeSeason?.plan_mensual_porcentaje_inicial || 60}
+                    onChange={(e) => {
+                      if (activeSeason) {
+                        updateSeasonMutation.mutate({
+                          id: activeSeason.id,
+                          data: { plan_mensual_porcentaje_inicial: Number(e.target.value) }
+                        });
+                      }
+                    }}
+                    className="w-20"
+                  />
+                  <span className="text-sm text-slate-600">%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium">📅 Último mes de cobro:</Label>
+                  <select
+                    value={activeSeason?.plan_mensual_mes_fin || "Mayo"}
+                    onChange={(e) => {
+                      if (activeSeason) {
+                        updateSeasonMutation.mutate({
+                          id: activeSeason.id,
+                          data: { plan_mensual_mes_fin: e.target.value }
+                        });
+                      }
+                    }}
+                    className="border rounded px-2 py-1 text-sm"
+                  >
+                    <option value="Enero">Enero</option>
+                    <option value="Febrero">Febrero</option>
+                    <option value="Marzo">Marzo</option>
+                    <option value="Abril">Abril</option>
+                    <option value="Mayo">Mayo</option>
+                    <option value="Junio">Junio</option>
+                  </select>
+                </div>
+                <p className="text-xs text-emerald-700">
+                  💡 El padre paga el {activeSeason?.plan_mensual_porcentaje_inicial || 60}% en Junio. El resto se divide en mensualidades automáticas (Sept → {activeSeason?.plan_mensual_mes_fin || "Mayo"}) cobradas por tarjeta vía Stripe.
+                </p>
+              </div>
+            )}
+
             {/* Patrocinadores */}
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
               <div className="flex items-center gap-3">

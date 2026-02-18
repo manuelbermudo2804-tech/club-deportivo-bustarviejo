@@ -46,6 +46,9 @@ export default function InscriptionPaymentFlow({
 }) {
   const [tipoPago, setTipoPago] = useState("Único");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const planMensualEnabled = seasonConfig?.permitir_plan_mensual === true;
+  const pctInicial = seasonConfig?.plan_mensual_porcentaje_inicial || 60;
+  const mesFin = seasonConfig?.plan_mensual_mes_fin || "Mayo";
 
   const deriveFromSeason = (cfg) => {
     if (!cfg) return null;
@@ -91,7 +94,7 @@ export default function InscriptionPaymentFlow({
         metodo_pago: "Transferencia",
         notas: descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : ""
       });
-    } else {
+    } else if (tipoPago === "Tres meses") {
       paymentsToCreate.push(
         {
           tipo_pago: "Tres meses",
@@ -119,6 +122,26 @@ export default function InscriptionPaymentFlow({
           metodo_pago: "Transferencia"
         }
       );
+    } else if (tipoPago === "Plan Mensual") {
+      // Solo se crea el pago inicial como "Pendiente".
+      // La suscripción de Stripe se gestionará al pagar con tarjeta.
+      const pagoInicial = Math.round(importeTotal * pctInicial / 100);
+      const restante = importeTotal - pagoInicial;
+      const MES_NUM = { "Septiembre": 9, "Octubre": 10, "Noviembre": 11, "Diciembre": 12, "Enero": 1, "Febrero": 2, "Marzo": 3, "Abril": 4, "Mayo": 5, "Junio": 6 };
+      const mesFinNum = MES_NUM[mesFin] || 5;
+      let numMeses = mesFinNum >= 9 ? mesFinNum - 9 + 1 : (12 - 9 + 1) + mesFinNum;
+      if (numMeses < 1) numMeses = 1;
+      const mensualidad = Math.round((restante / numMeses) * 100) / 100;
+
+      paymentsToCreate.push({
+        tipo_pago: "Plan Mensual",
+        mes: "Junio",
+        temporada: seasonToUse,
+        cantidad: pagoInicial,
+        estado: "Pendiente",
+        metodo_pago: "Transferencia",
+        notas: `Plan Mensual: ${pagoInicial}€ inicial + ${numMeses}x ${mensualidad}€/mes (Sept-${mesFin})${descuentoHermano > 0 ? ` | Descuento hermano: -${descuentoHermano}€` : ''}`
+      });
     }
 
     onContinue({ tipoPago, payments: paymentsToCreate });
@@ -201,6 +224,27 @@ export default function InscriptionPaymentFlow({
                   </span>
                 </div>
               </SelectItem>
+              {planMensualEnabled && (() => {
+                const pi = Math.round(importeTotal * pctInicial / 100);
+                const rest = importeTotal - pi;
+                const MN = { "Septiembre": 9, "Octubre": 10, "Noviembre": 11, "Diciembre": 12, "Enero": 1, "Febrero": 2, "Marzo": 3, "Abril": 4, "Mayo": 5, "Junio": 6 };
+                const mfn = MN[mesFin] || 5;
+                let nm = mfn >= 9 ? mfn - 9 + 1 : (12 - 9 + 1) + mfn;
+                if (nm < 1) nm = 1;
+                const mens = Math.round((rest / nm) * 100) / 100;
+                return (
+                  <SelectItem value="Plan Mensual" className="cursor-pointer py-3">
+                    <div className="flex flex-col items-start">
+                      <span className="font-bold text-base">
+                        🔄 Plan Mensual (Tarjeta)
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {pi}€ inicial + {nm}x {mens}€/mes = {importeTotal}€
+                      </span>
+                    </div>
+                  </SelectItem>
+                );
+              })()}
             </SelectContent>
           </Select>
         </div>
