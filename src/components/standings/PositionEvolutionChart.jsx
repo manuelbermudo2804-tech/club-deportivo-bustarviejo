@@ -7,8 +7,11 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 export default function PositionEvolutionChart({ categoria }) {
   const { data: allStandings = [], isLoading } = useQuery({
     queryKey: ["all-standings-evolution", categoria],
-    queryFn: () => base44.entities.Clasificacion.filter({ categoria }, "-updated_date", 2000),
-    staleTime: 5 * 60_000,
+    queryFn: () => base44.entities.Clasificacion.filter({ categoria }, "-updated_date", 500),
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const chartData = useMemo(() => {

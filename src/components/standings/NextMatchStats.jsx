@@ -8,7 +8,11 @@ import { Calendar, Trophy, TrendingUp, TrendingDown, Minus } from "lucide-react"
 export default function NextMatchStats({ categoria, standings }) {
   const { data: callups = [] } = useQuery({
     queryKey: ['callups-next-match', categoria],
-    queryFn: () => base44.entities.Convocatoria.list(),
+    queryFn: () => base44.entities.Convocatoria.filter({ categoria, publicada: true }, '-fecha_partido', 10),
+    staleTime: 10 * 60_000,
+    gcTime: 60 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Buscar próxima convocatoria de esta categoría
