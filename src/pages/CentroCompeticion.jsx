@@ -677,6 +677,17 @@ export default function CentroCompeticion() {
 
             {adminTab === 'clasificacion' && (
               <>
+                <div className="flex gap-2">
+                  <Button variant="destructive" size="sm" onClick={async () => {
+                    if (!confirm(`¿Borrar TODA la clasificación de "${category}"? Esta acción no se puede deshacer.`)) return;
+                    const all = await base44.entities.Clasificacion.filter({ categoria: category }, '-updated_date', 1000);
+                    for (const r of all) await base44.entities.Clasificacion.delete(r.id);
+                    await queryClient.refetchQueries({ queryKey: ['centro-standings', category] });
+                    alert(`Eliminados ${all.length} registros de clasificación`);
+                  }}>
+                    🗑️ Borrar clasificación de {category}
+                  </Button>
+                </div>
                 {!standingsDraft ? (
                   uploadMode === 'paste' ? (
                     <PasteStandingsForm
@@ -704,6 +715,17 @@ export default function CentroCompeticion() {
 
             {adminTab === 'resultados' && (
               <>
+                <div className="flex gap-2">
+                  <Button variant="destructive" size="sm" onClick={async () => {
+                    if (!confirm(`¿Borrar TODOS los resultados de "${category}"? Esta acción no se puede deshacer.`)) return;
+                    const all = await base44.entities.Resultado.filter({ categoria: category }, '-updated_date', 1000);
+                    for (const r of all) await base44.entities.Resultado.delete(r.id);
+                    await queryClient.refetchQueries({ queryKey: ['resultados', category] });
+                    alert(`Eliminados ${all.length} resultados`);
+                  }}>
+                    🗑️ Borrar resultados de {category}
+                  </Button>
+                </div>
                 {!resultsDraft ? (
                   uploadMode === 'paste' ? (
                     <PasteResultsForm categoria={category} onDataExtracted={(d) => setResultsDraft(d)} onCancel={() => setResultsDraft(null)} />
@@ -718,6 +740,17 @@ export default function CentroCompeticion() {
 
             {adminTab === 'goleadores' && (
               <>
+                <div className="flex gap-2">
+                  <Button variant="destructive" size="sm" onClick={async () => {
+                    if (!confirm(`¿Borrar TODOS los goleadores de "${category}"? Esta acción no se puede deshacer.`)) return;
+                    const all = await base44.entities.Goleador.filter({ categoria: category }, '-updated_date', 5000);
+                    for (const r of all) await base44.entities.Goleador.delete(r.id);
+                    await queryClient.refetchQueries({ queryKey: ['goleadores', category] });
+                    alert(`Eliminados ${all.length} goleadores`);
+                  }}>
+                    🗑️ Borrar goleadores de {category}
+                  </Button>
+                </div>
                 {!scorersDraft ? (
                   uploadMode === 'paste' ? (
                     <PasteScorersForm categoria={category} onDataExtracted={(d) => setScorersDraft(d)} onCancel={() => setScorersDraft(null)} />
