@@ -55,6 +55,18 @@ export default function ParentCoachChat() {
 
   const categoryKey = toGroupId(selectedCategory || "");
 
+  // Obtener entrenador de la categoría desde CoachSettings (debe declararse ANTES del useEffect que lo usa)
+  const { data: coachSettings } = useQuery({
+    queryKey: ['coachSettings', selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return null;
+      const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
+      return allSettings.find(s => (s.categorias_entrena || []).includes(selectedCategory)) || null;
+    },
+    enabled: !!selectedCategory,
+    staleTime: 120000,
+  });
+
   useEffect(() => {
     let cancelled = false;
     const fetchUser = async (attempt = 0) => {
@@ -103,7 +115,7 @@ export default function ParentCoachChat() {
     return () => { cancelled = true; };
   }, []);
 
-  // Obtener entrenador de la categoría desde CoachSettings (accesible por familias)
+  // Actualizar entrenador de la categoría cuando cambie coachSettings
   useEffect(() => {
     if (selectedCategory && coachSettings) {
       setCategoryCoach({
