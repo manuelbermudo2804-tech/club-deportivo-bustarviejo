@@ -288,25 +288,30 @@ export default function Payments() {
 
   const deleteCustomPlanMutation = useMutation({
     mutationFn: async (planId) => {
-      const plan = customPlans.find(p => p.id === planId);
+      const currentUser = await base44.auth.me();
       
-      // 1. Eliminar los pagos asociados al plan que estén pendientes
+      // 1. Soft-delete pagos pendientes asociados al plan
       const planPayments = payments.filter(p => 
         p.plan_especial_id === planId &&
         p.estado === "Pendiente"
       );
       
       for (const payment of planPayments) {
-        await base44.entities.Payment.delete(payment.id);
+        await base44.entities.Payment.update(payment.id, {
+          is_deleted: true,
+          deleted_by: currentUser.email,
+          deleted_date: new Date().toISOString(),
+          deleted_reason: 'Plan Especial cancelado'
+        });
       }
       
-      // 2. Eliminar el plan
-      await base44.entities.CustomPaymentPlan.delete(planId);
+      // 2. Marcar el plan como Cancelado (no borrar)
+      await base44.entities.CustomPaymentPlan.update(planId, { estado: "Cancelado" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
-      toast.success("Plan y cuotas pendientes eliminados ✅");
+      toast.success("Plan cancelado y cuotas pendientes archivadas ✅");
     },
   });
 
