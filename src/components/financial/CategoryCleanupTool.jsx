@@ -3,53 +3,34 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Trash2, RefreshCw } from "lucide-react";
+import { AlertTriangle, Trash2, RefreshCw, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+const BASE_CATEGORIES = [
+  "Fútbol Pre-Benjamín (Mixto)",
+  "Fútbol Benjamín (Mixto)",
+  "Fútbol Alevín (Mixto)",
+  "Fútbol Infantil (Mixto)",
+  "Fútbol Cadete",
+  "Fútbol Juvenil",
+  "Fútbol Aficionado",
+  "Fútbol Femenino",
+  "Baloncesto (Mixto)"
+];
 
 export default function CategoryCleanupTool() {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedIds, setSelectedIds] = useState(new Set());
 
-  // Categorías correctas (nombres completos desde Player.deporte)
-  const CORRECT_CATEGORIES = [
-    "Fútbol Pre-Benjamín (Mixto)",
-    "Fútbol Benjamín (Mixto)",
-    "Fútbol Alevín (Mixto)",
-    "Fútbol Infantil (Mixto)",
-    "Fútbol Cadete",
-    "Fútbol Juvenil",
-    "Fútbol Aficionado",
-    "Fútbol Femenino",
-    "Baloncesto (Mixto)"
-  ];
-
-  // Categorías incorrectas a eliminar (shorthand)
-  const DUPLICATE_CATEGORIES = [
-    "PRE-BENJAMIN",
-    "PRE BENJAMIN",
-    "BENJAMIN",
-    "ALEVIN",
-    "INFANTIL",
-    "CADETE",
-    "JUVENIL",
-    "AFICIONADO",
-    "FEMENINO",
-    "BALONCESTO"
-  ];
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  useEffect(() => { fetchCategories(); }, []);
 
   const fetchCategories = async () => {
     try {
       setIsLoading(true);
-      const allCategories = await base44.entities.CategoryConfig.list();
-      setCategories(allCategories);
+      const all = await base44.entities.CategoryConfig.list();
+      setCategories(all);
     } catch (error) {
       console.error("Error fetching categories:", error);
       toast.error("Error al cargar categorías");
@@ -58,60 +39,63 @@ export default function CategoryCleanupTool() {
     }
   };
 
-  // Identificar duplicadas
-  const duplicates = categories.filter(cat => 
-    DUPLICATE_CATEGORIES.includes(cat.nombre)
-  );
+  // Agrupar por temporada+nombre para detectar duplicados reales
+  const grouped = {};
+  categories.forEach(cat => {
+    const key = `${cat.temporada}||${cat.nombre}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(cat);
+  });
 
-  const correctOnes = categories.filter(cat => 
-    CORRECT_CATEGORIES.includes(cat.nombre)
-  );
+  // Para cada grupo con >1, el primero se queda, el resto son duplicados
+  const toKeep = [];
+  const toDelete = [];
+  Object.values(grouped).forEach(group => {
+    // Preferir el que tenga es_base=true, luego el más antiguo
+    const sorted = [...group].sort((a, b) => {
+      if (a.es_base && !b.es_base) return -1;
+      if (!a.es_base && b.es_base) return 1;
+      return new Date(a.created_date) - new Date(b.created_date);
+    });
+    toKeep.push(sorted[0]);
+    toDelete.push(...sorted.slice(1));
+  });
 
-  const handleSelectAll = (isDuplicate = true) => {
-    const targetList = isDuplicate ? duplicates : correctOnes;
-    const newSelected = new Set(selectedIds);
-    
-    if (targetList.length === selectedIds.size && targetList.every(c => selectedIds.has(c.id))) {
-      targetList.forEach(c => newSelected.delete(c.id));
-    } else {
-      targetList.forEach(c => newSelected.add(c.id));
-    }
-    setSelectedIds(newSelected);
-  };
+  const duplicateCount = toDelete.length;
 
-  const handleToggleCategory = (id) => {
-    const newSelected = new Set(selectedIds);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedIds(newSelected);
-  };
+  // Resumen por temporada
+  const temporadaSummary = {};
+  categories.forEach(cat => {
+    const t = cat.temporada || '(sin temporada)';
+    temporadaSummary[t] = (temporadaSummary[t] || 0) + 1;
+  });
 
-  const handleDeleteSelected = async () => {
-    if (selectedIds.size === 0) {
-      toast.error("Selecciona al menos una categoría para eliminar");
+  const handleAutoCleanup = async () => {
+    if (toDelete.length === 0) {
+      toast.success("No hay duplicados que limpiar");
       return;
     }
 
-    const categoriesToDelete = categories.filter(c => selectedIds.has(c.id));
-    
-    if (!confirm(`¿ELIMINAR ${categoriesToDelete.length} CATEGORÍAS DUPLICADAS?\n\nEsto no se puede deshacer:\n${categoriesToDelete.map(c => `- ${c.nombre} (${c.temporada})`).join('\n')}`)) {
+    if (!confirm(`¿ELIMINAR ${toDelete.length} CATEGORÍAS DUPLICADAS?\n\nSe mantendrá 1 registro por cada nombre+temporada.\nSe eliminarán las ${toDelete.length} copias extras.\n\n¿Continuar?`)) {
       return;
     }
 
     try {
       setIsProcessing(true);
       let deleted = 0;
+      let failed = 0;
 
-      for (const category of categoriesToDelete) {
-        await base44.entities.CategoryConfig.delete(category.id);
-        deleted++;
+      for (const cat of toDelete) {
+        try {
+          await base44.entities.CategoryConfig.delete(cat.id);
+          deleted++;
+        } catch (e) {
+          console.error(`Error borrando ${cat.id}:`, e);
+          failed++;
+        }
       }
 
-      toast.success(`✅ ${deleted} categorías duplicadas eliminadas`);
-      setSelectedIds(new Set());
+      toast.success(`✅ ${deleted} duplicados eliminados${failed > 0 ? `, ${failed} fallidos` : ''}`);
       fetchCategories();
     } catch (error) {
       console.error("Error deleting categories:", error);
@@ -132,70 +116,67 @@ export default function CategoryCleanupTool() {
   }
 
   return (
-    <Card className="border-2 border-orange-300 bg-orange-50">
+    <Card className={`border-2 ${duplicateCount > 0 ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'}`}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-orange-900">
-          <AlertTriangle className="w-5 h-5" />
-          🧹 Limpieza de Categorías Duplicadas
+        <CardTitle className="flex items-center gap-2">
+          {duplicateCount > 0 ? (
+            <><AlertTriangle className="w-5 h-5 text-red-600" /> 🧹 Limpieza de Categorías Duplicadas</>
+          ) : (
+            <><CheckCircle2 className="w-5 h-5 text-green-600" /> ✅ Categorías Limpias</>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Alert className="bg-red-50 border-red-300">
-          <AlertTriangle className="w-4 h-4 text-red-600" />
-          <AlertDescription className="text-red-800 ml-2">
-            Se encontraron <strong>{duplicates.length} categorías duplicadas</strong>. 
-            Usa esta herramienta para eliminarlas de forma segura.
-          </AlertDescription>
-        </Alert>
-
-        <div className="space-y-3">
-          {/* Sección: Categorías CORRECTAS */}
-          <div className="bg-green-50 rounded-lg p-3 border border-green-300">
-            <div className="flex items-center justify-between mb-2">
-              <p className="font-bold text-green-900 text-sm">✅ CATEGORÍAS CORRECTAS ({correctOnes.length})</p>
+        {/* Resumen */}
+        <div className="bg-white rounded-lg p-3 border shadow-sm">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="text-2xl font-bold text-slate-900">{categories.length}</p>
+              <p className="text-xs text-slate-600">Total registros</p>
             </div>
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {correctOnes.map(cat => (
-                <div key={cat.id} className="flex items-center gap-2 text-sm p-1">
-                  <span className="text-green-700">✓</span>
-                  <span className="text-slate-700">{cat.nombre}</span>
-                  <Badge variant="outline" className="ml-auto text-xs">{cat.temporada}</Badge>
-                </div>
-              ))}
+            <div>
+              <p className="text-2xl font-bold text-green-700">{toKeep.length}</p>
+              <p className="text-xs text-slate-600">Únicos (se mantienen)</p>
+            </div>
+            <div>
+              <p className={`text-2xl font-bold ${duplicateCount > 0 ? 'text-red-600' : 'text-green-600'}`}>{duplicateCount}</p>
+              <p className="text-xs text-slate-600">Duplicados (a borrar)</p>
             </div>
           </div>
-
-          {/* Sección: Categorías DUPLICADAS */}
-          {duplicates.length > 0 && (
-            <div className="bg-red-50 rounded-lg p-3 border border-red-300">
-              <div className="flex items-center justify-between mb-2">
-                <p className="font-bold text-red-900 text-sm">❌ CATEGORÍAS DUPLICADAS A ELIMINAR ({duplicates.length})</p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-6 text-xs"
-                  onClick={() => handleSelectAll(true)}
-                >
-                  {duplicates.length === selectedIds.size && duplicates.every(c => selectedIds.has(c.id)) ? "Deseleccionar todo" : "Seleccionar todo"}
-                </Button>
-              </div>
-              <div className="space-y-1 max-h-40 overflow-y-auto">
-                {duplicates.map(cat => (
-                  <div key={cat.id} className="flex items-center gap-2 text-sm p-1 hover:bg-red-100 rounded">
-                    <Checkbox
-                      checked={selectedIds.has(cat.id)}
-                      onCheckedChange={() => handleToggleCategory(cat.id)}
-                    />
-                    <span className="text-red-700 flex-1">{cat.nombre}</span>
-                    <Badge variant="outline" className="ml-auto text-xs">{cat.temporada}</Badge>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        <div className="flex gap-2 pt-4">
+        {/* Detalle por temporada */}
+        <div className="bg-white rounded-lg p-3 border shadow-sm">
+          <p className="text-sm font-bold text-slate-700 mb-2">📅 Por Temporada:</p>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(temporadaSummary).sort().map(([t, count]) => (
+              <Badge key={t} variant="outline" className="text-xs">
+                {t}: <strong className="ml-1">{count}</strong>
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {duplicateCount > 0 && (
+          <Alert className="bg-red-50 border-red-300">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <AlertDescription className="text-red-800 ml-2">
+              Hay <strong>{duplicateCount} categorías duplicadas</strong> (mismo nombre + temporada repetidos).
+              Se mantendrá 1 registro por cada combinación y se borrarán las copias.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {duplicateCount === 0 && (
+          <Alert className="bg-green-50 border-green-300">
+            <CheckCircle2 className="w-4 h-4 text-green-600" />
+            <AlertDescription className="text-green-800 ml-2">
+              ✅ No hay categorías duplicadas. Base de datos limpia ({toKeep.length} categorías únicas).
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex gap-2">
           <Button
             onClick={fetchCategories}
             disabled={isProcessing}
@@ -205,23 +186,20 @@ export default function CategoryCleanupTool() {
             <RefreshCw className="w-4 h-4 mr-2" />
             Recargar
           </Button>
-          <Button
-            onClick={handleDeleteSelected}
-            disabled={selectedIds.size === 0 || isProcessing}
-            className="flex-1 bg-red-600 hover:bg-red-700"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Eliminar {selectedIds.size > 0 ? `(${selectedIds.size})` : ""}
-          </Button>
+          {duplicateCount > 0 && (
+            <Button
+              onClick={handleAutoCleanup}
+              disabled={isProcessing}
+              className="flex-1 bg-red-600 hover:bg-red-700"
+            >
+              {isProcessing ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Limpiando...</>
+              ) : (
+                <><Trash2 className="w-4 h-4 mr-2" /> Limpiar {duplicateCount} duplicados</>
+              )}
+            </Button>
+          )}
         </div>
-
-        {duplicates.length === 0 && (
-          <Alert className="bg-green-50 border-green-300">
-            <AlertDescription className="text-green-800">
-              ✅ No hay categorías duplicadas. Base de datos limpia.
-            </AlertDescription>
-          </Alert>
-        )}
       </CardContent>
     </Card>
   );
