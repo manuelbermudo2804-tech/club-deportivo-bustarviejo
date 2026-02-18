@@ -52,10 +52,12 @@ Deno.serve(async (req) => {
     const mensualidad = Math.round((restante / numMeses) * 100) / 100;
     const mensualidadCentimos = Math.round(mensualidad * 100);
 
-    // Fecha de inicio de la suscripción: 1 del mes siguiente al pago inicial
+    // Fecha de inicio de la suscripción: siempre 1 de septiembre
+    // (inscripciones son en junio-julio, cobros recurrentes empiezan en septiembre)
     const now = new Date();
     const year = now.getFullYear();
-    const subscriptionStartDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const septYear = now.getMonth() >= 8 ? year + 1 : year; // si ya pasó sept, sería el año siguiente
+    const subscriptionStartDate = new Date(septYear, 8, 1); // 1 de septiembre
 
     // Fecha de cancelación automática: último día del mes_fin
     let cancelYear = mesFinNum >= 9 ? year : year + 1;
