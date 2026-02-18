@@ -20,6 +20,8 @@ function parseScorersText(raw) {
     temporada = m >= 9 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
   }
 
+  // === APPROACH 1: Tab-separated single-line rows ===
+  // Format: "1\tNOMBRE\tEQUIPO\t10" or with position
   for (const l of lines) {
     const mf = l.match(/^(\d+)\s+(.+?)\s+(.+?)\s+(\d+)$/);
     if (mf) {
@@ -27,19 +29,78 @@ function parseScorersText(raw) {
     }
   }
 
+  // === APPROACH 2: RFFM multi-line format ===
+  // Each scorer occupies multiple lines:
+  //   APELLIDO APELLIDO, NOMBRE    (name with comma)
+  //   C.D. EQUIPO A                (team name, starts with letter)
+  //   Grupo 72                     (optional group line - skip)
+  //   38                           (goals number)
+  //   (1P)                         (optional penalties line - skip)
+  //
+  // Key insight: a scorer NAME line contains a comma (APELLIDO, NOMBRE)
+  // and is NOT a number, NOT "Grupo X", NOT "(XP)"
   if (players.length === 0) {
+    const isNameLine = (l) => /,/.test(l) && !/^\d+$/.test(l) && !/^grupo\s/i.test(l) && !/^\(\d+P\)$/i.test(l);
+    const isTeamLine = (l) => /^[A-ZÁÉÍÓÚÑÜ]/.test(l) && !/^\d/.test(l) && !/^grupo\s/i.test(l) && !/^\(\d+P\)$/i.test(l) && !/,/.test(l);
+    const isGroupLine = (l) => /^grupo\s/i.test(l);
+    const isGoalsLine = (l) => /^\d+$/.test(l);
+    const isPenaltyLine = (l) => /^\(\d+P\)$/i.test(l);
+
     let i = 0;
     while (i < lines.length) {
-      if (/^\d{1,2}$/.test(lines[i])) {
+      // Look for a name line (contains comma)
+      if (isNameLine(lines[i])) {
+        const nombre = lines[i];
+        let equipo = "";
+        let goles = 0;
+        let j = i + 1;
+
+        // Next should be team
+        if (j < lines.length && isTeamLine(lines[j])) {
+          equipo = lines[j];
+          j++;
+        }
+
+        // Skip optional "Grupo XX" line
+        if (j < lines.length && isGroupLine(lines[j])) {
+          j++;
+        }
+
+        // Next should be goals (number)
+        if (j < lines.length && isGoalsLine(lines[j])) {
+          goles = parseInt(lines[j], 10);
+          j++;
+        }
+
+        // Skip optional "(XP)" penalty line
+        if (j < lines.length && isPenaltyLine(lines[j])) {
+          j++;
+        }
+
+        if (nombre && equipo && goles > 0) {
+          players.push({ jugador_nombre: nombre.trim(), equipo: equipo.trim(), goles });
+          i = j;
+          continue;
+        }
+      }
+
+      // === Fallback: position number then name/team/goals ===
+      if (/^\d{1,3}$/.test(lines[i])) {
         let nombre = "", equipo = "", goles = 0, j = i + 1;
         if (j < lines.length && !/^\d+$/.test(lines[j])) { nombre = lines[j]; j++; }
         if (j < lines.length && !/^\d+$/.test(lines[j])) { equipo = lines[j]; j++; }
+        // Skip optional group line
+        if (j < lines.length && /^grupo\s/i.test(lines[j])) { j++; }
         if (j < lines.length && /^\d+$/.test(lines[j])) { goles = parseInt(lines[j], 10); j++; }
+        // Skip optional penalty line
+        if (j < lines.length && /^\(\d+P\)$/i.test(lines[j])) { j++; }
         if (nombre && equipo && goles > 0) {
           players.push({ jugador_nombre: nombre.trim(), equipo: equipo.trim(), goles });
-          i = j; continue;
+          i = j;
+          continue;
         }
       }
+
       i++;
     }
   }
