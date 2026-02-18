@@ -7,7 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 // Known header words from RFFM tables (case-insensitive)
-const HEADER_WORDS = /^(equipo|puntos|jugados|ganados|empates|empatados|perdidos|gf|gc|goles?\s*(a\s*)?favor|goles?\s*(en\s*)?contra|sanci[oó]n\s*puntos|diferencia|pos|posici[oó]n)$/i;
+// Each line is tested individually, so multi-word headers like "Sanción puntos" need their own check
+const HEADER_WORDS = /^(equipo|puntos|jugados|ganados|empates|empatados|perdidos|gf|gc|goles?\s*(a\s*)?favor|goles?\s*(en\s*)?contra|sanci[oó]n\s*puntos|diferencia|pos|posici[oó]n|estado)$/i;
+
+// Additional header fragments that may appear as separate lines when copying from RFFM
+const HEADER_FRAGMENTS = /^(sanci[oó]n|puntos|equipo|jugados|ganados|empates|empatados|perdidos|goles|favor|contra|diferencia|pos|posici[oó]n|estado|pj|g|e|p|pts)$/i;
+
+function isHeaderLine(line) {
+  if (HEADER_WORDS.test(line)) return true;
+  if (HEADER_FRAGMENTS.test(line)) return true;
+  return false;
+}
 
 function parseStandingsText(raw) {
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
@@ -15,8 +25,12 @@ function parseStandingsText(raw) {
   let temporada = "";
   let grupo = "";
 
-  // Pass 1: Extract metadata and skip ALL header lines (not just first 6)
+  // Pass 1: Extract metadata and skip ALL header lines
   const dataLines = [];
+  
+  // Track whether we're still in the header section (before first numeric position)
+  let foundFirstTeam = false;
+  
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
 
@@ -30,10 +44,22 @@ function parseStandingsText(raw) {
       grupo = l;
       continue;
     }
-    // Header word lines (Equipo, Puntos, Jugados, etc.)
-    if (HEADER_WORDS.test(l)) {
-      continue;
+    
+    // Before first team data, aggressively skip header-like lines
+    if (!foundFirstTeam) {
+      if (isHeaderLine(l)) continue;
+      // Check if this is the start of team data (a position number like "1")
+      if (/^\d{1,3}$/.test(l)) {
+        // Peek: if next line is NOT a number and NOT a header, it's likely a team name → first team found
+        if (i + 1 < lines.length && !/^\d+$/.test(lines[i + 1]) && !isHeaderLine(lines[i + 1])) {
+          foundFirstTeam = true;
+        }
+      }
     }
+    
+    // After first team found, only skip exact header matches (not fragments that could be data)
+    if (foundFirstTeam && HEADER_WORDS.test(l)) continue;
+    
     dataLines.push(l);
   }
 
@@ -78,8 +104,9 @@ function parseStandingsText(raw) {
       }
     }
     
-    // Fallback: all data on one line
-    const fullMatch = line.match(/^(\d{1,2})\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
+    // Fallback: all data on one line (tab or space separated)
+    const normalized = line.replace(/\t+/g, ' ');
+    const fullMatch = normalized.match(/^(\d{1,2})\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
     if (fullMatch) {
       standings.push({
         posicion: parseInt(fullMatch[1], 10),
