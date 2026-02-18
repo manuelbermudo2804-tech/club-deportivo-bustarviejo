@@ -42,7 +42,7 @@ export default function Tienda() {
           <CardContent className="p-0">
             <div className="flex flex-col sm:flex-row items-center gap-4 p-6">
               <div className="w-20 h-20 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-                <Shirt className="w-10 h-10 text-orange-600" />
+                <Star className="w-10 h-10 text-orange-600" />
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h2 className="text-xl font-bold text-slate-900">🛍️ Equipación Oficial</h2>
@@ -71,7 +71,7 @@ export default function Tienda() {
           <CardContent className="p-0">
             <div className="flex flex-col sm:flex-row items-center gap-4 p-6">
               <div className="w-20 h-20 rounded-2xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                <Package className="w-10 h-10 text-green-600" />
+                <Gift className="w-10 h-10 text-green-600" />
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h2 className="text-xl font-bold text-slate-900">🛒 Merchandising</h2>
