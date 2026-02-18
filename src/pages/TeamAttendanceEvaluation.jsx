@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Save, Send, User, AlertCircle, XCircle, Clock, Star, Mail, CheckCircle2 } from "lucide-react";
+import { Calendar, Save, Send, User, AlertCircle, XCircle, Clock, Star, Mail, CheckCircle2, Users, HeartPulse, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -263,9 +263,12 @@ Email: cdbustarviejo@gmail.com
 
   const sendReportsMutation = useMutation({
     mutationFn: async ({ dateRange, sendMethod }) => {
-      const categoryPlayers = players.filter(p => 
-        p.deporte === selectedCategory && p.activo
-      );
+      const categoryPlayers = players.filter(p => {
+        if (p.activo === false) return false;
+        if (p.deporte === selectedCategory || p.categoria_principal === selectedCategory) return true;
+        if ((p.categorias || []).includes(selectedCategory)) return true;
+        return false;
+      });
 
       let sentCount = 0;
       const results = [];
@@ -444,9 +447,57 @@ Email: cdbustarviejo@gmail.com
     }
   });
 
-  const categoryPlayers = players.filter(p => 
-    p.deporte === selectedCategory && p.activo
-  ).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  const categoryPlayers = players.filter(p => {
+    if (p.activo === false) return false;
+    if (p.deporte === selectedCategory || p.categoria_principal === selectedCategory) return true;
+    if ((p.categorias || []).includes(selectedCategory)) return true;
+    return false;
+  }).sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+  // Mini-historial: últimas 5 sesiones por jugador
+  const playerHistory = React.useMemo(() => {
+    const history = {};
+    const catAttendances = (attendances || [])
+      .filter(a => a.categoria === selectedCategory)
+      .sort((a, b) => b.fecha?.localeCompare(a.fecha));
+    
+    categoryPlayers.forEach(p => {
+      const sessions = [];
+      for (const att of catAttendances) {
+        const record = att.asistencias?.find(a => a.jugador_id === p.id);
+        if (record) sessions.push({ fecha: att.fecha, estado: record.estado });
+        if (sessions.length >= 5) break;
+      }
+      history[p.id] = sessions.reverse(); // oldest first
+    });
+    return history;
+  }, [attendances, selectedCategory, categoryPlayers]);
+
+  // Resumen en vivo
+  const liveStats = React.useMemo(() => {
+    let presente = 0, ausente = 0, justificado = 0, tardanza = 0, sinMarcar = 0;
+    categoryPlayers.forEach(p => {
+      const s = sessionData[p.id]?.asistencia;
+      if (s === 'presente') presente++;
+      else if (s === 'ausente') ausente++;
+      else if (s === 'justificado') justificado++;
+      else if (s === 'tardanza') tardanza++;
+      else sinMarcar++;
+    });
+    return { presente, ausente, justificado, tardanza, sinMarcar, total: categoryPlayers.length };
+  }, [sessionData, categoryPlayers]);
+
+  const handleMarkAllPresent = () => {
+    const newData = { ...sessionData };
+    categoryPlayers.forEach(p => {
+      if (!newData[p.id]?.asistencia) {
+        newData[p.id] = { ...(newData[p.id] || {}), asistencia: 'presente' };
+      }
+    });
+    setSessionData(newData);
+    setHasUnsavedChanges(true);
+    toast.success(`✅ ${liveStats.sinMarcar} jugadores marcados como presentes`);
+  };
 
   useEffect(() => {
     const existing = attendances.find(a => 
@@ -580,6 +631,25 @@ Email: cdbustarviejo@gmail.com
         )}
       </div>
 
+      {/* Resumen en vivo */}
+      {selectedCategory && categoryPlayers.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 bg-white rounded-xl shadow-sm p-3 border">
+          <span className="text-sm font-semibold text-slate-700 mr-1">{liveStats.total} jugadores:</span>
+          {liveStats.presente > 0 && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">✅ {liveStats.presente}</span>}
+          {liveStats.ausente > 0 && <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">❌ {liveStats.ausente}</span>}
+          {liveStats.justificado > 0 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">📝 {liveStats.justificado}</span>}
+          {liveStats.tardanza > 0 && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">⏰ {liveStats.tardanza}</span>}
+          {liveStats.sinMarcar > 0 && <span className="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-full font-medium">⬜ {liveStats.sinMarcar} sin marcar</span>}
+          <div className="flex-1" />
+          {liveStats.sinMarcar > 0 && (
+            <Button size="sm" variant="outline" onClick={handleMarkAllPresent} className="h-7 text-xs border-green-300 text-green-700 hover:bg-green-50">
+              <Users className="w-3 h-3 mr-1" />
+              Marcar todos presentes
+            </Button>
+          )}
+        </div>
+      )}
+
       {hasUnsavedChanges && (
         <Card className="border-2 border-orange-500 bg-orange-50">
           <CardContent className="py-3 px-4">
@@ -686,14 +756,34 @@ Email: cdbustarviejo@gmail.com
                 <div key={player.id} className="bg-white rounded-xl shadow-md p-4 space-y-3">
                   {/* Header */}
                   <div className="flex items-center gap-3 pb-3 border-b">
-                    {player.foto_url ? (
-                      <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
-                        {player.nombre.charAt(0)}
+                    <div className="relative">
+                      {player.foto_url ? (
+                        <img src={player.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
+                          {player.nombre.charAt(0)}
+                        </div>
+                      )}
+                      {player.lesionado && <span className="absolute -top-1 -right-1 text-sm" title="Lesionado">🏥</span>}
+                      {player.sancionado && <span className="absolute -bottom-1 -right-1 text-sm" title="Sancionado">🟥</span>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-semibold text-base block">{player.nombre}</span>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {player.lesionado && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-medium">🏥 Lesionado</span>}
+                        {player.sancionado && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">🟥 Sancionado</span>}
+                        {/* Mini historial últimas 5 sesiones */}
+                        {playerHistory[player.id]?.length > 0 && (
+                          <div className="flex items-center gap-0.5 ml-1" title="Últimas sesiones">
+                            {playerHistory[player.id].map((s, i) => (
+                              <span key={i} className="text-[10px]">
+                                {s.estado === 'presente' ? '🟢' : s.estado === 'tardanza' ? '🟡' : s.estado === 'justificado' ? '🔵' : '🔴'}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                    <span className="font-semibold text-base">{player.nombre}</span>
+                    </div>
                   </div>
 
                   {/* Asistencia */}
@@ -797,14 +887,30 @@ Email: cdbustarviejo@gmail.com
                     <tr key={player.id} className={`border-b ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
                       <td className="p-3 sticky left-0 bg-inherit z-10">
                         <div className="flex items-center gap-2">
-                          {player.foto_url ? (
-                            <img src={player.foto_url} className="w-8 h-8 rounded-full object-cover" alt="" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
-                              {player.nombre.charAt(0)}
-                            </div>
-                          )}
-                          <span className="font-medium text-sm whitespace-nowrap">{player.nombre}</span>
+                          <div className="relative flex-shrink-0">
+                            {player.foto_url ? (
+                              <img src={player.foto_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                                {player.nombre.charAt(0)}
+                              </div>
+                            )}
+                            {player.lesionado && <span className="absolute -top-1 -right-1 text-[10px]" title="Lesionado">🏥</span>}
+                            {player.sancionado && <span className="absolute -bottom-1 -right-1 text-[10px]" title="Sancionado">🟥</span>}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-medium text-sm whitespace-nowrap block">{player.nombre}</span>
+                            {/* Mini historial */}
+                            {playerHistory[player.id]?.length > 0 && (
+                              <div className="flex items-center gap-0.5" title="Últimas 5 sesiones">
+                                {playerHistory[player.id].map((s, i) => (
+                                  <span key={i} className="text-[8px]">
+                                    {s.estado === 'presente' ? '🟢' : s.estado === 'tardanza' ? '🟡' : s.estado === 'justificado' ? '🔵' : '🔴'}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="p-2">
