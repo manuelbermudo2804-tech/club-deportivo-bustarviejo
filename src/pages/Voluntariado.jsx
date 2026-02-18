@@ -233,11 +233,21 @@ export default function Voluntariado() {
     }
   }, [pendingOppId, opportunities, signups, user]);
 
-  // Filtrar oportunidades pasadas (fecha anterior a hoy)
+  // Eliminar automáticamente oportunidades pasadas
   const today = new Date().toISOString().split("T")[0];
+  useEffect(() => {
+    if (!opportunities.length) return;
+    const pastOpps = opportunities.filter(opp => opp.fecha && opp.fecha < today);
+    if (pastOpps.length > 0) {
+      Promise.all(pastOpps.map(opp => base44.entities.VolunteerOpportunity.delete(opp.id)))
+        .then(() => qc.invalidateQueries({ queryKey: ["volunteer_opps"] }))
+        .catch(e => console.error("Error eliminando oportunidades pasadas:", e));
+    }
+  }, [opportunities]);
+
   const activeOpportunities = opportunities.filter(opp => {
-    if (!opp.fecha) return true; // Sin fecha = siempre visible
-    return opp.fecha >= today || opp.estado === "abierta";
+    if (!opp.fecha) return true;
+    return opp.fecha >= today;
   });
 
   const openEditMyProfile = () => {
