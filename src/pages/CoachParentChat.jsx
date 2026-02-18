@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
-import ChatSidebar from "../components/chat/ChatSidebar";
+
 
 export default function CoachParentChat({ embedded = false }) {
   const navigate = useNavigate();
@@ -97,26 +97,6 @@ export default function CoachParentChat({ embedded = false }) {
     }
     setUnreadByCategory(unreadCounts);
   }, [chatCounts, user]);
-
-  // Últimos mensajes por categoría (para sidebar desktop)
-  const { data: lastMessagesByCategory = {} } = useQuery({
-    queryKey: ['coachLastMessages', categories?.join(',')],
-    queryFn: async () => {
-      const result = {};
-      const cats = user?.role === "admin"
-        ? [...new Set(allPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))]
-        : [...new Set(user?.categorias_entrena || [])];
-      const allMsgs = await base44.entities.ChatMessage.list('-created_date', 100);
-      for (const cat of cats) {
-        const gid = toGroupId(cat);
-        const msg = allMsgs.find(m => toGroupId(m.deporte || '') === gid || toGroupId(m.grupo_id || '') === gid);
-        if (msg) result[cat] = msg;
-      }
-      return result;
-    },
-    enabled: !!user,
-    staleTime: 30000,
-  });
 
   // Si hay ?category= o ?categoria= en la URL, abrir directamente esa categoría y ocultar pestañas
   useEffect(() => {

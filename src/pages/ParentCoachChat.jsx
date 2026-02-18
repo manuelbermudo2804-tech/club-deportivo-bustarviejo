@@ -18,7 +18,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
-import ChatSidebar from "../components/chat/ChatSidebar";
+
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 
@@ -387,17 +387,6 @@ export default function ParentCoachChat() {
         .filter(Boolean)
         .map(cat => [normalizeCategory(cat), cat])
     ).values());
-
-    // Últimos mensajes por categoría (para sidebar desktop)
-    const lastMessagesByCategory = React.useMemo(() => {
-      const result = {};
-      for (const cat of categories) {
-        const gid = toGroupId(cat);
-        // messages is current category; for sidebar we'd need all — use cached from query
-        result[cat] = null;
-      }
-      return result;
-    }, [categories]);
 
     // ====== Render mensajes (compartido mobile y desktop) ======
     const renderMessages = () => (
