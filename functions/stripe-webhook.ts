@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
 
                   const subscription = await stripe.subscriptions.create(subParams);
                   subscriptionId = subscription.id;
-                  console.log('[stripe-webhook] Plan Mensual: suscripción creada', subscriptionId, 'primer cobro:', new Date(anchorTs * 1000).toISOString());
+                  console.log('[stripe-webhook] Plan Mensual: suscripción creada', subscriptionId, 'primer cobro recurrente:', new Date(anchorTs * 1000).toISOString());
                 } else {
                   console.warn('[stripe-webhook] Plan Mensual: no se encontró tarjeta guardada para customer', customerId);
                 }
