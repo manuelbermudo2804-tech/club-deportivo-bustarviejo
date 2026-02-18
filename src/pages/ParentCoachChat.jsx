@@ -215,17 +215,6 @@ export default function ParentCoachChat() {
 
 
 
-  const { data: coachSettings } = useQuery({
-    queryKey: ['coachSettings', selectedCategory],
-    queryFn: async () => {
-      if (!selectedCategory) return null;
-      const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
-      return allSettings.find(s => (s.categorias_entrena || []).includes(selectedCategory)) || null;
-    },
-    enabled: !!selectedCategory,
-    staleTime: 120000,
-  });
-
   const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
   const sendMessageMutation = useMutation({
