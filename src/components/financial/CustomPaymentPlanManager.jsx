@@ -64,16 +64,10 @@ export default function CustomPaymentPlanManager({ activeSeason }) {
     <div className="space-y-6">
       <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="w-6 h-6 text-purple-600" />
-              Planes de Pago Personalizados
-            </CardTitle>
-            <Button onClick={() => setShowForm(true)} className="bg-purple-600 hover:bg-purple-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Crear Plan
-            </Button>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Heart className="w-6 h-6 text-purple-600" />
+            Planes de Pago Personalizados
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
