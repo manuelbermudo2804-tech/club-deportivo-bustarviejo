@@ -1200,6 +1200,8 @@ export default function Payments() {
                       let totalCuotasEsperadas;
                       if (hasPlanEspecial && playerCustomPlan) {
                         totalCuotasEsperadas = playerCustomPlan.numero_cuotas || playerCustomPlan.cuotas?.length || 6;
+                      } else if (hasPlanMensual) {
+                        totalCuotasEsperadas = 1; // Solo 1 pago inicial, resto automático
                       } else if (hasPagoUnico) {
                         totalCuotasEsperadas = 1;
                       } else {
