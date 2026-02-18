@@ -1253,6 +1253,34 @@ export default function Payments() {
                               </div>
                             )}
                             
+                            {/* Info Plan Mensual */}
+                            {hasPlanMensual && planMensualInfo && (
+                              <div className="mb-3 p-2 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                                <p className="text-xs font-bold text-blue-900">🔄 Plan Mensual (Stripe)</p>
+                                <div className="text-xs text-blue-700 mt-1 space-y-0.5">
+                                  <p>Pago inicial: <strong>{planMensualInfo.inicial}€</strong> (Junio)</p>
+                                  <p>Mensualidades: <strong>{planMensualInfo.numMeses}x {planMensualInfo.mensualidad}€</strong> ({planMensualInfo.periodo})</p>
+                                  <p className="text-blue-500">Las mensualidades se cobran automáticamente por tarjeta</p>
+                                  {planMensualPayment?.stripe_subscription_id && (
+                                    <Badge className="bg-green-100 text-green-700 text-[10px] mt-1">
+                                      ✅ Suscripción activa
+                                    </Badge>
+                                  )}
+                                  {planMensualPayment?.stripe_subscription_status === 'past_due' && (
+                                    <Badge className="bg-red-100 text-red-700 text-[10px] mt-1">
+                                      ⚠️ Cobro pendiente
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {hasPlanMensual && !planMensualInfo && (
+                              <div className="mb-3 p-2 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                                <p className="text-xs font-bold text-blue-900">🔄 Plan Mensual</p>
+                                <p className="text-xs text-blue-700 mt-1">Pago inicial + mensualidades automáticas por Stripe</p>
+                              </div>
+                            )}
+                            
                             <div className="grid grid-cols-3 gap-2 mb-3">
                               <div className="bg-red-50 rounded p-2 border border-red-200">
                                 <p className="text-[10px] lg:text-xs text-red-700">Pendientes</p>
