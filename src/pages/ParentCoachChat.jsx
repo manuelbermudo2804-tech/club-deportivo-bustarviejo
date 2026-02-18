@@ -299,12 +299,13 @@ export default function ParentCoachChat() {
        return newMessage;
     },
     onSuccess: async (createdMessage, vars, context) => {
-      queryClient.setQueryData(['coachParentChatMessages', categoryKey], (old = []) => {
+      const gid = context?.gid || toGroupId(selectedCategory || "");
+      queryClient.setQueryData(['coachParentChatMessages', gid], (old = []) => {
         if (!old || old.length === 0) return [createdMessage];
         return old.map(m => (m.id === context?.tempId ? createdMessage : m));
       });
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
+        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', gid] });
       }, 300);
     },
   });
