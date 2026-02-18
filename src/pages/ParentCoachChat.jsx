@@ -240,7 +240,7 @@ export default function ParentCoachChat() {
     },
     onError: (err, vars, context) => {
       if (context?.previousMessages) {
-        queryClient.setQueryData(['coachParentChatMessages'], context.previousMessages);
+        queryClient.setQueryData(['coachParentChatMessages', categoryKey], context.previousMessages);
       }
       toast.error("Error al enviar mensaje");
     },
