@@ -175,17 +175,8 @@ export default function ParentCoachChat() {
   }, []);
 
   const categoryKey = toGroupId(selectedCategory || "");
-  const categoryMessages = selectedCategory
-    ? messages
-        .filter(m => {
-          const normMsgCat = normalizeCategory(m.deporte || "");
-          const normSel = normalizeCategory(selectedCategory || "");
-          const matchGroup = m.grupo_id === categoryKey;
-          const matchName = normMsgCat && (normMsgCat === normSel || normMsgCat.startsWith(normSel) || normSel.startsWith(normMsgCat));
-          return (matchGroup || matchName) && (m.tipo === 'padre_a_grupo' || m.tipo === 'entrenador_a_grupo');
-        })
-        .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
-    : [];
+  // messages ya viene filtrado por grupo_id desde la query
+  const categoryMessages = messages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
   const filteredMessages = searchTerm 
     ? categoryMessages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
