@@ -1126,6 +1126,9 @@ export default function Payments() {
                       if (temporadaFilter === "all") {
                         // Si el filtro es "all", SOLO mostrar los pagos reales que existen en BD
                         displayPayments = playerPayments;
+                      } else if (hasPlanMensual) {
+                        // Plan Mensual: mostrar SOLO los pagos reales del plan mensual
+                        displayPayments = playerPayments.filter(p => p.tipo_pago === "Plan Mensual");
                       } else if (hasPlanEspecial) {
                         // Si tiene plan especial, mostrar SOLO pagos reales del plan (no crear virtuales)
                         const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
