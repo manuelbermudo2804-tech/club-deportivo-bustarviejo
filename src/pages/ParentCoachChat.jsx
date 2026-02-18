@@ -563,7 +563,7 @@ export default function ParentCoachChat() {
                 })}
               </div>
             )}
-            {categoryCoach && <div className="p-2 border-b bg-white flex-shrink-0"><CoachProfilePreview coach={categoryCoach} /></div>}
+            {/* Coach profile ahora se muestra como botón en el header */}
             {renderMessages()}
           </CardContent>
         </Card>
