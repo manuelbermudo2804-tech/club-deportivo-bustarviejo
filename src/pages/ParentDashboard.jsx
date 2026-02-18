@@ -509,10 +509,23 @@ export default function ParentDashboard() {
           />
         )}
 
-        {/* Cumpleaños de mis jugadores */}
-        {!playersLoading && myPlayers.length > 0 && (
-          <BirthdayBanner players={myPlayers} mode="parent" />
-        )}
+        {/* Cumpleaños de mis jugadores y compañeros de categoría */}
+        {!playersLoading && myPlayers.length > 0 && (() => {
+          // Obtener categorías de mis jugadores
+          const myCategorias = new Set();
+          myPlayers.forEach(p => {
+            if (p.categoria_principal) myCategorias.add(p.categoria_principal);
+            (p.categorias || []).forEach(c => myCategorias.add(c));
+          });
+          // Filtrar compañeros de misma categoría
+          const teammatePlayers = allPlayers.filter(p => {
+            if (!p.activo || myPlayers.some(mp => mp.id === p.id)) return false;
+            const pCats = [p.categoria_principal, ...(p.categorias || [])].filter(Boolean);
+            return pCats.some(c => myCategorias.has(c));
+          });
+          const birthdayPlayers = [...myPlayers, ...teammatePlayers];
+          return <BirthdayBanner players={birthdayPlayers} mode="parent" />;
+        })()}
 
         {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der) */}
         {!playersLoading && myPlayers.length > 0 && (
