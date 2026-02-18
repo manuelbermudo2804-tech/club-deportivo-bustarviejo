@@ -499,6 +499,16 @@ Email: cdbustarviejo@gmail.com
     toast.success(`✅ ${liveStats.sinMarcar} jugadores marcados como presentes`);
   };
 
+  // Autoguardado cada 30 segundos si hay cambios
+  useEffect(() => {
+    if (!hasUnsavedChanges || !selectedCategory || !user) return;
+    const timer = setTimeout(() => {
+      handleSave();
+      toast.info("💾 Guardado automático");
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, [hasUnsavedChanges, sessionData, generalNotes]);
+
   useEffect(() => {
     const existing = attendances.find(a => 
       a.categoria === selectedCategory && 
