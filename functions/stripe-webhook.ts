@@ -196,6 +196,67 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Plan Mensual: inscripción inicial completada
+        if (metadata.tipo === 'plan_mensual_inscripcion') {
+          try {
+            await base44.asServiceRole.entities.StripePaymentLog.create({
+              section: 'plan_mensual',
+              amount: Number(session.amount_total || 0) / 100,
+              currency: session.currency || 'eur',
+              status: 'succeeded',
+              session_id: session.id,
+              payment_intent_id: session.payment_intent || null,
+              email: session.customer_details?.email || session.customer_email || metadata.user_email,
+              related_entity: 'Payment',
+              related_id: metadata.jugador_id,
+              metadata,
+              created_at: new Date().toISOString()
+            });
+
+            // Buscar y marcar como Pagado el pago inicial del jugador
+            const jugadorPayments = await base44.asServiceRole.entities.Payment.filter({
+              jugador_id: metadata.jugador_id,
+              tipo_pago: 'Plan Mensual',
+              mes: 'Junio',
+              estado: 'Pendiente'
+            });
+            const initialPayment = jugadorPayments?.[0];
+            if (initialPayment) {
+              // Obtener subscription ID de la sesión
+              let subscriptionId = null;
+              if (session.subscription) {
+                subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
+              }
+              await base44.asServiceRole.entities.Payment.update(initialPayment.id, {
+                estado: 'Pagado',
+                fecha_pago: today,
+                stripe_subscription_id: subscriptionId || null,
+                stripe_subscription_status: 'active',
+                plan_mensual_mensualidad: Number(metadata.mensualidad || 0),
+                plan_mensual_meses: Number(metadata.num_meses || 0),
+                plan_mensual_mes_fin: metadata.mes_fin || 'Mayo'
+              });
+              console.log('[stripe-webhook] Plan Mensual: pago inicial marcado Pagado, subscription:', subscriptionId);
+            }
+
+            // Notificar al padre
+            try {
+              const email = session.customer_details?.email || session.customer_email || metadata.user_email;
+              if (email) {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to: email,
+                  subject: `✅ Plan Mensual activado - ${metadata.jugador_nombre}`,
+                  body: `Hemos recibido tu pago inicial de ${metadata.pago_inicial}€ para ${metadata.jugador_nombre}.\n\nA partir de septiembre se cobrará automáticamente ${metadata.mensualidad}€/mes en tu tarjeta hasta ${metadata.mes_fin || 'Mayo'}.\n\nGracias por tu confianza.\n\nCD Bustarviejo`
+                });
+              }
+            } catch (emailErr) {
+              console.error('[stripe-webhook] Error email Plan Mensual:', emailErr?.message);
+            }
+          } catch (e) {
+            console.error('[stripe-webhook] Error procesando Plan Mensual:', e?.message || e);
+          }
+        }
+
         // Otros tipos (ej: extra_charge) se añadirán después si hace falta
 
         // NUEVO: Lotería de Navidad
