@@ -46,27 +46,28 @@ Deno.serve(async (req) => {
       "Enero": 1, "Febrero": 2, "Marzo": 3, "Abril": 4, "Mayo": 5, "Junio": 6
     };
     const mesFinNum = MES_NUMEROS[mes_fin || "Mayo"] || 5;
-    // Meses desde septiembre (9) hasta mes_fin
-    let numMeses = 0;
-    if (mesFinNum >= 9) {
-      numMeses = mesFinNum - 9 + 1;
-    } else {
-      numMeses = (12 - 9 + 1) + mesFinNum; // sept-dic + ene-mesFin
-    }
+    let numMeses = mesFinNum >= 9 ? mesFinNum - 9 + 1 : (12 - 9 + 1) + mesFinNum;
     if (numMeses < 1) numMeses = 1;
 
-    const mensualidad = Math.round((restante / numMeses) * 100) / 100; // en euros, 2 decimales
+    const mensualidad = Math.round((restante / numMeses) * 100) / 100;
     const mensualidadCentimos = Math.round(mensualidad * 100);
 
-    // Calcular fecha de cancelación automática
+    // Fecha de inicio de la suscripción: 1 de septiembre
     const now = new Date();
     const year = now.getFullYear();
+    const septYear = now.getMonth() >= 8 ? year : (now.getMonth() < 6 ? year : year); 
+    // Si estamos en jun-ago, sept es del mismo año. Si estamos en sept+, sept ya pasó.
+    const subscriptionStartDate = new Date(septYear, 8, 1); // 1 de septiembre
+    if (subscriptionStartDate <= now) {
+      // Si sept ya pasó, empezar el siguiente mes
+      subscriptionStartDate.setMonth(now.getMonth() + 1, 1);
+    }
+
+    // Fecha de cancelación automática: último día del mes_fin
     let cancelYear = mesFinNum >= 9 ? year : year + 1;
-    // Si ya pasamos septiembre del año actual y el mes_fin es antes, será el año siguiente
     if (now.getMonth() + 1 > 8 && mesFinNum < 9) {
       cancelYear = year + 1;
     }
-    // Último día del mes_fin
     const cancelDate = new Date(cancelYear, mesFinNum, 0, 23, 59, 59);
     const cancelAtTimestamp = Math.floor(cancelDate.getTime() / 1000);
 
@@ -83,65 +84,50 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2. Crear un precio recurrente para la suscripción
+    // 2. Crear precio recurrente para las mensualidades
     const product = await stripe.products.create({
-      name: `Plan Mensual - ${jugador_nombre} - ${categoria}`,
-      metadata: {
-        jugador_id,
-        jugador_nombre,
-        categoria,
-        temporada
-      }
+      name: `Mensualidad ${jugador_nombre} - ${categoria} (${temporada})`,
+      metadata: { jugador_id, jugador_nombre, categoria, temporada }
     });
 
-    const price = await stripe.prices.create({
+    const recurringPrice = await stripe.prices.create({
       product: product.id,
       unit_amount: mensualidadCentimos,
       currency: 'eur',
       recurring: { interval: 'month' }
     });
 
-    // 3. Crear sesión de Checkout con:
-    //    - Pago inicial (one-off) como line_item
-    //    - Suscripción mensual que arranca en el primer cobro del mes siguiente
+    // 3. Usamos modo "payment" para cobrar el pago inicial inmediatamente.
+    //    Después, al recibir el webhook, crearemos la suscripción con la tarjeta guardada.
+    //    Para esto necesitamos guardar la tarjeta: setup_future_usage implícito en payment mode.
+    
+    // Alternativa más simple: usar modo subscription con trial hasta septiembre
+    // El primer cobro es inmediato (pago inicial como setup_fee via line_item one-off NO funciona en sub mode).
+    
+    // SOLUCIÓN: Usar Checkout en modo "payment" con setup_future_usage para guardar tarjeta,
+    // y crear la suscripción programada desde el webhook.
+    
     const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
+      mode: 'payment',
       customer: customer.id,
+      payment_intent_data: {
+        setup_future_usage: 'off_session', // Guarda la tarjeta para cobros futuros
+      },
       success_url: successUrl,
       cancel_url: cancelUrl,
       line_items: [
         {
-          // Pago inicial (60%)
           price_data: {
             currency: 'eur',
             product_data: {
               name: `Inscripción ${jugador_nombre} - ${categoria} (${pctInicial}% inicial)`,
+              description: `Pago inicial del Plan Mensual. Después: ${numMeses}x ${mensualidad}€/mes (Sept-${mes_fin || 'Mayo'})`
             },
             unit_amount: Math.round(pagoInicial * 100),
           },
           quantity: 1,
-        },
-        {
-          // Suscripción mensual
-          price: price.id,
-          quantity: 1,
         }
       ],
-      subscription_data: {
-        cancel_at: cancelAtTimestamp,
-        metadata: {
-          tipo: 'plan_mensual_cuota',
-          jugador_id,
-          jugador_nombre,
-          categoria,
-          temporada,
-          mensualidad: String(mensualidad),
-          num_meses: String(numMeses),
-          total_cuota: String(totalConDescuento),
-          pago_inicial: String(pagoInicial),
-          user_email: user.email
-        }
-      },
       metadata: {
         tipo: 'plan_mensual_inscripcion',
         jugador_id,
@@ -151,8 +137,12 @@ Deno.serve(async (req) => {
         pago_inicial: String(pagoInicial),
         mensualidad: String(mensualidad),
         num_meses: String(numMeses),
+        mes_fin: mes_fin || 'Mayo',
         total_cuota: String(totalConDescuento),
-        user_email: user.email
+        user_email: user.email,
+        recurring_price_id: recurringPrice.id,
+        cancel_at: String(cancelAtTimestamp),
+        subscription_start: subscriptionStartDate.toISOString()
       }
     });
 
@@ -166,7 +156,8 @@ Deno.serve(async (req) => {
         num_meses: numMeses,
         mensualidad,
         mes_fin: mes_fin || "Mayo",
-        cancel_at: cancelDate.toISOString()
+        cancel_at: cancelDate.toISOString(),
+        subscription_start: subscriptionStartDate.toISOString()
       }
     });
 
