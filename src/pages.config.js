@@ -156,12 +156,12 @@ import Surveys from './pages/Surveys';
 import TacticsBoard from './pages/TacticsBoard';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
 import TeamRosters from './pages/TeamRosters';
-import Tienda from './pages/Tienda';
 import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
+import Tienda from './pages/Tienda';
 import __Layout from './Layout.jsx';
 
 
@@ -275,12 +275,12 @@ export const PAGES = {
     "TacticsBoard": TacticsBoard,
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
     "TeamRosters": TeamRosters,
-    "Tienda": Tienda,
     "TrainingSchedules": TrainingSchedules,
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
+    "Tienda": Tienda,
 }
 
 export const pagesConfig = {

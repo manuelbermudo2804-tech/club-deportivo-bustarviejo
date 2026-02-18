@@ -535,7 +535,7 @@ export default function ParentCoachChat() {
                     </DialogContent>
                   </Dialog>
                 )}
-
+                <EscalateToCoordinatorButton user={user} categoria={selectedCategory} recentMessages={messages} />
               </div>
             </div>
           </CardHeader>

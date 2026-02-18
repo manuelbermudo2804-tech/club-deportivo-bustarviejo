@@ -483,7 +483,17 @@ export default function ParentCoordinatorChat() {
                 <span className="hidden sm:inline">Archivos ({allSharedFiles.length})</span>
                 <span className="sm:hidden">{allSharedFiles.length}</span>
               </Button>
-
+              {!conversation?.reportada_admin && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowReportDialog(true)}
+                  className="text-white hover:bg-white/20 text-xs sm:text-sm"
+                  title="Reportar conversación al administrador"
+                >
+                  <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
