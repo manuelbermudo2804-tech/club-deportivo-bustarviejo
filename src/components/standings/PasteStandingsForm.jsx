@@ -25,15 +25,13 @@ function parseStandingsText(raw) {
   let temporada = "";
   let grupo = "";
 
-  // Pass 1: Extract metadata and skip ALL header lines
-  const dataLines = [];
+  // STRATEGY: Try tab-separated single-line format FIRST (most common from RFFM copy-paste)
+  // If that fails, fall back to multi-line format
   
-  // Track whether we're still in the header section (before first numeric position)
-  let foundFirstTeam = false;
+  const metaLines = [];
+  const candidateRows = [];
   
-  for (let i = 0; i < lines.length; i++) {
-    const l = lines[i];
-
+  for (const l of lines) {
     // Season line
     if (/^\d{4}[-\/]\d{4}$/.test(l)) {
       temporada = l.replace('-', '/');
@@ -44,52 +42,40 @@ function parseStandingsText(raw) {
       grupo = l;
       continue;
     }
+    // Skip header lines
+    if (isHeaderLine(l)) continue;
     
-    // Before first team data, aggressively skip header-like lines
-    if (!foundFirstTeam) {
-      if (isHeaderLine(l)) continue;
-      // Check if this is the start of team data (a position number like "1")
-      if (/^\d{1,3}$/.test(l)) {
-        // Peek: if next line is NOT a number and NOT a header, it's likely a team name → first team found
-        if (i + 1 < lines.length && !/^\d+$/.test(lines[i + 1]) && !isHeaderLine(lines[i + 1])) {
-          foundFirstTeam = true;
-        }
-      }
-    }
-    
-    // After first team found, only skip exact header matches (not fragments that could be data)
-    if (foundFirstTeam && HEADER_WORDS.test(l)) continue;
-    
-    dataLines.push(l);
+    candidateRows.push(l);
   }
 
   const standings = [];
-  
-  let i = 0;
-  while (i < dataLines.length) {
-    const line = dataLines[i];
-    
-    // Pattern: position number alone on a line, followed by team name, then numbers
-    const posMatch = line.match(/^(\d{1,3})$/);
-    if (posMatch && i + 1 < dataLines.length) {
-      const posicion = parseInt(posMatch[1], 10);
-      // Next non-number line is the team name
-      if (!/^\d+$/.test(dataLines[i + 1])) {
-        const nombreEquipo = dataLines[i + 1];
-        
-        // Collect all consecutive numbers after the team name
-        const nums = [];
-        let j = i + 2;
-        while (j < dataLines.length && /^\d+$/.test(dataLines[j])) {
-          nums.push(parseInt(dataLines[j], 10));
-          j++;
-        }
 
-        // Need at least 7 numbers: Pts, PJ, G, E, P, GF, GC (may have extra like "Sanción puntos")
-        if (nombreEquipo && nums.length >= 7) {
+  // === APPROACH 1: Single-line rows (tab or multi-space separated) ===
+  // Format: "1\tC.D. PEDREZUELA 'A'\t36\t12\t12\t0\t0\t98\t26\t0"
+  // or:    "1  C.D. PEDREZUELA 'A'  36  12  12  0  0  98  26  0"
+  for (const line of candidateRows) {
+    // Split by tabs first; if no tabs, try 2+ spaces
+    let parts;
+    if (line.includes('\t')) {
+      parts = line.split('\t').map(s => s.trim()).filter(Boolean);
+    } else {
+      // Try splitting by 2+ spaces (but team names can have single spaces)
+      parts = line.split(/\s{2,}/).map(s => s.trim()).filter(Boolean);
+    }
+    
+    // We need: pos, name, pts, pj, g, e, p, gf, gc [, sancion]  → at least 9 parts
+    if (parts.length >= 9) {
+      const pos = parseInt(parts[0], 10);
+      if (Number.isFinite(pos) && pos >= 1 && pos <= 100) {
+        // Find where team name ends and numbers begin
+        // parts[1] should be the team name; rest should be numbers
+        const nombre = parts[1];
+        const nums = parts.slice(2).map(s => parseInt(s, 10)).filter(n => Number.isFinite(n));
+        
+        if (nombre && !/^\d+$/.test(nombre) && nums.length >= 7) {
           standings.push({
-            posicion,
-            nombre_equipo: nombreEquipo.trim(),
+            posicion: pos,
+            nombre_equipo: nombre,
             puntos: nums[0],
             partidos_jugados: nums[1],
             ganados: nums[2],
@@ -98,15 +84,14 @@ function parseStandingsText(raw) {
             goles_favor: nums[5],
             goles_contra: nums[6],
           });
-          i = j;
           continue;
         }
       }
     }
-    
-    // Fallback: all data on one line (tab or space separated)
-    const normalized = line.replace(/\t+/g, ' ');
-    const fullMatch = normalized.match(/^(\d{1,2})\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
+
+    // Also try regex on the raw line (handles mixed separators)
+    const normalized = line.replace(/\t+/g, '  ');
+    const fullMatch = normalized.match(/^(\d{1,3})\s{2,}(.+?)\s{2,}(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
     if (fullMatch) {
       standings.push({
         posicion: parseInt(fullMatch[1], 10),
@@ -120,8 +105,62 @@ function parseStandingsText(raw) {
         goles_contra: parseInt(fullMatch[9], 10),
       });
     }
-    
-    i++;
+  }
+
+  // === APPROACH 2: Multi-line format (each field on its own line) ===
+  // Only use if approach 1 found nothing
+  if (standings.length === 0) {
+    let i = 0;
+    while (i < candidateRows.length) {
+      const line = candidateRows[i];
+
+      const posMatch = line.match(/^(\d{1,3})$/);
+      if (posMatch && i + 1 < candidateRows.length) {
+        const posicion = parseInt(posMatch[1], 10);
+        if (!/^\d+$/.test(candidateRows[i + 1])) {
+          const nombreEquipo = candidateRows[i + 1];
+          const nums = [];
+          let j = i + 2;
+          while (j < candidateRows.length && /^\d+$/.test(candidateRows[j])) {
+            nums.push(parseInt(candidateRows[j], 10));
+            j++;
+          }
+          if (nombreEquipo && nums.length >= 7) {
+            standings.push({
+              posicion,
+              nombre_equipo: nombreEquipo.trim(),
+              puntos: nums[0],
+              partidos_jugados: nums[1],
+              ganados: nums[2],
+              empatados: nums[3],
+              perdidos: nums[4],
+              goles_favor: nums[5],
+              goles_contra: nums[6],
+            });
+            i = j;
+            continue;
+          }
+        }
+      }
+
+      // Single-line fallback with single spaces
+      const singleMatch = line.match(/^(\d{1,2})\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
+      if (singleMatch) {
+        standings.push({
+          posicion: parseInt(singleMatch[1], 10),
+          nombre_equipo: singleMatch[2].trim(),
+          puntos: parseInt(singleMatch[3], 10),
+          partidos_jugados: parseInt(singleMatch[4], 10),
+          ganados: parseInt(singleMatch[5], 10),
+          empatados: parseInt(singleMatch[6], 10),
+          perdidos: parseInt(singleMatch[7], 10),
+          goles_favor: parseInt(singleMatch[8], 10),
+          goles_contra: parseInt(singleMatch[9], 10),
+        });
+      }
+
+      i++;
+    }
   }
 
   return { temporada, grupo, standings };
