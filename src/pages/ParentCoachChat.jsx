@@ -127,18 +127,18 @@ export default function ParentCoachChat() {
     retryDelay: (attempt) => Math.min(2000 * Math.pow(2, attempt), 10000),
   });
 
-  // REAL-TIME: Suscripción a mensajes
+  // REAL-TIME: Suscripción a mensajes del grupo activo
   useEffect(() => {
-    if (!user) return;
+    if (!user || !categoryKey) return;
     
     const unsub = base44.entities.ChatMessage.subscribe((event) => {
-      if ((event.data?.tipo === 'padre_a_grupo' || event.data?.tipo === 'entrenador_a_grupo') && event.data?.remitente_email !== user.email) {
-        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
+      if (event.data?.grupo_id === categoryKey && event.data?.remitente_email !== user.email) {
+        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
       }
     });
     
     return unsub;
-  }, [user?.email, queryClient]);
+  }, [user?.email, categoryKey, queryClient]);
 
   const getUnreadCountByCategory = (categoria) => {
     if (!user) return 0;
