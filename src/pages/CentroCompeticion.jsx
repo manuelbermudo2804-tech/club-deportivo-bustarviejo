@@ -318,8 +318,10 @@ export default function CentroCompeticion() {
         goles_contra: toNum(row.goles_contra),
       }));
 
-      if (payloadRows.length) {
-        await base44.entities.Clasificacion.bulkCreate(payloadRows);
+      // bulkCreate tiene límite de ~10 registros por lote, enviar en bloques
+      const BATCH = 10;
+      for (let b = 0; b < payloadRows.length; b += BATCH) {
+        await base44.entities.Clasificacion.bulkCreate(payloadRows.slice(b, b + BATCH));
       }
 
       setStandingsDraft(null);
@@ -357,7 +359,10 @@ export default function CentroCompeticion() {
         goles_local: isNum(m.goles_local) && isNum(m.goles_visitante) ? Number(m.goles_local) : undefined,
         goles_visitante: isNum(m.goles_local) && isNum(m.goles_visitante) ? Number(m.goles_visitante) : undefined,
       }));
-      if (rows.length) await base44.entities.Resultado.bulkCreate(rows);
+      const RBATCH = 10;
+      for (let b = 0; b < rows.length; b += RBATCH) {
+        await base44.entities.Resultado.bulkCreate(rows.slice(b, b + RBATCH));
+      }
 
       setResultsDraft(null);
       await queryClient.refetchQueries({ queryKey: ['resultados', categoria] });
@@ -404,7 +409,10 @@ export default function CentroCompeticion() {
       }
 
       const rows = Array.from(dedupMap.values());
-      if (rows.length) await base44.entities.Goleador.bulkCreate(rows);
+      const BATCH = 10;
+      for (let b = 0; b < rows.length; b += BATCH) {
+        await base44.entities.Goleador.bulkCreate(rows.slice(b, b + BATCH));
+      }
 
       setScorersDraft(null);
       await queryClient.refetchQueries({ queryKey: ['goleadores', categoria] });
