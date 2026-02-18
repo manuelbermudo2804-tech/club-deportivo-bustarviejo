@@ -1148,6 +1148,43 @@ export default function ParentPayments() {
         onClose={() => setPayModalOpen(false)}
         player={payModalContext.player}
         payment={payModalContext.payment}
+        onPaySubscription={async () => {
+          const { player, payment } = payModalContext;
+          if (!player || !payment) return;
+          if (window.top !== window.self) {
+            alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.');
+            return;
+          }
+          toast.loading('Configurando Plan Mensual...', { id: 'stripe-sub' });
+          try {
+            const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
+            const totalCuota = cuotas?.total || Number(payment.cantidad);
+            const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
+            const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
+            const response = await base44.functions.invoke('stripeSubscription', {
+              jugador_id: player.id,
+              jugador_nombre: player.nombre,
+              categoria: player.deporte,
+              temporada: payment.temporada || currentSeason,
+              total_cuota: totalCuota,
+              porcentaje_inicial: seasonConfig?.plan_mensual_porcentaje_inicial || 60,
+              mes_fin: seasonConfig?.plan_mensual_mes_fin || 'Mayo',
+              descuento_hermano: player.tiene_descuento_hermano ? (player.descuento_aplicado || 0) : 0,
+              successUrl,
+              cancelUrl
+            });
+            const data = response.data || response;
+            if (data?.url) {
+              toast.success('Redirigiendo a Stripe...', { id: 'stripe-sub' });
+              setTimeout(() => { window.location.href = data.url; }, 500);
+            } else {
+              toast.error(data?.error || 'Error al crear Plan Mensual', { id: 'stripe-sub' });
+            }
+          } catch (e) {
+            console.error('Stripe subscription error', e);
+            toast.error('Error al crear Plan Mensual', { id: 'stripe-sub' });
+          }
+        }}
         onPayCard={async () => {
           const { player, payment } = payModalContext;
           if (!player || !payment) return;
