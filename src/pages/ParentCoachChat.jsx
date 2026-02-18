@@ -18,6 +18,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import ChatSidebar from "../components/chat/ChatSidebar";
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
 

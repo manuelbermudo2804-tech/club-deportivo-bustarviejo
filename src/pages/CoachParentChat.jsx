@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import ChatSidebar from "../components/chat/ChatSidebar";
 
 export default function CoachParentChat({ embedded = false }) {
   const navigate = useNavigate();
