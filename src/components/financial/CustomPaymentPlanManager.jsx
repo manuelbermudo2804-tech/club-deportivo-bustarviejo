@@ -22,101 +22,12 @@ export default function CustomPaymentPlanManager({ activeSeason }) {
     enabled: !!activeSeason,
   });
 
-  const { data: allPlayers = [] } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
-  });
-
-  const createPlanMutation = useMutation({
-    mutationFn: async (planData) => base44.entities.CustomPaymentPlan.create(planData),
-    onSuccess: async (createdPlan) => {
-      // Archivar pagos previos (Único o Tres meses) del jugador en la misma temporada
-      try {
-        const user = await base44.auth.me();
-        const jugadorId = createdPlan?.jugador_id;
-        const temporada = createdPlan?.temporada;
-        if (jugadorId && temporada) {
-          const allPayments = await base44.entities.Payment.list();
-          const playerSeasonPayments = allPayments.filter(p => p.jugador_id === jugadorId && p.temporada === temporada && p.is_deleted !== true);
-          const toArchive = playerSeasonPayments.filter(p => {
-            const tipo = (p.tipo_pago || '').toLowerCase();
-            return tipo.includes('único') || tipo.includes('unico') || tipo.includes('tres meses');
-          });
-          for (const p of toArchive) {
-            await base44.entities.Payment.update(p.id, {
-              is_deleted: true,
-              deleted_by: user.email,
-              deleted_date: new Date().toISOString(),
-              deleted_reason: 'Reemplazado por Plan Especial',
-            });
-          }
-        }
-      } catch (e) { console.log('Cleanup pagos previos falló:', e); }
-      queryClient.invalidateQueries(['customPaymentPlans']);
-      setShowForm(false);
-      setSelectedPlayer(null);
-      toast.success("Plan de pago creado correctamente");
-    },
-  });
-
-  const updateCuotaMutation = useMutation({
-    mutationFn: async ({ planId, cuotas }) => base44.entities.CustomPaymentPlan.update(planId, { cuotas }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['customPaymentPlans']);
-      toast.success("Cuota actualizada");
-    },
-  });
-
-  const handleCreatePlan = async () => {
-    if (!selectedPlayer) {
-      toast.error("Selecciona un jugador");
-      return;
-    }
-
-    const user = await base44.auth.me();
-    const deudaFinal = formData.deuda_original - formData.deuda_condonada;
-    const cuotaMensual = deudaFinal / formData.numero_cuotas;
-    
-    const cuotas = Array.from({ length: formData.numero_cuotas }, (_, i) => {
-      const vencimiento = new Date();
-      vencimiento.setMonth(vencimiento.getMonth() + i + 1);
-      return {
-        numero: i + 1,
-        cantidad: cuotaMensual,
-        fecha_vencimiento: vencimiento.toISOString().split('T')[0],
-        pagada: false
-      };
-    });
-
-    const plan = {
-      jugador_id: selectedPlayer.id,
-      jugador_nombre: selectedPlayer.nombre,
-      familia_email: selectedPlayer.email_padre,
-      temporada: activeSeason.temporada,
-      deuda_original: formData.deuda_original,
-      deuda_condonada: formData.deuda_condonada,
-      deuda_final: deudaFinal,
-      numero_cuotas: formData.numero_cuotas,
-      cuotas,
-      motivo_plan: formData.motivo_plan,
-      motivo_detalle: formData.motivo_detalle,
-      creado_por: user.email,
-      aprobado_por: user.email,
-      fecha_aprobacion: new Date().toISOString(),
-      notas_internas: formData.notas_internas,
-      estado: "Activo"
-    };
-
-    createPlanMutation.mutate(plan);
-  };
-
-  const handleMarkCuotaPaid = async (plan, cuotaIndex, justificanteUrl) => {
+  const handleMarkCuotaPaid = async (plan, cuotaIndex) => {
     const updatedCuotas = [...plan.cuotas];
     updatedCuotas[cuotaIndex] = {
       ...updatedCuotas[cuotaIndex],
       pagada: true,
       fecha_pago: new Date().toISOString().split('T')[0],
-      justificante_url: justificanteUrl
     };
 
     const allPaid = updatedCuotas.every(c => c.pagada);
@@ -124,7 +35,23 @@ export default function CustomPaymentPlanManager({ activeSeason }) {
       cuotas: updatedCuotas,
       estado: allPaid ? "Completado" : "Activo"
     });
+
+    // Sincronizar el Payment correspondiente
+    try {
+      const payments = await base44.entities.Payment.filter({
+        plan_especial_id: plan.id,
+        mes: `Cuota ${updatedCuotas[cuotaIndex].numero}`
+      });
+      if (payments[0]) {
+        await base44.entities.Payment.update(payments[0].id, {
+          estado: 'Pagado',
+          fecha_pago: new Date().toISOString().split('T')[0],
+        });
+      }
+    } catch (e) { console.log('Error sync Payment:', e); }
+
     queryClient.invalidateQueries(['customPaymentPlans']);
+    queryClient.invalidateQueries(['myPayments']);
     toast.success("Cuota marcada como pagada");
   };
 
