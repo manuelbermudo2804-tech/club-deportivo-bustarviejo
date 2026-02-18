@@ -235,7 +235,7 @@ export default function ParentCoachChat() {
         leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
       };
 
-      queryClient.setQueryData(['coachParentChatMessages'], (old = []) => [...old, optimisticMessage]);
+      queryClient.setQueryData(['coachParentChatMessages', categoryKey], (old = []) => [...old, optimisticMessage]);
       return { previousMessages, tempId: optimisticMessage.id };
     },
     onError: (err, vars, context) => {
