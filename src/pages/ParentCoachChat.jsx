@@ -287,14 +287,12 @@ export default function ParentCoachChat() {
        return newMessage;
     },
     onSuccess: async (createdMessage, vars, context) => {
-      // Reemplazar el mensaje optimista por el real para evitar el "parpadeo"
-      queryClient.setQueryData(['coachParentChatMessages'], (old = []) => {
+      queryClient.setQueryData(['coachParentChatMessages', categoryKey], (old = []) => {
         if (!old || old.length === 0) return [createdMessage];
         return old.map(m => (m.id === context?.tempId ? createdMessage : m));
       });
-      // Refresco en segundo plano para sincronizar
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
+        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
       }, 300);
     },
   });
