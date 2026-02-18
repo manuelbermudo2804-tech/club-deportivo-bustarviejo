@@ -849,13 +849,17 @@ export default function ParentPayments() {
                 p.jugador_id === player.id && p.estado === "Activo"
               );
 
-              // Determinar tipo de pago - verificar si ALGÚN pago es de tipo único o plan especial
+              // Determinar tipo de pago - verificar si ALGÚN pago es de tipo único o plan especial o plan mensual
               const hasPagoUnico = allPlayerPayments.some(p => 
                 p.tipo_pago === "Único" || p.tipo_pago === "único"
               );
               
               const hasPlanEspecial = allPlayerPayments.some(p => 
                 p.tipo_pago === "Plan Especial"
+              );
+              
+              const hasPlanMensual = allPlayerPayments.some(p => 
+                p.tipo_pago === "Plan Mensual"
               );
               
               console.log(`🔍 [ParentPayments] ${player.nombre}:`, {
