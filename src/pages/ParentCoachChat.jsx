@@ -54,37 +54,51 @@ export default function ParentCoachChat() {
 
 
   useEffect(() => {
-    const fetchUser = async () => {
+    let cancelled = false;
+    const fetchUser = async (attempt = 0) => {
       try {
         const currentUser = await base44.auth.me();
+        if (cancelled) return;
         setUser(currentUser);
 
-        const allPlayers = await base44.entities.Player.list();
-        const players = allPlayers.filter(p => 
-          (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email || p.email_jugador === currentUser.email) && p.activo
-        );
-        setMyPlayers(players);
+        const allPlayers = await base44.entities.Player.filter({
+          $or: [
+            { email_padre: currentUser.email },
+            { email_tutor_2: currentUser.email },
+            { email_jugador: currentUser.email }
+          ],
+          activo: true
+        });
+        if (cancelled) return;
+        setMyPlayers(allPlayers);
         
-        if (players.length > 0 && !selectedCategory) {
-          // Si viene ?category=... desde el hub, bloquear en esa categoría (sin pestañas)
+        if (allPlayers.length > 0 && !selectedCategory) {
           const urlParams = new URLSearchParams(window.location.search);
           const urlCategory = urlParams.get('category');
-          if (urlCategory && players.some(p => (p.categoria_principal || p.deporte) === urlCategory)) {
+          if (urlCategory && allPlayers.some(p => (p.categoria_principal || p.deporte) === urlCategory)) {
             setSelectedCategory(urlCategory);
             setLockedCategory(urlCategory);
           } else {
-            const firstCat = players[0].categoria_principal || players[0].deporte;
+            const firstCat = allPlayers[0].categoria_principal || allPlayers[0].deporte;
             setSelectedCategory(firstCat);
           }
         }
+        setLoading(false);
       } catch (error) {
+        if (cancelled) return;
+        const is429 = error?.status === 429 || error?.message?.includes('Rate limit');
+        if (is429 && attempt < 3) {
+          const delay = Math.min(5000, 1500 * Math.pow(2, attempt));
+          console.log(`⏳ Chat: rate limited, reintentando en ${delay}ms...`);
+          setTimeout(() => fetchUser(attempt + 1), delay);
+          return;
+        }
         console.error("Error loading chat:", error);
-        toast.error("Error al cargar el chat");
-      } finally {
         setLoading(false);
       }
     };
     fetchUser();
+    return () => { cancelled = true; };
   }, []);
 
   // Obtener entrenador de la categoría seleccionada - DESACTIVADO porque los padres no tienen permiso para listar User
