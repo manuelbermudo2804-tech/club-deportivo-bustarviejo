@@ -369,6 +369,31 @@ export default function Payments() {
     
     await updatePaymentMutation.mutateAsync({ id: payment.id, paymentData: updatedData });
     
+    // Sincronizar CustomPaymentPlan si es un pago de Plan Especial
+    if (payment.tipo_pago === "Plan Especial" && payment.plan_especial_id) {
+      try {
+        const plans = await base44.entities.CustomPaymentPlan.filter({ id: payment.plan_especial_id });
+        const plan = plans?.[0];
+        if (plan?.cuotas) {
+          const cuotaNum = parseInt(payment.mes?.replace('Cuota ', '') || '0');
+          const updatedCuotas = plan.cuotas.map(c => {
+            if (c.numero === cuotaNum) {
+              return newStatus === "Pagado" 
+                ? { ...c, pagada: true, fecha_pago: updatedData.fecha_pago }
+                : { ...c, pagada: false, fecha_pago: null };
+            }
+            return c;
+          });
+          const allPaid = updatedCuotas.every(c => c.pagada);
+          await base44.entities.CustomPaymentPlan.update(plan.id, {
+            cuotas: updatedCuotas,
+            estado: allPaid ? "Completado" : "Activo"
+          });
+          queryClient.invalidateQueries({ queryKey: ['customPaymentPlans'] });
+        }
+      } catch (e) { console.log('Error sincronizando CustomPaymentPlan:', e); }
+    }
+    
     // Generar recibo PDF cuando se marca como Pagado
     if (newStatus === "Pagado") {
       try {
