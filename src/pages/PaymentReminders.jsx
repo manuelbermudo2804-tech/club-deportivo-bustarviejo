@@ -215,6 +215,70 @@ export default function PaymentReminders() {
         return;
       }
 
+      // Detectar Plan Mensual (pago inicial + mensualidades Stripe)
+      const hasPlanMensual = playerPayments.some(p => p.tipo_pago === "Plan Mensual");
+      if (hasPlanMensual) {
+        const pmInitial = playerPayments.find(p => p.tipo_pago === "Plan Mensual" && p.mes === "Junio");
+        const numMeses = pmInitial?.plan_mensual_meses || (() => {
+          const m = pmInitial?.notas?.match(/(\d+)x [\d.]+€\/mes/);
+          return m ? Number(m[1]) : 0;
+        })();
+        const mensualidad = pmInitial?.plan_mensual_mensualidad || (() => {
+          const m = pmInitial?.notas?.match(/(\d+)x ([\d.]+)€\/mes/);
+          return m ? Number(m[2]) : 0;
+        })();
+        const totalEsperadas = 1 + numMeses; // pago inicial + N mensualidades
+        const allPM = playerPayments.filter(p => p.tipo_pago === "Plan Mensual");
+        const pagados = allPM.filter(p => p.estado === "Pagado");
+        const pendientes = allPM.filter(p => p.estado === "Pendiente");
+
+        const pendingMonths = [];
+
+        // Pago inicial pendiente
+        if (pmInitial && pmInitial.estado === "Pendiente") {
+          pendingMonths.push({
+            mes: "Pago Inicial (Plan Mensual)",
+            cantidad: pmInitial.cantidad,
+            payment_id: pmInitial.id,
+            isVirtual: false
+          });
+        }
+
+        // Mensualidades pendientes registradas
+        pendientes.filter(p => p.id !== pmInitial?.id).forEach(p => {
+          pendingMonths.push({
+            mes: p.mes || "Mensualidad",
+            cantidad: p.cantidad,
+            payment_id: p.id,
+            isVirtual: false
+          });
+        });
+
+        // Mensualidades futuras aún no creadas por Stripe
+        const mensualidadesCobradas = allPM.filter(p => p.mes !== "Junio" && (p.estado === "Pagado" || p.estado === "En revisión" || p.estado === "Pendiente")).length;
+        const mensualidadesFaltantes = Math.max(0, numMeses - mensualidadesCobradas);
+        for (let i = 0; i < mensualidadesFaltantes; i++) {
+          pendingMonths.push({
+            mes: `Mensualidad futura (${i + mensualidadesCobradas + 1}/${numMeses})`,
+            cantidad: mensualidad,
+            payment_id: null,
+            isVirtual: true
+          });
+        }
+
+        const totalDue = pendingMonths.reduce((sum, m) => sum + m.cantidad, 0);
+        familyMap[familyEmail].jugadores.push({
+          id: player.id,
+          nombre: player.nombre,
+          deporte: player.deporte,
+          foto_url: player.foto_url,
+          pendingMonths,
+          totalDue,
+          hasPendingPayments: pendingMonths.length > 0
+        });
+        return;
+      }
+
       // Detectar si tiene pago único (pagado, en revisión O pendiente)
       const hasPagoUnico = playerPayments.some(p => 
         p.tipo_pago === "Único" || p.tipo_pago === "único"
