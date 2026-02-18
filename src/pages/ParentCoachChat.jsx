@@ -215,8 +215,8 @@ export default function ParentCoachChat() {
 
   const sendMessageMutation = useMutation({
     onMutate: async (messageData) => {
-      await queryClient.cancelQueries({ queryKey: ['coachParentChatMessages'] });
-      const previousMessages = queryClient.getQueryData(['coachParentChatMessages']);
+      await queryClient.cancelQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
+      const previousMessages = queryClient.getQueryData(['coachParentChatMessages', categoryKey]);
 
       const categoryKey = toGroupId(selectedCategory || "");
       const optimisticMessage = {
