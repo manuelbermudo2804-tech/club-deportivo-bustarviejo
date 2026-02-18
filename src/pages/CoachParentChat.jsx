@@ -306,7 +306,7 @@ export default function CoachParentChat({ embedded = false }) {
   }
 
   return (
-    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden min-h-0 pt-[100px] lg:pt-0 pb-0">
+    <div className="fixed inset-0 flex flex-col overflow-hidden min-h-0 pt-[100px] lg:pt-0 lg:static lg:h-[calc(100vh-0px)]">
       {/* Modal de configuración */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -317,7 +317,7 @@ export default function CoachParentChat({ embedded = false }) {
         </DialogContent>
       </Dialog>
 
-      <Card className="h-full flex flex-col overflow-hidden min-h-0 lg:rounded-lg rounded-none border-green-200 shadow-lg lg:max-w-4xl lg:mx-auto lg:my-4 lg:h-[calc(100vh-2rem)]">
+      <Card className="h-full flex flex-col overflow-hidden min-h-0 lg:rounded-lg rounded-none border-green-200 shadow-lg">
         <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
           <div className="p-2 flex items-center justify-between border-b border-green-500/30">
             <h1 className="text-base font-bold flex items-center gap-2">

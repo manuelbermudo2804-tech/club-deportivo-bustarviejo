@@ -500,8 +500,8 @@ export default function ParentCoachChat() {
       )}
 
       {/* ====== Mismo diseño móvil/desktop, centrado en PC ====== */}
-      <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0 lg:relative lg:inset-auto lg:h-[calc(100vh-0px)]">
-        <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden rounded-none lg:rounded-lg lg:max-w-4xl lg:mx-auto lg:my-4 lg:h-[calc(100vh-2rem)]">
+      <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 lg:static lg:h-[calc(100vh-0px)]">
+        <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden rounded-none lg:rounded-lg">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 flex-shrink-0">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-sm"><MessageCircle className="w-4 h-4" /> Chat Entrenador</CardTitle>
