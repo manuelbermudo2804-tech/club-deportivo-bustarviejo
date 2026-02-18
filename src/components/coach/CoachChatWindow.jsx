@@ -84,9 +84,10 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       }
 
       const grupo_id = toGroupId(selectedCategory);
-      // Usar solo grupo_id para la consulta principal (más rápido)
-      const msgs = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date', 200);
-      return msgs;
+      // Try grupo_id first (canonical), fall back to deporte for legacy
+      const byGroup = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date', 200);
+      if (byGroup.length > 0) return byGroup;
+      return await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
     },
     refetchInterval: false,
     refetchOnWindowFocus: false,
@@ -412,8 +413,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     queryKey: ['chatbotConfig', selectedCategory, user?.email],
     queryFn: async () => {
       if (!selectedCategory || !user?.email) return null;
-      const configs = await base44.entities.ChatbotConfig.filter({ categoria: selectedCategory, entrenador_email: user.email });
-      return configs[0] || null;
+      const all = await base44.entities.ChatbotConfig.list('-updated_date', 50);
+      return all.find(c => c.categoria === selectedCategory && c.entrenador_email === user.email) || null;
     },
     enabled: !!selectedCategory && !!user,
     staleTime: 120000,

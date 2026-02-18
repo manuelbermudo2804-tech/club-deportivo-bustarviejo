@@ -114,7 +114,11 @@ export default function ParentCoachChat() {
     queryKey: ['coachParentChatMessages', categoryKey],
     queryFn: async () => {
       if (!user || !categoryKey) return [];
-      return await base44.entities.ChatMessage.filter({ grupo_id: categoryKey }, 'created_date', 200);
+      // Try grupo_id first (canonical), fall back to deporte for legacy messages
+      const byGroup = await base44.entities.ChatMessage.filter({ grupo_id: categoryKey }, 'created_date', 200);
+      if (byGroup.length > 0) return byGroup;
+      // Legacy fallback: some older messages only have deporte set
+      return await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
     },
     enabled: !!user && !!categoryKey,
     refetchInterval: false,
@@ -190,8 +194,8 @@ export default function ParentCoachChat() {
     queryKey: ['coachSettings', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return null;
-      const allSettings = await base44.entities.CoachSettings.filter({ categorias_entrena: selectedCategory });
-      return allSettings[0] || null;
+      const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
+      return allSettings.find(s => (s.categorias_entrena || []).includes(selectedCategory)) || null;
     },
     enabled: !!selectedCategory,
     staleTime: 120000,
