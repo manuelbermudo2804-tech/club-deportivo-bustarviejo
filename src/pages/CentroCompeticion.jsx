@@ -260,10 +260,8 @@ export default function CentroCompeticion() {
       const fecha_actualizacion = latest.updated_date || new Date().toISOString();
       return { categoria: category, temporada, jornada: maxJornada ?? '-', fecha_actualizacion, data: rows };
     },
-    staleTime: 10 * 60_000,
-    gcTime: 60 * 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: (prev) => prev,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   const filteredStandingsPack = React.useMemo(() => {
@@ -325,7 +323,7 @@ export default function CentroCompeticion() {
       }
 
       setStandingsDraft(null);
-      queryClient.invalidateQueries({ queryKey: ['centro-standings', category] });
+      await queryClient.refetchQueries({ queryKey: ['centro-standings', category] });
       alert('Clasificación guardada');
     } finally {
       setSavingStandings(false);
@@ -362,8 +360,7 @@ export default function CentroCompeticion() {
       if (rows.length) await base44.entities.Resultado.bulkCreate(rows);
 
       setResultsDraft(null);
-      // Refrescar lista de resultados de la categoría actual
-      queryClient.invalidateQueries({ queryKey: ['resultados', categoria] });
+      await queryClient.refetchQueries({ queryKey: ['resultados', categoria] });
       alert('Resultados guardados');
     } finally {
       setSavingResults(false);
@@ -410,7 +407,7 @@ export default function CentroCompeticion() {
       if (rows.length) await base44.entities.Goleador.bulkCreate(rows);
 
       setScorersDraft(null);
-      queryClient.invalidateQueries({ queryKey: ['goleadores', categoria] });
+      await queryClient.refetchQueries({ queryKey: ['goleadores', categoria] });
       alert('Goleadores guardados');
     } finally {
       setSavingScorers(false);
