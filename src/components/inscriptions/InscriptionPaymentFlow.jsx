@@ -42,11 +42,17 @@ export default function InscriptionPaymentFlow({
   seasonConfig, 
   categoryConfigs,
   descuentoHermano = 0,
-  onContinue
+  onContinue,
+  userEmail
 }) {
   const [tipoPago, setTipoPago] = useState("Único");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const planMensualEnabled = seasonConfig?.permitir_plan_mensual === true;
+  
+  // Plan Mensual: si modo test activado, solo mostrar a emails de la lista
+  const planMensualGlobal = seasonConfig?.permitir_plan_mensual === true;
+  const planMensualModoTest = seasonConfig?.plan_mensual_modo_test === true;
+  const planMensualTestEmails = (seasonConfig?.plan_mensual_emails_test || []).map(e => e.toLowerCase().trim());
+  const planMensualEnabled = planMensualGlobal && (!planMensualModoTest || planMensualTestEmails.includes((userEmail || '').toLowerCase().trim()));
   const pctInicial = seasonConfig?.plan_mensual_porcentaje_inicial || 60;
   const mesFin = seasonConfig?.plan_mensual_mes_fin || "Mayo";
 
