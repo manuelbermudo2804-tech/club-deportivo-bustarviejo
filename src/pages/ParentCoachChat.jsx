@@ -109,33 +109,17 @@ export default function ParentCoachChat() {
     }
   }, [selectedCategory]);
 
-  // Obtener mensajes SOLO del grupo seleccionado (evita cargar todo)
+  // Obtener mensajes SOLO del grupo seleccionado
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ['coachParentChatMessages', categoryKey],
     queryFn: async () => {
       if (!user || !categoryKey) return [];
-      // Fetch by both normalized grupo_id AND original deporte name (handles legacy data)
-      const [byGroup, bySport] = await Promise.all([
-        base44.entities.ChatMessage.filter(
-          { grupo_id: categoryKey, tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } },
-          'created_date'
-        ),
-        base44.entities.ChatMessage.filter(
-          { deporte: selectedCategory, tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } },
-          'created_date'
-        ),
-      ]);
-      // Deduplicate by id
-      const merged = {};
-      for (const m of [...byGroup, ...bySport]) merged[m.id] = m;
-      return Object.values(merged).sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+      return await base44.entities.ChatMessage.filter({ grupo_id: categoryKey }, 'created_date', 200);
     },
     enabled: !!user && !!categoryKey,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: 60000,
-    retry: 2,
-    retryDelay: (attempt) => Math.min(2000 * Math.pow(2, attempt), 10000),
+    staleTime: 30000,
   });
 
   // REAL-TIME: Suscripción a mensajes del grupo activo
@@ -206,21 +190,11 @@ export default function ParentCoachChat() {
     queryKey: ['coachSettings', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return null;
-      
-      // Obtener todos los settings
-      const allSettings = await base44.entities.CoachSettings.list();
-      
-      // Buscar el setting del entrenador que entrena ESTA categoría específica
-      const relevantSettings = allSettings.find(s => 
-        s.categorias_entrena?.includes(selectedCategory)
-      );
-      
-      console.log('🔍 Buscando settings para categoría:', selectedCategory);
-      console.log('📋 Settings encontrados:', relevantSettings);
-      
-      return relevantSettings || null;
+      const allSettings = await base44.entities.CoachSettings.filter({ categorias_entrena: selectedCategory });
+      return allSettings[0] || null;
     },
     enabled: !!selectedCategory,
+    staleTime: 120000,
   });
 
   const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
