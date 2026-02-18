@@ -143,7 +143,9 @@ export default function ParentCoachChat() {
     if (!user || !categoryKey) return;
     
     const unsub = base44.entities.ChatMessage.subscribe((event) => {
-      if (event.data?.grupo_id === categoryKey && event.data?.remitente_email !== user.email) {
+      // Match by normalized grupo_id OR by deporte name
+      const eventGid = toGroupId(event.data?.grupo_id || event.data?.deporte || '');
+      if (eventGid === categoryKey && event.data?.remitente_email !== user.email) {
         queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
       }
     });
