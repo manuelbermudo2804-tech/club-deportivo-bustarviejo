@@ -510,9 +510,9 @@ export default function ParentCoachChat() {
         </div>
       )}
 
-      {/* ====== MOBILE: pestañas clásicas (sin cambios) ====== */}
-      <div className="lg:hidden fixed inset-0 flex flex-col overflow-hidden pt-[100px] pb-0">
-        <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden rounded-none">
+      {/* ====== Mismo diseño móvil/desktop, centrado en PC ====== */}
+      <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0 lg:relative lg:inset-auto lg:h-[calc(100vh-0px)]">
+        <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden rounded-none lg:rounded-lg lg:max-w-4xl lg:mx-auto lg:my-4 lg:h-[calc(100vh-2rem)]">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 flex-shrink-0">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-sm"><MessageCircle className="w-4 h-4" /> Chat Entrenador</CardTitle>
@@ -522,9 +522,9 @@ export default function ParentCoachChat() {
           <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
             {!lockedCategory && categories.some(cat => getUnreadCountByCategory(cat) > 0) && (
               <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
-                <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos:</span>
+                <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
                 {categories.filter(cat => getUnreadCountByCategory(cat) > 0).map(cat => (
-                  <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900">
+                  <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900 hover:bg-yellow-300 transition-colors whitespace-nowrap">
                     {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                     <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">{getUnreadCountByCategory(cat)}</Badge>
                   </button>
@@ -548,31 +548,6 @@ export default function ParentCoachChat() {
             {renderMessages()}
           </CardContent>
         </Card>
-      </div>
-
-      {/* ====== DESKTOP: sidebar + chat panel ====== */}
-      <div className="hidden lg:flex h-[calc(100vh-0px)] overflow-hidden rounded-lg border border-blue-200 shadow-lg">
-        {!lockedCategory && categories.length > 1 && (
-          <ChatSidebar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelect={setSelectedCategory}
-            unreadByCategory={Object.fromEntries(categories.map(c => [c, getUnreadCountByCategory(c)]))}
-            lastMessages={lastMessagesByCategory}
-          />
-        )}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
-            <div className="p-2 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-bold">
-                <MessageCircle className="w-4 h-4" />
-                {selectedCategory ? selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '') : "Chat Equipo"}
-              </div>
-              <EscalateToCoordinatorButton user={user} categoria={selectedCategory} recentMessages={messages} />
-            </div>
-          </div>
-          {renderMessages()}
-        </div>
       </div>
     </>
     );
