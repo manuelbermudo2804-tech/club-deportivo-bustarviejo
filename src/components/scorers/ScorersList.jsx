@@ -62,8 +62,45 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
     );
   }
 
+  // Extract Bustarviejo scorers for highlight banner
+  const bustScorers = scorers
+    .filter(s => isBustarviejo(s.equipo))
+    .sort((a, b) => (b.goles ?? 0) - (a.goles ?? 0));
+
   return (
     <div className="space-y-4">
+      {/* Bustarviejo Scorers Highlight Banner */}
+      {bustScorers.length > 0 && (
+        <Card className="border-2 border-orange-400 bg-gradient-to-r from-orange-50 via-white to-green-50 shadow-lg overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-orange-700">
+              <Trophy className="w-5 h-5 text-orange-500" />
+              Goleadores del CD Bustarviejo
+              <Badge className="bg-orange-600 text-white ml-2">{bustScorers.length} jugadores</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {bustScorers.map((s, i) => (
+                <div key={s.id || `bust-${i}`} className={`flex items-center gap-3 p-3 rounded-xl border ${i === 0 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300 shadow-md' : 'bg-white border-orange-200'}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${i === 0 ? 'bg-yellow-400 text-yellow-900' : i === 1 ? 'bg-slate-300 text-slate-800' : i === 2 ? 'bg-orange-300 text-orange-900' : 'bg-orange-100 text-orange-700'}`}>
+                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-900 truncate text-sm">{s.jugador_nombre}</p>
+                    <p className="text-xs text-slate-500 truncate">{s.equipo}</p>
+                  </div>
+                  <div className={`text-xl font-black ${i === 0 ? 'text-yellow-600' : 'text-orange-600'}`}>
+                    {s.goles}
+                    <span className="text-xs font-normal text-slate-500 ml-0.5">goles</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {temporadas.map(temporada => (
         <Card key={temporada} className="hover:shadow-lg transition-shadow">
           <CardHeader>
