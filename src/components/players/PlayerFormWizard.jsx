@@ -16,6 +16,7 @@ import StepDocuments from "./wizard/StepDocuments";
 import StepTutor from "./wizard/StepTutor";
 import StepMedical from "./wizard/StepMedical";
 import StepAuthorizations from "./wizard/StepAuthorizations";
+import StepNormativa from "./wizard/StepNormativa";
 import StepSummary from "./wizard/StepSummary";
 import SecondParentSection from "./SecondParentSection";
 import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
@@ -77,9 +78,9 @@ const useCategoriesFromConfig = () => {
 };
 
 // --- STEPS for new player ---
-// 0: PlayerData, 1: Category, 2: Documents, 3: Tutor, 4: SecondParent, 5: Medical, 6: Authorizations, 7: Summary
-const NEW_STEP_LABELS = ["Jugador", "Categoría", "Documentos", "Tutor", "2º Progenitor", "Médica", "Autorizaciones", "Resumen"];
-const NEW_TOTAL = 8;
+// 0: PlayerData, 1: Category, 2: Documents, 3: Tutor, 4: SecondParent, 5: Medical, 6: Normativa, 7: Authorizations, 8: Summary
+const NEW_STEP_LABELS = ["Jugador", "Categoría", "Documentos", "Tutor", "2º Progenitor", "Médica", "Normativa", "Autorizaciones", "Resumen"];
+const NEW_TOTAL = 9;
 
 // --- STEPS for edit (reduced: no authorizations step, no summary) ---
 
@@ -245,6 +246,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!currentPlayer.municipio?.trim()) errors.municipio = "Municipio obligatorio";
     }
     if (s === 6 && !isEditing) {
+      if (!currentPlayer.acepta_normativa) errors.acepta_normativa = "Debes aceptar la normativa del club";
+    }
+    if (s === 7 && !isEditing) {
       if (!currentPlayer.acepta_politica_privacidad) errors.acepta_politica_privacidad = "Debes aceptar la política";
       if (!currentPlayer.autorizacion_fotografia) errors.autorizacion_fotografia = "Selecciona una opción";
     }
@@ -266,13 +270,20 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const handleBack = () => { setFieldErrors({}); setStep(s => Math.max(s - 1, 0)); };
 
   const handleFinalSubmit = () => {
-    // Validate authorizations step if new
+    // Validate normativa + authorizations steps if new
     if (!isEditing) {
-      const authErrors = validateStep(6);
+      const normErrors = validateStep(6);
+      if (Object.keys(normErrors).length > 0) {
+        setFieldErrors(normErrors);
+        toast.error(Object.values(normErrors)[0]);
+        setStep(6);
+        return;
+      }
+      const authErrors = validateStep(7);
       if (Object.keys(authErrors).length > 0) {
         setFieldErrors(authErrors);
         toast.error(Object.values(authErrors)[0]);
-        setStep(6);
+        setStep(7);
         return;
       }
     }
@@ -340,8 +351,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         </div>
       );
       case 5: return <StepMedical currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} />;
-      case 6: return isEditing ? null : <StepAuthorizations currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} isEditing={isEditing} />;
-      case 7: return isEditing ? null : <StepSummary currentPlayer={currentPlayer} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} siblingDiscount={siblingDiscount} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} />;
+      case 6: return isEditing ? null : <StepNormativa currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} />;
+      case 7: return isEditing ? null : <StepAuthorizations currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} isEditing={isEditing} />;
+      case 8: return isEditing ? null : <StepSummary currentPlayer={currentPlayer} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} siblingDiscount={siblingDiscount} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} />;
       default: return null;
     }
   };
