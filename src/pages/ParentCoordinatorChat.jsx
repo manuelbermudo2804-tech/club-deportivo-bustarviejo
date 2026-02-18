@@ -4,13 +4,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, Smile, Play, Pause } from "lucide-react";
+import { X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, AlertTriangle, Smile, Play, Pause } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea as DialogTextarea } from "@/components/ui/textarea";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
@@ -27,7 +28,8 @@ export default function ParentCoordinatorChat() {
   const [conversation, setConversation] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(null);
-
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportReason, setReportReason] = useState("");
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showReactions, setShowReactions] = useState(null);
@@ -410,7 +412,23 @@ export default function ParentCoordinatorChat() {
     setShowReactions(null);
   };
 
-
+  const reportConversationMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.CoordinatorConversation.update(conversation.id, {
+        reportada_admin: true,
+        reportada_por: user.email,
+        reportada_nombre: user.full_name,
+        fecha_reporte: new Date().toISOString(),
+        motivo_reporte: reportReason
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages'] });
+      setShowReportDialog(false);
+      setReportReason("");
+      toast.success("✅ Conversación reportada. El administrador la revisará pronto.");
+    },
+  });
 
   if (!conversation || !user) {
     return (
@@ -448,6 +466,11 @@ export default function ParentCoordinatorChat() {
             <CardTitle className="flex items-center gap-2 text-sm">
               <MessageCircle className="w-4 h-4" />
               Chat Coordinador
+              {conversation?.reportada_admin && (
+                <Badge className="bg-red-500 text-white text-xs ml-2">
+                  🔴 Bajo revisión
+                </Badge>
+              )}
             </CardTitle>
             <div className="flex gap-1">
               <Button 
@@ -583,7 +606,63 @@ export default function ParentCoordinatorChat() {
         </div>
       )}
 
+      {/* Dialog: Reportar Conversación */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-700">
+              <AlertTriangle className="w-5 h-5" />
+              ⚠️ Reportar Conversación
+            </DialogTitle>
+            <DialogDescription className="text-slate-600">
+              Solo usa esto si hay un problema serio que requiera supervisión administrativa
+            </DialogDescription>
+          </DialogHeader>
 
+          <div className="space-y-4 py-4">
+            <Alert className="bg-red-50 border-red-300">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <AlertDescription className="text-red-800 ml-2 text-sm">
+                <strong>Al reportar:</strong> El administrador podrá ver esta conversación completa para resolver el problema.
+              </AlertDescription>
+            </Alert>
+
+            <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+              <p className="text-sm font-medium text-slate-700">✋ Solo reporta si hay:</p>
+              <ul className="text-xs text-slate-600 space-y-1 ml-4">
+                <li>• Conflicto serio con el coordinador</li>
+                <li>• Falta de comunicación importante</li>
+                <li>• Cualquier problema que requiera intervención</li>
+              </ul>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">
+                Describe brevemente el problema (opcional):
+              </label>
+              <DialogTextarea
+                placeholder="Ej: No responde a mis mensajes sobre horarios..."
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                rows={3}
+                className="text-sm"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReportDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => reportConversationMutation.mutate()}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              ⚠️ Sí, reportar conversación
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     </>
   );

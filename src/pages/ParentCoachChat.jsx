@@ -11,7 +11,7 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
-
+import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinatorButton";
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import ParentChatInput from "../components/chat/ParentChatInput";
