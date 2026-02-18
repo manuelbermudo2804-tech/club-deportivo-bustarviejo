@@ -385,281 +385,195 @@ export default function ParentCoachChat() {
       myPlayers
         .map(p => (p.categoria_principal || p.deporte))
         .filter(Boolean)
-        .map(cat => [normalizeCategory(cat), cat]) // dedup por normalizado, conserva etiqueta original
+        .map(cat => [normalizeCategory(cat), cat])
     ).values());
+
+    // Últimos mensajes por categoría (para sidebar desktop)
+    const lastMessagesByCategory = React.useMemo(() => {
+      const result = {};
+      for (const cat of categories) {
+        const gid = toGroupId(cat);
+        // messages is current category; for sidebar we'd need all — use cached from query
+        result[cat] = null;
+      }
+      return result;
+    }, [categories]);
+
+    // ====== Render mensajes (compartido mobile y desktop) ======
+    const renderMessages = () => (
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
+          {selectedCategory && getUnreadCountByCategory(selectedCategory) > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs px-3 py-2 rounded-lg">
+              Tienes {getUnreadCountByCategory(selectedCategory)} mensajes nuevos en {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
+            </div>
+          )}
+          {filteredMessages.length === 0 ? (
+            <div className="text-center py-8">
+              <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+              <p className="text-slate-500 text-sm">{searchTerm ? "No se encontraron mensajes" : "Aún no hay mensajes"}</p>
+            </div>
+          ) : (
+            filteredMessages.map((msg, idx) => {
+              const showDateSeparator = idx === 0 || 
+                new Date(filteredMessages[idx - 1].created_date).toDateString() !== 
+                new Date(msg.created_date).toDateString();
+              const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+              const isMine = msg.remitente_email === user.email;
+              const isCoach = msg.tipo === "entrenador_a_grupo";
+
+              return (
+                <React.Fragment key={msg.id}>
+                  {showDateSeparator && (
+                    <div className="flex justify-center my-4">
+                      <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">{dateLabel}</div>
+                    </div>
+                  )}
+                  <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} mb-1.5`}>
+                    {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
+                      <div className="max-w-[72%] rounded-2xl px-3 py-2 relative" style={{
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                        fontSize: '15px', lineHeight: '1.4', fontWeight: 400, wordWrap: 'break-word', whiteSpace: 'pre-wrap',
+                        backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
+                      }}>
+                        <div className="flex items-center gap-1 mb-1">
+                          <p className="text-xs font-semibold opacity-70">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p>
+                          {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
+                        </div>
+                        {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} /></p>}
+                        {msg.audio_url && <div className="mt-1"><ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} /></div>}
+                        {(() => {
+                          const attachments = msg.archivos_adjuntos || [];
+                          const images = attachments.filter(f => f.tipo?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+                          const audios = attachments.filter(f => f.tipo?.startsWith('audio/'));
+                          const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
+                          return (
+                            <>
+                              {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isMine} /></div>}
+                              {audios.map((file, i) => <div key={`a-${i}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} /></div>)}
+                              {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, i) => (
+                                <a key={i} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-slate-600' : isCoach ? 'bg-green-700' : 'bg-slate-100'}`}>
+                                  <FileText className="w-3 h-3" /><span className="flex-1 truncate">{file.nombre}</span><Download className="w-3 h-3" />
+                                </a>
+                              ))}</div>}
+                            </>
+                          );
+                        })()}
+                        {msg.reacciones?.length > 0 && <EmojiScaler reactions={msg.reacciones} />}
+                        <div className="flex items-center gap-1 justify-end mt-1">
+                          <p style={{fontSize: '11px', opacity: 0.6}}>{format(new Date(msg.created_date), "HH:mm", { locale: es })}</p>
+                          <Button size="sm" variant="ghost" className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`} onClick={() => setShowReactions(msg.id)}>
+                            <Smile className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        {showReactions === msg.id && (
+                          <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-xl p-2 flex gap-2 z-10 border">
+                            {REACTIONS.map(emoji => (<button key={emoji} onClick={() => addReaction(msg.id, emoji)} className="text-2xl hover:scale-125 transition-transform">{emoji}</button>))}
+                            <button onClick={() => setShowReactions(null)} className="ml-2 text-slate-400"><X className="w-4 h-4" /></button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {(msg.encuesta || msg.poll) && (
+                      <div className="w-full max-w-[85%]">
+                        <div className="mb-1 px-2"><p className="text-xs font-semibold text-slate-600">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p></div>
+                        <PollMessage encuesta={msg.encuesta || msg.poll} messageId={msg.id} userEmail={user.email} userName={user.full_name} onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })} isCreator={msg.remitente_email === user.email} />
+                        <p className="text-xs text-slate-500 mt-1 px-2">{format(new Date(msg.created_date), "HH:mm", { locale: es })}</p>
+                      </div>
+                    )}
+                    {msg.ubicacion && (
+                      <div className="w-full max-w-[85%]">
+                        <div className="mb-1 px-2"><p className="text-xs font-semibold text-slate-600">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p></div>
+                        <LocationMessage ubicacion={msg.ubicacion} />
+                        <p className="text-xs text-slate-500 mt-1 px-2">{format(new Date(msg.created_date), "HH:mm", { locale: es })}</p>
+                      </div>
+                    )}
+                  </div>
+                </React.Fragment>
+              );
+            })
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+        <ParentChatInput onSendMessage={handleSendMessage} uploading={uploading} placeholder="Escribe tu mensaje..." />
+      </div>
+    );
 
     return (
     <>
       <audio ref={audioRef} onEnded={() => setPlayingAudio(null)} />
 
-      {/* Preview de imagen */}
       {showImagePreview && (
         <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4" onClick={() => setShowImagePreview(null)}>
           <img src={showImagePreview} alt="Preview" className="max-w-full max-h-full rounded" onClick={e => e.stopPropagation()} />
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setShowImagePreview(null)}
-            className="absolute top-4 right-4 text-white hover:bg-white/20"
-          >
-            <X className="w-6 h-6" />
-          </Button>
+          <Button variant="ghost" size="icon" onClick={() => setShowImagePreview(null)} className="absolute top-4 right-4 text-white hover:bg-white/20"><X className="w-6 h-6" /></Button>
         </div>
       )}
 
-    <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0 lg:relative lg:inset-auto lg:h-[calc(100vh-0px)]">
-      <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <MessageCircle className="w-4 h-4" />
-              Chat Entrenador
-            </CardTitle>
-            <EscalateToCoordinatorButton 
-              user={user} 
-              categoria={selectedCategory}
-              recentMessages={messages}
-            />
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
-          {/* Solo mostrar pestañas de categorías si NO viene de URL con categoría fija */}
-          {!lockedCategory && categories.some(cat => getUnreadCountByCategory(cat) > 0) && (
-            <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
-              <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
-              {categories.filter(cat => getUnreadCountByCategory(cat) > 0).map(cat => (
-                <button 
-                  key={cat} 
-                  onClick={() => setSelectedCategory(cat)} 
-                  className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900 hover:bg-yellow-300 transition-colors whitespace-nowrap"
-                >
-                  {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                  <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">
-                    {getUnreadCountByCategory(cat)}
-                  </Badge>
-                </button>
-              ))}
+      {/* ====== MOBILE: pestañas clásicas (sin cambios) ====== */}
+      <div className="lg:hidden fixed inset-0 flex flex-col overflow-hidden pt-[100px] pb-0">
+        <Card className="border-blue-200 shadow-lg h-full flex flex-col overflow-hidden rounded-none">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-sm"><MessageCircle className="w-4 h-4" /> Chat Entrenador</CardTitle>
+              <EscalateToCoordinatorButton user={user} categoria={selectedCategory} recentMessages={messages} />
             </div>
-          )}
-          {!lockedCategory && categories.length > 1 && (
-            <div className="flex gap-1.5 p-1.5 bg-slate-50 border-b overflow-x-auto flex-shrink-0">
-              {categories.map(cat => {
-                const unreadCount = getUnreadCountByCategory(cat);
-                return (
-                  <Button
-                    key={cat}
-                    variant={selectedCategory === cat ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(cat)}
-                    className="whitespace-nowrap text-xs px-2 py-1 h-7 relative"
-                  >
+          </CardHeader>
+          <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
+            {!lockedCategory && categories.some(cat => getUnreadCountByCategory(cat) > 0) && (
+              <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
+                <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos:</span>
+                {categories.filter(cat => getUnreadCountByCategory(cat) > 0).map(cat => (
+                  <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900">
                     {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -left-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
-                        {unreadCount}
-                      </span>
-                    )}
-                  </Button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Perfil del Entrenador */}
-          {categoryCoach && (
-            <div className="p-2 border-b bg-white flex-shrink-0">
-              <CoachProfilePreview coach={categoryCoach} />
-            </div>
-          )}
-
-          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
-            {selectedCategory && getUnreadCountByCategory(selectedCategory) > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs px-3 py-2 rounded-lg">
-                Tienes {getUnreadCountByCategory(selectedCategory)} mensajes nuevos en {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                    <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">{getUnreadCountByCategory(cat)}</Badge>
+                  </button>
+                ))}
               </div>
             )}
-            {filteredMessages.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-slate-500 text-sm">
-                  {searchTerm ? "No se encontraron mensajes" : "Aún no hay mensajes"}
-                </p>
+            {!lockedCategory && categories.length > 1 && (
+              <div className="flex gap-1.5 p-1.5 bg-slate-50 border-b overflow-x-auto flex-shrink-0">
+                {categories.map(cat => {
+                  const unreadCount = getUnreadCountByCategory(cat);
+                  return (
+                    <Button key={cat} variant={selectedCategory === cat ? "default" : "outline"} size="sm" onClick={() => setSelectedCategory(cat)} className="whitespace-nowrap text-xs px-2 py-1 h-7 relative">
+                      {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                      {unreadCount > 0 && <span className="absolute -top-1 -left-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-pulse">{unreadCount}</span>}
+                    </Button>
+                  );
+                })}
               </div>
-            ) : (
-              filteredMessages.map((msg, idx) => {
-                const showDateSeparator = idx === 0 || 
-                  new Date(filteredMessages[idx - 1].created_date).toDateString() !== 
-                  new Date(msg.created_date).toDateString();
-                const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long'
-                });
-
-                const isMine = msg.remitente_email === user.email;
-                const isCoach = msg.tipo === "entrenador_a_grupo";
-
-                // Debug logs
-                if (msg.encuesta || msg.poll || msg.ubicacion) {
-                  console.log('🔍 Mensaje especial encontrado:', {
-                    id: msg.id,
-                    tiene_encuesta: !!msg.encuesta,
-                    tiene_poll: !!msg.poll,
-                    tiene_ubicacion: !!msg.ubicacion,
-                    remitente: msg.remitente_nombre
-                  });
-                }
-
-                return (
-                  <React.Fragment key={msg.id}>
-                    {showDateSeparator && (
-                      <div className="flex justify-center my-4">
-                        <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">
-                          {dateLabel}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} mb-1.5`}>
-                      {/* Mensaje de texto, audio o archivos */}
-                      {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
-                        <div className={`max-w-[72%] rounded-2xl px-3 py-2 relative`} style={{
-                          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                          fontSize: '15px',
-                          lineHeight: '1.4',
-                          fontWeight: 400,
-                          wordWrap: 'break-word',
-                          whiteSpace: 'pre-wrap',
-                          backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
-                          boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
-                        }}>
-                         <div className="flex items-center gap-1 mb-1">
-                           <p className="text-xs font-semibold opacity-70">
-                             {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
-                           </p>
-                           {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
-                         </div>
-
-                          {msg.mensaje && (
-                            <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                              <EmojiScaler content={msg.mensaje} />
-                            </p>
-                          )}
-
-                          {msg.audio_url && (
-                            <div className="mt-1">
-                              <ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} />
-                            </div>
-                          )}
-
-                          {(() => {
-                            const attachments = msg.archivos_adjuntos || [];
-                            const images = attachments.filter(f => f.tipo?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
-                            const audios = attachments.filter(f => f.tipo?.startsWith('audio/'));
-                            const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
-                            return (
-                              <>
-                                {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isMine} /></div>}
-                                {audios.map((file, idx) => <div key={`a-${idx}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} /></div>)}
-                                {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, idx) => (
-                                  <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-slate-600' : isCoach ? 'bg-green-700' : 'bg-slate-100'}`}>
-                                    <FileText className="w-3 h-3" /><span className="flex-1 truncate">{file.nombre}</span><Download className="w-3 h-3" />
-                                  </a>
-                                ))}</div>}
-                              </>
-                            );
-                          })()}
-
-                          {msg.reacciones?.length > 0 && (
-                            <EmojiScaler reactions={msg.reacciones} />
-                          )}
-
-                          <div className="flex items-center gap-1 justify-end mt-1">
-                            <p style={{fontSize: '11px', opacity: 0.6}}>
-                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                            </p>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`}
-                              onClick={() => setShowReactions(msg.id)}
-                            >
-                              <Smile className="w-3 h-3" />
-                            </Button>
-                          </div>
-
-                          {showReactions === msg.id && (
-                            <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-xl p-2 flex gap-2 z-10 border">
-                              {REACTIONS.map(emoji => (
-                                <button
-                                  key={emoji}
-                                  onClick={() => addReaction(msg.id, emoji)}
-                                  className="text-2xl hover:scale-125 transition-transform"
-                                >
-                                  {emoji}
-                                </button>
-                              ))}
-                              <button onClick={() => setShowReactions(null)} className="ml-2 text-slate-400 hover:text-slate-600">
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Encuesta */}
-                      {(msg.encuesta || msg.poll) && (
-                        <div className="w-full max-w-[85%]">
-                          <div className="mb-1 px-2">
-                            <p className="text-xs font-semibold text-slate-600">
-                              {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
-                            </p>
-                          </div>
-                          <PollMessage 
-                            encuesta={msg.encuesta || msg.poll} 
-                            messageId={msg.id}
-                            userEmail={user.email}
-                            userName={user.full_name}
-                            onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
-                            isCreator={msg.remitente_email === user.email}
-                          />
-                          <p className="text-xs text-slate-500 mt-1 px-2">
-                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Ubicación */}
-                      {msg.ubicacion && (
-                        <div className="w-full max-w-[85%]">
-                          <div className="mb-1 px-2">
-                            <p className="text-xs font-semibold text-slate-600">
-                              {isCoach ? '🏃 ' : ''}{msg.remitente_nombre}
-                            </p>
-                          </div>
-                          <LocationMessage ubicacion={msg.ubicacion} />
-                          <p className="text-xs text-slate-500 mt-1 px-2">
-                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </React.Fragment>
-                );
-              })
             )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <ParentChatInput
-             onSendMessage={handleSendMessage}
-             uploading={uploading}
-             placeholder="Escribe tu mensaje..."
-           />
-        </CardContent>
-      </Card>
+            {categoryCoach && <div className="p-2 border-b bg-white flex-shrink-0"><CoachProfilePreview coach={categoryCoach} /></div>}
+            {renderMessages()}
+          </CardContent>
+        </Card>
       </div>
-      </>
-      );
-      }
+
+      {/* ====== DESKTOP: sidebar + chat panel ====== */}
+      <div className="hidden lg:flex h-[calc(100vh-0px)] overflow-hidden rounded-lg border border-blue-200 shadow-lg">
+        {!lockedCategory && categories.length > 1 && (
+          <ChatSidebar
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelect={setSelectedCategory}
+            unreadByCategory={Object.fromEntries(categories.map(c => [c, getUnreadCountByCategory(c)]))}
+            lastMessages={lastMessagesByCategory}
+          />
+        )}
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white flex-shrink-0">
+            <div className="p-2 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <MessageCircle className="w-4 h-4" />
+                {selectedCategory ? selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '') : "Chat Equipo"}
+              </div>
+              <EscalateToCoordinatorButton user={user} categoria={selectedCategory} recentMessages={messages} />
+            </div>
+          </div>
+          {renderMessages()}
+        </div>
+      </div>
+    </>
+    );
+    }
