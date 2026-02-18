@@ -626,6 +626,16 @@ export default function Payments() {
         return;
       }
       
+      // Plan Mensual: solo verificar pago inicial
+      const hasPlanMensualOverdue = playerPayments.some(p => p.tipo_pago === "Plan Mensual");
+      if (hasPlanMensualOverdue) {
+        const pagoInicial = playerPayments.find(p => p.tipo_pago === "Plan Mensual");
+        if (pagoInicial && pagoInicial.estado !== "Pagado" && calculateDaysOverdue("Junio") > 0) {
+          totalVencidos++;
+        }
+        return;
+      }
+      
       // Verificar cada mes (Junio, Septiembre, Diciembre)
       const allMonths = ["Junio", "Septiembre", "Diciembre"];
       
