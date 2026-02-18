@@ -102,13 +102,23 @@ export default function ParentCoachChat() {
     return () => { cancelled = true; };
   }, []);
 
-  // Obtener entrenador de la categoría seleccionada - DESACTIVADO porque los padres no tienen permiso para listar User
-  // El perfil del entrenador ya no se muestra para padres normales
+  // Obtener entrenador de la categoría desde CoachSettings (accesible por familias)
   useEffect(() => {
-    if (selectedCategory) {
-      setCategoryCoach(null); // Limpiar el coach ya que no podemos obtenerlo
+    if (selectedCategory && coachSettings) {
+      setCategoryCoach({
+        full_name: coachSettings.entrenador_nombre || coachSettings.entrenador_email,
+        email: coachSettings.entrenador_email,
+        foto_perfil_url: coachSettings.foto_perfil_url,
+        bio_entrenador: coachSettings.bio_entrenador,
+        telefono_contacto: coachSettings.telefono_contacto,
+        categorias_entrena: coachSettings.categorias_entrena,
+        mostrar_email_publico: coachSettings.mostrar_email_publico,
+        mostrar_telefono_publico: coachSettings.mostrar_telefono_publico,
+      });
+    } else {
+      setCategoryCoach(null);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, coachSettings]);
 
   // Obtener mensajes SOLO del grupo seleccionado
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
