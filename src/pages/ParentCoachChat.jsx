@@ -51,7 +51,7 @@ export default function ParentCoachChat() {
   const audioRef = useRef(null);
   const queryClient = useQueryClient();
 
-
+  const categoryKey = toGroupId(selectedCategory || "");
 
   useEffect(() => {
     let cancelled = false;
