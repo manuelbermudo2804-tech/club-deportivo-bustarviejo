@@ -83,11 +83,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         return await base44.entities.ChatMessage.list('-created_date', 200);
       }
 
-      const grupo_id = toGroupId(selectedCategory);
-      // Try grupo_id first (canonical), fall back to deporte for legacy
-      const byGroup = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date', 200);
-      if (byGroup.length > 0) return byGroup;
-      return await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
+      // DB stores grupo_id WITH accents (e.g. "fútbol_cadete"), so query by deporte which is the original category name
+      const msgs = await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
+      return msgs;
     },
     refetchInterval: false,
     refetchOnWindowFocus: false,
