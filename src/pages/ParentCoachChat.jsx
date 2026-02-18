@@ -257,7 +257,7 @@ export default function ParentCoachChat() {
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
-       const categoryKey = toGroupId(selectedCategory || "");
+       const gid = toGroupId(selectedCategory || "");
 
        const newMessage = await base44.entities.ChatMessage.create({
          tipo: "padre_a_grupo",
