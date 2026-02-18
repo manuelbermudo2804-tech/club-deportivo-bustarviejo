@@ -323,17 +323,29 @@ Deno.serve(async (req) => {
     // Compilar lista de destinatarios
     const destinatarios = [];
 
-    // Jugadores menores
+    // Jugadores menores → enviar a ambos progenitores
     playersToday.forEach(p => {
       if (p.es_mayor_edad !== true) {
         const edad = calcularEdad(p.fecha_nacimiento);
-        destinatarios.push({
-          email: p.email_padre,
-          nombre: p.nombre,
-          tipo: 'jugador_menor',
-          edad,
-          fecha_nac: p.fecha_nacimiento
-        });
+        if (p.email_padre) {
+          destinatarios.push({
+            email: p.email_padre,
+            nombre: p.nombre,
+            tipo: 'jugador_menor',
+            edad,
+            fecha_nac: p.fecha_nacimiento
+          });
+        }
+        // Segundo progenitor/tutor
+        if (p.email_tutor_2 && p.email_tutor_2 !== p.email_padre) {
+          destinatarios.push({
+            email: p.email_tutor_2,
+            nombre: p.nombre,
+            tipo: 'jugador_menor',
+            edad,
+            fecha_nac: p.fecha_nacimiento
+          });
+        }
       }
     });
 
