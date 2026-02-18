@@ -187,7 +187,6 @@ export default function ParentCoachChat() {
     };
   }, []);
 
-  const categoryKey = toGroupId(selectedCategory || "");
   // messages ya viene filtrado por grupo_id desde la query
   const categoryMessages = messages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
