@@ -49,10 +49,14 @@ export default function InscriptionPaymentFlow({
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Plan Mensual: si modo test activado, solo mostrar a emails de la lista
+  // Corte: solo disponible hasta el 15 de agosto (después no tiene sentido prorratear)
   const planMensualGlobal = seasonConfig?.permitir_plan_mensual === true;
   const planMensualModoTest = seasonConfig?.plan_mensual_modo_test === true;
   const planMensualTestEmails = (seasonConfig?.plan_mensual_emails_test || []).map(e => e.toLowerCase().trim());
-  const planMensualEnabled = planMensualGlobal && (!planMensualModoTest || planMensualTestEmails.includes((userEmail || '').toLowerCase().trim()));
+  const hoy = new Date();
+  const fechaCorte = new Date(hoy.getFullYear(), 7, 15); // 15 de agosto
+  const dentroDelPlazo = hoy <= fechaCorte;
+  const planMensualEnabled = planMensualGlobal && dentroDelPlazo && (!planMensualModoTest || planMensualTestEmails.includes((userEmail || '').toLowerCase().trim()));
   const pctInicial = seasonConfig?.plan_mensual_porcentaje_inicial || 60;
   const mesFin = seasonConfig?.plan_mensual_mes_fin || "Mayo";
 
