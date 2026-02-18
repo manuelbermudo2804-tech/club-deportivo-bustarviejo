@@ -638,6 +638,65 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ========== PAYMENT_INTENT.PAYMENT_FAILED ==========
+    // Fallo en pago directo (checkout de cuotas, Plan Mensual inicial, lotería, socios, etc.)
+    if (event.type === 'payment_intent.payment_failed') {
+      const pi = event.data?.object || {};
+      const metadata = pi.metadata || {};
+      const amount = (pi.amount || 0) / 100;
+      const failMessage = pi.last_payment_error?.message || 'Error desconocido';
+      const email = pi.receipt_email || metadata.user_email || '';
+
+      console.log('[stripe-webhook] payment_intent.payment_failed', { pi_id: pi.id, amount, tipo: metadata.tipo, email, error: failMessage });
+
+      // Registrar log de fallo
+      try {
+        await base44.asServiceRole.entities.StripePaymentLog.create({
+          section: 'payment_intent_failed',
+          amount,
+          currency: pi.currency || 'eur',
+          status: 'failed',
+          session_id: null,
+          payment_intent_id: pi.id,
+          email,
+          related_entity: metadata.tipo || 'Unknown',
+          related_id: metadata.payment_id || metadata.jugador_id || metadata.order_id || metadata.membership_id || null,
+          metadata: { ...metadata, error: failMessage },
+          created_at: new Date().toISOString()
+        });
+      } catch (logErr) {
+        console.error('[stripe-webhook] Error log payment_intent failed:', logErr?.message);
+      }
+
+      // Notificar al usuario y al admin
+      try {
+        const jugadorNombre = metadata.jugador_nombre || metadata.jugador_id || '';
+        const tipoDesc = metadata.tipo === 'pago_cuota' ? 'cuota' 
+          : metadata.tipo === 'plan_mensual_inscripcion' ? 'pago inicial Plan Mensual'
+          : metadata.tipo === 'loteria' ? 'lotería'
+          : metadata.tipo === 'cuota_socio' ? 'cuota de socio'
+          : metadata.tipo === 'pago_cuota_batch' ? 'pago por lote'
+          : metadata.tipo === 'extra_charge' ? 'cobro extra'
+          : 'pago';
+
+        if (email) {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: email,
+            subject: `⚠️ Fallo en ${tipoDesc}${jugadorNombre ? ` - ${jugadorNombre}` : ''}`,
+            body: `No hemos podido procesar tu ${tipoDesc} de ${amount}€${jugadorNombre ? ` para ${jugadorNombre}` : ''}.\n\nMotivo: ${failMessage}\n\nPor favor, inténtalo de nuevo o usa otro método de pago.\n\nCD Bustarviejo`
+          });
+        }
+
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: 'cdbustarviejo@gmail.com',
+          subject: `⚠️ Fallo en pago (${tipoDesc}) - ${email || 'desconocido'}`,
+          body: `Fallo al cobrar ${amount}€.\nTipo: ${tipoDesc}\nJugador: ${jugadorNombre}\nEmail: ${email}\nMotivo: ${failMessage}\nPaymentIntent: ${pi.id}`
+        });
+      } catch (emailErr) {
+        console.error('[stripe-webhook] Error email payment_intent failed:', emailErr?.message);
+      }
+    }
+
   } catch (e) {
     // No devolvemos 500 para evitar reintentos infinitos; solo registramos.
     console.error('[stripe-webhook] Error general manejando evento:', e?.message || e);
