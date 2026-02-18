@@ -1101,6 +1101,9 @@ export default function Payments() {
                       if (hasPlanEspecial) {
                         // Si tiene plan especial, NO crear virtuales
                         allMonths = [];
+                      } else if (hasPlanMensual) {
+                        // Plan Mensual: solo pago inicial Junio, resto automático por Stripe
+                        allMonths = ["Junio"];
                       } else if (hasPagoUnico) {
                         allMonths = ["Junio"];
                       } else {
