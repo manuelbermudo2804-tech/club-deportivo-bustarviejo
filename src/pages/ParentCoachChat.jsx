@@ -317,7 +317,7 @@ export default function ParentCoachChat() {
       await base44.entities.ChatMessage.update(messageId, updateData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
       toast.success("Voto registrado");
     },
   });
