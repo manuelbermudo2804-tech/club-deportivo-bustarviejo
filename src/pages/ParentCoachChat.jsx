@@ -114,10 +114,21 @@ export default function ParentCoachChat() {
     queryKey: ['coachParentChatMessages', categoryKey],
     queryFn: async () => {
       if (!user || !categoryKey) return [];
-      return base44.entities.ChatMessage.filter(
-        { grupo_id: categoryKey, tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } },
-        'created_date'
-      );
+      // Fetch by both normalized grupo_id AND original deporte name (handles legacy data)
+      const [byGroup, bySport] = await Promise.all([
+        base44.entities.ChatMessage.filter(
+          { grupo_id: categoryKey, tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } },
+          'created_date'
+        ),
+        base44.entities.ChatMessage.filter(
+          { deporte: selectedCategory, tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } },
+          'created_date'
+        ),
+      ]);
+      // Deduplicate by id
+      const merged = {};
+      for (const m of [...byGroup, ...bySport]) merged[m.id] = m;
+      return Object.values(merged).sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
     },
     enabled: !!user && !!categoryKey,
     refetchInterval: false,
