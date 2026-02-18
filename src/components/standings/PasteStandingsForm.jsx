@@ -6,72 +6,79 @@ import { ClipboardPaste, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
+// Known header words from RFFM tables (case-insensitive)
+const HEADER_WORDS = /^(equipo|puntos|jugados|ganados|empates|empatados|perdidos|gf|gc|goles?\s*(a\s*)?favor|goles?\s*(en\s*)?contra|sanci[oó]n\s*puntos|diferencia|pos|posici[oó]n)$/i;
+
 function parseStandingsText(raw) {
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
 
   let temporada = "";
   let grupo = "";
-  let headerEnd = 0;
 
-  for (let i = 0; i < Math.min(lines.length, 6); i++) {
+  // Pass 1: Extract metadata and skip ALL header lines (not just first 6)
+  const dataLines = [];
+  for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
+
+    // Season line
     if (/^\d{4}[-\/]\d{4}$/.test(l)) {
       temporada = l.replace('-', '/');
-      headerEnd = i + 1;
       continue;
     }
-    if (/grupo|aficionado|juvenil|cadete|infantil|alevin|benjamin|pre.?benjamin|femenin/i.test(l)) {
+    // Group / competition name line
+    if (/grupo|aficionado|juvenil|cadete|infantil|alevin|benjamin|pre.?benjamin|femenin|primera|segunda|tercera|preferente/i.test(l) && !/^C\.D\.|^A\.D\.|^U\.D\.|^S\.D\.|^E\.F\.|^C\.F\./i.test(l)) {
       grupo = l;
-      headerEnd = i + 1;
       continue;
     }
-    if (/^equipo$/i.test(l) || /^puntos$/i.test(l) || /^jugados$/i.test(l) || /^ganados$/i.test(l)) {
-      headerEnd = i + 1;
+    // Header word lines (Equipo, Puntos, Jugados, etc.)
+    if (HEADER_WORDS.test(l)) {
       continue;
     }
+    dataLines.push(l);
   }
 
   const standings = [];
-  const dataLines = lines.slice(headerEnd);
   
   let i = 0;
   while (i < dataLines.length) {
     const line = dataLines[i];
     
-    const posMatch = line.match(/^(\d{1,2})$/);
+    // Pattern: position number alone on a line, followed by team name, then numbers
+    const posMatch = line.match(/^(\d{1,3})$/);
     if (posMatch && i + 1 < dataLines.length) {
       const posicion = parseInt(posMatch[1], 10);
-      const nombreEquipo = dataLines[i + 1];
-      
-      const nums = [];
-      let j = i + 2;
-      while (j < dataLines.length && nums.length < 8) {
-        const n = dataLines[j];
-        if (/^\d+$/.test(n)) {
-          nums.push(parseInt(n, 10));
+      // Next non-number line is the team name
+      if (!/^\d+$/.test(dataLines[i + 1])) {
+        const nombreEquipo = dataLines[i + 1];
+        
+        // Collect all consecutive numbers after the team name
+        const nums = [];
+        let j = i + 2;
+        while (j < dataLines.length && /^\d+$/.test(dataLines[j])) {
+          nums.push(parseInt(dataLines[j], 10));
           j++;
-        } else {
-          break;
         }
-      }
 
-      if (nombreEquipo && nums.length >= 7) {
-        standings.push({
-          posicion,
-          nombre_equipo: nombreEquipo.trim(),
-          puntos: nums[0],
-          partidos_jugados: nums[1],
-          ganados: nums[2],
-          empatados: nums[3],
-          perdidos: nums[4],
-          goles_favor: nums[5],
-          goles_contra: nums[6],
-        });
-        i = j;
-        continue;
+        // Need at least 7 numbers: Pts, PJ, G, E, P, GF, GC (may have extra like "Sanción puntos")
+        if (nombreEquipo && nums.length >= 7) {
+          standings.push({
+            posicion,
+            nombre_equipo: nombreEquipo.trim(),
+            puntos: nums[0],
+            partidos_jugados: nums[1],
+            ganados: nums[2],
+            empatados: nums[3],
+            perdidos: nums[4],
+            goles_favor: nums[5],
+            goles_contra: nums[6],
+          });
+          i = j;
+          continue;
+        }
       }
     }
     
+    // Fallback: all data on one line
     const fullMatch = line.match(/^(\d{1,2})\s+(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/);
     if (fullMatch) {
       standings.push({
