@@ -987,6 +987,41 @@ export default function ParentPayments() {
                       </div>
                     )}
 
+                    {/* Info Plan Mensual */}
+                    {hasPlanMensual && (() => {
+                      const pmPayment = allPlayerPayments.find(p => p.tipo_pago === "Plan Mensual");
+                      const match = pmPayment?.notas?.match(/(\d+)€ inicial \+ (\d+)x ([\d.]+)€\/mes \(([^)]+)\)/);
+                      const info = match ? { inicial: Number(match[1]), numMeses: Number(match[2]), mensualidad: Number(match[3]), periodo: match[4] } : null;
+                      return (
+                        <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🔄</span>
+                            <p className="text-sm font-bold text-blue-900">Plan Mensual (Cobro automático)</p>
+                          </div>
+                          {info ? (
+                            <div className="text-xs text-blue-700 mt-2 space-y-1">
+                              <p>💳 Pago inicial: <strong>{info.inicial}€</strong> (Junio)</p>
+                              <p>📅 Mensualidades: <strong>{info.numMeses}x {info.mensualidad}€/mes</strong> ({info.periodo})</p>
+                              <p>💰 Total temporada: <strong>{(info.inicial + info.numMeses * info.mensualidad).toFixed(0)}€</strong></p>
+                              <div className="bg-blue-100 rounded p-2 mt-2">
+                                <p className="text-[10px] text-blue-800">
+                                  ℹ️ Las mensualidades se cobran automáticamente en tu tarjeta a través de Stripe. No necesitas hacer nada más después de pagar el pago inicial.
+                                </p>
+                              </div>
+                              {pmPayment?.stripe_subscription_id && (
+                                <Badge className="bg-green-100 text-green-700 text-xs mt-1">✅ Suscripción activa</Badge>
+                              )}
+                              {pmPayment?.stripe_subscription_status === 'past_due' && (
+                                <Badge className="bg-red-100 text-red-700 text-xs mt-1">⚠️ Cobro pendiente - revisa tu tarjeta</Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-blue-700 mt-1">Pago inicial + mensualidades automáticas por tarjeta</p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    
                     {/* Alerta de descuento por hermano */}
                     {player.tiene_descuento_hermano && player.descuento_aplicado > 0 && !playerCustomPlan && (
                       <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg">
