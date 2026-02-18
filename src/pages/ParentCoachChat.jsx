@@ -227,10 +227,10 @@ export default function ParentCoachChat() {
 
   const sendMessageMutation = useMutation({
     onMutate: async (messageData) => {
-      await queryClient.cancelQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
-      const previousMessages = queryClient.getQueryData(['coachParentChatMessages', categoryKey]);
+      const gid = toGroupId(selectedCategory || "");
+      await queryClient.cancelQueries({ queryKey: ['coachParentChatMessages', gid] });
+      const previousMessages = queryClient.getQueryData(['coachParentChatMessages', gid]);
 
-      const categoryKey = toGroupId(selectedCategory || "");
       const optimisticMessage = {
         id: `temp-${Date.now()}`,
         mensaje: messageData.mensaje,
