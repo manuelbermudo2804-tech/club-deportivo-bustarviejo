@@ -923,8 +923,8 @@ export default function Payments() {
           {isAdmin && (
             <>
               <TabsTrigger value="planes" className="flex-1">
-                💰 Planes Especiales ({customPlans.filter(p => p.activo).length})
-              </TabsTrigger>
+                 💰 Planes Especiales ({customPlans.filter(p => p.estado === "Activo").length})
+               </TabsTrigger>
               <TabsTrigger value="reconciliacion" className="flex-1">
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Reconciliación Bancaria
