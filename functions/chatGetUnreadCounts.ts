@@ -22,7 +22,10 @@ Deno.serve(async (req) => {
       system: 0,
     };
 
-    const toGroupId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\(.*?\)/g, '').trim().replace(/\s+/g, '_');
+    // Normalize group IDs: remove parenthesized suffixes, accents, collapse whitespace
+    const toGroupId = (s) => (s || '').toString().replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+    // Also normalize the raw grupo_id stored on messages (may contain accents/parentheses)
+    const normalizeGid = (s) => (s || '').toString().replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
 
     const chatLastRead = user.chat_last_read || {};
 
