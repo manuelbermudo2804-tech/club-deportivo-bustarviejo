@@ -214,11 +214,35 @@ export default function Payments() {
     mutationFn: async (planData) => {
       const currentUser = await base44.auth.me();
       
+      // 0. Archivar pagos previos (Único/Tres meses) del jugador en la misma temporada
+      try {
+        const allPayments = await base44.entities.Payment.filter({
+          jugador_id: planData.jugador_id,
+          is_deleted: { $ne: true }
+        });
+        const toArchive = allPayments.filter(p => {
+          if (p.temporada !== planData.temporada) return false;
+          const tipo = (p.tipo_pago || '').toLowerCase();
+          return tipo.includes('único') || tipo.includes('unico') || tipo.includes('tres meses');
+        });
+        for (const p of toArchive) {
+          await base44.entities.Payment.update(p.id, {
+            is_deleted: true,
+            deleted_by: currentUser.email,
+            deleted_date: new Date().toISOString(),
+            deleted_reason: 'Reemplazado por Plan Especial',
+          });
+        }
+        if (toArchive.length > 0) {
+          console.log(`🗑️ Archivados ${toArchive.length} pagos previos para ${planData.jugador_nombre}`);
+        }
+      } catch (e) { console.log('Cleanup pagos previos falló:', e); }
+      
       // 1. Crear el plan personalizado
       const createdPlan = await base44.entities.CustomPaymentPlan.create({
         ...planData,
+        creado_por: currentUser.email,
         aprobado_por: currentUser.email,
-        aprobado_por_nombre: currentUser.full_name,
         fecha_aprobacion: new Date().toISOString()
       });
       
@@ -233,7 +257,7 @@ export default function Payments() {
         estado: "Pendiente",
         metodo_pago: "Transferencia",
         fecha_pago: null,
-        notas: `Plan personalizado de ${planData.numero_cuotas} cuotas - Cuota ${cuota.numero}/${planData.numero_cuotas}. Vence: ${new Date(cuota.fecha_vencimiento).toLocaleDateString('es-ES')}`,
+        notas: `Plan Especial (${planData.motivo_plan}) - Cuota ${cuota.numero}/${planData.numero_cuotas}. Vence: ${new Date(cuota.fecha_vencimiento).toLocaleDateString('es-ES')}`,
         plan_especial_id: createdPlan.id
       }));
       
