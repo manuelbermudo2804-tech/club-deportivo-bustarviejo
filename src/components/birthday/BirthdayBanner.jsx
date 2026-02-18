@@ -44,7 +44,7 @@ export default function BirthdayBanner({ players = [], mode = "parent" }) {
 
   if (todayBirthdays.length === 0 && weekBirthdays.length === 0) return null;
 
-  const getName = (player) => mode === "parent" ? player.nombre.split(' ')[0] : player.nombre;
+  const getName = (player) => player.nombre;
 
   return (
     <Card className="border-2 border-yellow-400 bg-gradient-to-r from-yellow-50 via-orange-50 to-pink-50 shadow-lg overflow-hidden">
