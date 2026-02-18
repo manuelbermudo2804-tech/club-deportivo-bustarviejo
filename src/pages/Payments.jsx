@@ -550,11 +550,18 @@ export default function Payments() {
         return;
       }
       
-      // Plan Mensual: solo 1 cuota (pago inicial), resto automático
+      // Plan Mensual: 1 pago inicial + N mensualidades automáticas por Stripe
       const hasPlanMensual = playerPayments.some(p => p.tipo_pago === "Plan Mensual");
       if (hasPlanMensual) {
-        const pagoInicial = playerPayments.find(p => p.tipo_pago === "Plan Mensual");
-        if (pagoInicial && pagoInicial.estado === "Pendiente") totalPendientes += 1;
+        // Contar cuotas totales esperadas del plan
+        const planPayment = playerPayments.find(p => p.tipo_pago === "Plan Mensual" && p.mes === "Junio");
+        const numMeses = planPayment?.plan_mensual_meses || (() => {
+          const match = planPayment?.notas?.match(/(\d+)x [\d.]+€\/mes/);
+          return match ? Number(match[1]) : 0;
+        })();
+        const totalEsperadas = 1 + numMeses; // pago inicial + mensualidades
+        const pagadas = playerPayments.filter(p => p.tipo_pago === "Plan Mensual" && p.estado === "Pagado").length;
+        totalPendientes += Math.max(0, totalEsperadas - pagadas);
         return;
       }
       
@@ -626,13 +633,16 @@ export default function Payments() {
         return;
       }
       
-      // Plan Mensual: solo verificar pago inicial
+      // Plan Mensual: verificar pago inicial y mensualidades vencidas
       const hasPlanMensualOverdue = playerPayments.some(p => p.tipo_pago === "Plan Mensual");
       if (hasPlanMensualOverdue) {
-        const pagoInicial = playerPayments.find(p => p.tipo_pago === "Plan Mensual");
-        if (pagoInicial && pagoInicial.estado !== "Pagado" && calculateDaysOverdue("Junio") > 0) {
+        // Pago inicial vencido
+        const pagoInicial = playerPayments.find(p => p.tipo_pago === "Plan Mensual" && p.mes === "Junio");
+        if (pagoInicial && pagoInicial.estado === "Pendiente" && calculateDaysOverdue("Junio") > 0) {
           totalVencidos++;
         }
+        // Mensualidades: el webhook las crea como "Pagado" directamente,
+        // si hay fallo, el pago inicial se marca past_due. No hay registros "Pendiente" mensuales.
         return;
       }
       
@@ -1097,7 +1107,7 @@ export default function Payments() {
                     // Si tiene plan especial, mostrar TODOS sus pagos
                     const hasPlanEspecial = allPlayerPaymentsRaw.some(p => p.tipo_pago === "Plan Especial");
                     
-                    // Plan Mensual: solo pago inicial, Stripe cobra el resto automáticamente
+                    // Plan Mensual: mostrar TODOS los pagos del plan (inicial + mensualidades creadas por webhook)
                     const hasPlanMensual = allPlayerPaymentsRaw.some(p => p.tipo_pago === "Plan Mensual");
 
                     // Filtrar según tipo de pago
@@ -1129,8 +1139,8 @@ export default function Payments() {
                         // Si tiene plan especial, NO crear virtuales
                         allMonths = [];
                       } else if (hasPlanMensual) {
-                        // Plan Mensual: solo pago inicial Junio, resto automático por Stripe
-                        allMonths = ["Junio"];
+                        // Plan Mensual: no crear virtuales, mostrar pagos reales (inicial + mensuales del webhook)
+                        allMonths = [];
                       } else if (hasPagoUnico) {
                         allMonths = ["Junio"];
                       } else {
@@ -1145,8 +1155,14 @@ export default function Payments() {
                         // Si el filtro es "all", SOLO mostrar los pagos reales que existen en BD
                         displayPayments = playerPayments;
                       } else if (hasPlanMensual) {
-                        // Plan Mensual: mostrar SOLO los pagos reales del plan mensual
+                        // Plan Mensual: mostrar TODOS los pagos reales (inicial + mensualidades de webhook)
                         displayPayments = playerPayments.filter(p => p.tipo_pago === "Plan Mensual");
+                        // Ordenar: Junio primero, luego por fecha
+                        displayPayments.sort((a, b) => {
+                          if (a.mes === "Junio") return -1;
+                          if (b.mes === "Junio") return 1;
+                          return new Date(a.created_date || 0) - new Date(b.created_date || 0);
+                        });
                       } else if (hasPlanEspecial) {
                         // Si tiene plan especial, mostrar SOLO pagos reales del plan (no crear virtuales)
                         const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
@@ -1219,7 +1235,13 @@ export default function Payments() {
                       if (hasPlanEspecial && playerCustomPlan) {
                         totalCuotasEsperadas = playerCustomPlan.numero_cuotas || playerCustomPlan.cuotas?.length || 6;
                       } else if (hasPlanMensual) {
-                        totalCuotasEsperadas = 1; // Solo 1 pago inicial, resto automático
+                        // 1 pago inicial + N mensualidades automáticas
+                        const pmInitial = allPlayerPaymentsRaw.find(p => p.tipo_pago === "Plan Mensual" && p.mes === "Junio");
+                        const numMeses = pmInitial?.plan_mensual_meses || (() => {
+                          const m = pmInitial?.notas?.match(/(\d+)x [\d.]+€\/mes/);
+                          return m ? Number(m[1]) : 0;
+                        })();
+                        totalCuotasEsperadas = 1 + numMeses;
                       } else if (hasPagoUnico) {
                         totalCuotasEsperadas = 1;
                       } else {
