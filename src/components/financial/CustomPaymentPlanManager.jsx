@@ -143,13 +143,13 @@ export default function CustomPaymentPlanManager({ activeSeason }) {
                             <div className="flex items-center gap-3">
                               <p className="font-bold text-slate-900">{cuota.cantidad.toFixed(2)}€</p>
                               {!cuota.pagada && (
-                                <Button 
-                                  size="sm"
-                                  onClick={() => handleMarkCuotaPaid(plan, idx, null)}
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  Marcar Pagada
-                                </Button>
+                               <Button 
+                                 size="sm"
+                                 onClick={() => handleMarkCuotaPaid(plan, idx)}
+                                 className="bg-green-600 hover:bg-green-700"
+                               >
+                                 Marcar Pagada
+                               </Button>
                               )}
                               {cuota.pagada && cuota.justificante_url && (
                                 <Button 
