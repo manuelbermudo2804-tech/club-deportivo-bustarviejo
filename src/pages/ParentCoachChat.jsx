@@ -114,8 +114,12 @@ export default function ParentCoachChat() {
     queryKey: ['coachParentChatMessages', categoryKey],
     queryFn: async () => {
       if (!user || !selectedCategory) return [];
-      // DB stores grupo_id WITH accents, so query by deporte (the original category name) which is always reliable
-      return await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
+      // Query by deporte (original category name) — works for both old and new messages
+      const msgs = await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
+      if (msgs.length > 0) return msgs;
+      // Fallback: try normalized grupo_id for messages that only have grupo_id set
+      const gid = toGroupId(selectedCategory);
+      return await base44.entities.ChatMessage.filter({ grupo_id: gid }, 'created_date', 200);
     },
     enabled: !!user && !!selectedCategory,
     refetchInterval: false,
