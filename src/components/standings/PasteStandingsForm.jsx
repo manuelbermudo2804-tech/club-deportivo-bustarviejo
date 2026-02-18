@@ -110,6 +110,11 @@ function parseStandingsText(raw) {
   // === APPROACH 2: Multi-line format (each field on its own line) ===
   // Only use if approach 1 found nothing
   if (standings.length === 0) {
+    // RFFM format: pos, team_name, then EXACTLY 8 numbers (Pts, PJ, G, E, P, GF, GC, Sanción)
+    // The key insight: after the team name, take EXACTLY 8 numbers (not "all consecutive").
+    // The 8th number is "Sanción puntos" which we discard. Then next number is the NEXT team's position.
+    // If only 7 numbers before next non-number line, that's also fine (no sanción column).
+    
     let i = 0;
     while (i < candidateRows.length) {
       const line = candidateRows[i];
@@ -119,13 +124,18 @@ function parseStandingsText(raw) {
         const posicion = parseInt(posMatch[1], 10);
         if (!/^\d+$/.test(candidateRows[i + 1])) {
           const nombreEquipo = candidateRows[i + 1];
+          
+          // Count how many consecutive number lines follow
           const nums = [];
           let j = i + 2;
           while (j < candidateRows.length && /^\d+$/.test(candidateRows[j])) {
             nums.push(parseInt(candidateRows[j], 10));
             j++;
           }
+          
           if (nombreEquipo && nums.length >= 7) {
+            // Take exactly 7 values: Pts, PJ, G, E, P, GF, GC
+            // If there are 8+, the extra ones (like Sanción) are discarded
             standings.push({
               posicion,
               nombre_equipo: nombreEquipo.trim(),
@@ -137,7 +147,13 @@ function parseStandingsText(raw) {
               goles_favor: nums[5],
               goles_contra: nums[6],
             });
-            i = j;
+            
+            // CRITICAL: Only consume exactly 7 or 8 numbers, NOT all of them.
+            // 8 = has "Sanción puntos" column, 7 = no sanción column
+            // If there are 8+ numbers, consume 8 (the 8th is sanción).
+            // The 9th number onwards belongs to the NEXT team's position.
+            const numsTaken = nums.length >= 8 ? 8 : 7;
+            i = i + 2 + numsTaken; // pos line + name line + numbers taken
             continue;
           }
         }
