@@ -451,49 +451,60 @@ export default function CentroCompeticion() {
   };
 
   const ViewToggle = () => (
-    <div className="w-full grid grid-cols-3 rounded-xl border overflow-hidden">
-      <Button
-        variant={view === 'clasificacion' ? 'default' : 'ghost'}
+    <div className="w-full grid grid-cols-3 rounded-xl overflow-hidden bg-white/10 border border-white/20">
+      <button
         onClick={() => setView('clasificacion')}
-        className={`${view === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'clasificacion' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Trophy className="w-4 h-4 mr-1.5" /> Clasificación
-      </Button>
-      <Button
-        variant={view === 'resultados' ? 'default' : 'ghost'}
+        <Trophy className="w-4 h-4" /> Clasificación
+      </button>
+      <button
         onClick={() => setView('resultados')}
-        className={`${view === 'resultados' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'resultados' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <List className="w-4 h-4 mr-1.5" /> Resultados
-      </Button>
-      <Button
-        variant={view === 'goleadores' ? 'default' : 'ghost'}
+        <List className="w-4 h-4" /> Resultados
+      </button>
+      <button
         onClick={() => setView('goleadores')}
-        className={`${view === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'goleadores' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Users className="w-4 h-4 mr-1.5" /> Goleadores
-      </Button>
+        <Users className="w-4 h-4" /> Goleadores
+      </button>
     </div>
   );
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 overflow-x-hidden">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 w-full">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl md:text-3xl font-bold">Centro de Competición</h1>
-          {fav ? (
-            <Button variant="ghost" size="icon" onClick={toggleFav} title="Quitar favorito"><Star className="w-5 h-5 text-yellow-500"/></Button>
-          ) : (
-            <Button variant="ghost" size="icon" onClick={toggleFav} title="Marcar favorito"><StarOff className="w-5 h-5 text-slate-500"/></Button>
-          )}
+      {/* Header */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 mb-5 shadow-lg border-2 border-orange-500/30">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg">
+              <Trophy className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-white">Centro de Competición</h1>
+              <p className="text-sm text-orange-300">CD Bustarviejo — Temporada {(() => { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 8 ? `${y}/${y+1}` : `${y-1}/${y}`; })()}</p>
+            </div>
+            {fav ? (
+              <Button variant="ghost" size="icon" onClick={toggleFav} title="Quitar favorito" className="text-yellow-400 hover:text-yellow-300"><Star className="w-5 h-5"/></Button>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={toggleFav} title="Marcar favorito" className="text-slate-400 hover:text-yellow-400"><StarOff className="w-5 h-5"/></Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowConfig(true)} title="Configurar categorías" className="h-9 px-3 gap-1 border-slate-600 text-slate-300 hover:text-white hover:bg-white/10">
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3 border-slate-600 text-slate-300 hover:text-white hover:bg-white/10"><Share2 className="w-4 h-4"/></Button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          {!isAdmin && <ViewToggle />}
-          <Button variant="outline" onClick={() => setShowConfig(true)} title="Configurar categorías visibles" className="h-9 px-3 gap-1">
-            <Settings className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3"><Share2 className="w-4 h-4"/></Button>
-        </div>
+        {/* View Toggle integrado en el header */}
+        {!isAdmin && (
+          <div className="mt-4">
+            <ViewToggle />
+          </div>
+        )}
       </div>
 
       {isAdmin && (
@@ -771,12 +782,12 @@ export default function CentroCompeticion() {
 
 
       {/* Categorías */}
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
         {(visibleCats && visibleCats.length ? visibleCats : CATEGORIES).map(cat => (
           <button
             key={cat}
             onClick={() => { setCategory(cat); setFav(localStorage.getItem('fav_comp_cat') === cat); }}
-            className={`px-3 py-2 rounded-full whitespace-nowrap border text-sm ${category === cat ? 'bg-orange-600 text-white border-orange-600' : 'bg-white hover:bg-slate-50'}`}
+            className={`px-4 py-2.5 rounded-xl whitespace-nowrap border-2 text-sm font-medium transition-all ${category === cat ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-600/30' : 'bg-white hover:bg-orange-50 hover:border-orange-300 border-slate-200'}`}
           >
             {cat}
           </button>
@@ -784,12 +795,12 @@ export default function CentroCompeticion() {
       </div>
 
       {/* Buscador */}
-      <div className="mt-3 mb-4 flex items-center gap-2">
+      <div className="mt-3 mb-5 flex items-center gap-2">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'goleadores' ? 'Buscar jugador o equipo...' : 'Buscar equipo...'} className="pl-9"/>
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'goleadores' ? 'Buscar jugador o equipo...' : 'Buscar equipo...'} className="pl-9 rounded-xl border-2"/>
         </div>
-        <Badge variant="outline" className="hidden md:inline-flex">{category}</Badge>
+        <Badge className="bg-orange-100 text-orange-800 border-orange-300 hidden md:inline-flex">{category}</Badge>
       </div>
 
       {/* Contenido */}
@@ -812,8 +823,8 @@ export default function CentroCompeticion() {
       )}
 
       {/* Notas */}
-      <div className="mt-6 text-xs text-slate-500 text-center">
-        Datos mostrados según la última actualización disponible. La comparativa de equipos sigue disponible en Clasificación.
+      <div className="mt-8 text-xs text-slate-400 text-center border-t pt-4">
+        ⚽ Datos según la última actualización disponible · Comparativa de equipos disponible en Clasificación
       </div>
 
       {/* Configuración de categorías */}
