@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, ExternalLink, ShirtIcon, PackageIcon } from "lucide-react";
+import { ShoppingBag, ExternalLink, Star, Gift } from "lucide-react";
 
 export default function Tienda() {
   const [config, setConfig] = useState(null);
