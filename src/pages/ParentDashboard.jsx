@@ -138,13 +138,7 @@ export default function ParentDashboard() {
     (!activeSeasonLocal || p.temporada_renovacion === activeSeasonLocal.temporada)
   );
   
-  console.log('👥 [ParentDashboard] Mis jugadores filtrados:', players.length, players.map(p => p.nombre));
-  console.log('🔐 [SEGURIDAD] Filtrando jugadores para email:', user?.email);
-  console.log('🔐 [SEGURIDAD] Jugadores encontrados:', players.map(p => ({
-    nombre: p.nombre,
-    email_padre: p.email_padre,
-    email_tutor_2: p.email_tutor_2
-  })));
+  // Debug logs removed to reduce excessive re-renders
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments', user?.email],
@@ -306,7 +300,7 @@ export default function ParentDashboard() {
   // Los jugadores ya están filtrados arriba
   const myPlayers = players;
 
-  console.log('🎯 [ParentDashboard] myPlayers calculado:', myPlayers.length, myPlayers.map(p => p.nombre));
+  // Debug log removed
 
   useEffect(() => {
     if (user && myPlayers.length > 0) {
@@ -451,7 +445,7 @@ export default function ParentDashboard() {
     );
   }
 
-  console.log('🎨 [ParentDashboard] Renderizando dashboard principal');
+  // Debug log removed
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
