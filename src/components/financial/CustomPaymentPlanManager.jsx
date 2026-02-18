@@ -1,29 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Heart, CheckCircle2, XCircle, AlertCircle, ExternalLink, Calendar, Euro } from "lucide-react";
+import { Heart, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
+// NOTA: Este componente ahora es solo de VISUALIZACIÓN.
+// La creación/edición se hace desde pages/Payments con CustomPaymentPlanForm.
 export default function CustomPaymentPlanManager({ activeSeason }) {
   const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [formData, setFormData] = useState({
-    deuda_original: 0,
-    deuda_condonada: 0,
-    numero_cuotas: 3,
-    motivo_plan: "Dificultad Económica",
-    motivo_detalle: "",
-    notas_internas: ""
-  });
 
   const { data: plans = [] } = useQuery({
     queryKey: ['customPaymentPlans', activeSeason?.temporada],
