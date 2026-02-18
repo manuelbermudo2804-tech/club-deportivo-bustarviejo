@@ -10,20 +10,11 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
   const queryClient = useQueryClient();
   const { data: results = [], isLoading } = useQuery({
     queryKey: ['resultados', categoryFullName],
-    queryFn: async () => {
-      console.log('🔄 Cargando resultados para:', categoryFullName);
-      const result = await base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 500);
-      console.log('✅ Resultados cargados:', result.length, result);
-      return result;
-    },
-    initialData: () => queryClient.getQueryData(['resultados', categoryFullName]) || [],
-    placeholderData: () => queryClient.getQueryData(['resultados', categoryFullName]) || [],
-    staleTime: 5 * 60_000,
-    keepPreviousData: true,
-    gcTime: 60 * 60_000,
+    queryFn: () => base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 500),
+    staleTime: 30_000,
+    gcTime: 10 * 60_000,
     refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    refetchOnReconnect: false,
+    refetchOnMount: 'always',
   });
 
   if (isLoading && results.length === 0) {

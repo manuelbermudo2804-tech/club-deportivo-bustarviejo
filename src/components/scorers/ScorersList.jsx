@@ -10,20 +10,11 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
   const queryClient = useQueryClient();
   const { data: scorers = [], isLoading } = useQuery({
     queryKey: ['goleadores', categoryFullName],
-    queryFn: async () => {
-      console.log('🔄 Cargando goleadores para:', categoryFullName);
-      const result = await base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 500);
-      console.log('✅ Goleadores cargados:', result.length, result);
-      return result;
-    },
-    initialData: () => queryClient.getQueryData(['goleadores', categoryFullName]) || [],
-    placeholderData: () => queryClient.getQueryData(['goleadores', categoryFullName]) || [],
-    staleTime: 5 * 60_000,
-    keepPreviousData: true,
-    gcTime: 60 * 60_000,
+    queryFn: () => base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 500),
+    staleTime: 30_000,
+    gcTime: 10 * 60_000,
     refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    refetchOnReconnect: false,
+    refetchOnMount: 'always',
   });
 
   if (isLoading && scorers.length === 0) {

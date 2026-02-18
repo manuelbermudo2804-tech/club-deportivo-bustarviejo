@@ -80,19 +80,13 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       if (!selectedCategory) return [];
 
       if (selectedCategory === "Todas las categorías") {
-        return await base44.entities.ChatMessage.list('-created_date');
+        return await base44.entities.ChatMessage.list('-created_date', 200);
       }
 
       const grupo_id = toGroupId(selectedCategory);
-      // Traer por grupo_id, deporte Y categoria_principal para compatibilidad
-      const [byGroup, bySport] = await Promise.all([
-        base44.entities.ChatMessage.filter({ grupo_id }, 'created_date'),
-        base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date'),
-      ]);
-      const merged = [...byGroup, ...bySport].reduce((acc, m) => {
-        acc[m.id] = m; return acc;
-      }, {});
-      return Object.values(merged).sort((a,b)=>new Date(a.created_date)-new Date(b.created_date));
+      // Usar solo grupo_id para la consulta principal (más rápido)
+      const msgs = await base44.entities.ChatMessage.filter({ grupo_id }, 'created_date', 200);
+      return msgs;
     },
     refetchInterval: false,
     refetchOnWindowFocus: false,
@@ -417,11 +411,12 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   const { data: chatbotConfig } = useQuery({
     queryKey: ['chatbotConfig', selectedCategory, user?.email],
     queryFn: async () => {
-      if (!selectedCategory) return null;
-      const all = await base44.entities.ChatbotConfig.list();
-      return all.find(c => c.categoria === selectedCategory && c.entrenador_email === user.email);
+      if (!selectedCategory || !user?.email) return null;
+      const configs = await base44.entities.ChatbotConfig.filter({ categoria: selectedCategory, entrenador_email: user.email });
+      return configs[0] || null;
     },
     enabled: !!selectedCategory && !!user,
+    staleTime: 120000,
   });
 
   const sendMessageMutation = useMutation({
