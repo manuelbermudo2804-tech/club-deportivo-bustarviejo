@@ -235,19 +235,12 @@ Deno.serve(async (req) => {
                     invoice_settings: { default_payment_method: defaultPm }
                   });
 
-                  // Calcular billing_cycle_anchor (1 de septiembre)
+                  // Primer cobro recurrente: 1 del mes siguiente al pago inicial
                   const now = new Date();
-                  let septYear = now.getFullYear();
-                  const sept1 = new Date(septYear, 8, 1); // mes 8 = sept
-                  if (sept1 <= now) {
-                    // Sept ya pasó este año → siguiente mes
-                    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-                    var anchorTs = Math.floor(nextMonth.getTime() / 1000);
-                  } else {
-                    var anchorTs = Math.floor(sept1.getTime() / 1000);
-                  }
+                  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                  const anchorTs = Math.floor(nextMonth.getTime() / 1000);
 
-                  // Crear suscripción con trial_end (para retrasar primer cobro hasta septiembre)
+                  // Crear suscripción con trial_end (retrasa primer cobro al mes siguiente)
                   const subParams = {
                     customer: customerId,
                     items: [{ price: recurringPriceId }],
