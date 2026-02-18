@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Trash2, Calendar, Euro, AlertTriangle, Zap } from "lucide-react";
+import { AlertTriangle, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { getCuotasPorCategoriaSync } from "./paymentAmounts";
 import { base44 } from "@/api/base44Client";
