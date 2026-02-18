@@ -550,6 +550,14 @@ export default function Payments() {
         return;
       }
       
+      // Plan Mensual: solo 1 cuota (pago inicial), resto automático
+      const hasPlanMensual = playerPayments.some(p => p.tipo_pago === "Plan Mensual");
+      if (hasPlanMensual) {
+        const pagoInicial = playerPayments.find(p => p.tipo_pago === "Plan Mensual");
+        if (pagoInicial && pagoInicial.estado === "Pendiente") totalPendientes += 1;
+        return;
+      }
+      
       // Contar cuotas pagadas o en revisión de tipo "Tres meses"
       const mesesPagados = playerPayments
         .filter(p => p.tipo_pago === "Tres meses" && (p.estado === "Pagado" || p.estado === "En revisión"))
