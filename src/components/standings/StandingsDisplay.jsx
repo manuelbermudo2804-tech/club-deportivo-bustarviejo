@@ -6,6 +6,7 @@ import StandingsStats from "./StandingsStats";
 import NextMatchStats from "./NextMatchStats";
 import TeamComparison from "./TeamComparison";
 import TeamSummaryBanner from "./TeamSummaryBanner";
+import PositionEvolutionChart from "./PositionEvolutionChart";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 
