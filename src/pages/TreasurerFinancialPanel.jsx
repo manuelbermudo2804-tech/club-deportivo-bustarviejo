@@ -329,25 +329,47 @@ export default function TreasurerFinancialPanel() {
           });
         }
       } else {
-        // Backup: si existen pagos registrados como "Plan Especial", usar esos importes
-        const planEspecialPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
-        if (planEspecialPayments.length > 0) {
-          const pendiente = planEspecialPayments
-            .filter(p => p.estado === "Pendiente")
-            .reduce((sum, p) => sum + (p.cantidad || 0), 0);
-          totalPendiente += pendiente;
+      // Backup: si existen pagos registrados como "Plan Especial", usar esos importes
+      const planEspecialPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
+      if (planEspecialPayments.length > 0) {
+        const pendiente = planEspecialPayments
+          .filter(p => p.estado === "Pendiente")
+          .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+        totalPendiente += pendiente;
+      } else {
+        // Plan Mensual: 1 pago inicial + N mensualidades automáticas por Stripe
+        const hasPlanMensual = playerPayments.some(p => p.tipo_pago === "Plan Mensual");
+        if (hasPlanMensual) {
+          const pmInitial = playerPayments.find(p => p.tipo_pago === "Plan Mensual" && p.mes === "Junio");
+          const numMeses = pmInitial?.plan_mensual_meses || (() => {
+            const m = pmInitial?.notas?.match(/(\d+)x [\d.]+€\/mes/);
+            return m ? Number(m[1]) : 0;
+          })();
+          const mensualidad = pmInitial?.plan_mensual_mensualidad || (() => {
+            const m = pmInitial?.notas?.match(/(\d+)x ([\d.]+)€\/mes/);
+            return m ? Number(m[2]) : 0;
+          })();
+          const totalEsperadasPM = 1 + numMeses;
+          const pagadasPM = playerPayments.filter(p => p.tipo_pago === "Plan Mensual" && p.estado === "Pagado").length;
+          const pendientesPM = Math.max(0, totalEsperadasPM - pagadasPM);
+          // Pago inicial pendiente
+          if (pmInitial && pmInitial.estado === "Pendiente") {
+            totalPendiente += pmInitial.cantidad || 0;
+          }
+          // Mensualidades no cobradas aún (esperadas - cobradas - pago inicial si pagado)
+          const mensualidadesPagadas = playerPayments.filter(p => p.tipo_pago === "Plan Mensual" && p.mes !== "Junio" && p.estado === "Pagado").length;
+          const mensualidadesPendientes = Math.max(0, numMeses - mensualidadesPagadas);
+          totalPendiente += mensualidadesPendientes * mensualidad;
         } else {
-          // NO tiene plan especial - usar lógica estándar (pago único o fraccionado)
+          // NO tiene plan especial ni mensual - usar lógica estándar (pago único o fraccionado)
           const hasPagoUnico = playerPayments.some(p => 
             p.tipo_pago === "Único" || p.tipo_pago === "único"
           );
-          
+
           if (hasPagoUnico) {
-            // Buscar el pago único
             const pagoUnico = playerPayments.find(p => 
               p.tipo_pago === "Único" || p.tipo_pago === "único"
             );
-            // Solo sumar si está pendiente
             if (pagoUnico && pagoUnico.estado === "Pendiente") {
               totalPendiente += pagoUnico.cantidad || 0;
             }
@@ -356,15 +378,16 @@ export default function TreasurerFinancialPanel() {
             const mesesPagadosORevision = playerPayments
               .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
               .map(p => p.mes);
-            
+
             const allMonths = ["Junio", "Septiembre", "Diciembre"];
             const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-            
+
             mesesFaltantes.forEach(mes => {
               totalPendiente += getImportePorMes(player.deporte, mes);
             });
           }
         }
+      }
       }
     });
 
