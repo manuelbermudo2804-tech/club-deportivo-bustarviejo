@@ -373,6 +373,7 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="Inscripción Tardía">Inscripción Tardía (después de Julio)</SelectItem>
                     <SelectItem value="Dificultad Económica">Dificultad Económica</SelectItem>
                     <SelectItem value="Pérdida Empleo">Pérdida Empleo</SelectItem>
                     <SelectItem value="Emergencia Familiar">Emergencia Familiar</SelectItem>
