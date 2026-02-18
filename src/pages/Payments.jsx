@@ -1078,12 +1078,15 @@ export default function Payments() {
 
                     // Si tiene plan especial, mostrar TODOS sus pagos
                     const hasPlanEspecial = allPlayerPaymentsRaw.some(p => p.tipo_pago === "Plan Especial");
-
-                    console.log(`[DEBUG TIPO] ${player.nombre}:`, { hasPagoUnico, hasPlanEspecial, totalPagos: allPlayerPaymentsRaw.length });
+                    
+                    // Plan Mensual: solo pago inicial, Stripe cobra el resto automáticamente
+                    const hasPlanMensual = allPlayerPaymentsRaw.some(p => p.tipo_pago === "Plan Mensual");
 
                     // Filtrar según tipo de pago
                     const playerPayments = hasPlanEspecial
                       ? allPlayerPaymentsRaw
+                      : hasPlanMensual
+                      ? allPlayerPaymentsRaw.filter(p => p.tipo_pago === "Plan Mensual")
                       : hasPagoUnico
                       ? allPlayerPaymentsRaw.filter(p => p.mes === "Junio")
                       : allPlayerPaymentsRaw;
