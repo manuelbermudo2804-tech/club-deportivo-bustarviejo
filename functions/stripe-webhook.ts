@@ -476,7 +476,169 @@ Deno.serve(async (req) => {
           }
         }
         }
+    }
+
+    // ========== INVOICE.PAYMENT_SUCCEEDED ==========
+    // Cobros mensuales automáticos de suscripciones (Plan Mensual)
+    if (event.type === 'invoice.payment_succeeded') {
+      const invoice = event.data?.object || {};
+      const subId = invoice.subscription;
+      const billingReason = invoice.billing_reason; // 'subscription_cycle' para cobros recurrentes
+
+      // Solo procesar cobros recurrentes (no el primer cobro de setup)
+      if (subId && billingReason === 'subscription_cycle') {
+        console.log('[stripe-webhook] invoice.payment_succeeded (recurrente)', { invoice_id: invoice.id, subscription: subId, amount: invoice.amount_paid });
+
+        try {
+          // Obtener metadata de la suscripción
+          const subscription = await stripe.subscriptions.retrieve(subId);
+          const subMeta = subscription.metadata || {};
+
+          if (subMeta.tipo === 'plan_mensual_cuota') {
+            const amount = (invoice.amount_paid || 0) / 100;
+            const today = new Date().toISOString().slice(0, 10);
+            const now = new Date();
+            const MESES_NOMBRE = { 1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre' };
+            const mesNombre = MESES_NOMBRE[now.getMonth() + 1] || 'Septiembre';
+
+            // Registrar log
+            try {
+              await base44.asServiceRole.entities.StripePaymentLog.create({
+                section: 'plan_mensual_recurrente',
+                amount,
+                currency: invoice.currency || 'eur',
+                status: 'succeeded',
+                session_id: invoice.id,
+                payment_intent_id: invoice.payment_intent || null,
+                email: subMeta.user_email || invoice.customer_email,
+                related_entity: 'Payment',
+                related_id: subMeta.jugador_id,
+                metadata: { ...subMeta, billing_reason: billingReason, mes: mesNombre },
+                created_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error('[stripe-webhook] Error log recurrente:', logErr?.message);
+            }
+
+            // Crear registro de Payment para esta mensualidad
+            try {
+              await base44.asServiceRole.entities.Payment.create({
+                jugador_id: subMeta.jugador_id,
+                jugador_nombre: subMeta.jugador_nombre || '',
+                tipo_pago: 'Plan Mensual',
+                mes: mesNombre,
+                temporada: subMeta.temporada || '',
+                cantidad: amount,
+                estado: 'Pagado',
+                metodo_pago: 'Transferencia',
+                fecha_pago: today,
+                stripe_subscription_id: subId,
+                stripe_subscription_status: 'active',
+                plan_mensual_mensualidad: Number(subMeta.mensualidad || 0),
+                plan_mensual_meses: Number(subMeta.num_meses || 0),
+                notas: `Cobro automático Plan Mensual - ${mesNombre}`
+              });
+              console.log('[stripe-webhook] Payment creado para cobro mensual', { jugador: subMeta.jugador_nombre, mes: mesNombre, amount });
+            } catch (payErr) {
+              console.error('[stripe-webhook] Error creando Payment mensual:', payErr?.message);
+            }
+
+            // Notificar al padre
+            try {
+              const email = subMeta.user_email || invoice.customer_email;
+              if (email) {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to: email,
+                  subject: `✅ Cobro mensual recibido - ${subMeta.jugador_nombre}`,
+                  body: `Hemos cobrado ${amount}€ de la mensualidad de ${mesNombre} para ${subMeta.jugador_nombre}.\n\nEste cobro es parte del Plan Mensual contratado.\n\nGracias por tu confianza.\n\nCD Bustarviejo`
+                });
+              }
+            } catch (emailErr) {
+              console.error('[stripe-webhook] Error email cobro mensual:', emailErr?.message);
+            }
+          }
         } catch (e) {
+          console.error('[stripe-webhook] Error procesando invoice recurrente:', e?.message || e);
+        }
+      }
+    }
+
+    // ========== INVOICE.PAYMENT_FAILED ==========
+    // Fallo en cobro automático
+    if (event.type === 'invoice.payment_failed') {
+      const invoice = event.data?.object || {};
+      const subId = invoice.subscription;
+
+      if (subId) {
+        console.log('[stripe-webhook] invoice.payment_failed', { invoice_id: invoice.id, subscription: subId });
+
+        try {
+          const subscription = await stripe.subscriptions.retrieve(subId);
+          const subMeta = subscription.metadata || {};
+
+          if (subMeta.tipo === 'plan_mensual_cuota') {
+            // Registrar log de fallo
+            try {
+              await base44.asServiceRole.entities.StripePaymentLog.create({
+                section: 'plan_mensual_fallo',
+                amount: (invoice.amount_due || 0) / 100,
+                currency: invoice.currency || 'eur',
+                status: 'failed',
+                session_id: invoice.id,
+                payment_intent_id: invoice.payment_intent || null,
+                email: subMeta.user_email || invoice.customer_email,
+                related_entity: 'Payment',
+                related_id: subMeta.jugador_id,
+                metadata: subMeta,
+                created_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error('[stripe-webhook] Error log fallo:', logErr?.message);
+            }
+
+            // Actualizar estado de suscripción en el Payment inicial
+            try {
+              const initialPayments = await base44.asServiceRole.entities.Payment.filter({
+                jugador_id: subMeta.jugador_id,
+                tipo_pago: 'Plan Mensual',
+                stripe_subscription_id: subId
+              });
+              if (initialPayments?.[0]) {
+                await base44.asServiceRole.entities.Payment.update(initialPayments[0].id, {
+                  stripe_subscription_status: 'past_due'
+                });
+              }
+            } catch (upErr) {
+              console.error('[stripe-webhook] Error actualizando status suscripción:', upErr?.message);
+            }
+
+            // Notificar al padre y al admin
+            try {
+              const amount = (invoice.amount_due || 0) / 100;
+              const email = subMeta.user_email || invoice.customer_email;
+              if (email) {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to: email,
+                  subject: `⚠️ Fallo en cobro mensual - ${subMeta.jugador_nombre}`,
+                  body: `No hemos podido cobrar ${amount}€ de la mensualidad de ${subMeta.jugador_nombre}.\n\nPor favor, verifica que tu tarjeta tiene fondos suficientes. Stripe reintentará el cobro automáticamente.\n\nSi el problema persiste, contacta con el club.\n\nCD Bustarviejo`
+                });
+              }
+              await base44.asServiceRole.integrations.Core.SendEmail({
+                to: 'cdbustarviejo@gmail.com',
+                subject: `⚠️ Fallo cobro Plan Mensual - ${subMeta.jugador_nombre}`,
+                body: `Fallo al cobrar ${amount}€ de ${subMeta.jugador_nombre} (${email}).\nSuscripción: ${subId}\nStripe reintentará automáticamente.`
+              });
+            } catch (emailErr) {
+              console.error('[stripe-webhook] Error email fallo cobro:', emailErr?.message);
+            }
+          }
+        } catch (e) {
+          console.error('[stripe-webhook] Error procesando invoice fallida:', e?.message || e);
+        }
+      }
+    }
+
+  } catch (e) {
     // No devolvemos 500 para evitar reintentos infinitos; solo registramos.
     console.error('[stripe-webhook] Error general manejando evento:', e?.message || e);
   }
