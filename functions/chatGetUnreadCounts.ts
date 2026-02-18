@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
               const gid = toGroupId(cat);
               const lastRead = chatLastRead[gid] || '1970-01-01T00:00:00.000Z';
               const unread = allChatMessages.filter(m =>
-                toGroupId(m.grupo_id || m.deporte) === gid &&
+                normalizeGid(m.grupo_id || m.deporte) === gid &&
                 m.remitente_email !== email &&
                 m.created_date > lastRead
               ).length;
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
               const gid = toGroupId(cat);
               const lastRead = chatLastRead[gid] || '1970-01-01T00:00:00.000Z';
               const unread = allChatMessages.filter(m =>
-                toGroupId(m.grupo_id || m.deporte) === gid &&
+                normalizeGid(m.grupo_id || m.deporte) === gid &&
                 m.remitente_email !== email &&
                 m.created_date > lastRead
               ).length;
