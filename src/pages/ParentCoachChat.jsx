@@ -267,7 +267,7 @@ export default function ParentCoachChat() {
          audio_url: messageData.audio_url,
          audio_duracion: messageData.audio_duracion,
          archivos_adjuntos: messageData.adjuntos || [],
-         grupo_id: categoryKey,
+         grupo_id: gid,
          deporte: selectedCategory,
          leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
        });
