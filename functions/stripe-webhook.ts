@@ -196,7 +196,7 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Plan Mensual: inscripción inicial completada
+        // Plan Mensual: pago inicial completado → crear suscripción programada
         if (metadata.tipo === 'plan_mensual_inscripcion') {
           try {
             await base44.asServiceRole.entities.StripePaymentLog.create({
@@ -213,6 +213,70 @@ Deno.serve(async (req) => {
               created_at: new Date().toISOString()
             });
 
+            // Crear la suscripción con la tarjeta guardada
+            let subscriptionId = null;
+            try {
+              const customerId = session.customer;
+              const recurringPriceId = metadata.recurring_price_id;
+              const cancelAtTs = Number(metadata.cancel_at || 0);
+
+              if (customerId && recurringPriceId) {
+                // Obtener la tarjeta guardada del customer
+                const paymentMethods = await stripe.paymentMethods.list({
+                  customer: customerId,
+                  type: 'card',
+                  limit: 1
+                });
+                const defaultPm = paymentMethods.data?.[0]?.id;
+
+                if (defaultPm) {
+                  // Establecer como método de pago por defecto
+                  await stripe.customers.update(customerId, {
+                    invoice_settings: { default_payment_method: defaultPm }
+                  });
+
+                  // Calcular billing_cycle_anchor (1 de septiembre)
+                  const now = new Date();
+                  let septYear = now.getFullYear();
+                  const sept1 = new Date(septYear, 8, 1); // mes 8 = sept
+                  if (sept1 <= now) {
+                    // Sept ya pasó este año → siguiente mes
+                    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                    var anchorTs = Math.floor(nextMonth.getTime() / 1000);
+                  } else {
+                    var anchorTs = Math.floor(sept1.getTime() / 1000);
+                  }
+
+                  // Crear suscripción con trial_end (para retrasar primer cobro hasta septiembre)
+                  const subParams = {
+                    customer: customerId,
+                    items: [{ price: recurringPriceId }],
+                    default_payment_method: defaultPm,
+                    trial_end: anchorTs,
+                    metadata: {
+                      tipo: 'plan_mensual_cuota',
+                      jugador_id: metadata.jugador_id,
+                      jugador_nombre: metadata.jugador_nombre,
+                      categoria: metadata.categoria,
+                      temporada: metadata.temporada,
+                      mensualidad: metadata.mensualidad,
+                      num_meses: metadata.num_meses,
+                      user_email: metadata.user_email
+                    }
+                  };
+                  if (cancelAtTs > 0) subParams.cancel_at = cancelAtTs;
+
+                  const subscription = await stripe.subscriptions.create(subParams);
+                  subscriptionId = subscription.id;
+                  console.log('[stripe-webhook] Plan Mensual: suscripción creada', subscriptionId, 'primer cobro:', new Date(anchorTs * 1000).toISOString());
+                } else {
+                  console.warn('[stripe-webhook] Plan Mensual: no se encontró tarjeta guardada para customer', customerId);
+                }
+              }
+            } catch (subErr) {
+              console.error('[stripe-webhook] Error creando suscripción:', subErr?.message || subErr);
+            }
+
             // Buscar y marcar como Pagado el pago inicial del jugador
             const jugadorPayments = await base44.asServiceRole.entities.Payment.filter({
               jugador_id: metadata.jugador_id,
@@ -222,16 +286,11 @@ Deno.serve(async (req) => {
             });
             const initialPayment = jugadorPayments?.[0];
             if (initialPayment) {
-              // Obtener subscription ID de la sesión
-              let subscriptionId = null;
-              if (session.subscription) {
-                subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
-              }
               await base44.asServiceRole.entities.Payment.update(initialPayment.id, {
                 estado: 'Pagado',
                 fecha_pago: today,
                 stripe_subscription_id: subscriptionId || null,
-                stripe_subscription_status: 'active',
+                stripe_subscription_status: subscriptionId ? 'active' : null,
                 plan_mensual_mensualidad: Number(metadata.mensualidad || 0),
                 plan_mensual_meses: Number(metadata.num_meses || 0),
                 plan_mensual_mes_fin: metadata.mes_fin || 'Mayo'
