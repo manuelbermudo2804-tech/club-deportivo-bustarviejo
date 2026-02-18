@@ -656,7 +656,7 @@ export default function StaffChat() {
   }
 
   return (
-    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0">
+    <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 lg:pl-72 pb-0">
       <audio 
         ref={audioRef} 
         onEnded={() => setPlayingAudio(null)}
