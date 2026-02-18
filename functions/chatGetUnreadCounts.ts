@@ -24,8 +24,8 @@ Deno.serve(async (req) => {
 
     // Normalize group IDs: remove parenthesized suffixes, accents, collapse whitespace
     const toGroupId = (s) => (s || '').toString().replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
-    // Also normalize the raw grupo_id stored on messages (may contain accents/parentheses)
-    const normalizeGid = (s) => (s || '').toString().replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+    // Also normalize the raw grupo_id stored on messages (may contain accents/parentheses and underscores)
+    const normalizeGid = (s) => (s || '').toString().replace(/\(.*?\)/g, '').replace(/_/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
 
     const chatLastRead = user.chat_last_read || {};
 
