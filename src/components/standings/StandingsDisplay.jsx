@@ -50,50 +50,64 @@ export default function StandingsDisplay({ data, onClose, fullPage = false }) {
               <th className="text-center p-2 sm:p-3">P</th>
               <th className="text-center p-2 sm:p-3">GF</th>
               <th className="text-center p-2 sm:p-3">GC</th>
-              <th className="text-center p-2 sm:p-3 rounded-tr-lg font-bold">Pts</th>
+              <th className="text-center p-2 sm:p-3 font-bold">Pts</th>
+              <th className="p-2 sm:p-3 rounded-tr-lg hidden sm:table-cell"></th>
             </tr>
           </thead>
           <tbody>
-            {sortedData.map((standing, index) => {
-              const diff = (standing.goles_favor || 0) - (standing.goles_contra || 0);
-              const isBustarviejo = standing.nombre_equipo.toLowerCase().includes('bustarviejo') || 
-                                   standing.nombre_equipo.toLowerCase().includes('bustar');
+            {(() => {
+              const maxPts = sortedData.length > 0 ? Math.max(...sortedData.map(s => s.puntos || 0)) : 1;
+              return sortedData.map((standing, index) => {
+                const diff = (standing.goles_favor || 0) - (standing.goles_contra || 0);
+                const isBustarviejo = standing.nombre_equipo.toLowerCase().includes('bustarviejo') || 
+                                     standing.nombre_equipo.toLowerCase().includes('bustar');
+                const ptsPct = maxPts > 0 ? ((standing.puntos || 0) / maxPts) * 100 : 0;
 
-              return (
-                <tr 
-                  key={index}
-                  className={`border-b hover:bg-slate-50 ${
-                    isBustarviejo ? 'bg-gradient-to-r from-orange-100 via-orange-50 to-orange-100 font-bold ring-2 ring-orange-400 ring-inset shadow-sm' :
-                    standing.posicion === 1 ? 'bg-yellow-50' :
-                    standing.posicion === 2 ? 'bg-slate-100' :
-                    standing.posicion === 3 ? 'bg-orange-50' :
-                    ''
-                  }`}
-                >
-                  <td className="p-2 sm:p-3 font-bold">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      {standing.posicion}
-                      {standing.posicion === 1 && <Trophy className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />}
-                      {standing.posicion <= 3 && standing.posicion > 1 && (
-                        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
-                      )}
-                      {standing.posicion > sortedData.length - 3 && (
-                        <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
-                      )}
-                      {isBustarviejo && <span className="text-orange-600">⚽</span>}
-                    </div>
-                  </td>
-                  <td className="p-2 sm:p-3 font-medium text-xs sm:text-sm">{standing.nombre_equipo}</td>
-                  <td className="text-center p-2 sm:p-3">{standing.partidos_jugados || '-'}</td>
-                  <td className="text-center p-2 sm:p-3 text-green-600">{standing.ganados || '-'}</td>
-                  <td className="text-center p-2 sm:p-3 text-slate-600">{standing.empatados || '-'}</td>
-                  <td className="text-center p-2 sm:p-3 text-red-600">{standing.perdidos || '-'}</td>
-                  <td className="text-center p-2 sm:p-3 font-semibold">{standing.goles_favor || '-'}</td>
-                  <td className="text-center p-2 sm:p-3 font-semibold">{standing.goles_contra || '-'}</td>
-                  <td className="text-center p-2 sm:p-3 font-bold text-base sm:text-lg text-orange-600">{standing.puntos}</td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr 
+                    key={index}
+                    className={`border-b hover:bg-slate-50 transition-colors ${
+                      isBustarviejo ? 'bg-gradient-to-r from-orange-100 via-orange-50 to-orange-100 font-bold ring-2 ring-orange-400 ring-inset shadow-sm' :
+                      standing.posicion === 1 ? 'bg-yellow-50' :
+                      standing.posicion === 2 ? 'bg-slate-100' :
+                      standing.posicion === 3 ? 'bg-orange-50' :
+                      ''
+                    }`}
+                  >
+                    <td className="p-2 sm:p-3 font-bold">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        {standing.posicion === 1 ? '🥇' : standing.posicion === 2 ? '🥈' : standing.posicion === 3 ? '🥉' : standing.posicion}
+                        {isBustarviejo && <span className="text-orange-600">⚽</span>}
+                      </div>
+                    </td>
+                    <td className="p-2 sm:p-3 font-medium text-xs sm:text-sm">
+                      <span className={isBustarviejo ? 'text-orange-700' : ''}>{standing.nombre_equipo}</span>
+                    </td>
+                    <td className="text-center p-2 sm:p-3">{standing.partidos_jugados || '-'}</td>
+                    <td className="text-center p-2 sm:p-3 text-green-600 font-semibold">{standing.ganados || '-'}</td>
+                    <td className="text-center p-2 sm:p-3 text-slate-500">{standing.empatados || '-'}</td>
+                    <td className="text-center p-2 sm:p-3 text-red-500 font-semibold">{standing.perdidos || '-'}</td>
+                    <td className="text-center p-2 sm:p-3">{standing.goles_favor || '-'}</td>
+                    <td className="text-center p-2 sm:p-3">{standing.goles_contra || '-'}</td>
+                    <td className="text-center p-2 sm:p-3 font-bold text-base sm:text-lg text-orange-600">{standing.puntos}</td>
+                    <td className="p-2 sm:p-3 hidden sm:table-cell w-24">
+                      <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            isBustarviejo ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                            standing.posicion === 1 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
+                            standing.posicion <= 3 ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                            standing.posicion > sortedData.length - 3 ? 'bg-gradient-to-r from-red-400 to-red-500' :
+                            'bg-gradient-to-r from-slate-400 to-slate-500'
+                          }`}
+                          style={{ width: `${ptsPct}%` }}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              });
+            })()}
           </tbody>
         </table>
       </div>

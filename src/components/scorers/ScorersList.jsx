@@ -101,69 +101,92 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
         </Card>
       )}
 
-      {temporadas.map(temporada => (
-        <Card key={temporada} className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span>Tabla de Goleadores</span>
-                <Badge className="bg-green-500 text-white">{temporada}</Badge>
-              </div>
-              {isAdmin && onDelete && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (confirm(`¿Eliminar goleadores de temporada ${temporada}?`)) {
-                      onDelete({ temporada });
-                    }
-                  }}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-left border-b">
-                    <th className="py-2 pr-3">#</th>
-                    <th className="py-2 pr-3">Jugador</th>
-                    <th className="py-2 pr-3">Equipo</th>
-                    <th className="py-2 pr-3">Goles</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const list = groupedByTemporada[temporada];
-                    const map = new Map();
-                    for (const s of list) {
-                      const key = `${normalize(s.jugador_nombre)}|${normalize(s.equipo)}`;
-                      const cur = map.get(key);
-                      if (!cur || (s.goles ?? 0) > (cur.goles ?? 0)) map.set(key, s);
-                    }
-                    const deduped = Array.from(map.values()).sort((a, b) => (b.goles ?? 0) - (a.goles ?? 0));
-                    return deduped.map((s, i) => {
+      {temporadas.map(temporada => {
+        const list = groupedByTemporada[temporada];
+        const map = new Map();
+        for (const s of list) {
+          const key = `${normalize(s.jugador_nombre)}|${normalize(s.equipo)}`;
+          const cur = map.get(key);
+          if (!cur || (s.goles ?? 0) > (cur.goles ?? 0)) map.set(key, s);
+        }
+        const deduped = Array.from(map.values()).sort((a, b) => (b.goles ?? 0) - (a.goles ?? 0));
+        const maxGoles = deduped.length > 0 ? (deduped[0].goles || 1) : 1;
+
+        return (
+          <Card key={temporada} className="hover:shadow-lg transition-shadow border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-orange-500" />
+                  <span>Tabla de Goleadores</span>
+                  <Badge className="bg-orange-600 text-white">{temporada}</Badge>
+                  <Badge variant="outline" className="text-slate-500">{deduped.length} jugadores</Badge>
+                </div>
+                {isAdmin && onDelete && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      if (confirm(`¿Eliminar goleadores de temporada ${temporada}?`)) {
+                        onDelete({ temporada });
+                      }
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+                    <tr>
+                      <th className="py-2 px-3 text-left rounded-tl-lg">#</th>
+                      <th className="py-2 px-3 text-left">Jugador</th>
+                      <th className="py-2 px-3 text-left">Equipo</th>
+                      <th className="py-2 px-3 text-center">Goles</th>
+                      <th className="py-2 px-3 rounded-tr-lg hidden sm:table-cell"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deduped.map((s, i) => {
                       const bust = isBustarviejo(s.equipo);
+                      const golesPct = maxGoles > 0 ? ((s.goles || 0) / maxGoles) * 100 : 0;
                       return (
-                        <tr key={s.id || `${i}-${s.jugador_nombre}`} className={`border-b last:border-0 ${bust ? 'bg-orange-50' : ''}`}>
-                          <td className="py-2 pr-3">{i + 1}</td>
-                          <td className={`py-2 pr-3 ${bust ? 'text-orange-700 font-bold' : ''}`}>{bust && '⚽ '}{s.jugador_nombre}</td>
-                          <td className={`py-2 pr-3 ${bust ? 'text-orange-700 font-semibold' : ''}`}>{s.equipo}</td>
-                          <td className={`py-2 pr-3 font-semibold ${bust ? 'text-orange-700' : ''}`}>{s.goles}</td>
+                        <tr key={s.id || `${i}-${s.jugador_nombre}`} className={`border-b last:border-0 transition-colors hover:bg-slate-50 ${bust ? 'bg-gradient-to-r from-orange-50 to-orange-100/50' : ''}`}>
+                          <td className="py-2.5 px-3 font-bold text-slate-500">
+                            {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                          </td>
+                          <td className={`py-2.5 px-3 font-medium ${bust ? 'text-orange-700 font-bold' : ''}`}>
+                            {bust && '⚽ '}{s.jugador_nombre}
+                          </td>
+                          <td className={`py-2.5 px-3 text-xs ${bust ? 'text-orange-600 font-semibold' : 'text-slate-600'}`}>{s.equipo}</td>
+                          <td className={`py-2.5 px-3 text-center font-bold text-base ${bust ? 'text-orange-700' : 'text-slate-900'}`}>{s.goles}</td>
+                          <td className="py-2.5 px-3 hidden sm:table-cell w-24">
+                            <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  bust ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                  i === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
+                                  i <= 2 ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                                  'bg-gradient-to-r from-slate-400 to-slate-500'
+                                }`}
+                                style={{ width: `${golesPct}%` }}
+                              />
+                            </div>
+                          </td>
                         </tr>
                       );
-                    });
-                  })()}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
       
       {temporadas.length === 0 && (
         <Card className="border-2 border-dashed border-slate-300">
