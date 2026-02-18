@@ -297,9 +297,7 @@ export default function CentroCompeticion() {
 
       // 1) Borrar todo lo existente para esta categoría/temporada/jornada (evita duplicados)
       const prev = await base44.entities.Clasificacion.filter({ categoria, temporada, jornada }, '-updated_date', 400);
-      for (const rec of prev) {
-        await base44.entities.Clasificacion.delete(rec.id);
-      }
+      for (const rec of prev) { try { await base44.entities.Clasificacion.delete(rec.id); } catch {} }
 
       // 2) Insertar todo de nuevo ya normalizado (vacíos -> 0)
       const toNum = (v) => (v === undefined || v === '' ? 0 : Number(v));
@@ -346,7 +344,7 @@ export default function CentroCompeticion() {
 
       // 1) Borrar todos los resultados previos de la jornada objetivo para evitar duplicados
       const prev = await base44.entities.Resultado.filter({ categoria, temporada, jornada: targetJornada }, '-updated_date', 400);
-      for (const rec of prev) await base44.entities.Resultado.delete(rec.id);
+      for (const rec of prev) { try { await base44.entities.Resultado.delete(rec.id); } catch {} }
 
       // 2) Insertar todo normalizado (partidos pendientes sin marcador)
       const isNum = (v) => Number.isFinite(Number(v)) && Number(v) >= 0;
@@ -379,7 +377,7 @@ export default function CentroCompeticion() {
 
       // 1) Borrar todos los registros previos de esa categoría + temporada (evita duplicados)
       const prev = await base44.entities.Goleador.filter({ categoria, temporada }, '-updated_date', 5000);
-      for (const rec of prev) await base44.entities.Goleador.delete(rec.id);
+      for (const rec of prev) { try { await base44.entities.Goleador.delete(rec.id); } catch {} }
 
       // 2) Normalizar y deduplicar por slug (jugador + equipo). Guardar el mayor nº de goles
       const norm = (s) =>
@@ -681,9 +679,10 @@ export default function CentroCompeticion() {
                   <Button variant="destructive" size="sm" onClick={async () => {
                     if (!confirm(`¿Borrar TODA la clasificación de "${category}"? Esta acción no se puede deshacer.`)) return;
                     const all = await base44.entities.Clasificacion.filter({ categoria: category }, '-updated_date', 1000);
-                    for (const r of all) await base44.entities.Clasificacion.delete(r.id);
+                    let deleted = 0;
+                    for (const r of all) { try { await base44.entities.Clasificacion.delete(r.id); deleted++; } catch {} }
                     await queryClient.refetchQueries({ queryKey: ['centro-standings', category] });
-                    alert(`Eliminados ${all.length} registros de clasificación`);
+                    alert(`Eliminados ${deleted} registros de clasificación`);
                   }}>
                     🗑️ Borrar clasificación de {category}
                   </Button>
@@ -719,9 +718,10 @@ export default function CentroCompeticion() {
                   <Button variant="destructive" size="sm" onClick={async () => {
                     if (!confirm(`¿Borrar TODOS los resultados de "${category}"? Esta acción no se puede deshacer.`)) return;
                     const all = await base44.entities.Resultado.filter({ categoria: category }, '-updated_date', 1000);
-                    for (const r of all) await base44.entities.Resultado.delete(r.id);
+                    let deleted = 0;
+                    for (const r of all) { try { await base44.entities.Resultado.delete(r.id); deleted++; } catch {} }
                     await queryClient.refetchQueries({ queryKey: ['resultados', category] });
-                    alert(`Eliminados ${all.length} resultados`);
+                    alert(`Eliminados ${deleted} resultados`);
                   }}>
                     🗑️ Borrar resultados de {category}
                   </Button>
@@ -744,9 +744,10 @@ export default function CentroCompeticion() {
                   <Button variant="destructive" size="sm" onClick={async () => {
                     if (!confirm(`¿Borrar TODOS los goleadores de "${category}"? Esta acción no se puede deshacer.`)) return;
                     const all = await base44.entities.Goleador.filter({ categoria: category }, '-updated_date', 5000);
-                    for (const r of all) await base44.entities.Goleador.delete(r.id);
+                    let deleted = 0;
+                    for (const r of all) { try { await base44.entities.Goleador.delete(r.id); deleted++; } catch {} }
                     await queryClient.refetchQueries({ queryKey: ['goleadores', category] });
-                    alert(`Eliminados ${all.length} goleadores`);
+                    alert(`Eliminados ${deleted} goleadores`);
                   }}>
                     🗑️ Borrar goleadores de {category}
                   </Button>
