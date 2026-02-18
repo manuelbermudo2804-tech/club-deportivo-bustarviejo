@@ -296,7 +296,7 @@ export default function CentroCompeticion() {
     try {
       const { temporada, categoria, jornada, standings } = payload;
 
-      // 1) Borrar todo lo existente para esta categoría/temporada/jornada (evita duplicados)
+      // 1) Borrar solo registros de la MISMA jornada (permite acumular historial de jornadas para el gráfico de evolución)
       const prev = await base44.entities.Clasificacion.filter({ categoria, temporada, jornada }, '-updated_date', 400);
       for (const rec of prev) { try { await base44.entities.Clasificacion.delete(rec.id); } catch {} }
 
