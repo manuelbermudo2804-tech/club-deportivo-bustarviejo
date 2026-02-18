@@ -517,14 +517,18 @@ export default function ParentDashboard() {
             if (p.categoria_principal) myCategorias.add(p.categoria_principal);
             (p.categorias || []).forEach(c => myCategorias.add(c));
           });
+
           // Filtrar compañeros de misma categoría
           const teammatePlayers = allPlayers.filter(p => {
             if (!p.activo || myPlayers.some(mp => mp.id === p.id)) return false;
             const pCats = [p.categoria_principal, ...(p.categorias || [])].filter(Boolean);
             return pCats.some(c => myCategorias.has(c));
           });
+
           const birthdayPlayers = [...myPlayers, ...teammatePlayers];
-          return <BirthdayBanner players={birthdayPlayers} mode="parent" />;
+          const myPlayerIds = myPlayers.map(p => p.id);
+
+          return <BirthdayBanner players={birthdayPlayers} myPlayerIds={myPlayerIds} mode="parent" />;
         })()}
 
         {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der) */}

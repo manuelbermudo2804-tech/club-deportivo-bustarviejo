@@ -54,6 +54,7 @@ import AdminStats from './pages/AdminStats';
 import Announcements from './pages/Announcements';
 import Anuncios from './pages/Anuncios';
 import AppAnalytics from './pages/AppAnalytics';
+import BirthdayPreview from './pages/BirthdayPreview';
 import BoardTasks from './pages/BoardTasks';
 import CalendarAndSchedules from './pages/CalendarAndSchedules';
 import CategoryConfigAdmin from './pages/CategoryConfigAdmin';
@@ -160,7 +161,6 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import BirthdayPreview from './pages/BirthdayPreview';
 import __Layout from './Layout.jsx';
 
 
@@ -172,6 +172,7 @@ export const PAGES = {
     "Announcements": Announcements,
     "Anuncios": Anuncios,
     "AppAnalytics": AppAnalytics,
+    "BirthdayPreview": BirthdayPreview,
     "BoardTasks": BoardTasks,
     "CalendarAndSchedules": CalendarAndSchedules,
     "CategoryConfigAdmin": CategoryConfigAdmin,
@@ -278,7 +279,6 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "BirthdayPreview": BirthdayPreview,
 }
 
 export const pagesConfig = {
