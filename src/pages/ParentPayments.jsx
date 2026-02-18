@@ -894,7 +894,7 @@ export default function ParentPayments() {
                   return numA - numB;
                 });
               } else if (hasPlanMensual) {
-                // Plan Mensual: mostrar SOLO los pagos reales (el pago inicial de Junio).
+                // Plan Mensual: mostrar SOLO los pagos reales del plan mensual.
                 // Las mensualidades se cobran automáticamente por Stripe, no se crean virtuales.
                 displayPayments = allPlayerPayments.filter(p => p.tipo_pago === "Plan Mensual");
               } else {
