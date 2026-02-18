@@ -894,9 +894,14 @@ export default function ParentPayments() {
                   return numA - numB;
                 });
               } else if (hasPlanMensual) {
-                // Plan Mensual: mostrar SOLO los pagos reales del plan mensual.
-                // Las mensualidades se cobran automáticamente por Stripe, no se crean virtuales.
+                // Plan Mensual: mostrar TODOS los pagos reales (inicial + mensualidades cobradas por Stripe)
                 displayPayments = allPlayerPayments.filter(p => p.tipo_pago === "Plan Mensual");
+                // Ordenar: Junio primero, luego por fecha de creación
+                displayPayments.sort((a, b) => {
+                  if (a.mes === "Junio") return -1;
+                  if (b.mes === "Junio") return 1;
+                  return new Date(a.created_date || 0) - new Date(b.created_date || 0);
+                });
               } else {
                 // Determinar los meses que debería tener este jugador
                 const allMonths = hasPagoUnico
@@ -989,9 +994,13 @@ export default function ParentPayments() {
 
                     {/* Info Plan Mensual */}
                     {hasPlanMensual && (() => {
-                      const pmPayment = allPlayerPayments.find(p => p.tipo_pago === "Plan Mensual");
+                      const pmPayment = allPlayerPayments.find(p => p.tipo_pago === "Plan Mensual" && p.mes === "Junio");
                       const match = pmPayment?.notas?.match(/(\d+)€ inicial \+ (\d+)x ([\d.]+)€\/mes \(([^)]+)\)/);
                       const info = match ? { inicial: Number(match[1]), numMeses: Number(match[2]), mensualidad: Number(match[3]), periodo: match[4] } : null;
+                      const numMeses = pmPayment?.plan_mensual_meses || (info?.numMeses || 0);
+                      const totalEsperadas = 1 + numMeses;
+                      const totalPagadas = displayPayments.filter(p => p.estado === "Pagado").length;
+                      const porcentaje = totalEsperadas > 0 ? Math.round((totalPagadas / totalEsperadas) * 100) : 0;
                       return (
                         <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-lg">
                           <div className="flex items-center gap-2">
@@ -1003,9 +1012,19 @@ export default function ParentPayments() {
                               <p>💳 Pago inicial: <strong>{info.inicial}€</strong> (Junio)</p>
                               <p>📅 Mensualidades: <strong>{info.numMeses}x {info.mensualidad}€/mes</strong> ({info.periodo})</p>
                               <p>💰 Total temporada: <strong>{(info.inicial + info.numMeses * info.mensualidad).toFixed(0)}€</strong></p>
+                              {/* Progreso de pagos */}
+                              <div className="mt-2">
+                                <div className="flex justify-between text-[10px] mb-1">
+                                  <span>Progreso: {totalPagadas} de {totalEsperadas} cuotas pagadas</span>
+                                  <span className="font-bold">{porcentaje}%</span>
+                                </div>
+                                <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
+                                  <div className={`h-full transition-all duration-500 ${porcentaje === 100 ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${porcentaje}%` }} />
+                                </div>
+                              </div>
                               <div className="bg-blue-100 rounded p-2 mt-2">
                                 <p className="text-[10px] text-blue-800">
-                                  ℹ️ Las mensualidades se cobran automáticamente en tu tarjeta a través de Stripe. No necesitas hacer nada más después de pagar el pago inicial.
+                                  ℹ️ Las mensualidades se cobran automáticamente en tu tarjeta. No necesitas hacer nada más.
                                 </p>
                               </div>
                               {pmPayment?.stripe_subscription_id && (
