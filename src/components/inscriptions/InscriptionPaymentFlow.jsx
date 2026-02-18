@@ -252,7 +252,51 @@ export default function InscriptionPaymentFlow({
         <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
           <p className="text-sm font-bold text-orange-900 mb-3">💰 Cuotas que se generarán:</p>
           
-          {tipoPago === "Único" ? (
+          {tipoPago === "Plan Mensual" ? (() => {
+            const pi = Math.round(importeTotal * pctInicial / 100);
+            const rest = importeTotal - pi;
+            const MN = { "Septiembre": 9, "Octubre": 10, "Noviembre": 11, "Diciembre": 12, "Enero": 1, "Febrero": 2, "Marzo": 3, "Abril": 4, "Mayo": 5, "Junio": 6 };
+            const mfn = MN[mesFin] || 5;
+            let nm = mfn >= 9 ? mfn - 9 + 1 : (12 - 9 + 1) + mfn;
+            if (nm < 1) nm = 1;
+            const mens = Math.round((rest / nm) * 100) / 100;
+            return (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-emerald-200">
+                  <div>
+                    <p className="font-bold text-slate-900">Pago Inicial (Junio)</p>
+                    <p className="text-xs text-slate-600">{pctInicial}% de la cuota total</p>
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-700">{pi}€</p>
+                </div>
+                <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-blue-200">
+                  <div>
+                    <p className="font-bold text-slate-900">Mensualidades automáticas</p>
+                    <p className="text-xs text-slate-600">{nm} cobros (Sept → {mesFin}) por tarjeta</p>
+                  </div>
+                  <p className="text-lg font-bold text-blue-700">{nm} x {mens}€</p>
+                </div>
+                <div className="bg-emerald-100 border-2 border-emerald-300 rounded-lg p-2">
+                  <p className="text-xs text-emerald-900 text-center font-bold">
+                    🔄 Stripe cobrará automáticamente {mens}€/mes hasta {mesFin}. La suscripción se cancela sola.
+                  </p>
+                </div>
+                {descuentoHermano > 0 && (
+                  <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
+                    <p className="text-xs text-purple-900 text-center font-bold">
+                      💜 Descuento hermano aplicado: -{descuentoHermano}€
+                    </p>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-orange-200">
+                  <div className="flex justify-between items-center">
+                    <p className="font-bold text-slate-600">Total temporada:</p>
+                    <p className="text-2xl font-bold text-orange-700">{importeTotal}€</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })() : tipoPago === "Único" ? (
             <div className="space-y-2">
               <div className="flex justify-between items-center bg-white rounded-lg p-3 border border-orange-200">
                 <div>
