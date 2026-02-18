@@ -1095,6 +1095,15 @@ export default function Payments() {
                       const playerCustomPlan = customPlans.find(p => 
                         p.jugador_id === player.id && p.estado === "Activo"
                       );
+                      
+                      // Extraer info del Plan Mensual de las notas del pago
+                      const planMensualPayment = hasPlanMensual ? allPlayerPaymentsRaw.find(p => p.tipo_pago === "Plan Mensual") : null;
+                      const planMensualInfo = (() => {
+                        if (!planMensualPayment?.notas) return null;
+                        const match = planMensualPayment.notas.match(/(\d+)€ inicial \+ (\d+)x ([\d.]+)€\/mes \(([^)]+)\)/);
+                        if (match) return { inicial: Number(match[1]), numMeses: Number(match[2]), mensualidad: Number(match[3]), periodo: match[4] };
+                        return null;
+                      })();
 
                       // Determinar los meses que debería tener este jugador
                       let allMonths;
