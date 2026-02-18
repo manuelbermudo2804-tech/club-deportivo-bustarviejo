@@ -325,157 +325,123 @@ export default function CoachParentChat({ embedded = false }) {
     );
   }
 
-  return (
-    <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col overflow-hidden min-h-0 pt-[100px] lg:pt-0 pb-0">
-      {/* Modal de configuración */}
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              ⚙️ Configuración Chat Entrenador
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="mt-4">
-            <CoachAwayMode user={user} />
+  // ====== MOBILE: pestañas clásicas (sin cambios) ======
+  const mobileView = (
+    <div className="lg:hidden fixed inset-0 flex flex-col overflow-hidden pt-[100px] pb-0">
+      <Card className="h-full flex flex-col overflow-hidden min-h-0 rounded-none border-green-200 shadow-lg">
+        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
+          <div className="p-2 flex items-center justify-between border-b border-green-500/30">
+            <h1 className="text-base font-bold flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-white hover:bg-white/20 h-8 w-8 p-0">
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <MessageCircle className="w-5 h-5" />
+              Chat Entrenador-Familias
+              {lockedCategory && <span className="text-xs font-normal opacity-80 ml-1">· {lockedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}</span>}
+            </h1>
+            <Button variant="ghost" size="sm" onClick={() => setShowSettings(true)} className="text-white hover:bg-white/20 h-8 w-8 p-0"><Settings className="w-4 h-4" /></Button>
           </div>
-        </DialogContent>
-      </Dialog>
 
-      <Card className="h-full flex flex-col overflow-hidden min-h-0 lg:rounded-lg rounded-none border-green-200 shadow-lg">
-         {/* Header con pestañas de categorías */}
-         <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
-           <div className="p-2 flex items-center justify-between border-b border-green-500/30">
-             <div>
-               <h1 className="text-base font-bold flex items-center gap-2">
-                 <Button
-                   variant="ghost"
-                   size="sm"
-                   onClick={() => navigate(-1)}
-                   className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                   title="Volver atrás"
-                 >
-                   <ChevronLeft className="w-4 h-4" />
-                 </Button>
-                 <MessageCircle className="w-5 h-5" />
-                 Chat Entrenador-Familias
-                 {lockedCategory && (
-                   <span className="text-xs font-normal opacity-80 ml-1">
-                     · {lockedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                   </span>
-                 )}
-               </h1>
-             </div>
-             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSettings(true)}
-              className="text-white hover:bg-white/20 h-8 w-8 p-0"
-              title="Configuración"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
-        
-        {/* Banner de avisos y pestañas - solo si NO viene con categoría fija */}
-        {!lockedCategory && Object.values(unreadByCategory).some(count => count > 0) && (
-          <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
-            <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos mensajes:</span>
-            {categories.filter(cat => unreadByCategory[cat] > 0).map(cat => (
-              <button 
-                key={cat} 
-                onClick={() => setSelectedCategory(cat)}
-                className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900 hover:bg-yellow-300 transition-colors whitespace-nowrap"
-              >
-                {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')} 
-                <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">
-                  {unreadByCategory[cat]}
-                </Badge>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Selección de categoría para coordinadores (chats INDIVIDUALES) o pestañas para entrenadores */}
-        {!lockedCategory && (
-          isCoordinator ? (
-            <div className="px-2 pb-2 space-y-2">
-              {[...new Set(user?.categorias_entrena || [])].map(cat => {
-                const categoryPlayers = allPlayers.filter(p => (
-                  p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)
-                ));
-                const parentCount = new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
-                const unreadCount = unreadByCategory[cat] || 0;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => { setSelectedCategory(cat); setLockedCategory(cat); }}
-                    className="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 text-white rounded-xl px-3 py-2 transition-colors border border-white/20"
-                  >
-                    <span className="text-xs font-semibold">
-                      {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                      <span className="ml-1.5 opacity-70 font-normal">({parentCount})</span>
-                    </span>
-                    {unreadCount > 0 && (
-                      <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 h-4">{unreadCount}</Badge>
-                    )}
-                  </button>
-                );
-              })}
+          {!lockedCategory && Object.values(unreadByCategory).some(c => c > 0) && (
+            <div className="px-2 py-1.5 bg-yellow-50 border-b border-yellow-200 flex gap-2 overflow-x-auto flex-wrap">
+              <span className="text-xs font-semibold text-yellow-800 whitespace-nowrap">🔔 Nuevos:</span>
+              {categories.filter(cat => unreadByCategory[cat] > 0).map(cat => (
+                <button key={cat} onClick={() => setSelectedCategory(cat)} className="bg-yellow-200 border border-yellow-400 rounded-full px-2 py-0.5 text-xs font-semibold text-yellow-900">
+                  {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
+                  <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1 py-0 h-4 animate-pulse">{unreadByCategory[cat]}</Badge>
+                </button>
+              ))}
             </div>
-          ) : (
+          )}
+
+          {!lockedCategory && categories.length > 1 && (
             <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
               {categories.map(cat => {
-                const categoryPlayers = cat === "Todas las categorías" 
-                  ? allPlayers 
-                  : allPlayers.filter(p => (p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)));
-                const parentCount = new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
                 const unreadCount = unreadByCategory[cat] || 0;
                 return (
-                  <Button
-                    key={cat}
-                    variant={selectedCategory === cat ? "secondary" : "ghost"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`whitespace-nowrap text-xs px-2 py-1 h-7 relative ${selectedCategory === cat ? 'bg-white text-green-700 hover:bg-white/90' : 'text-white hover:bg-white/20'}`}
-                  >
+                  <Button key={cat} variant={selectedCategory === cat ? "secondary" : "ghost"} size="sm" onClick={() => setSelectedCategory(cat)}
+                    className={`whitespace-nowrap text-xs px-2 py-1 h-7 ${selectedCategory === cat ? 'bg-white text-green-700' : 'text-white hover:bg-white/20'}`}>
                     {cat === "Todas las categorías" ? "📋 Todas" : cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
-                    <span className="ml-1.5 text-xs opacity-70">({parentCount})</span>
-                    {unreadCount > 0 && (
-                      <Badge className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">{unreadCount}</Badge>
-                    )}
+                    {unreadCount > 0 && <Badge className="ml-1 bg-red-500 text-white text-[10px] px-1.5 py-0 h-4 animate-pulse">{unreadCount}</Badge>}
                   </Button>
                 );
               })}
             </div>
-          )
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Ventana de chat */}
-      <div className="flex-1 overflow-hidden min-h-0">
-        {selectedCategory && (unreadByCategory[selectedCategory] > 0) && (
-          <div className="bg-yellow-50 border-b border-yellow-200 text-yellow-800 text-xs px-3 py-2">
-            Tienes {unreadByCategory[selectedCategory]} mensajes nuevos en {selectedCategory}
-          </div>
-        )}
-        {selectedCategory ? (
-          <CoachChatWindow
-            selectedCategory={selectedCategory}
-            user={user}
-            allPlayers={allPlayers}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center bg-slate-50">
-            <div className="text-center">
+        <div className="flex-1 overflow-hidden min-h-0">
+          {selectedCategory ? (
+            <CoachChatWindow selectedCategory={selectedCategory} user={user} allPlayers={allPlayers} />
+          ) : (
+            <div className="h-full flex items-center justify-center bg-slate-50">
               <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">Selecciona una categoría para empezar</p>
+              <p className="text-slate-500">Selecciona una categoría</p>
             </div>
-          </div>
-        )}
-      </div>
-    </Card>
+          )}
+        </div>
+      </Card>
     </div>
+  );
+
+  // ====== DESKTOP: sidebar + chat panel ======
+  const desktopView = (
+    <div className="hidden lg:flex h-[calc(100vh-0px)] overflow-hidden rounded-lg border border-green-200 shadow-lg">
+      {/* Sidebar izquierda */}
+      {!lockedCategory && (
+        <ChatSidebar
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelect={setSelectedCategory}
+          unreadByCategory={unreadByCategory}
+          lastMessages={lastMessagesByCategory}
+        />
+      )}
+
+      {/* Panel derecho: header + chat */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white flex-shrink-0">
+          <div className="p-2 flex items-center justify-between">
+            <h1 className="text-base font-bold flex items-center gap-2">
+              <MessageCircle className="w-5 h-5" />
+              {selectedCategory
+                ? (selectedCategory === "Todas las categorías" ? "📋 Todas las categorías" : selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', ''))
+                : "Chat Entrenador-Familias"}
+            </h1>
+            <Button variant="ghost" size="sm" onClick={() => setShowSettings(true)} className="text-white hover:bg-white/20 h-8 w-8 p-0">
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-hidden min-h-0">
+          {selectedCategory ? (
+            <CoachChatWindow selectedCategory={selectedCategory} user={user} allPlayers={allPlayers} />
+          ) : (
+            <div className="h-full flex items-center justify-center bg-slate-50">
+              <div className="text-center">
+                <MessageCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">Selecciona una conversación de la lista</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Settings className="w-5 h-5" /> ⚙️ Configuración Chat Entrenador</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4"><CoachAwayMode user={user} /></div>
+        </DialogContent>
+      </Dialog>
+      {mobileView}
+      {desktopView}
+    </>
   );
 }
