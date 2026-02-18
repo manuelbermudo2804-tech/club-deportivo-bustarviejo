@@ -60,11 +60,11 @@ export default function ParentCoordinatorChat() {
         padre_email: currentUser.email 
       });
 
+      let activeConv;
       if (conversations.length > 0) {
-        setConversation(conversations[0]);
+        activeConv = conversations[0];
       } else {
-        // Crear conversación nueva - obtener email del coordinador (en el futuro esto será dinámico)
-        const newConv = await base44.entities.CoordinatorConversation.create({
+        activeConv = await base44.entities.CoordinatorConversation.create({
           padre_email: currentUser.email,
           padre_nombre: currentUser.full_name,
           jugadores_asociados: players.map(p => ({
@@ -76,8 +76,8 @@ export default function ParentCoordinatorChat() {
           no_leidos_padre: 0,
           archivada: false
         });
-        setConversation(newConv);
       }
+      setConversation(activeConv);
 
       // Verificar si ya aceptó las condiciones
       if (!currentUser.condiciones_chat_aceptadas) {
@@ -86,7 +86,7 @@ export default function ParentCoordinatorChat() {
         setTermsAccepted(true);
       }
 
-      // Marcar AppNotifications como vistas (copiado de StaffChat)
+      // Marcar AppNotifications como vistas
       try {
         const notifs = await base44.entities.AppNotification.filter({
           usuario_email: currentUser.email,
@@ -99,7 +99,7 @@ export default function ParentCoordinatorChat() {
       } catch {}
       
       // Marcar mensajes del coordinador como leídos
-      const allMessages = await base44.entities.CoordinatorMessage.filter({ conversacion_id: newConv.id || conversations[0]?.id });
+      const allMessages = await base44.entities.CoordinatorMessage.filter({ conversacion_id: activeConv.id });
       const unreadCoordMessages = allMessages.filter(m => m.autor === "coordinador" && !m.leido_padre);
 
       for (const msg of unreadCoordMessages) {
@@ -109,8 +109,8 @@ export default function ParentCoordinatorChat() {
         });
       }
 
-      if ((newConv || conversations[0])?.no_leidos_familia > 0) {
-        await base44.entities.CoordinatorConversation.update(newConv?.id || conversations[0]?.id, {
+      if (activeConv.no_leidos_familia > 0) {
+        await base44.entities.CoordinatorConversation.update(activeConv.id, {
           no_leidos_familia: 0
         });
       }
