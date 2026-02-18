@@ -516,7 +516,26 @@ export default function ParentCoachChat() {
           <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 flex-shrink-0">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-sm"><MessageCircle className="w-4 h-4" /> Chat Entrenador</CardTitle>
-              <EscalateToCoordinatorButton user={user} categoria={selectedCategory} recentMessages={messages} />
+              <div className="flex items-center gap-1">
+                {categoryCoach && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 rounded-full px-2.5 py-1 transition-colors">
+                        {categoryCoach.foto_perfil_url ? (
+                          <img src={categoryCoach.foto_perfil_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <UserCircle className="w-4 h-4" />
+                        )}
+                        <span className="text-xs font-medium truncate max-w-[80px]">{categoryCoach.full_name?.split(' ')[0]}</span>
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="p-0 max-w-sm">
+                      <CoachProfilePreview coach={categoryCoach} defaultOpen />
+                    </DialogContent>
+                  </Dialog>
+                )}
+                <EscalateToCoordinatorButton user={user} categoria={selectedCategory} recentMessages={messages} />
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
