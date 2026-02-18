@@ -69,17 +69,38 @@ export default function CoachProfile() {
   };
 
   const handleSave = async () => {
-    setSaving(true);
+  setSaving(true);
+  try {
+    await base44.auth.updateMe(formData);
+
+    // Sincronizar datos públicos a CoachSettings (accesible por familias)
     try {
-      await base44.auth.updateMe(formData);
-      toast.success("Perfil actualizado correctamente");
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      toast.error("Error al guardar el perfil");
-    } finally {
-      setSaving(false);
+      const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
+      const mySettings = allSettings.find(s => s.entrenador_email === user.email);
+      const publicData = {
+        entrenador_nombre: user.full_name,
+        foto_perfil_url: formData.foto_perfil_url || "",
+        bio_entrenador: formData.bio_entrenador || "",
+        telefono_contacto: formData.telefono_contacto || "",
+        mostrar_email_publico: formData.mostrar_email_publico || false,
+        mostrar_telefono_publico: formData.mostrar_telefono_publico || false,
+      };
+      if (mySettings) {
+        await base44.entities.CoachSettings.update(mySettings.id, publicData);
+      }
+    } catch (syncErr) {
+      console.log("Error sincronizando perfil público:", syncErr);
     }
+
+    toast.success("Perfil actualizado correctamente");
+    queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+    queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
+  } catch (error) {
+    console.error("Error saving profile:", error);
+    toast.error("Error al guardar el perfil");
+  } finally {
+    setSaving(false);
+  }
   };
 
   if (loading) {
