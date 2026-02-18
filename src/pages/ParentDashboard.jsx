@@ -16,6 +16,7 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
+import BirthdayBanner from "../components/birthday/BirthdayBanner";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import ShareFormButton from "../components/players/ShareFormButton";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
@@ -506,6 +507,11 @@ export default function ParentDashboard() {
             payments={payments}
             seasonConfig={activeSeason}
           />
+        )}
+
+        {/* Cumpleaños de mis jugadores */}
+        {!playersLoading && myPlayers.length > 0 && (
+          <BirthdayBanner players={myPlayers} mode="parent" />
         )}
 
         {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der) */}
