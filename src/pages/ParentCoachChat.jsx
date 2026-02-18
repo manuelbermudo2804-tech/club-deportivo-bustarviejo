@@ -13,6 +13,7 @@ import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinatorButton";
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import ParentChatInput from "../components/chat/ParentChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
