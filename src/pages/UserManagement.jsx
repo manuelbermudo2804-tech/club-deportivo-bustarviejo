@@ -842,7 +842,7 @@ const handleChatBlock = (user) => {
 
 
 
-      {/* Lista de Usuarios */}
+      {/* Lista de Usuarios - Tabla Compacta */}
       <Card className="border-none shadow-lg">
         <CardHeader className="py-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -854,15 +854,41 @@ const handleChatBlock = (user) => {
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full" />
+                <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500">No se encontraron usuarios</p>
-            </div>
           ) : (
+            <UserManagementTable
+              users={filteredUsers}
+              players={players}
+              onCoachToggle={handleCoachToggle}
+              onCoordinatorToggle={handleCoordinatorToggle}
+              onTreasurerToggle={handleTreasurerToggle}
+              onToggleHijos={handleToggleHijos}
+              onToggleFirmas={handleToggleFirmas}
+              onToggleJunta={handleToggleJunta}
+              onChatBlock={handleChatBlock}
+              onPairParents={openPairDialog}
+              onSetCargoJunta={handleSetCargoJunta}
+              onRestrictAccess={(user) => {
+                setSelectedUser(user);
+                setShowRestrictDialog(true);
+              }}
+              onDeleteUser={(user) => {
+                setSelectedUser(user);
+                setShowDeleteDialog(true);
+              }}
+              onSendInstallReminder={sendInstallReminder}
+              onActivateAccess={activarAccesoMutation.mutate}
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Vista antigua en cards - DESACTIVADA */}
+      {false && (
+        <Card className="border-none shadow-lg">
+          <CardContent className="p-3">
             <div className="space-y-2">
               {filteredUsers.map((user) => {
                 const userPlayers = getUserPlayers(user.email);
