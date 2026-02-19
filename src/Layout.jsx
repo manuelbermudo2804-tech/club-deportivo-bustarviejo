@@ -1274,9 +1274,9 @@ export default function Layout({ children, currentPageName }) {
                   });
                   setHasPlayers(tienehijos);
                   setIsLoading(false);
-                } else if (playerDetected) {
-                  // Si es un jugador +18, redirigir a PlayerDashboard
-                  console.log('⚽ [LAYOUT] Usuario detectado como JUGADOR +18');
+                } else if (playerDetected && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
+                  // Si es SOLO jugador +18 (sin rol de staff), redirigir a PlayerDashboard
+                  console.log('⚽ [LAYOUT] Usuario detectado como JUGADOR +18 (sin rol staff)');
                   setHasPlayers(false);
                   setIsLoading(false);
 
