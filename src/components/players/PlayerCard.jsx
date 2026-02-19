@@ -16,6 +16,7 @@ import PlayerCardRenewal from "./card/PlayerCardRenewal";
 import PlayerCardSignatures from "./card/PlayerCardSignatures";
 import PlayerCardNextMatch from "./card/PlayerCardNextMatch";
 import PlayerCardSchedule from "./card/PlayerCardSchedule";
+import PlayerStatsWidget from "./PlayerStatsWidget";
 
 const categoryColors = {
   "Prebenjamín": "bg-purple-100 text-purple-700",
@@ -269,6 +270,14 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 </div>
               </div>
             )}
+
+            <PlayerStatsWidget
+              playerId={player.id}
+              playerCategory={playerCategory}
+              fechaNacimiento={player.fecha_nacimiento}
+              createdDate={player.created_date}
+              compact={true}
+            />
 
             {!fichaCompleta && <PlayerCardChecklist checklistItems={checklistItems} />}
             <PlayerCardNextMatch nextCallup={nextCallup} />
