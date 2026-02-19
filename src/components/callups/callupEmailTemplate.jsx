@@ -76,7 +76,7 @@ ${descripcion ? `<!-- Instrucciones -->
 
 <!-- BOTÓN CTA -->
 <tr><td style="padding:8px 24px 24px;text-align:center;">
-  <a href="${appUrl}" style="display:block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;font-size:17px;font-weight:800;text-decoration:none;padding:18px 24px;border-radius:14px;text-align:center;letter-spacing:0.3px;">
+  <a href="${appUrl}" style="display:block;background-color:#16a34a;color:#ffffff !important;font-size:17px;font-weight:800;text-decoration:none;padding:18px 24px;border-radius:14px;text-align:center;letter-spacing:0.3px;">
     ✅ CONFIRMAR ASISTENCIA
   </a>
   <div style="color:#64748b;font-size:12px;margin-top:10px;">Pulsa para abrir la app y confirmar</div>

@@ -157,9 +157,10 @@ function infoBox(color, content) {
   return `<div style="background:${bgMap[color]||'#f8fafc'};border-radius:10px;padding:14px 16px;margin-bottom:16px;border-left:4px solid ${borderMap[color]||'#94a3b8'};">${content}</div>`;
 }
 
-function ctaButton(url, text, bg = 'linear-gradient(135deg,#16a34a,#15803d)') {
+function ctaButton(url, text, bg = '#16a34a') {
+  const solidColor = bg.includes('gradient') ? (bg.match(/#[0-9a-fA-F]{6}/)?.[0] || '#16a34a') : bg;
   return `<div style="text-align:center;margin:20px 0 8px;">
-  <a href="${url}" style="display:inline-block;background:${bg};color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 32px;border-radius:12px;">${text}</a>
+  <a href="${url}" style="display:inline-block;background-color:${solidColor};color:#ffffff !important;font-size:16px;font-weight:800;text-decoration:none;padding:16px 32px;border-radius:12px;mso-padding-alt:16px 32px;">${text}</a>
   <div style="color:#94a3b8;font-size:11px;margin-top:8px;">Pulsa para abrir la app</div>
 </div>`;
 }
