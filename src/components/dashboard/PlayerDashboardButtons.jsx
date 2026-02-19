@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, CreditCard, Calendar, Megaphone, Image, FileText, BarChart3, Heart, MessageCircle, FileSignature, Settings, Users, Gift, ShoppingBag, Trophy } from "lucide-react";
+import { Bell, CreditCard, Calendar, Megaphone, Image, FileText, BarChart3, Heart, MessageCircle, FileSignature, Settings, Users, Gift, ShoppingBag, Trophy, Clover } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 export const ALL_PLAYER_BUTTONS = [

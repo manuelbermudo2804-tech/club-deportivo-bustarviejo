@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, Calendar, Bell, CreditCard, Image, Megaphone, ShoppingBag, FileText, Heart, FileSignature, BarChart3, Clover, Trophy, MessageCircle, Settings, Gift } from "lucide-react";
+import { Users, Calendar, Bell, CreditCard, Image, Megaphone, ShoppingBag, FileText, Heart, FileSignature, BarChart3, Clover, Trophy, MessageCircle, Settings, Gift, ClipboardCheck } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 // DEFINICIÓN COMPLETA - refleja TODO el menú lateral de familias
