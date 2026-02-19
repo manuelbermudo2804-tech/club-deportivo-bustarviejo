@@ -23,6 +23,7 @@ import { createPageUrl } from "@/utils";
 
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
+import PaymentCard from "../components/payments/PaymentCard";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
