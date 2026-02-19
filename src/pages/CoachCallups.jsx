@@ -197,53 +197,15 @@ export default function CoachCallups() {
         if (emails.length === 0) return;
         
         const sendToEmails = emails.map(async (email) => {
-          const subject = `Convocatoria: ${callup.titulo} - CD Bustarviejo`;
-          const body = `
-Hola,
-
-${jugador.jugador_nombre} ha sido convocado para el siguiente evento:
-
-════════════════════════════════════════
-📋 CONVOCATORIA
-════════════════════════════════════════
-${callup.tipo}: ${callup.titulo}
-${callup.rival ? `Rival: ${callup.rival}` : ''}
-Categoría: ${callup.categoria}
-
-📅 Fecha: ${format(new Date(callup.fecha_partido), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}
-⏰ Hora del partido: ${callup.hora_partido}
-${callup.hora_concentracion ? `🕐 Hora de concentración: ${callup.hora_concentracion}` : ''}
-📍 Ubicación: ${callup.ubicacion}
-${callup.enlace_ubicacion ? `🗺️ Google Maps: ${callup.enlace_ubicacion}` : ''}
-${callup.local_visitante ? `🏟️ ${callup.local_visitante}` : ''}
-
-${callup.descripcion ? `\nInstrucciones:\n${callup.descripcion}` : ''}
-
-════════════════════════════════════════
-⚠️ IMPORTANTE: CONFIRMA TU ASISTENCIA
-════════════════════════════════════════
-Por favor, accede a la aplicación del club y confirma tu asistencia lo antes posible.
-
-Entrenador: ${callup.entrenador_nombre}
-
-
-Atentamente,
-
-Club de Fútbol Bustarviejo
-${callup.entrenador_nombre}
-
-════════════════════════════════════════
-Datos de contacto:
-════════════════════════════════════════
-Email: cdbustarviejo@gmail.com
-          `;
+          const subject = `⚽ Convocatoria: ${callup.rival ? `vs ${callup.rival}` : callup.titulo} - CD Bustarviejo`;
+          const htmlBody = buildCallupEmailHtml(callup, jugador.jugador_nombre);
           
           try {
             console.log('📤 [CoachCallups] Enviando convocatoria a:', email);
             await base44.functions.invoke('sendEmail', {
               to: email,
               subject: subject,
-              html: body
+              html: htmlBody
             });
             console.log('✅ [CoachCallups] Email enviado a:', email);
           } catch (error) {
