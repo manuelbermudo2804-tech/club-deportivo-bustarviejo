@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import PlayerSuggestionEngine from "./PlayerSuggestionEngine";
 
 export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting, userSuggestionsEnabled = true, onToggleSuggestions }) {
@@ -40,6 +41,8 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     callup?.jugadores_convocados?.map(j => j.jugador_id) || []
   );
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(userSuggestionsEnabled);
+  const [showDraftConfirm, setShowDraftConfirm] = useState(false);
+  const [pendingSubmitData, setPendingSubmitData] = useState(null);
   const [rivalTeams, setRivalTeams] = useState([]);
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   const [useManualInput, setUseManualInput] = useState(false);
@@ -188,18 +191,10 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (selectedPlayers.length === 0) {
-      alert("Debes seleccionar al menos un jugador");
-      return;
-    }
-    
+  const buildSubmitData = () => {
     const jugadoresConvocados = selectedPlayers.map(playerId => {
       const player = players.find(p => p.id === playerId);
       const existing = callup?.jugadores_convocados?.find(j => j.jugador_id === playerId);
-      
       return {
         jugador_id: player.id,
         jugador_nombre: player.nombre,
@@ -211,11 +206,40 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         comentario: existing?.comentario || ""
       };
     });
+    return { ...currentCallup, jugadores_convocados: jugadoresConvocados };
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
     
-    onSubmit({
-      ...currentCallup,
-      jugadores_convocados: jugadoresConvocados
-    });
+    if (selectedPlayers.length === 0) {
+      alert("Debes seleccionar al menos un jugador");
+      return;
+    }
+
+    const data = buildSubmitData();
+
+    // Si no está publicada y es nueva convocatoria, preguntar
+    if (!currentCallup.publicada && !callup) {
+      setPendingSubmitData(data);
+      setShowDraftConfirm(true);
+      return;
+    }
+    
+    onSubmit(data);
+  };
+
+  const handleConfirmDraft = () => {
+    setShowDraftConfirm(false);
+    if (pendingSubmitData) onSubmit(pendingSubmitData);
+    setPendingSubmitData(null);
+  };
+
+  const handleConfirmPublish = () => {
+    setShowDraftConfirm(false);
+    if (pendingSubmitData) onSubmit({ ...pendingSubmitData, publicada: true });
+    setPendingSubmitData(null);
+    setCurrentCallup(prev => ({ ...prev, publicada: true }));
   };
 
   return (
@@ -625,6 +649,48 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
           </form>
         </CardContent>
       </Card>
+      {/* Diálogo de confirmación borrador vs publicar */}
+      <Dialog open={showDraftConfirm} onOpenChange={setShowDraftConfirm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6 text-amber-500" />
+              ¿Publicar la convocatoria?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-slate-700">
+              No has activado la publicación. Si guardas como <strong>borrador</strong>, los jugadores <strong>no recibirán ninguna notificación</strong> y no verán la convocatoria.
+            </p>
+            <div className="grid gap-3">
+              <button
+                onClick={handleConfirmPublish}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-green-400 bg-green-50 hover:bg-green-100 transition-colors text-left"
+              >
+                <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+                  <Send className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-green-900 text-base">Publicar y notificar</p>
+                  <p className="text-sm text-green-700">Los jugadores recibirán la convocatoria por email y en la app</p>
+                </div>
+              </button>
+              <button
+                onClick={handleConfirmDraft}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-400 flex items-center justify-center flex-shrink-0">
+                  <EyeOff className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-700 text-base">Guardar como borrador</p>
+                  <p className="text-sm text-slate-500">Solo tú la verás. Podrás publicarla más tarde.</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
