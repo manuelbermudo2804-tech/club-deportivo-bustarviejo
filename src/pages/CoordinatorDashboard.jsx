@@ -177,6 +177,9 @@ export default function CoordinatorDashboard() {
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
         <CoordinatorClassificationsMatchesBanner />
 
+        {/* Ranking de asistencia por categoría */}
+        <AttendanceRankingWidget highlightCategories={myCategories} />
+
         {/* AlertCenter - Una barra por rol */}
         <div className="space-y-3">
           {/* Barra COORDINADOR / ENTRENADOR */}
