@@ -22,24 +22,14 @@ Deno.serve(async (req) => {
       system: 0,
     };
 
-    // CANONICAL normalizer: strips parenthesized content, removes accents, lowercases, replaces spaces with _
-    const toGroupId = (s) =>
-      (s || '').toString()
-        .replace(/\(.*?\)/g, '')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .trim()
-        .replace(/\s+/g, '_')
-        .toLowerCase();
-
-    // normalizeGid must produce the SAME output as toGroupId, regardless of whether
-    // the input is a raw category name ("Fútbol Pre-Benjamín (Mixto)") or an
-    // already-stored grupo_id ("fútbol_pre-benjamín_(mixto)" or "futbol_pre-benjamin").
-    // Strategy: first undo underscores→spaces so the canonical pipeline can re-normalize.
-    const normalizeGid = (s) =>
-      toGroupId((s || '').toString().replace(/_/g, ' '));
+    // Normalize group IDs: remove parenthesized suffixes, accents, collapse whitespace
+    const toGroupId = (s) => (s || '').toString().replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+    // Also normalize the raw grupo_id stored on messages (may contain accents/parentheses and underscores)
+    const normalizeGid = (s) => (s || '').toString().replace(/\(.*?\)/g, '').replace(/_/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
 
     const chatLastRead = user.chat_last_read || {};
 
+    // Run independent sections in parallel to minimize total time and reduce sequential rate-limit risk
     const promises = [];
 
     // ===== 1. TEAM CHATS =====
@@ -56,13 +46,11 @@ Deno.serve(async (req) => {
             for (const cat of cats) {
               const gid = toGroupId(cat);
               const lastRead = chatLastRead[gid] || '1970-01-01T00:00:00.000Z';
-              const unread = allChatMessages.filter(m => {
-                // Match by grupo_id OR by deporte — both normalized the same way
-                const msgGid = normalizeGid(m.grupo_id || '') || normalizeGid(m.deporte || '');
-                return msgGid === gid &&
-                  m.remitente_email !== email &&
-                  m.created_date > lastRead;
-              }).length;
+              const unread = allChatMessages.filter(m =>
+                normalizeGid(m.grupo_id || m.deporte) === gid &&
+                m.remitente_email !== email &&
+                m.created_date > lastRead
+              ).length;
               if (unread > 0) result.team_chats[gid] = unread;
             }
           } catch (e) { console.error('Error team chats (staff):', e.message); }
@@ -75,14 +63,7 @@ Deno.serve(async (req) => {
             $or: [{ email_padre: email }, { email_tutor_2: email }, { email_jugador: email }],
             activo: true
           });
-          // Use ALL category sources: categoria_principal, deporte, and categorias array
-          const myCatSet = new Set();
-          for (const p of myPlayers) {
-            if (p.categoria_principal) myCatSet.add(p.categoria_principal);
-            if (p.deporte) myCatSet.add(p.deporte);
-            for (const c of (p.categorias || [])) { if (c) myCatSet.add(c); }
-          }
-          const myCats = [...myCatSet];
+          const myCats = [...new Set(myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
           if (myCats.length > 0) {
             const allChatMessages = await base44.asServiceRole.entities.ChatMessage.filter(
               { tipo: { $in: ['entrenador_a_grupo', 'padre_a_grupo'] } }, '-created_date', 500
@@ -90,12 +71,11 @@ Deno.serve(async (req) => {
             for (const cat of myCats) {
               const gid = toGroupId(cat);
               const lastRead = chatLastRead[gid] || '1970-01-01T00:00:00.000Z';
-              const unread = allChatMessages.filter(m => {
-                const msgGid = normalizeGid(m.grupo_id || '') || normalizeGid(m.deporte || '');
-                return msgGid === gid &&
-                  m.remitente_email !== email &&
-                  m.created_date > lastRead;
-              }).length;
+              const unread = allChatMessages.filter(m =>
+                normalizeGid(m.grupo_id || m.deporte) === gid &&
+                m.remitente_email !== email &&
+                m.created_date > lastRead
+              ).length;
               if (unread > 0) result.team_chats[gid] = unread;
             }
           }
@@ -103,12 +83,13 @@ Deno.serve(async (req) => {
       })());
     }
 
-    // ===== 2. COORDINATOR CHAT =====
+    // ===== 2. COORDINATOR CHAT — single bulk query instead of N queries per conversation =====
     if (isCoordinator || isAdmin) {
       promises.push((async () => {
         try {
           const convs = await base44.asServiceRole.entities.CoordinatorConversation.filter({ archivada: false });
           if (convs.length > 0) {
+            // Single bulk fetch of all coordinator messages (from parents)
             const allMsgs = await base44.asServiceRole.entities.CoordinatorMessage.filter(
               { autor: 'padre' }, '-created_date', 1000
             );
@@ -167,7 +148,7 @@ Deno.serve(async (req) => {
       })());
     }
 
-    // ===== 4. SYSTEM MESSAGES =====
+    // ===== 4. SYSTEM MESSAGES — single bulk query =====
     if (!isAdmin) {
       promises.push((async () => {
         try {
@@ -193,6 +174,7 @@ Deno.serve(async (req) => {
       })());
     }
 
+    // Wait for all parallel sections
     await Promise.all(promises);
 
     return Response.json(result);

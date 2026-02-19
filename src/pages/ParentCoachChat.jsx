@@ -169,8 +169,19 @@ export default function ParentCoachChat() {
   const getUnreadCountByCategory = (categoria) => {
     if (!user) return 0;
     const key = toGroupId(categoria);
-    // Use backend counter only — it's the single source of truth
-    return counts?.team_chats?.[key] || 0;
+    // 1) Usa el contador oficial del backend (evita parpadeos)
+    const backendCount = counts?.team_chats?.[key];
+    if (typeof backendCount === 'number') return backendCount;
+    // 2) Fallback con mensajes locales si aún no tenemos el mapeo
+    const normCat = normalizeCategory(categoria);
+    return messages.filter(m => {
+      const normMsgCat = normalizeCategory(m.deporte || "");
+      const matchGroup = m.grupo_id && m.grupo_id === key;
+      const matchName = normMsgCat && (normMsgCat === normCat || normMsgCat.startsWith(normCat) || normCat.startsWith(normMsgCat));
+      return (matchGroup || matchName) &&
+        (m.tipo === 'entrenador_a_grupo' || m.tipo === 'padre_a_grupo') &&
+        (!m.leido_por || !m.leido_por.some(lp => lp.email === user.email));
+    }).length;
   };
 
   // Marcar como leído cada vez que se entra en una categoría (con lógica anti-parpadeo en el hook)

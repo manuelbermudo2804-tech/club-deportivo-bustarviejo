@@ -13,17 +13,9 @@ Deno.serve(async (req) => {
     switch (chatType) {
       case 'team': {
         // chatId = grupo_id (e.g. "futbol_alevin")
-        // Normalize the key to match the canonical form used in chatGetUnreadCounts
-        const toGroupId = (s) =>
-          (s || '').toString()
-            .replace(/\(.*?\)/g, '')
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .trim()
-            .replace(/\s+/g, '_')
-            .toLowerCase();
-        const normalizedKey = toGroupId(chatId.replace(/_/g, ' '));
+        // Update user's chat_last_read object
         const chatLastRead = user.chat_last_read || {};
-        chatLastRead[normalizedKey] = now;
+        chatLastRead[chatId] = now;
         await base44.asServiceRole.entities.User.update(user.id, { chat_last_read: chatLastRead });
         break;
       }
