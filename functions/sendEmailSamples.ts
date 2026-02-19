@@ -194,7 +194,7 @@ function buildCallupEmailHtml(callup, jugadorNombre) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 8px;">
 <tr><td align="center">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-<tr><td style="background:linear-gradient(135deg,#ea580c,#c2410c);padding:28px 24px;text-align:center;">
+<tr><td style="background-color:#ea580c;padding:28px 24px;text-align:center;">
   <div style="font-size:36px;margin-bottom:8px;">⚽</div>
   <div style="color:#ffffff;font-size:22px;font-weight:800;line-height:1.3;">¡CONVOCATORIA!</div>
   <div style="color:#fed7aa;font-size:14px;margin-top:4px;">CD Bustarviejo</div>

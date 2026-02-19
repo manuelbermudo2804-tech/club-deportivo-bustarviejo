@@ -25,7 +25,7 @@ export function buildCallupEmailHtml(callup, jugadorNombre) {
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
 <!-- Header naranja -->
-<tr><td style="background:linear-gradient(135deg,#ea580c,#c2410c);padding:28px 24px;text-align:center;">
+<tr><td style="background-color:#ea580c;padding:28px 24px;text-align:center;">
   <div style="font-size:36px;margin-bottom:8px;">⚽</div>
   <div style="color:#ffffff;font-size:22px;font-weight:800;line-height:1.3;">¡CONVOCATORIA!</div>
   <div style="color:#fed7aa;font-size:14px;margin-top:4px;">CD Bustarviejo</div>
@@ -76,7 +76,7 @@ ${descripcion ? `<!-- Instrucciones -->
 
 <!-- BOTÓN CTA -->
 <tr><td style="padding:8px 24px 24px;text-align:center;">
-  <a href="${appUrl}" style="display:block;background-color:#16a34a;color:#ffffff !important;font-size:17px;font-weight:800;text-decoration:none;padding:18px 24px;border-radius:14px;text-align:center;letter-spacing:0.3px;">
+  <a href="${appUrl}" style="display:block;background-color:#16a34a;color:#ffffff !important;font-size:17px;font-weight:800;text-decoration:none;padding:18px 24px;border-radius:14px;text-align:center;letter-spacing:0.3px;mso-padding-alt:18px 24px;">
     ✅ CONFIRMAR ASISTENCIA
   </a>
   <div style="color:#64748b;font-size:12px;margin-top:10px;">Pulsa para abrir la app y confirmar</div>
