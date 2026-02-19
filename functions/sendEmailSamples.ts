@@ -128,6 +128,8 @@ const FOOTER = `
 </td></tr>`;
 
 function wrap(headerBg, headerIcon, headerTitle, headerSub, bodyHtml) {
+  // Extract solid color for Outlook compatibility (no gradient support)
+  const solidBg = headerBg.includes('gradient') ? (headerBg.match(/#[0-9a-fA-F]{6}/)?.[0] || '#16a34a') : headerBg;
   return `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -135,7 +137,7 @@ function wrap(headerBg, headerIcon, headerTitle, headerSub, bodyHtml) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 8px;">
 <tr><td align="center">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-<tr><td style="background:${headerBg};padding:28px 24px;text-align:center;">
+<tr><td style="background-color:${solidBg};padding:28px 24px;text-align:center;">
   <div style="font-size:36px;margin-bottom:8px;">${headerIcon}</div>
   <div style="color:#ffffff;font-size:20px;font-weight:800;line-height:1.3;">${headerTitle}</div>
   ${headerSub ? `<div style="color:rgba(255,255,255,0.8);font-size:13px;margin-top:4px;">${headerSub}</div>` : ''}
@@ -235,7 +237,7 @@ ${descripcion ? `<tr><td style="padding:0 24px 16px;">
   </div>
 </td></tr>` : ""}
 <tr><td style="padding:8px 24px 24px;text-align:center;">
-  <a href="${appUrl}" style="display:block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;font-size:17px;font-weight:800;text-decoration:none;padding:18px 24px;border-radius:14px;text-align:center;">
+  <a href="${appUrl}" style="display:block;background-color:#16a34a;color:#ffffff !important;font-size:17px;font-weight:800;text-decoration:none;padding:18px 24px;border-radius:14px;text-align:center;">
     ✅ CONFIRMAR ASISTENCIA
   </a>
   <div style="color:#64748b;font-size:12px;margin-top:10px;">Pulsa para abrir la app y confirmar</div>
