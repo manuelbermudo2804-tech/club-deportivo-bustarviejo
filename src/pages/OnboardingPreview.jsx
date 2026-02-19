@@ -52,6 +52,8 @@ function ScreenWelcome() {
 }
 
 function ScreenSelector() {
+  const [showSecondParentInfo, setShowSecondParentInfo] = useState(false);
+
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-4">
       <div className="max-w-5xl w-full">
@@ -64,25 +66,64 @@ function ScreenSelector() {
           </p>
         </div>
 
-        <Alert className="bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-400 mb-6">
+        {/* AVISO IMPORTANTE SEGUNDO PROGENITOR */}
+        <Alert className="mb-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-400 shadow-lg">
           <UserPlus className="h-5 w-5 text-cyan-700" />
           <AlertDescription className="text-cyan-900">
-            <p className="font-bold text-sm mb-1">👥 ¿Tu pareja ya ha registrado al jugador?</p>
-            <p className="text-xs">
-              <strong>NO lo hagas de nuevo.</strong> Tu pareja debe invitarte como "segundo progenitor" desde la ficha del jugador.
+            <p className="font-bold text-base mb-1">
+              👥 ¿Tu pareja ya ha dado de alta a vuestro/a hijo/a?
             </p>
-            <Badge className="mt-2 bg-cyan-600 text-white text-xs">Botón: "Ya me han invitado, continuar como Familia →"</Badge>
+            <p className="text-sm mb-2">
+              <strong>NO des de alta al jugador otra vez.</strong> Tu pareja debe añadirte como "segundo progenitor" desde la ficha del jugador. Así ambos tendréis acceso a la misma ficha sin duplicar datos.
+            </p>
+            <Button 
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-cyan-500 text-cyan-800 hover:bg-cyan-100"
+              onClick={() => setShowSecondParentInfo(!showSecondParentInfo)}
+            >
+              {showSecondParentInfo ? "Ocultar instrucciones" : "¿Cómo funciona? Ver instrucciones"}
+            </Button>
+            {showSecondParentInfo && (
+              <div className="mt-3 bg-white rounded-xl p-4 border border-cyan-300 space-y-3">
+                <p className="text-sm font-bold text-cyan-900">📋 Pasos para el segundo progenitor:</p>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="bg-cyan-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                    <p className="text-sm">El <strong>primer progenitor</strong> (el que ya tiene la cuenta) entra en la app → <strong>Mis Jugadores</strong> → edita la ficha del hijo/a</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="bg-cyan-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                    <p className="text-sm">En la sección <strong>"Segundo Progenitor"</strong>, escribe tu nombre, email y teléfono</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                    <p className="text-sm">El club recibirá la solicitud y te enviará una <strong>invitación por email</strong></p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
+                    <p className="text-sm">Aceptas la invitación y <strong>ya tienes acceso completo</strong> a la misma ficha: pagos, convocatorias, chat, etc.</p>
+                  </div>
+                </div>
+                <div className="bg-amber-50 border border-amber-300 rounded-lg p-3">
+                  <p className="text-xs text-amber-800">
+                    <strong>⚠️ Si ya te han invitado</strong> (tienes un email del club), simplemente inicia sesión con el email que le diste a tu pareja. Si no te han invitado todavía, dile a tu pareja que te añada como segundo progenitor.
+                  </p>
+                </div>
+              </div>
+            )}
           </AlertDescription>
         </Alert>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
           {/* OPCIÓN 1: FAMILIA */}
           <div 
-            className="group bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-8 border-4 border-orange-300 hover:border-orange-500 hover:shadow-2xl transition-all duration-300 hover:scale-105"
+            className="group bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-8 lg:p-10 border-4 border-orange-300 hover:border-orange-500 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer"
           >
             <div className="text-center space-y-6">
-              <div className="w-24 h-24 bg-orange-500 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                <Users className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 lg:w-32 lg:h-32 bg-orange-500 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                <Users className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
               </div>
               
               <div>
@@ -127,11 +168,11 @@ function ScreenSelector() {
 
           {/* OPCIÓN 2: JUGADOR +18 */}
           <div 
-            className="group bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-8 border-4 border-green-300 hover:border-green-500 hover:shadow-2xl transition-all duration-300 hover:scale-105"
+            className="group bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-8 lg:p-10 border-4 border-green-300 hover:border-green-500 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer"
           >
             <div className="text-center space-y-6">
-              <div className="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                <UserCircle className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 lg:w-32 lg:h-32 bg-green-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                <UserCircle className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
               </div>
               
               <div>
@@ -170,55 +211,6 @@ function ScreenSelector() {
 
               <Button className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-6 shadow-xl group-hover:bg-green-700" disabled>
                 Continuar como Jugador →
-              </Button>
-            </div>
-          </div>
-
-          {/* OPCIÓN 3: SEGUNDO PROGENITOR */}
-          <div 
-            className="group bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-3xl p-8 border-4 border-cyan-300 hover:border-cyan-500 hover:shadow-2xl transition-all duration-300 hover:scale-105"
-          >
-            <div className="text-center space-y-6">
-              <div className="w-24 h-24 bg-cyan-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                <UserPlus className="w-12 h-12 text-white" />
-              </div>
-              
-              <div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-cyan-900 mb-3">
-                  👥 Segundo Progenitor
-                </h3>
-                <p className="text-base text-cyan-700 mb-2">
-                  Mi pareja ya ha inscrito al jugador
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-5 border-2 border-cyan-200 text-left space-y-3">
-                <p className="text-sm font-bold text-cyan-900">ℹ️ Esto es para ti si:</p>
-                <ul className="text-sm text-slate-700 space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-cyan-600 font-bold">•</span>
-                    <span>Tu pareja <strong>ya ha registrado</strong> al jugador</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-cyan-600 font-bold">•</span>
-                    <span>Tu pareja debe <strong>invitarte</strong> desde la ficha del jugador</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-cyan-600 font-bold">•</span>
-                    <span>Tendrás acceso <strong>compartido</strong> al perfil del jugador</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white rounded-xl p-4">
-                <p className="text-sm font-bold mb-1">👥 Acceso a:</p>
-                <p className="text-xs">
-                  Mismo acceso que el primer progenitor (compartido)
-                </p>
-              </div>
-
-              <Button className="w-full bg-cyan-600 hover:bg-cyan-700 text-white text-lg font-bold py-6 shadow-xl group-hover:bg-cyan-700" disabled>
-                Ya me han invitado →
               </Button>
             </div>
           </div>
