@@ -45,12 +45,12 @@ Deno.serve(async (req) => {
       entrenador_nombre: 'Carlos García',
       entrenador_telefono: '612345678',
     }, 'Pablo López Martín');
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 1/10 — ⚽ Convocatoria nueva', body: callupHtml });
+    await send(to, '📧 EJEMPLO 1/10 — ⚽ Convocatoria nueva', callupHtml);
     sent.push('Convocatoria nueva');
 
     // ─── 2. Pago confirmado ───
     const paymentHtml = paymentConfirmedHtml('Pablo López Martín', 'Septiembre', '2025/2026', 180, '15/09/2025', null);
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 2/10 — ✅ Pago confirmado', body: paymentHtml });
+    await send(to, '📧 EJEMPLO 2/10 — ✅ Pago confirmado', paymentHtml);
     sent.push('Pago confirmado');
 
     // ─── 3. Convocatoria pendiente (24h antes) ───
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       hora_partido: '11:00',
       ubicacion: 'Campo Municipal de Bustarviejo',
     });
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 3/10 — ⏰ Convocatoria pendiente 24h', body: pendingCallupHtml });
+    await send(to, '📧 EJEMPLO 3/10 — ⏰ Convocatoria pendiente 24h', pendingCallupHtml);
     sent.push('Convocatoria pendiente 24h');
 
     // ─── 4. Pagos morosos (+30 días) ───
@@ -68,27 +68,27 @@ Deno.serve(async (req) => {
       { player: 'Pablo López Martín', mes: 'Septiembre', daysOverdue: 45, cantidad: 180 },
       { player: 'María López Martín', mes: 'Septiembre', daysOverdue: 45, cantidad: 155 },
     ]);
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 4/10 — 🔴 Pagos morosos', body: overdueHtml });
+    await send(to, '📧 EJEMPLO 4/10 — 🔴 Pagos morosos', overdueHtml);
     sent.push('Pagos morosos');
 
     // ─── 5. Recordatorio RSVP evento ───
     const rsvpHtml = rsvpReminderHtml('Carlos', 'Fiesta de Navidad del Club', '20 de diciembre de 2025', '18:00');
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 5/10 — 🎉 Recordatorio RSVP', body: rsvpHtml });
+    await send(to, '📧 EJEMPLO 5/10 — 🎉 Recordatorio RSVP', rsvpHtml);
     sent.push('Recordatorio RSVP');
 
     // ─── 6. Recordatorio resumen de partido ───
     const matchHtml = matchSummaryReminderHtml('Carlos García', 'Alevín vs CD Colmenar', '8 de marzo de 2026', '11:00');
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 6/10 — 📊 Resumen de partido', body: matchHtml });
+    await send(to, '📧 EJEMPLO 6/10 — 📊 Resumen de partido', matchHtml);
     sent.push('Resumen de partido');
 
     // ─── 7. Solicitud eliminación de cuenta ───
     const deleteHtml = accountDeletionHtml('Juan Pérez', 'juanperez@gmail.com', 'Mi hijo ya no juega en el club', '19/02/2026');
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 7/10 — 🗑️ Solicitud eliminación', body: deleteHtml });
+    await send(to, '📧 EJEMPLO 7/10 — 🗑️ Solicitud eliminación', deleteHtml);
     sent.push('Solicitud eliminación');
 
     // ─── 8. Mercadillo reserva ───
     const marketHtml = marketReservationReminderHtml('Botas Nike Mercurial talla 38', 'Ana García');
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 8/10 — 🛍️ Mercadillo reserva', body: marketHtml });
+    await send(to, '📧 EJEMPLO 8/10 — 🛍️ Mercadillo reserva', marketHtml);
     sent.push('Mercadillo reserva');
 
     // ─── 9. Recordatorio pago escalonado ───
@@ -96,12 +96,12 @@ Deno.serve(async (req) => {
       { jugador_nombre: 'Pablo López Martín', cantidad: 180 },
       { jugador_nombre: 'María López Martín', cantidad: 155 },
     ], 335);
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 9/10 — 📅 Recordatorio pago escalonado', body: schedHtml });
+    await send(to, '📧 EJEMPLO 9/10 — 📅 Recordatorio pago escalonado', schedHtml);
     sent.push('Recordatorio pago escalonado');
 
     // ─── 10. Documento pendiente de firma ───
     const docHtml = documentPendingHtml('Autorización Salida Torneo Madrid', 'Autorización', '15 de marzo de 2026', ['Pablo López Martín', 'María López Martín']);
-    await base44.integrations.Core.SendEmail({ to, subject: '📧 EJEMPLO 10/10 — 📄 Documento pendiente firma', body: docHtml });
+    await send(to, '📧 EJEMPLO 10/10 — 📄 Documento pendiente firma', docHtml);
     sent.push('Documento pendiente firma');
 
     return Response.json({ success: true, sent, count: sent.length });
