@@ -56,19 +56,18 @@ export default function ClothingApprovalNotifier({ isAdmin }) {
       }
     } catch {}
 
+    const { clothingOrderApprovedHtml } = await import("../emails/emailTemplates");
+    const html = clothingOrderApprovedHtml(
+      order.jugador_nombre,
+      order.precio_final || order.precio_total || 0,
+      order.estado || (order.pagado ? "Pagado" : "Pendiente")
+    );
+
     for (const to of recipients) {
       await base44.functions.invoke("sendEmail", {
         to,
-        subject: "✅ Pedido de equipación aprobado",
-        html: `
-          <h2 style="color:#16a34a;">✅ Pedido de equipación aprobado</h2>
-          <p>Tu pedido de equipación para <strong>${order.jugador_nombre}</strong> ha sido aprobado.</p>
-          <p><strong>Importe:</strong> ${order.precio_final || order.precio_total || 0}€</p>
-          <p><strong>Estado:</strong> ${order.estado || (order.pagado ? "Pagado" : "Pendiente")}</p>
-          <p>Te avisaremos cuando esté listo para recoger. ¡Gracias!</p>
-          <br/>
-          <p style="color:#64748b;font-size:12px;">CD Bustarviejo</p>
-        `,
+        subject: `✅ Pedido de equipación aprobado - ${order.jugador_nombre}`,
+        html,
       });
     }
   };
