@@ -11,10 +11,10 @@ export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdult
       <div className="max-w-5xl w-full">
         <div className="text-center mb-6">
           <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-3">
-            Bienvenido/a a CD Bustarviejo
+            ¿Qué tipo de registro deseas hacer?
           </h2>
           <p className="text-slate-600 text-base lg:text-lg">
-            Cuéntanos en qué situación estás para personalizar tu experiencia
+            Elige la opción que corresponda a tu situación
           </p>
         </div>
 
@@ -89,40 +89,40 @@ export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdult
               
               <div>
                 <h3 className="text-2xl lg:text-3xl font-bold text-orange-900 mb-3">
-                  👨‍👩‍👧 Padre, Madre o Tutor
+                  👨‍👩‍👧 Panel de Familia
                 </h3>
-                <p className="text-base text-orange-700 mb-2">
-                  Inscribiré a mi hijo/a o soy el responsable principal
+                <p className="text-lg font-semibold text-orange-800 mb-2">
+                  Soy el <strong>primer progenitor</strong> que da de alta al jugador
                 </p>
               </div>
 
               <div className="bg-white rounded-xl p-5 border-2 border-orange-200 text-left space-y-3">
-                <p className="text-sm font-bold text-orange-900">ℹ️ Esto es para ti si:</p>
+                <p className="text-sm font-bold text-orange-900">✅ Elige esto si:</p>
                 <ul className="text-sm text-slate-700 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-orange-600 font-bold">•</span>
-                    <span>Vas a inscribir a tu <strong>hijo/a por primera vez</strong></span>
+                    <span>Vas a inscribir a tu <strong>hijo/a menor de 18 años</strong> por primera vez</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-orange-600 font-bold">•</span>
-                    <span>Eres el <strong>responsable principal</strong> del jugador</span>
+                    <span>Tu pareja <strong>aún no ha dado de alta</strong> al jugador</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-orange-600 font-bold">•</span>
-                    <span>Después podrás compartir acceso con el <strong>segundo progenitor</strong></span>
+                    <span>Después podrás invitar al <strong>segundo progenitor</strong></span>
                   </li>
                 </ul>
               </div>
 
               <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl p-4">
-                <p className="text-sm font-bold mb-1">📋 Acceso a:</p>
+                <p className="text-sm font-bold mb-1">📋 Tendrás acceso a:</p>
                 <p className="text-xs">
-                  Pagos • Convocatorias • Chat • Calendario • Documentos • Galería
+                  Pagos • Convocatorias • Chat Entrenador • Chat Coordinador • Calendario • Pedidos de Ropa
                 </p>
               </div>
 
               <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg font-bold py-6 shadow-xl group-hover:bg-orange-700">
-                Continuar como Padre/Madre →
+                Soy el primer progenitor →
               </Button>
             </div>
           </div>
@@ -139,40 +139,40 @@ export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdult
               
               <div>
                 <h3 className="text-2xl lg:text-3xl font-bold text-green-900 mb-3">
-                  ⚽ Jugador Mayor de 18 Años
+                  👤 Panel de Jugador +18
                 </h3>
-                <p className="text-base text-green-700 mb-2">
-                  Te inscribes a ti mismo/a directamente
+                <p className="text-lg font-semibold text-green-800 mb-2">
+                  Para jugadores mayores de edad que se inscriben a sí mismos
                 </p>
               </div>
 
               <div className="bg-white rounded-xl p-5 border-2 border-green-200 text-left space-y-3">
-                <p className="text-sm font-bold text-green-900">ℹ️ Esto es para ti si:</p>
+                <p className="text-sm font-bold text-green-900">✅ Elige esto si:</p>
                 <ul className="text-sm text-slate-700 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-green-600 font-bold">•</span>
-                    <span>Tienes <strong>18 años o más</strong></span>
+                    <span>Eres <strong>mayor de 18 años</strong> y quieres inscribirte tú mismo</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-600 font-bold">•</span>
-                    <span>Quieres gestionar <strong>tu propio perfil</strong> como jugador</span>
+                    <span>Quieres un <strong>panel simplificado</strong> con tus convocatorias y pagos</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-600 font-bold">•</span>
-                    <span>No tienes menores de edad a tu cargo</span>
+                    <span><strong>No necesitas</strong> gestionar menores de edad</span>
                   </li>
                 </ul>
               </div>
 
               <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-4">
-                <p className="text-sm font-bold mb-1">⚽ Acceso a:</p>
+                <p className="text-sm font-bold mb-1">⚽ Tendrás acceso a:</p>
                 <p className="text-xs">
-                  Tus Convocatorias • Tus Pagos • Chat de Equipo • Calendario • Documentos
+                  Tus Convocatorias • Tus Pagos • Chat de Equipo • Calendario • Eventos del Club
                 </p>
               </div>
 
               <Button className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-6 shadow-xl group-hover:bg-green-700">
-                Continuar como Jugador →
+                Continuar como Jugador +18 →
               </Button>
             </div>
           </div>
