@@ -108,6 +108,7 @@ Deno.serve(async (req) => {
     return Response.json({ 
       success: true,
       pairsDetected: pairs.length,
+      pairsSaved: pairsSaved,
       pairs: pairs.map(p => ({
         ...p,
         sharedPlayerCount: p.sharedPlayerCount
