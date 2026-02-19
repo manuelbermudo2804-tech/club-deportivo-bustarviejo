@@ -358,12 +358,15 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
 
   // Filter callups for coach's categories
   const myCallups = seasonCallups.filter(c => {
-    if (user?.role === "admin") return true; // Admins see all callups
+    if (user?.role === "admin") {
+      if (selectedCategory === "all") return true;
+      return c.categoria === selectedCategory;
+    }
     
     // Coach/Coordinator: ONLY see callups from their assigned categories
     const isFromMyCategories = coachCategories.includes(c.categoria);
     
-    if (selectedCategory === "all" || selectedCategory === "admin") {
+    if (selectedCategory === "all") {
       return isFromMyCategories;
     }
     return c.categoria === selectedCategory && isFromMyCategories;
