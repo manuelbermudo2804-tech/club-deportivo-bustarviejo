@@ -89,40 +89,40 @@ export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdult
               
               <div>
                 <h3 className="text-2xl lg:text-3xl font-bold text-orange-900 mb-3">
-                  👨‍👩‍👧 Panel de Familia
+                  👨‍👩‍👧 Padre, Madre o Tutor
                 </h3>
-                <p className="text-lg font-semibold text-orange-800 mb-2">
-                  Soy el <strong>primer progenitor</strong> que da de alta al jugador
+                <p className="text-base text-orange-700 mb-2">
+                  Inscribiré a mi hijo/a o soy el responsable principal
                 </p>
               </div>
 
               <div className="bg-white rounded-xl p-5 border-2 border-orange-200 text-left space-y-3">
-                <p className="text-sm font-bold text-orange-900">✅ Elige esto si:</p>
+                <p className="text-sm font-bold text-orange-900">ℹ️ Esto es para ti si:</p>
                 <ul className="text-sm text-slate-700 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-orange-600 font-bold">•</span>
-                    <span>Vas a inscribir a tu <strong>hijo/a menor de 18 años</strong> por primera vez</span>
+                    <span>Vas a inscribir a tu <strong>hijo/a por primera vez</strong></span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-orange-600 font-bold">•</span>
-                    <span>Tu pareja <strong>aún no ha dado de alta</strong> al jugador</span>
+                    <span>Eres el <strong>responsable principal</strong> del jugador</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-orange-600 font-bold">•</span>
-                    <span>Después podrás invitar al <strong>segundo progenitor</strong></span>
+                    <span>Después podrás compartir acceso con el <strong>segundo progenitor</strong></span>
                   </li>
                 </ul>
               </div>
 
               <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-xl p-4">
-                <p className="text-sm font-bold mb-1">📋 Tendrás acceso a:</p>
+                <p className="text-sm font-bold mb-1">📋 Acceso a:</p>
                 <p className="text-xs">
-                  Pagos • Convocatorias • Chat Entrenador • Chat Coordinador • Calendario • Pedidos de Ropa
+                  Pagos • Convocatorias • Chat • Calendario • Documentos • Galería
                 </p>
               </div>
 
               <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg font-bold py-6 shadow-xl group-hover:bg-orange-700">
-                Soy el primer progenitor →
+                Continuar como Padre/Madre →
               </Button>
             </div>
           </div>
