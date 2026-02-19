@@ -45,7 +45,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const [useManualInput, setUseManualInput] = useState(false);
   const [manualLocationEdit, setManualLocationEdit] = useState(false);
 
-  // Cargar equipos rivales desde clasificaciones (última jornada de la temporada activa)
+  // Cargar equipos rivales desde clasificaciones Y resultados
   useEffect(() => {
     const loadTeams = async () => {
       setIsLoadingTeams(true);
@@ -54,31 +54,51 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         
         // Obtener temporada activa
         const seasonConfigs = await base44.entities.SeasonConfig.filter({ activa: true });
-        const activeSeason = seasonConfigs[0]?.temporada;
+        const activeSeasonRaw = seasonConfigs[0]?.temporada || "";
         
-        // Filtrar clasificaciones por categoría y temporada activa
-        const filter = { categoria: category };
-        if (activeSeason) filter.temporada = activeSeason;
+        // Normalizar temporada (2026-2027 -> 2026/2027 y viceversa)
+        const normalizeTemp = (t) => (t || "").replace(/-/g, "/");
+        const activeSeason = normalizeTemp(activeSeasonRaw);
         
-        const clasificaciones = await base44.entities.Clasificacion.filter(filter);
+        // 1) Buscar en Clasificacion por categoría (sin filtro de temporada para ser flexible)
+        const allClasif = await base44.entities.Clasificacion.filter({ categoria: category });
         
+        // Filtrar por temporada activa, si no hay coincidencia, usar todas
+        let clasificaciones = allClasif.filter(c => normalizeTemp(c.temporada) === activeSeason);
         if (clasificaciones.length === 0) {
-          setRivalTeams([]);
-          return;
+          // Intentar con la temporada anterior (ej: si activa es 2026/2027, buscar 2025/2026)
+          clasificaciones = allClasif;
         }
         
-        // Obtener solo la jornada más reciente para evitar duplicados
-        const maxJornada = Math.max(...clasificaciones.map(c => c.jornada || 0));
-        const latestRound = clasificaciones.filter(c => (c.jornada || 0) === maxJornada);
+        let teamNames = [];
         
-        // Equipos únicos, excluyendo Bustarviejo
-        const uniqueTeams = [...new Set(
-          latestRound
+        if (clasificaciones.length > 0) {
+          // Obtener solo la jornada más reciente para evitar duplicados
+          const maxJornada = Math.max(...clasificaciones.map(c => c.jornada || 0));
+          const latestRound = clasificaciones.filter(c => (c.jornada || 0) === maxJornada);
+          
+          teamNames = latestRound
             .map(c => c.nombre_equipo?.trim())
             .filter(Boolean)
-            .filter(name => !name.toLowerCase().includes('bustarviejo'))
-        )].sort();
+            .filter(name => !name.toLowerCase().includes('bustarviejo'));
+        }
         
+        // 2) También buscar en Resultados para complementar
+        try {
+          const allResults = await base44.entities.Resultado.filter({ categoria: category });
+          let resultados = allResults.filter(r => normalizeTemp(r.temporada) === activeSeason);
+          if (resultados.length === 0) resultados = allResults;
+          
+          resultados.forEach(r => {
+            if (r.local && !r.local.toLowerCase().includes('bustarviejo')) teamNames.push(r.local.trim());
+            if (r.visitante && !r.visitante.toLowerCase().includes('bustarviejo') && !/^\d{2}\/\d{2}\/\d{4}$/.test(r.visitante)) {
+              teamNames.push(r.visitante.trim());
+            }
+          });
+        } catch {}
+        
+        // Equipos únicos y ordenados
+        const uniqueTeams = [...new Set(teamNames)].sort();
         setRivalTeams(uniqueTeams);
       } catch (error) {
         console.log("No se pudieron cargar equipos:", error);
