@@ -513,8 +513,8 @@ export default function Home() {
 
 
 
-  // Determinar botones a mostrar según configuración (BD > localStorage > default)
-  const selectedButtonIds = userButtonConfig?.selected_buttons || cachedButtonIds || DEFAULT_ADMIN_BUTTONS;
+  // Determinar botones a mostrar según configuración (BD > localStorage > ALL para mostrar todos)
+  const selectedButtonIds = userButtonConfig?.selected_buttons || cachedButtonIds || ALL_ADMIN_BUTTONS.map(b => b.id);
   
   const availableAdminButtons = ALL_ADMIN_BUTTONS.filter(button => {
     if (button.conditional && button.conditionKey === "loteriaVisible") return loteriaVisible;
