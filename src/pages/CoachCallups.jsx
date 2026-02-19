@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, Check, X, Clock, AlertCircle } from "lucide-react";
+import { Plus, Users, Check, X, Clock, AlertCircle, Trophy, CalendarCheck, UserCheck } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -70,9 +70,15 @@ export default function CoachCallups() {
         // Get user's suggestion preference (default to true)
         setSuggestionsEnabled(currentUser.sugerencias_convocatoria_activas !== false);
         
-        // If admin, set to "admin" mode (can see all categories)
+        // If admin, load all categories from CategoryConfig for the selector
         if (currentUser.role === "admin") {
-          setSelectedCategory("admin");
+          setSelectedCategory("all");
+          // Load all category names so admin can pick one to create callups
+          try {
+            const catConfigs = await base44.entities.CategoryConfig.filter({ activa: true });
+            const catNames = [...new Set(catConfigs.map(c => c.nombre).filter(Boolean))];
+            setCoachCategories(catNames);
+          } catch {}
         } else if (categories.length === 1) {
           // If only one category, select it by default
           setSelectedCategory(categories[0]);
@@ -450,8 +456,7 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
   }
 
   // Determine if user can create callups
-  // Admins and coaches with categories can create; coordinators can only view unless they're also coaches
-  const canCreateCallup = user?.role === "admin" || 
+  const canCreateCallup = (user?.role === "admin" && selectedCategory && selectedCategory !== "all") || 
     (user?.es_entrenador && selectedCategory && selectedCategory !== "all" && selectedCategory !== "admin");
 
   return (
@@ -462,47 +467,54 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
         message={successMessage}
         withConfetti={true}
       />
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-            🏆 Convocatorias
-          </h1>
-          <p className="text-slate-600 mt-1">
-            {user.role === "admin" 
-              ? "Gestiona todas las convocatorias del club" 
-              : `Gestiona las convocatorias de tus equipos`}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {filteredByStatus.length > 0 && (
-            <ExportButton 
-              data={prepareExportData()} 
-              filename={`convocatorias_${selectedCategory.replace(/\s+/g, '_')}`}
-            />
-          )}
-          <Button
-            onClick={handleNewCallup}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-            disabled={!canCreateCallup}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Nueva Convocatoria
-          </Button>
+    <div className="p-4 lg:p-8 space-y-6">
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700 rounded-2xl p-6 shadow-xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="text-white">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <Trophy className="w-5 h-5" />
+              </div>
+              <h1 className="text-2xl lg:text-3xl font-bold">Convocatorias</h1>
+            </div>
+            <p className="text-orange-100 text-sm ml-13">
+              {user.role === "admin" 
+                ? "Gestiona todas las convocatorias del club" 
+                : `Gestiona las convocatorias de tus equipos`}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {filteredByStatus.length > 0 && (
+              <ExportButton 
+                data={prepareExportData()} 
+                filename={`convocatorias_${(selectedCategory || '').replace(/\s+/g, '_')}`}
+              />
+            )}
+            <Button
+              onClick={handleNewCallup}
+              className="bg-white text-orange-700 hover:bg-orange-50 shadow-lg font-semibold"
+              disabled={!canCreateCallup}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nueva Convocatoria
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Category selector for coaches with multiple categories */}
-      {coachCategories.length > 1 && user.role !== "admin" && (
-        <Card className="border-2 border-blue-300 bg-blue-50">
-          <CardContent className="pt-6">
+      {/* Category selector for coaches with multiple categories OR admin */}
+      {coachCategories.length > 0 && (
+        <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-lg shadow">⚽</div>
               <div className="flex-1">
-                <label className="text-sm font-medium text-blue-900 mb-2 block">
-                  Selecciona una categoría para gestionar:
+                <label className="text-sm font-semibold text-blue-900 mb-1.5 block">
+                  {user.role === "admin" ? "Categoría:" : "Selecciona categoría:"}
                 </label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white border-blue-200">
                     <SelectValue placeholder="Selecciona una categoría" />
                   </SelectTrigger>
                   <SelectContent>
@@ -516,52 +528,38 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
                 </Select>
               </div>
             </div>
-            {selectedCategory === "all" && !editingCallup && (
-              <p className="text-sm text-blue-700 mt-2">
-                💡 Para crear una convocatoria, selecciona primero una categoría específica
+            {(selectedCategory === "all" || selectedCategory === "admin") && !editingCallup && (
+              <p className="text-sm text-blue-600 mt-2 ml-14">
+                💡 Selecciona una categoría para crear una nueva convocatoria
               </p>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Próximas Convocatorias
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-600">{upcomingCallups.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <Check className="w-4 h-4" />
-              Confirmados
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">{totalConfirmed}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-white">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Pendientes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-600">{totalPending}</div>
-          </CardContent>
-        </Card>
+      {/* Stats compactos */}
+      <div className="grid grid-cols-3 gap-3 lg:gap-4">
+        <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100 text-center">
+          <div className="w-10 h-10 mx-auto mb-2 bg-orange-100 rounded-xl flex items-center justify-center">
+            <CalendarCheck className="w-5 h-5 text-orange-600" />
+          </div>
+          <div className="text-2xl font-bold text-orange-600">{upcomingCallups.length}</div>
+          <p className="text-xs text-slate-500 mt-0.5">Próximas</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100 text-center">
+          <div className="w-10 h-10 mx-auto mb-2 bg-green-100 rounded-xl flex items-center justify-center">
+            <UserCheck className="w-5 h-5 text-green-600" />
+          </div>
+          <div className="text-2xl font-bold text-green-600">{totalConfirmed}</div>
+          <p className="text-xs text-slate-500 mt-0.5">Confirmados</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100 text-center">
+          <div className="w-10 h-10 mx-auto mb-2 bg-amber-100 rounded-xl flex items-center justify-center">
+            <Clock className="w-5 h-5 text-amber-600" />
+          </div>
+          <div className="text-2xl font-bold text-amber-600">{totalPending}</div>
+          <p className="text-xs text-slate-500 mt-0.5">Pendientes</p>
+        </div>
       </div>
 
       <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
