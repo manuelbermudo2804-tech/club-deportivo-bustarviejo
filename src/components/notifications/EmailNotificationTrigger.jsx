@@ -29,55 +29,12 @@ export default function EmailNotificationTrigger({ user }) {
     enabled: !!user,
   });
 
-  // Detectar nueva convocatoria y enviar email automático
+  // Convocatorias: el envío de email se gestiona directamente desde CoachCallups.sendCallupNotifications()
+  // NO duplicar aquí — simplemente actualizar el ref para evitar procesamiento innecesario
   useEffect(() => {
     if (!callups || callups.length === 0) return;
-    if (!user || (!user.role && !user.es_entrenador && !user.es_coordinador)) return;
-
-    const latestCallup = callups[0];
-    if (!latestCallup.publicada) return;
-    if (lastCallupIdRef.current === latestCallup.id) return;
-
-    const createdDate = new Date(latestCallup.created_date);
-    const now = new Date();
-    const minutesAgo = (now - createdDate) / (1000 * 60);
-
-    // Solo procesar si se creó en los últimos 2 minutos
-    if (minutesAgo > 2 || minutesAgo < 0) {
-      lastCallupIdRef.current = latestCallup.id;
-      return;
-    }
-
-    lastCallupIdRef.current = latestCallup.id;
-
-    // Enviar emails a jugadores convocados
-    const sendCallupEmails = async () => {
-      for (const jugador of latestCallup.jugadores_convocados || []) {
-        const player = players.find(p => p.id === jugador.jugador_id);
-        if (!player) continue;
-
-        const emailAddresses = [player.email_padre];
-        if (player.email_tutor_2) emailAddresses.push(player.email_tutor_2);
-
-        for (const email of emailAddresses) {
-          if (!email) continue;
-
-          try {
-            const { newCallupBasicHtml } = await import('../emails/emailTemplates');
-            await base44.functions.invoke('sendEmail', {
-              to: email,
-              subject: `⚽ Convocatoria: ${latestCallup.rival ? `vs ${latestCallup.rival}` : latestCallup.titulo} - CD Bustarviejo`,
-              html: newCallupBasicHtml(player.nombre, latestCallup)
-            });
-          } catch (error) {
-            console.error(`Error sending callup email to ${email}:`, error);
-          }
-        }
-      }
-    };
-
-    sendCallupEmails();
-  }, [callups, players, user]);
+    lastCallupIdRef.current = callups[0]?.id;
+  }, [callups]);
 
   // Detectar cambio de estado de pago a "Pagado" y enviar confirmación
   useEffect(() => {
