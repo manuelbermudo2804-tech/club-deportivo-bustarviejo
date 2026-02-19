@@ -70,15 +70,22 @@ export default function CoachCallups() {
         // Get user's suggestion preference (default to true)
         setSuggestionsEnabled(currentUser.sugerencias_convocatoria_activas !== false);
         
-        // If admin, load all categories from CategoryConfig for the selector
+        // Admin also needs to pick a category to create callups
         if (currentUser.role === "admin") {
-          setSelectedCategory("all");
-          // Load all category names so admin can pick one to create callups
-          try {
-            const catConfigs = await base44.entities.CategoryConfig.filter({ activa: true });
-            const catNames = [...new Set(catConfigs.map(c => c.nombre).filter(Boolean))];
-            setCoachCategories(catNames);
-          } catch {}
+          // Admin sin categorías propias → cargar todas desde CategoryConfig
+          if (categories.length === 0) {
+            try {
+              const catConfigs = await base44.entities.CategoryConfig.filter({ activa: true });
+              const catNames = [...new Set(catConfigs.map(c => c.nombre).filter(Boolean))];
+              setCoachCategories(catNames);
+            } catch {}
+          }
+          // Si tiene 1 categoría, seleccionarla directamente
+          if (categories.length === 1) {
+            setSelectedCategory(categories[0]);
+          } else {
+            setSelectedCategory("all");
+          }
         } else if (categories.length === 1) {
           // If only one category, select it by default
           setSelectedCategory(categories[0]);
@@ -506,8 +513,8 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
         </div>
       </div>
 
-      {/* Category selector for coaches with multiple categories OR admin */}
-      {coachCategories.length > 0 && (
+      {/* Category selector - siempre visible si hay más de 1 categoría, o si solo tiene 1 pero es admin */}
+      {(coachCategories.length > 1 || (user.role === "admin" && coachCategories.length > 0)) && (
         <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-4">
