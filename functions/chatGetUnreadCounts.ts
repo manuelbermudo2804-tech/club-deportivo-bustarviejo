@@ -138,7 +138,16 @@ Deno.serve(async (req) => {
           if (staffConv) {
             const lastReadArr = staffConv.last_read_by || [];
             const myEntry = lastReadArr.find(e => e.email === email);
-            const lastRead = myEntry?.fecha || '1970-01-01T00:00:00.000Z';
+            // If user has never read staff chat, don't show all historic messages as unread.
+            // Only count messages from the last 24h as unread for first-time readers.
+            let lastRead;
+            if (myEntry?.fecha) {
+              lastRead = myEntry.fecha;
+            } else {
+              // First time: only show messages from last 24 hours
+              const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+              lastRead = oneDayAgo;
+            }
             const msgs = await base44.asServiceRole.entities.StaffMessage.filter(
               { conversacion_id: staffConv.id }, '-created_date', 200
             );
