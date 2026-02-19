@@ -724,9 +724,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* SECCIONES ORGANIZADAS POR CATEGORÍA */}
+        {/* MOSTRAR TODOS LOS BOTONES SELECCIONADOS EN GRID SIMPLE */}
         {isAdmin && (
-          <div className="space-y-6">
+          <div className="grid grid-cols-3 gap-2 lg:gap-3">
             {/* FINANZAS */}
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-white px-2">💰 Finanzas</h3>
