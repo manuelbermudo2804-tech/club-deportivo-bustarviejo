@@ -21,6 +21,7 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ShareFormButton from "../components/players/ShareFormButton";
+import PlayerProgressCard from "../components/players/PlayerProgressCard";
 
 
 export default function ParentPlayers() {
