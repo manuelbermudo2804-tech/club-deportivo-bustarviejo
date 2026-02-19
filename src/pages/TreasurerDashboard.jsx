@@ -379,27 +379,19 @@ export default function TreasurerDashboard() {
           ))}
         </div>
 
-        {/* Stats Footer - solo móvil */}
+        {/* Stats KPIs - solo móvil (compacto, sin redundancia) */}
         {!playersLoading && (
-          <div className="lg:hidden bg-slate-800/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-slate-700/60">
-            <div className="grid grid-cols-4 gap-2">
-              <div className="text-center bg-slate-700/30 rounded-xl py-2">
-                <div className="text-lg font-bold text-orange-400">{myPlayers.length}</div>
-                <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Jugadores</div>
+          <div className="lg:hidden grid grid-cols-3 gap-1.5">
+            {[
+              { value: paymentsInReviewTreasurer, label: "Revisión club", color: "text-green-400" },
+              { value: pendingClothingOrders, label: "Pedidos", color: "text-orange-400" },
+              { value: pendingMemberRequests, label: "Socios", color: "text-blue-400" },
+            ].map((kpi, i) => (
+              <div key={i} className="text-center bg-slate-800/60 rounded-xl py-2 border border-slate-700/40">
+                <div className={`text-lg font-bold ${kpi.color}`}>{kpi.value}</div>
+                <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">{kpi.label}</div>
               </div>
-              <div className="text-center bg-slate-700/30 rounded-xl py-2">
-                <div className="text-lg font-bold text-green-400">{paymentsInReviewTreasurer}</div>
-                <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Club</div>
-              </div>
-              <div className="text-center bg-slate-700/30 rounded-xl py-2">
-                <div className="text-lg font-bold text-yellow-400">{pendingCallupsParent}</div>
-                <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Convoc.</div>
-              </div>
-              <div className="text-center bg-slate-700/30 rounded-xl py-2">
-                <div className="text-lg font-bold text-red-400">{totalPendingPaymentsParent}</div>
-                <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Pagos</div>
-              </div>
-            </div>
+            ))}
           </div>
         )}
 
