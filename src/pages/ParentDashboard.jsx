@@ -540,6 +540,35 @@ export default function ParentDashboard() {
         )}
 
 
+        {/* RESUMEN SEMANAL POR JUGADOR */}
+        {!playersLoading && myPlayers.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-white font-bold text-sm flex items-center gap-2">
+              📋 Resumen semanal
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {myPlayers.map((p) => (
+                <WeeklySummaryCard
+                  key={p.id}
+                  player={p}
+                  payments={allPayments}
+                  callups={allCallups}
+                  user={user}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* RANKING DE ASISTENCIA POR CATEGORÍA */}
+        {!playersLoading && myPlayers.length > 0 && (
+          <AttendanceRankingWidget
+            highlightCategories={[
+              ...new Set(myPlayers.flatMap((p) => [p.categoria_principal, ...(p.categorias || [])].filter(Boolean)))
+            ]}
+          />
+        )}
+
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - SIEMPRE VISIBLE */}
         <AlertCenter 
             pendingCallups={notifications?.pendingCallups || pendingCallups}
