@@ -811,6 +811,39 @@ const handleChatBlock = (user) => {
             <Label htmlFor="show-deleted" className="text-xs cursor-pointer">Eliminados</Label>
           </div>
         </div>
+
+        {/* Botón de detección automática de parejas */}
+        <Button
+          size="sm"
+          onClick={async () => {
+            try {
+              setIsDetectingPairs(true);
+              const { data } = await base44.functions.invoke('detectParentPairs');
+              setPairingResults(data);
+              setShowPairingResults(true);
+              queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+              toast.success(`✅ Se detectaron ${data.pairsDetected} parejas de progenitores`);
+            } catch (error) {
+              toast.error('Error detectando parejas: ' + error.message);
+            } finally {
+              setIsDetectingPairs(false);
+            }
+          }}
+          disabled={isDetectingPairs}
+          className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-sm"
+        >
+          {isDetectingPairs ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Detectando...
+            </>
+          ) : (
+            <>
+              <Wand2 className="w-4 h-4 mr-2" />
+              🔍 Detectar Parejas
+            </>
+          )}
+        </Button>
         
         {/* Filtros compactos */}
         <div className="flex flex-wrap gap-1">
