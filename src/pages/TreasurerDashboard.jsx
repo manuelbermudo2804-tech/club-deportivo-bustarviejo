@@ -82,55 +82,9 @@ export default function TreasurerDashboard() {
   const today = new Date().toISOString().split('T')[0];
   const callups = allCallups.filter(c => c.publicada && c.fecha_partido >= today && !c.cerrada);
 
-  const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversationsParent', user?.email],
-    queryFn: async () => {
-      const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30);
-      return allConvs.filter(c => c.participante_familia_email === user?.email);
-    },
-    staleTime: 300000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    enabled: !!user,
-  });
-
-  const { data: coordinatorConversations = [] } = useQuery({
-    queryKey: ['coordinatorConversations', user?.email],
-    queryFn: async () => {
-      const allConvs = await base44.entities.CoordinatorConversation.list();
-      return allConvs.filter(c => c.padre_email === user?.email);
-    },
-    staleTime: 300000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    enabled: !!user,
-  });
-
-  const { data: adminConversations = [] } = useQuery({
-    queryKey: ['adminConversationsParent', user?.email],
-    queryFn: async () => {
-      const allConvs = await base44.entities.AdminConversation.list();
-      return allConvs.filter(c => c.padre_email === user?.email && !c.resuelta);
-    },
-    staleTime: 300000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    enabled: !!user,
-  });
-
-  const { data: messages = [] } = useQuery({
-    queryKey: ['chatMessages', user?.email],
-    queryFn: async () => {
-      if (!myPlayers || myPlayers.length === 0) return [];
-      const sports = [...new Set(myPlayers.map(p => p.deporte))];
-      const allMsgs = await base44.entities.ChatMessage.list('-created_date', 50);
-      return allMsgs.filter(m => sports.includes(m.deporte) || m.grupo_id === "Coordinación Deportiva");
-    },
-    staleTime: 300000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    enabled: !!user && myPlayers.length > 0,
-  });
+  // Chat conversation queries REMOVED from TreasurerDashboard — 
+  // ChatUnreadProvider in Layout already handles all chat counts via chatGetUnreadCounts backend.
+  // These 4 queries were fetching data only used for unread badges, which are now handled centrally.
 
   const { data: clothingOrders = [] } = useQuery({
     queryKey: ['clothingOrdersHome'],
@@ -272,26 +226,7 @@ export default function TreasurerDashboard() {
     m.estado_pago === "En revisión" || m.estado_pago === "Pendiente"
   ).length;
 
-  // Mensajes sin leer
-  const unreadPrivateMessages = privateConversations.reduce((count, conv) => 
-    count + (conv.no_leidos_familia || 0), 0
-  );
-
-  const unreadCoordinatorMessages = coordinatorConversations.reduce((count, conv) => 
-    count + (conv.no_leidos_padre || 0), 0
-  );
-
-  const unreadAdminMessages = adminConversations.reduce((count, conv) => 
-    count + (conv.no_leidos_padre || 0), 0
-  );
-  const hasActiveAdminChat = adminConversations.length > 0;
-
-  const unreadCoachMessages = messages.filter(m => {
-    if (m.tipo === "entrenador_a_grupo" && !m.leido) return true;
-    if (m.destinatario_email === user?.email && !m.leido) return true;
-    return false;
-  }).length;
-
+  // Chat unread counts now come from ChatUnreadProvider (Layout) — no local computation needed
   const totalPendingPaymentsParent = pagosPendientesNoVencidos + pagosEnRevisionNoVencidos + overduePaymentsCount;
 
   // Determinar qué botones mostrar según configuración del usuario

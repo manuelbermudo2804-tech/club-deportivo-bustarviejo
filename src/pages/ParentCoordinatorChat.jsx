@@ -86,34 +86,7 @@ export default function ParentCoordinatorChat() {
         setTermsAccepted(true);
       }
 
-      // Marcar AppNotifications como vistas
-      try {
-        const notifs = await base44.entities.AppNotification.filter({
-          usuario_email: currentUser.email,
-          enlace: "ParentCoordinatorChat",
-          vista: false
-        });
-        for (const n of notifs) {
-          await base44.entities.AppNotification.update(n.id, { vista: true, fecha_vista: new Date().toISOString() });
-        }
-      } catch {}
-      
-      // Marcar mensajes del coordinador como leídos
-      const allMessages = await base44.entities.CoordinatorMessage.filter({ conversacion_id: activeConv.id });
-      const unreadCoordMessages = allMessages.filter(m => m.autor === "coordinador" && !m.leido_padre);
-
-      for (const msg of unreadCoordMessages) {
-        await base44.entities.CoordinatorMessage.update(msg.id, {
-          leido_padre: true,
-          fecha_leido_padre: new Date().toISOString()
-        });
-      }
-
-      if (activeConv.no_leidos_familia > 0) {
-        await base44.entities.CoordinatorConversation.update(activeConv.id, {
-          no_leidos_familia: 0
-        });
-      }
+      // Legacy read markers removed — markRead('coordinatorForFamily', ...) handles this via backend
     };
     fetchUser();
   }, []);

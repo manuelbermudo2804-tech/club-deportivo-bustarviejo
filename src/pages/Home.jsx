@@ -109,6 +109,15 @@ export default function Home() {
     enabled: queriesEnabled && isAdmin,
   });
 
+  // LAZY-LOADED: These queries only run after initial render (non-essential for first paint)
+  const [lazyEnabled, setLazyEnabled] = useState(false);
+  useEffect(() => {
+    if (queriesEnabled && isAdmin) {
+      const t = setTimeout(() => setLazyEnabled(true), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [queriesEnabled, isAdmin]);
+
   const { data: surveyResponses } = useQuery({
     queryKey: ['surveyResponses'],
     queryFn: () => base44.entities.SurveyResponse.list(),
@@ -117,7 +126,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: queriesEnabled && isAdmin,
+    enabled: lazyEnabled,
   });
 
   const { data: events } = useQuery({
@@ -128,18 +137,18 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: queriesEnabled && isAdmin,
+    enabled: lazyEnabled,
   });
 
   const { data: clothingOrders } = useQuery({
     queryKey: ['clothingOrdersHome'],
     queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
     initialData: [],
-    staleTime: 30000,
+    staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: queriesEnabled && isAdmin,
+    enabled: lazyEnabled,
   });
 
   const { data: clubMembers } = useQuery({
@@ -150,7 +159,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: queriesEnabled && isAdmin,
+    enabled: lazyEnabled,
   });
 
   const { data: lotteryOrders } = useQuery({
@@ -161,7 +170,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: queriesEnabled && isAdmin && loteriaVisible,
+    enabled: lazyEnabled && loteriaVisible,
   });
 
   const { data: invitationRequests = [] } = useQuery({
@@ -170,7 +179,7 @@ export default function Home() {
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    enabled: queriesEnabled && isAdmin,
+    enabled: lazyEnabled,
   });
 
   const { data: secondParentInvitations = [] } = useQuery({
@@ -179,7 +188,7 @@ export default function Home() {
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
-    enabled: queriesEnabled && isAdmin,
+    enabled: lazyEnabled,
   });
 
   const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;

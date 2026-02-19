@@ -112,7 +112,9 @@ export default function CoordinatorChat({ embedded = false }) {
     conversations.flatMap(c => c.jugadores_asociados?.map(j => j.categoria) || [])
   )].sort();
 
-  const totalUnread = activeConversations.reduce((sum, c) => sum + (c.no_leidos_coordinador || 0), 0);
+  // Use backend-computed coordinator unread count (more reliable than legacy field)
+  const { counts: chatCounts } = useChatUnreadCounts(user);
+  const totalUnread = chatCounts?.coordinator || 0;
 
 
 
