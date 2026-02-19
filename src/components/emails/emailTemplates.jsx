@@ -206,7 +206,26 @@ export function callupPendingReminderHtml(playerName, callup) {
   );
 }
 
-// ─── 10. Documento pendiente de firma ───
+// ─── 10. Pedido de equipación aprobado ───
+export function clothingOrderApprovedHtml(playerName, importe, estado) {
+  return wrap(
+    'linear-gradient(135deg,#16a34a,#15803d)', '✅', 'PEDIDO APROBADO', 'Equipación CD Bustarviejo',
+    `<p style="color:#334155;font-size:15px;margin:0 0 16px;">Hola,</p>
+    <p style="color:#334155;font-size:14px;margin:0 0 16px;">Tu pedido de equipación para <strong>${playerName}</strong> ha sido aprobado:</p>
+    <div style="background:#f0fdf4;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #bbf7d0;">
+      ${dataRow('👤 JUGADOR', playerName)}
+      <div style="padding:12px 0;text-align:center;">
+        <div style="font-size:12px;color:#166534;">IMPORTE</div>
+        <div style="font-size:28px;font-weight:800;color:#16a34a;">${importe}€</div>
+      </div>
+      ${dataRow('📦 ESTADO', estado)}
+    </div>
+    ${infoBox('green', '<div style="color:#166534;font-size:13px;">📍 Te avisaremos cuando esté listo para recoger en las instalaciones del club.</div>')}
+    <p style="color:#334155;font-size:14px;text-align:center;margin:0;">¡Gracias! ⚽</p>`
+  );
+}
+
+// ─── 11. Documento pendiente de firma ───
 export function documentPendingHtml(docTitulo, docTipo, fechaLimite, jugadoresNombres) {
   return wrap(
     'linear-gradient(135deg,#f59e0b,#d97706)', '📄', 'DOCUMENTO PENDIENTE', 'Requiere tu firma',
