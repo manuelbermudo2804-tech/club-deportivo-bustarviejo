@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Phone, Mail, AlertTriangle, Calendar } from "lucide-react";
+import { User, Phone, Mail, AlertTriangle, Calendar, Pencil } from "lucide-react";
 import PlayerDetailDialog from "./PlayerDetailDialog";
 import PlayerAvailabilityDialog from "./PlayerAvailabilityDialog";
+import PlayerPositionDialog from "./PlayerPositionDialog";
 
 const positionColors = {
   "Portero": "from-blue-500 to-blue-600",
@@ -30,9 +31,10 @@ const calcAge = (d) => {
   return a;
 };
 
-export default function RosterPlayerCard({ player, onUpdateAvailability, isUpdating }) {
+export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdatePosition, isUpdating }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showAvailability, setShowAvailability] = useState(false);
+  const [showPosition, setShowPosition] = useState(false);
   const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
   const isUnavailable = player.lesionado || player.sancionado;
 
@@ -55,6 +57,16 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, isUpdat
         open={showAvailability}
         onOpenChange={setShowAvailability}
         onSave={handleSaveAvailability}
+        isSaving={isUpdating}
+      />
+      <PlayerPositionDialog
+        player={player}
+        open={showPosition}
+        onOpenChange={setShowPosition}
+        onSave={(data) => {
+          if (onUpdatePosition) onUpdatePosition(player.id, data);
+          setShowPosition(false);
+        }}
         isSaving={isUpdating}
       />
       <Card 
@@ -81,11 +93,18 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, isUpdat
         {/* Nombre sobre la imagen */}
         <div className="absolute bottom-0 left-0 right-0 p-2.5">
           <h3 className="font-bold text-sm text-white truncate drop-shadow-lg">{player.nombre}</h3>
-          {player.posicion && player.posicion !== "Sin asignar" && (
-            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold text-white/90 bg-gradient-to-r ${positionColors[player.posicion] || "from-slate-500 to-slate-600"} px-2 py-0.5 rounded-full mt-1`}>
-              {positionEmojis[player.posicion] || "⚽"} {player.posicion}
-            </span>
-          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowPosition(true); }}
+            className={`inline-flex items-center gap-1 text-[10px] font-semibold text-white/90 bg-gradient-to-r ${
+              player.posicion && player.posicion !== "Sin asignar"
+                ? positionColors[player.posicion] || "from-slate-500 to-slate-600"
+                : "from-slate-500 to-slate-600"
+            } px-2 py-0.5 rounded-full mt-1 hover:opacity-80 transition-opacity`}
+            title="Cambiar posición"
+          >
+            {positionEmojis[player.posicion] || "⚽"} {player.posicion || "Sin asignar"}
+            <Pencil className="w-2.5 h-2.5 ml-0.5" />
+          </button>
         </div>
 
         {/* Número de camiseta */}
