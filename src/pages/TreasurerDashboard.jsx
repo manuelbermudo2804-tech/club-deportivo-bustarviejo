@@ -362,12 +362,13 @@ export default function TreasurerDashboard() {
           />
         </div>
 
-        {/* Botones de Acceso Rápido */}
-        <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
-          {menuItems.map((item, index) => (
-            <DashboardButtonCard key={index} item={item} isExternal={item.url?.startsWith('http')} />
-          ))}
-        </div>
+        {/* Botones de Acceso Rápido - Separados por sección */}
+        <SectionedButtonGrid
+          buttons={menuItems}
+          roleSection="treasurer"
+          roleSectionLabel="💰 Tesorería"
+          clubSectionLabel="👨‍👩‍👧 Club y Familia"
+        />
 
         {/* Stats KPIs - solo móvil (compacto, sin redundancia) */}
         {!playersLoading && (
