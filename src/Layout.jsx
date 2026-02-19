@@ -2726,7 +2726,9 @@ export default function Layout({ children, currentPageName }) {
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}
           <PullToRefresh>
-            {children}
+            <div className="page-transition-wrapper">
+              {children}
+            </div>
           </PullToRefresh>
           <ActiveBanner position="bottom" user={user} />
 
