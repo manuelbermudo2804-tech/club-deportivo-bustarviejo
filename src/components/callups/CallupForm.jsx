@@ -238,8 +238,8 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
 
     const data = buildSubmitData();
 
-    // Si no está publicada y es nueva convocatoria, preguntar
-    if (!currentCallup.publicada && !callup) {
+    // Para convocatorias nuevas, siempre preguntar publicar vs borrador
+    if (!callup) {
       setPendingSubmitData(data);
       setShowDraftConfirm(true);
       return;
