@@ -63,24 +63,11 @@ export default function EmailNotificationTrigger({ user }) {
           if (!email) continue;
 
           try {
+            const { newCallupBasicHtml } = await import('../emails/emailTemplates');
             await base44.functions.invoke('sendEmail', {
               to: email,
-              subject: `🏆 Nueva convocatoria: ${latestCallup.titulo}`,
-              html: `
-                <h2>🏆 Nueva Convocatoria - ${latestCallup.categoria}</h2>
-                <p>Tu hijo/a <strong>${player.nombre}</strong> ha sido convocado para:</p>
-                <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 16px 0;">
-                  <p><strong>📅 Partido:</strong> ${latestCallup.titulo}</p>
-                  <p><strong>🆚 Rival:</strong> ${latestCallup.rival || 'Por confirmar'}</p>
-                  <p><strong>📍 Ubicación:</strong> ${latestCallup.ubicacion}</p>
-                  <p><strong>🕐 Hora concentración:</strong> ${latestCallup.hora_concentracion || latestCallup.hora_partido}</p>
-                  <p><strong>⚽ Hora partido:</strong> ${latestCallup.hora_partido}</p>
-                  <p><strong>📆 Fecha:</strong> ${new Date(latestCallup.fecha_partido).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                </div>
-                <p style="color: #dc2626; font-weight: bold;">⚠️ Por favor, confirma la asistencia en la aplicación lo antes posible.</p>
-                ${latestCallup.descripcion ? `<p><strong>Instrucciones:</strong> ${latestCallup.descripcion}</p>` : ''}
-                <p style="margin-top: 24px; color: #64748b; font-size: 14px;">CD Bustarviejo - Sistema de Gestión Deportiva</p>
-              `
+              subject: `⚽ Convocatoria: ${latestCallup.rival ? `vs ${latestCallup.rival}` : latestCallup.titulo} - CD Bustarviejo`,
+              html: newCallupBasicHtml(player.nombre, latestCallup)
             });
           } catch (error) {
             console.error(`Error sending callup email to ${email}:`, error);
@@ -127,22 +114,14 @@ export default function EmailNotificationTrigger({ user }) {
           if (!email) continue;
 
           try {
+            const { paymentConfirmedHtml } = await import('../emails/emailTemplates');
             await base44.functions.invoke('sendEmail', {
               to: email,
               subject: `✅ Pago confirmado - ${player.nombre}`,
-              html: `
-                <h2>✅ Pago Confirmado</h2>
-                <p>Hemos confirmado el pago de <strong>${player.nombre}</strong>:</p>
-                <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 16px 0;">
-                  <p><strong>💰 Mes:</strong> ${payment.mes}</p>
-                  <p><strong>📅 Temporada:</strong> ${payment.temporada}</p>
-                  <p><strong>💵 Cantidad:</strong> ${payment.cantidad}€</p>
-                  <p><strong>✅ Estado:</strong> Pagado</p>
-                  ${payment.fecha_pago ? `<p><strong>📆 Fecha de pago:</strong> ${new Date(payment.fecha_pago).toLocaleDateString('es-ES')}</p>` : ''}
-                </div>
-                <p>Gracias por tu pago. Puedes consultar el historial completo en la aplicación.</p>
-                <p style="margin-top: 24px; color: #64748b; font-size: 14px;">CD Bustarviejo - Gestión de Pagos</p>
-              `
+              html: paymentConfirmedHtml(
+                player.nombre, payment.mes, payment.temporada, payment.cantidad,
+                payment.fecha_pago ? new Date(payment.fecha_pago).toLocaleDateString('es-ES') : null, null
+              )
             });
           } catch (error) {
             console.error(`Error sending payment confirmation to ${email}:`, error);

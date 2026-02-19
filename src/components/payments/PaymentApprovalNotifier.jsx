@@ -80,19 +80,14 @@ export default function PaymentApprovalNotifier({ isAdmin }) {
         });
 
         // Enviar email de confirmación
+        const { paymentConfirmedHtml } = await import('../emails/emailTemplates');
         await base44.functions.invoke('sendEmail', {
           to: email,
           subject: `✅ Pago Aprobado - ${payment.jugador_nombre}`,
-          html: `
-            <h2 style="color: #16a34a;">✅ Pago Aprobado</h2>
-            <p>Hola,</p>
-            <p>El pago de <strong>${payment.cantidad}€</strong> correspondiente a <strong>${payment.jugador_nombre}</strong> (${payment.mes}) ha sido <strong>aprobado por el club</strong>.</p>
-            <p>✅ <strong>Estado:</strong> Pagado</p>
-            ${payment.notas ? `<p>📝 <strong>Notas:</strong> ${payment.notas}</p>` : ''}
-            <p>¡Gracias por tu puntualidad!</p>
-            <br>
-            <p style="color: #64748b; font-size: 12px;">CD Bustarviejo</p>
-          `
+          html: paymentConfirmedHtml(
+            payment.jugador_nombre, payment.mes, payment.temporada || '', payment.cantidad,
+            null, payment.notas
+          )
         });
       }
 

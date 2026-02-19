@@ -104,20 +104,11 @@ export default function AutomaticNotificationEngine({ user }) {
               });
 
               // Email automático
+              const { callupPendingReminderHtml } = await import('../emails/emailTemplates');
               await base44.functions.invoke('sendEmail', {
                 to: user.email,
                 subject: `⏰ Convocatoria pendiente - ${confirmation.jugador_nombre}`,
-                html: `
-                  <h2>Convocatoria sin confirmar</h2>
-                  <p>Tu hijo/a <strong>${confirmation.jugador_nombre}</strong> tiene una convocatoria pendiente de confirmar:</p>
-                  <ul>
-                    <li><strong>Partido:</strong> ${callup.titulo}</li>
-                    <li><strong>Fecha:</strong> ${callup.fecha_partido}</li>
-                    <li><strong>Hora:</strong> ${callup.hora_partido}</li>
-                    <li><strong>Ubicación:</strong> ${callup.ubicacion}</li>
-                  </ul>
-                  <p>Por favor, entra a la aplicación para confirmar la asistencia.</p>
-                `
+                html: callupPendingReminderHtml(confirmation.jugador_nombre, callup)
               }).catch(err => console.error("Error sending email:", err));
             }
           }
@@ -284,24 +275,16 @@ export default function AutomaticNotificationEngine({ user }) {
           });
 
           // Email automático
+          const { documentPendingHtml } = await import('../emails/emailTemplates');
           await base44.functions.invoke('sendEmail', {
             to: user.email,
             subject: `📄 Documento pendiente de firma - ${document.titulo}`,
-            html: `
-              <h2>Documento pendiente de firma</h2>
-              <p>Tienes un nuevo documento que requiere tu firma:</p>
-              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0;">
-                <p><strong>📄 Documento:</strong> ${document.titulo}</p>
-                <p><strong>📋 Tipo:</strong> ${document.tipo}</p>
-                ${document.fecha_limite_firma ? `<p><strong>⏰ Fecha límite:</strong> ${new Date(document.fecha_limite_firma).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>` : ''}
-              </div>
-              <p><strong>Jugadores pendientes de firma:</strong></p>
-              <ul>
-                ${pendingSignatures.map(p => `<li>${p.nombre}</li>`).join('')}
-              </ul>
-              <p>Por favor, entra a la aplicación para revisar y firmar el documento.</p>
-              <p style="margin-top: 24px; color: #64748b; font-size: 14px;">CD Bustarviejo - Gestión Documental</p>
-            `
+            html: documentPendingHtml(
+              document.titulo,
+              document.tipo,
+              document.fecha_limite_firma ? new Date(document.fecha_limite_firma).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : null,
+              pendingSignatures.map(p => p.nombre)
+            )
           }).catch(err => console.error("Error sending document email:", err));
         }
       }

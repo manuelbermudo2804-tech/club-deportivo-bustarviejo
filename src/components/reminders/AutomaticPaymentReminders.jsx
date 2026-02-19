@@ -275,18 +275,27 @@ export default function AutomaticPaymentReminders({ user }) {
               no_leidos_familia: (conv.no_leidos_familia || 0) + 1
             });
             
+            // Generar email HTML bonito
+            const { scheduledPaymentReminderHtml } = await import('../emails/emailTemplates');
+            const emailHtml = scheduledPaymentReminderHtml(
+              tipoRecordatorio, mesRecordatorio, fechasLimite[mesRecordatorio],
+              family.jugadores, totalFamilia
+            );
+            const subjectEmoji = tipoRecordatorio === '2_dias_despues' ? '🔴' : tipoRecordatorio === '7_dias_antes' ? '⚠️' : '📅';
+            const emailSubject = `${subjectEmoji} ${mensajeTipo.titulo} - ${mesRecordatorio}`;
+
             // Enviar email
             await base44.functions.invoke('sendEmail', {
               to: family.email,
-              subject: `Recordatorio de Pago ${mesRecordatorio} - CD Bustarviejo`,
-              html: mensaje.replace(/\n/g, '<br>')
+              subject: emailSubject,
+              html: emailHtml
             });
             
             if (family.email_tutor_2) {
               await base44.functions.invoke('sendEmail', {
                 to: family.email_tutor_2,
-                subject: `Recordatorio de Pago ${mesRecordatorio} - CD Bustarviejo`,
-                html: mensaje.replace(/\n/g, '<br>')
+                subject: emailSubject,
+                html: emailHtml
               });
             }
             
