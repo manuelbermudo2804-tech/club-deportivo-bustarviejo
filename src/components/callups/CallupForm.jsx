@@ -264,18 +264,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
             </Alert>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Título */}
-              <div className="space-y-2 md:col-span-2">
-                <Label>Título de la Convocatoria *</Label>
-                <Input
-                  placeholder="Ej: Partido vs Real Madrid"
-                  value={currentCallup.titulo}
-                  onChange={(e) => setCurrentCallup({ ...currentCallup, titulo: e.target.value })}
-                  required
-                />
-              </div>
-
-              {/* Tipo */}
+              {/* Tipo - PRIMERO */}
               <div className="space-y-2">
                 <Label>Tipo *</Label>
                 <Select
