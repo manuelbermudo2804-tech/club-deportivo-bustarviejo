@@ -21,6 +21,7 @@ import ExportButton from "../components/ExportButton";
 
 import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
+import { buildCallupEmailHtml } from "../components/callups/callupEmailTemplate";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 import { useActiveSeason } from "../components/season/SeasonProvider";
