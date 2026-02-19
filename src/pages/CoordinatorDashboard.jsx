@@ -199,7 +199,9 @@ export default function CoordinatorDashboard() {
           {hasPlayers && (
             <div className="rounded-xl border-2 border-orange-500/30 overflow-hidden">
               <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-2">
-                <p className="text-white font-bold text-sm flex items-center gap-2">👨‍👩‍👧 Tus hijos en el club</p>
+                <p className="text-white font-bold text-sm flex items-center gap-2">
+                  {hasPlayers ? '👨‍👩‍👧 Tus hijos en el club' : user?.es_jugador ? '⚽ Tu ficha de jugador' : '👨‍👩‍👧 Tu vida en el club'}
+                </p>
               </div>
               <div className="bg-orange-950/40 p-3">
                 <AlertCenter 
