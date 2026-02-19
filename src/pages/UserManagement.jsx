@@ -78,6 +78,9 @@ export default function UserManagement() {
   const [reminderMessage, setReminderMessage] = useState("");
   const [showPairDialog, setShowPairDialog] = useState(false);
   const [pairingContext, setPairingContext] = useState({ user: null, playerId: "", partnerEmail: "" });
+  const [showPairingResults, setShowPairingResults] = useState(false);
+  const [pairingResults, setPairingResults] = useState(null);
+  const [isDetectingPairs, setIsDetectingPairs] = useState(false);
 
   const queryClient = useQueryClient();
 
