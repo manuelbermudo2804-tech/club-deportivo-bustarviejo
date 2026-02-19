@@ -63,8 +63,16 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         // 1) Buscar en Clasificacion por categoría
         const allClasif = await base44.entities.Clasificacion.filter({ categoria: category });
         
-        // Solo temporada activa
-        const clasificaciones = allClasif.filter(c => normalizeTemp(c.temporada) === activeSeason);
+        // Intentar temporada activa primero, si no hay datos usar la más reciente disponible
+        let clasificaciones = allClasif.filter(c => normalizeTemp(c.temporada) === activeSeason);
+        if (clasificaciones.length === 0 && allClasif.length > 0) {
+          // Obtener la temporada más reciente disponible
+          const temps = [...new Set(allClasif.map(c => normalizeTemp(c.temporada)))].sort().reverse();
+          if (temps[0]) {
+            clasificaciones = allClasif.filter(c => normalizeTemp(c.temporada) === temps[0]);
+            console.log(`[CallupForm] Sin datos en ${activeSeason}, usando temporada ${temps[0]}`);
+          }
+        }
         
         let teamNames = [];
         
@@ -82,7 +90,11 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         // 2) También buscar en Resultados para complementar
         try {
           const allResults = await base44.entities.Resultado.filter({ categoria: category });
-          const resultados = allResults.filter(r => normalizeTemp(r.temporada) === activeSeason);
+          let resultados = allResults.filter(r => normalizeTemp(r.temporada) === activeSeason);
+          if (resultados.length === 0 && allResults.length > 0) {
+            const temps = [...new Set(allResults.map(r => normalizeTemp(r.temporada)))].sort().reverse();
+            if (temps[0]) resultados = allResults.filter(r => normalizeTemp(r.temporada) === temps[0]);
+          }
           
           resultados.forEach(r => {
             if (r.local && !r.local.toLowerCase().includes('bustarviejo')) teamNames.push(r.local.trim());
