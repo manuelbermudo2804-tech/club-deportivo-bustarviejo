@@ -74,6 +74,10 @@ export default function TeamRosters() {
     updateAvailabilityMutation.mutate({ playerId, data });
   };
 
+  const handleUpdatePosition = (playerId, data) => {
+    updateAvailabilityMutation.mutate({ playerId, data });
+  };
+
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
     const playerCat = player.categoria_principal || player.deporte;
@@ -279,6 +283,7 @@ export default function TeamRosters() {
                 key={player.id} 
                 player={player} 
                 onUpdateAvailability={handleUpdateAvailability}
+                onUpdatePosition={handleUpdatePosition}
                 isUpdating={updatingPlayerId === player.id}
               />
             ))}
