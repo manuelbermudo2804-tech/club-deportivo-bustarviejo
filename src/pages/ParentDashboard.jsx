@@ -23,6 +23,9 @@ import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } 
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import WeeklySummaryCard from "../components/dashboard/WeeklySummaryCard";
+import AttendanceRankingWidget from "../components/dashboard/AttendanceRankingWidget";
+import PlayerProgressCard from "../components/players/PlayerProgressCard";
 
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
