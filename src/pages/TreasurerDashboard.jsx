@@ -10,7 +10,8 @@ import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
-import TreasurerAlertCenter from "../components/dashboard/TreasurerAlertCenter";
+import AlertCenter from "../components/dashboard/AlertCenter";
+import SectionedButtonGrid from "../components/dashboard/SectionedButtonGrid";
 import ShareFormButton from "../components/players/ShareFormButton";
 import ContactCard from "../components/ContactCard";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
