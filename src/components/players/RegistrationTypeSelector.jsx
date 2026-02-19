@@ -139,40 +139,40 @@ export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdult
               
               <div>
                 <h3 className="text-2xl lg:text-3xl font-bold text-green-900 mb-3">
-                  👤 Panel de Jugador +18
+                  ⚽ Jugador Mayor de 18 Años
                 </h3>
-                <p className="text-lg font-semibold text-green-800 mb-2">
-                  Para jugadores mayores de edad que se inscriben a sí mismos
+                <p className="text-base text-green-700 mb-2">
+                  Te inscribes a ti mismo/a directamente
                 </p>
               </div>
 
               <div className="bg-white rounded-xl p-5 border-2 border-green-200 text-left space-y-3">
-                <p className="text-sm font-bold text-green-900">✅ Elige esto si:</p>
+                <p className="text-sm font-bold text-green-900">ℹ️ Esto es para ti si:</p>
                 <ul className="text-sm text-slate-700 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-green-600 font-bold">•</span>
-                    <span>Eres <strong>mayor de 18 años</strong> y quieres inscribirte tú mismo</span>
+                    <span>Tienes <strong>18 años o más</strong></span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-600 font-bold">•</span>
-                    <span>Quieres un <strong>panel simplificado</strong> con tus convocatorias y pagos</span>
+                    <span>Quieres gestionar <strong>tu propio perfil</strong> como jugador</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-600 font-bold">•</span>
-                    <span><strong>No necesitas</strong> gestionar menores de edad</span>
+                    <span>No tienes menores de edad a tu cargo</span>
                   </li>
                 </ul>
               </div>
 
               <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-4">
-                <p className="text-sm font-bold mb-1">⚽ Tendrás acceso a:</p>
+                <p className="text-sm font-bold mb-1">⚽ Acceso a:</p>
                 <p className="text-xs">
-                  Tus Convocatorias • Tus Pagos • Chat de Equipo • Calendario • Eventos del Club
+                  Tus Convocatorias • Tus Pagos • Chat de Equipo • Calendario • Documentos
                 </p>
               </div>
 
               <Button className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-6 shadow-xl group-hover:bg-green-700">
-                Continuar como Jugador +18 →
+                Continuar como Jugador →
               </Button>
             </div>
           </div>
