@@ -303,8 +303,8 @@ const alerts = [];
         id: "match-observations",
         icon: BarChart3,
         title: "📊 Partidos sin registrar",
-        description: `${pendingMatchObservations} partido${pendingMatchObservations > 1 ? 's' : ''} pendiente${pendingMatchObservations > 1 ? 's' : ''} de observación`,
-        url: createPageUrl("CoachStandingsAnalysis"),
+        description: `${pendingMatchObservations} partido${pendingMatchObservations > 1 ? 's' : ''} pendiente${pendingMatchObservations > 1 ? 's' : ''} de resumen post-partido`,
+        url: createPageUrl("CentroCompeticionTecnico"),
         color: "bg-red-600",
         priority: 1,
         sticky: true
