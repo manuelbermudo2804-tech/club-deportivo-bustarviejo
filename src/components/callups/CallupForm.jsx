@@ -623,34 +623,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               </p>
             </div>
 
-            {/* Publicar */}
-            <div className="flex items-center justify-between p-4 rounded-lg bg-green-50 border-2 border-green-200">
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-green-700" />
-                <div>
-                  <Label className="text-base font-medium text-green-900">Publicar y Enviar Notificaciones</Label>
-                  <p className="text-sm text-green-700">
-                    {currentCallup.publicada 
-                      ? "✅ Se enviará por email y aparecerá en Convocatorias" 
-                      : "⏸️ Borrador (no se enviará nada)"}
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={currentCallup.publicada}
-                onCheckedChange={(checked) => setCurrentCallup({ ...currentCallup, publicada: checked })}
-                className="data-[state=checked]:bg-green-600"
-              />
-            </div>
 
-            {currentCallup.publicada && (
-              <Alert className="bg-blue-50 border-blue-200">
-                <Send className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800 text-sm">
-                  <strong>📧 Se enviará:</strong> Email a cada jugador + Aparecerá en la sección "Convocatorias" de la app
-                </AlertDescription>
-              </Alert>
-            )}
 
             {/* Botones */}
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
