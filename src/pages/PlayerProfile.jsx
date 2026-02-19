@@ -377,6 +377,21 @@ export default function PlayerProfile() {
         </CardContent>
       </Card>
 
+      {/* Estadísticas del Jugador */}
+      {player && (
+        <Card className="border-0 shadow-lg">
+          <CardContent className="p-6">
+            <PlayerStatsWidget
+              playerId={player.id}
+              playerCategory={player.categoria_principal || player.deporte}
+              fechaNacimiento={player.fecha_nacimiento}
+              createdDate={player.created_date}
+              compact={false}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Panel de Renovación Pendiente */}
       {player?.estado_renovacion === "pendiente" && !showPaymentFlow && (
         <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-400 rounded-lg p-4 space-y-3 relative z-10">
