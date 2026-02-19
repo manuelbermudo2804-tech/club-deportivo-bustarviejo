@@ -1221,9 +1221,13 @@ Email: cdbustarviejo@gmail.com
           {/* Jugadores de Fútbol */}
           {futbolPlayers.length > 0 && (
             <div className="space-y-3 lg:space-y-4">
-              <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <span>⚽</span> Fútbol
-              </h2>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center text-xl shadow-md">⚽</div>
+                <div>
+                  <h2 className="text-lg lg:text-xl font-bold text-slate-900">Fútbol</h2>
+                  <p className="text-xs text-slate-500">{futbolPlayers.length} jugador{futbolPlayers.length > 1 ? 'es' : ''}</p>
+                </div>
+              </div>
               <div className="space-y-6">
                 <AnimatePresence>
                   {futbolPlayers.map((player) => (
@@ -1254,9 +1258,13 @@ Email: cdbustarviejo@gmail.com
           {/* Jugadores de Fútbol Femenino */}
           {futbolFemeninoPlayers.length > 0 && (
             <div className="space-y-3 lg:space-y-4">
-              <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <span>⚽</span> Fútbol Femenino
-              </h2>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-600 rounded-xl flex items-center justify-center text-xl shadow-md">⚽</div>
+                <div>
+                  <h2 className="text-lg lg:text-xl font-bold text-slate-900">Fútbol Femenino</h2>
+                  <p className="text-xs text-slate-500">{futbolFemeninoPlayers.length} jugadora{futbolFemeninoPlayers.length > 1 ? 's' : ''}</p>
+                </div>
+              </div>
               <div className="space-y-6">
                 <AnimatePresence>
                   {futbolFemeninoPlayers.map((player) => (
@@ -1287,9 +1295,13 @@ Email: cdbustarviejo@gmail.com
           {/* Jugadores de Baloncesto */}
           {baloncestoPlayers.length > 0 && (
             <div className="space-y-3 lg:space-y-4">
-              <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <span>🏀</span> Baloncesto
-              </h2>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center text-xl shadow-md">🏀</div>
+                <div>
+                  <h2 className="text-lg lg:text-xl font-bold text-slate-900">Baloncesto</h2>
+                  <p className="text-xs text-slate-500">{baloncestoPlayers.length} jugador{baloncestoPlayers.length > 1 ? 'es' : ''}</p>
+                </div>
+              </div>
               <div className="space-y-6">
                 <AnimatePresence>
                   {baloncestoPlayers.map((player) => (
@@ -1320,9 +1332,13 @@ Email: cdbustarviejo@gmail.com
           {/* Actividades Complementarias */}
           {actividadesComplementarias.length > 0 && (
             <div className="space-y-3 lg:space-y-4">
-              <h2 className="text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <span>💪</span> Actividades Complementarias
-              </h2>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-xl flex items-center justify-center text-xl shadow-md">💪</div>
+                <div>
+                  <h2 className="text-lg lg:text-xl font-bold text-slate-900">Actividades Complementarias</h2>
+                  <p className="text-xs text-slate-500">{actividadesComplementarias.length} jugador{actividadesComplementarias.length > 1 ? 'es' : ''}</p>
+                </div>
+              </div>
               <div className="space-y-6">
                 <AnimatePresence>
                   {actividadesComplementarias.map((player) => (
