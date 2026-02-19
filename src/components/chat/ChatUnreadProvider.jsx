@@ -153,17 +153,24 @@ export function ChatUnreadProvider({ user, children }) {
       } else if (type === "system") {
         next.system = 0;
       }
+      saveCachedCounts(next);
       return next;
     });
 
-    // Persist + sync
+    // Persist to backend — do NOT immediately fetchCounts afterwards.
+    // The optimistic update is already applied. A full fetchCounts right after
+    // the write causes a race condition: the backend may return stale data
+    // (before the write propagates), which overwrites the optimistic state
+    // of OTHER chat categories, making their badges disappear.
+    // Instead, schedule a delayed refresh to eventually reconcile.
     try {
       await base44.functions.invoke("chatMarkRead", { chatType, chatId });
     } catch (e) {
       console.error("[ChatUnreadProvider] markRead error:", e);
     } finally {
-      await fetchCounts(true);
       inFlightRef.current.delete(key);
+      // Delayed reconciliation — gives the DB time to propagate the write
+      setTimeout(() => fetchCounts(), 5000);
     }
   }, [fetchCounts]);
 
