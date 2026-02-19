@@ -1,15 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 
-const normalize = (s = "") =>
+// CANONICAL normalizer — must match backend chatGetUnreadCounts exactly
+const toGroupId = (s = "") =>
   s.toString()
     .replace(/\(.*?\)/g, "")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .trim()
-    .replace(/\s+/g, " ")
+    .replace(/\s+/g, "_")
     .toLowerCase();
 
-const toGroupId = (s = "") => normalize(s).replace(/\s+/g, "_");
+// Also normalize stored grupo_id keys (which may contain accents/parens/underscores)
+const normalizeGid = (s = "") =>
+  toGroupId(s.toString().replace(/_/g, " "));
 
 const normalizeType = (t) => {
   if (!t) return t;
@@ -76,7 +79,8 @@ export function ChatUnreadProvider({ user, children }) {
       if (mountedRef.current && data && !data.error) {
         const normalized = { team_chats: {}, coordinator: data.coordinator || 0, admin: data.admin || 0, staff: data.staff || 0, system: data.system || 0 };
         for (const k of Object.keys(data.team_chats || {})) {
-          const nk = toGroupId(k);
+          // Backend already returns canonical keys, but normalizeGid ensures consistency
+          const nk = normalizeGid(k);
           normalized.team_chats[nk] = (normalized.team_chats[nk] || 0) + (data.team_chats[k] || 0);
         }
         if (requestId !== latestRequestIdRef.current) return;
@@ -143,7 +147,7 @@ export function ChatUnreadProvider({ user, children }) {
     setRawCounts(prev => {
       const next = { ...prev, team_chats: { ...(prev.team_chats || {}) } };
       if (type === "team" && chatId) {
-        next.team_chats[toGroupId(chatId)] = 0;
+        next.team_chats[normalizeGid(chatId)] = 0;
       } else if (type === "coordinator") {
         next.coordinator = 0;
       } else if (type === "admin") {
