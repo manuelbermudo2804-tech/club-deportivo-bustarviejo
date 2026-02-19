@@ -417,56 +417,57 @@ export default function ParentCallups() {
       )}
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Confirmar Asistencia</DialogTitle>
-            <DialogDescription>
-              {selectedCallup?.titulo} - {selectedPlayer?.nombre}
+            <DialogTitle className="text-xl">Confirmar Asistencia</DialogTitle>
+            <DialogDescription className="text-sm">
+              <strong>{selectedPlayer?.nombre}</strong> — {selectedCallup?.titulo}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-2">
+            {/* Botones grandes de confirmación en vez de dropdown */}
             <div className="space-y-2">
-              <Label htmlFor="confirmation-status">¿Asistirá al evento?</Label>
-              <Select 
-                value={confirmationData.confirmacion} 
-                onValueChange={(value) => setConfirmationData({...confirmationData, confirmacion: value})}
-              >
-                <SelectTrigger id="confirmation-status">
-                  <SelectValue placeholder="Selecciona una opción..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="asistire">✅ Sí, asistiré</SelectItem>
-                  <SelectItem value="no_asistire">❌ No asistiré</SelectItem>
-                  <SelectItem value="duda">❓ Tengo dudas</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-sm font-semibold">¿Asistirá al evento?</Label>
+              <div className="grid grid-cols-1 gap-2">
+                {[
+                  { value: "asistire", label: "Sí, asistiré", emoji: "✅", color: "border-green-300 bg-green-50 hover:bg-green-100 text-green-800", active: "ring-2 ring-green-500 bg-green-100 border-green-400" },
+                  { value: "no_asistire", label: "No asistiré", emoji: "❌", color: "border-red-200 bg-red-50 hover:bg-red-100 text-red-800", active: "ring-2 ring-red-500 bg-red-100 border-red-400" },
+                  { value: "duda", label: "Tengo dudas", emoji: "❓", color: "border-yellow-200 bg-yellow-50 hover:bg-yellow-100 text-yellow-800", active: "ring-2 ring-yellow-500 bg-yellow-100 border-yellow-400" },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setConfirmationData({...confirmationData, confirmacion: opt.value})}
+                    className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all font-medium text-left ${
+                      confirmationData.confirmacion === opt.value ? opt.active : opt.color
+                    }`}
+                  >
+                    <span className="text-xl">{opt.emoji}</span>
+                    <span>{opt.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmation-comment">Comentario (opcional)</Label>
+              <Label htmlFor="confirmation-comment" className="text-sm">Comentario (opcional)</Label>
               <Textarea
                 id="confirmation-comment"
-                placeholder="Ej: Llegaré 10 minutos tarde, No puedo por motivos personales, etc."
+                placeholder="Ej: Llegaré 10 min tarde..."
                 value={confirmationData.comentario}
                 onChange={(e) => setConfirmationData({...confirmationData, comentario: e.target.value})}
-                rows={3}
+                rows={2}
+                className="text-sm"
               />
             </div>
-
-            {selectedCallup && (
-              <Alert className="bg-blue-50 border-blue-200">
-                <AlertDescription className="text-sm text-blue-800">
-                  <strong>Recordatorio:</strong> Es importante confirmar lo antes posible para que el entrenador pueda organizar el equipo.
-                </AlertDescription>
-              </Alert>
-            )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setShowConfirmDialog(false)}
+              size="sm"
             >
               Cancelar
             </Button>
@@ -481,7 +482,7 @@ export default function ParentCallups() {
                   Guardando...
                 </>
               ) : (
-                "Confirmar"
+                "Enviar Confirmación"
               )}
             </Button>
           </DialogFooter>

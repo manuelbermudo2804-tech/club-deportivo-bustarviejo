@@ -115,7 +115,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
       }
     };
     
-    if (category) {
+    if (category && category !== "all" && category !== "admin") {
       loadTeams();
     }
   }, [category]);
