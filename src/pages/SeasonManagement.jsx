@@ -1424,9 +1424,9 @@ export default function SeasonManagement() {
             )}
 
             {/* Config URLs Tienda - Sin switch, siempre visible */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-slate-50 rounded-lg border-l-4 border-orange-600">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm">URL Tienda Equipación:</Label>
+            <div className="space-y-3 p-4 bg-slate-50 rounded-lg border-l-4 border-orange-600">
+              <div>
+                <Label className="text-sm font-medium">🛍️ URL Tienda Equipación</Label>
                 <Input
                   value={activeSeason?.tienda_ropa_url || ""}
                   onChange={(e) => {
@@ -1435,10 +1435,11 @@ export default function SeasonManagement() {
                     }
                   }}
                   placeholder="https://..."
+                  className="mt-1"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm">URL Merchandising:</Label>
+              <div>
+                <Label className="text-sm font-medium">🎁 URL Merchandising</Label>
                 <Input
                   value={activeSeason?.tienda_merch_url || ""}
                   onChange={(e) => {
@@ -1447,6 +1448,7 @@ export default function SeasonManagement() {
                     }
                   }}
                   placeholder="https://..."
+                  className="mt-1"
                 />
               </div>
             </div>
