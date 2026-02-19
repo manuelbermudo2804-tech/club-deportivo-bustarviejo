@@ -956,41 +956,39 @@ Email: cdbustarviejo@gmail.com
       )}
 
       <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Mis Jugadores</h1>
-          <p className="text-slate-600 mt-1 text-sm lg:text-base">Gestiona la información de tus jugadores</p>
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <ShareFormButton />
-          {!isPlayerUser && players.length > 0 && (
-            <Button
-              onClick={() => {
-                setEditingPlayer(null);
-                setSuggestedCategory(null);
-                setIsAdultPlayerSelfRegistration(false);
-                setShowForm(!showForm);
-              }}
-              className="bg-orange-600 hover:bg-orange-700 shadow-lg flex-1 md:flex-none"
-            >
-              <Plus className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-              <span className="text-sm lg:text-base">Registrar Jugador</span>
-            </Button>
-          )}
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 rounded-2xl p-5 lg:p-8 text-white shadow-xl">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1">
+            <h1 className="text-2xl lg:text-3xl font-extrabold">👨‍👩‍👧 Mis Jugadores</h1>
+            <p className="text-orange-100 mt-1 text-sm">
+              {players.length > 0 ? `${players.length} jugador${players.length > 1 ? 'es' : ''} registrado${players.length > 1 ? 's' : ''}` : 'Gestiona las fichas de tus jugadores'}
+            </p>
+          </div>
+          <div className="flex gap-2 flex-shrink-0">
+            <ShareFormButton />
+            {!isPlayerUser && players.length > 0 && (
+              <Button
+                onClick={() => {
+                  setEditingPlayer(null);
+                  setSuggestedCategory(null);
+                  setIsAdultPlayerSelfRegistration(false);
+                  setShowForm(!showForm);
+                }}
+                className="bg-white text-orange-700 hover:bg-orange-50 shadow-lg font-bold"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Registrar</span>
+                <span className="sm:hidden">+</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      <Alert className="bg-blue-50 border-blue-200">
-        <Info className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800 ml-6 text-xs lg:text-sm">
-          <strong>Protección de datos:</strong> Puedes editar la información de contacto y detalles de tus jugadores. 
-          Los campos críticos como <strong>deporte y categoría</strong> solo pueden ser modificados por el administrador.
-          <br />
-          <span className="text-[10px] lg:text-xs text-blue-600 mt-1 block">
-            ⚠️ No es posible eliminar jugadores. Si necesitas dar de baja a un jugador, contacta con el administrador.
-          </span>
-        </AlertDescription>
-      </Alert>
+      <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-3 text-xs lg:text-sm text-blue-800">
+        <strong>ℹ️</strong> Puedes editar contacto y detalles. <strong>Deporte y categoría</strong> solo los cambia el admin. Para bajas, contacta con el club.
+      </div>
 
       {showImportantBanner && (
         <div className="bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 border-2 border-orange-500 rounded-2xl p-4 lg:p-6 shadow-glow-orange">
@@ -1023,40 +1021,22 @@ Email: cdbustarviejo@gmail.com
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 lg:gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] lg:text-sm text-slate-600 mb-1">Total Jugadores</p>
-              <p className="text-xl lg:text-3xl font-bold text-slate-900">{players.length}</p>
+      {/* Stats compactos */}
+      {players.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 lg:gap-4">
+          {[
+            { label: "Total", value: players.length, emoji: "👥", gradient: "from-slate-50 to-slate-100", border: "border-slate-200", text: "text-slate-800" },
+            { label: "Fútbol", value: futbolPlayers.length + futbolFemeninoPlayers.length, emoji: "⚽", gradient: "from-green-50 to-emerald-50", border: "border-green-200", text: "text-green-700" },
+            { label: "Baloncesto", value: baloncestoPlayers.length, emoji: "🏀", gradient: "from-orange-50 to-amber-50", border: "border-orange-200", text: "text-orange-700" },
+          ].map(s => (
+            <div key={s.label} className={`bg-gradient-to-br ${s.gradient} rounded-xl border ${s.border} p-3 lg:p-4 text-center`}>
+              <span className="text-2xl lg:text-3xl">{s.emoji}</span>
+              <p className={`text-xl lg:text-2xl font-extrabold ${s.text} mt-1`}>{s.value}</p>
+              <p className="text-[10px] lg:text-xs text-slate-500 font-medium">{s.label}</p>
             </div>
-            <span className="text-2xl lg:text-4xl">👥</span>
-          </div>
+          ))}
         </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] lg:text-sm text-slate-600 mb-1">Fútbol</p>
-              <p className="text-xl lg:text-3xl font-bold text-blue-700">
-                {futbolPlayers.length + futbolFemeninoPlayers.length}
-              </p>
-            </div>
-            <span className="text-2xl lg:text-4xl">⚽</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-3 lg:p-6 border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] lg:text-sm text-slate-600 mb-1">Baloncesto</p>
-              <p className="text-xl lg:text-3xl font-bold text-orange-700">{baloncestoPlayers.length}</p>
-            </div>
-            <span className="text-2xl lg:text-4xl">🏀</span>
-          </div>
-        </div>
-      </div>
+      )}
 
       {showForm && (
         <FullscreenFormModal
