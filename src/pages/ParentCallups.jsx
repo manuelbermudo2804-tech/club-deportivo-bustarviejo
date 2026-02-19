@@ -490,6 +490,7 @@ export default function ParentCallups() {
         </DialogContent>
       </Dialog>
       </div>
+      </div>
     </>
   );
 }
