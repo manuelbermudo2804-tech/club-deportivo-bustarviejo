@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ContactCard from "../components/ContactCard";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
-import CoordinatorAlertCenter from "../components/dashboard/CoordinatorAlertCenter";
+import AlertCenter from "../components/dashboard/AlertCenter";
+import SectionedButtonGrid from "../components/dashboard/SectionedButtonGrid";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
 import ShareFormButton from "../components/players/ShareFormButton";
@@ -175,8 +176,45 @@ export default function CoordinatorDashboard() {
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
         <CoordinatorClassificationsMatchesBanner />
 
-        {/* AlertCenter unificado */}
-        <CoordinatorAlertCenter user={user} />
+        {/* AlertCenter - Una barra por rol */}
+        <div className="space-y-3">
+          {/* Barra COORDINADOR / ENTRENADOR */}
+          <div className="rounded-xl border-2 border-cyan-500/30 overflow-hidden">
+            <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 px-4 py-2">
+              <p className="text-white font-bold text-sm flex items-center gap-2">
+                🎓 {user?.es_entrenador ? 'Coordinación y Entrenamiento' : 'Tu trabajo de coordinador'}
+              </p>
+            </div>
+            <div className="bg-cyan-950/40 p-3">
+              <AlertCenter 
+                pendingCallupResponses={notifications?.pendingCallupResponses || 0}
+                pendingMatchObservations={notifications?.pendingMatchObservations || 0}
+                isCoach={user?.es_entrenador === true}
+                isCoordinator={true}
+              />
+            </div>
+          </div>
+          {/* Barra PADRE (solo si tiene hijos) */}
+          {hasPlayers && (
+            <div className="rounded-xl border-2 border-orange-500/30 overflow-hidden">
+              <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-2">
+                <p className="text-white font-bold text-sm flex items-center gap-2">👨‍👩‍👧 Tus hijos en el club</p>
+              </div>
+              <div className="bg-orange-950/40 p-3">
+                <AlertCenter 
+                  pendingCallups={notifications?.pendingCallups || 0}
+                  pendingPayments={notifications?.pendingPayments || 0}
+                  paymentsInReview={notifications?.paymentsInReview || 0}
+                  overduePayments={notifications?.overduePayments || 0}
+                  pendingSignatures={notifications?.pendingSignatures || 0}
+                  isParent={true}
+                  isCoach={false}
+                  userEmail={user?.email}
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Botón personalizar */}
         <div className="flex justify-end">
@@ -191,16 +229,17 @@ export default function CoordinatorDashboard() {
           />
         </div>
 
-        {/* GRID DE BOTONES CENTRALES */}
-        <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
-          {(userButtonConfig?.selected_buttons || cachedCoordButtonIds || DEFAULT_COORDINATOR_BUTTONS)
+        {/* GRID DE BOTONES CENTRALES - Separados por sección */}
+        <SectionedButtonGrid
+          buttons={(userButtonConfig?.selected_buttons || cachedCoordButtonIds || DEFAULT_COORDINATOR_BUTTONS)
             .map(id => ALL_COORDINATOR_BUTTONS.find(b => b.id === id))
             .filter(Boolean)
             .filter(b => !b.conditional || (b.conditionKey === "canManageSignatures" && user?.puede_gestionar_firmas))
-            .map((item, index) => (
-            <DashboardButtonCard key={index} item={item} />
-          ))}
-        </div>
+          }
+          roleSection="coordinator"
+          roleSectionLabel="🎓 Coordinación"
+          clubSectionLabel="👨‍👩‍👧 Club y Familia"
+        />
 
         {/* Stats Footer - solo móvil */}
         <div className="lg:hidden bg-slate-800/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-slate-700/60">
