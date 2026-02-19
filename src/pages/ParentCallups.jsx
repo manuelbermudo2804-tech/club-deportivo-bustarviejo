@@ -193,6 +193,7 @@ export default function ParentCallups() {
         withConfetti={true}
       />
 
+      <div className="bg-page-bridge min-h-screen">
       <div className="p-4 lg:p-8 space-y-6">
         {/* Header con gradiente */}
         <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700 rounded-2xl p-6 shadow-xl">
