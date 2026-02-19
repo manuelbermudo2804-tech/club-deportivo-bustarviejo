@@ -60,15 +60,11 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         const normalizeTemp = (t) => (t || "").replace(/-/g, "/");
         const activeSeason = normalizeTemp(activeSeasonRaw);
         
-        // 1) Buscar en Clasificacion por categoría (sin filtro de temporada para ser flexible)
+        // 1) Buscar en Clasificacion por categoría
         const allClasif = await base44.entities.Clasificacion.filter({ categoria: category });
         
-        // Filtrar por temporada activa, si no hay coincidencia, usar todas
-        let clasificaciones = allClasif.filter(c => normalizeTemp(c.temporada) === activeSeason);
-        if (clasificaciones.length === 0) {
-          // Intentar con la temporada anterior (ej: si activa es 2026/2027, buscar 2025/2026)
-          clasificaciones = allClasif;
-        }
+        // Solo temporada activa
+        const clasificaciones = allClasif.filter(c => normalizeTemp(c.temporada) === activeSeason);
         
         let teamNames = [];
         
@@ -86,8 +82,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         // 2) También buscar en Resultados para complementar
         try {
           const allResults = await base44.entities.Resultado.filter({ categoria: category });
-          let resultados = allResults.filter(r => normalizeTemp(r.temporada) === activeSeason);
-          if (resultados.length === 0) resultados = allResults;
+          const resultados = allResults.filter(r => normalizeTemp(r.temporada) === activeSeason);
           
           resultados.forEach(r => {
             if (r.local && !r.local.toLowerCase().includes('bustarviejo')) teamNames.push(r.local.trim());
