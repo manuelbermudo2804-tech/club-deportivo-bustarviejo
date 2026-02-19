@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { calcularEdad, getSuggestedCategory } from "../components/utils/calcularEdad";
 import RenewalPaymentFlow from "../components/renewals/RenewalPaymentFlow";
 import RenewalSuccessScreen from "../components/renewals/RenewalSuccessScreen";
+import PlayerStatsWidget from "../components/players/PlayerStatsWidget";
 
 export default function PlayerProfile() {
   const queryClient = useQueryClient();
