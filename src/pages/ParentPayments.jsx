@@ -1277,6 +1277,7 @@ export default function ParentPayments() {
         </CardContent>
       </Card>
       </div>
+      </div>
       </>
       );
       }
