@@ -220,7 +220,14 @@ export default function CoordinatorDashboard() {
         {/* Botón personalizar */}
         <div className="flex justify-end">
           <DashboardButtonSelector
-            allButtons={ALL_COORDINATOR_BUTTONS.filter(b => !b.conditional || (b.conditionKey === "canManageSignatures" && user?.puede_gestionar_firmas))}
+            allButtons={ALL_COORDINATOR_BUTTONS.filter(b => {
+              if (!b.conditional) return true;
+              if (b.conditionKey === "canManageSignatures") return user?.puede_gestionar_firmas;
+              if (b.conditionKey === "hasPlayers") return hasPlayers;
+              if (b.conditionKey === "isCoachToo") return user?.es_entrenador === true;
+              if (b.conditionKey === "isPlayer") return user?.es_jugador === true;
+              return true;
+            })}
             selectedButtonIds={userButtonConfig?.selected_buttons || cachedCoordButtonIds || DEFAULT_COORDINATOR_BUTTONS}
             onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
             minButtons={MIN_BUTTONS}
@@ -235,7 +242,14 @@ export default function CoordinatorDashboard() {
           buttons={(userButtonConfig?.selected_buttons || cachedCoordButtonIds || DEFAULT_COORDINATOR_BUTTONS)
             .map(id => ALL_COORDINATOR_BUTTONS.find(b => b.id === id))
             .filter(Boolean)
-            .filter(b => !b.conditional || (b.conditionKey === "canManageSignatures" && user?.puede_gestionar_firmas))
+            .filter(b => {
+              if (!b.conditional) return true;
+              if (b.conditionKey === "canManageSignatures") return user?.puede_gestionar_firmas;
+              if (b.conditionKey === "hasPlayers") return hasPlayers;
+              if (b.conditionKey === "isCoachToo") return user?.es_entrenador === true;
+              if (b.conditionKey === "isPlayer") return user?.es_jugador === true;
+              return true;
+            })
           }
           roleSection="coordinator"
           roleSectionLabel="🎓 Coordinación"
