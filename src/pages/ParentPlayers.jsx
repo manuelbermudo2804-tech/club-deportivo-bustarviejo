@@ -1358,6 +1358,7 @@ Email: cdbustarviejo@gmail.com
                         seasonConfig={seasonConfig}
                         callups={callups}
                       />
+                      <PlayerProgressCard player={player} />
                       <AchievementsBadges 
                         player={player} 
                         attendances={attendances}
