@@ -17,6 +17,12 @@ export const ALL_COACH_BUTTONS = [
   { id: "reportes", title: "📊 Reportes", icon: Star, url: createPageUrl("CoachEvaluationReports"), gradient: "from-purple-600 to-purple-700", priority: 13, section: "coach" },
   { id: "perfil", title: "👤 Mi Perfil", icon: UserCircle, url: createPageUrl("CoachProfile"), gradient: "from-indigo-600 to-indigo-700", priority: 14, section: "coach" },
   { id: "firmas", title: "🖊️ Firmas Federación", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 15, conditional: true, conditionKey: "canManageSignatures", section: "coach" },
+  // --- Sección Jugador +18 (si también es jugador) ---
+  { id: "perfil_jugador", title: "⚽ Mi Perfil Jugador", icon: UserCircle, url: createPageUrl("PlayerProfile"), gradient: "from-orange-600 to-orange-700", priority: 30, conditional: true, conditionKey: "isPlayer", section: "player" },
+  { id: "convocatorias_jugador", title: "🏆 Convocatorias (Jugador)", icon: Bell, url: createPageUrl("ParentCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 31, conditional: true, conditionKey: "isPlayer", section: "player" },
+  { id: "pagos_jugador", title: "💳 Mis Pagos (Jugador)", icon: CreditCard, url: createPageUrl("ParentPayments"), gradient: "from-green-600 to-green-700", priority: 32, conditional: true, conditionKey: "isPlayer", section: "player" },
+  { id: "firmas_jugador", title: "🖊️ Mis Firmas (Jugador)", icon: FileSignature, url: createPageUrl("FederationSignatures"), gradient: "from-red-600 to-red-700", priority: 33, conditional: true, conditionKey: "isPlayer", section: "player" },
+  { id: "documentos_jugador", title: "📄 Mis Documentos (Jugador)", icon: FileText, url: createPageUrl("ParentDocuments"), gradient: "from-slate-600 to-slate-700", priority: 34, conditional: true, conditionKey: "isPlayer", section: "player" },
   // --- Sección Club / Familia ---
   { id: "asistente", title: "🤖 Asistente Virtual", icon: MessageCircle, url: createPageUrl("Chatbot"), gradient: "from-indigo-600 to-purple-700", priority: 7, section: "club" },
   { id: "calendario", title: "📅 Calendario", icon: Calendar, url: createPageUrl("CalendarAndSchedules"), gradient: "from-purple-600 to-purple-700", priority: 10, section: "club" },

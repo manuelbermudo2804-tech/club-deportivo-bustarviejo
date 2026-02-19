@@ -59,6 +59,7 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "notificaciones", title: "🔔 Preferencias Notif.", icon: Settings, url: createPageUrl("NotificationPreferences"), gradient: "from-slate-600 to-slate-700", priority: 36 },
   { id: "analytics", title: "📊 Estadísticas Chat", icon: BarChart3, url: createPageUrl("ChatAnalyticsDashboard"), gradient: "from-blue-600 to-blue-700", priority: 37 },
   { id: "app_analytics", title: "📊 Sistema de Análisis", icon: BarChart3, url: createPageUrl("AppAnalytics"), gradient: "from-indigo-600 to-indigo-700", priority: 38 },
+  { id: "feedback", title: "💬 Feedback Usuarios", icon: MessageCircle, url: createPageUrl("FeedbackManagement"), gradient: "from-pink-600 to-purple-700", priority: 39 },
 ];
 
 export const DEFAULT_ADMIN_BUTTONS = [
