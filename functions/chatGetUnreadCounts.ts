@@ -129,8 +129,8 @@ Deno.serve(async (req) => {
       })());
     }
 
-    // ===== 3. STAFF CHAT =====
-    if (isStaff) {
+    // ===== 3. STAFF CHAT (only for coaches, coordinators and admins — NOT treasurers) =====
+    if (isAdmin || isCoach || isCoordinator) {
       promises.push((async () => {
         try {
           const staffConvs = await base44.asServiceRole.entities.StaffConversation.filter({ categoria: 'General' });
