@@ -711,6 +711,7 @@ export default function ParentPayments() {
         onComplete={() => setShowSuccess(false)}
         message={successMessage}
       />
+      <div className="bg-page-bridge min-h-screen">
       <div className="p-6 lg:p-8 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
