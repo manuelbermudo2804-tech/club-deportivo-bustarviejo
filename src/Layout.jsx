@@ -1397,78 +1397,82 @@ export default function Layout({ children, currentPageName }) {
 
 
   const adminNavigationItems = [
-    // 📊 INICIO Y FINANZAS
+    // 🏠 INICIO
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    
-    // 💬 CHATS (destacado al inicio)
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
 
-    // 💬 CHATS Y ESTADÍSTICAS
-    { title: "─ CHATS Y ESTADÍSTICAS ─", section: true },
-    { title: "💬 Chat Familias (Coordinador)", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
-    { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
-    { title: "📊 Estadísticas de Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
-    { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
-    { title: "📊 Sistema de Análisis", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
+    // 👥 GESTIÓN DE PERSONAS
+    { title: "─ GESTIÓN DE PERSONAS ─", section: true },
+    { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
+    { title: "🔄 Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
+    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
+    { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
+    { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
+    { title: "📧 Solicitudes Invitación", url: createPageUrl("InvitationRequests"), icon: Mail, badge: pendingInvitations > 0 ? pendingInvitations : null },
+
     // 💰 FINANZAS
     { title: "─ FINANZAS ─", section: true },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
     { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
-    { title: "🔔 Recordatorios Simples", url: createPageUrl("PaymentReminders"), icon: Bell },
+    { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
-    // Presupuestos movido a pestaña dentro de Panel Financiero
-
-    // 👥 GESTIÓN DE PERSONAS
-    { title: "─ GESTIÓN DE PERSONAS ─", section: true },
-    { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
-    { title: "🔄 Dashboard Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
-    { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
-    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
-    { title: "📧 Solicitudes Invitación", url: createPageUrl("InvitationRequests"), icon: Mail, badge: pendingInvitations > 0 ? pendingInvitations : null },
-    { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
 
     // ⚽ DEPORTIVO
     { title: "─ DEPORTIVO ─", section: true },
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
+    { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+
+    // 📅 CALENDARIO Y EVENTOS
+    { title: "─ CALENDARIO Y EVENTOS ─", section: true },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-            { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-            { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
-    ...(hasPlayers ? [{ title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
+    { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
+    { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
 
-    // 📢 COMUNICACIÓN
+    // 💬 COMUNICACIÓN
     { title: "─ COMUNICACIÓN ─", section: true },
+    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
+    { title: "💬 Chat Coordinador-Familias", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
+    { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
-    ...(isAdmin ? [{ title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle }] : []),
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
-    { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+    { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
+    { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle },
 
-    // 🛍️ PEDIDOS Y EXTRAS
-    { title: "─ PEDIDOS Y EXTRAS ─", section: true },
+    // 🛍️ TIENDA Y SERVICIOS
+    { title: "─ TIENDA Y SERVICIOS ─", section: true },
     { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },
+    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
-            { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
-            { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
-        { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },
+    { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
+    { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
+    { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },
 
-                // 🎉 CONTENIDO
-        { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
-                                        { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+    // 🖼️ CONTENIDO
+    { title: "─ CONTENIDO ─", section: true },
+    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
-
-        { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+    // 👨‍👩‍👧 MIS HIJOS (si tiene hijos)
+    ...(hasPlayers ? [
+      { title: "─ MIS HIJOS ─", section: true },
+      { title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null },
+    ] : []),
 
     // ⚙️ CONFIGURACIÓN
     { title: "─ CONFIGURACIÓN ─", section: true },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+    { title: "📊 Estadísticas Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
+    { title: "📊 Sistema de Análisis", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
+
+    // 🧪 DESARROLLO
+    { title: "─ DESARROLLO ─", section: true },
+    { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
     { title: "👁️ Preview Flujo Alta", url: createPageUrl("OnboardingPreview"), icon: UserIcon },
-    // Eliminado: Clasificaciones (migrado a Centro de Competición)
     ];
 
   const coachNavigationItems = [
