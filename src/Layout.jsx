@@ -1581,6 +1581,7 @@ export default function Layout({ children, currentPageName }) {
 
       // 👤 PERFIL
       { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
+      ...(isPlayer ? [{ title: "⚽ Mi Perfil Jugador", url: createPageUrl("PlayerProfile"), icon: UserCircle }] : []),
 
       // 📢 INFORMACIÓN
       { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
@@ -1594,6 +1595,9 @@ export default function Layout({ children, currentPageName }) {
       ...(hasPlayers ? [{ title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null }] : []),
       ...(hasPlayers ? [{ title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
       ...(hasPlayers ? [{ title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText }] : []),
+      // 🏆 CONVOCATORIAS COMO JUGADOR (si también es jugador +18)
+      ...(isPlayer ? [{ title: "🏆 Mis Convocatorias (Jugador)", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
+      ...(isPlayer ? [{ title: "💳 Mis Pagos (Jugador)", url: createPageUrl("ParentPayments"), icon: CreditCard }] : []),
       { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },
       ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
 
