@@ -27,7 +27,9 @@ import {
   Smartphone,
   Send,
   FileSignature,
-  AlertTriangle
+  AlertTriangle,
+  Heart,
+  Wand2
 } from "lucide-react";
 import {
   Dialog,
