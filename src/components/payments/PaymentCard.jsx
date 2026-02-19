@@ -74,7 +74,7 @@ export default function PaymentCard({
 
         {/* Lado derecho: acciones */}
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          {/* Justificante */}
+          {/* Justificante subido */}
           {payment.justificante_url && (
             <a
               href={payment.justificante_url}
@@ -85,27 +85,6 @@ export default function PaymentCard({
               <FileText className="w-3.5 h-3.5" />
               Ver justificante
             </a>
-          )}
-
-          {/* Botón subir justificante */}
-          {payment.estado === "Pendiente" && !payment.isVirtual && !payment.justificante_url && (
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*,application/pdf"
-                onChange={(e) => onUpload(payment.id, e)}
-                disabled={isUploading}
-              />
-              <span className="inline-flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors">
-                {isUploading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Upload className="w-3.5 h-3.5" />
-                )}
-                Subir justificante
-              </span>
-            </label>
           )}
 
           {/* Botón pagar */}
