@@ -16,6 +16,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
     }
 
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
     const send = async (toAddr, subject, html) => {
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -26,7 +28,9 @@ Deno.serve(async (req) => {
         const err = await res.json();
         throw new Error(`Resend error ${res.status}: ${err.message || JSON.stringify(err)}`);
       }
-      return res.json();
+      const data = await res.json();
+      await sleep(600); // rate limit: max 2/sec
+      return data;
     };
 
     const sent = [];
