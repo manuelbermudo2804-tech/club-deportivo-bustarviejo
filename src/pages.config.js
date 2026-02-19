@@ -47,7 +47,6 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import AdminChat from './pages/AdminChat';
 import AdminChatsHub from './pages/AdminChatsHub';
 import AdminGallery from './pages/AdminGallery';
 import AdminStats from './pages/AdminStats';
@@ -65,7 +64,6 @@ import ChatAnalyticsDashboard from './pages/ChatAnalyticsDashboard';
 import ChatNotificationAuditPage from './pages/ChatNotificationAuditPage';
 import ChatTestConsole from './pages/ChatTestConsole';
 import Chatbot from './pages/Chatbot';
-import Clasificaciones from './pages/Clasificaciones';
 import ClubMembersManagement from './pages/ClubMembersManagement';
 import ClubMembership from './pages/ClubMembership';
 import ClubStats from './pages/ClubStats';
@@ -115,7 +113,6 @@ import MemberManagement from './pages/MemberManagement';
 import Mercadillo from './pages/Mercadillo';
 import NotificationPreferences from './pages/NotificationPreferences';
 import OnboardingPreview from './pages/OnboardingPreview';
-import OrderManagement from './pages/OrderManagement';
 import PWASetup from './pages/PWASetup';
 import ParentCallups from './pages/ParentCallups';
 import ParentCoachChat from './pages/ParentCoachChat';
@@ -151,7 +148,6 @@ import SeasonManagement from './pages/SeasonManagement';
 import Shop from './pages/Shop';
 import Sponsorships from './pages/Sponsorships';
 import StaffChat from './pages/StaffChat';
-import Store from './pages/Store';
 import Surveys from './pages/Surveys';
 import TacticsBoard from './pages/TacticsBoard';
 import TeamAttendanceEvaluation from './pages/TeamAttendanceEvaluation';
@@ -166,7 +162,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AdminChat": AdminChat,
     "AdminChatsHub": AdminChatsHub,
     "AdminGallery": AdminGallery,
     "AdminStats": AdminStats,
@@ -184,7 +179,6 @@ export const PAGES = {
     "ChatNotificationAuditPage": ChatNotificationAuditPage,
     "ChatTestConsole": ChatTestConsole,
     "Chatbot": Chatbot,
-    "Clasificaciones": Clasificaciones,
     "ClubMembersManagement": ClubMembersManagement,
     "ClubMembership": ClubMembership,
     "ClubStats": ClubStats,
@@ -234,7 +228,6 @@ export const PAGES = {
     "Mercadillo": Mercadillo,
     "NotificationPreferences": NotificationPreferences,
     "OnboardingPreview": OnboardingPreview,
-    "OrderManagement": OrderManagement,
     "PWASetup": PWASetup,
     "ParentCallups": ParentCallups,
     "ParentCoachChat": ParentCoachChat,
@@ -270,7 +263,6 @@ export const PAGES = {
     "Shop": Shop,
     "Sponsorships": Sponsorships,
     "StaffChat": StaffChat,
-    "Store": Store,
     "Surveys": Surveys,
     "TacticsBoard": TacticsBoard,
     "TeamAttendanceEvaluation": TeamAttendanceEvaluation,
