@@ -542,15 +542,6 @@ export default function ParentDashboard() {
 
 
 
-        {/* RANKING DE ASISTENCIA POR CATEGORÍA */}
-        {!playersLoading && myPlayers.length > 0 && (
-          <AttendanceRankingWidget
-            highlightCategories={[
-              ...new Set(myPlayers.flatMap((p) => [p.categoria_principal, ...(p.categorias || [])].filter(Boolean)))
-            ]}
-          />
-        )}
-
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - SIEMPRE VISIBLE */}
         <AlertCenter 
             pendingCallups={notifications?.pendingCallups || pendingCallups}
