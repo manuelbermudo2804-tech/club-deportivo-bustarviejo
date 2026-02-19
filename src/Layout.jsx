@@ -2268,7 +2268,7 @@ export default function Layout({ children, currentPageName }) {
                                         <Suspense fallback={null}>
                                           <NotificationBadge />
                                           <PaymentApprovalNotifier isAdmin={isAdmin} />
-                                          <ClothingApprovalNotifier isAdmin={isAdmin} />
+                                          {/* ClothingApprovalNotifier desactivado - equipación gestionada por proveedor externo */}
                                         </Suspense>
                                       )}
 
