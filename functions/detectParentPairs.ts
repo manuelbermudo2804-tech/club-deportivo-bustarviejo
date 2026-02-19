@@ -73,36 +73,35 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Actualizar usuarios con su pareja
-    const users = await base44.entities.User.list();
+    // Guardar automáticamente las parejas en los jugadores
+    let pairsSaved = 0;
     
     for (const pair of pairs) {
-      const user1 = (users || []).find(u => u.email === pair.email1);
-      const user2 = (users || []).find(u => u.email === pair.email2);
-      
-      if (user1) {
-        await base44.auth.updateMeAsAdmin?.(user1.id, {
-          parent_pair_email: pair.email2,
-          parent_pair_name: pair.name2
-        }).catch(() => {
-          // Silent fail - actualizar via entity si no funciona updateMeAsAdmin
-          return base44.asServiceRole.entities.User.update(user1.id, {
-            parent_pair_email: pair.email2,
-            parent_pair_name: pair.name2
+      // Obtener todos los jugadores que comparten estos dos progenitores
+      const sharedPlayerIds = (players || [])
+        .filter(p => 
+          (p.email_padre === pair.email1 || p.email_tutor_2 === pair.email1) &&
+          (p.email_padre === pair.email2 || p.email_tutor_2 === pair.email2)
+        )
+        .map(p => p.id);
+
+      // Actualizar cada jugador con la pareja
+      for (const playerId of sharedPlayerIds) {
+        const player = players.find(p => p.id === playerId);
+        if (!player) continue;
+
+        // Actualizar el jugador estableciendo la pareja automáticamente
+        try {
+          await base44.asServiceRole.entities.Player.update(playerId, {
+            email_padre: pair.email1,
+            email_tutor_2: pair.email2,
+            nombre_tutor_legal: pair.name1,
+            nombre_tutor_2: pair.name2
           });
-        });
-      }
-      
-      if (user2) {
-        await base44.auth.updateMeAsAdmin?.(user2.id, {
-          parent_pair_email: pair.email1,
-          parent_pair_name: pair.name1
-        }).catch(() => {
-          return base44.asServiceRole.entities.User.update(user2.id, {
-            parent_pair_email: pair.email1,
-            parent_pair_name: pair.name1
-          });
-        });
+          pairsSaved++;
+        } catch (e) {
+          console.error(`Error actualizando jugador ${playerId}:`, e);
+        }
       }
     }
 
