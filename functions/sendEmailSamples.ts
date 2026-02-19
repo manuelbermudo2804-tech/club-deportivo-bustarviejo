@@ -11,6 +11,24 @@ Deno.serve(async (req) => {
     const { to } = await req.json();
     if (!to) return Response.json({ error: 'Missing "to" email' }, { status: 400 });
 
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+    if (!RESEND_API_KEY) {
+      return Response.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
+    }
+
+    const send = async (toAddr, subject, html) => {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [toAddr], subject, html })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(`Resend error ${res.status}: ${err.message || JSON.stringify(err)}`);
+      }
+      return res.json();
+    };
+
     const sent = [];
 
     // ─── 1. Convocatoria nueva (la plantilla principal desde callupEmailTemplate) ───
