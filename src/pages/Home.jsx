@@ -727,65 +727,9 @@ export default function Home() {
         {/* MOSTRAR TODOS LOS BOTONES SELECCIONADOS EN GRID SIMPLE */}
         {isAdmin && (
           <div className="grid grid-cols-3 gap-2 lg:gap-3">
-            {/* FINANZAS */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-white px-2">💰 Finanzas</h3>
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                {menuItems.filter(item => ['pagos', 'recordatorios', 'historico', 'cobros_extra', 'planes_personalizados', 'panel_tesorero'].includes(item.id)).map((item, idx) => (
-                  <DashboardButtonCard key={idx} item={item} isExternal={typeof item.url === 'string' && item.url.startsWith('http')} />
-                ))}
-              </div>
-            </div>
-
-            {/* DEPORTIVO */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-white px-2">⚽ Deportivo</h3>
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                {menuItems.filter(item => ['convocatorias', 'plantillas', 'resultados', 'competicion', 'evaluaciones', 'ejercicios', 'tactica'].includes(item.id)).map((item, idx) => (
-                  <DashboardButtonCard key={idx} item={item} isExternal={typeof item.url === 'string' && item.url.startsWith('http')} />
-                ))}
-              </div>
-            </div>
-
-            {/* GESTIÓN DE PERSONAS */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-white px-2">👥 Gestión de Personas</h3>
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                {menuItems.filter(item => ['jugadores', 'renovaciones', 'firmas', 'entrenadores', 'usuarios', 'invitaciones'].includes(item.id)).map((item, idx) => (
-                  <DashboardButtonCard key={idx} item={item} isExternal={typeof item.url === 'string' && item.url.startsWith('http')} />
-                ))}
-              </div>
-            </div>
-
-            {/* COMUNICACIÓN */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-white px-2">💬 Comunicación</h3>
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                {menuItems.filter(item => ['anuncios', 'documentos', 'encuestas', 'chat_staff', 'feedback', 'tareas_junta', 'galeria'].includes(item.id)).map((item, idx) => (
-                  <DashboardButtonCard key={idx} item={item} isExternal={typeof item.url === 'string' && item.url.startsWith('http')} />
-                ))}
-              </div>
-            </div>
-
-            {/* TIENDA Y SERVICIOS */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-white px-2">🛍️ Tienda y Servicios</h3>
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                {menuItems.filter(item => ['tienda', 'loteria', 'ropa', 'socios', 'patrocinios', 'referidos', 'femenino', 'voluntariado'].includes(item.id)).map((item, idx) => (
-                  <DashboardButtonCard key={idx} item={item} isExternal={typeof item.url === 'string' && item.url.startsWith('http')} />
-                ))}
-              </div>
-            </div>
-
-            {/* CONFIGURACIÓN */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-bold text-white px-2">⚙️ Configuración</h3>
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                {menuItems.filter(item => ['temporadas', 'categorias', 'notificaciones', 'analytics', 'chat_analytics'].includes(item.id)).map((item, idx) => (
-                  <DashboardButtonCard key={idx} item={item} isExternal={typeof item.url === 'string' && item.url.startsWith('http')} />
-                ))}
-              </div>
-            </div>
+            {menuItems.map((item, idx) => (
+              <DashboardButtonCard key={idx} item={item} isExternal={typeof item.url === 'string' && item.url.startsWith('http')} />
+            ))}
           </div>
         )}
 
