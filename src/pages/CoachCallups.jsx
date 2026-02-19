@@ -479,37 +479,35 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
       />
     <div className="p-4 lg:p-8 space-y-6">
       {/* Header con gradiente */}
-      <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700 rounded-2xl p-6 shadow-xl">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="text-white">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <Trophy className="w-5 h-5" />
-              </div>
-              <h1 className="text-2xl lg:text-3xl font-bold">Convocatorias</h1>
-            </div>
-            <p className="text-orange-100 text-sm ml-13">
+      <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700 rounded-2xl p-5 shadow-xl">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Trophy className="w-5 h-5 text-white" />
+          </div>
+          <div className="text-white min-w-0">
+            <h1 className="text-xl lg:text-2xl font-bold leading-tight">Convocatorias</h1>
+            <p className="text-orange-100 text-xs">
               {user.role === "admin" 
                 ? "Gestiona todas las convocatorias del club" 
-                : `Gestiona las convocatorias de tus equipos`}
+                : "Gestiona las convocatorias de tus equipos"}
             </p>
           </div>
-          <div className="flex gap-2">
-            {filteredByStatus.length > 0 && (
-              <ExportButton 
-                data={prepareExportData()} 
-                filename={`convocatorias_${(selectedCategory || '').replace(/\s+/g, '_')}`}
-              />
-            )}
-            <Button
-              onClick={handleNewCallup}
-              className="bg-white text-orange-700 hover:bg-orange-50 shadow-lg font-semibold"
-              disabled={!canCreateCallup}
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Nueva Convocatoria
-            </Button>
-          </div>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            onClick={handleNewCallup}
+            className="bg-white text-orange-700 hover:bg-orange-50 shadow-lg font-semibold flex-1 sm:flex-none"
+            disabled={!canCreateCallup}
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Nueva Convocatoria
+          </Button>
+          {filteredByStatus.length > 0 && (
+            <ExportButton 
+              data={prepareExportData()} 
+              filename={`convocatorias_${(selectedCategory || '').replace(/\s+/g, '_')}`}
+            />
+          )}
         </div>
       </div>
 
