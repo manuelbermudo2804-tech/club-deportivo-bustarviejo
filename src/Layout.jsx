@@ -1069,7 +1069,9 @@ export default function Layout({ children, currentPageName }) {
           playerDetected
         });
 
-        if (!playerDetected && currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
+        // Detección de jugador +18: se ejecuta para TODOS los roles excepto admin
+        // Un entrenador/coordinador/tesorero también puede ser jugador +18
+        if (!playerDetected && currentUser.role !== "admin") {
           try {
             const linkedCandidates = await base44.entities.Player.filter({ 
               email_jugador: currentUser.email, 
@@ -1096,14 +1098,15 @@ export default function Layout({ children, currentPageName }) {
               if (esMayorDe18) {
                 console.log('🎯 [LAYOUT] Detectado jugador +18 autorizado:', linkedPlayer.nombre);
                 // Actualizar automáticamente el usuario como jugador
-                await base44.auth.updateMe({
-                  es_jugador: true,
-                  player_id: linkedPlayer.id,
-                  tipo_panel: 'jugador_adulto'
-                });
+                // Si también es entrenador/coordinador, no cambiar tipo_panel para no interferir con su panel principal
+                const updateData = { es_jugador: true, player_id: linkedPlayer.id };
+                if (!currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
+                  updateData.tipo_panel = 'jugador_adulto';
+                }
+                await base44.auth.updateMe(updateData);
                 playerDetected = true;
                 setPlayerName(linkedPlayer.nombre);
-                console.log('✅ [LAYOUT] Usuario actualizado como Jugador +18 automáticamente');
+                console.log('✅ [LAYOUT] Usuario actualizado como Jugador +18 automáticamente (también entrenador:', currentUser.es_entrenador, ')');
               }
             }
           } catch (error) {
