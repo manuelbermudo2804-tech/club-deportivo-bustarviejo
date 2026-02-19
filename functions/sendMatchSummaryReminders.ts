@@ -31,10 +31,31 @@ Deno.serve(async (req) => {
         if (existing.some(r => r.notas?.includes?.('MATCH_SUMMARY'))) continue;
 
         if (!preview) {
+          const summaryHtml = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 8px;"><tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<tr><td style="background:linear-gradient(135deg,#2563eb,#1d4ed8);padding:28px 24px;text-align:center;">
+  <div style="font-size:36px;margin-bottom:8px;">📊</div>
+  <div style="color:#fff;font-size:20px;font-weight:800;">REGISTRA EL RESUMEN</div>
+  <div style="color:rgba(255,255,255,0.8);font-size:13px;margin-top:4px;">Tras el partido</div>
+</td></tr>
+<tr><td style="padding:24px;">
+  <p style="color:#334155;font-size:15px;margin:0 0 16px;">Hola${c.entrenador_nombre ? ` ${c.entrenador_nombre}` : ''},</p>
+  <p style="color:#334155;font-size:14px;margin:0 0 16px;">Recuerda completar el resumen del partido:</p>
+  <div style="background:#eff6ff;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #bfdbfe;">
+    <div style="font-weight:800;color:#1e40af;font-size:16px;">${c.titulo}</div>
+    <div style="color:#2563eb;font-size:13px;margin-top:4px;">📅 ${c.fecha_partido || ''}${c.hora_partido ? ` · ⏰ ${c.hora_partido}` : ''}</div>
+  </div>
+  <div style="text-align:center;margin:20px 0;"><a href="https://app.cdbustarviejo.com/centrocompeticiontecnico" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 32px;border-radius:12px;">📝 REGISTRAR RESUMEN</a></div>
+</td></tr>
+<tr><td style="background:#1e293b;padding:20px 24px;text-align:center;"><div style="color:#94a3b8;font-size:12px;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none;">cdbustarviejo@gmail.com</a></div></td></tr>
+</table></td></tr></table></body></html>`;
           await base44.integrations.Core.SendEmail({
             to: c.entrenador_email,
-            subject: 'Recordatorio: registra el resumen del partido',
-            body: `Hola ${c.entrenador_nombre || ''},\n\nRecuerda completar el resumen del partido: ${c.titulo} (${c.fecha_partido} ${c.hora_partido || ''}).\n\nAccede directamente desde la app: https://app.cdbustarviejo.com${'/#' + 'CoachStandingsAnalysis'}\n\nGracias.`
+            subject: `📊 Registra el resumen del partido - ${c.titulo}`,
+            body: summaryHtml
           });
           await base44.asServiceRole.entities.AutomaticReminder.create({
             email_padre: c.entrenador_email,

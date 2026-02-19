@@ -36,10 +36,31 @@ Deno.serve(async (req) => {
 
         // Email
         if (vendedorEmail) {
+          const mktHtml = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 8px;"><tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<tr><td style="background:linear-gradient(135deg,#ea580c,#c2410c);padding:28px 24px;text-align:center;">
+  <div style="font-size:36px;margin-bottom:8px;">🛍️</div>
+  <div style="color:#fff;font-size:20px;font-weight:800;">CIERRA TU ANUNCIO</div>
+  <div style="color:rgba(255,255,255,0.8);font-size:13px;margin-top:4px;">Mercadillo CD Bustarviejo</div>
+</td></tr>
+<tr><td style="padding:24px;">
+  <p style="color:#334155;font-size:15px;margin:0 0 16px;">Hola,</p>
+  <p style="color:#334155;font-size:14px;margin:0 0 16px;">Tu anuncio lleva más de 48h reservado. Márcalo como vendido o entregado:</p>
+  <div style="background:#fff7ed;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #fed7aa;">
+    <div style="font-weight:800;color:#9a3412;font-size:16px;">"${l.titulo}"</div>
+    <div style="color:#c2410c;font-size:13px;margin-top:4px;">Reservado por: ${compradorNombre}</div>
+  </div>
+  <div style="text-align:center;margin:20px 0;"><a href="https://app.cdbustarviejo.com/mercadillo" style="display:inline-block;background:linear-gradient(135deg,#ea580c,#c2410c);color:#fff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 32px;border-radius:12px;">📦 GESTIONAR ANUNCIO</a></div>
+</td></tr>
+<tr><td style="background:#1e293b;padding:20px 24px;text-align:center;"><div style="color:#94a3b8;font-size:12px;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none;">cdbustarviejo@gmail.com</a></div></td></tr>
+</table></td></tr></table></body></html>`;
           await base44.asServiceRole.integrations.Core.SendEmail({
             to: vendedorEmail,
-            subject: `Recordatorio: cierra tu anuncio reservado - ${l.titulo}`,
-            body: `Hola,\n\nEste es un recordatorio automático. Tu anuncio \"${l.titulo}\" está en estado RESERVADO desde hace más de 48 horas.\n\nPor favor, cierra el anuncio marcándolo como \"Vendido\"${l.tipo === 'donacion' ? ' o \"Entregado\"' : ''} para mantener el mercadillo actualizado.\n\nGracias.`
+            subject: `🛍️ Cierra tu anuncio reservado - ${l.titulo}`,
+            body: mktHtml
           });
         }
 

@@ -46,14 +46,44 @@ Deno.serve(async (req) => {
     // Enviar emails
     const emailsSent = [];
     for (const [email, payments] of Object.entries(emailGroups)) {
-      const paymentList = payments
-        .map(p => `• ${p.player}: €${p.cantidad} (${p.mes}) - ${p.daysOverdue} días`)
-        .join('\n');
+      const paymentRows = payments.map(p =>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff7ed;border-radius:8px;margin-bottom:8px;border:1px solid #fed7aa;">
+          <div><div style="font-weight:700;color:#9a3412;font-size:14px;">${p.player}</div><div style="color:#c2410c;font-size:12px;">${p.mes} · ${p.daysOverdue} días de retraso</div></div>
+          <div style="font-weight:800;color:#c2410c;font-size:16px;">${p.amount}€</div>
+        </div>`
+      ).join('');
+
+      const emailHtml = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 8px;">
+<tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<tr><td style="background:linear-gradient(135deg,#dc2626,#b91c1c);padding:28px 24px;text-align:center;">
+  <div style="font-size:36px;margin-bottom:8px;">🔴</div>
+  <div style="color:#ffffff;font-size:20px;font-weight:800;">PAGOS ATRASADOS</div>
+  <div style="color:rgba(255,255,255,0.8);font-size:13px;margin-top:4px;">Acción requerida</div>
+</td></tr>
+<tr><td style="padding:24px;">
+  <p style="color:#334155;font-size:15px;margin:0 0 16px;">Hola,</p>
+  <p style="color:#334155;font-size:14px;margin:0 0 16px;">Tienes pagos pendientes desde hace más de 30 días:</p>
+  ${paymentRows}
+  <div style="background:#fff7ed;border-radius:10px;padding:14px 16px;margin:16px 0;border-left:4px solid #f97316;">
+    <div style="color:#9a3412;font-size:13px;"><strong>📧 Datos bancarios:</strong><br>IBAN: ES82 0049 4447 38 2010604048<br>Banco: Santander · Beneficiario: CD Bustarviejo</div>
+  </div>
+  <div style="text-align:center;margin:20px 0 8px;">
+    <a href="https://app.cdbustarviejo.com/parentpayments" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 32px;border-radius:12px;">💳 VER MIS PAGOS</a>
+  </div>
+</td></tr>
+<tr><td style="background:#1e293b;padding:20px 24px;text-align:center;">
+  <div style="color:#94a3b8;font-size:12px;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none;">cdbustarviejo@gmail.com</a></div>
+</td></tr>
+</table></td></tr></table></body></html>`;
 
       await base44.integrations.Core.SendEmail({
         to: email,
-        subject: '⚠️ Recordatorio: Pagos pendientes del club',
-        body: `Hola,\n\nTienes los siguientes pagos pendientes hace más de 30 días:\n\n${paymentList}\n\nPor favor, regulariza tu situación cuanto antes.\n\nGracias,\nCD Bustarviejo`
+        subject: '🔴 Pagos atrasados - CD Bustarviejo',
+        body: emailHtml
       });
 
       emailsSent.push(email);
