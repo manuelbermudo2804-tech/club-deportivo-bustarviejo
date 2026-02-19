@@ -18,7 +18,7 @@ import CoordinatorClassificationsMatchesBanner from "../components/dashboard/Coo
 import ShareFormButton from "../components/players/ShareFormButton";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
-import AttendanceRankingWidget from "../components/dashboard/AttendanceRankingWidget";
+
 import { Users, Calendar, Bell } from "lucide-react";
 
 
