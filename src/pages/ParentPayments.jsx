@@ -1062,131 +1062,50 @@ export default function ParentPayments() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {displayPayments.map((payment, index) => {
-                            // Para PLAN ESPECIAL - mostrar cuotas en orden secuencial
+                        {displayPayments.map((payment) => {
                             let mostrarBotonPagar = false;
-                            
                             if (hasPlanEspecial) {
-                              // Plan especial: solo permitir pagar la PRIMERA cuota pendiente
                               const cuotasPendientes = displayPayments
                                 .filter(p => p.estado === "Pendiente" && !p.isVirtual)
-                                .sort((a, b) => {
-                                  const numA = parseInt(a.mes.replace('Cuota ', ''));
-                                  const numB = parseInt(b.mes.replace('Cuota ', ''));
-                                  return numA - numB;
-                                });
-                              
+                                .sort((a, b) => parseInt(a.mes.replace('Cuota ', '')) - parseInt(b.mes.replace('Cuota ', '')));
                               mostrarBotonPagar = cuotasPendientes.length > 0 && cuotasPendientes[0].id === payment.id;
                             } else {
-                              // Lógica estándar para mostrar botón "Pagar" solo si la cuota anterior está pagada
                               const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
                               const mesIndex = ordenMeses.indexOf(payment.mes);
                               const cuotaAnterior = mesIndex > 0 ? displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1]) : null;
                               const cuotaAnteriorPagada = mesIndex === 0 || cuotaAnterior?.estado === "Pagado";
-                              // Mostrar botón si: está pendiente Y (es la primera cuota O la anterior está pagada)
                               mostrarBotonPagar = payment.estado === "Pendiente" && cuotaAnteriorPagada;
                             }
 
+                            const isSelected = cartSelected.some(s => s.payment.id === payment.id);
+
                             return (
-                            <div key={payment.id} className={`border-l-4 p-3 rounded ${
-                              payment.estado === "Pagado" ? "border-green-500 bg-green-50" :
-                              payment.estado === "En revisión" ? "border-orange-500 bg-orange-50" :
-                              "border-red-500 bg-red-50"
-                            }`}>
-                              <div className="flex flex-wrap items-start md:items-center justify-start md:justify-between gap-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-bold text-slate-900">{payment.mes}</span>
-                                    {payment.tipo_pago === "Plan Especial" && (
-                                      <Badge className="bg-purple-100 text-purple-700 text-xs">Plan Especial</Badge>
-                                    )}
-                                    <span className="text-2xl">{statusEmojis[payment.estado]}</span>
-                                    <span className="text-lg font-bold">{payment.cantidad?.toFixed(2)}€</span>
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                          <p className="text-xs">
-                                            {payment.estado === "Pagado" && "✅ Pago verificado y confirmado por el administrador"}
-                                            {payment.estado === "En revisión" && "🔍 El administrador está verificando tu justificante. Suele tardar 1-2 días hábiles"}
-                                            {payment.estado === "Pendiente" && payment.isVirtual && "⏳ Aún no has registrado este pago. Haz click en 'Pagar' cuando lo realices"}
-                                            {payment.estado === "Pendiente" && !payment.isVirtual && "📤 Falta subir el justificante de pago para que el administrador lo verifique"}
-                                          </p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  </div>
-                                  <p className="text-xs text-slate-600">
-                                    {payment.estado}{payment.isVirtual ? " (sin registrar)" : ""}
-                                    {payment.notas && payment.tipo_pago === "Plan Especial" && (
-                                      <span className="block text-purple-600 mt-1">{payment.notas}</span>
-                                    )}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-2 w-full md:w-auto justify-start md:justify-end">
-                                  {/* Selección para carrito */}
-                                  {(() => {
-                                    const key = payment.id;
-                                    const isSelected = cartSelected.some(s => s.payment.id === payment.id);
-                                    const canSelect = payment.estado === 'Pendiente';
-                                    return (
-                                      <div className="flex items-center gap-2">
-                                        <Checkbox
-                                          checked={isSelected}
-                                          onCheckedChange={(v) => {
-                                            if (!canSelect) return;
-                                            setCartSelected(prev => {
-                                              const exists = prev.some(s => s.payment.id === payment.id);
-                                              if (v && !exists) return [...prev, { player, payment }];
-                                              if (!v && exists) return prev.filter(s => s.payment.id !== payment.id);
-                                              return prev;
-                                            });
-                                          }}
-                                          disabled={!canSelect}
-                                        />
-                                        {mostrarBotonPagar && !payment.isVirtual && (
-                                          <Button
-                                            size="sm"
-                                            onClick={() => {
-                                              setPayModalContext({ player, payment });
-                                              setPayModalOpen(true);
-                                            }}
-                                            className="bg-orange-600 hover:bg-orange-700 text-white"
-                                          >
-                                            💳 Pagar
-                                          </Button>
-                                        )}
-                                      </div>
-                                    );
-                                  })()}
-                                  {payment.justificante_url && (
-                                   <Button
-                                     size="sm"
-                                     variant="ghost"
-                                     onClick={() => window.open(payment.justificante_url, '_blank')}
-                                     className={payment.estado === "Pagado" ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
-                                   >
-                                     <FileText className="w-4 h-4 mr-1" />
-                                     Ver
-                                   </Button>
-                                  )}
-                                  {payment.recibo_url && payment.estado === "Pagado" && (
-                                   <Button
-                                     size="sm"
-                                     variant="ghost"
-                                     onClick={() => window.open(payment.recibo_url, '_blank')}
-                                     className="text-blue-600 hover:text-blue-700"
-                                     title="Descargar recibo"
-                                   >
-                                     📄 Recibo
-                                   </Button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );})}
+                              <PaymentCard
+                                key={payment.id}
+                                payment={payment}
+                                player={player}
+                                isUploading={uploadingPaymentId === payment.id}
+                                onUpload={handleFileUpload}
+                                showPayButton={mostrarBotonPagar && !payment.isVirtual}
+                                hasPlanEspecial={hasPlanEspecial}
+                                hasPlanMensual={hasPlanMensual}
+                                isSelected={isSelected}
+                                onToggleSelect={(v) => {
+                                  if (payment.estado !== 'Pendiente') return;
+                                  setCartSelected(prev => {
+                                    const exists = prev.some(s => s.payment.id === payment.id);
+                                    if (v && !exists) return [...prev, { player, payment }];
+                                    if (!v && exists) return prev.filter(s => s.payment.id !== payment.id);
+                                    return prev;
+                                  });
+                                }}
+                                onPayClick={(pl, pay) => {
+                                  setPayModalContext({ player: pl, payment: pay });
+                                  setPayModalOpen(true);
+                                }}
+                              />
+                            );
+                          })}
                       </div>
                     )}
                   </CardContent>
