@@ -360,7 +360,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 )}
               </div>
 
-              {/* Fecha */}
+              {/* Fecha - ANTES del título para que auto-genere */}
               <div className="space-y-2">
                 <Label className="text-base font-semibold text-orange-700">📅 Fecha del Partido *</Label>
                 <Input
@@ -384,6 +384,29 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   onChange={(e) => setCurrentCallup({ ...currentCallup, hora_partido: e.target.value })}
                   required
                 />
+              </div>
+
+              {/* Título (auto-generado) */}
+              <div className="space-y-2 md:col-span-2">
+                <Label className="flex items-center gap-2">
+                  Título de la Convocatoria *
+                  {!titleManuallyEdited && (
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">Auto-generado</Badge>
+                  )}
+                </Label>
+                <Input
+                  placeholder="Se genera automáticamente..."
+                  value={currentCallup.titulo}
+                  onChange={(e) => {
+                    setTitleManuallyEdited(true);
+                    setCurrentCallup({ ...currentCallup, titulo: e.target.value });
+                  }}
+                  required
+                  className={!titleManuallyEdited ? "bg-slate-50 border-dashed" : ""}
+                />
+                {!titleManuallyEdited && (
+                  <p className="text-xs text-blue-600">✨ Se rellena solo con el tipo, rival y fecha. Puedes editarlo si quieres.</p>
+                )}
               </div>
 
               {/* Hora Concentración */}
