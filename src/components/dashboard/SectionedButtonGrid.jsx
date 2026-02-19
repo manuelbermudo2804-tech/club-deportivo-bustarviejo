@@ -16,56 +16,42 @@ export default function SectionedButtonGrid({
   roleSection = "coach",
   roleSectionLabel = "🏋️ Entrenador",
   clubSectionLabel = "👨‍👩‍👧 Club y Familia",
+  playerSectionLabel = "⚽ Mi Perfil Jugador",
   badgeMap = {},
 }) {
   const roleButtons = buttons.filter(b => b.section === roleSection);
+  const playerButtons = buttons.filter(b => b.section === "player");
   const clubButtons = buttons.filter(b => b.section === "club");
+
+  const renderSection = (items, label, colorClass) => {
+    if (items.length === 0) return null;
+    return (
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`h-px flex-1 ${colorClass}/30`} />
+          <span className={`text-xs font-bold ${colorClass} uppercase tracking-wider whitespace-nowrap`}>
+            {label}
+          </span>
+          <div className={`h-px flex-1 ${colorClass}/30`} />
+        </div>
+        <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
+          {items.map((item, i) => (
+            <DashboardButtonCard
+              key={item.id || i}
+              item={item}
+              extraBadge={badgeMap[item.id] || null}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
-      {/* Role section */}
-      {roleButtons.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-px flex-1 bg-blue-500/30" />
-            <span className="text-xs font-bold text-blue-400 uppercase tracking-wider whitespace-nowrap">
-              {roleSectionLabel}
-            </span>
-            <div className="h-px flex-1 bg-blue-500/30" />
-          </div>
-          <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
-            {roleButtons.map((item, i) => (
-              <DashboardButtonCard
-                key={item.id || i}
-                item={item}
-                extraBadge={badgeMap[item.id] || null}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Club / Family section */}
-      {clubButtons.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-px flex-1 bg-orange-500/30" />
-            <span className="text-xs font-bold text-orange-400 uppercase tracking-wider whitespace-nowrap">
-              {clubSectionLabel}
-            </span>
-            <div className="h-px flex-1 bg-orange-500/30" />
-          </div>
-          <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
-            {clubButtons.map((item, i) => (
-              <DashboardButtonCard
-                key={item.id || i}
-                item={item}
-                extraBadge={badgeMap[item.id] || null}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {renderSection(roleButtons, roleSectionLabel, "text-blue-400 bg-blue-500")}
+      {renderSection(playerButtons, playerSectionLabel, "text-green-400 bg-green-500")}
+      {renderSection(clubButtons, clubSectionLabel, "text-orange-400 bg-orange-500")}
     </div>
   );
 }
