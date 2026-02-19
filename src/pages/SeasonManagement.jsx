@@ -1423,23 +1423,8 @@ export default function SeasonManagement() {
               </div>
             )}
 
-            {/* Tienda de Ropa */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <ShoppingBag className="w-5 h-5 text-orange-600" />
-                <div>
-                  <p className="font-medium">Tienda de Ropa</p>
-                  <p className="text-xs text-slate-600">Permitir pedidos de equipación</p>
-                </div>
-              </div>
-              <Switch
-                checked={activeSeason?.tienda_ropa_abierta || false}
-                onCheckedChange={(checked) => toggleFeature('tienda_ropa_abierta', checked)}
-              />
-            </div>
-
-            {/* Config URLs Tienda */}
-            <div className="ml-8 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Config URLs Tienda - Sin switch, siempre visible */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-slate-50 rounded-lg border-l-4 border-orange-600">
               <div className="flex items-center gap-2">
                 <Label className="text-sm">URL Tienda Equipación:</Label>
                 <Input
