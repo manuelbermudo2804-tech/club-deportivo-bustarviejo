@@ -41,6 +41,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     callup?.jugadores_convocados?.map(j => j.jugador_id) || []
   );
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(userSuggestionsEnabled);
+  const [titleManuallyEdited, setTitleManuallyEdited] = useState(!!callup?.titulo);
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
   const [pendingSubmitData, setPendingSubmitData] = useState(null);
   const [rivalTeams, setRivalTeams] = useState([]);
@@ -122,6 +123,24 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
       loadTeams();
     }
   }, [category]);
+
+  // Auto-generar título a partir de tipo + rival + fecha
+  useEffect(() => {
+    if (titleManuallyEdited) return;
+    const tipo = currentCallup.tipo || "Partido";
+    const rival = currentCallup.rival || "";
+    const fecha = currentCallup.fecha_partido || "";
+
+    let autoTitle = tipo;
+    if (rival) autoTitle += ` vs ${rival}`;
+    if (fecha) {
+      try {
+        const d = new Date(fecha + "T00:00:00");
+        autoTitle += ` (${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })})`;
+      } catch {}
+    }
+    setCurrentCallup(prev => ({ ...prev, titulo: autoTitle }));
+  }, [currentCallup.tipo, currentCallup.rival, currentCallup.fecha_partido, titleManuallyEdited]);
 
   // Auto-rellenar ubicación según Local/Visitante
   useEffect(() => {
