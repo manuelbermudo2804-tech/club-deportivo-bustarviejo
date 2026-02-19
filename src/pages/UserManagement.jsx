@@ -1276,6 +1276,7 @@ CD Bustarviejo`);
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Diálogo de Jugador +18 */}
       <Dialog open={showPlayerDialog} onOpenChange={setShowPlayerDialog}>
