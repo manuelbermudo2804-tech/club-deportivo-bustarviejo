@@ -11,10 +11,10 @@ export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdult
       <div className="max-w-5xl w-full">
         <div className="text-center mb-6">
           <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-3">
-            ¿Qué tipo de registro deseas hacer?
+            Bienvenido/a a CD Bustarviejo
           </h2>
           <p className="text-slate-600 text-base lg:text-lg">
-            Elige la opción que corresponda a tu situación
+            Cuéntanos en qué situación estás para personalizar tu experiencia
           </p>
         </div>
 
