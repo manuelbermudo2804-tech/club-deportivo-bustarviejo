@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, Calendar, AlertTriangle } from "lucide-react";
+import { Search, Users, AlertTriangle, Shield, ChevronDown, Filter, User } from "lucide-react";
 import { toast } from "sonner";
 
 import RosterPlayerCard from "../components/players/RosterPlayerCard";
@@ -94,212 +94,196 @@ export default function TeamRosters() {
   const totalInactiveInTeams = players.filter(p => coachCategories.includes(p.categoria_principal || p.deporte) && !p.activo).length;
   const unavailablePlayers = players.filter(p => coachCategories.includes(p.categoria_principal || p.deporte) && (p.lesionado || p.sancionado)).length;
 
+  // Group players by position for stats
+  const positionStats = useMemo(() => {
+    const stats = { Portero: 0, Defensa: 0, Medio: 0, Delantero: 0, "Sin asignar": 0 };
+    filteredPlayers.forEach(p => {
+      const pos = p.posicion || "Sin asignar";
+      stats[pos] = (stats[pos] || 0) + 1;
+    });
+    return stats;
+  }, [filteredPlayers]);
+
   if (!user || coachCategories.length === 0) {
     return (
       <div className="p-6 lg:p-8">
-        <div className="text-center py-12">
-          <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-500 text-lg">No tienes equipos asignados</p>
-          <p className="text-sm text-slate-400 mt-2">Contacta con el administrador</p>
+        <div className="text-center py-16">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-10 h-10 text-slate-300" />
+          </div>
+          <p className="text-slate-500 text-lg font-medium">No tienes equipos asignados</p>
+          <p className="text-sm text-slate-400 mt-1">Contacta con el administrador</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">🎓 Plantillas</h1>
-        <p className="text-slate-600 mt-1 text-sm lg:text-base">Jugadores de tus equipos</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs lg:text-sm text-slate-600 mb-1">Equipos</p>
-                <p className="text-2xl lg:text-3xl font-bold text-blue-600">{coachCategories.length}</p>
-              </div>
-              <Users className="w-8 h-8 lg:w-12 lg:h-12 text-blue-500 opacity-20" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs lg:text-sm text-slate-600 mb-1">Jugadores</p>
-                <p className="text-2xl lg:text-3xl font-bold text-green-600">{activePlayers}</p>
-              </div>
-              <Users className="w-8 h-8 lg:w-12 lg:h-12 text-green-500 opacity-20" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className={`border-none shadow-lg bg-white ${unavailablePlayers > 0 ? "" : "col-span-2 lg:col-span-1"}`}>
-          <CardContent className="pt-4 lg:pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs lg:text-sm text-slate-600 mb-1">Categoría</p>
-                <p className="text-sm lg:text-lg font-bold text-orange-600 truncate">
-                  {selectedCategory === "all" ? "Todas" : selectedCategory.split(" ")[1]}
-                </p>
-              </div>
-              <Calendar className="w-8 h-8 lg:w-12 lg:h-12 text-orange-500 opacity-20" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {unavailablePlayers > 0 && (
-          <Card className="border-none shadow-lg bg-amber-50 border-2 border-amber-200">
-            <CardContent className="pt-4 lg:pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs lg:text-sm text-amber-700 mb-1">No Disponibles</p>
-                  <p className="text-2xl lg:text-3xl font-bold text-amber-600">{unavailablePlayers}</p>
-                </div>
-                <AlertTriangle className="w-8 h-8 lg:w-12 lg:h-12 text-amber-500 opacity-50" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Search and Filters */}
-      <Card className="border-none shadow-lg bg-white">
-        <CardContent className="pt-4 lg:pt-6 space-y-3 lg:space-y-4">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
-              <Input
-                placeholder="Buscar jugador..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 lg:pl-10 text-sm lg:text-base"
-              />
-            </div>
-            <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="px-4 py-2 text-sm font-medium bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
-            >
-              {showAdvancedFilters ? "Ocultar" : "Filtros"}
-            </button>
+    <div className="p-4 lg:p-8 space-y-5">
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 rounded-2xl p-5 lg:p-8 text-white shadow-xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-extrabold flex items-center gap-2">
+              <Shield className="w-7 h-7" />
+              Plantillas
+            </h1>
+            <p className="text-blue-100 mt-1 text-sm lg:text-base">
+              {coachCategories.length} equipo{coachCategories.length > 1 ? 's' : ''} · {totalActiveInTeams} jugadores activos
+            </p>
           </div>
-
-          {showAdvancedFilters && (
-            <div className="space-y-3 pt-2 border-t">
-              {/* Filtro por Estado */}
-              <div className="space-y-2">
-                <label className="text-xs lg:text-sm font-semibold text-slate-700">Estado</label>
-                <div className="flex flex-wrap gap-2">
-                  <Badge
-                    onClick={() => setStatusFilter("all")}
-                    className={`cursor-pointer px-3 py-1 text-xs ${
-                      statusFilter === "all"
-                        ? "bg-orange-600 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    Todos
-                  </Badge>
-                  <Badge
-                    onClick={() => setStatusFilter("active")}
-                    className={`cursor-pointer px-3 py-1 text-xs ${
-                      statusFilter === "active"
-                        ? "bg-green-600 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    ✅ Activos ({totalActiveInTeams})
-                  </Badge>
-                  <Badge
-                    onClick={() => setStatusFilter("inactive")}
-                    className={`cursor-pointer px-3 py-1 text-xs ${
-                      statusFilter === "inactive"
-                        ? "bg-slate-600 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    ❌ Inactivos ({totalInactiveInTeams})
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Filtro por Categoría */}
-              <div className="space-y-2">
-                <label className="text-xs lg:text-sm font-semibold text-slate-700">Categoría</label>
-                <div className="flex flex-wrap gap-2">
-                  <Badge
-                    onClick={() => setSelectedCategory("all")}
-                    className={`cursor-pointer px-3 py-1 text-xs ${
-                      selectedCategory === "all"
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    Todas
-                  </Badge>
-                  {coachCategories.map((categoria) => {
-                    const count = players.filter(p => (p.categoria_principal || p.deporte) === categoria && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
-                    return (
-                      <Badge
-                        key={categoria}
-                        onClick={() => setSelectedCategory(categoria)}
-                        className={`cursor-pointer px-3 py-1 text-xs ${
-                          selectedCategory === categoria
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        }`}
-                      >
-                        {categoria} ({count})
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Botón limpiar */}
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("all");
-                  setStatusFilter("all");
-                }}
-                className="w-full px-4 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
-              >
-                Limpiar Filtros
-              </button>
+          {unavailablePlayers > 0 && (
+            <div className="bg-amber-500/20 border border-amber-400/50 rounded-xl px-4 py-2 text-center">
+              <p className="text-2xl font-bold text-amber-300">{unavailablePlayers}</p>
+              <p className="text-xs text-amber-200">No disponibles</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Mini KPIs inside header */}
+        <div className="grid grid-cols-4 gap-2 mt-5">
+          {[
+            { label: "Porteros", count: positionStats.Portero, color: "bg-blue-500/30", icon: "🧤" },
+            { label: "Defensas", count: positionStats.Defensa, color: "bg-green-500/30", icon: "🛡️" },
+            { label: "Medios", count: positionStats.Medio, color: "bg-yellow-500/30", icon: "🎯" },
+            { label: "Delanteros", count: positionStats.Delantero, color: "bg-red-500/30", icon: "⚡" },
+          ].map(s => (
+            <div key={s.label} className={`${s.color} rounded-xl px-3 py-2 text-center`}>
+              <p className="text-lg font-bold">{s.count}</p>
+              <p className="text-[10px] lg:text-xs text-blue-100">{s.icon} {s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {coachCategories.length > 1 && (
+          <button
+            onClick={() => setSelectedCategory("all")}
+            className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              selectedCategory === "all"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+            }`}
+          >
+            Todas ({totalActiveInTeams})
+          </button>
+        )}
+        {coachCategories.map((cat) => {
+          const count = players.filter(p => (p.categoria_principal || p.deporte) === cat && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+          const shortName = cat.replace("Fútbol ", "").replace(" (Mixto)", "");
+          return (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                selectedCategory === cat
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                  : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+              }`}
+            >
+              ⚽ {shortName} ({count})
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Search + Filters */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            placeholder="Buscar jugador..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-white border-slate-200 shadow-sm h-11"
+          />
+        </div>
+        <button
+          onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
+            showAdvancedFilters || statusFilter !== "all"
+              ? "bg-orange-600 text-white shadow-lg"
+              : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+          }`}
+        >
+          <Filter className="w-4 h-4" />
+          <ChevronDown className={`w-3 h-3 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+
+      {showAdvancedFilters && (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 shadow-sm">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado del jugador</label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { key: "all", label: "Todos", color: "orange" },
+              { key: "active", label: `Activos (${totalActiveInTeams})`, color: "green" },
+              { key: "inactive", label: `Inactivos (${totalInactiveInTeams})`, color: "slate" },
+            ].map(f => (
+              <button
+                key={f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  statusFilter === f.key
+                    ? `bg-${f.color}-600 text-white shadow`
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          {(statusFilter !== "all" || searchTerm) && (
+            <button
+              onClick={() => { setSearchTerm(""); setStatusFilter("all"); }}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Players Grid */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-        </div>
-      ) : filteredPlayers.length === 0 ? (
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="py-12 text-center">
-            <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 text-lg">No hay jugadores en este equipo</p>
-          </CardContent>
-        </Card>
-      ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
-          {filteredPlayers.map((player) => (
-            <RosterPlayerCard 
-              key={player.id} 
-              player={player} 
-              onUpdateAvailability={handleUpdateAvailability}
-              isUpdating={updatingPlayerId === player.id}
-            />
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} className="bg-white rounded-xl shadow-sm animate-pulse">
+              <div className="h-36 bg-slate-200 rounded-t-xl" />
+              <div className="p-3 space-y-2">
+                <div className="h-4 bg-slate-200 rounded w-3/4" />
+                <div className="h-3 bg-slate-100 rounded w-1/2" />
+              </div>
+            </div>
           ))}
         </div>
+      ) : filteredPlayers.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-10 h-10 text-slate-300" />
+          </div>
+          <p className="text-slate-500 text-lg font-medium">No hay jugadores</p>
+          <p className="text-sm text-slate-400 mt-1">Prueba con otros filtros</p>
+        </div>
+      ) : (
+        <>
+          <p className="text-xs text-slate-400 font-medium">
+            {filteredPlayers.length} jugador{filteredPlayers.length !== 1 ? 'es' : ''} 
+            {selectedCategory !== "all" ? ` en ${selectedCategory}` : ''}
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+            {filteredPlayers.map((player) => (
+              <RosterPlayerCard 
+                key={player.id} 
+                player={player} 
+                onUpdateAvailability={handleUpdateAvailability}
+                isUpdating={updatingPlayerId === player.id}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
