@@ -187,9 +187,18 @@ export default function CentroCompeticionTecnico() {
     }
   }, [nextCallup]);
 
-  // Auto: abrir registro rápido tras el partido
+  // Auto: abrir registro rápido tras el partido O si viene de la alerta con openObservation=true
   React.useEffect(() => {
-    if (!nextCallup && lastPlayed && !autoObservationDoneRef.current) {
+    const params = new URLSearchParams(window.location.search);
+    const shouldOpen = params.get('openObservation') === 'true';
+    
+    if (shouldOpen && !autoObservationDoneRef.current) {
+      autoObservationDoneRef.current = true;
+      setShowObservationForm(true);
+      // Limpiar param de la URL
+      params.delete('openObservation');
+      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    } else if (!nextCallup && lastPlayed && !autoObservationDoneRef.current) {
       autoObservationDoneRef.current = true;
       setShowObservationForm(true);
     }

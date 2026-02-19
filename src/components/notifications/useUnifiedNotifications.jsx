@@ -643,6 +643,7 @@ export function useUnifiedNotifications(user, options = {}) {
     try {
       if (typeof window !== 'undefined') {
         window.__BASE44_UNIFIED_NOTIFICATIONS_STATE = next;
+        window.__BASE44_UNIFIED_NOTIFICATIONS_RAW = rawData;
         window.dispatchEvent(new CustomEvent('b44_unified_notifications_updated', { detail: next }));
       }
     } catch {}

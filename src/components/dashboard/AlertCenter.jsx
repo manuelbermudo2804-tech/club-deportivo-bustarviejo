@@ -299,12 +299,68 @@ const alerts = [];
       });
     }
     if (pendingMatchObservations > 0) {
+      // Intentar obtener detalles de los partidos pendientes desde rawData global
+      let matchDetails = "";
+      try {
+        const globalState = window.__BASE44_UNIFIED_NOTIFICATIONS_RAW;
+        const myConvocatorias = (globalState?.convocatorias || []).filter(c => c.entrenador_email === userEmail && c.publicada);
+        const myObservations = globalState?.matchObservations || [];
+        const nowMs = Date.now();
+        const pendingMatches = myConvocatorias.filter(callup => {
+          const matchDate = new Date(callup.fecha_partido);
+          if (matchDate > new Date()) return false;
+          let matchEnded = false;
+          if (callup.hora_partido) {
+            const [h, m] = callup.hora_partido.split(':').map(Number);
+            const start = new Date(matchDate); start.setHours(h, m, 0, 0);
+            matchEnded = nowMs >= start.getTime() + 135 * 60000;
+          } else {
+            const nextDay = new Date(matchDate); nextDay.setDate(nextDay.getDate() + 1);
+            matchEnded = nowMs >= nextDay.getTime();
+          }
+          if (!matchEnded) return false;
+          return !myObservations.some(obs => obs.categoria === callup.categoria && obs.rival === callup.rival && obs.fecha_partido === callup.fecha_partido && obs.entrenador_email === userEmail);
+        });
+        if (pendingMatches.length > 0) {
+          const first = pendingMatches[0];
+          const dateStr = first.fecha_partido ? new Date(first.fecha_partido).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '';
+          matchDetails = pendingMatches.length === 1 
+            ? `vs ${first.rival || '?'} (${dateStr})` 
+            : `vs ${first.rival || '?'} (${dateStr}) y ${pendingMatches.length - 1} más`;
+        }
+      } catch {}
+
+      const firstPendingCat = (() => {
+        try {
+          const globalState = window.__BASE44_UNIFIED_NOTIFICATIONS_RAW;
+          const myConvocatorias = (globalState?.convocatorias || []).filter(c => c.entrenador_email === userEmail && c.publicada);
+          const myObservations = globalState?.matchObservations || [];
+          const nowMs = Date.now();
+          const pending = myConvocatorias.find(callup => {
+            const matchDate = new Date(callup.fecha_partido);
+            if (matchDate > new Date()) return false;
+            let matchEnded = false;
+            if (callup.hora_partido) {
+              const [h, m] = callup.hora_partido.split(':').map(Number);
+              const start = new Date(matchDate); start.setHours(h, m, 0, 0);
+              matchEnded = nowMs >= start.getTime() + 135 * 60000;
+            } else {
+              const nextDay = new Date(matchDate); nextDay.setDate(nextDay.getDate() + 1);
+              matchEnded = nowMs >= nextDay.getTime();
+            }
+            if (!matchEnded) return false;
+            return !myObservations.some(obs => obs.categoria === callup.categoria && obs.rival === callup.rival && obs.fecha_partido === callup.fecha_partido && obs.entrenador_email === userEmail);
+          });
+          return pending?.categoria || '';
+        } catch { return ''; }
+      })();
+
       alerts.push({
         id: "match-observations",
         icon: BarChart3,
         title: "📊 Partidos sin registrar",
-        description: `${pendingMatchObservations} partido${pendingMatchObservations > 1 ? 's' : ''} pendiente${pendingMatchObservations > 1 ? 's' : ''} de resumen post-partido`,
-        url: createPageUrl("CentroCompeticionTecnico"),
+        description: matchDetails || `${pendingMatchObservations} partido${pendingMatchObservations > 1 ? 's' : ''} pendiente${pendingMatchObservations > 1 ? 's' : ''} de resumen post-partido`,
+        url: createPageUrl("CentroCompeticionTecnico") + (firstPendingCat ? `?cat=${encodeURIComponent(firstPendingCat)}&vista=clasificacion&openObservation=true` : ''),
         color: "bg-red-600",
         priority: 1,
         sticky: true
