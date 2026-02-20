@@ -6,7 +6,7 @@ import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 // Persist last visited path + scroll per tab across renders
 const tabState = {};
 
-export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, currentPageName }) {
+export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, currentPageName }) {
   const navigate = useNavigate();
   const currentTabRef = useRef(null);
 
@@ -16,7 +16,13 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   const familyTotal = (chatBadges?.coachForFamilyCount || 0) + (chatBadges?.coordinatorForFamilyCount || 0) + (chatBadges?.systemMessagesCount || 0);
 
   let tabs = [];
-  if (isAdmin) {
+  if (isMinor) {
+    tabs = [
+      { icon: Home, label: 'Inicio', url: createPageUrl('MinorDashboard'), key: 'home' },
+      { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
+      { icon: Users, label: 'Competición', url: createPageUrl('CentroCompeticion'), key: 'competition' },
+    ];
+  } else if (isAdmin) {
     const totalChatBadge = (chatBadges?.staffCount || 0) + (chatBadges?.coordinatorCount || 0);
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('Home'), key: 'home' },
