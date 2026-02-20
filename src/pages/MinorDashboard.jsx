@@ -335,8 +335,8 @@ export default function MinorDashboard() {
           />
           <QuickActionCard
             emoji="📊"
-            title="Mis Evaluaciones"
-            subtitle="Lo que dice tu entrenador de ti"
+            title="Mis Valoraciones"
+            subtitle="Notas de tu entrenador sobre cómo juegas"
             href={createPageUrl("PlayerEvaluations")}
             color="from-indigo-500 to-blue-600"
             delay={0.35}
