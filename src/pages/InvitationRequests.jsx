@@ -144,20 +144,26 @@ export default function InvitationRequests() {
         </Button>
       </div>
 
-      <Tabs defaultValue="second_parent" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="second_parent" className="relative">
-            <Users className="w-4 h-4 mr-2" />
-            Segundos Progenitores
-            {pendingSecondParentCount > 0 && (
-              <Badge className="ml-2 bg-orange-600 text-white text-xs">{pendingSecondParentCount}</Badge>
+      <Tabs defaultValue={pendingMinorCount > 0 ? "minor" : "second_parent"} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="minor" className="relative text-xs">
+            ⚽ Acceso Juvenil
+            {pendingMinorCount > 0 && (
+              <Badge className="ml-1 bg-green-600 text-white text-xs">{pendingMinorCount}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="adult_players" className="relative">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Jugadores +18
+          <TabsTrigger value="second_parent" className="relative text-xs">
+            <Users className="w-3 h-3 mr-1" />
+            2º Progenitor
+            {pendingSecondParentCount > 0 && (
+              <Badge className="ml-1 bg-orange-600 text-white text-xs">{pendingSecondParentCount}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="adult_players" className="relative text-xs">
+            <UserPlus className="w-3 h-3 mr-1" />
+            +18
             {pendingAdultCount > 0 && (
-              <Badge className="ml-2 bg-orange-600 text-white text-xs">{pendingAdultCount}</Badge>
+              <Badge className="ml-1 bg-orange-600 text-white text-xs">{pendingAdultCount}</Badge>
             )}
           </TabsTrigger>
         </TabsList>
