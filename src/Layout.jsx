@@ -1499,6 +1499,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
     { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle },
+    { title: "✉️ Buzón Juvenil", url: createPageUrl("JuniorMailboxAdmin"), icon: MessageCircle },
 
     // 🛍️ TIENDA Y SERVICIOS
     { title: "─ TIENDA Y SERVICIOS ─", section: true },
