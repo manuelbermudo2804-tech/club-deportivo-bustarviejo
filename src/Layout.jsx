@@ -1057,8 +1057,61 @@ export default function Layout({ children, currentPageName }) {
           console.log('ℹ️ [LAYOUT] Verificación segundo progenitor fallida:', e);
         }
 
-        // Desactivar analytics temporalmente por errores de CORS
-        // Comentado para evitar spam de errores en consola
+        // DETECCIÓN DE MENOR (13-17) con acceso juvenil
+        // Si el usuario no tiene tipo_panel o ya es jugador_menor, verificar si hay ficha vinculada
+        let minorDetected = currentUser.tipo_panel === 'jugador_menor' || currentUser.es_menor === true;
+        if (!minorDetected && currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
+          try {
+            const linkedAsMinor = await base44.entities.Player.filter({
+              acceso_menor_email: currentUser.email,
+              acceso_menor_autorizado: true,
+              activo: true,
+            });
+            const minorPlayer = linkedAsMinor[0];
+            if (minorPlayer && !minorPlayer.acceso_menor_revocado) {
+              console.log('👦 [LAYOUT] Detectado menor con acceso juvenil:', minorPlayer.nombre);
+              minorDetected = true;
+              setMinorPlayerData(minorPlayer);
+              if (currentUser.tipo_panel !== 'jugador_menor') {
+                await base44.auth.updateMe({ tipo_panel: 'jugador_menor', es_menor: true, player_id: minorPlayer.id });
+                setUser((prev) => ({ ...(prev || {}), tipo_panel: 'jugador_menor', es_menor: true, player_id: minorPlayer.id }));
+              }
+            }
+          } catch (e) {
+            console.log('ℹ️ [LAYOUT] Verificación menor fallida:', e);
+          }
+        } else if (minorDetected) {
+          // Cargar datos del jugador para el menor ya catalogado
+          try {
+            const linkedAsMinor2 = await base44.entities.Player.filter({
+              acceso_menor_email: currentUser.email,
+              acceso_menor_autorizado: true,
+              activo: true,
+            });
+            if (linkedAsMinor2[0] && !linkedAsMinor2[0].acceso_menor_revocado) {
+              setMinorPlayerData(linkedAsMinor2[0]);
+            } else {
+              // Acceso revocado - resetear
+              minorDetected = false;
+            }
+          } catch {}
+        }
+        setIsMinor(minorDetected);
+
+        // Si es menor, no seguir con el resto de detección de roles
+        if (minorDetected) {
+          setIsLoading(false);
+          // Redirigir a MinorDashboard si es primera carga
+          const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
+          const currentPath = window.location.pathname.toLowerCase();
+          if (!hasInitialRedirect && !currentPath.includes('minordashboard')) {
+            sessionStorage.setItem('initialRedirectDone', 'true');
+            window.location.href = createPageUrl('MinorDashboard');
+            return;
+          }
+          // No continuar con detección de jugador +18, padres, etc.
+          return;
+        }
 
         // DETECCIÓN DE JUGADOR +18
         // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
