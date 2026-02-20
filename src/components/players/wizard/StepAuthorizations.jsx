@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Shield, Camera, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Shield, Camera, AlertCircle, ShieldCheck, ShieldX, Smartphone } from "lucide-react";
 
 function useScrollToBottom(ref) {
   const [reached, setReached] = useState(false);
