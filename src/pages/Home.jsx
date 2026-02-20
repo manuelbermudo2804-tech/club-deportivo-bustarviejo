@@ -191,7 +191,8 @@ export default function Home() {
     enabled: lazyEnabled,
   });
 
-  const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente").length;
+  const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente" && r.tipo_solicitud !== "acceso_menor").length;
+  const pendingMinorInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente" && r.tipo_solicitud === "acceso_menor").length;
   const pendingSecondParentInvitationsCount = secondParentInvitations.length;
 
   // Configuración de botones del dashboard - con cache en localStorage
