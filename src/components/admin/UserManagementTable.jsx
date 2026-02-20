@@ -125,6 +125,9 @@ export default function UserManagementTable({
                         </p>
                         <p className="text-xs text-slate-500 truncate">{user.email}</p>
                       </div>
+                      {user.es_menor === true && (
+                        <Badge className="bg-teal-600 text-[10px] px-1.5 py-0">🧒 Juvenil</Badge>
+                      )}
                       {hasAnomalies && (
                         <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
                       )}
