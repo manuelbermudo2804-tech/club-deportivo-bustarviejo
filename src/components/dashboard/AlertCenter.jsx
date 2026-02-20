@@ -95,6 +95,17 @@ useEffect(() => {
   } catch {}
 }, [dismissedAlerts]);
 
+const { data: pendingJuniorMessages = 0 } = useQuery({
+  queryKey: ['alert-junior-mailbox'],
+  queryFn: async () => {
+    const msgs = await base44.entities.JuniorMailbox.filter({ estado: "pendiente" });
+    return msgs.length;
+  },
+  enabled: isAdmin,
+  staleTime: 60000,
+  refetchInterval: 60000,
+});
+
 const { data: adminEscalationsCount = 0 } = useQuery({
   queryKey: ['alert-admin-escalations'],
   queryFn: async () => {
