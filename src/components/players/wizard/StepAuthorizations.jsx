@@ -159,10 +159,13 @@ export default function StepAuthorizations({
                 <ShieldCheck className="w-4 h-4" /> Podrá:
               </p>
               <ul className="text-xs text-green-700 space-y-1">
-                <li>✅ Ver convocatorias de partidos</li>
+                <li>✅ Ver y confirmar convocatorias</li>
                 <li>✅ Ver calendario y horarios</li>
                 <li>✅ Ver clasificaciones y resultados</li>
                 <li>✅ Leer anuncios del club</li>
+                <li>✅ Ver la galería de fotos</li>
+                <li>✅ Confirmar asistencia a eventos</li>
+                <li>✅ Responder encuestas</li>
               </ul>
             </div>
             <div className="bg-red-50 rounded-lg p-3 border border-red-200">
@@ -172,7 +175,9 @@ export default function StepAuthorizations({
               <ul className="text-xs text-red-700 space-y-1">
                 <li>❌ Chats con entrenadores/familias</li>
                 <li>❌ Pagos ni datos financieros</li>
+                <li>❌ Firmas de federación</li>
                 <li>❌ Editar datos personales</li>
+                <li>❌ Tienda, pedidos o lotería</li>
                 <li>❌ Documentos oficiales</li>
               </ul>
             </div>
@@ -196,28 +201,55 @@ export default function StepAuthorizations({
           </div>
 
           {currentPlayer.acceso_menor_autorizado && (
-            <div className="space-y-2 pl-2">
-              <Label className={fieldErrors.acceso_menor_email ? "text-red-600 font-bold" : ""}>
-                Email de tu hijo/a *
-              </Label>
-              <Input
-                type="email"
-                placeholder="email.de.tu.hijo@gmail.com"
-                value={currentPlayer.acceso_menor_email || ""}
-                onChange={(e) => {
-                  setCurrentPlayer({ ...currentPlayer, acceso_menor_email: e.target.value });
-                  if (fieldErrors.acceso_menor_email) setFieldErrors(prev => ({ ...prev, acceso_menor_email: null }));
-                }}
-                className={fieldErrors.acceso_menor_email ? "border-2 border-red-500 bg-red-50" : ""}
-              />
-              {fieldErrors.acceso_menor_email && <p className="text-xs text-red-600">⚠️ {fieldErrors.acceso_menor_email}</p>}
-              <p className="text-xs text-slate-500">
-                Este email recibirá la invitación tras aprobación del admin.
-              </p>
+            <div className="space-y-3 pl-2">
+              {/* Qué pasará ahora - misma info que MinorAccessDialog */}
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+                <h4 className="font-bold text-orange-800 mb-3 flex items-center gap-2 text-sm">
+                  🕐 ¿Qué pasará al activarlo?
+                </h4>
+                <div className="space-y-2.5">
+                  <div className="flex items-start gap-3">
+                    <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">1</span>
+                    <p className="text-xs text-orange-900">Nos facilitas el <strong>email de tu hijo/a</strong> aquí abajo</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">2</span>
+                    <p className="text-xs text-orange-900">Se enviará una <strong>solicitud al administrador</strong> del club</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">3</span>
+                    <p className="text-xs text-orange-900">El admin revisará y <strong>enviará una invitación</strong> al email de tu hijo/a (24-48h)</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">4</span>
+                    <p className="text-xs text-orange-900">Tu hijo/a crea su cuenta y <strong>accede a su panel juvenil</strong> con permisos limitados</p>
+                  </div>
+                </div>
+              </div>
 
-              <Alert className="border-blue-200 bg-blue-50 mt-2">
+              <div>
+                <Label className={fieldErrors.acceso_menor_email ? "text-red-600 font-bold" : ""}>
+                  Email de tu hijo/a *
+                </Label>
+                <Input
+                  type="email"
+                  placeholder="email.de.tu.hijo@gmail.com"
+                  value={currentPlayer.acceso_menor_email || ""}
+                  onChange={(e) => {
+                    setCurrentPlayer({ ...currentPlayer, acceso_menor_email: e.target.value });
+                    if (fieldErrors.acceso_menor_email) setFieldErrors(prev => ({ ...prev, acceso_menor_email: null }));
+                  }}
+                  className={fieldErrors.acceso_menor_email ? "border-2 border-red-500 bg-red-50" : ""}
+                />
+                {fieldErrors.acceso_menor_email && <p className="text-xs text-red-600">⚠️ {fieldErrors.acceso_menor_email}</p>}
+                <p className="text-xs text-slate-500 mt-1">
+                  Este email recibirá la invitación tras aprobación del admin.
+                </p>
+              </div>
+
+              <Alert className="border-blue-200 bg-blue-50">
                 <AlertDescription className="text-blue-800 text-xs">
-                  💡 El admin revisará la solicitud y, si la aprueba, tu hijo/a recibirá un email con instrucciones para crear su cuenta.
+                  💡 <strong>Importante:</strong> Tú seguirás teniendo acceso completo y podrás desactivar el acceso de tu hijo/a en cualquier momento desde la ficha del jugador.
                 </AlertDescription>
               </Alert>
             </div>

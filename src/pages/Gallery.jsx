@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import GalleryForm from "../components/gallery/GalleryForm";
 import GalleryAlbum from "../components/gallery/GalleryAlbum";
 import ContactCard from "../components/ContactCard";
-import ChatPhotosSection from "@/components/gallery/ChatPhotosSection";
+
 
 const CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -338,11 +338,6 @@ export default function Gallery() {
             })}
           </AnimatePresence>
         </div>
-      )}
-
-      {/* Chat photos from coaches - visible for parents and players */}
-      {isParentOrPlayer && myCategories.length > 0 && (
-        <ChatPhotosSection myCategories={myCategories} />
       )}
 
       {isParentOrPlayer && <ContactCard />}
