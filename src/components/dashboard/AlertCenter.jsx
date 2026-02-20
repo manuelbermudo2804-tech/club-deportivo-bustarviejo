@@ -579,6 +579,18 @@ const alerts = [];
         priority: 2
       });
     }
+
+    if (pendingMinorInvitations > 0) {
+      alerts.push({
+        id: "minor-access-invitations",
+        icon: User,
+        title: "⚽ Acceso Juvenil Pendiente",
+        description: `${pendingMinorInvitations} solicitud${pendingMinorInvitations > 1 ? 'es' : ''} de acceso juvenil por gestionar`,
+        url: createPageUrl("InvitationRequests"),
+        color: "bg-green-600",
+        priority: 2
+      });
+    }
   }
 
   // Alertas para tesoreros (tareas de tesorero)
