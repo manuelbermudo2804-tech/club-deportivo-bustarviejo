@@ -334,12 +334,21 @@ export default function MinorDashboard() {
             delay={0.4}
           />
           <QuickActionCard
+            emoji="✉️"
+            title="Mi Buzón"
+            subtitle="Cuéntanos lo que quieras, tu voz importa"
+            href={createPageUrl("JuniorMailbox")}
+            color="from-pink-500 to-purple-600"
+            badge={0}
+            delay={0.45}
+          />
+          <QuickActionCard
             emoji="📋"
             title="Encuestas"
             subtitle="Tu opinión nos importa"
             href={createPageUrl("Surveys")}
             color="from-orange-500 to-amber-600"
-            delay={0.45}
+            delay={0.5}
           />
         </div>
 
