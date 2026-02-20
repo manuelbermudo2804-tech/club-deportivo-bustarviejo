@@ -1826,9 +1826,23 @@ export default function Layout({ children, currentPageName }) {
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
   ];
 
+  const minorNavigationItems = [
+    { title: "🏠 Inicio", url: createPageUrl("MinorDashboard"), icon: Home },
+    { title: "📋 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "🎉 Eventos", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "📊 Mis Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
+    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+  ];
+
   let navigationItems;
     if (isAdmin) {
       navigationItems = adminNavigationItems;
+    } else if (isMinor) {
+      navigationItems = minorNavigationItems;
     } else if (isCoordinator) {
       navigationItems = coordinatorNavigationItems;
     } else if (isTreasurer) {
