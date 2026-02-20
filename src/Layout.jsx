@@ -2078,6 +2078,19 @@ export default function Layout({ children, currentPageName }) {
                 </Suspense>
               </div>
             );
+          case 'minor_onboarding':
+            return (
+              <Suspense fallback={null}>
+                <MinorOnboarding
+                  playerName={minorPlayerData?.nombre}
+                  parentName={minorPlayerData?.nombre_tutor_legal || minorPlayerData?.email_padre}
+                  onComplete={() => {
+                    localStorage.setItem('hasSeenWelcome', 'true');
+                    window.location.reload();
+                  }}
+                />
+              </Suspense>
+            );
           default:
             return null;
         }
