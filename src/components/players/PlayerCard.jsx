@@ -166,6 +166,14 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   return (
     <>
       <PlayerDetailDialog player={player} open={showDetail} onOpenChange={setShowDetail} />
+      {parentUser && (
+        <MinorAccessDialog
+          open={showMinorAccess}
+          onOpenChange={setShowMinorAccess}
+          player={player}
+          parentUser={parentUser}
+        />
+      )}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
