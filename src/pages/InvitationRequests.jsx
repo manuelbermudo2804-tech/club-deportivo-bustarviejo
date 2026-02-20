@@ -53,13 +53,21 @@ export default function InvitationRequests() {
     filter === "all" || inv.estado === filter
   );
 
-  const filteredAdult = adultPlayerRequests.filter(req => 
+  const minorRequests = adultPlayerRequests.filter(r => r.tipo_solicitud === "acceso_menor");
+  const adultOnlyRequests = adultPlayerRequests.filter(r => r.tipo_solicitud !== "acceso_menor");
+
+  const filteredAdult = adultOnlyRequests.filter(req => 
+    filter === "all" || req.estado === filter
+  );
+
+  const filteredMinor = minorRequests.filter(req =>
     filter === "all" || req.estado === filter
   );
 
   const pendingSecondParentCount = secondParentInvitations.filter(i => i.estado === "pendiente").length;
-  const pendingAdultCount = adultPlayerRequests.filter(i => i.estado === "pendiente").length;
-  const totalPending = pendingSecondParentCount + pendingAdultCount;
+  const pendingAdultCount = adultOnlyRequests.filter(i => i.estado === "pendiente").length;
+  const pendingMinorCount = minorRequests.filter(i => i.estado === "pendiente").length;
+  const totalPending = pendingSecondParentCount + pendingAdultCount + pendingMinorCount;
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
