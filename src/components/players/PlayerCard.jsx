@@ -323,6 +323,39 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               pendingCount={pendingCount}
             />
 
+            {/* Botón acceso juvenil - solo para padres con jugadores 13-17 años sin acceso ya activado */}
+            {isParent && edadActual >= 13 && edadActual < 18 && !player.acceso_menor_autorizado && !player.acceso_menor_revocado && !player.es_mayor_edad && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Smartphone className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-bold text-green-900">📱 Acceso Juvenil Disponible</span>
+                </div>
+                <p className="text-xs text-green-800 mb-2">
+                  {player.nombre?.split(" ")[0]} tiene {edadActual} años y puede tener su propio acceso a la app del club.
+                </p>
+                <Button
+                  size="sm"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const u = await base44.auth.me();
+                    setParentUser(u);
+                    setShowMinorAccess(true);
+                  }}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold"
+                >
+                  ⚽ Activar Acceso Juvenil
+                </Button>
+              </div>
+            )}
+
+            {/* Badge si ya tiene acceso juvenil activo */}
+            {player.acceso_menor_autorizado && !player.acceso_menor_revocado && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-2 flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-green-600" />
+                <span className="text-xs text-green-800 font-medium">✅ Acceso juvenil activo: {player.acceso_menor_email}</span>
+              </div>
+            )}
+
             <div className="flex gap-2 pt-2 flex-wrap">
               {onViewProfile && (
                 <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onViewProfile(player, 'pagos'); }} className="flex-1 hover:bg-purple-50 hover:text-purple-700">
