@@ -55,16 +55,18 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
   };
 
   const handleConfirm = () => {
-    const isNum = (v) => Number.isFinite(Number(v)) && Number(v) >= 0;
+    const isValidScore = (v) => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v)) && Number(v) >= 0;
     const cleaned = rows
       .filter(r => String(r.local || '').trim() !== '' && String(r.visitante || '').trim() !== '')
       .map(r => {
         const gl = r.goles_local, gv = r.goles_visitante;
-        const bothNumbers = isNum(gl) && isNum(gv);
-        // Si solo hay un lado, lo guardamos como pendiente (sin goles)
-        const goles_local = bothNumbers ? Number(gl) : undefined;
-        const goles_visitante = bothNumbers ? Number(gv) : undefined;
-        return { ...r, goles_local, goles_visitante };
+        const hasBoth = isValidScore(gl) && isValidScore(gv);
+        return {
+          ...r,
+          goles_local: hasBoth ? Number(gl) : null,
+          goles_visitante: hasBoth ? Number(gv) : null,
+          pendiente: !hasBoth,
+        };
       });
     onConfirm({ ...data, matches: cleaned });
   };
