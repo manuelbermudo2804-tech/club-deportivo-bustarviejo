@@ -251,6 +251,12 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (s === 7 && !isEditing) {
       if (!currentPlayer.acepta_politica_privacidad) errors.acepta_politica_privacidad = "Debes aceptar la política";
       if (!currentPlayer.autorizacion_fotografia) errors.autorizacion_fotografia = "Selecciona una opción";
+      if (currentPlayer.acceso_menor_autorizado && !currentPlayer.acceso_menor_email?.trim()) {
+        errors.acceso_menor_email = "Introduce el email de tu hijo/a para el acceso juvenil";
+      }
+      if (currentPlayer.acceso_menor_autorizado && currentPlayer.acceso_menor_email && !currentPlayer.acceso_menor_email.includes("@")) {
+        errors.acceso_menor_email = "Introduce un email válido";
+      }
     }
     return errors;
   };
