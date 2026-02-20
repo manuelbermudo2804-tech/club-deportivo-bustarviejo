@@ -282,6 +282,11 @@ export default function MinorDashboard() {
         <HeroSection player={linkedPlayer} user={user} />
         <NextCallupBanner callup={nextCallup} />
 
+        {/* Goles marcados */}
+        {linkedPlayer?.nombre && playerCategory && (
+          <MinorGoalsCard playerName={linkedPlayer.nombre} playerCategory={playerCategory} />
+        )}
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
