@@ -70,6 +70,8 @@ const getSuggestedCategory = (edad, deporteActual) => {
 
 export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [] }) {
   const [showDetail, setShowDetail] = useState(false);
+  const [showMinorAccess, setShowMinorAccess] = useState(false);
+  const [parentUser, setParentUser] = useState(null);
 
   // Derived data
   const playerCategory = player.categoria_principal || player.deporte;
