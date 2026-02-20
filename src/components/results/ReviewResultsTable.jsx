@@ -31,11 +31,11 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
       const issues = [];
       if (!String(r.local || '').trim() || !String(r.visitante || '').trim()) issues.push('Equipos vacíos');
       const gl = r.goles_local, gv = r.goles_visitante;
-      const bothEmpty = gl === undefined && gv === undefined;
+      const bothNull = (gl === undefined || gl === null) && (gv === undefined || gv === null);
       const bothNumbers = Number.isFinite(Number(gl)) && Number.isFinite(Number(gv)) && Number(gl) >= 0 && Number(gv) >= 0;
-      const oneSideOnly = (gl !== undefined && gv === undefined) || (gl === undefined && gv !== undefined);
-      // Permitimos partidos pendientes (uno solo informado) para que puedas guardar
-      if (!(bothEmpty || bothNumbers || oneSideOnly)) issues.push('Marcador inválido');
+      const oneSideOnly = ((gl !== undefined && gl !== null) && (gv === undefined || gv === null)) || ((gl === undefined || gl === null) && (gv !== undefined && gv !== null));
+      const isPendiente = r.pendiente || bothNull;
+      if (!(isPendiente || bothNumbers || oneSideOnly)) issues.push('Marcador inválido');
       if (seen.has(key)) issues.push('Duplicado'); else seen.add(key);
       if (issues.length === 0) valid++; else invalid++;
       if (existingMap[key]) toUpdate++; else toCreate++;
@@ -122,14 +122,15 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
                     {(() => {
                       const key = `${norm(r.local)}|${norm(r.visitante)}`;
                       const gl = r.goles_local, gv = r.goles_visitante;
-                      const bothEmpty = gl === undefined && gv === undefined;
+                      const bothNull = (gl === undefined || gl === null) && (gv === undefined || gv === null);
                       const bothNumbers = Number.isFinite(Number(gl)) && Number.isFinite(Number(gv)) && Number(gl) >= 0 && Number(gv) >= 0;
                       const okTeams = String(r.local || '').trim() && String(r.visitante || '').trim();
-                      const oneSideOnly = (gl !== undefined && gv === undefined) || (gl === undefined && gv !== undefined);
-                      const isValid = okTeams && (bothEmpty || bothNumbers || oneSideOnly);
+                      const oneSideOnly = ((gl !== undefined && gl !== null) && (gv === undefined || gv === null)) || ((gl === undefined || gl === null) && (gv !== undefined && gv !== null));
+                      const isPendiente = r.pendiente || bothNull;
+                      const isValid = okTeams && (isPendiente || bothNumbers || oneSideOnly);
                       const exists = existingMap[key];
-                      const color = !isValid ? 'bg-red-600' : oneSideOnly ? 'bg-amber-500' : (exists ? 'bg-slate-600' : 'bg-blue-600');
-                      const label = !isValid ? 'Corregir' : oneSideOnly ? 'Pendiente' : (exists ? 'Actualizar' : 'Crear');
+                      const color = !isValid ? 'bg-red-600' : isPendiente ? 'bg-amber-500' : (exists ? 'bg-slate-600' : 'bg-blue-600');
+                      const label = !isValid ? 'Corregir' : isPendiente ? 'Pendiente' : (exists ? 'Actualizar' : 'Crear');
                       return <Badge className={`${color}`}>{label}</Badge>;
                     })()}
                   </td>
