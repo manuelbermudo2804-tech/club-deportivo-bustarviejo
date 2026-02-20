@@ -45,7 +45,12 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
 
   const handleEdit = (index, field, value) => {
     const updated = [...rows];
-    updated[index] = { ...updated[index], [field]: field.includes('goles') ? Number(value) : value };
+    if (field.includes('goles')) {
+      // Empty string means "no score" (pending), not 0
+      updated[index] = { ...updated[index], [field]: value === '' ? null : Number(value), pendiente: false };
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
     setRows(updated);
   };
 
