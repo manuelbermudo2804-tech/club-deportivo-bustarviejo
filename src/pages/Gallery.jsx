@@ -67,7 +67,12 @@ export default function Gallery() {
         if (user?.player_id) {
           return await base44.entities.Player.filter({ id: user.player_id, activo: true });
         }
-        return await base44.entities.Player.filter({ email_jugador: user.email, activo: true });
+        // Try by email_jugador first, then acceso_menor_email
+        const byEmail = await base44.entities.Player.filter({ email_jugador: user.email, activo: true });
+        if (byEmail.length > 0) return byEmail;
+        const byMinor = await base44.entities.Player.filter({ acceso_menor_email: user.email, activo: true });
+        if (byMinor.length > 0) return byMinor;
+        return [];
       } else {
         const [byParent, byTutor2] = await Promise.all([
           base44.entities.Player.filter({ email_padre: user.email, activo: true }),
