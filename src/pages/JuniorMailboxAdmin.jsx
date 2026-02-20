@@ -114,7 +114,7 @@ export default function JuniorMailboxAdmin() {
       await base44.entities.JuniorMailbox.update(id, {
         respuesta_admin: respuesta,
         respondido_por: user.email,
-        respondido_por_nombre: user.full_name || "CD Bustarviejo",
+        respondido_por_nombre: "Administración CD Bustarviejo",
         fecha_respuesta: new Date().toISOString(),
         estado: "respondido",
         leido_por_jugador: false,

@@ -202,7 +202,7 @@ function MessageCard({ msg, isOwn }) {
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="w-4 h-4 text-green-600" />
                 <span className="text-xs font-bold text-green-700">
-                  Respuesta de {msg.respondido_por_nombre || "CD Bustarviejo"}
+                  Respuesta de Administración CD Bustarviejo
                 </span>
               </div>
               <p className="text-sm text-green-800 leading-relaxed">{msg.respuesta_admin}</p>
