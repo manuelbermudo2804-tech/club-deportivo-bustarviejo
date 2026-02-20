@@ -6,6 +6,26 @@ import { ClipboardPaste, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
+function isDateString(s) {
+  return /^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$/.test(s.trim());
+}
+
+function isScoreLine(s) {
+  return /^\d+\s*[-–]\s*\d+$/.test(s.trim());
+}
+
+function isTeamName(s) {
+  if (!s || !s.trim()) return false;
+  const t = s.trim();
+  if (/^\d+$/.test(t)) return false;
+  if (isDateString(t)) return false;
+  if (isScoreLine(t)) return false;
+  if (/^\d{4}[-\/]\d{4}$/.test(t)) return false;
+  if (/jornada\s*\d+/i.test(t)) return false;
+  // Must have at least one letter
+  return /[a-zA-ZáéíóúñÁÉÍÓÚÑ]/.test(t);
+}
+
 function parseResultsText(raw) {
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
   let temporada = "";
@@ -23,22 +43,77 @@ function parseResultsText(raw) {
     temporada = m >= 9 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
   }
 
+  // Strategy 1: Single-line format "EQUIPO LOCAL 2 - 1 EQUIPO VISITANTE"
+  // Make sure the "visitante" part is actually a team, not a date
   for (const l of lines) {
     const mf = l.match(/^(.+?)\s+(\d+)\s*[-–]\s*(\d+)\s+(.+)$/);
     if (mf) {
-      matches.push({ local: mf[1].trim(), visitante: mf[4].trim(), goles_local: parseInt(mf[2], 10), goles_visitante: parseInt(mf[3], 10) });
+      const localCandidate = mf[1].trim();
+      const visitanteCandidate = mf[4].trim();
+      if (isTeamName(localCandidate) && isTeamName(visitanteCandidate)) {
+        matches.push({ local: localCandidate, visitante: visitanteCandidate, goles_local: parseInt(mf[2], 10), goles_visitante: parseInt(mf[3], 10) });
+      }
     }
   }
 
+  // Strategy 2: Multi-line format from RFFM copy-paste
+  // Can be: EQUIPO1 / score / EQUIPO2 / fecha
+  // Or:     EQUIPO1 / score / fecha / EQUIPO2 / score / fecha...  (wrong, but handle)
+  // Or:     EQUIPO1 / EQUIPO2 / score / fecha  (unlikely but handle)
   if (matches.length === 0) {
-    for (let i = 0; i < lines.length - 2; i++) {
-      const sm = lines[i + 1]?.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+    // Find all score lines and try to find teams around them
+    for (let i = 0; i < lines.length; i++) {
+      const sm = lines[i].match(/^(\d+)\s*[-–]\s*(\d+)$/);
+      if (!sm) continue;
+
+      const golesLocal = parseInt(sm[1], 10);
+      const golesVisitante = parseInt(sm[2], 10);
+
+      // Look backwards for local team (skip dates)
+      let local = null;
+      for (let b = i - 1; b >= 0; b--) {
+        if (isTeamName(lines[b])) { local = lines[b].trim(); break; }
+        if (!isDateString(lines[b])) break; // stop if unknown line
+      }
+
+      // Look forwards for visitante team (skip dates)
+      let visitante = null;
+      for (let f = i + 1; f < lines.length; f++) {
+        if (isTeamName(lines[f])) { visitante = lines[f].trim(); break; }
+        if (!isDateString(lines[f])) break;
+      }
+
+      if (local && visitante) {
+        matches.push({ local, visitante, goles_local: golesLocal, goles_visitante: golesVisitante });
+      }
+    }
+  }
+
+  // Strategy 3: Format "EQUIPO1 score date" per line (only one team visible)
+  // This means the text has: EQUIPO1 \n 0 - 15 \n 18/02/2026 \n EQUIPO2 \n 0 - 8 \n ...
+  // But actually each match might be: LOCAL / SCORE / DATE with visitante missing
+  // In RFFM the format is typically: LOCAL \n SCORE \n DATE \n VISITANTE (next block)
+  // Let's try grouping: team, score, date, team, score, date → pair them
+  if (matches.length === 0) {
+    const teams = [];
+    const scores = [];
+    for (const l of lines) {
+      const sm = l.match(/^(\d+)\s*[-–]\s*(\d+)$/);
       if (sm) {
-        const local = lines[i]; const visitante = lines[i + 2];
-        if (local && visitante && !/^\d+$/.test(local) && !/^\d+$/.test(visitante)) {
-          matches.push({ local: local.trim(), visitante: visitante.trim(), goles_local: parseInt(sm[1], 10), goles_visitante: parseInt(sm[2], 10) });
-          i += 2;
-        }
+        scores.push({ g1: parseInt(sm[1], 10), g2: parseInt(sm[2], 10) });
+      } else if (isTeamName(l)) {
+        teams.push(l.trim());
+      }
+    }
+    // Each score should correspond to 2 teams
+    if (scores.length > 0 && teams.length >= scores.length * 2) {
+      for (let s = 0; s < scores.length; s++) {
+        matches.push({
+          local: teams[s * 2],
+          visitante: teams[s * 2 + 1],
+          goles_local: scores[s].g1,
+          goles_visitante: scores[s].g2,
+        });
       }
     }
   }
