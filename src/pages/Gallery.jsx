@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import GalleryForm from "../components/gallery/GalleryForm";
 import GalleryAlbum from "../components/gallery/GalleryAlbum";
 import ContactCard from "../components/ContactCard";
-import ChatPhotosSection from "../components/gallery/ChatPhotosSection";
+import ChatPhotosSection from "@/components/gallery/ChatPhotosSection";
 
 const CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
