@@ -187,6 +187,23 @@ export default function UserManagementTable({
                     />
                   </td>
 
+                  {/* Juvenil (menor) */}
+                  <td className="px-4 py-3 text-center">
+                    <Switch
+                      checked={user.es_menor === true}
+                      disabled={true}
+                    />
+                  </td>
+
+                  {/* Junta */}
+                  <td className="px-4 py-3 text-center">
+                    <Switch
+                      checked={user.es_junta === true}
+                      onCheckedChange={() => onToggleJunta(user)}
+                      disabled={isRestricted || isDeleted}
+                    />
+                  </td>
+
                   {/* Tiene Hijos */}
                   <td className="px-4 py-3 text-center">
                     <Switch
