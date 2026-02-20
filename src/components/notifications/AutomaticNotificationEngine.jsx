@@ -223,10 +223,67 @@ export default function AutomaticNotificationEngine({ user }) {
             titulo: "⭐ Nueva evaluación disponible",
             mensaje: `El entrenador ha publicado una nueva evaluación de ${evaluation.jugador_nombre}`,
             prioridad: "normal",
-            url_accion: "/PlayerProfile",
+            url_accion: "/PlayerEvaluations",
             referencia_id: notifKey,
             vista: false
           });
+
+          // Also notify minor if they have juvenile access
+          const playerData = myPlayers.find(p => p.id === evaluation.jugador_id);
+          if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado && !playerData?.acceso_menor_revocado) {
+            const minorNotifKey = `evaluation-new-minor-${evaluation.id}`;
+            try {
+              await base44.entities.AppNotification.create({
+                usuario_email: playerData.acceso_menor_email,
+                tipo: "evaluacion_nueva",
+                titulo: "⭐ ¡Tu entrenador te ha evaluado!",
+                mensaje: `${evaluation.entrenador_nombre} ha publicado una nueva evaluación para ti. ¡Entra a verla! 💪`,
+                prioridad: "normal",
+                url_accion: "/PlayerEvaluations",
+                referencia_id: minorNotifKey,
+                vista: false
+              });
+
+              // Send motivational email to minor
+              const avgScore = ((evaluation.tecnica + evaluation.tactica + evaluation.fisica + evaluation.actitud + evaluation.trabajo_equipo) / 5).toFixed(1);
+              const overallEmoji = avgScore >= 4.5 ? "🏆" : avgScore >= 4 ? "⭐" : avgScore >= 3 ? "💪" : "📈";
+              const overallMsg = avgScore >= 4.5 ? "¡Rendimiento ÉLITE!" : avgScore >= 4 ? "¡Muy buen nivel!" : avgScore >= 3 ? "¡Buen trabajo!" : "¡A seguir mejorando!";
+
+              await base44.functions.invoke('sendEmail', {
+                to: playerData.acceso_menor_email,
+                subject: `${overallEmoji} ¡Nueva evaluación de tu entrenador! - CD Bustarviejo`,
+                html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,sans-serif;">
+<table width="100%" style="background:#f1f5f9;padding:24px 8px;"><tr><td align="center">
+<table width="100%" style="max-width:480px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<tr><td style="background:linear-gradient(135deg,#7c3aed,#6366f1);padding:28px 24px;text-align:center;">
+  <div style="font-size:48px;margin-bottom:8px;">${overallEmoji}</div>
+  <div style="color:#fff;font-size:22px;font-weight:800;">¡TU ENTRENADOR TE HA EVALUADO!</div>
+  <div style="color:#c4b5fd;font-size:14px;margin-top:4px;">${overallMsg}</div>
+</td></tr>
+<tr><td style="padding:24px;text-align:center;">
+  <div style="background:#f5f3ff;border:2px solid #c4b5fd;border-radius:12px;padding:16px;">
+    <div style="color:#5b21b6;font-size:14px;font-weight:600;">Tu nota media</div>
+    <div style="color:#7c3aed;font-size:36px;font-weight:900;margin:8px 0;">${avgScore}/5</div>
+  </div>
+  <p style="color:#475569;font-size:15px;margin-top:16px;line-height:1.6;">
+    Hola <strong>${playerData.nombre?.split(" ")[0] || "crack"}</strong> 👋<br><br>
+    ${evaluation.entrenador_nombre} ha publicado una nueva evaluación para ti.
+    ${evaluation.fortalezas ? `<br><br>💪 <strong>Tus superpoderes:</strong> ${evaluation.fortalezas}` : ""}
+    ${evaluation.aspectos_mejorar ? `<br><br>🎯 <strong>Tu próximo reto:</strong> ${evaluation.aspectos_mejorar}` : ""}
+  </p>
+  <a href="https://app.cdbustarviejo.com/playerevaluations" style="display:block;background:#7c3aed;color:#fff !important;font-size:16px;font-weight:800;text-decoration:none;padding:16px;border-radius:12px;margin-top:20px;">
+    📊 VER MI EVALUACIÓN COMPLETA
+  </a>
+</td></tr>
+<tr><td style="background:#1e293b;padding:16px;text-align:center;">
+  <div style="color:#94a3b8;font-size:12px;">CD Bustarviejo · ¡Sigue entrenando duro! 🔥</div>
+</td></tr>
+</table></td></tr></table></body></html>`
+              }).catch(err => console.error("Error sending eval email to minor:", err));
+            } catch (minorErr) {
+              console.error("Error creating minor evaluation notification:", minorErr);
+            }
+          }
         }
       }
 
