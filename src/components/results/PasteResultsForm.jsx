@@ -6,22 +6,46 @@ import { ClipboardPaste, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-function isDateString(s) {
-  return /^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$/.test(s.trim());
-}
-
 function isScoreLine(s) {
   return /^\d+\s*[-–]\s*\d+$/.test(s.trim());
+}
+
+function isPendingScore(s) {
+  return /^-$/.test(s.trim());
+}
+
+function isNoiseLine(s) {
+  const t = s.trim();
+  if (!t) return true;
+  // Date like 18/02/2026
+  if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$/.test(t)) return true;
+  // Time like 18:00h or 10:00h
+  if (/^\d{1,2}:\d{2}h?$/i.test(t)) return true;
+  // "Lugar:" lines
+  if (/^lugar:/i.test(t)) return true;
+  // "VER ACTA" lines
+  if (/ver\s*acta/i.test(t)) return true;
+  // Section headers at the end
+  if (/^(resultados|calendario|clasificaci[oó]n|goleadores)$/i.test(t)) return true;
+  // Temporada line
+  if (/^temporada\s+\d{4}[-\/]\d{4}/i.test(t)) return true;
+  // Competition name line (PRIMERA BENJAMÍN etc)
+  if (/grupo\s+\d+/i.test(t)) return true;
+  // Jornada header with date in parentheses
+  if (/^jornada\s+\d+/i.test(t)) return true;
+  // Pure numbers
+  if (/^\d+$/.test(t)) return true;
+  // Season format
+  if (/^\d{4}[-\/]\d{4}$/.test(t)) return true;
+  return false;
 }
 
 function isTeamName(s) {
   if (!s || !s.trim()) return false;
   const t = s.trim();
-  if (/^\d+$/.test(t)) return false;
-  if (isDateString(t)) return false;
+  if (isNoiseLine(t)) return false;
   if (isScoreLine(t)) return false;
-  if (/^\d{4}[-\/]\d{4}$/.test(t)) return false;
-  if (/jornada\s*\d+/i.test(t)) return false;
+  if (isPendingScore(t)) return false;
   // Must have at least one letter
   return /[a-zA-ZáéíóúñÁÉÍÓÚÑ]/.test(t);
 }
@@ -32,8 +56,11 @@ function parseResultsText(raw) {
   let jornada = 1;
   const matches = [];
 
+  // Extract metadata
   for (const l of lines) {
     if (/^\d{4}[-\/]\d{4}$/.test(l)) { temporada = l.replace('-', '/'); continue; }
+    const tmMatch = l.match(/temporada\s+(\d{4}[-\/]\d{4})/i);
+    if (tmMatch) { temporada = tmMatch[1].replace('-', '/'); continue; }
     const jm = l.match(/jornada\s*(\d+)/i);
     if (jm) { jornada = parseInt(jm[1], 10); continue; }
   }
@@ -44,7 +71,6 @@ function parseResultsText(raw) {
   }
 
   // Strategy 1: Single-line format "EQUIPO LOCAL 2 - 1 EQUIPO VISITANTE"
-  // Make sure the "visitante" part is actually a team, not a date
   for (const l of lines) {
     const mf = l.match(/^(.+?)\s+(\d+)\s*[-–]\s*(\d+)\s+(.+)$/);
     if (mf) {
@@ -56,65 +82,48 @@ function parseResultsText(raw) {
     }
   }
 
-  // Strategy 2: Multi-line format from RFFM copy-paste
-  // Can be: EQUIPO1 / score / EQUIPO2 / fecha
-  // Or:     EQUIPO1 / score / fecha / EQUIPO2 / score / fecha...  (wrong, but handle)
-  // Or:     EQUIPO1 / EQUIPO2 / score / fecha  (unlikely but handle)
+  // Strategy 2: RFFM multi-line block format
+  // Pattern: EQUIPO_LOCAL \n SCORE \n ...noise (date, time, lugar, acta)... \n EQUIPO_VISITANTE
+  // Blocks repeat. Extract only meaningful lines (teams + scores)
   if (matches.length === 0) {
-    // Find all score lines and try to find teams around them
-    for (let i = 0; i < lines.length; i++) {
-      const sm = lines[i].match(/^(\d+)\s*[-–]\s*(\d+)$/);
-      if (!sm) continue;
-
-      const golesLocal = parseInt(sm[1], 10);
-      const golesVisitante = parseInt(sm[2], 10);
-
-      // Look backwards for local team (skip dates)
-      let local = null;
-      for (let b = i - 1; b >= 0; b--) {
-        if (isTeamName(lines[b])) { local = lines[b].trim(); break; }
-        if (!isDateString(lines[b])) break; // stop if unknown line
-      }
-
-      // Look forwards for visitante team (skip dates)
-      let visitante = null;
-      for (let f = i + 1; f < lines.length; f++) {
-        if (isTeamName(lines[f])) { visitante = lines[f].trim(); break; }
-        if (!isDateString(lines[f])) break;
-      }
-
-      if (local && visitante) {
-        matches.push({ local, visitante, goles_local: golesLocal, goles_visitante: golesVisitante });
-      }
-    }
-  }
-
-  // Strategy 3: Format "EQUIPO1 score date" per line (only one team visible)
-  // This means the text has: EQUIPO1 \n 0 - 15 \n 18/02/2026 \n EQUIPO2 \n 0 - 8 \n ...
-  // But actually each match might be: LOCAL / SCORE / DATE with visitante missing
-  // In RFFM the format is typically: LOCAL \n SCORE \n DATE \n VISITANTE (next block)
-  // Let's try grouping: team, score, date, team, score, date → pair them
-  if (matches.length === 0) {
-    const teams = [];
-    const scores = [];
+    // Filter to only team names and score lines (including pending "-")
+    const meaningful = [];
     for (const l of lines) {
-      const sm = l.match(/^(\d+)\s*[-–]\s*(\d+)$/);
-      if (sm) {
-        scores.push({ g1: parseInt(sm[1], 10), g2: parseInt(sm[2], 10) });
-      } else if (isTeamName(l)) {
-        teams.push(l.trim());
+      const t = l.trim();
+      if (isScoreLine(t)) {
+        const sm = t.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+        meaningful.push({ type: "score", g1: parseInt(sm[1], 10), g2: parseInt(sm[2], 10) });
+      } else if (isPendingScore(t)) {
+        meaningful.push({ type: "pending" });
+      } else if (isTeamName(t)) {
+        meaningful.push({ type: "team", name: t });
       }
+      // noise lines are skipped
     }
-    // Each score should correspond to 2 teams
-    if (scores.length > 0 && teams.length >= scores.length * 2) {
-      for (let s = 0; s < scores.length; s++) {
-        matches.push({
-          local: teams[s * 2],
-          visitante: teams[s * 2 + 1],
-          goles_local: scores[s].g1,
-          goles_visitante: scores[s].g2,
-        });
+
+    // Now pair: team, score/pending, team → one match
+    let i = 0;
+    while (i < meaningful.length) {
+      if (meaningful[i].type === "team") {
+        const local = meaningful[i].name;
+        // Next should be score or pending
+        if (i + 1 < meaningful.length && (meaningful[i + 1].type === "score" || meaningful[i + 1].type === "pending")) {
+          const scoreItem = meaningful[i + 1];
+          // Next after score should be visitante team
+          if (i + 2 < meaningful.length && meaningful[i + 2].type === "team") {
+            const visitante = meaningful[i + 2].name;
+            if (scoreItem.type === "score") {
+              matches.push({ local, visitante, goles_local: scoreItem.g1, goles_visitante: scoreItem.g2 });
+            } else {
+              // Pending match (no score yet)
+              matches.push({ local, visitante, goles_local: null, goles_visitante: null, pendiente: true });
+            }
+            i += 3;
+            continue;
+          }
+        }
       }
+      i++;
     }
   }
 
