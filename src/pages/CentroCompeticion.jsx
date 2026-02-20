@@ -350,16 +350,22 @@ export default function CentroCompeticion() {
       for (const rec of prev) { try { await base44.entities.Resultado.delete(rec.id); } catch {} }
 
       // 2) Insertar todo normalizado (partidos pendientes sin marcador)
-      const isNum = (v) => Number.isFinite(Number(v)) && Number(v) >= 0;
-      const rows = (matches || []).map(m => ({
-        categoria,
-        temporada,
-        jornada: targetJornada,
-        local: String(m.local || '').trim(),
-        visitante: String(m.visitante || '').trim(),
-        goles_local: isNum(m.goles_local) && isNum(m.goles_visitante) ? Number(m.goles_local) : undefined,
-        goles_visitante: isNum(m.goles_local) && isNum(m.goles_visitante) ? Number(m.goles_visitante) : undefined,
-      }));
+      const isValidScore = (v) => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v)) && Number(v) >= 0;
+      const rows = (matches || [])
+        .filter(m => String(m.local || '').trim() && String(m.visitante || '').trim())
+        .map(m => {
+          const hasBothScores = isValidScore(m.goles_local) && isValidScore(m.goles_visitante);
+          return {
+            categoria,
+            temporada,
+            jornada: targetJornada,
+            local: String(m.local || '').trim(),
+            visitante: String(m.visitante || '').trim(),
+            goles_local: hasBothScores ? Number(m.goles_local) : undefined,
+            goles_visitante: hasBothScores ? Number(m.goles_visitante) : undefined,
+            estado: hasBothScores ? 'finalizado' : 'pendiente',
+          };
+        });
       const RBATCH = 10;
       for (let b = 0; b < rows.length; b += RBATCH) {
         await base44.entities.Resultado.bulkCreate(rows.slice(b, b + RBATCH));
