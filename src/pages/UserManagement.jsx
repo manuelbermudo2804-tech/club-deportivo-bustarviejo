@@ -1318,7 +1318,6 @@ CD Bustarviejo`);
                 );
               })}
             </div>
-          )}
         </CardContent>
       </Card>
       )}
