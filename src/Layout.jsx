@@ -1936,6 +1936,17 @@ export default function Layout({ children, currentPageName }) {
                       return;
                     }
 
+                    // Menor: onboarding propio (no usa el selector normal)
+                    if (isMinor || user.tipo_panel === 'jugador_menor') {
+                      // Si no aceptó normas → mostrar onboarding del menor
+                      if (!user.minor_normas_aceptadas) {
+                        setOnboardingView('minor_onboarding');
+                        return;
+                      }
+                      setOnboardingView('none');
+                      return;
+                    }
+
                     // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
 
                     // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor
