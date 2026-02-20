@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Bell, Calendar, Trophy, Megaphone, Image, Star, PartyPopper, ClipboardList, ChevronRight, Zap, CheckCircle2
 } from "lucide-react";
+import MinorAttendanceCard from "@/components/minor/MinorAttendanceCard";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
 
