@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, Mail, Phone, MapPin, Calendar, Heart, AlertTriangle, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import PlayerEvaluationsSection from "../evaluations/PlayerEvaluationsSection";
 
 export default function PlayerDetailDialog({ player, open, onOpenChange }) {
   const [coach, setCoach] = useState(null);
