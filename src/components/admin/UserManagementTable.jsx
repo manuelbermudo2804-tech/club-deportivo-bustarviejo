@@ -87,6 +87,12 @@ export default function UserManagementTable({
               ⚽ Jugador
             </th>
             <th className="px-4 py-3 text-center font-semibold text-slate-700 whitespace-nowrap">
+              🧒 Juvenil
+            </th>
+            <th className="px-4 py-3 text-center font-semibold text-slate-700 whitespace-nowrap">
+              🏛️ Junta
+            </th>
+            <th className="px-4 py-3 text-center font-semibold text-slate-700 whitespace-nowrap">
               👨‍👩‍👧 Hijos
             </th>
             <th className="px-4 py-3 text-center font-semibold text-slate-700 whitespace-nowrap">
