@@ -603,6 +603,18 @@ const alerts = [];
         priority: 2
       });
     }
+
+    if (pendingJuniorMessages > 0) {
+      alerts.push({
+        id: "junior-mailbox",
+        icon: Inbox,
+        title: "📬 Buzón de Jugadores",
+        description: `${pendingJuniorMessages} mensaje${pendingJuniorMessages > 1 ? 's' : ''} de jugadores sin responder`,
+        url: createPageUrl("JuniorMailboxAdmin"),
+        color: "bg-violet-600",
+        priority: 3
+      });
+    }
   }
 
   // Alertas para tesoreros (tareas de tesorero)
