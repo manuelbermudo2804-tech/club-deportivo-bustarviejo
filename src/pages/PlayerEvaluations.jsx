@@ -13,6 +13,7 @@ import { es } from "date-fns/locale";
 
 import EvaluationForm from "../components/evaluations/EvaluationForm";
 import EvaluationCard from "../components/evaluations/EvaluationCard";
+import MinorEvaluationCard from "../components/evaluations/MinorEvaluationCard";
 
 export default function PlayerEvaluations() {
   const [showForm, setShowForm] = useState(false);
@@ -114,25 +115,37 @@ export default function PlayerEvaluations() {
     : [];
 
   if (isMinorOrPlayer) {
+    const isMinorView = user?.tipo_panel === 'jugador_menor' || user?.es_menor === true;
     return (
-      <div className="p-6 lg:p-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">📊 Mis Evaluaciones</h1>
-          <p className="text-slate-600 mt-1">Lo que dice tu entrenador de ti</p>
+      <div className="p-4 lg:p-8 space-y-6 max-w-2xl mx-auto">
+        <div className="text-center">
+          <div className="text-5xl mb-2">📊</div>
+          <h1 className="text-2xl font-black text-slate-900">
+            {isMinorView ? "Tus Evaluaciones" : "Mis Evaluaciones"}
+          </h1>
+          <p className="text-slate-500 mt-1">
+            {isMinorView ? "Lo que dice tu entrenador de ti · ¡Sigue mejorando! 💪" : "Lo que dice tu entrenador de ti"}
+          </p>
         </div>
         {myEvaluations.length === 0 ? (
           <Card className="border-none shadow-lg">
             <CardContent className="p-12 text-center">
-              <div className="text-6xl mb-4">📋</div>
-              <p className="text-slate-500">Aún no tienes evaluaciones publicadas</p>
-              <p className="text-slate-400 text-sm mt-2">Tu entrenador las publicará cuando las tenga listas</p>
+              <div className="text-7xl mb-4">🏋️</div>
+              <p className="text-slate-600 font-medium">Aún no tienes evaluaciones</p>
+              <p className="text-slate-400 text-sm mt-2">
+                {isMinorView 
+                  ? "Tu entrenador las publicará pronto. ¡Sigue entrenando duro!" 
+                  : "Tu entrenador las publicará cuando las tenga listas"}
+              </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
             <AnimatePresence>
-              {myEvaluations.map((evaluation) => (
-                <EvaluationCard key={evaluation.id} evaluation={evaluation} />
+              {myEvaluations.map((evaluation, idx) => (
+                isMinorView 
+                  ? <MinorEvaluationCard key={evaluation.id} evaluation={evaluation} index={idx} />
+                  : <EvaluationCard key={evaluation.id} evaluation={evaluation} />
               ))}
             </AnimatePresence>
           </div>
