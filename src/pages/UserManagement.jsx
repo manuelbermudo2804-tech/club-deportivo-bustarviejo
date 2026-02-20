@@ -511,6 +511,7 @@ const handleChatBlock = (user) => {
   const admins = activeUsersWithoutDeleted.filter(u => u.role === "admin");
   const deletedUsers = users.filter(u => u.eliminado === true);
   const jugadores = activeUsersWithoutDeleted.filter(u => u.es_jugador === true);
+  const menores = activeUsersWithoutDeleted.filter(u => u.es_menor === true);
   const entrenadores = activeUsersWithoutDeleted.filter(u => u.es_entrenador === true && !u.es_coordinador);
   const coordinadores = activeUsersWithoutDeleted.filter(u => u.es_coordinador === true);
   const tesoreros = activeUsersWithoutDeleted.filter(u => u.es_tesorero === true);
