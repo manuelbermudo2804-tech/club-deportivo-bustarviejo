@@ -316,6 +316,13 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (!player && !finalData.fecha_aceptacion_privacidad) {
       finalData.fecha_aceptacion_privacidad = new Date().toISOString();
     }
+    // If minor access was authorized during registration, add consent metadata
+    if (finalData.acceso_menor_autorizado && finalData.acceso_menor_email) {
+      finalData.acceso_menor_fecha_consentimiento = new Date().toISOString();
+      finalData.acceso_menor_padre_email = currentPlayer.email_padre;
+      finalData.acceso_menor_texto_version = "v1.0";
+      finalData.acceso_menor_user_agent = navigator.userAgent;
+    }
     onSubmit(finalData);
   };
 
