@@ -299,6 +299,8 @@ export default function UserManagementTable({
                             </p>
                             <p>
                               <strong>Rol:</strong> {user.role}
+                              {user.es_menor && " · 🧒 Juvenil"}
+                              {user.es_jugador && " · ⚽ Jugador +18"}
                             </p>
                             <p>
                               <strong>Registrado:</strong>{" "}
