@@ -243,6 +243,9 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
             </div>
           )}
 
+          {/* Evaluaciones del Entrenador */}
+          <PlayerEvaluationsSection evaluations={evaluations} />
+
           {/* Entrenador */}
           {coach && (
             <div className="bg-green-50 rounded-lg p-4 space-y-3 border border-green-200">
