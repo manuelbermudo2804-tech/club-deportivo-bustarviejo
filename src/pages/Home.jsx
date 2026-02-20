@@ -773,6 +773,17 @@ export default function Home() {
           </div>
         )}
 
+        {/* Botón temporal: Preview Stats Jugador */}
+        {isAdmin && (
+          <div className="bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-purple-500">
+            <Link to={createPageUrl("PlayerStatsPreview")}>
+              <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white font-bold py-4 text-lg">
+                📊 Preview Stats Jugador
+              </Button>
+            </Link>
+          </div>
+        )}
+
         {/* Resumen de jugadores - solo móvil (en desktop ya está en KPIs) */}
         <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
           <div className="text-center">
