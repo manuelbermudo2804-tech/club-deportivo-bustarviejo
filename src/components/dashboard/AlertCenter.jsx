@@ -64,6 +64,7 @@ export default function AlertCenter({
   unresolvedAdminChats = 0,
   unreadStaffMessages = 0,
   pendingSecondParentInvitations = 0,
+  pendingMinorInvitations = 0,
   isAdmin = false,
   isCoach = false,
   isParent = true,
