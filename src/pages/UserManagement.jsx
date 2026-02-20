@@ -424,6 +424,7 @@ const handleChatBlock = (user) => {
       if (roleFilter === "admin" && user.role !== "admin") return false;
       if (roleFilter === "parent" && (user.role === "admin" || user.es_jugador || user.es_entrenador || user.es_coordinador || user.es_tesorero)) return false;
       if (roleFilter === "player" && user.es_jugador !== true) return false;
+      if (roleFilter === "minor" && user.es_menor !== true) return false;
       if (roleFilter === "coach" && (user.es_entrenador !== true || user.es_coordinador === true)) return false;
       if (roleFilter === "coordinator" && user.es_coordinador !== true) return false;
       if (roleFilter === "treasurer" && user.es_tesorero !== true) return false;
