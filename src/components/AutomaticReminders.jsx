@@ -86,29 +86,28 @@ Club de Fútbol Bustarviejo
               const categoryPlayers = players.filter(p => p.deporte === schedule.categoria && p.activo);
 
               for (const player of categoryPlayers) {
+                // Send to parents
                 const email = player.email_padre || player.email_tutor_2;
-                if (!email) continue;
+                if (email) {
+                  await base44.integrations.Core.SendEmail({
+                    from_name: "CF Bustarviejo",
+                    to: email,
+                    subject: `⏰ Entrenamiento en 2 horas - ${schedule.categoria}`,
+                    body: `¡Hola!\n\nRecordatorio de entrenamiento hoy:\n\n📍 ${schedule.ubicacion || "Campo habitual"}\n⏰ Hora: ${schedule.hora_inicio}\n👕 ${schedule.categoria}\n\n¡Nos vemos en el campo!\n\nCF Bustarviejo`
+                  });
+                  await new Promise(resolve => setTimeout(resolve, 300));
+                }
 
-                await base44.integrations.Core.SendEmail({
-                  from_name: "CF Bustarviejo",
-                  to: email,
-                  subject: `⏰ Entrenamiento en 2 horas - ${schedule.categoria}`,
-                  body: `
-¡Hola!
-
-Recordatorio de entrenamiento hoy:
-
-📍 ${schedule.ubicacion || "Campo habitual"}
-⏰ Hora: ${schedule.hora_inicio}
-👕 ${schedule.categoria}
-
-¡Nos vemos en el campo!
-
-CF Bustarviejo
-                  `
-                });
-
-                await new Promise(resolve => setTimeout(resolve, 300));
+                // Also send to minor if they have juvenile access
+                if (player.acceso_menor_email && player.acceso_menor_autorizado && !player.acceso_menor_revocado) {
+                  await base44.integrations.Core.SendEmail({
+                    from_name: "CD Bustarviejo",
+                    to: player.acceso_menor_email,
+                    subject: `⚽ ¡Entrenamiento en 2 horas! - ${schedule.categoria}`,
+                    body: `¡Ey ${player.nombre?.split(" ")[0] || "crack"}! 🏃\n\nRecordatorio: tienes entrenamiento HOY en 2 horas:\n\n📍 ${schedule.ubicacion || "Campo habitual"}\n⏰ Hora: ${schedule.hora_inicio}\n\n¡Prepara tus botas y nos vemos en el campo! 💪⚽\n\nCD Bustarviejo`
+                  });
+                  await new Promise(resolve => setTimeout(resolve, 300));
+                }
               }
 
               // Mark as sent (reset at midnight)
