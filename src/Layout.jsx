@@ -2935,6 +2935,7 @@ export default function Layout({ children, currentPageName }) {
           isCoordinator={isCoordinator}
           isTreasurer={isTreasurer}
           isPlayer={isPlayer}
+          isMinor={isMinor}
           currentPageName={currentPageName}
         />
 

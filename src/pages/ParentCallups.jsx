@@ -59,7 +59,8 @@ export default function ParentCallups() {
         const allPlayers = await base44.entities.Player.list();
         const userPlayers = allPlayers.filter(p => 
           p.email_padre === currentUser.email || 
-          p.email_tutor_2 === currentUser.email
+          p.email_tutor_2 === currentUser.email ||
+          (p.acceso_menor_email === currentUser.email && p.acceso_menor_autorizado === true)
         );
         setMyPlayers(userPlayers);
       } catch (error) {

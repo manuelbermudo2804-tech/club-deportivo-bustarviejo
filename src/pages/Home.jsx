@@ -57,6 +57,9 @@ export default function Home() {
 
         if (adminCheck) {
           setHasPlayers(currentUser.tiene_hijos_jugando === true);
+        } else if (currentUser.tipo_panel === 'jugador_menor' || currentUser.es_menor === true) {
+          window.location.href = createPageUrl('MinorDashboard');
+          return;
         } else if (currentUser.es_junta === true) {
           // Junta se queda en Home
         } else if (currentUser.es_coordinador) {

@@ -93,6 +93,54 @@ export default function PlayerEvaluations() {
     : 0;
   const totalEvaluated = new Set(filteredEvaluations.map(e => e.jugador_id)).size;
 
+  // Modo menor/jugador: mostrar solo sus evaluaciones
+  const isMinorOrPlayer = user && !isCoach && (user.tipo_panel === 'jugador_menor' || user.es_menor === true || user.tipo_panel === 'jugador_adulto' || user.es_jugador === true);
+
+  const { data: myPlayerForEvals } = useQuery({
+    queryKey: ['myPlayerForEvals', user?.email],
+    queryFn: async () => {
+      // Buscar ficha vinculada como menor o jugador adulto
+      let linked = await base44.entities.Player.filter({ acceso_menor_email: user.email, acceso_menor_autorizado: true, activo: true });
+      if (linked.length === 0) {
+        linked = await base44.entities.Player.filter({ email_jugador: user.email, acceso_jugador_autorizado: true, activo: true });
+      }
+      return linked[0] || null;
+    },
+    enabled: !!user?.email && isMinorOrPlayer,
+  });
+
+  const myEvaluations = isMinorOrPlayer && myPlayerForEvals
+    ? evaluations.filter(e => e.jugador_id === myPlayerForEvals.id && e.visible_para_padres === true)
+    : [];
+
+  if (isMinorOrPlayer) {
+    return (
+      <div className="p-6 lg:p-8 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">📊 Mis Evaluaciones</h1>
+          <p className="text-slate-600 mt-1">Lo que dice tu entrenador de ti</p>
+        </div>
+        {myEvaluations.length === 0 ? (
+          <Card className="border-none shadow-lg">
+            <CardContent className="p-12 text-center">
+              <div className="text-6xl mb-4">📋</div>
+              <p className="text-slate-500">Aún no tienes evaluaciones publicadas</p>
+              <p className="text-slate-400 text-sm mt-2">Tu entrenador las publicará cuando las tenga listas</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnimatePresence>
+              {myEvaluations.map((evaluation) => (
+                <EvaluationCard key={evaluation.id} evaluation={evaluation} />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   if (!isCoach) {
     return (
       <div className="p-6 lg:p-8">
