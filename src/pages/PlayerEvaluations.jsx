@@ -94,25 +94,33 @@ export default function PlayerEvaluations() {
     : 0;
   const totalEvaluated = new Set(filteredEvaluations.map(e => e.jugador_id)).size;
 
-  // Modo menor/jugador: mostrar solo sus evaluaciones
-  const isMinorOrPlayer = user && !isCoach && (user.tipo_panel === 'jugador_menor' || user.es_menor === true || user.tipo_panel === 'jugador_adulto' || user.es_jugador === true);
-
-  const { data: myPlayerForEvals } = useQuery({
+  // Buscar ficha vinculada como menor o jugador adulto (siempre si no es coach)
+  const { data: myPlayerForEvals, isLoading: loadingMyPlayer } = useQuery({
     queryKey: ['myPlayerForEvals', user?.email],
     queryFn: async () => {
-      // Buscar ficha vinculada como menor o jugador adulto
       let linked = await base44.entities.Player.filter({ acceso_menor_email: user.email, acceso_menor_autorizado: true, activo: true });
       if (linked.length === 0) {
         linked = await base44.entities.Player.filter({ email_jugador: user.email, acceso_jugador_autorizado: true, activo: true });
       }
       return linked[0] || null;
     },
-    enabled: !!user?.email && isMinorOrPlayer,
+    enabled: !!user?.email && !isCoach,
   });
+
+  // Modo menor/jugador: detectar por ficha vinculada real, no solo por flags del user
+  const isMinorOrPlayer = !isCoach && !!myPlayerForEvals;
 
   const myEvaluations = isMinorOrPlayer && myPlayerForEvals
     ? evaluations.filter(e => e.jugador_id === myPlayerForEvals.id && e.visible_para_padres === true)
     : [];
+
+  if (!isCoach && loadingMyPlayer) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-orange-500 border-t-transparent" />
+      </div>
+    );
+  }
 
   if (isMinorOrPlayer) {
     const isMinorView = user?.tipo_panel === 'jugador_menor' || user?.es_menor === true;
