@@ -168,6 +168,78 @@ export default function InvitationRequests() {
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="minor" className="space-y-4 mt-6">
+          {loadingAdult ? (
+            <div className="text-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-green-600 mx-auto" />
+            </div>
+          ) : filteredMinor.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-slate-500">
+                No hay solicitudes de acceso juvenil {filter !== "all" && `con estado "${filter}"`}
+              </CardContent>
+            </Card>
+          ) : (
+            filteredMinor.map(req => (
+              <Card key={req.id} className="border-l-4 border-l-green-500">
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">⚽</span>
+                        <h3 className="font-bold text-lg">{req.nombre_jugador}</h3>
+                        {req.estado === "pendiente" && <Badge className="bg-green-600 text-white">Pendiente</Badge>}
+                        {req.estado === "enviada" && <Badge className="bg-blue-600 text-white">Invitación Enviada</Badge>}
+                        {req.estado === "completada" && <Badge className="bg-slate-600 text-white">Completada</Badge>}
+                      </div>
+                      <div className="space-y-1 text-sm text-slate-600 mb-3">
+                        <p>📧 <strong>Email menor:</strong> {req.email_jugador}</p>
+                        <p>🏷️ <strong>Categoría:</strong> {req.categoria_deseada}</p>
+                        {req.fecha_nacimiento && <p>🎂 <strong>Fecha nac.:</strong> {new Date(req.fecha_nacimiento).toLocaleDateString('es-ES')}</p>}
+                        <p>👤 <strong>Solicitado por:</strong> {req.solicitado_por_nombre} ({req.solicitado_por_email})</p>
+                        {req.consentimiento_fecha && <p>✅ <strong>Consentimiento:</strong> {new Date(req.consentimiento_fecha).toLocaleString('es-ES')} ({req.consentimiento_version})</p>}
+                        <p className="text-xs text-slate-400 mt-1">
+                          {new Date(req.created_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      {req.notas && <p className="text-xs bg-green-50 rounded-lg p-2 text-green-800 mb-3">{req.notas}</p>}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(req.email_jugador)}
+                        >
+                          <Copy className="w-3 h-3 mr-1" /> Copiar email
+                        </Button>
+                        {req.estado === "pendiente" && (
+                          <>
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => markAsProcessedMutation.mutate({ id: req.id, type: 'adult', estado: 'enviada' })}
+                            >
+                              <Mail className="w-3 h-3 mr-1" /> Marcar Invitación Enviada
+                            </Button>
+                          </>
+                        )}
+                        {req.estado === "enviada" && (
+                          <Button
+                            size="sm"
+                            className="bg-slate-600 hover:bg-slate-700"
+                            onClick={() => markAsProcessedMutation.mutate({ id: req.id, type: 'adult', estado: 'completada' })}
+                          >
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> Marcar Completada
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </TabsContent>
+
         <TabsContent value="second_parent" className="space-y-4 mt-6">
           {loadingSecondParent ? (
             <div className="text-center py-12">
