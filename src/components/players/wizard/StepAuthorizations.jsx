@@ -140,6 +140,90 @@ export default function StepAuthorizations({
           </div>
         </>
       )}
+
+      {/* Acceso juvenil - solo menores 13-17 en creación */}
+      {!isEditing && !isAdultPlayerSelfRegistration && playerAge >= 13 && playerAge < 18 && (
+        <div className="space-y-4 border-2 border-teal-200 rounded-lg p-4 bg-teal-50">
+          <div className="flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-teal-600" />
+            <span className="font-bold text-teal-900">⚽ ACCESO JUVENIL A LA APP (Opcional)</span>
+          </div>
+          
+          <p className="text-sm text-teal-800">
+            Tu hijo/a tiene <strong>{playerAge} años</strong> y puede tener su propia cuenta en la app del club para ver convocatorias, clasificaciones, calendario, etc.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+              <p className="font-semibold text-green-800 text-xs mb-2 flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4" /> Podrá:
+              </p>
+              <ul className="text-xs text-green-700 space-y-1">
+                <li>✅ Ver convocatorias de partidos</li>
+                <li>✅ Ver calendario y horarios</li>
+                <li>✅ Ver clasificaciones y resultados</li>
+                <li>✅ Leer anuncios del club</li>
+              </ul>
+            </div>
+            <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+              <p className="font-semibold text-red-800 text-xs mb-2 flex items-center gap-1">
+                <ShieldX className="w-4 h-4" /> No podrá:
+              </p>
+              <ul className="text-xs text-red-700 space-y-1">
+                <li>❌ Chats con entrenadores/familias</li>
+                <li>❌ Pagos ni datos financieros</li>
+                <li>❌ Editar datos personales</li>
+                <li>❌ Documentos oficiales</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 bg-white rounded-lg border-2 border-teal-300">
+            <Checkbox
+              id="wiz-acceso-menor"
+              checked={currentPlayer.acceso_menor_autorizado === true}
+              onCheckedChange={(c) => {
+                setCurrentPlayer({
+                  ...currentPlayer,
+                  acceso_menor_autorizado: c,
+                  acceso_menor_email: c ? currentPlayer.acceso_menor_email : "",
+                });
+              }}
+            />
+            <label htmlFor="wiz-acceso-menor" className="text-sm font-semibold text-teal-900 cursor-pointer">
+              Sí, quiero activar el acceso juvenil para mi hijo/a
+            </label>
+          </div>
+
+          {currentPlayer.acceso_menor_autorizado && (
+            <div className="space-y-2 pl-2">
+              <Label className={fieldErrors.acceso_menor_email ? "text-red-600 font-bold" : ""}>
+                Email de tu hijo/a *
+              </Label>
+              <Input
+                type="email"
+                placeholder="email.de.tu.hijo@gmail.com"
+                value={currentPlayer.acceso_menor_email || ""}
+                onChange={(e) => {
+                  setCurrentPlayer({ ...currentPlayer, acceso_menor_email: e.target.value });
+                  if (fieldErrors.acceso_menor_email) setFieldErrors(prev => ({ ...prev, acceso_menor_email: null }));
+                }}
+                className={fieldErrors.acceso_menor_email ? "border-2 border-red-500 bg-red-50" : ""}
+              />
+              {fieldErrors.acceso_menor_email && <p className="text-xs text-red-600">⚠️ {fieldErrors.acceso_menor_email}</p>}
+              <p className="text-xs text-slate-500">
+                Este email recibirá la invitación tras aprobación del admin.
+              </p>
+
+              <Alert className="border-blue-200 bg-blue-50 mt-2">
+                <AlertDescription className="text-blue-800 text-xs">
+                  💡 El admin revisará la solicitud y, si la aprueba, tu hijo/a recibirá un email con instrucciones para crear su cuenta.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
