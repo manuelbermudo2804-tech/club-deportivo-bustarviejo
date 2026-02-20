@@ -645,15 +645,6 @@ export default function Home() {
 
 
 
-        {/* Botón temporal: Preview Stats Jugador */}
-        {isAdmin && (
-          <Link to={createPageUrl("PlayerStatsPreview")} className="block">
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 rounded-2xl p-4 text-center text-white font-bold text-lg shadow-xl transition-all active:scale-95">
-              📊 Preview Stats Jugador
-            </div>
-          </Link>
-        )}
-
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
         {(isAdmin || hasPlayers) && (
           <AlertCenter 
