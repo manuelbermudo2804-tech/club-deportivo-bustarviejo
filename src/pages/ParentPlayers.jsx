@@ -1073,6 +1073,9 @@ Email: cdbustarviejo@gmail.com
         </div>
       )}
 
+      {/* Banner de acceso juvenil para jugadores de 13-17 años */}
+      <MinorAccessBanner players={players} user={user} />
+
       {showForm && (
         <FullscreenFormModal
           title={editingPlayer ? `Editar: ${editingPlayer.nombre}` : "Registrar Nuevo Jugador"}
