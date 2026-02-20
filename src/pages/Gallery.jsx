@@ -46,7 +46,7 @@ export default function Gallery() {
         
         if (currentUser.role === "admin") {
           setUserRole("admin");
-        } else if (currentUser.role === "jugador") {
+        } else if (currentUser.role === "jugador" || currentUser.tipo_panel === "jugador_menor" || currentUser.es_menor) {
           setUserRole("player");
         } else if (currentUser.es_entrenador || currentUser.es_coordinador) {
           setUserRole("coach");
