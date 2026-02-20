@@ -1943,6 +1943,16 @@ export default function Layout({ children, currentPageName }) {
                         setOnboardingView('minor_onboarding');
                         return;
                       }
+                      // Tras aceptar normas, mostrar modal de instalación si no se ha completado
+                      const triggerInstallMinor = localStorage.getItem('installPromptAfterOnboarding') === 'true';
+                      if (triggerInstallMinor) {
+                        setInstallContext('onboarding');
+                        setShowInstallInstructions(true);
+                        localStorage.removeItem('installPromptAfterOnboarding');
+                      } else if (!localStorage.getItem('installCompleted')) {
+                        setInstallContext('onboarding');
+                        setShowInstallInstructions(true);
+                      }
                       setOnboardingView('none');
                       return;
                     }
