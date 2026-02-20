@@ -1834,6 +1834,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "🎉 Eventos", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📊 Mis Evaluaciones", url: createPageUrl("PlayerEvaluations"), icon: Star },
+    { title: "✉️ Mi Buzón", url: createPageUrl("JuniorMailbox"), icon: MessageCircle },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
   ];
