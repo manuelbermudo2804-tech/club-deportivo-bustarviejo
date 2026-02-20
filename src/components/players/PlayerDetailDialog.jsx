@@ -14,6 +14,7 @@ import PlayerEvaluationsSection from "../evaluations/PlayerEvaluationsSection";
 
 export default function PlayerDetailDialog({ player, open, onOpenChange }) {
   const [coach, setCoach] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
     const fetchCoach = async () => {
@@ -31,6 +32,23 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
     };
     fetchCoach();
   }, [player?.deporte, open]);
+
+  useEffect(() => {
+    const fetchEvaluations = async () => {
+      if (!player?.id || !open) return;
+      try {
+        const evals = await base44.entities.PlayerEvaluation.filter(
+          { jugador_id: player.id, visible_para_padres: true },
+          "-fecha_evaluacion",
+          10
+        );
+        setEvaluations(evals);
+      } catch (error) {
+        console.error("Error fetching evaluations:", error);
+      }
+    };
+    fetchEvaluations();
+  }, [player?.id, open]);
   if (!player) return null;
 
   const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
