@@ -375,11 +375,6 @@ export default function MinorDashboard() {
           />
         </div>
 
-        {/* Chat photos from coaches */}
-        {playerCategory && (
-          <MinorChatPhotos playerCategory={playerCategory} />
-        )}
-
         {/* Attendance section */}
         {linkedPlayer?.id && attendances.length > 0 && (
           <>
