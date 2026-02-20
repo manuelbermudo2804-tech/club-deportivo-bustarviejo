@@ -103,6 +103,8 @@ import InstallSuccessPreview from './pages/InstallSuccessPreview';
 import InvitationRequests from './pages/InvitationRequests';
 import JoinFemenino from './pages/JoinFemenino';
 import JoinReferral from './pages/JoinReferral';
+import JuniorMailbox from './pages/JuniorMailbox';
+import JuniorMailboxAdmin from './pages/JuniorMailboxAdmin';
 import LotteryManagement from './pages/LotteryManagement';
 import MarketListingDetail from './pages/MarketListingDetail';
 import MatchApp from './pages/MatchApp';
@@ -160,8 +162,6 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import JuniorMailbox from './pages/JuniorMailbox';
-import JuniorMailboxAdmin from './pages/JuniorMailboxAdmin';
 import __Layout from './Layout.jsx';
 
 
@@ -222,6 +222,8 @@ export const PAGES = {
     "InvitationRequests": InvitationRequests,
     "JoinFemenino": JoinFemenino,
     "JoinReferral": JoinReferral,
+    "JuniorMailbox": JuniorMailbox,
+    "JuniorMailboxAdmin": JuniorMailboxAdmin,
     "LotteryManagement": LotteryManagement,
     "MarketListingDetail": MarketListingDetail,
     "MatchApp": MatchApp,
@@ -279,8 +281,6 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "JuniorMailbox": JuniorMailbox,
-    "JuniorMailboxAdmin": JuniorMailboxAdmin,
 }
 
 export const pagesConfig = {
