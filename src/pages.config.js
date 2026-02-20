@@ -106,6 +106,7 @@ import JoinReferral from './pages/JoinReferral';
 import JuniorMailbox from './pages/JuniorMailbox';
 import JuniorMailboxAdmin from './pages/JuniorMailboxAdmin';
 import LotteryManagement from './pages/LotteryManagement';
+import ManualAcceso from './pages/ManualAcceso';
 import MarketListingDetail from './pages/MarketListingDetail';
 import MatchApp from './pages/MatchApp';
 import MatchResults from './pages/MatchResults';
@@ -140,8 +141,8 @@ import PlayerDashboard from './pages/PlayerDashboard';
 import PlayerEvaluations from './pages/PlayerEvaluations';
 import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
-import PlayerStatsPreview from './pages/PlayerStatsPreview';
 import Players from './pages/Players';
+import PlayerStatsPreview from './pages/PlayerStatsPreview';
 import PublicClubMembership from './pages/PublicClubMembership';
 import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
@@ -162,7 +163,6 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import ManualAcceso from './pages/ManualAcceso';
 import __Layout from './Layout.jsx';
 
 
@@ -226,6 +226,7 @@ export const PAGES = {
     "JuniorMailbox": JuniorMailbox,
     "JuniorMailboxAdmin": JuniorMailboxAdmin,
     "LotteryManagement": LotteryManagement,
+    "ManualAcceso": ManualAcceso,
     "MarketListingDetail": MarketListingDetail,
     "MatchApp": MatchApp,
     "MatchResults": MatchResults,
@@ -260,8 +261,8 @@ export const PAGES = {
     "PlayerEvaluations": PlayerEvaluations,
     "PlayerProfile": PlayerProfile,
     "PlayerRenewal": PlayerRenewal,
-    "PlayerStatsPreview": PlayerStatsPreview,
     "Players": Players,
+    "PlayerStatsPreview": PlayerStatsPreview,
     "PublicClubMembership": PublicClubMembership,
     "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
@@ -282,7 +283,6 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "ManualAcceso": ManualAcceso,
 }
 
 export const pagesConfig = {
