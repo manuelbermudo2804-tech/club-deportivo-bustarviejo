@@ -538,6 +538,8 @@ export default function Layout({ children, currentPageName }) {
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [isTreasurer, setIsTreasurer] = useState(false);
   const [isPlayer, setIsPlayer] = useState(false);
+  const [isMinor, setIsMinor] = useState(false);
+  const [minorPlayerData, setMinorPlayerData] = useState(null);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [playerName, setPlayerName] = useState(null);
   const [onboardingView, setOnboardingView] = useState('loading');
