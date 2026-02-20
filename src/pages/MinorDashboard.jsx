@@ -243,6 +243,13 @@ export default function MinorDashboard() {
     )
   ).length;
 
+  // Fetch attendance records for this player's category
+  const { data: attendances = [] } = useQuery({
+    queryKey: ["minorAttendance", playerCategory],
+    queryFn: () => base44.entities.Attendance.filter({ categoria: playerCategory }, "-fecha", 50),
+    enabled: !!playerCategory,
+  });
+
   const { data: mailboxMessages = [] } = useQuery({
     queryKey: ["minorMailbox", user?.email],
     queryFn: () => base44.entities.JuniorMailbox.filter({ jugador_email: user.email, estado: "respondido", leido_por_jugador: false }),
