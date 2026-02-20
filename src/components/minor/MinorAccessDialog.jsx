@@ -154,6 +154,32 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
               </div>
             </div>
 
+            {/* Qué pasará ahora - VISIBLE DESDE EL PRIMER PASO */}
+            <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+              <h3 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                ¿Qué pasará al activarlo?
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">1</span>
+                  <p className="text-sm text-orange-900">Nos facilitas el <strong>email de tu hijo/a</strong></p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
+                  <p className="text-sm text-orange-900">Se enviará una <strong>solicitud al administrador</strong> del club</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
+                  <p className="text-sm text-orange-900">El admin revisará y <strong>enviará una invitación</strong> al email de tu hijo/a</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">4</span>
+                  <p className="text-sm text-orange-900">Tu hijo/a crea su cuenta y <strong>accede a su panel juvenil</strong> con permisos limitados</p>
+                </div>
+              </div>
+            </div>
+
             <Alert className="border-blue-200 bg-blue-50">
               <AlertDescription className="text-blue-800 text-sm">
                 💡 <strong>Importante:</strong> Tú seguirás teniendo acceso completo y podrás desactivar el acceso de tu hijo/a en cualquier momento desde la ficha del jugador.
@@ -189,20 +215,6 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
                 Este email recibirá la invitación para crear su cuenta
               </p>
             </div>
-
-            {/* Qué pasará ahora */}
-            <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
-              <h3 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                ¿Qué pasará ahora?
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">1</span>
-                  <p className="text-sm text-orange-900">Se enviará una <strong>solicitud al administrador</strong> del club</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
                   <p className="text-sm text-orange-900">El administrador revisará y enviará la invitación (normalmente en <strong>menos de 24-48 horas</strong>)</p>
                 </div>
                 <div className="flex items-start gap-3">
