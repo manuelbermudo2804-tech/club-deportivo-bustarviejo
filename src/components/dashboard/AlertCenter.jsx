@@ -22,6 +22,7 @@ import {
   Mail,
   User,
   Megaphone,
+  Inbox,
   CheckCircle2,
   ShieldAlert,
   BarChart3
