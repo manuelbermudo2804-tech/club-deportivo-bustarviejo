@@ -1530,6 +1530,7 @@ export default function Layout({ children, currentPageName }) {
 
     // 🧪 DESARROLLO
     { title: "─ DESARROLLO ─", section: true },
+    { title: "📖 Manual de Acceso", url: createPageUrl("ManualAcceso"), icon: FileText },
     { title: "📊 Preview Stats Jugador", url: createPageUrl("PlayerStatsPreview"), icon: BarChart3 },
     { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
