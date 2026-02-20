@@ -160,6 +160,8 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
+import JuniorMailbox from './pages/JuniorMailbox';
+import JuniorMailboxAdmin from './pages/JuniorMailboxAdmin';
 import __Layout from './Layout.jsx';
 
 
@@ -277,6 +279,8 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
+    "JuniorMailbox": JuniorMailbox,
+    "JuniorMailboxAdmin": JuniorMailboxAdmin,
 }
 
 export const pagesConfig = {
