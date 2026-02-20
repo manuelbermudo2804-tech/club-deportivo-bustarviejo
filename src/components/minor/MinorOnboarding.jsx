@@ -25,6 +25,9 @@ export default function MinorOnboarding({ playerName, parentName, onComplete }) 
         minor_normas_aceptadas: true,
         minor_normas_fecha: new Date().toISOString(),
       });
+      // Marcar que tras onboarding se muestre el modal de instalación
+      localStorage.setItem('installPromptAfterOnboarding', 'true');
+      localStorage.setItem('hasSeenWelcome', 'true');
       onComplete();
     } catch (e) {
       console.error("Error aceptando normas:", e);
