@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Mail, Phone, Eye, Heart, FileText, AlertCircle, UserX } from "lucide-react";
+import { Pencil, Mail, Phone, Eye, Heart, FileText, AlertCircle, UserX, Smartphone } from "lucide-react";
 import PlayerDetailDialog from "./PlayerDetailDialog";
 import PlayerDocumentDownload from "./PlayerDocumentDownload";
+import MinorAccessDialog from "../minor/MinorAccessDialog";
 import { getActiveCustomPlan, getPendingPaymentsCount } from "../payments/paymentHelpers";
 import { base44 } from "@/api/base44Client";
 
