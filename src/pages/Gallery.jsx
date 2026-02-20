@@ -335,6 +335,11 @@ export default function Gallery() {
         </div>
       )}
 
+      {/* Chat photos from coaches - visible for parents and players */}
+      {isParentOrPlayer && myCategories.length > 0 && (
+        <ChatPhotosSection myCategories={myCategories} />
+      )}
+
       {isParentOrPlayer && <ContactCard />}
     </div>
   );
