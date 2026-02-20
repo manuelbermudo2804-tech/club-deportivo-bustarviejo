@@ -187,12 +187,27 @@ export default function CoachCallups() {
 
   const sendCallupNotifications = async (callup) => {
     try {
-      // Send emails to parents AND second tutors
+      // Load player data to get minor emails
+      let allPlayers = [];
+      try {
+        allPlayers = await base44.entities.Player.list();
+      } catch (e) { console.log('⚠️ Could not load players for minor emails'); }
+
+      // Send emails to parents, second tutors, AND minors with juvenile access
       const emailPromises = callup.jugadores_convocados.flatMap(async (jugador) => {
         const emails = [];
         if (jugador.email_padre) emails.push(jugador.email_padre);
         if (jugador.email_tutor_2) emails.push(jugador.email_tutor_2);
         if (!jugador.email_padre && jugador.email_jugador) emails.push(jugador.email_jugador);
+        
+        // Also send to minor (juvenile access) if authorized
+        const playerData = allPlayers.find(p => p.id === jugador.jugador_id);
+        if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado && !playerData?.acceso_menor_revocado) {
+          if (!emails.includes(playerData.acceso_menor_email)) {
+            emails.push(playerData.acceso_menor_email);
+            console.log('👦 [CoachCallups] Añadiendo email menor:', playerData.acceso_menor_email);
+          }
+        }
         
         if (emails.length === 0) return;
         
