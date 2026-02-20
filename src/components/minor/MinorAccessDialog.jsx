@@ -215,29 +215,14 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
                 Este email recibirá la invitación para crear su cuenta
               </p>
             </div>
-                  <p className="text-sm text-orange-900">El administrador revisará y enviará la invitación (normalmente en <strong>menos de 24-48 horas</strong>)</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
-                  <p className="text-sm text-orange-900">Tu hijo/a recibirá un <strong>correo de invitación</strong> en el email que has indicado</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="bg-yellow-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">!</span>
-                  <p className="text-sm text-orange-900 flex items-center gap-1">
-                    <FolderSearch className="w-4 h-4 flex-shrink-0" />
-                    <strong>Que revise la carpeta de SPAM</strong> si no le llega
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">4</span>
-                  <p className="text-sm text-orange-900">Tu hijo/a abre el correo, pulsa el enlace y <strong>crea su cuenta</strong></p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="bg-green-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">✓</span>
-                  <p className="text-sm text-green-800"><strong>¡Listo!</strong> El sistema le dará acceso automáticamente</p>
-                </div>
-              </div>
-            </div>
+
+            {/* Recordatorio SPAM */}
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertDescription className="text-yellow-800 text-sm flex items-center gap-2">
+                <FolderSearch className="w-4 h-4 flex-shrink-0" />
+                <span>Que tu hijo/a <strong>revise la carpeta de SPAM</strong> si no le llega el correo de invitación.</span>
+              </AlertDescription>
+            </Alert>
 
             {/* Checkbox de consentimiento explícito */}
             <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
