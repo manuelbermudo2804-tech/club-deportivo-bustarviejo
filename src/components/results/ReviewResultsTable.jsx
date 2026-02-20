@@ -114,11 +114,11 @@ export default function ReviewResultsTable({ data, onConfirm, onCancel, isSubmit
                     <Input value={r.local || ''} onChange={(e) => handleEdit(i, 'local', e.target.value)} className="h-8" />
                   </td>
                   <td className="p-2 border-b text-center">
-                    <Input type="number" value={r.goles_local ?? ''} onChange={(e) => handleEdit(i, 'goles_local', e.target.value)} className="w-16 h-8 text-center" />
+                    <Input type="number" value={r.goles_local != null ? r.goles_local : ''} onChange={(e) => handleEdit(i, 'goles_local', e.target.value)} placeholder="-" className="w-16 h-8 text-center" />
                   </td>
                   <td className="p-2 border-b text-center font-bold">-</td>
                   <td className="p-2 border-b text-center">
-                    <Input type="number" value={r.goles_visitante ?? ''} onChange={(e) => handleEdit(i, 'goles_visitante', e.target.value)} className="w-16 h-8 text-center" />
+                    <Input type="number" value={r.goles_visitante != null ? r.goles_visitante : ''} onChange={(e) => handleEdit(i, 'goles_visitante', e.target.value)} placeholder="-" className="w-16 h-8 text-center" />
                   </td>
                   <td className="p-2 border-b">
                     <Input value={r.visitante || ''} onChange={(e) => handleEdit(i, 'visitante', e.target.value)} className="h-8" />
