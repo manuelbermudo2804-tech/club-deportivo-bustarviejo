@@ -697,7 +697,11 @@ const handleChatBlock = (user) => {
         </div>
         <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-purple-500">
           <p className="text-lg font-bold text-purple-600">{jugadores.length}</p>
-          <p className="text-[9px] text-slate-500">Jugadores</p>
+          <p className="text-[9px] text-slate-500">Jugad.+18</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-teal-500">
+          <p className="text-lg font-bold text-teal-600">{menores.length}</p>
+          <p className="text-[9px] text-slate-500">Juveniles</p>
         </div>
         <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-blue-500">
           <p className="text-lg font-bold text-blue-600">{entrenadores.length}</p>
