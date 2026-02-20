@@ -22,6 +22,7 @@ import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymen
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ShareFormButton from "../components/players/ShareFormButton";
 import PlayerProgressCard from "../components/players/PlayerProgressCard";
+import MinorAccessBanner from "../components/minor/MinorAccessBanner";
 
 
 export default function ParentPlayers() {
