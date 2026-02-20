@@ -243,10 +243,18 @@ export default function MinorDashboard() {
     )
   ).length;
 
+  const { data: mailboxMessages = [] } = useQuery({
+    queryKey: ["minorMailbox", user?.email],
+    queryFn: () => base44.entities.JuniorMailbox.filter({ jugador_email: user.email, estado: "respondido", leido_por_jugador: false }),
+    enabled: !!user?.email,
+  });
+
   const unreadAnnouncements = announcements.filter((a) => {
     const leido = (a.leido_por || []).some((l) => l.email === user?.email);
     return !leido;
   }).length;
+
+  const unreadMailbox = mailboxMessages.length;
 
   const nextCallup = callups[0] || null;
 
@@ -339,7 +347,7 @@ export default function MinorDashboard() {
             subtitle="Cuéntanos lo que quieras, tu voz importa"
             href={createPageUrl("JuniorMailbox")}
             color="from-pink-500 to-purple-600"
-            badge={0}
+            badge={unreadMailbox}
             delay={0.45}
           />
           <QuickActionCard
