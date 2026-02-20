@@ -219,6 +219,39 @@ export default function ParentPlayers() {
         console.error('[ParentPlayers] Error creando socio automático:', memberError);
       }
 
+      // ACCESO JUVENIL - Crear solicitud si el padre lo autorizó durante la inscripción
+      if (dataWithParentEmail.acceso_menor_autorizado && dataWithParentEmail.acceso_menor_email) {
+        try {
+          const calcEdad = (fn) => {
+            if (!fn) return null;
+            const h = new Date(), n = new Date(fn);
+            let e = h.getFullYear() - n.getFullYear();
+            const m = h.getMonth() - n.getMonth();
+            if (m < 0 || (m === 0 && h.getDate() < n.getDate())) e--;
+            return e;
+          };
+          const edadMenor = calcEdad(dataWithParentEmail.fecha_nacimiento);
+          await base44.entities.InvitationRequest.create({
+            nombre_jugador: newPlayer.nombre,
+            email_jugador: dataWithParentEmail.acceso_menor_email,
+            fecha_nacimiento: dataWithParentEmail.fecha_nacimiento,
+            categoria_deseada: dataWithParentEmail.categoria_principal || dataWithParentEmail.deporte,
+            tipo_solicitud: "acceso_menor",
+            solicitado_por_nombre: currentUser?.full_name || dataWithParentEmail.nombre_tutor_legal,
+            solicitado_por_email: currentUser?.email || dataWithParentEmail.email_padre,
+            player_id: newPlayer.id,
+            consentimiento_version: "v1.0",
+            consentimiento_fecha: new Date().toISOString(),
+            consentimiento_user_agent: navigator.userAgent,
+            estado: "pendiente",
+            notas: `Acceso juvenil solicitado durante inscripción por ${currentUser?.full_name || dataWithParentEmail.nombre_tutor_legal} para ${newPlayer.nombre} (${edadMenor} años). Categoría: ${dataWithParentEmail.categoria_principal || dataWithParentEmail.deporte}`,
+          });
+          console.log('✅ Solicitud de acceso juvenil creada para:', dataWithParentEmail.acceso_menor_email);
+        } catch (minorError) {
+          console.error('Error creando solicitud acceso juvenil:', minorError);
+        }
+      }
+
       // DETECCIÓN AUTOMÁTICA DE JUGADOR +18
       // Si el jugador es mayor de 18 años y el email coincide con el usuario actual
       const calcularEdadJugador = (fechaNac) => {
