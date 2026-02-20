@@ -661,6 +661,7 @@ export default function Home() {
             pendingMemberRequests={stats.pendingMemberRequests}
             pendingLotteryOrders={stats.pendingLotteryOrders}
             pendingInvitations={pendingInvitationRequests}
+            pendingMinorInvitations={pendingMinorInvitationRequests}
             pendingSecondParentInvitations={pendingSecondParentInvitationsCount}
             recentSurveyResponses={stats.recentSurveyResponses}
             pendingEventConfirmations={stats.pendingEventConfirmations}
