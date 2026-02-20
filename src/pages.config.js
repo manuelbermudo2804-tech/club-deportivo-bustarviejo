@@ -137,6 +137,7 @@ import PlayerDashboard from './pages/PlayerDashboard';
 import PlayerEvaluations from './pages/PlayerEvaluations';
 import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
+import PlayerStatsPreview from './pages/PlayerStatsPreview';
 import Players from './pages/Players';
 import PublicClubMembership from './pages/PublicClubMembership';
 import PwaEntry from './pages/PwaEntry';
@@ -158,7 +159,6 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import PlayerStatsPreview from './pages/PlayerStatsPreview';
 import __Layout from './Layout.jsx';
 
 
@@ -253,6 +253,7 @@ export const PAGES = {
     "PlayerEvaluations": PlayerEvaluations,
     "PlayerProfile": PlayerProfile,
     "PlayerRenewal": PlayerRenewal,
+    "PlayerStatsPreview": PlayerStatsPreview,
     "Players": Players,
     "PublicClubMembership": PublicClubMembership,
     "PwaEntry": PwaEntry,
@@ -274,7 +275,6 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "PlayerStatsPreview": PlayerStatsPreview,
 }
 
 export const pagesConfig = {
