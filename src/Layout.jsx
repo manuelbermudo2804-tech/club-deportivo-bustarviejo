@@ -1937,7 +1937,7 @@ export default function Layout({ children, currentPageName }) {
                     }
 
                     // Menor: onboarding propio (no usa el selector normal)
-                    if (isMinor || user.tipo_panel === 'jugador_menor') {
+                    if (isMinor || user.tipo_panel === 'jugador_menor' || user.es_menor === true) {
                       // Si no aceptó normas → mostrar onboarding del menor
                       if (!user.minor_normas_aceptadas) {
                         setOnboardingView('minor_onboarding');
@@ -1959,8 +1959,8 @@ export default function Layout({ children, currentPageName }) {
 
                     // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
 
-                    // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor
-                    if (!user.tipo_panel && user.es_segundo_progenitor !== true) {
+                    // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor ni a menores
+                    if (!user.tipo_panel && user.es_segundo_progenitor !== true && user.es_menor !== true) {
                       setOnboardingView('selector');
                       return;
                     }
