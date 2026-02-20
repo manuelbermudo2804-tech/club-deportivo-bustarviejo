@@ -28,7 +28,8 @@ export default function StepAuthorizations({
   fieldErrors,
   setFieldErrors,
   isAdultPlayerSelfRegistration,
-  isEditing
+  isEditing,
+  playerAge
 }) {
   const privacyRef = useRef(null);
   const photoRef = useRef(null);
