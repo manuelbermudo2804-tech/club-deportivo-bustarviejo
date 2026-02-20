@@ -368,6 +368,22 @@ export default function MinorDashboard() {
           />
         </div>
 
+        {/* Attendance section */}
+        {linkedPlayer?.id && attendances.length > 0 && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex items-center gap-2 px-1 pt-2"
+            >
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+              <h2 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Mi Asistencia</h2>
+            </motion.div>
+            <MinorAttendanceCard attendances={attendances} playerId={linkedPlayer.id} />
+          </>
+        )}
+
         {/* Footer motivacional */}
         <motion.div
           initial={{ opacity: 0 }}
