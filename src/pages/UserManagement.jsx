@@ -935,7 +935,7 @@ const handleChatBlock = (user) => {
         <Card className="border-none shadow-lg">
           <CardContent className="p-3">
             <div className="space-y-2">
-              {filteredUsers.map((user) => {
+              {[].map((user) => {
                 const userPlayers = getUserPlayers(user.email);
                 const activePlayers = userPlayers.filter(p => p.activo);
                 const hasRestriction = user.acceso_activo === false;
