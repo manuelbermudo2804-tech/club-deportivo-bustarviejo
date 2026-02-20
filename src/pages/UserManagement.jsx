@@ -686,7 +686,7 @@ const handleChatBlock = (user) => {
       </div>
 
       {/* Estadísticas compactas */}
-      <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+      <div className="grid grid-cols-5 md:grid-cols-11 gap-2">
         <div className="bg-white rounded-lg p-2 shadow text-center border-l-4 border-green-500">
           <p className="text-lg font-bold text-green-600">{activeUsers.length}</p>
           <p className="text-[9px] text-slate-500">Padres</p>
