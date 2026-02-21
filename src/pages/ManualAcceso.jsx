@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   CheckCircle2, AlertTriangle, ArrowDown, Mail, KeyRound, 
-  ShieldCheck, Smartphone, PartyPopper, ChevronRight, Monitor
+  ShieldCheck, Smartphone, PartyPopper, ChevronRight, Monitor,
+  Users, UserCircle, Download, UserPlus
 } from "lucide-react";
 
 const STEPS = [
