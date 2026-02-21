@@ -41,7 +41,7 @@ const STEPS = [
       {
         emoji: "⚡",
         title: "Opción RÁPIDA (recomendada)",
-        description: "Si tu email es de Gmail → pulsa \"Continue with Google\"\nSi tu email es de Outlook/Hotmail → pulsa \"Continue with Microsoft\"",
+        description: "Si tu email es de Gmail → pulsa \"Continue with Google\"\nSi tu email es de Outlook/Hotmail → pulsa \"Continue with Microsoft\"\nSi usas Apple → pulsa \"Continue with Apple\"",
         highlight: true,
         note: "¡Entrarás directamente sin crear contraseña!"
       },
