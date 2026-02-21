@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import MinorAttendanceCard from "@/components/minor/MinorAttendanceCard";
 import MinorGoalsCard from "@/components/minor/MinorGoalsCard";
+import { MinorAgeTransitionBanner } from "@/components/transitions/AgeTransitionBanner";
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
@@ -280,6 +281,7 @@ export default function MinorDashboard() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <div className="max-w-lg mx-auto p-4 space-y-4 pb-24">
         <HeroSection player={linkedPlayer} user={user} />
+        {linkedPlayer && <MinorAgeTransitionBanner player={linkedPlayer} />}
         <NextCallupBanner callup={nextCallup} />
 
         {/* Goles marcados */}

@@ -24,7 +24,7 @@ import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import PlayerProgressCard from "../components/players/PlayerProgressCard";
-
+import { ParentAgeTransitionBanner } from "../components/transitions/AgeTransitionBanner";
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 
@@ -531,6 +531,11 @@ export default function ParentDashboard() {
 
           return <BirthdayBanner players={birthdayPlayers} myPlayerIds={myPlayerIds} mode="parent" />;
         })()}
+
+        {/* Avisos de transición de edad (cumple 18, cambio categoría) */}
+        {!playersLoading && myPlayers.length > 0 && (
+          <ParentAgeTransitionBanner players={myPlayers} />
+        )}
 
         {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der) */}
         {!playersLoading && myPlayers.length > 0 && (
