@@ -24,6 +24,7 @@ import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymen
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ContactCard from "../components/ContactCard";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
+import PlayerRenewalBanner from "../components/renewals/PlayerRenewalBanner";
 import ShareFormButton from "../components/players/ShareFormButton";
 import SocialLinks from "../components/SocialLinks";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
@@ -490,6 +491,9 @@ export default function PlayerDashboard() {
             { icon: Award, label: "Racha", value: `🔥 ${attendanceStreak}`, color: "from-purple-600 to-purple-700" },
           ]}
         />
+
+        {/* Banner de renovación para jugadores +18 */}
+        <PlayerRenewalBanner player={player} seasonConfig={seasonConfig} />
 
         {/* Banner Clasificaciones y Próximo Partido */}
         <ClassificationsAndMatchesBanner 
