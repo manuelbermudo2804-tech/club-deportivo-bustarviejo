@@ -28,6 +28,7 @@ export default function CoordinatorDashboard() {
   const [user, setUser] = useState(null);
   const [myCategories, setMyCategories] = useState([]);
   const [hasPlayers, setHasPlayers] = useState(false);
+  const [loteriaVisible, setLoteriaVisible] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -69,6 +70,23 @@ export default function CoordinatorDashboard() {
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
+
+  // Cargar config de temporada para lotería
+  const { data: seasonConfig } = useQuery({
+    queryKey: ['seasonConfig'],
+    queryFn: async () => {
+      const configs = await base44.entities.SeasonConfig.list();
+      return configs.find(c => c.activa === true);
+    },
+    staleTime: 300000,
+    enabled: !!user,
+  });
+
+  useEffect(() => {
+    if (seasonConfig) {
+      setLoteriaVisible(seasonConfig.loteria_navidad_abierta === true);
+    }
+  }, [seasonConfig]);
 
   const coordLocalStorageKey = user?.email ? `dashboard_buttons_coordinator_${user.email}` : null;
 
