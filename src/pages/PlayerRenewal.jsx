@@ -45,6 +45,18 @@ const calculateAge = (birthDate) => {
   return age;
 };
 
+const willBe18NextSeason = (birthDate) => {
+  if (!birthDate) return false;
+  const now = new Date();
+  const year = now.getMonth() >= 6 ? now.getFullYear() + 1 : now.getFullYear();
+  const nextSeasonStart = new Date(year, 6, 1);
+  const birth = new Date(birthDate);
+  let age = nextSeasonStart.getFullYear() - birth.getFullYear();
+  const m = nextSeasonStart.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && nextSeasonStart.getDate() < birth.getDate())) age--;
+  return age >= 18;
+};
+
 const suggestCategory = (birthDate) => {
   const age = calculateAge(birthDate);
   
