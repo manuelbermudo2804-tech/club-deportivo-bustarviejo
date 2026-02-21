@@ -96,13 +96,17 @@ export default function RenewalDashboard() {
       p.temporada_renovacion === seasonConfig?.temporada
     );
 
-    // Agrupar por email de padre
+    // Agrupar por email de padre O email_jugador (adultos +18)
     const familias = {};
     jugadoresPendientes.forEach(player => {
-      const email = player.email_padre;
+      // Si es jugador +18 con email propio, agrupar por su email
+      const email = (player.es_mayor_edad && player.email_jugador) 
+        ? player.email_jugador 
+        : player.email_padre;
+      if (!email) return;
+      
       if (!familias[email]) {
         const usuario = allUsers.find(u => u.email === email);
-        // Buscar último recordatorio enviado a esta familia
         const reminders = allReminders
           .filter(r => r.email_padre === email && r.enviado)
           .sort((a, b) => new Date(b.fecha_enviado || b.created_date) - new Date(a.fecha_enviado || a.created_date));
@@ -113,6 +117,7 @@ export default function RenewalDashboard() {
           nombre: usuario?.full_name || email,
           telefono: player.telefono || null,
           jugadores: [],
+          esAdulto: !!(player.es_mayor_edad && player.email_jugador),
           ultimoRecordatorio: lastReminder ? (lastReminder.fecha_enviado || lastReminder.created_date) : null
         };
       }

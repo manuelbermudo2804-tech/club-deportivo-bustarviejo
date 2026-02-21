@@ -399,15 +399,20 @@ const handleChatBlock = (user) => {
     return !!matchingPlayer;
   });
 
-  // Detectar padres sin hijos activos
+  // Detectar padres/jugadores sin hijos activos
   const usersWithoutActivePlayers = users.filter(user => {
-    if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero || user.es_jugador) return false;
+    if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) return false;
     if (user.eliminado === true) return false;
     
-    const activePlayers = players.filter(p => 
-      (p.email_padre === user.email || p.email_tutor_2 === user.email) && 
-      p.activo === true
-    );
+    const email = (user.email || '').trim().toLowerCase();
+    const activePlayers = players.filter(p => {
+      if (p.activo !== true) return false;
+      return (
+        (p.email_padre && p.email_padre.trim().toLowerCase() === email) ||
+        (p.email_tutor_2 && p.email_tutor_2.trim().toLowerCase() === email) ||
+        (p.email_jugador && p.email_jugador.trim().toLowerCase() === email)
+      );
+    });
     
     return activePlayers.length === 0;
   });
