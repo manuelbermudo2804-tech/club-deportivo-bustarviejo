@@ -351,45 +351,155 @@ function StepCard({ step }) {
             </div>
           )}
 
-          {/* Onboarding step */}
-          {step.onboardingStep && (
+          {/* Section header divider */}
+          {step.sectionHeader && (
+            <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white rounded-xl p-4 text-center -mx-4 -mt-4 mb-3">
+              <p className="font-bold text-base">{step.sectionHeader}</p>
+            </div>
+          )}
+
+          {/* Welcome screen */}
+          {step.welcomeScreen && (
+            <div className="rounded-xl overflow-hidden border-2 border-slate-200 shadow-md">
+              <div className="bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 p-6 text-center text-white">
+                <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="Logo" className="w-16 h-16 rounded-xl mx-auto mb-3 shadow-xl" />
+                <p className="text-xl font-black">¡Bienvenido al CD Bustarviejo!</p>
+                <p className="text-orange-100 text-sm mt-1">Tu club, tu familia, tu app</p>
+                <div className="space-y-2 mt-3 text-left max-w-xs mx-auto">
+                  <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2 text-xs">
+                    <span>⚽</span><span>Inscribe a tus jugadores</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2 text-xs">
+                    <span>💬</span><span>Chatea con entrenadores</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2 text-xs">
+                    <span>📅</span><span>Convocatorias, pagos y más</span>
+                  </div>
+                </div>
+                <div className="mt-3 bg-white text-orange-700 rounded-lg py-2 px-6 font-bold text-sm inline-block">
+                  Entrar →
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Registration type selector */}
+          {step.registrationTypeStep && (
+            <div className="space-y-3">
+              <div className="rounded-xl overflow-hidden border-2 border-slate-200 shadow-md">
+                <div className="p-3 bg-white space-y-2.5">
+                  {/* Aviso segundo progenitor */}
+                  <div className="bg-cyan-50 border-2 border-cyan-300 rounded-lg p-2.5">
+                    <p className="font-bold text-cyan-900 text-xs">👥 ¿Tu pareja ya ha dado de alta a vuestro/a hijo/a?</p>
+                    <p className="text-[10px] text-cyan-700 mt-0.5"><strong>NO des de alta al jugador otra vez.</strong> Pulsa "Ya me han invitado, continuar como Familia →"</p>
+                  </div>
+                  {/* Options */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-orange-50 rounded-xl p-3 border-2 border-orange-300 text-center">
+                      <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-1.5">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <p className="text-xs font-bold text-orange-900">👨‍👩‍👧 Panel de Familia</p>
+                      <p className="text-[10px] text-orange-700 mt-0.5">Primer progenitor que da de alta</p>
+                    </div>
+                    <div className="bg-green-50 rounded-xl p-3 border-2 border-green-300 text-center">
+                      <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-1.5">
+                        <UserCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <p className="text-xs font-bold text-green-900">👤 Jugador +18</p>
+                      <p className="text-[10px] text-green-700 mt-0.5">Mayores de edad</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <p className="text-sm text-amber-800">
+                  <strong>👨‍👩‍👧 Familias:</strong> El padre o madre que inscriba primero elige "Panel de Familia". El otro progenitor será invitado después.
+                </p>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                <p className="text-sm text-green-800">
+                  <strong>👤 Jugadores +18:</strong> Si eres mayor de edad y te inscribes tú mismo, elige "Jugador +18".
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Install PWA step */}
+          {step.installStep && (
+            <div className="space-y-3">
+              <div className="rounded-xl overflow-hidden border-2 border-slate-200 shadow-md">
+                <div className="p-4 bg-white space-y-3">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <Smartphone className="w-6 h-6 text-green-600" />
+                    </div>
+                    <p className="font-bold text-green-700 text-sm">📲 Instala la App del Club</p>
+                    <p className="text-[10px] text-slate-500">Menos de 1 minuto</p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-3 space-y-1.5">
+                    <p className="font-bold text-slate-800 text-xs text-center">📱 iPhone / iPad</p>
+                    {["Abre esta web en Safari", "Pulsa el botón Compartir ↗", '"Añadir a pantalla de inicio"', 'Pulsa "Añadir"'].map((s, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-white p-1.5 rounded-lg text-[10px] text-slate-700">
+                        <span className="bg-blue-500 text-white w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px]">{i + 1}</span>
+                        <span>{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-3 space-y-1.5">
+                    <p className="font-bold text-slate-800 text-xs text-center">🤖 Android</p>
+                    {["Te aparecerá un banner automático", 'Pulsa "Instalar" o "Añadir a pantalla"', "¡Listo! Ya tienes el icono"].map((s, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-white p-1.5 rounded-lg text-[10px] text-slate-700">
+                        <span className="bg-green-500 text-white w-4 h-4 rounded-full flex items-center justify-center font-bold text-[8px]">{i + 1}</span>
+                        <span>{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="bg-green-50 border-2 border-green-300 rounded-xl p-3 text-center">
+                <p className="text-sm font-bold text-green-800">✅ Una vez instalada, abre la app desde el icono en tu pantalla de inicio</p>
+                <p className="text-xs text-green-600 mt-1">A partir de ahora siempre entrarás desde ahí</p>
+              </div>
+            </div>
+          )}
+
+          {/* Player registration step */}
+          {step.playerRegistrationStep && (
             <div className="space-y-3">
               <div className="bg-gradient-to-r from-orange-50 to-green-50 border-2 border-orange-300 rounded-xl p-4">
-                <p className="font-bold text-orange-900 text-sm mb-3">📋 El asistente te pedirá:</p>
-                <div className="space-y-2.5">
-                  <div className="flex items-start gap-2.5">
-                    <Badge className="bg-orange-500 text-white text-xs shrink-0 mt-0.5">1</Badge>
-                    <div>
-                      <p className="font-semibold text-slate-800 text-sm">Nombre completo del jugador</p>
-                      <p className="text-xs text-slate-500">Nombre y apellidos tal como aparecen en el DNI</p>
+                <p className="font-bold text-orange-900 text-sm mb-3">📋 El formulario de alta incluye:</p>
+                <div className="space-y-2">
+                  {[
+                    { num: "1", label: "Foto tipo carnet", desc: "Del jugador" },
+                    { num: "2", label: "Datos del jugador", desc: "Nombre, fecha de nacimiento" },
+                    { num: "3", label: "Categoría deportiva", desc: "Se auto-selecciona según la edad" },
+                    { num: "4", label: "Documentación", desc: "DNI del jugador y/o libro de familia" },
+                    { num: "5", label: "Datos del tutor", desc: "DNI, dirección, teléfono" },
+                    { num: "6", label: "Segundo progenitor", desc: "Opcional, se le invitará después" },
+                    { num: "7", label: "Ficha médica", desc: "Alergias, contactos de emergencia" },
+                    { num: "8", label: "Autorizaciones", desc: "Protección de datos y fotos" },
+                  ].map(item => (
+                    <div key={item.num} className="flex items-start gap-2.5">
+                      <Badge className="bg-orange-500 text-white text-xs shrink-0 mt-0.5">{item.num}</Badge>
+                      <div>
+                        <p className="font-semibold text-slate-800 text-sm">{item.label}</p>
+                        <p className="text-xs text-slate-500">{item.desc}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <Badge className="bg-orange-500 text-white text-xs shrink-0 mt-0.5">2</Badge>
-                    <div>
-                      <p className="font-semibold text-slate-800 text-sm">Fecha de nacimiento</p>
-                      <p className="text-xs text-slate-500">Para asignar la categoría correcta</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <Badge className="bg-orange-500 text-white text-xs shrink-0 mt-0.5">3</Badge>
-                    <div>
-                      <p className="font-semibold text-slate-800 text-sm">Categoría deportiva</p>
-                      <p className="text-xs text-slate-500">Pre-Benjamín, Benjamín, Alevín, Infantil, Cadete, Juvenil...</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
                 <p className="text-sm text-blue-800">
-                  <strong>👤 Si eres jugador mayor de 18 años:</strong> Tú mismo crearás tu propia ficha con tus datos.
+                  <strong>💡 No te agobies:</strong> El formulario es muy intuitivo y te guía paso a paso. Puedes completar los datos que no tengas a mano más tarde desde <strong>"Mis Jugadores"</strong>.
                 </p>
               </div>
 
               <div className="bg-green-50 border border-green-200 rounded-xl p-3">
                 <p className="text-sm text-green-800">
-                  <strong>💡 No te preocupes:</strong> El proceso es muy sencillo e intuitivo. Después podrás completar más datos (ficha médica, documentos, etc.) desde la sección <strong>"Mis Jugadores"</strong> en tu panel.
+                  <strong>👤 Si eres jugador mayor de 18 años:</strong> El proceso es el mismo pero con tus propios datos.
                 </p>
               </div>
 
