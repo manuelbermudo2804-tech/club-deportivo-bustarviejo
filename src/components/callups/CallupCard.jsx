@@ -3,12 +3,13 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, MapPin, Clock, Users, Check, X, HelpCircle, Calendar, ExternalLink, Lock, Unlock, UserCheck, Shield } from "lucide-react";
+import { Edit, Trash2, MapPin, Clock, Users, Check, X, HelpCircle, Calendar, ExternalLink, Lock, Unlock, UserCheck, Shield, Ban, RefreshCw } from "lucide-react";
 import AdminQuickConfirmDialog from "./AdminQuickConfirmDialog";
+import CallupStatusBanner from "./CallupStatusBanner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseNow, onReopen, isAdmin, onRefresh }) {
+export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseNow, onReopen, isAdmin, onRefresh, onCancel, onReschedule }) {
   const [showQuickConfirm, setShowQuickConfirm] = React.useState(false);
   const jugadores = callup.jugadores_convocados || [];
   const confirmed = jugadores.filter(j => j.confirmacion === "asistire").length;
@@ -55,14 +56,18 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                     {callup.local_visitante === "Local" ? "🏠" : "✈️"} {callup.local_visitante}
                   </Badge>
                 )}
-                {callup.publicada ? (
-                  <Badge className="bg-green-500/80 text-white text-xs">✓ Publicada</Badge>
-                ) : (
-                  <Badge className="bg-slate-500/80 text-white text-xs">📝 Borrador</Badge>
-                )}
-                {canDelete && (
-                  <Badge className="bg-red-500/80 text-white text-xs">Pasada</Badge>
-                )}
+                {callup.estado_convocatoria === "cancelada" ? (
+                   <Badge className="bg-red-600 text-white text-xs">🚫 CANCELADA</Badge>
+                 ) : callup.estado_convocatoria === "reprogramada" ? (
+                   <Badge className="bg-amber-500 text-white text-xs">🔄 REPROGRAMADA</Badge>
+                 ) : callup.publicada ? (
+                   <Badge className="bg-green-500/80 text-white text-xs">✓ Publicada</Badge>
+                 ) : (
+                   <Badge className="bg-slate-500/80 text-white text-xs">📝 Borrador</Badge>
+                 )}
+                 {canDelete && (
+                   <Badge className="bg-red-500/80 text-white text-xs">Pasada</Badge>
+                 )}
               </div>
               <CardTitle className="text-lg leading-tight">
                 {callup.titulo}
@@ -88,6 +93,9 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
         </CardHeader>
 
         <CardContent className="pt-4 space-y-3">
+          {/* Status banner (cancelled/rescheduled) */}
+          <CallupStatusBanner callup={callup} />
+
           {/* Date & Time Info - compacto */}
           <div className="bg-slate-50 rounded-xl p-3 space-y-1.5">
             <div className="flex items-center gap-2 text-slate-700">
@@ -240,15 +248,15 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
           {/* Actions */}
           {isCoach && (
             <div className="flex flex-wrap gap-2 pt-2">
-              {!canDelete && (
+              {!canDelete && callup.estado_convocatoria !== "cancelada" && (
                 <>
                   <Button
                     onClick={() => onEdit?.(callup)}
                     variant="outline"
                     size="sm"
-                    className="flex-1 min-w-[140px]"
+                    className="flex-1 min-w-[100px]"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
+                    <Edit className="w-4 h-4 mr-1" />
                     Editar
                   </Button>
                   {!callup.cerrada ? (
@@ -256,22 +264,40 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                       onClick={() => onCloseNow?.(callup)}
                       variant="secondary"
                       size="sm"
-                      className="flex-1 min-w-[160px]"
+                      className="flex-1 min-w-[100px]"
                     >
-                      <Lock className="w-4 h-4 mr-2" />
-                      Cerrar ahora
+                      <Lock className="w-4 h-4 mr-1" />
+                      Cerrar
                     </Button>
                   ) : (
                     <Button
                       onClick={() => onReopen?.(callup)}
                       variant="outline"
                       size="sm"
-                      className="flex-1 min-w-[140px]"
+                      className="flex-1 min-w-[100px]"
                     >
-                      <Unlock className="w-4 h-4 mr-2" />
+                      <Unlock className="w-4 h-4 mr-1" />
                       Reabrir
                     </Button>
                   )}
+                  <Button
+                    onClick={() => onReschedule?.(callup)}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 min-w-[120px] border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-1" />
+                    Reprogramar
+                  </Button>
+                  <Button
+                    onClick={() => onCancel?.(callup)}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 min-w-[100px] border-red-300 bg-red-50 hover:bg-red-100 text-red-700"
+                  >
+                    <Ban className="w-4 h-4 mr-1" />
+                    Cancelar
+                  </Button>
                 </>
               )}
               {canDelete && (
