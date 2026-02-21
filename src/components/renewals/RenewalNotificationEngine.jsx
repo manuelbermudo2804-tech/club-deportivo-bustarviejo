@@ -40,17 +40,31 @@ export default function RenewalNotificationEngine() {
           p.activo === false
         );
 
-        // Agrupar por familia
+        // Agrupar por familia (padres)
         const familias = {};
+        // Agrupar jugadores +18 por separado
+        const jugadoresAdultos = {};
         pendientes.forEach(player => {
-          const email = player.email_padre;
-          if (!familias[email]) {
-            familias[email] = {
-              email,
-              jugadores: []
-            };
+          // Si es jugador +18 con email propio, notificar por separado
+          if (player.es_mayor_edad && player.email_jugador) {
+            if (!jugadoresAdultos[player.email_jugador]) {
+              jugadoresAdultos[player.email_jugador] = {
+                email: player.email_jugador,
+                jugadores: []
+              };
+            }
+            jugadoresAdultos[player.email_jugador].jugadores.push(player);
+          } else {
+            const email = player.email_padre;
+            if (!email) return;
+            if (!familias[email]) {
+              familias[email] = {
+                email,
+                jugadores: []
+              };
+            }
+            familias[email].jugadores.push(player);
           }
-          familias[email].jugadores.push(player);
         });
 
         // Enviar recordatorios
@@ -132,7 +146,58 @@ export default function RenewalNotificationEngine() {
           console.log(`✅ Recordatorio enviado a ${familia.email} (${familia.jugadores.length} jugadores)`);
         }
 
-        console.log(`📧 [RenewalNotificationEngine] ${Object.keys(familias).length} familias notificadas`);
+        // Enviar recordatorios a jugadores +18
+        for (const adulto of Object.values(jugadoresAdultos)) {
+          const jugadoresNombres = adulto.jugadores.map(j => j.nombre).join(", ");
+          const urgencia = diasRestantes <= 3 ? "🚨 URGENTE" : diasRestantes <= 7 ? "⚠️ IMPORTANTE" : "📅 RECORDATORIO";
+          
+          await base44.functions.invoke('sendEmail', {
+            to: adulto.email,
+            subject: `${urgencia}: ${diasRestantes} día(s) para renovar tu plaza - Temporada ${activeConfig.temporada}`,
+            html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:20px;font-family:Arial,sans-serif;background:#f1f5f9;">
+<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:2px solid ${diasRestantes <= 3 ? '#dc2626' : diasRestantes <= 7 ? '#ea580c' : '#2563eb'};">
+<div style="background:${diasRestantes <= 3 ? '#dc2626' : diasRestantes <= 7 ? '#ea580c' : '#2563eb'};padding:30px;text-align:center;">
+  <h1 style="color:#fff;margin:0;font-size:28px;">${urgencia}</h1>
+  <p style="color:#fff;margin:10px 0 0 0;font-size:18px;font-weight:bold;">Quedan ${diasRestantes} día(s) para renovar</p>
+</div>
+<div style="padding:30px;">
+  <p style="color:#334155;font-size:16px;">Hola,</p>
+  <p style="color:#334155;font-size:16px;">Te recordamos que tu plaza como jugador está <strong>pendiente de renovar</strong> para la temporada ${activeConfig.temporada}.</p>
+  <div style="background:#fee2e2;border:2px solid #dc2626;border-radius:8px;padding:15px;margin:20px 0;">
+    <p style="color:#991b1b;margin:0;font-weight:bold;">📅 Fecha límite: ${format(fechaLimite, "d 'de' MMMM 'de' yyyy", { locale: es })}</p>
+  </div>
+  <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:15px;margin-bottom:25px;">
+    <p style="color:#166534;margin:0 0 10px 0;font-weight:bold;">✅ Pasos para renovar:</p>
+    <ol style="margin:0;padding-left:20px;color:#166534;">
+      <li>Accede a la app del club</li>
+      <li>Ve a tu Panel de Jugador</li>
+      <li>Pulsa "Renovar mi plaza"</li>
+      <li>Selecciona modalidad de pago</li>
+    </ol>
+  </div>
+</div>
+<div style="background:#1e293b;padding:20px;text-align:center;">
+  <p style="color:#94a3b8;font-size:12px;margin:0;">CD Bustarviejo • Temporada ${activeConfig.temporada}</p>
+</div>
+</div></body></html>`
+          });
+
+          await base44.entities.AppNotification.create({
+            usuario_email: adulto.email,
+            titulo: `${urgencia}: ${diasRestantes} día(s) para renovar tu plaza`,
+            mensaje: `Tu inscripción está pendiente de renovar para la temporada ${activeConfig.temporada}.`,
+            tipo: diasRestantes <= 3 ? "urgente" : "importante",
+            icono: diasRestantes <= 3 ? "🚨" : "⏰",
+            enlace: "PlayerDashboard",
+            vista: false
+          });
+
+          console.log(`✅ Recordatorio +18 enviado a ${adulto.email}`);
+        }
+
+        console.log(`📧 [RenewalNotificationEngine] ${Object.keys(familias).length} familias + ${Object.keys(jugadoresAdultos).length} jugadores +18 notificados`);
       } catch (error) {
         console.error('[RenewalNotificationEngine] Error:', error);
       }
