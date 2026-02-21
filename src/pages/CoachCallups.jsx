@@ -21,6 +21,7 @@ import ExportButton from "../components/ExportButton";
 
 import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
+import CancelRescheduleDialog from "../components/callups/CancelRescheduleDialog";
 import { buildCallupEmailHtml } from "../components/callups/callupEmailTemplate";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
@@ -38,6 +39,9 @@ export default function CoachCallups() {
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [cancelRescheduleCallup, setCancelRescheduleCallup] = useState(null);
+  const [cancelRescheduleMode, setCancelRescheduleMode] = useState(null);
+  const [cancelRescheduleSubmitting, setCancelRescheduleSubmitting] = useState(false);
   const formRef = React.useRef(null);
 
   const queryClient = useQueryClient();
@@ -312,6 +316,110 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
   const handleCancel = () => {
     setShowForm(false);
     setEditingCallup(null);
+  };
+
+  const handleOpenCancelDialog = (callup) => {
+    setCancelRescheduleCallup(callup);
+    setCancelRescheduleMode("cancel");
+  };
+
+  const handleOpenRescheduleDialog = (callup) => {
+    setCancelRescheduleCallup(callup);
+    setCancelRescheduleMode("reschedule");
+  };
+
+  const handleConfirmCancelReschedule = async ({ motivo, nuevaFecha, nuevaHora }) => {
+    if (!cancelRescheduleCallup) return;
+    setCancelRescheduleSubmitting(true);
+    
+    const isCancelling = cancelRescheduleMode === "cancel";
+    const callup = cancelRescheduleCallup;
+
+    const updateData = {
+      ...callup,
+      estado_convocatoria: isCancelling ? "cancelada" : "reprogramada",
+      motivo_cambio: motivo,
+    };
+
+    if (isCancelling) {
+      updateData.cerrada = true;
+    } else {
+      updateData.fecha_partido_original = callup.fecha_partido_original || callup.fecha_partido;
+      updateData.hora_partido_original = callup.hora_partido_original || callup.hora_partido;
+      updateData.fecha_partido = nuevaFecha;
+      updateData.hora_partido = nuevaHora;
+    }
+
+    await base44.entities.Convocatoria.update(callup.id, updateData);
+
+    // Send notification to chat group
+    const grupoId = callup.categoria?.replace(/\s+/g, '_') || 'general';
+    const fechaFormateada = format(new Date(callup.fecha_partido), "EEEE d 'de' MMMM", { locale: es });
+
+    let chatMsg;
+    if (isCancelling) {
+      chatMsg = `🚫 CONVOCATORIA CANCELADA\n\n📋 ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''}\n📅 ${fechaFormateada} a las ${callup.hora_partido}\n\n📝 Motivo: ${motivo}\n\nNo es necesario acudir. Disculpad las molestias.`;
+    } else {
+      const nuevaFechaFormateada = format(new Date(nuevaFecha), "EEEE d 'de' MMMM", { locale: es });
+      chatMsg = `🔄 CONVOCATORIA REPROGRAMADA\n\n📋 ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''}\n\n❌ Antes: ${fechaFormateada} a las ${callup.hora_partido}\n✅ Ahora: ${nuevaFechaFormateada} a las ${nuevaHora}\n\n📝 Motivo: ${motivo}\n\n⚠️ Por favor, revisad vuestra disponibilidad para la nueva fecha.`;
+    }
+
+    try {
+      await base44.entities.ChatMessage.create({
+        remitente_email: user.email,
+        remitente_nombre: user.full_name || 'Entrenador',
+        mensaje: chatMsg,
+        tipo: 'entrenador_a_grupo',
+        grupo_id: grupoId,
+        deporte: callup.categoria,
+        prioridad: 'Urgente'
+      });
+    } catch (e) {
+      console.error('Error sending chat notification:', e);
+    }
+
+    // Send emails
+    const allPlayersData = await base44.entities.Player.list();
+    const emailPromises = callup.jugadores_convocados.map(async (jugador) => {
+      const emails = [];
+      if (jugador.email_padre) emails.push(jugador.email_padre);
+      if (!jugador.email_padre && jugador.email_jugador) emails.push(jugador.email_jugador);
+      const playerData = allPlayersData.find(p => p.id === jugador.jugador_id);
+      if (playerData?.email_tutor_2) emails.push(playerData.email_tutor_2);
+      if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado) {
+        emails.push(playerData.acceso_menor_email);
+      }
+
+      for (const email of [...new Set(emails)]) {
+        try {
+          const subject = isCancelling
+            ? `🚫 CANCELADA: ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''} - CD Bustarviejo`
+            : `🔄 REPROGRAMADA: ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''} - CD Bustarviejo`;
+          await base44.functions.invoke('sendEmail', {
+            to: email,
+            subject,
+            html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+              <div style="background:${isCancelling ? '#dc2626' : '#d97706'};color:white;padding:20px;border-radius:12px;text-align:center;margin-bottom:20px">
+                <h1 style="margin:0;font-size:24px">${isCancelling ? '🚫 Convocatoria Cancelada' : '🔄 Convocatoria Reprogramada'}</h1>
+              </div>
+              <h2 style="color:#1e293b">${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''}</h2>
+              <p><strong>Motivo:</strong> ${motivo}</p>
+              ${!isCancelling ? `<p><strong>Nueva fecha:</strong> ${format(new Date(nuevaFecha), "EEEE d 'de' MMMM yyyy", { locale: es })} a las ${nuevaHora}</p>` : ''}
+              <p style="color:#64748b;font-size:12px;margin-top:20px">Club Deportivo Bustarviejo</p>
+            </div>`
+          });
+          await new Promise(r => setTimeout(r, 200));
+        } catch (e) { console.error('Error emailing', email, e); }
+      }
+    });
+    await Promise.all(emailPromises);
+
+    setCancelRescheduleSubmitting(false);
+    setCancelRescheduleCallup(null);
+    setCancelRescheduleMode(null);
+    queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+    setSuccessMessage(isCancelling ? "Convocatoria cancelada y notificaciones enviadas" : "Convocatoria reprogramada y notificaciones enviadas");
+    setShowSuccess(true);
   };
 
   const handleNewCallup = () => {
@@ -590,6 +698,8 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
                   onDelete={handleDelete}
                   onCloseNow={handleCloseNow}
                   onReopen={handleReopen}
+                  onCancel={handleOpenCancelDialog}
+                  onReschedule={handleOpenRescheduleDialog}
                   isCoach={user?.es_entrenador || user?.role === "admin"}
                   isAdmin={user?.role === "admin"}
                   onRefresh={() => queryClient.invalidateQueries({ queryKey: ['convocatorias'] })}
@@ -614,6 +724,17 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
         </div>
       )}
     </div>
+
+    {cancelRescheduleCallup && (
+      <CancelRescheduleDialog
+        open={!!cancelRescheduleCallup}
+        onOpenChange={(open) => { if (!open) { setCancelRescheduleCallup(null); setCancelRescheduleMode(null); }}}
+        callup={cancelRescheduleCallup}
+        mode={cancelRescheduleMode}
+        onConfirm={handleConfirmCancelReschedule}
+        isSubmitting={cancelRescheduleSubmitting}
+      />
+    )}
     </>
   );
 }
