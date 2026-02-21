@@ -448,6 +448,7 @@ const handleChatBlock = (user) => {
       if (roleFilter === "without_app" && (user.app_instalada === true || user.role === "admin")) return false;
       if (roleFilter === "staff" && !(user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero)) return false;
       if (roleFilter === "inactive_parents" && !usersWithoutActivePlayers.some(u => u.id === user.id)) return false;
+      if (roleFilter === "inactive_minors" && !minorsWithoutActivePlayer.some(u => u.id === user.id)) return false;
     }
 
     const matchesSearch =
@@ -746,7 +747,7 @@ const handleChatBlock = (user) => {
       </div>
 
       {/* Alertas compactas */}
-      {(usersWithoutApp.length > 5 || pendingPlayerAccessUsers.length > 0 || usersWithoutActivePlayers.length > 0) && (
+      {(usersWithoutApp.length > 5 || pendingPlayerAccessUsers.length > 0 || usersWithoutActivePlayers.length > 0 || minorsWithoutActivePlayer.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {usersWithoutApp.length > 5 && (
             <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center gap-3">
@@ -767,6 +768,18 @@ const handleChatBlock = (user) => {
                 <p className="text-sm font-medium text-purple-900">⚽ {pendingPlayerAccessUsers.length} jugadores +18 pendientes</p>
               </div>
               <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs h-7" onClick={() => setRoleFilter("pending_player")}>
+                Ver
+              </Button>
+            </div>
+          )}
+          {minorsWithoutActivePlayer.length > 0 && (
+            <div className="bg-teal-50 border border-teal-300 rounded-lg p-3 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-teal-600 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-teal-900">🧒 {minorsWithoutActivePlayer.length} juveniles sin jugador activo</p>
+                <p className="text-xs text-teal-700">Accesos juveniles que deberían desactivarse</p>
+              </div>
+              <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-xs h-7" onClick={() => setRoleFilter("inactive_minors")}>
                 Ver
               </Button>
             </div>
@@ -873,6 +886,7 @@ const handleChatBlock = (user) => {
             { key: "admin", label: "🎓 Admin", count: admins.length },
             { key: "player", label: "⚽ Jugad.+18", count: jugadores.length },
             { key: "minor", label: "🧒 Juvenil", count: menores.length },
+            { key: "inactive_minors", label: "🧒🔴 Juv. Inact.", count: minorsWithoutActivePlayer.length, highlight: minorsWithoutActivePlayer.length > 0 },
             { key: "coach", label: "🏃 Entren.", count: entrenadores.length },
             { key: "coordinator", label: "🎓 Coord.", count: coordinadores.length },
             { key: "treasurer", label: "💰 Tesor.", count: tesoreros.length },
