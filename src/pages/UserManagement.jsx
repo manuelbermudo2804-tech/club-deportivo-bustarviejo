@@ -412,6 +412,18 @@ const handleChatBlock = (user) => {
     return activePlayers.length === 0;
   });
 
+  // Detectar menores (acceso juvenil) cuyos jugadores ya no están activos / no han renovado
+  const minorsWithoutActivePlayer = users.filter(user => {
+    if (user.es_menor !== true || user.eliminado === true) return false;
+    // Buscar jugador vinculado por email del menor
+    const linkedPlayers = players.filter(p =>
+      p.acceso_menor_email && p.acceso_menor_email.trim().toLowerCase() === (user.email || '').trim().toLowerCase()
+    );
+    if (linkedPlayers.length === 0) return true; // no tiene jugador vinculado
+    // Si todos sus jugadores están inactivos o no han renovado
+    return linkedPlayers.every(p => p.activo !== true);
+  });
+
   // Filtrar usuarios (ocultar eliminados por defecto)
   const filteredUsers = users.filter(user => {
     // Filtrar eliminados
