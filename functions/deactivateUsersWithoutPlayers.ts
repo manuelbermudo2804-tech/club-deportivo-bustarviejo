@@ -1,43 +1,91 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Desactivar usuarios sin hijos activos al final de temporada
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     
     if (user?.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Obtener todos los usuarios
-    const allUsers = await base44.entities.User.list();
+    const allUsers = await base44.asServiceRole.entities.User.list();
+    const allPlayers = await base44.asServiceRole.entities.Player.list();
     
-    // Obtener todos los jugadores activos
-    const activePlayers = await base44.entities.Player.filter({ activo: true });
-    
-    // Crear mapa de padres con hijos activos
+    // Crear set de emails con jugadores activos
     const parentsWithActivePlayers = new Set();
-    activePlayers.forEach(p => {
-      parentsWithActivePlayers.add(p.email_padre?.toLowerCase());
-      if (p.email_tutor_2) parentsWithActivePlayers.add(p.email_tutor_2.toLowerCase());
+    allPlayers.forEach(p => {
+      if (p.activo === true) {
+        if (p.email_padre) parentsWithActivePlayers.add(p.email_padre.trim().toLowerCase());
+        if (p.email_tutor_2) parentsWithActivePlayers.add(p.email_tutor_2.trim().toLowerCase());
+        if (p.email_jugador) parentsWithActivePlayers.add(p.email_jugador.trim().toLowerCase());
+        if (p.acceso_menor_email) parentsWithActivePlayers.add(p.acceso_menor_email.trim().toLowerCase());
+      }
     });
 
-    // Desactivar usuarios sin hijos activos
     const deactivatedUsers = [];
+    const skippedUsers = [];
+
     for (const u of allUsers) {
-      if (u.role === 'user' && !parentsWithActivePlayers.has(u.email?.toLowerCase())) {
-        await base44.auth.updateMe({ acceso_activo: false }); // Nota: esto actualiza el usuario actual
-        // Mejor usar update directo (si existe API de admin)
-        deactivatedUsers.push(u.email);
-        console.log(`✅ Deactivated: ${u.email}`);
+      // Nunca tocar admins, staff ni usuarios ya eliminados/restringidos
+      if (u.role === 'admin') continue;
+      if (u.es_entrenador || u.es_coordinador || u.es_tesorero) continue;
+      if (u.eliminado === true) continue;
+      if (u.acceso_activo === false) continue; // ya restringido
+
+      const email = (u.email || '').trim().toLowerCase();
+      if (!email) continue;
+
+      // Si el usuario tiene algún jugador activo vinculado, no tocar
+      if (parentsWithActivePlayers.has(email)) {
+        skippedUsers.push(email);
+        continue;
       }
+
+      // Desactivar acceso
+      await base44.asServiceRole.entities.User.update(u.id, {
+        acceso_activo: false,
+        motivo_restriccion: 'Sin jugadores activos - Desactivación automática de temporada',
+        fecha_restriccion: new Date().toISOString()
+      });
+
+      deactivatedUsers.push({ email: u.email, name: u.full_name });
+    }
+
+    // Revocar acceso juvenil de menores sin jugador activo
+    const revokedMinors = [];
+    for (const p of allPlayers) {
+      if (!p.acceso_menor_email || p.acceso_menor_revocado === true) continue;
+      if (p.activo === true) continue;
+      if (p.acceso_menor_autorizado !== true) continue;
+
+      await base44.asServiceRole.entities.Player.update(p.id, {
+        acceso_menor_revocado: true
+      });
+
+      // Desactivar usuario menor si existe
+      const minorUser = allUsers.find(u => 
+        u.email?.trim().toLowerCase() === p.acceso_menor_email.trim().toLowerCase() &&
+        u.es_menor === true
+      );
+      if (minorUser && minorUser.acceso_activo !== false && minorUser.eliminado !== true) {
+        await base44.asServiceRole.entities.User.update(minorUser.id, {
+          acceso_activo: false,
+          motivo_restriccion: 'Jugador vinculado inactivo - Acceso juvenil revocado automáticamente',
+          fecha_restriccion: new Date().toISOString()
+        });
+      }
+
+      revokedMinors.push({ email: p.acceso_menor_email, player: p.nombre });
     }
 
     return Response.json({ 
       success: true, 
-      deactivated: deactivatedUsers.length,
-      users: deactivatedUsers 
+      deactivatedParents: deactivatedUsers.length,
+      revokedMinors: revokedMinors.length,
+      deactivatedDetails: deactivatedUsers,
+      revokedMinorDetails: revokedMinors,
+      skippedWithActivePlayers: skippedUsers.length
     });
   } catch (error) {
     console.error('Error deactivating users:', error);
