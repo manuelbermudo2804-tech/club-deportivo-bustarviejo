@@ -538,16 +538,21 @@ export default function ManualAcceso() {
         <Card className="border-none shadow-lg mb-4">
           <CardContent className="p-4">
             <h3 className="font-bold text-slate-800 mb-2 text-center text-sm">📋 Resumen Rápido</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <div className="bg-green-50 rounded-lg p-2.5 text-center border border-green-200">
                 <p className="text-lg">⚡</p>
-                <p className="text-xs font-bold text-green-800">Gmail / Microsoft</p>
-                <p className="text-[10px] text-green-600 mt-0.5">1 clic y entras directo</p>
+                <p className="text-xs font-bold text-green-800">Acceder</p>
+                <p className="text-[10px] text-green-600 mt-0.5">Pasos 1-6</p>
               </div>
               <div className="bg-blue-50 rounded-lg p-2.5 text-center border border-blue-200">
-                <p className="text-lg">📧</p>
-                <p className="text-xs font-bold text-blue-800">Otro email</p>
-                <p className="text-[10px] text-blue-600 mt-0.5">Sign up + código</p>
+                <p className="text-lg">📲</p>
+                <p className="text-xs font-bold text-blue-800">Instalar</p>
+                <p className="text-[10px] text-blue-600 mt-0.5">Pasos 7-9</p>
+              </div>
+              <div className="bg-orange-50 rounded-lg p-2.5 text-center border border-orange-200">
+                <p className="text-lg">⚽</p>
+                <p className="text-xs font-bold text-orange-800">Dar de alta</p>
+                <p className="text-[10px] text-orange-600 mt-0.5">Paso 10</p>
               </div>
             </div>
           </CardContent>
