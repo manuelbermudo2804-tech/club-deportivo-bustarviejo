@@ -236,12 +236,20 @@ export default function ParentCallups() {
 
             return (
               <Card key={callup.id} className={`border-2 shadow-lg overflow-hidden ${
-                hasPending ? 'border-orange-300 ring-2 ring-orange-200' : 'border-slate-200'
+                callup.estado_convocatoria === "cancelada" 
+                  ? 'border-red-300 opacity-75' 
+                  : callup.estado_convocatoria === "reprogramada"
+                    ? 'border-amber-300 ring-2 ring-amber-200'
+                    : hasPending ? 'border-orange-300 ring-2 ring-orange-200' : 'border-slate-200'
               }`}>
                 <CardHeader className={`text-white pb-4 ${
-                  hasPending 
-                    ? 'bg-gradient-to-r from-orange-600 via-orange-700 to-red-600' 
-                    : 'bg-gradient-to-r from-green-600 to-green-700'
+                  callup.estado_convocatoria === "cancelada"
+                    ? 'bg-gradient-to-r from-red-600 to-red-700'
+                    : callup.estado_convocatoria === "reprogramada"
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700'
+                      : hasPending 
+                        ? 'bg-gradient-to-r from-orange-600 via-orange-700 to-red-600' 
+                        : 'bg-gradient-to-r from-green-600 to-green-700'
                 }`}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -257,11 +265,15 @@ export default function ParentCallups() {
                             {callup.local_visitante === "Local" ? "🏠 Local" : "✈️ Visitante"}
                           </Badge>
                         )}
-                        {hasPending && (
+                        {callup.estado_convocatoria === "cancelada" ? (
+                          <Badge className="bg-red-600 text-white text-xs">🚫 CANCELADA</Badge>
+                        ) : callup.estado_convocatoria === "reprogramada" ? (
+                          <Badge className="bg-amber-500 text-white text-xs">🔄 REPROGRAMADA</Badge>
+                        ) : hasPending ? (
                           <Badge className="bg-red-500 text-white text-xs animate-pulse shadow-lg">
                             ⚠️ Confirmar Asistencia
                           </Badge>
-                        )}
+                        ) : null}
                       </div>
                       <CardTitle className="text-xl">{callup.titulo}</CardTitle>
                       {callup.rival && (
