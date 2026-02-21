@@ -393,9 +393,12 @@ CD Bustarviejo`
             const suggestedCat = suggestCategory(player.fecha_nacimiento);
             const selectedCat = selectedCategories[player.id] || player.deporte;
             const categoryChanged = selectedCat !== player.deporte;
+            const turning18 = willBe18NextSeason(player.fecha_nacimiento);
 
             return (
-              <Card key={player.id} className="border-2 border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
+              <Card key={player.id} className={`border-2 shadow-lg hover:shadow-xl transition-shadow ${
+                turning18 ? 'border-amber-400 bg-amber-50/30' : 'border-slate-200'
+              }`}>
                 <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100">
                   <div className="flex justify-between items-start">
                     <div>
@@ -407,6 +410,11 @@ CD Bustarviejo`
                         <Badge className="bg-slate-600 text-sm">
                           Actual: {player.deporte}
                         </Badge>
+                        {turning18 && (
+                          <Badge className="bg-amber-600 text-white text-sm animate-pulse">
+                            🎂 Cumplirá 18
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     {player.foto_url && (
@@ -419,64 +427,85 @@ CD Bustarviejo`
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-semibold text-slate-700">
-                        📚 Categoría para {seasonConfig.temporada}:
-                      </label>
-                      {categoryChanged && (
-                        <Badge className="bg-orange-500 text-white animate-pulse">
-                          Cambio de categoría
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    {suggestedCat !== player.deporte && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                        <p className="text-blue-900">
-                          💡 <strong>Sugerencia:</strong> Según la edad ({age} años), la categoría recomendada es <strong>{suggestedCat}</strong>
+                  {turning18 ? (
+                    <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-amber-600" />
+                        <p className="font-bold text-amber-900">🎂 {player.nombre?.split(" ")[0]} cumplirá 18 años</p>
+                      </div>
+                      <p className="text-sm text-amber-800">
+                        Como será mayor de edad, <strong>deberá inscribirse por su cuenta</strong> como jugador +18 la próxima temporada. 
+                        Tú no puedes renovar su plaza.
+                      </p>
+                      <div className="bg-amber-100 rounded-lg p-2.5 border border-amber-200">
+                        <p className="text-xs text-amber-700">
+                          <strong>¿Qué pasará?</strong> El club le enviará una invitación a su email para que se inscriba 
+                          él mismo. Los pagos de esta temporada no cambian.
                         </p>
                       </div>
-                    )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            📚 Categoría para {seasonConfig.temporada}:
+                          </label>
+                          {categoryChanged && (
+                            <Badge className="bg-orange-500 text-white animate-pulse">
+                              Cambio de categoría
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {suggestedCat !== player.deporte && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                            <p className="text-blue-900">
+                              💡 <strong>Sugerencia:</strong> Según la edad ({age} años), la categoría recomendada es <strong>{suggestedCat}</strong>
+                            </p>
+                          </div>
+                        )}
 
-                    <Select 
-                      value={selectedCat}
-                      onValueChange={(value) => setSelectedCategories({
-                        ...selectedCategories,
-                        [player.id]: value
-                      })}
-                    >
-                      <SelectTrigger className="h-12 text-base border-2">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIAS.map(cat => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                            {cat === suggestedCat && " 💡"}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                        <Select 
+                          value={selectedCat}
+                          onValueChange={(value) => setSelectedCategories({
+                            ...selectedCategories,
+                            [player.id]: value
+                          })}
+                        >
+                          <SelectTrigger className="h-12 text-base border-2">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIAS.map(cat => (
+                              <SelectItem key={cat} value={cat}>
+                                {cat}
+                                {cat === suggestedCat && " 💡"}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      onClick={() => setConfirmDialog({ open: true, playerId: player.id, action: 'renew' })}
-                      className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-bold"
-                    >
-                      <CheckCircle2 className="w-5 h-5 mr-2" />
-                      ✅ Renovar
-                    </Button>
-                    <Button
-                      onClick={() => setConfirmDialog({ open: true, playerId: player.id, action: 'not_renew' })}
-                      variant="outline"
-                      className="flex-1 h-12 border-2 border-red-300 text-red-700 hover:bg-red-50 font-bold"
-                    >
-                      <XCircle className="w-5 h-5 mr-2" />
-                      ❌ No Renueva
-                    </Button>
-                  </div>
+                      <div className="flex gap-3 pt-4">
+                        <Button
+                          onClick={() => setConfirmDialog({ open: true, playerId: player.id, action: 'renew' })}
+                          className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-bold"
+                        >
+                          <CheckCircle2 className="w-5 h-5 mr-2" />
+                          ✅ Renovar
+                        </Button>
+                        <Button
+                          onClick={() => setConfirmDialog({ open: true, playerId: player.id, action: 'not_renew' })}
+                          variant="outline"
+                          className="flex-1 h-12 border-2 border-red-300 text-red-700 hover:bg-red-50 font-bold"
+                        >
+                          <XCircle className="w-5 h-5 mr-2" />
+                          ❌ No Renueva
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             );
