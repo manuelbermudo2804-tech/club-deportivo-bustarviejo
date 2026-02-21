@@ -525,10 +525,10 @@ export default function ManualAcceso() {
           <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3 text-3xl">
             ⚽
           </div>
-          <h1 className="text-2xl font-bold mb-1">Guía de Acceso a la App</h1>
+          <h1 className="text-2xl font-bold mb-1">Guía de Acceso y Alta</h1>
           <p className="text-orange-100 text-sm">Club Deportivo Bustarviejo</p>
           <div className="mt-3 bg-white/10 rounded-xl p-3">
-            <p className="text-sm">Sigue estos pasos para acceder a la app del club</p>
+            <p className="text-sm">Cómo acceder a la app y dar de alta a tus jugadores</p>
           </div>
         </div>
       </div>
