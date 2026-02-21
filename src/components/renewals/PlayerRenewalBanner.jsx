@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import RenewalPaymentFlow from "./RenewalPaymentFlow";
-import RenewalSuccessScreen from "./RenewalSuccessScreen";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)", "Fútbol Benjamín (Mixto)", "Fútbol Alevín (Mixto)",
@@ -99,17 +100,39 @@ export default function PlayerRenewalBanner({ player, seasonConfig }) {
 
   if (showSuccess && successData) {
     return (
-      <RenewalSuccessScreen
-        player={successData.player}
-        newCategory={successData.newCategory}
-        tipoPago={successData.tipoPago}
-        cuotasGeneradas={successData.cuotasGeneradas}
-        descuentoHermano={0}
-        onClose={() => {
-          setShowSuccess(false);
-          window.location.reload();
-        }}
-      />
+      <Card className="border-4 border-green-500 shadow-2xl animate-fade-in">
+        <CardContent className="pt-8 space-y-6 text-center">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-12 h-12 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-green-900">✅ ¡Renovación Completada!</h2>
+          <p className="text-slate-700">
+            Tu plaza ha sido renovada para la temporada <strong>{seasonConfig.temporada}</strong>.
+          </p>
+          <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 text-left">
+            <p className="font-bold text-blue-900 mb-2">📋 Resumen:</p>
+            <div className="space-y-1 text-sm text-blue-800">
+              <p>✅ Categoría: <strong>{successData.newCategory}</strong></p>
+              <p>💳 Modalidad: <strong>{successData.tipoPago}</strong></p>
+              <p>📊 Cuotas generadas: <strong>{successData.cuotasGeneradas.length}</strong></p>
+            </div>
+          </div>
+          <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
+            <p className="text-sm text-orange-800">
+              💡 <strong>Próximo paso:</strong> Ve a "Pagos" para registrar tus transferencias.
+            </p>
+          </div>
+          <Button
+            onClick={() => {
+              setShowSuccess(false);
+              window.location.reload();
+            }}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold"
+          >
+            ✅ Entendido
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 

@@ -216,9 +216,7 @@ CD Bustarviejo`
 
   const notRenewMutation = useMutation({
     mutationFn: (playerId) => {
-      const player = players.find(p => p.id === playerId);
       return base44.entities.Player.update(playerId, {
-        ...player,
         estado_renovacion: "no_renueva",
         fecha_renovacion: new Date().toISOString(),
         activo: false
