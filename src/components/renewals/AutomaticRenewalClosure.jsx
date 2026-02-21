@@ -1,89 +1,39 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
 
 /**
- * Componente que ejecuta el cierre automático de renovaciones
- * cuando se alcanza la fecha límite configurada
+ * Componente que invoca la función backend de cierre automático de renovaciones.
+ * Se ejecuta UNA vez al montar (no se repite en frontend para evitar duplicados).
+ * La lógica principal ahora está en functions/autoCloseRenewals.
  */
 export default function AutomaticRenewalClosure() {
   const queryClient = useQueryClient();
+  const hasRun = useRef(false);
 
   useEffect(() => {
-    const checkAndClosePendingRenewals = async () => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+
+    const run = async () => {
       try {
-        // Obtener configuración activa
-        const configs = await base44.entities.SeasonConfig.list();
-        const activeConfig = configs.find(c => c.activa === true);
+        const user = await base44.auth.me();
+        // Solo admins ejecutan el cierre
+        if (user?.role !== 'admin') return;
 
-        if (!activeConfig || !activeConfig.permitir_renovaciones || !activeConfig.fecha_limite_renovaciones) {
-          return;
-        }
-
-        const fechaLimite = new Date(activeConfig.fecha_limite_renovaciones);
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        fechaLimite.setHours(0, 0, 0, 0);
-
-        // Si ya pasó la fecha límite
-        if (hoy > fechaLimite) {
-          console.log('🔒 [AutomaticRenewalClosure] Fecha límite alcanzada, procesando jugadores pendientes...');
-
-          // Obtener jugadores pendientes de esta temporada
-          const allPlayers = await base44.entities.Player.list();
-          const pendientes = allPlayers.filter(p => 
-            p.estado_renovacion === "pendiente" && 
-            p.temporada_renovacion === activeConfig.temporada
-          );
-
-          if (pendientes.length > 0) {
-            console.log(`⚠️ [AutomaticRenewalClosure] ${pendientes.length} jugadores sin renovar`);
-
-            // Marcar como "no_renueva" y desactivar
-            for (const player of pendientes) {
-              await base44.entities.Player.update(player.id, {
-                estado_renovacion: "no_renueva",
-                activo: false,
-                fecha_renovacion: new Date().toISOString(),
-                observaciones: `${player.observaciones || ''}\n[Sistema] No renovado antes de fecha límite (${fechaLimite.toLocaleDateString('es-ES')})`.trim()
-              });
-            }
-
-            // Notificar al admin
-            await base44.functions.invoke('sendEmail', {
-              to: "cdbustarviejo@gmail.com",
-              subject: `🔒 Cierre Automático de Renovaciones - ${pendientes.length} jugadores no renovados`,
-              html: `
-Se ha alcanzado la fecha límite de renovaciones (${fechaLimite.toLocaleDateString('es-ES')}).<br><br>
-
-El sistema ha procesado automáticamente ${pendientes.length} jugador(es) que no renovaron:<br><br>
-
-${pendientes.map(p => `• ${p.nombre} (${p.deporte}) - Familia: ${p.email_padre}<br>`).join('')}
-<br>
-Estos jugadores han sido marcados como "no_renueva" y desactivados.<br><br>
-
-Puedes reactivarlos manualmente desde el Dashboard de Renovaciones si alguna familia contacta.<br><br>
-
-Temporada: ${activeConfig.temporada}
-              `
-            });
-
-            console.log('✅ [AutomaticRenewalClosure] Proceso completado, admin notificado');
-            
-            queryClient.invalidateQueries({ queryKey: ['players'] });
-            queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
-          }
+        const { data } = await base44.functions.invoke('autoCloseRenewals', {});
+        if (data?.processed > 0) {
+          console.log(`🔒 [AutomaticRenewalClosure] ${data.processed} jugadores procesados por backend`);
+          queryClient.invalidateQueries({ queryKey: ['players'] });
+          queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
         }
       } catch (error) {
+        // Silencioso: no bloquear la app por esto
         console.error('[AutomaticRenewalClosure] Error:', error);
       }
     };
 
-    // Ejecutar al montar y luego cada 6 horas
-    checkAndClosePendingRenewals();
-    const interval = setInterval(checkAndClosePendingRenewals, 6 * 60 * 60 * 1000);
-
-    return () => clearInterval(interval);
+    run();
   }, [queryClient]);
 
   return null;

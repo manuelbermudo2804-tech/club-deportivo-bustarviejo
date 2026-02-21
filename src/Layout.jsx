@@ -2893,6 +2893,11 @@ export default function Layout({ children, currentPageName }) {
                     quantity: Number(s.cantidad||0)
                   };
                 });
+                // Serializar selección para que el webhook pueda crear el ExtraChargePayment
+                const seleccionParaWebhook = chosen.map(s => {
+                  const def = extraChargeVisible.items.find(i => i.nombre === s.nombre);
+                  return { item_nombre: s.nombre, cantidad: Number(s.cantidad||0), precio_unitario: Number(def?.precio||0) };
+                });
                 const baseUrl = window.location.href.split('#')[0].split('?')[0];
                 const successUrl = `${baseUrl}?payment=ok&type=extra_charge&extra_charge_id=${encodeURIComponent(extraChargeVisible.id)}&session_id={CHECKOUT_SESSION_ID}`;
                 const cancelUrl = baseUrl;
@@ -2903,7 +2908,8 @@ export default function Layout({ children, currentPageName }) {
                   metadata: { 
                     tipo: 'extra_charge', 
                     extra_charge_id: extraChargeVisible.id,
-                    titulo: extraChargeVisible.titulo
+                    titulo: extraChargeVisible.titulo,
+                    seleccion: JSON.stringify(seleccionParaWebhook)
                   }
                 });
                 if (data?.url) window.location.href = data.url;
