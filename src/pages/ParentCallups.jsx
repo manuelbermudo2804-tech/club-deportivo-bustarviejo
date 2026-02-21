@@ -30,6 +30,7 @@ import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimat
 import WeatherWidget from "../components/callups/WeatherWidget";
 import CallupCountdown from "../components/callups/CallupCountdown";
 import CallupMap from "../components/callups/CallupMap";
+import CallupStatusBanner from "../components/callups/CallupStatusBanner";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 
@@ -159,7 +160,11 @@ export default function ParentCallups() {
   });
 
   const today = new Date().toISOString().split('T')[0];
-  const upcomingCallups = relevantCallups.filter(c => c.fecha_partido >= today && !c.cerrada);
+  const upcomingCallups = relevantCallups.filter(c => 
+    (c.fecha_partido >= today && !c.cerrada) || 
+    (c.estado_convocatoria === "cancelada" && c.fecha_partido >= today) ||
+    (c.estado_convocatoria === "reprogramada" && c.fecha_partido >= today)
+  );
 
   const getCallupPlayers = (callup) => {
     return callup.jugadores_convocados
@@ -270,6 +275,9 @@ export default function ParentCallups() {
                 </CardHeader>
 
                 <CardContent className="pt-4 space-y-4">
+                  {/* Status banner (cancelled/rescheduled) */}
+                  <CallupStatusBanner callup={callup} />
+
                   {/* Countdown Timer */}
                   <CallupCountdown 
                     targetDate={callup.fecha_partido} 
