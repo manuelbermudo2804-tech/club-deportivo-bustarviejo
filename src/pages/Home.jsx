@@ -62,6 +62,9 @@ export default function Home() {
           return;
         } else if (currentUser.es_junta === true) {
           // Junta se queda en Home
+        } else if (currentUser.es_tesorero) {
+          window.location.href = createPageUrl('TreasurerDashboard');
+          return;
         } else if (currentUser.es_coordinador) {
           window.location.href = createPageUrl('CoordinatorDashboard');
           return;

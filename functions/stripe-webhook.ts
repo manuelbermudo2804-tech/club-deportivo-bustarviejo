@@ -310,7 +310,71 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Otros tipos (ej: extra_charge) se añadirán después si hace falta
+        // Caso: Cobro Extra (extra_charge)
+        if (metadata.tipo === 'extra_charge' && metadata.extra_charge_id) {
+          try {
+            // Log Stripe
+            try {
+              await base44.asServiceRole.entities.StripePaymentLog.create({
+                section: 'extra_charge',
+                amount: Number(session.amount_total || 0) / 100,
+                currency: session.currency || 'eur',
+                status: 'succeeded',
+                session_id: session.id,
+                payment_intent_id: session.payment_intent || null,
+                email: session.customer_details?.email || session.customer_email || metadata.user_email,
+                related_entity: 'ExtraChargePayment',
+                related_id: metadata.extra_charge_id,
+                metadata,
+                created_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error('[stripe-webhook] Error guardando log Stripe (extra_charge):', logErr?.message || logErr);
+            }
+
+            const payerEmail = session.customer_details?.email || session.customer_email || metadata.user_email;
+
+            // Crear registro ExtraChargePayment
+            const ecPayment = await base44.asServiceRole.entities.ExtraChargePayment.create({
+              extra_charge_id: metadata.extra_charge_id,
+              usuario_email: payerEmail,
+              seleccion: (() => { try { return JSON.parse(metadata.seleccion || '[]'); } catch { return []; } })(),
+              total: Number(session.amount_total || 0) / 100,
+              metodo: 'Tarjeta',
+              estado: 'Pagado',
+              concepto: metadata.titulo || 'Cobro extra'
+            });
+            console.log('[stripe-webhook] ExtraChargePayment creado', { id: ecPayment.id, charge: metadata.extra_charge_id });
+
+            // Notificar al pagador
+            try {
+              if (payerEmail) {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to: payerEmail,
+                  subject: `✅ Pago confirmado - ${metadata.titulo || 'Cobro extra'}`,
+                  body: `Hemos recibido tu pago de ${(Number(session.amount_total || 0) / 100).toFixed(2)}€ para "${metadata.titulo || 'Cobro extra'}".\nEstado: Pagado.\nGracias.\n\nCD Bustarviejo`
+                });
+              }
+            } catch (emailErr) {
+              console.error('[stripe-webhook] Error email extra_charge:', emailErr?.message || emailErr);
+            }
+
+            // Notificar al admin
+            try {
+              await base44.asServiceRole.integrations.Core.SendEmail({
+                to: 'cdbustarviejo@gmail.com',
+                subject: `✅ Cobro extra pagado (Stripe) - ${payerEmail}`,
+                body: `Cobro extra "${metadata.titulo || ''}" pagado por ${payerEmail}.\nImporte: ${(Number(session.amount_total || 0) / 100).toFixed(2)}€`
+              });
+            } catch (emailErr) {
+              console.error('[stripe-webhook] Error email admin extra_charge:', emailErr?.message || emailErr);
+            }
+          } catch (e) {
+            console.error('[stripe-webhook] Error procesando extra_charge:', e?.message || e);
+          }
+        }
+
+        // Otros tipos se añadirán si hace falta
 
         // NUEVO: Lotería de Navidad
         if (metadata.tipo === 'loteria') {

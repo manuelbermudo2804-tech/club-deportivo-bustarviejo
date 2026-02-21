@@ -9,8 +9,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const allUsers = await base44.asServiceRole.entities.User.list();
-    const allPlayers = await base44.asServiceRole.entities.Player.list();
+    // Paginación para obtener TODOS los registros
+    const fetchAll = async (entity) => {
+      const results = [];
+      const pageSize = 200;
+      let skip = 0;
+      let batch;
+      do {
+        batch = await entity.list('-created_date', pageSize, skip);
+        results.push(...batch);
+        skip += pageSize;
+      } while (batch.length === pageSize);
+      return results;
+    };
+
+    const allUsers = await fetchAll(base44.asServiceRole.entities.User);
+    const allPlayers = await fetchAll(base44.asServiceRole.entities.Player);
     
     // Crear set de emails con jugadores activos
     const parentsWithActivePlayers = new Set();
