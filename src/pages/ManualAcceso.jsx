@@ -12,14 +12,14 @@ const STEPS = [
     title: "Recibirás un email de invitación",
     icon: Mail,
     color: "bg-blue-500",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992c6be619d2da592897991/36e44ff37_image.png",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992c6be619d2da592897991/bd3449dc1_image.png",
     instructions: [
       "El administrador del club te enviará una invitación al email que le facilitaste.",
-      "Recibirás un correo con el asunto \"Invitation to join Club Deportivo Bustarviejo\".",
-      "Dentro del correo verás un botón negro que dice \"Join Club Deportivo Bustarviejo now\".",
+      "Recibirás un correo con el asunto \"You're invited to join Club Deportivo Bustarviejo\".",
+      "Dentro del correo verás un botón negro que dice \"Access app\".",
     ],
     annotation: {
-      text: "👇 Pulsa el botón \"Join Club Deportivo Bustarviejo now\"",
+      text: "👇 Pulsa el botón \"Access app\"",
       description: "Este botón te llevará a la pantalla de acceso de la app."
     },
     warnings: [
