@@ -23,16 +23,16 @@ export default function SectionedButtonGrid({
   const playerButtons = buttons.filter(b => b.section === "player");
   const clubButtons = buttons.filter(b => b.section === "club");
 
-  const renderSection = (items, label, colorClass) => {
+  const renderSection = (items, label, textColor, lineColor) => {
     if (items.length === 0) return null;
     return (
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <div className={`h-px flex-1 ${colorClass}/30`} />
-          <span className={`text-xs font-bold ${colorClass} uppercase tracking-wider whitespace-nowrap`}>
+          <div className={`h-px flex-1 ${lineColor}`} />
+          <span className={`text-xs font-bold ${textColor} uppercase tracking-wider whitespace-nowrap`}>
             {label}
           </span>
-          <div className={`h-px flex-1 ${colorClass}/30`} />
+          <div className={`h-px flex-1 ${lineColor}`} />
         </div>
         <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
           {items.map((item, i) => (
@@ -49,9 +49,9 @@ export default function SectionedButtonGrid({
 
   return (
     <div className="space-y-4">
-      {renderSection(roleButtons, roleSectionLabel, "text-blue-400 bg-blue-500")}
-      {renderSection(playerButtons, playerSectionLabel, "text-green-400 bg-green-500")}
-      {renderSection(clubButtons, clubSectionLabel, "text-orange-400 bg-orange-500")}
+      {renderSection(roleButtons, roleSectionLabel, "text-blue-400", "bg-blue-500/30")}
+      {renderSection(playerButtons, playerSectionLabel, "text-green-400", "bg-green-500/30")}
+      {renderSection(clubButtons, clubSectionLabel, "text-orange-400", "bg-orange-500/30")}
     </div>
   );
 }

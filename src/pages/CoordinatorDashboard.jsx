@@ -228,7 +228,7 @@ export default function CoordinatorDashboard() {
               if (b.conditionKey === "hasPlayers") return hasPlayers;
               if (b.conditionKey === "isCoachToo") return user?.es_entrenador === true;
               if (b.conditionKey === "isPlayer") return user?.es_jugador === true;
-              if (b.conditionKey === "loteriaVisible") return loteriaVisible;
+              if (b.conditionKey === "loteriaVisible") return false;
               return true;
             })}
             selectedButtonIds={userButtonConfig?.selected_buttons || cachedCoordButtonIds || DEFAULT_COORDINATOR_BUTTONS}
@@ -251,7 +251,7 @@ export default function CoordinatorDashboard() {
               if (b.conditionKey === "hasPlayers") return hasPlayers;
               if (b.conditionKey === "isCoachToo") return user?.es_entrenador === true;
               if (b.conditionKey === "isPlayer") return user?.es_jugador === true;
-              if (b.conditionKey === "loteriaVisible") return loteriaVisible;
+              if (b.conditionKey === "loteriaVisible") return false;
               return true;
             })
           }
