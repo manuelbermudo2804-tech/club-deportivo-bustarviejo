@@ -138,15 +138,52 @@ const STEPS = [
   },
   {
     number: 7,
-    title: "Primer paso: Crear la ficha del jugador",
-    icon: Monitor,
+    title: "Pantalla de bienvenida",
+    icon: PartyPopper,
+    color: "bg-orange-600",
+    sectionHeader: "📲 ALTA EN LA APP — ¿Qué pasa al entrar por primera vez?",
+    instructions: [
+      "Nada más entrar por primera vez, verás una pantalla de bienvenida con el logo del club.",
+      "Te explicará brevemente qué puedes hacer con la app: inscribir jugadores, chatear con entrenadores, ver calendario, etc.",
+      "Pulsa \"Entrar\" para continuar.",
+    ],
+    image: null,
+    welcomeScreen: true
+  },
+  {
+    number: 8,
+    title: "Elige tu tipo de registro",
+    icon: Users,
+    color: "bg-indigo-600",
+    instructions: [
+      "La app te preguntará qué tipo de usuario eres.",
+      "Elige la opción que corresponda a tu caso:",
+    ],
+    registrationTypeStep: true
+  },
+  {
+    number: 9,
+    title: "Instala la app en tu móvil",
+    icon: Download,
+    color: "bg-green-600",
+    instructions: [
+      "Antes de seguir, la app te pedirá que la instales en tu móvil como si fuera una app normal.",
+      "Es muy rápido (menos de 1 minuto) y te permitirá acceder directamente desde tu pantalla de inicio.",
+    ],
+    installStep: true
+  },
+  {
+    number: 10,
+    title: "Da de alta a tus jugadores",
+    icon: UserPlus,
     color: "bg-orange-500",
     instructions: [
-      "Nada más entrar por primera vez, la app te pedirá que crees el perfil de tu hijo/a (o el tuyo si eres jugador mayor de 18 años).",
-      "Sigue los pasos del asistente: nombre, fecha de nacimiento y categoría.",
-      "Después llegarás a tu panel principal donde podrás ver convocatorias, pagos, chat y mucho más.",
+      "Una vez instalada la app, ábrela desde el icono en tu pantalla de inicio.",
+      "La app te guiará paso a paso por un formulario muy sencillo e intuitivo para dar de alta al jugador.",
+      "El formulario incluye: foto, datos personales, categoría, documentación, ficha médica y autorizaciones.",
+      "Al finalizar llegarás a tu Panel Principal con acceso a todo: convocatorias, pagos, chat, calendario y más.",
     ],
-    onboardingStep: true
+    playerRegistrationStep: true
   }
 ];
 
