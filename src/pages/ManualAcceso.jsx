@@ -312,6 +312,56 @@ function StepCard({ step }) {
               </div>
             </div>
           )}
+
+          {/* Onboarding step */}
+          {step.onboardingStep && (
+            <div className="space-y-3">
+              <div className="bg-gradient-to-r from-orange-50 to-green-50 border-2 border-orange-300 rounded-xl p-4">
+                <p className="font-bold text-orange-900 text-sm mb-3">📋 El asistente te pedirá:</p>
+                <div className="space-y-2.5">
+                  <div className="flex items-start gap-2.5">
+                    <Badge className="bg-orange-500 text-white text-xs shrink-0 mt-0.5">1</Badge>
+                    <div>
+                      <p className="font-semibold text-slate-800 text-sm">Nombre completo del jugador</p>
+                      <p className="text-xs text-slate-500">Nombre y apellidos tal como aparecen en el DNI</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Badge className="bg-orange-500 text-white text-xs shrink-0 mt-0.5">2</Badge>
+                    <div>
+                      <p className="font-semibold text-slate-800 text-sm">Fecha de nacimiento</p>
+                      <p className="text-xs text-slate-500">Para asignar la categoría correcta</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <Badge className="bg-orange-500 text-white text-xs shrink-0 mt-0.5">3</Badge>
+                    <div>
+                      <p className="font-semibold text-slate-800 text-sm">Categoría deportiva</p>
+                      <p className="text-xs text-slate-500">Pre-Benjamín, Benjamín, Alevín, Infantil, Cadete, Juvenil...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>👤 Si eres jugador mayor de 18 años:</strong> Tú mismo crearás tu propia ficha con tus datos.
+                </p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                <p className="text-sm text-green-800">
+                  <strong>💡 No te preocupes:</strong> El proceso es muy sencillo e intuitivo. Después podrás completar más datos (ficha médica, documentos, etc.) desde la sección <strong>"Mis Jugadores"</strong> en tu panel.
+                </p>
+              </div>
+
+              <div className="bg-purple-50 border-2 border-purple-300 rounded-xl p-4 text-center">
+                <p className="text-3xl mb-2">🏠</p>
+                <p className="font-bold text-purple-800 text-sm">Después del registro llegarás a tu Panel Principal</p>
+                <p className="text-xs text-purple-600 mt-1">Desde ahí tendrás acceso a todo: convocatorias, pagos, chat del equipo, calendario, documentos y mucho más.</p>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
