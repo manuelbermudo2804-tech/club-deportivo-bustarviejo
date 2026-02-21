@@ -134,6 +134,18 @@ const STEPS = [
       "La próxima vez solo tienes que ir a app.cdbustarviejo.com e iniciar sesión.",
     ],
     finalStep: true
+  },
+  {
+    number: 7,
+    title: "Primer paso: Crear la ficha del jugador",
+    icon: Monitor,
+    color: "bg-orange-500",
+    instructions: [
+      "Nada más entrar por primera vez, la app te pedirá que crees el perfil de tu hijo/a (o el tuyo si eres jugador mayor de 18 años).",
+      "Sigue los pasos del asistente: nombre, fecha de nacimiento y categoría.",
+      "Después llegarás a tu panel principal donde podrás ver convocatorias, pagos, chat y mucho más.",
+    ],
+    onboardingStep: true
   }
 ];
 
