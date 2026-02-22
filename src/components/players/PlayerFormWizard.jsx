@@ -183,26 +183,77 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   }, [isParent, isAdultPlayerSelfRegistration, player]);
 
   // File upload helper with image compression for mobile compatibility
-  const handleFileUpload = async (file, setUploading) => {
+  // Optimizado para iPhones antiguos y Android con poca memoria
+  const handleFileUpload = async (file, setUploading, isPhoto = false) => {
     if (!file) return null;
     setUploading(true);
     try {
-      // Comprimir imágenes grandes para evitar problemas en iOS/Android
-      const processedFile = await compressImage(file, { maxWidth: 1200, maxHeight: 1200, quality: 0.8 });
+      // Verificar tamaño máximo (25MB límite absoluto)
+      if (file.size > 25 * 1024 * 1024) {
+        toast.error("El archivo es demasiado grande (máx 25MB). Intenta con una foto más pequeña.");
+        return null;
+      }
+
+      let processedFile = file;
+      
+      // Solo comprimir imágenes, no PDFs
+      const isImage = file.type?.startsWith('image/') || 
+                      /\.(jpe?g|png|webp|heic|heif|bmp|gif)$/i.test(file.name || '');
+      
+      if (isImage) {
+        // Fotos de carnet: más agresivo (800px). Documentos: mantener legibilidad (1200px)
+        const maxDim = isPhoto ? 800 : 1200;
+        const quality = isPhoto ? 0.7 : 0.75;
+        
+        processedFile = await compressImage(file, { maxWidth: maxDim, maxHeight: maxDim, quality });
+        
+        // Si la compresión devolvió el original y es > 10MB, avisar
+        if (processedFile === file && file.size > 10 * 1024 * 1024) {
+          toast.info("Procesando imagen grande, puede tardar unos segundos...");
+        }
+      }
+
       const response = await base44.integrations.Core.UploadFile({ file: processedFile });
       toast.success("Archivo subido correctamente");
       return response.file_url;
     } catch (err) {
       console.error('[Upload] Error:', err);
-      toast.error("Error al subir el archivo. Inténtalo de nuevo.");
+      // Mensaje más útil según el error
+      if (err?.message?.includes('network') || err?.message?.includes('fetch')) {
+        toast.error("Error de conexión. Comprueba tu internet e inténtalo de nuevo.");
+      } else if (err?.message?.includes('size') || err?.message?.includes('large')) {
+        toast.error("La imagen es demasiado grande. Intenta hacer la foto con menor resolución.");
+      } else {
+        toast.error("Error al subir. Inténtalo de nuevo o prueba con otra imagen.");
+      }
       return null;
     } finally { setUploading(false); }
   };
 
-  const handlePhotoUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingPhoto); if (url) setCurrentPlayer(p => ({ ...p, foto_url: url })); };
-  const handleDNIUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingDNI); if (url) setCurrentPlayer(p => ({ ...p, dni_jugador_url: url })); };
-  const handleLibroFamiliaUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingLibroFamilia); if (url) setCurrentPlayer(p => ({ ...p, libro_familia_url: url })); };
-  const handleDNITutorUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingDNITutor); if (url) setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url })); };
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (e.target) e.target.value = ''; // Reset input para permitir re-seleccionar
+    const url = await handleFileUpload(file, setUploadingPhoto, true);
+    if (url) setCurrentPlayer(p => ({ ...p, foto_url: url }));
+  };
+  const handleDNIUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (e.target) e.target.value = '';
+    const url = await handleFileUpload(file, setUploadingDNI, false);
+    if (url) setCurrentPlayer(p => ({ ...p, dni_jugador_url: url }));
+  };
+  const handleLibroFamiliaUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (e.target) e.target.value = '';
+    const url = await handleFileUpload(file, setUploadingLibroFamilia, false);
+    if (url) setCurrentPlayer(p => ({ ...p, libro_familia_url: url }));
+  };
+  const handleDNITutorUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (e.target) e.target.value = '';
+    const url = await handleFileUpload(file, setUploadingDNITutor, false);
+    if (url) setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
+  };
 
   const handleLoadPreviousTutorData = (playerId) => {
     const source = allPlayers.find(p => p.id === playerId);
