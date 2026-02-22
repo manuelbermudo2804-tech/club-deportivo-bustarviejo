@@ -43,65 +43,166 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado)
   };
 
   const tipoDescriptions = {
-    padre_nuevo: 'Has sido invitado a unirte a la aplicación del CD Bustarviejo para gestionar la inscripción y actividades de tus hijos.',
-    segundo_progenitor: 'El primer progenitor te ha dado acceso a la aplicación del CD Bustarviejo para poder seguir las actividades de vuestros hijos.',
-    juvenil: 'Tu padre/tutor te ha autorizado para acceder a la aplicación del CD Bustarviejo con tu propio perfil juvenil.',
-    jugador_adulto: 'Has sido invitado a acceder a la aplicación del CD Bustarviejo como jugador.'
+    padre_nuevo: 'Has sido invitado/a a unirte a la app del <strong>CD Bustarviejo</strong> para gestionar la inscripción y actividades de tus hijos.',
+    segundo_progenitor: 'El primer progenitor te ha dado acceso a la app del <strong>CD Bustarviejo</strong> para seguir las actividades de vuestros hijos.',
+    juvenil: 'Tu padre/tutor te ha autorizado para acceder a la app del <strong>CD Bustarviejo</strong> con tu propio perfil juvenil.',
+    jugador_adulto: 'Has sido invitado/a a acceder a la app del <strong>CD Bustarviejo</strong> como jugador.'
   };
 
-  return `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;padding:20px;">
-    <div style="background:linear-gradient(135deg,#ea580c,#16a34a);border-radius:20px 20px 0 0;padding:30px;text-align:center;">
-      <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="CD Bustarviejo" style="width:80px;height:80px;border-radius:16px;border:3px solid white;"/>
-      <h1 style="color:white;margin:15px 0 5px;font-size:24px;">CD Bustarviejo</h1>
-      <p style="color:rgba(255,255,255,0.9);margin:0;font-size:14px;">${tipoLabels[tipo] || 'Invitación'}</p>
-    </div>
-    
-    <div style="background:white;padding:30px;border-radius:0 0 20px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
-      ${nombreDestino ? `<p style="font-size:18px;color:#1e293b;">Hola <strong>${nombreDestino}</strong>,</p>` : '<p style="font-size:18px;color:#1e293b;">Hola,</p>'}
-      
-      <p style="color:#475569;line-height:1.6;">${tipoDescriptions[tipo]}</p>
-      
-      ${mensajePersonalizado ? `<div style="background:#f8fafc;border-left:4px solid #ea580c;padding:12px 16px;margin:16px 0;border-radius:0 8px 8px 0;"><p style="color:#475569;margin:0;font-style:italic;">${mensajePersonalizado}</p></div>` : ''}
-      
-      <div style="background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:16px;padding:24px;text-align:center;margin:24px 0;">
-        <p style="color:#94a3b8;margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Tu código de acceso</p>
-        <p style="color:#f97316;font-size:36px;font-weight:900;margin:0;letter-spacing:6px;font-family:monospace;">${code}</p>
-        <p style="color:#64748b;margin:8px 0 0;font-size:12px;">Válido durante 7 días • Vinculado a tu email</p>
-      </div>
-      
-      <h3 style="color:#1e293b;margin:24px 0 12px;">📱 Cómo acceder:</h3>
-      <div style="background:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;padding:20px;">
-        <ol style="color:#166534;margin:0;padding-left:20px;line-height:2;">
-          <li>Entra en <a href="${appUrl}" style="color:#ea580c;font-weight:bold;">${appUrl}</a></li>
-          <li>Regístrate con tu email (<strong>usa este mismo email</strong>)</li>
-          <li>Al entrar por primera vez, introduce el código: <strong style="color:#ea580c;">${code}</strong></li>
-          <li>¡Listo! Ya tendrás acceso completo</li>
-        </ol>
-      </div>
-      
-      <h3 style="color:#1e293b;margin:24px 0 12px;">📲 Instala la App en tu móvil:</h3>
-      <div style="background:#eff6ff;border:2px solid #bfdbfe;border-radius:12px;padding:20px;">
-        <p style="color:#1e40af;margin:0 0 8px;font-weight:bold;">iPhone (Safari):</p>
-        <p style="color:#3b82f6;margin:0 0 12px;">Abre en Safari → Pulsa Compartir (↑) → "Añadir a pantalla de inicio"</p>
-        <p style="color:#1e40af;margin:0 0 8px;font-weight:bold;">Android (Chrome):</p>
-        <p style="color:#3b82f6;margin:0;">Abre en Chrome → Menú (⋮) → "Instalar aplicación"</p>
-      </div>
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!--[if mso]><style>table,td{font-family:Arial,Helvetica,sans-serif!important;}</style><![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;-webkit-font-smoothing:antialiased;">
 
-      <div style="text-align:center;margin:24px 0;">
-        <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#ea580c,#c2410c);color:white;padding:14px 32px;border-radius:12px;text-decoration:none;font-weight:bold;font-size:16px;">Acceder a la App →</a>
-      </div>
-      
-      <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;">
-      <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">
-        CD Bustarviejo • <a href="mailto:CDBUSTARVIEJO@GMAIL.COM" style="color:#ea580c;">CDBUSTARVIEJO@GMAIL.COM</a>
-      </p>
-    </div>
-  </div>
+<!-- Wrapper -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;">
+<tr><td align="center" style="padding:24px 16px;">
+
+<!-- Main card -->
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+  <!-- Header -->
+  <tr>
+    <td style="background-color:#ea580c;padding:32px 24px;text-align:center;border-radius:16px 16px 0 0;">
+      <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" style="width:600px" arcsize="3%" fillcolor="#ea580c" stroke="f"><v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0"><![endif]-->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center" style="padding-bottom:16px;">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="CD Bustarviejo" width="72" height="72" style="display:block;border:3px solid #ffffff;border-radius:14px;" />
+        </td></tr>
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:bold;color:#ffffff;letter-spacing:1px;">
+          CD BUSTARVIEJO
+        </td></tr>
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fed7aa;padding-top:6px;letter-spacing:0.5px;">
+          ${tipoLabels[tipo] || 'Invitación'}
+        </td></tr>
+      </table>
+      <!--[if mso]></v:textbox></v:roundrect><![endif]-->
+    </td>
+  </tr>
+
+  <!-- Body -->
+  <tr>
+    <td style="background-color:#ffffff;padding:32px 28px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        
+        <!-- Saludo -->
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:17px;color:#1e293b;padding-bottom:12px;">
+          ${nombreDestino ? `Hola <strong>${nombreDestino}</strong>,` : 'Hola,'}
+        </td></tr>
+
+        <!-- Descripción -->
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#475569;line-height:24px;padding-bottom:20px;">
+          ${tipoDescriptions[tipo]}
+        </td></tr>
+
+        ${mensajePersonalizado ? `
+        <!-- Mensaje personalizado -->
+        <tr><td style="padding-bottom:20px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td width="4" style="background-color:#ea580c;border-radius:4px;"></td>
+              <td style="background-color:#fef7f0;padding:14px 18px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#78350f;font-style:italic;line-height:22px;">
+                ${mensajePersonalizado}
+              </td>
+            </tr>
+          </table>
+        </td></tr>` : ''}
+
+        <!-- Código de acceso -->
+        <tr><td style="padding-bottom:24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:12px;overflow:hidden;">
+            <tr><td style="background-color:#1e293b;padding:28px 20px;text-align:center;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;padding-bottom:10px;">
+                  Tu código de acceso
+                </td></tr>
+                <tr><td align="center" style="font-family:'Courier New',Courier,monospace;font-size:38px;font-weight:bold;color:#f97316;letter-spacing:8px;padding-bottom:10px;">
+                  ${code}
+                </td></tr>
+                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#64748b;">
+                  Válido 7 días &bull; Vinculado a tu email
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Pasos -->
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#1e293b;padding-bottom:12px;">
+          &#128241; Cómo acceder:
+        </td></tr>
+        <tr><td style="padding-bottom:24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bbf7d0;border-radius:10px;overflow:hidden;">
+            <tr><td style="background-color:#f0fdf4;padding:18px 22px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:28px;">
+                  <strong>1.</strong> Pulsa el botón de abajo para abrir la app<br/>
+                  <strong>2.</strong> Regístrate con <strong>este mismo email</strong><br/>
+                  <strong>3.</strong> Introduce el código: <strong style="color:#ea580c;">${code}</strong><br/>
+                  <strong>4.</strong> ¡Listo! Ya tendrás acceso completo
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Botón -->
+        <tr><td align="center" style="padding-bottom:28px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center" style="border-radius:10px;background-color:#ea580c;">
+              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${appUrl}" style="height:50px;v-text-anchor:middle;width:260px;" arcsize="20%" fillcolor="#ea580c" stroke="f"><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">Abrir la App del Club</center></v:roundrect><![endif]-->
+              <!--[if !mso]><!-->
+              <a href="${appUrl}" target="_blank" style="display:inline-block;background-color:#ea580c;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;text-decoration:none;padding:16px 40px;border-radius:10px;">
+                Abrir la App del Club &#8594;
+              </a>
+              <!--<![endif]-->
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Instalar app -->
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#1e293b;padding-bottom:12px;">
+          &#128242; Instala la app en tu móvil:
+        </td></tr>
+        <tr><td style="padding-bottom:16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bfdbfe;border-radius:10px;overflow:hidden;">
+            <tr><td style="background-color:#eff6ff;padding:16px 22px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e40af;font-weight:bold;padding-bottom:4px;">iPhone (Safari):</td></tr>
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#3b82f6;padding-bottom:12px;">Abre en Safari &rarr; Compartir (&#8593;) &rarr; &quot;Añadir a pantalla de inicio&quot;</td></tr>
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e40af;font-weight:bold;padding-bottom:4px;">Android (Chrome):</td></tr>
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#3b82f6;">Abre en Chrome &rarr; Menú (&#8942;) &rarr; &quot;Instalar aplicación&quot;</td></tr>
+              </table>
+            </td></tr>
+          </table>
+        </td></tr>
+
+      </table>
+    </td>
+  </tr>
+
+  <!-- Footer -->
+  <tr>
+    <td style="background-color:#f8fafc;padding:20px 28px;border-radius:0 0 16px 16px;border-top:1px solid #e2e8f0;text-align:center;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#94a3b8;">
+          CD Bustarviejo &bull; <a href="mailto:cdbustarviejo@gmail.com" style="color:#ea580c;text-decoration:none;">cdbustarviejo@gmail.com</a>
+        </td></tr>
+      </table>
+    </td>
+  </tr>
+
+</table>
+<!-- /Main card -->
+
+</td></tr>
+</table>
+<!-- /Wrapper -->
+
 </body>
 </html>`;
 }
