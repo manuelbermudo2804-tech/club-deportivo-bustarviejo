@@ -934,64 +934,11 @@ export default function Layout({ children, currentPageName }) {
                           setShowWelcome(true);
                         }
 
-                        // Procesar invitación de ADMIN si existe (flujo de segundo progenitor eliminado)
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const invitationToken = urlParams.get('invitation_token');
-                        const invitationType = urlParams.get('type');
-
-                        if (invitationToken && invitationType && invitationType !== 'second_parent') {
-                          try {
-                            const isAuth = await base44.auth.isAuthenticated();
-                            if (!isAuth) {
-                              // Guardar token y redirigir a login
-                              localStorage.setItem('pending_invitation_token', invitationToken);
-                              localStorage.setItem('pending_invitation_type', invitationType);
-                              const loginUrl = 'https://app.base44.com/login';
-                              const returnUrl = encodeURIComponent('https://app.cdbustarviejo.com');
-                              window.location.href = `${loginUrl}?nextUrl=${returnUrl}`;
-                              return;
-                            }
-
-                            // Procesar token de ADMIN
-                            const invitations = await base44.entities.AdminInvitation.filter({ token: invitationToken });
-                            if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
-                              await base44.entities.AdminInvitation.update(invitations[0].id, {
-                                estado: 'aceptada',
-                                fecha_aceptacion: new Date().toISOString()
-                              });
-                              window.history.replaceState({}, '', window.location.pathname);
-                              localStorage.removeItem('pending_invitation_token');
-                              localStorage.removeItem('pending_invitation_type');
-                            }
-                          } catch (err) {
-                            console.log('Error procesando invitación admin:', err);
-                          }
-                        } else {
-                          // Verificar si hay token guardado en localStorage (solo admin)
-                          const savedToken = localStorage.getItem('pending_invitation_token');
-                          const savedType = localStorage.getItem('pending_invitation_type');
-
-                          if (savedToken && savedType && savedType !== 'second_parent') {
-                            try {
-                              const isAuth = await base44.auth.isAuthenticated();
-                              if (isAuth) {
-                                const invitations = await base44.entities.AdminInvitation.filter({ token: savedToken });
-                                if (invitations.length > 0 && invitations[0].estado === 'pendiente') {
-                                  await base44.entities.AdminInvitation.update(invitations[0].id, {
-                                    estado: 'aceptada',
-                                    fecha_aceptacion: new Date().toISOString()
-                                  });
-                                  localStorage.removeItem('pending_invitation_token');
-                                  localStorage.removeItem('pending_invitation_type');
-                                }
-                              }
-                            } catch (err) {
-                              console.log('Error procesando invitación admin guardada:', err);
-                              localStorage.removeItem('pending_invitation_token');
-                              localStorage.removeItem('pending_invitation_type');
-                            }
-                          }
-                        }
+                        // Sistema de invitaciones legacy (AdminInvitation) eliminado
+                        // Las invitaciones ahora se gestionan con códigos de acceso (AccessCode)
+                        // Limpiar tokens legacy si existen en localStorage
+                        localStorage.removeItem('pending_invitation_token');
+                        localStorage.removeItem('pending_invitation_type');
 
                         // Si es página pública, verificar si hay usuario autenticado sin forzar login
                         if (isPublicPage) {
