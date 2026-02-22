@@ -227,6 +227,28 @@ export default function AdminAccessCodes() {
     }
   });
 
+  const handleBulkResend = async () => {
+    const pendingCodes = accessCodes.filter(c => 
+      c.estado === 'pendiente' && (!c.fecha_expiracion || new Date(c.fecha_expiracion) >= new Date())
+    );
+    if (pendingCodes.length === 0) {
+      toast.info('No hay invitaciones pendientes para reenviar');
+      return;
+    }
+    if (!confirm(`¿Reenviar ${pendingCodes.length} invitaciones pendientes?`)) return;
+    setBulkResending(true);
+    let sent = 0;
+    for (const code of pendingCodes) {
+      try {
+        await base44.functions.invoke('generateAccessCode', { action: 'resend', access_code_id: code.id });
+        sent++;
+      } catch (e) { /* skip errors */ }
+    }
+    setBulkResending(false);
+    queryClient.invalidateQueries({ queryKey: ['accessCodes'] });
+    toast.success(`${sent} invitaciones reenviadas`);
+  };
+
   const filtered = accessCodes.filter(c => {
     const matchesFilter = filter === 'all' || c.estado === filter || 
       (filter === 'expirado' && c.estado === 'pendiente' && c.fecha_expiracion && new Date(c.fecha_expiracion) < new Date());
