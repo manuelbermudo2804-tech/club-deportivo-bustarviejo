@@ -11,6 +11,7 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "entrenadores", title: "🏃 Entrenadores", icon: Award, url: createPageUrl("CoachProfiles"), gradient: "from-indigo-600 to-indigo-700", priority: 4 },
   { id: "usuarios", title: "👤 Usuarios", icon: Users, url: createPageUrl("UserManagement"), gradient: "from-blue-600 to-blue-700", priority: 5 },
   { id: "invitaciones", title: "📧 Solicitudes Invitación", icon: Mail, url: createPageUrl("InvitationRequests"), gradient: "from-purple-600 to-purple-700", priority: 6 },
+  { id: "codigos_acceso", title: "🔑 Códigos de Acceso", icon: Mail, url: createPageUrl("AdminAccessCodes"), gradient: "from-amber-600 to-amber-700", priority: 6.5 },
 
   // --- FINANZAS ---
   { id: "pagos", title: "💳 Pagos", icon: CreditCard, url: createPageUrl("Payments"), gradient: "from-green-600 to-green-700", priority: 7 },

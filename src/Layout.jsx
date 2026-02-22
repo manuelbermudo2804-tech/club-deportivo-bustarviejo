@@ -1468,6 +1468,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
     { title: "📧 Solicitudes Invitación", url: createPageUrl("InvitationRequests"), icon: Mail, badge: pendingInvitations > 0 ? pendingInvitations : null },
+    { title: "🔑 Códigos de Acceso", url: createPageUrl("AdminAccessCodes"), icon: KeyRound },
 
     // 💰 FINANZAS
     { title: "─ FINANZAS ─", section: true },
