@@ -163,6 +163,7 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
+import AdminAccessCodes from './pages/AdminAccessCodes';
 import __Layout from './Layout.jsx';
 
 
@@ -283,6 +284,7 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
+    "AdminAccessCodes": AdminAccessCodes,
 }
 
 export const pagesConfig = {
