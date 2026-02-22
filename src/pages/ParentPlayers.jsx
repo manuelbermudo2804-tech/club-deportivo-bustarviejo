@@ -406,30 +406,7 @@ export default function ParentPlayers() {
         console.error("Error recalculando descuentos familiares:", error);
       }
       
-      // INVITACIÓN SEGUNDO PROGENITOR - Generar código de acceso directo via Resend
-      if (dataWithParentEmail.email_tutor_2 && dataWithParentEmail.email_tutor_2.trim()) {
-        try {
-          const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
-
-          // Generar código de acceso directamente (se envía email bonito via Resend)
-          const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
-            email: email2,
-            tipo: 'segundo_progenitor',
-            nombre_destino: dataWithParentEmail.nombre_tutor_2 || '',
-            jugador_id: newPlayer.id,
-            jugador_nombre: newPlayer.nombre,
-            mensaje_personalizado: `${currentUser?.full_name || 'Tu pareja'} te ha añadido como segundo progenitor de ${newPlayer.nombre}.`
-          });
-
-          if (codeResult?.success) {
-            console.log('✅ Código de acceso generado y enviado al segundo progenitor:', email2, 'Código:', codeResult.codigo);
-          } else {
-            console.log('⚠️ Error generando código para segundo progenitor:', codeResult?.error);
-          }
-        } catch (e) {
-          console.error('Error invitando a segundo progenitor:', e);
-        }
-      }
+      // (Invitación segundo progenitor ya enviada arriba)
       
       // ⚽👧 BONUS FÚTBOL FEMENINO - Detectar si el padre que inscribe fue referido y la jugadora es femenina
       try {
