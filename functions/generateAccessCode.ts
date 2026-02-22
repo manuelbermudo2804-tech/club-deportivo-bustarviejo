@@ -126,14 +126,12 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
 </head>
 <body style="margin:0;padding:0;background-color:#f1f5f9;-webkit-font-smoothing:antialiased;">
 
-<!-- Wrapper -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;">
 <tr><td align="center" style="padding:24px 16px;">
 
-<!-- Main card -->
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
 
-  <!-- Header con gradiente -->
+  <!-- Header -->
   <tr>
     <td style="background-color:#ea580c;padding:36px 24px 28px;text-align:center;border-radius:16px 16px 0 0;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -150,7 +148,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
     </td>
   </tr>
 
-  <!-- Barra tipo invitación -->
+  <!-- Tipo de invitación -->
   <tr>
     <td style="background-color:#1e293b;padding:12px 28px;text-align:center;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -177,7 +175,6 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
         </td></tr>
 
         ${mensajePersonalizado ? `
-        <!-- Mensaje personalizado -->
         <tr><td style="padding-bottom:24px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
             <tr>
@@ -189,90 +186,192 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
           </table>
         </td></tr>` : ''}
 
-        <!-- Código de acceso -->
-        <tr><td style="padding-bottom:28px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:14px;overflow:hidden;">
-            <tr><td style="background-color:#1e293b;padding:32px 20px;text-align:center;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:3px;padding-bottom:12px;">
-                  &#128273; Tu código de acceso personal
-                </td></tr>
-                <tr><td align="center" style="font-family:'Courier New',Courier,monospace;font-size:42px;font-weight:bold;color:#f97316;letter-spacing:10px;padding-bottom:12px;">
-                  ${code}
-                </td></tr>
-                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#64748b;">
-                  &#128337; Válido durante 7 días &bull; &#128274; Vinculado a tu email
-                </td></tr>
-              </table>
-            </td></tr>
-          </table>
-        </td></tr>
-
-        <!-- Nota importante -->
+        <!-- ============================================ -->
+        <!-- PASO 1: INSTALAR LA APP (LO MÁS IMPORTANTE) -->
+        <!-- ============================================ -->
         <tr><td style="padding-bottom:24px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #fde68a;border-radius:10px;overflow:hidden;">
-            <tr><td style="background-color:#fffbeb;padding:14px 20px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #16a34a;border-radius:16px;overflow:hidden;">
+            <tr><td style="background-color:#16a34a;padding:16px 22px;text-align:center;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#92400e;line-height:22px;">
-                  ${importantNotes[tipo]}
+                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;color:#ffffff;">
+                  &#128242; PASO 1: Instala la app en tu m&oacute;vil
                 </td></tr>
+                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#bbf7d0;padding-top:4px;">
+                  Es como WhatsApp o cualquier otra app &mdash; tarda menos de 1 minuto
+                </td></tr>
+              </table>
+            </td></tr>
+            <tr><td style="background-color:#f0fdf4;padding:24px 22px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+                <!-- iPhone -->
+                <tr><td style="padding-bottom:20px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bfdbfe;border-radius:12px;overflow:hidden;">
+                    <tr><td style="background-color:#1e40af;padding:10px 16px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#ffffff;">
+                          &#127822; Si tienes iPhone o iPad
+                        </td></tr>
+                      </table>
+                    </td></tr>
+                    <tr><td style="background-color:#eff6ff;padding:16px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e3a5f;line-height:28px;">
+                          <strong style="color:#dc2626;">&#9888; MUY IMPORTANTE:</strong> Abre este enlace en <strong>Safari</strong> (NO en Chrome ni otros)<br/>
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
+                            <tr><td style="background-color:#1e40af;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">1</td>
+                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#1e3a5f;">Abre <strong>Safari</strong> y ve a: <strong style="color:#ea580c;">app.cdbustarviejo.com</strong></td></tr>
+                          </table>
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px;">
+                            <tr><td style="background-color:#1e40af;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">2</td>
+                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#1e3a5f;">Pulsa el bot&oacute;n <strong>Compartir</strong> &#9757; (el cuadrado con flecha hacia arriba, abajo en la pantalla)</td></tr>
+                          </table>
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px;">
+                            <tr><td style="background-color:#1e40af;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">3</td>
+                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#1e3a5f;">Desliza hacia abajo y pulsa <strong>&quot;A&ntilde;adir a pantalla de inicio&quot;</strong></td></tr>
+                          </table>
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px;">
+                            <tr><td style="background-color:#1e40af;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">4</td>
+                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#1e3a5f;">Pulsa <strong>&quot;A&ntilde;adir&quot;</strong> arriba a la derecha</td></tr>
+                          </table>
+                        </td></tr>
+                      </table>
+                    </td></tr>
+                  </table>
+                </td></tr>
+
+                <!-- Android -->
+                <tr><td>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bbf7d0;border-radius:12px;overflow:hidden;">
+                    <tr><td style="background-color:#16a34a;padding:10px 16px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#ffffff;">
+                          &#129302; Si tienes Android (Samsung, Xiaomi, etc.)
+                        </td></tr>
+                      </table>
+                    </td></tr>
+                    <tr><td style="background-color:#f0fdf4;padding:16px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#166534;line-height:28px;">
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                            <tr><td style="background-color:#16a34a;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">1</td>
+                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#166534;">Abre <strong>Chrome</strong> y ve a: <strong style="color:#ea580c;">app.cdbustarviejo.com</strong></td></tr>
+                          </table>
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px;">
+                            <tr><td style="background-color:#16a34a;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">2</td>
+                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#166534;">Si te sale un aviso de <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong>, pulsa <strong>Instalar</strong> y listo &#127881;</td></tr>
+                          </table>
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px;">
+                            <tr><td style="background-color:#16a34a;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">3</td>
+                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#166534;">Si no sale autom&aacute;ticamente: pulsa el <strong>men&uacute;</strong> (&#8942; tres puntos arriba a la derecha) &rarr; <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong></td></tr>
+                          </table>
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
+                            <tr><td style="font-family:Arial,sans-serif;font-size:12px;color:#15803d;background-color:#dcfce7;padding:8px 12px;border-radius:8px;">
+                              &#128161; <strong>Nota:</strong> En muchos Android la app se instala sola al abrir el enlace. &iexcl;Es muy f&aacute;cil!
+                            </td></tr>
+                          </table>
+                        </td></tr>
+                      </table>
+                    </td></tr>
+                  </table>
+                </td></tr>
+
               </table>
             </td></tr>
           </table>
         </td></tr>
 
-        <!-- Pasos para acceder -->
-        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#1e293b;padding-bottom:14px;">
-          &#128640; ¿Cómo empezar? Muy fácil:
-        </td></tr>
-        <tr><td style="padding-bottom:28px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bbf7d0;border-radius:12px;overflow:hidden;">
-            <tr><td style="background-color:#f0fdf4;padding:22px;">
+        <!-- ======================================= -->
+        <!-- PASO 2: CREAR CUENTA E INTRODUCIR CÓDIGO -->
+        <!-- ======================================= -->
+        <tr><td style="padding-bottom:24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #ea580c;border-radius:16px;overflow:hidden;">
+            <tr><td style="background-color:#ea580c;padding:16px 22px;text-align:center;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr><td style="padding:8px 0;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td width="36" valign="top" style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;background-color:#16a34a;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;">1</td>
-                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:22px;"><strong>Pulsa el botón verde</strong> de abajo para abrir la app</td>
-                  </tr></table>
+                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;color:#ffffff;">
+                  &#128273; PASO 2: Crea tu cuenta e introduce tu c&oacute;digo
                 </td></tr>
-                <tr><td style="padding:8px 0;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td width="36" valign="top" style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;background-color:#16a34a;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;">2</td>
-                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:22px;"><strong>Crea tu cuenta</strong> usando <u>este mismo email</u></td>
-                  </tr></table>
+              </table>
+            </td></tr>
+            <tr><td style="background-color:#fff7ed;padding:24px 22px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                
+                <!-- Instrucciones -->
+                <tr><td style="padding-bottom:16px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr><td style="padding:6px 0;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                        <td style="background-color:#ea580c;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">1</td>
+                        <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:14px;color:#9a3412;line-height:22px;">Abre la app desde el icono que acabas de instalar</td>
+                      </tr></table>
+                    </td></tr>
+                    <tr><td style="padding:6px 0;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                        <td style="background-color:#ea580c;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">2</td>
+                        <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:14px;color:#9a3412;line-height:22px;"><strong>Crea tu cuenta</strong> usando <strong><u>este mismo email</u></strong> (el que recibi&oacute; este correo)</td>
+                      </tr></table>
+                    </td></tr>
+                    <tr><td style="padding:6px 0;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                        <td style="background-color:#ea580c;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">3</td>
+                        <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:14px;color:#9a3412;line-height:22px;">Te pedir&aacute; un <strong>c&oacute;digo de acceso</strong> &mdash; introduce el de abajo</td>
+                      </tr></table>
+                    </td></tr>
+                  </table>
                 </td></tr>
-                <tr><td style="padding:8px 0;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td width="36" valign="top" style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;background-color:#16a34a;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;">3</td>
-                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:22px;">Introduce tu código: <strong style="color:#ea580c;font-size:16px;">${code}</strong></td>
-                  </tr></table>
+
+                <!-- Código grande -->
+                <tr><td style="padding-bottom:16px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:14px;overflow:hidden;">
+                    <tr><td style="background-color:#1e293b;padding:28px 20px;text-align:center;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:3px;padding-bottom:10px;">
+                          Tu c&oacute;digo de acceso personal
+                        </td></tr>
+                        <tr><td align="center" style="font-family:'Courier New',Courier,monospace;font-size:42px;font-weight:bold;color:#f97316;letter-spacing:10px;padding-bottom:10px;">
+                          ${code}
+                        </td></tr>
+                        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#64748b;">
+                          &#128337; V&aacute;lido 7 d&iacute;as &bull; &#128274; Vinculado a tu email
+                        </td></tr>
+                      </table>
+                    </td></tr>
+                  </table>
                 </td></tr>
-                <tr><td style="padding:8px 0;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                    <td width="36" valign="top" style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;background-color:#16a34a;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;">4</td>
-                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:22px;"><strong>¡Listo!</strong> Accederás directamente a tu panel</td>
-                  </tr></table>
+
+                <!-- Nota importante -->
+                <tr><td>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #fde68a;border-radius:10px;overflow:hidden;">
+                    <tr><td style="background-color:#fffbeb;padding:14px 20px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#92400e;line-height:22px;">
+                          ${importantNotes[tipo]}
+                        </td></tr>
+                      </table>
+                    </td></tr>
+                  </table>
                 </td></tr>
+
               </table>
             </td></tr>
           </table>
         </td></tr>
 
         <!-- Botón principal -->
-        <tr><td align="center" style="padding-bottom:32px;">
+        <tr><td align="center" style="padding-bottom:28px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0">
             <tr><td align="center" style="border-radius:12px;background-color:#16a34a;">
-              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${appUrl}" style="height:56px;v-text-anchor:middle;width:300px;" arcsize="18%" fillcolor="#16a34a" stroke="f"><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:18px;font-weight:bold;">&#9998; Abrir la App del Club</center></v:roundrect><![endif]-->
+              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${appUrl}" style="height:56px;v-text-anchor:middle;width:320px;" arcsize="18%" fillcolor="#16a34a" stroke="f"><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:18px;font-weight:bold;">&#128242; Abrir la App del Club</center></v:roundrect><![endif]-->
               <!--[if !mso]><!-->
               <a href="${appUrl}" target="_blank" style="display:inline-block;background-color:#16a34a;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;text-decoration:none;padding:18px 48px;border-radius:12px;">
-                &#9998; Abrir la App del Club
+                &#128242; Abrir la App del Club
               </a>
               <!--<![endif]-->
             </td></tr>
           </table>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0">
             <tr><td align="center" style="padding-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;">
-              Si el botón no funciona, copia este enlace en tu navegador: ${appUrl}
+              O abre tu navegador y escribe: <strong>app.cdbustarviejo.com</strong>
             </td></tr>
           </table>
         </td></tr>
@@ -286,7 +385,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
 
         <!-- ¿Qué podrás hacer? -->
         <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#1e293b;padding-bottom:16px;">
-          &#127775; ¿Qué podrás hacer desde la app?
+          &#127775; &iquest;Qu&eacute; podr&aacute;s hacer desde la app?
         </td></tr>
         <tr><td style="padding-bottom:28px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
@@ -298,47 +397,11 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
           </table>
         </td></tr>
 
-        <!-- Separador -->
-        <tr><td style="padding-bottom:24px;">
+        <!-- Tip final -->
+        <tr><td style="padding-bottom:16px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="border-bottom:2px solid #f1f5f9;">&nbsp;</td></tr>
-          </table>
-        </td></tr>
-
-        <!-- Instalar app -->
-        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#1e293b;padding-bottom:14px;">
-          &#128242; Instala la app en tu móvil (recomendado):
-        </td></tr>
-        <tr><td style="padding-bottom:8px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bfdbfe;border-radius:12px;overflow:hidden;">
-            <tr><td style="background-color:#eff6ff;padding:20px 22px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e40af;font-weight:bold;padding-bottom:8px;">
-                  &#127822; iPhone / iPad (Safari):
-                </td></tr>
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#3b82f6;padding-bottom:16px;line-height:22px;">
-                  1. Abre el enlace en <strong>Safari</strong> (no Chrome)<br/>
-                  2. Pulsa el botón <strong>Compartir</strong> (&#8593;) abajo en la pantalla<br/>
-                  3. Busca <strong>&quot;Añadir a pantalla de inicio&quot;</strong><br/>
-                  4. Pulsa <strong>&quot;Añadir&quot;</strong> arriba a la derecha
-                </td></tr>
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e40af;font-weight:bold;padding-bottom:8px;">
-                  &#129302; Android (Chrome):
-                </td></tr>
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#3b82f6;line-height:22px;">
-                  1. Abre el enlace en <strong>Chrome</strong><br/>
-                  2. Pulsa el <strong>menú</strong> (&#8942; tres puntos) arriba a la derecha<br/>
-                  3. Pulsa <strong>&quot;Instalar aplicación&quot;</strong> o &quot;Añadir a inicio&quot;<br/>
-                  4. Confirma pulsando <strong>&quot;Instalar&quot;</strong>
-                </td></tr>
-              </table>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="padding-bottom:24px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#64748b;line-height:20px;padding:8px 0;">
-              &#128161; <strong>Tip:</strong> Al instalarla tendrás un icono en tu pantalla de inicio como cualquier otra app, y recibirás notificaciones de convocatorias y novedades.
+            <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#64748b;line-height:20px;background-color:#f8fafc;padding:12px 16px;border-radius:10px;border:1px solid #e2e8f0;">
+              &#128161; <strong>Tip:</strong> Al instalar la app tendr&aacute;s un icono en tu pantalla de inicio como cualquier otra app (WhatsApp, Instagram...) y recibir&aacute;s notificaciones de convocatorias, pagos y novedades del club.
             </td></tr>
           </table>
         </td></tr>
@@ -358,7 +421,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
           CD Bustarviejo
         </td></tr>
         <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;padding-bottom:12px;">
-          Fútbol &bull; Baloncesto &bull; Desde 1950
+          F&uacute;tbol &bull; Baloncesto &bull; Desde 1950
         </td></tr>
         <tr><td align="center" style="padding-bottom:12px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -378,11 +441,8 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
   </tr>
 
 </table>
-<!-- /Main card -->
-
 </td></tr>
 </table>
-<!-- /Wrapper -->
 
 </body>
 </html>`;
