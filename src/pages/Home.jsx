@@ -179,27 +179,10 @@ export default function Home() {
     enabled: lazyEnabled && loteriaVisible,
   });
 
-  const { data: invitationRequests = [] } = useQuery({
-    queryKey: ['invitationRequestsHome'],
-    queryFn: () => base44.entities.InvitationRequest.list('-created_date'),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    enabled: lazyEnabled,
-  });
-
-  const { data: secondParentInvitations = [] } = useQuery({
-    queryKey: ['secondParentInvitationsHome'],
-    queryFn: () => base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }),
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-    enabled: lazyEnabled,
-  });
-
-  const pendingInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente" && r.tipo_solicitud !== "acceso_menor").length;
-  const pendingMinorInvitationRequests = invitationRequests.filter(r => r.estado === "pendiente" && r.tipo_solicitud === "acceso_menor").length;
-  const pendingSecondParentInvitationsCount = secondParentInvitations.length;
+  // Legacy: InvitationRequest y SecondParentInvitation eliminados - ahora todo usa AccessCode
+  const pendingInvitationRequests = 0;
+  const pendingMinorInvitationRequests = 0;
+  const pendingSecondParentInvitationsCount = 0;
 
   // Configuración de botones del dashboard - con cache en localStorage
   const localStorageKey = user?.email ? `dashboard_buttons_admin_${user.email}` : null;
