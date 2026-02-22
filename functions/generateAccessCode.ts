@@ -3,11 +3,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   code += '-';
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;
@@ -50,7 +50,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado)
       <div style="background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:16px;padding:24px;text-align:center;margin:24px 0;">
         <p style="color:#94a3b8;margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Tu código de acceso</p>
         <p style="color:#f97316;font-size:36px;font-weight:900;margin:0;letter-spacing:6px;font-family:monospace;">${code}</p>
-        <p style="color:#64748b;margin:8px 0 0;font-size:12px;">Válido durante 7 días</p>
+        <p style="color:#64748b;margin:8px 0 0;font-size:12px;">Válido durante 7 días • Vinculado a tu email</p>
       </div>
       
       <h3 style="color:#1e293b;margin:24px 0 12px;">📱 Cómo acceder:</h3>
