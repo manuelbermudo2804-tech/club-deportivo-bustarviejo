@@ -55,7 +55,7 @@ export default function Voluntariado() {
   });
 
   // Directorio completo (admin/coordinador)
-  const canManage = !!(user?.role === "admin" || user?.es_coordinador || user?.puede_gestionar_voluntarios);
+  const canManage = !!(user?.role === "admin" || user?.es_coordinador || user?.es_entrenador || user?.puede_gestionar_voluntarios);
   const { data: allProfiles = [] } = useQuery({
     queryKey: ["volunteer_profiles_all"],
     enabled: canManage,
@@ -106,16 +106,42 @@ export default function Voluntariado() {
     }
   });
 
-  // CRUD oportunidades
+  // CRUD oportunidades (con detección de duplicados)
   const createOpp = useMutation({
     mutationFn: async (payload) => {
       if (editingOpp) return base44.entities.VolunteerOpportunity.update(editingOpp.id, payload);
-      return base44.entities.VolunteerOpportunity.create({ ...payload, creado_por: user.email });
+      
+      // Detectar duplicados: misma fecha + título similar
+      if (payload.fecha) {
+        const existing = opportunities.find(opp => 
+          opp.fecha === payload.fecha && 
+          opp.estado !== "cerrada" &&
+          (opp.titulo?.toLowerCase().trim() === payload.titulo?.toLowerCase().trim() ||
+           opp.categoria === payload.categoria)
+        );
+        if (existing) {
+          throw new Error(`DUPLICADO:Ya existe una oportunidad similar para esa fecha: "${existing.titulo}" (creada por ${existing.creado_por_nombre || existing.creado_por}). Puedes verla abajo en la lista.`);
+        }
+      }
+      
+      return base44.entities.VolunteerOpportunity.create({ 
+        ...payload, 
+        creado_por: user.email,
+        creado_por_nombre: user.full_name || user.email
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["volunteer_opps"] });
       setOpenOpp(false);
       setEditingOpp(null);
+      toast.success("Oportunidad creada correctamente");
+    },
+    onError: (error) => {
+      if (error.message?.startsWith("DUPLICADO:")) {
+        toast.error(error.message.replace("DUPLICADO:", ""), { duration: 6000 });
+      } else {
+        toast.error("Error al crear la oportunidad");
+      }
     }
   });
 
