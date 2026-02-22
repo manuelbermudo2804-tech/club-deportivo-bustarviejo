@@ -188,6 +188,29 @@ export default function AdminAccessCodes() {
     queryFn: () => base44.entities.AccessCode.list('-created_date'),
   });
 
+  // Usuarios registrados SIN código validado (se quedaron atascados)
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['allUsersAccessCodes'],
+    queryFn: () => base44.entities.User.list(),
+    staleTime: 60000,
+  });
+
+  const stuckUsers = allUsers.filter(u => 
+    u.role !== 'admin' && 
+    !u.codigo_acceso_validado && 
+    !u.tipo_panel && 
+    !u.es_entrenador && 
+    !u.es_coordinador && 
+    !u.es_tesorero &&
+    !u.es_segundo_progenitor
+  );
+
+  // Verificar si ya tienen un código pendiente
+  const stuckUsersWithStatus = stuckUsers.map(u => {
+    const existingCode = accessCodes.find(c => c.email?.toLowerCase() === u.email?.toLowerCase() && c.estado === 'pendiente');
+    return { ...u, existingCode };
+  });
+
   const generateMutation = useMutation({
     mutationFn: async (data) => {
       const { data: result } = await base44.functions.invoke('generateAccessCode', data);
@@ -290,6 +313,54 @@ export default function AdminAccessCodes() {
           </Button>
         </div>
       </div>
+
+      {/* Banner: usuarios sin código */}
+      {stuckUsersWithStatus.length > 0 && (
+        <Card className="mb-6 border-2 border-amber-400 bg-amber-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
+              <AlertCircle className="w-5 h-5" />
+              {stuckUsersWithStatus.length} usuario{stuckUsersWithStatus.length !== 1 ? 's' : ''} esperando código de acceso
+            </CardTitle>
+            <p className="text-sm text-amber-700">
+              Estos usuarios se registraron pero no pueden entrar porque no tienen código. Envíales uno para que puedan acceder.
+            </p>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {stuckUsersWithStatus.map(u => (
+                <div key={u.id} className="flex items-center justify-between gap-3 bg-white rounded-xl p-3 border border-amber-200">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-slate-900 truncate">{u.full_name || u.email}</p>
+                    <p className="text-xs text-slate-500">{u.email}</p>
+                    <p className="text-xs text-amber-600">
+                      Registrado: {new Date(u.created_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
+                  {u.existingCode ? (
+                    <Badge className="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs whitespace-nowrap">
+                      <Clock className="w-3 h-3 mr-1" />
+                      Código enviado: {u.existingCode.codigo}
+                    </Badge>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
+                      onClick={() => {
+                        generateMutation.mutate({ email: u.email, nombre_destino: u.full_name || '', tipo: 'padre_nuevo' });
+                      }}
+                      disabled={generateMutation.isPending}
+                    >
+                      {generateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <SendHorizonal className="w-3 h-3 mr-1" />}
+                      Enviar Código
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
