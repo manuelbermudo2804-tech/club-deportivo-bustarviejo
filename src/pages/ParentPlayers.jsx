@@ -622,33 +622,18 @@ Email: cdbustarviejo@gmail.com
               const updated = await base44.entities.Player.update(id, safeData);
 
               if (email2Changed) {
+                // Generar código de acceso directo via Resend
                 try {
-                  await base44.functions.invoke('sendEmail', {
-                    to: nextEmail2,
-                    subject: '👨‍👩‍👧 Has sido añadido como segundo progenitor - CD Bustarviejo',
-                    html: `<div style="font-family:Arial,sans-serif;line-height:1.5">
-                      <h2>Invitación como segundo progenitor</h2>
-                      <p>Te han añadido como segundo progenitor de <strong>${safeData.nombre || editingPlayer?.nombre || ''}</strong> en el CD Bustarviejo.</p>
-                      <p>Este correo es informativo. El club te enviará la invitación definitiva para acceder a la app.</p>
-                      <p style="color:#64748b;font-size:12px">Si no esperabas este mensaje, puedes ignorarlo.</p>
-                    </div>`
-                  });
-                } catch (e) {
-                  console.log('Error enviando email informativo segundo progenitor:', e);
-                }
-
-                // Invitar al segundo progenitor (backend gestiona flujo directo o solicitud admin)
-                try {
-                  const result = await base44.functions.invoke('inviteSecondParent', {
+                  const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
                     email: nextEmail2,
-                    playerName: safeData.nombre || editingPlayer?.nombre || '',
-                    inviterName: user?.full_name || '',
-                    playerId: id
+                    tipo: 'segundo_progenitor',
+                    nombre_destino: safeData.nombre_tutor_2 || '',
+                    jugador_id: id,
+                    jugador_nombre: safeData.nombre || editingPlayer?.nombre || '',
+                    mensaje_personalizado: `${user?.full_name || 'Tu pareja'} te ha añadido como segundo progenitor de ${safeData.nombre || editingPlayer?.nombre || ''}.`
                   });
-                  if (result.data?.needsAdmin) {
-                    console.log('📨 Solicitud creada para admin:', nextEmail2);
-                  } else {
-                    console.log('✅ Invitación procesada para:', nextEmail2);
+                  if (codeResult?.success) {
+                    console.log('✅ Código de acceso enviado al segundo progenitor:', nextEmail2);
                   }
                 } catch (e) {
                   console.log('Error invitando a segundo progenitor:', e);

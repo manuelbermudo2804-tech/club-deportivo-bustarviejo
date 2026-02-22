@@ -214,15 +214,11 @@ export default function StepAuthorizations({
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">2</span>
-                    <p className="text-xs text-orange-900">Se enviará una <strong>solicitud al administrador</strong> del club</p>
+                    <p className="text-xs text-orange-900">Se le envía <strong>automáticamente un email</strong> con un código de acceso</p>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">3</span>
-                    <p className="text-xs text-orange-900">El admin revisará y <strong>enviará una invitación</strong> al email de tu hijo/a (24-48h)</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0">4</span>
-                    <p className="text-xs text-orange-900">Tu hijo/a crea su cuenta y <strong>accede a su panel juvenil</strong> con permisos limitados</p>
+                    <p className="text-xs text-orange-900">Tu hijo/a se registra con el código y <strong>accede a su panel juvenil</strong></p>
                   </div>
                 </div>
               </div>
@@ -243,7 +239,7 @@ export default function StepAuthorizations({
                 />
                 {fieldErrors.acceso_menor_email && <p className="text-xs text-red-600">⚠️ {fieldErrors.acceso_menor_email}</p>}
                 <p className="text-xs text-slate-500 mt-1">
-                  Este email recibirá la invitación tras aprobación del admin.
+                  Se enviará automáticamente un código de acceso a este email.
                 </p>
               </div>
 
