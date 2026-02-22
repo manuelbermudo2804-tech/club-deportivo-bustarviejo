@@ -209,9 +209,7 @@ export default function UserManagementTable({
                     <Switch
                       checked={user.tiene_hijos_jugando === true}
                       onCheckedChange={() => onToggleHijos(user)}
-                      disabled={
-                        isRestricted || isDeleted || user.es_coordinador || user.es_tesorero
-                      }
+                      disabled={isRestricted || isDeleted}
                     />
                   </td>
 

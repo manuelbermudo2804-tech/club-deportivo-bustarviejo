@@ -285,8 +285,7 @@ export default function UserManagement() {
     updateUserMutation.mutate({
       userId: selectedUser.id,
       userData: {
-        es_coordinador: isSettingAsCoordinator,
-        tiene_hijos_jugando: isSettingAsCoordinator ? false : selectedUser.tiene_hijos_jugando
+        es_coordinador: isSettingAsCoordinator
       }
     });
   };
@@ -299,8 +298,7 @@ export default function UserManagement() {
     updateUserMutation.mutate({
       userId: selectedUser.id,
       userData: {
-        es_tesorero: isSettingAsTreasurer,
-        tiene_hijos_jugando: isSettingAsTreasurer ? false : selectedUser.tiene_hijos_jugando
+        es_tesorero: isSettingAsTreasurer
       }
     });
   };
