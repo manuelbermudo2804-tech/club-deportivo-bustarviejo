@@ -2073,6 +2073,18 @@ export default function Layout({ children, currentPageName }) {
 
   const renderOnboarding = () => {
         switch (onboardingView) {
+          case 'access_code':
+            return (
+              <Suspense fallback={null}>
+                <AccessCodeVerification
+                  user={user}
+                  onSuccess={(data) => {
+                    // Código validado - recargar para aplicar el rol asignado
+                    window.location.reload();
+                  }}
+                />
+              </Suspense>
+            );
           case 'selector':
             return (
               <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
