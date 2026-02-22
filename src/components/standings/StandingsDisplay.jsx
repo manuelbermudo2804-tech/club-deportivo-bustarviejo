@@ -12,7 +12,17 @@ import { useNavigate } from "react-router-dom";
 
 export default function StandingsDisplay({ data, onClose, fullPage = false }) {
   const navigate = useNavigate();
-  const sortedData = [...data.data].sort((a, b) => a.posicion - b.posicion);
+  
+  // Guard against undefined/null data to prevent white screens on some devices
+  if (!data || !Array.isArray(data.data) || data.data.length === 0) {
+    return (
+      <div className="text-center p-8 text-slate-500">
+        Sin datos de clasificación disponibles
+      </div>
+    );
+  }
+  
+  const sortedData = [...data.data].sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
 
   const content = (
     <>

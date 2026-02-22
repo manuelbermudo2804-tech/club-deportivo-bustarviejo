@@ -42,10 +42,12 @@ export default function DropzoneWithPreview({ id, accept = "image/*", preview, o
         id={id}
         ref={inputRef}
         type="file"
-        accept={accept}
+        accept={accept === "image/*" ? "image/jpeg,image/png,image/webp,image/heic,image/heif" : accept}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) onFile?.(file);
+          // Reset input to allow re-selecting the same file
+          if (inputRef.current) inputRef.current.value = '';
         }}
         className="hidden"
       />

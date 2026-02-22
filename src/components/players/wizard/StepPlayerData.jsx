@@ -42,8 +42,8 @@ export default function StepPlayerData({
             )}
           </div>
 
-          <input type="file" accept="image/*" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" />
-          <input type="file" accept="image/*" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" />
 
           <div className="flex flex-col sm:flex-row gap-2 w-full">
             <Button type="button" variant="default" className="flex-1 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 min-h-[48px] text-base font-semibold" disabled={uploadingPhoto} onClick={() => document.getElementById('wiz-photo-camera').click()}>
