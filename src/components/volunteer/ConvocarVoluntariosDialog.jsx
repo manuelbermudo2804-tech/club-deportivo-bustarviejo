@@ -114,7 +114,7 @@ function buildEmailHtml(asunto, mensaje, fecha, hora, lugar, plazas, appLink) {
 </div>`;
 }
 
-export default function ConvocarVoluntariosDialog({ open, onOpenChange, volunteers, senderUser }) {
+export default function ConvocarVoluntariosDialog({ open, onOpenChange, volunteers, senderUser, existingOpportunities = [] }) {
   const [asunto, setAsunto] = useState("🤝 Voluntariado CD Bustarviejo");
   const [mensaje, setMensaje] = useState("");
   const [fecha, setFecha] = useState("");
@@ -203,9 +203,22 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
 
     let successCount = 0;
 
-    // 0. Crear oportunidad de voluntariado automáticamente
+    // 0. Crear oportunidad de voluntariado automáticamente (si no existe una similar)
     let oppId = null;
     try {
+      // Verificar duplicados
+      if (fecha) {
+        const duplicate = existingOpportunities.find(o => 
+          o.fecha === fecha && o.estado !== "cerrada"
+        );
+        if (duplicate) {
+          oppId = duplicate.id;
+          // No crear nueva, reutilizar la existente
+          toast.info(`Reutilizando oportunidad existente: "${duplicate.titulo}"`);
+        }
+      }
+      
+      if (!oppId) {
       const opp = await base44.entities.VolunteerOpportunity.create({
         titulo: asunto.replace(/^[^\w]*/, '').substring(0, 100) || "Convocatoria de voluntariado",
         descripcion: finalMsg.substring(0, 500),
@@ -220,6 +233,7 @@ Devuelve SOLO el mensaje, sin asunto ni encabezados.`,
         publicada: true
       });
       oppId = opp.id;
+      }
     } catch (e) { console.error("Error creando oportunidad:", e); }
 
     const appLink = oppId 
