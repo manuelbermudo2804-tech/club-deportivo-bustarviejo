@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { 
   Mail, UserPlus, Clock, CheckCircle2, XCircle, Loader2, 
-  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal, ShieldAlert
+  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal, ShieldAlert, Info
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -230,7 +230,7 @@ function CodeCard({ code, onResend, onCancel, isResending }) {
               {code.fecha_expiracion && (
                 <p>⏰ Expira: {new Date(code.fecha_expiracion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
               )}
-              {code.reenvios > 0 && <p>🔄 Reenvíos: {code.reenvios}</p>}
+              {code.reenvios > 0 && <p>🔄 Reenvíos: {code.reenvios}/3 {code.reenvios >= 3 ? '(máximo alcanzado)' : '(se reenvía auto si expira)'}</p>}
               {code.fecha_uso && <p>✅ Usado: {new Date(code.fecha_uso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>}
               {code.invitado_por_nombre && <p>👤 Invitado por: {code.invitado_por_nombre}</p>}
             </div>
