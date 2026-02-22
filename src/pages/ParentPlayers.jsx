@@ -220,36 +220,35 @@ export default function ParentPlayers() {
         console.error('[ParentPlayers] Error creando socio automático:', memberError);
       }
 
-      // ACCESO JUVENIL - Crear solicitud si el padre lo autorizó durante la inscripción
+      // ACCESO JUVENIL - Generar código de acceso directo (sin pasar por admin)
       if (dataWithParentEmail.acceso_menor_autorizado && dataWithParentEmail.acceso_menor_email) {
         try {
-          const calcEdad = (fn) => {
-            if (!fn) return null;
-            const h = new Date(), n = new Date(fn);
-            let e = h.getFullYear() - n.getFullYear();
-            const m = h.getMonth() - n.getMonth();
-            if (m < 0 || (m === 0 && h.getDate() < n.getDate())) e--;
-            return e;
-          };
-          const edadMenor = calcEdad(dataWithParentEmail.fecha_nacimiento);
-          await base44.entities.InvitationRequest.create({
-            nombre_jugador: newPlayer.nombre,
-            email_jugador: dataWithParentEmail.acceso_menor_email,
-            fecha_nacimiento: dataWithParentEmail.fecha_nacimiento,
-            categoria_deseada: dataWithParentEmail.categoria_principal || dataWithParentEmail.deporte,
-            tipo_solicitud: "acceso_menor",
-            solicitado_por_nombre: currentUser?.full_name || dataWithParentEmail.nombre_tutor_legal,
-            solicitado_por_email: currentUser?.email || dataWithParentEmail.email_padre,
-            player_id: newPlayer.id,
-            consentimiento_version: "v1.0",
-            consentimiento_fecha: new Date().toISOString(),
-            consentimiento_user_agent: navigator.userAgent,
-            estado: "pendiente",
-            notas: `Acceso juvenil solicitado durante inscripción por ${currentUser?.full_name || dataWithParentEmail.nombre_tutor_legal} para ${newPlayer.nombre} (${edadMenor} años). Categoría: ${dataWithParentEmail.categoria_principal || dataWithParentEmail.deporte}`,
+          // Guardar consentimiento en el Player
+          await base44.entities.Player.update(newPlayer.id, {
+            acceso_menor_email: dataWithParentEmail.acceso_menor_email,
+            acceso_menor_autorizado: true,
+            acceso_menor_fecha_consentimiento: new Date().toISOString(),
+            acceso_menor_padre_email: currentUser?.email || dataWithParentEmail.email_padre,
+            acceso_menor_texto_version: "v1.0",
+            acceso_menor_user_agent: navigator.userAgent,
           });
-          console.log('✅ Solicitud de acceso juvenil creada para:', dataWithParentEmail.acceso_menor_email);
+
+          // Generar código de acceso directamente (se envía email via Resend)
+          const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
+            email: dataWithParentEmail.acceso_menor_email.trim().toLowerCase(),
+            tipo: 'juvenil',
+            nombre_destino: newPlayer.nombre?.split(' ')[0] || '',
+            jugador_id: newPlayer.id,
+            jugador_nombre: newPlayer.nombre
+          });
+
+          if (codeResult?.success) {
+            console.log('✅ Código acceso juvenil generado y enviado:', dataWithParentEmail.acceso_menor_email, 'Código:', codeResult.codigo);
+          } else {
+            console.log('⚠️ Error generando código juvenil:', codeResult?.error);
+          }
         } catch (minorError) {
-          console.error('Error creando solicitud acceso juvenil:', minorError);
+          console.error('Error generando acceso juvenil:', minorError);
         }
       }
 
@@ -385,83 +384,25 @@ export default function ParentPlayers() {
         console.error("Error recalculando descuentos familiares:", error);
       }
       
-      // AVISO AL SEGUNDO PROGENITOR (email informativo, sin enlaces ni tokens)
+      // INVITACIÓN SEGUNDO PROGENITOR - Generar código de acceso directo via Resend
       if (dataWithParentEmail.email_tutor_2 && dataWithParentEmail.email_tutor_2.trim()) {
         try {
           const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
 
-          // Evitar avisos duplicados si ya figura como segundo progenitor en cualquier jugador
-          const allPlayersForCheck = await base44.entities.Player.list();
-          const alreadyRegistered = allPlayersForCheck.some(p =>
-            p.email_tutor_2?.toLowerCase() === email2
-          );
-
-          if (!alreadyRegistered) {
-            const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-
-            await base44.functions.invoke('sendEmail', {
-              to: email2,
-              subject: `👨‍👩‍👧 Has sido añadido como segundo progenitor - CD Bustarviejo`,
-              html: `<!DOCTYPE html>
-      <html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"></head>
-      <body style=\"margin:0;padding:24px;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;\">
-      <table role=\"presentation\" width=\"100%\" style=\"max-width:640px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;\">
-      <tr>
-      <td style=\"background:#ea580c;padding:24px;text-align:center;\">
-        <img src=\"${CLUB_LOGO_URL}\" alt=\"CD Bustarviejo\" width=\"72\" height=\"72\" style=\"border-radius:12px;border:3px solid #fff\" />
-        <h1 style=\"color:#fff;margin:12px 0 0;font-size:22px;\">CD Bustarviejo</h1>
-      </td>
-      </tr>
-      <tr>
-      <td style=\"padding:28px;\">
-        <h2 style=\"margin:0 0 12px 0;color:#0f172a;font-size:20px;\">Invitación como segundo progenitor</h2>
-        <p style=\"margin:0 0 12px 0;color:#334155;font-size:14px;\">
-          ${currentUser?.full_name || 'Un familiar'} te ha añadido como <strong>segundo progenitor/tutor</strong> del jugador <strong>${dataWithParentEmail.nombre}</strong>.
-        </p>
-        <p style=\"margin:0 0 16px 0;color:#334155;font-size:14px;\">
-          En breve recibirás un correo para iniciar sesión en la app. Cuando accedas con este email, se activará tu acceso y verás un breve onboarding específico para segundos progenitores.
-        </p>
-        <div style=\"background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:8px;\">
-          <ul style=\"margin:0;padding-left:18px;color:#475569;font-size:13px;line-height:1.6;\">
-            <li>Convocatorias y calendario</li>
-            <li>Pagos y documentos</li>
-            <li>Chat con entrenadores y coordinador</li>
-          </ul>
-        </div>
-        <p style=\"margin:16px 0 0 0;color:#64748b;font-size:12px;\">Si no esperabas este mensaje, simplemente ignóralo.</p>
-      </td>
-      </tr>
-      <tr>
-      <td style=\"background:#1e293b;padding:16px;text-align:center;\">
-        <p style=\"color:#94a3b8;font-size:12px;margin:0;\">cdbustarviejo@gmail.com</p>
-      </td>
-      </tr>
-      </table>
-      </body></html>`
-            });
-            console.log('✅ Email informativo enviado al segundo progenitor:', email2);
-          } else {
-            console.log('ℹ️ Segundo progenitor ya existente, no se reenvía aviso:', email2);
-          }
-        } catch (invError) {
-          console.error('Error enviando aviso a segundo progenitor:', invError);
-        }
-
-        // Invitar al segundo progenitor (el backend gestiona el flujo: intenta directo → fallback a solicitud admin)
-        try {
-          const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
-          const result = await base44.functions.invoke('inviteSecondParent', {
+          // Generar código de acceso directamente (se envía email bonito via Resend)
+          const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
             email: email2,
-            playerName: newPlayer.nombre,
-            inviterName: currentUser?.full_name || '',
-            playerId: newPlayer.id
+            tipo: 'segundo_progenitor',
+            nombre_destino: dataWithParentEmail.nombre_tutor_2 || '',
+            jugador_id: newPlayer.id,
+            jugador_nombre: newPlayer.nombre,
+            mensaje_personalizado: `${currentUser?.full_name || 'Tu pareja'} te ha añadido como segundo progenitor de ${newPlayer.nombre}.`
           });
-          if (result.data?.alreadyExists) {
-            console.log('ℹ️ Segundo progenitor ya tiene cuenta:', email2);
-          } else if (result.data?.needsAdmin) {
-            console.log('📨 Solicitud de invitación creada para admin:', email2);
+
+          if (codeResult?.success) {
+            console.log('✅ Código de acceso generado y enviado al segundo progenitor:', email2, 'Código:', codeResult.codigo);
           } else {
-            console.log('✅ Invitación enviada a segundo progenitor:', email2);
+            console.log('⚠️ Error generando código para segundo progenitor:', codeResult?.error);
           }
         } catch (e) {
           console.error('Error invitando a segundo progenitor:', e);
