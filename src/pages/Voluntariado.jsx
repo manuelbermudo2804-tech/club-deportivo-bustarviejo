@@ -408,7 +408,12 @@ export default function Voluntariado() {
 
       <Dialog open={openOpp} onOpenChange={(v) => { setOpenOpp(v); if (!v) setEditingOpp(null); }}>
         <DialogContent className="sm:max-w-lg">
-          <OpportunityForm initial={editingOpp} onSubmit={(payload) => createOpp.mutate(payload)} />
+          <OpportunityForm 
+            initial={editingOpp} 
+            onSubmit={(payload) => createOpp.mutate(payload)} 
+            existingOpportunities={activeOpportunities}
+            isSubmitting={createOpp.isPending}
+          />
         </DialogContent>
       </Dialog>
 
