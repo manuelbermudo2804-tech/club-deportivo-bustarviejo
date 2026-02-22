@@ -97,15 +97,32 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado, action } = body;
 
+    // Padres pueden generar códigos de tipo segundo_progenitor y juvenil
+    // Admins pueden generar cualquier tipo
+    const isAdmin = user.role === 'admin';
+    const allowedParentTypes = ['segundo_progenitor', 'juvenil'];
+    
+    if (!isAdmin && action !== 'resend') {
+      if (!allowedParentTypes.includes(tipo)) {
+        return Response.json({ error: 'No tienes permisos para generar este tipo de invitación' }, { status: 403 });
+      }
+    }
+
     // Action: resend - reenviar un código existente
     if (action === 'resend') {
       const { access_code_id } = body;
+      
+      // Solo admin o el creador original puede reenviar
       const codes = await base44.asServiceRole.entities.AccessCode.filter({ id: access_code_id });
       if (!codes || codes.length === 0) {
         return Response.json({ error: 'Código no encontrado' }, { status: 404 });
       }
       
       const existingCode = codes[0];
+      
+      if (!isAdmin && existingCode.invitado_por_email !== user.email) {
+        return Response.json({ error: 'No tienes permisos para reenviar este código' }, { status: 403 });
+      }
       
       // Si está expirado, generar nuevo código
       let codigo = existingCode.codigo;
@@ -114,7 +131,6 @@ Deno.serve(async (req) => {
       
       if (now > expDate || existingCode.estado === 'expirado') {
         codigo = generateCode();
-        // Verificar unicidad
         const existing = await base44.asServiceRole.entities.AccessCode.filter({ codigo });
         if (existing.length > 0) {
           codigo = generateCode();
@@ -123,7 +139,6 @@ Deno.serve(async (req) => {
 
       const nuevaExpiracion = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       
-      // Actualizar código
       await base44.asServiceRole.entities.AccessCode.update(existingCode.id, {
         codigo,
         estado: 'pendiente',
@@ -132,7 +147,6 @@ Deno.serve(async (req) => {
         ultimo_reenvio: now.toISOString()
       });
 
-      // Enviar email
       const appUrl = 'https://app.cdbustarviejo.com';
       const emailHTML = buildEmailHTML(codigo, existingCode.tipo, existingCode.nombre_destino, appUrl, existingCode.mensaje_personalizado);
       
@@ -146,7 +160,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, codigo, reenvio: true });
     }
 
-    // Action: generate - generar nuevo código
+    // Generate new code
     if (!email || !tipo) {
       return Response.json({ error: 'Email y tipo son obligatorios' }, { status: 400 });
     }
@@ -159,13 +173,12 @@ Deno.serve(async (req) => {
     });
     
     if (existingCodes.length > 0) {
-      // Ya existe uno pendiente, reenviar
       const existing = existingCodes[0];
       const now = new Date();
       const expDate = new Date(existing.fecha_expiracion);
       
       if (now < expDate) {
-        // Todavía válido, reenviar el mismo
+        // Todavía válido, reenviar
         const appUrl = 'https://app.cdbustarviejo.com';
         const emailHTML = buildEmailHTML(existing.codigo, tipo, nombre_destino || existing.nombre_destino, appUrl, mensaje_personalizado);
         
@@ -232,7 +245,6 @@ Deno.serve(async (req) => {
       from_name: 'CD Bustarviejo'
     });
 
-    // Marcar como enviado
     await base44.asServiceRole.entities.AccessCode.update(accessCode.id, {
       email_enviado: true
     });
