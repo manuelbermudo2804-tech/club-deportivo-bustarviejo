@@ -1,5 +1,26 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+const FROM_EMAIL = 'CD Bustarviejo <noreply@cdbustarviejo.com>';
+
+async function sendWithResend(to, subject, html) {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ from: FROM_EMAIL, to: [to], subject, html })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    console.error('[generateAccessCode] Error Resend:', data);
+    throw new Error(data.message || 'Error enviando email');
+  }
+  console.log('[generateAccessCode] ✅ Email enviado via Resend a:', to, 'ID:', data.id);
+  return data;
+}
+
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -150,12 +171,11 @@ Deno.serve(async (req) => {
       const appUrl = 'https://app.cdbustarviejo.com';
       const emailHTML = buildEmailHTML(codigo, existingCode.tipo, existingCode.nombre_destino, appUrl, existingCode.mensaje_personalizado);
       
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: existingCode.email,
-        subject: `🔑 CD Bustarviejo - Tu nuevo código de acceso: ${codigo}`,
-        body: emailHTML,
-        from_name: 'CD Bustarviejo'
-      });
+      await sendWithResend(
+        existingCode.email,
+        `🔑 CD Bustarviejo - Tu nuevo código de acceso: ${codigo}`,
+        emailHTML
+      );
 
       return Response.json({ success: true, codigo, reenvio: true });
     }
@@ -182,12 +202,11 @@ Deno.serve(async (req) => {
         const appUrl = 'https://app.cdbustarviejo.com';
         const emailHTML = buildEmailHTML(existing.codigo, tipo, nombre_destino || existing.nombre_destino, appUrl, mensaje_personalizado);
         
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: email.toLowerCase().trim(),
-          subject: `🔑 CD Bustarviejo - Tu código de acceso: ${existing.codigo}`,
-          body: emailHTML,
-          from_name: 'CD Bustarviejo'
-        });
+        await sendWithResend(
+          email.toLowerCase().trim(),
+          `🔑 CD Bustarviejo - Tu código de acceso: ${existing.codigo}`,
+          emailHTML
+        );
 
         await base44.asServiceRole.entities.AccessCode.update(existing.id, {
           reenvios: (existing.reenvios || 0) + 1,
@@ -238,12 +257,11 @@ Deno.serve(async (req) => {
     const appUrl = 'https://app.cdbustarviejo.com';
     const emailHTML = buildEmailHTML(codigo, tipo, nombre_destino, appUrl, mensaje_personalizado);
     
-    await base44.asServiceRole.integrations.Core.SendEmail({
-      to: email.toLowerCase().trim(),
-      subject: `🔑 CD Bustarviejo - Tu código de acceso: ${codigo}`,
-      body: emailHTML,
-      from_name: 'CD Bustarviejo'
-    });
+    await sendWithResend(
+      email.toLowerCase().trim(),
+      `🔑 CD Bustarviejo - Tu código de acceso: ${codigo}`,
+      emailHTML
+    );
 
     await base44.asServiceRole.entities.AccessCode.update(accessCode.id, {
       email_enviado: true
