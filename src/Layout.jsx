@@ -1894,16 +1894,6 @@ export default function Layout({ children, currentPageName }) {
                         setOnboardingView('minor_onboarding');
                         return;
                       }
-                      // Tras aceptar normas, mostrar modal de instalación si no se ha completado
-                      const triggerInstallMinor = localStorage.getItem('installPromptAfterOnboarding') === 'true';
-                      if (triggerInstallMinor) {
-                        setInstallContext('onboarding');
-                        setShowInstallInstructions(true);
-                        localStorage.removeItem('installPromptAfterOnboarding');
-                      } else if (!localStorage.getItem('installCompleted')) {
-                        setInstallContext('onboarding');
-                        setShowInstallInstructions(true);
-                      }
                       setOnboardingView('none');
                       return;
                     }
@@ -1923,20 +1913,11 @@ export default function Layout({ children, currentPageName }) {
                       return;
                     }
 
-      // 2) Verificar cumpleaños - eliminado temporalmente por problemas de rendimiento
+      // La instalación ya NO es bloqueante - se muestra como banner sugerido dentro de la app
+      // Limpiar flags legacy de instalación obligatoria
+      localStorage.removeItem('installPromptAfterOnboarding');
 
-        // 3) Mostrar instrucciones de instalación (tras onboarding o si no se ha completado)
-        const triggerInstall = localStorage.getItem('installPromptAfterOnboarding') === 'true';
-        if (triggerInstall) {
-          setInstallContext('onboarding');
-          setShowInstallInstructions(true);
-          localStorage.removeItem('installPromptAfterOnboarding');
-        } else if (!localStorage.getItem('installCompleted')) {
-          setInstallContext('onboarding');
-          setShowInstallInstructions(true);
-        }
-
-      // 3) Normal - sin onboarding
+      // Normal - sin onboarding
       setOnboardingView('none');
     }, [user]);
 
