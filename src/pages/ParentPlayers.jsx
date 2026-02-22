@@ -190,8 +190,66 @@ export default function ParentPlayers() {
         }
       }
 
-      // AUTO-CREAR SOCIO: Al inscribir un jugador, el padre automáticamente se convierte en socio pagado
-      // (la cuota de socio está incluida en la inscripción del jugador)
+      // ===== INVITACIONES (PRIORIDAD ALTA - ejecutar ANTES de operaciones pesadas) =====
+      
+      // INVITACIÓN SEGUNDO PROGENITOR
+      if (dataWithParentEmail.email_tutor_2 && dataWithParentEmail.email_tutor_2.trim()) {
+        try {
+          const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
+          console.log('📧 [ParentPlayers] Enviando invitación a segundo progenitor:', email2);
+          const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
+            email: email2,
+            tipo: 'segundo_progenitor',
+            nombre_destino: dataWithParentEmail.nombre_tutor_2 || '',
+            jugador_id: newPlayer.id,
+            jugador_nombre: newPlayer.nombre,
+            mensaje_personalizado: `${currentUser?.full_name || 'Tu pareja'} te ha añadido como segundo progenitor de ${newPlayer.nombre}.`
+          });
+          if (codeResult?.success) {
+            console.log('✅ Código segundo progenitor enviado:', email2, 'Código:', codeResult.codigo);
+          } else {
+            console.log('⚠️ Error código segundo progenitor:', codeResult?.error);
+          }
+        } catch (e) {
+          console.error('Error invitando a segundo progenitor:', e);
+        }
+      }
+
+      // ACCESO JUVENIL
+      if (dataWithParentEmail.acceso_menor_autorizado && dataWithParentEmail.acceso_menor_email) {
+        try {
+          console.log('📧 [ParentPlayers] Enviando invitación acceso juvenil:', dataWithParentEmail.acceso_menor_email);
+          // Guardar consentimiento en el Player
+          await base44.entities.Player.update(newPlayer.id, {
+            acceso_menor_email: dataWithParentEmail.acceso_menor_email,
+            acceso_menor_autorizado: true,
+            acceso_menor_fecha_consentimiento: new Date().toISOString(),
+            acceso_menor_padre_email: currentUser?.email || dataWithParentEmail.email_padre,
+            acceso_menor_texto_version: "v1.0",
+            acceso_menor_user_agent: navigator.userAgent,
+          });
+
+          const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
+            email: dataWithParentEmail.acceso_menor_email.trim().toLowerCase(),
+            tipo: 'juvenil',
+            nombre_destino: newPlayer.nombre?.split(' ')[0] || '',
+            jugador_id: newPlayer.id,
+            jugador_nombre: newPlayer.nombre
+          });
+
+          if (codeResult?.success) {
+            console.log('✅ Código acceso juvenil enviado:', dataWithParentEmail.acceso_menor_email, 'Código:', codeResult.codigo);
+          } else {
+            console.log('⚠️ Error código juvenil:', codeResult?.error);
+          }
+        } catch (minorError) {
+          console.error('Error generando acceso juvenil:', minorError);
+        }
+      }
+
+      // ===== OPERACIONES SECUNDARIAS =====
+
+      // AUTO-CREAR SOCIO
       try {
         const existingMember = await base44.entities.ClubMember.filter({
           email: dataWithParentEmail.email_padre,
@@ -199,7 +257,6 @@ export default function ParentPlayers() {
         });
 
         if (existingMember.length === 0) {
-          console.log('🎫 [ParentPlayers] Creando socio automáticamente para:', dataWithParentEmail.email_padre);
           await base44.entities.ClubMember.create({
             email: dataWithParentEmail.email_padre,
             nombre_completo: dataWithParentEmail.nombre_tutor_legal || currentUser?.full_name || "",
@@ -212,44 +269,9 @@ export default function ParentPlayers() {
             notas: `Cuota de socio incluida automáticamente en inscripción de ${newPlayer.nombre}`,
             referido_por: null
           });
-          console.log('✅ [ParentPlayers] Socio creado automáticamente');
-        } else {
-          console.log('ℹ️ [ParentPlayers] Socio ya existe, no se crea duplicado');
         }
       } catch (memberError) {
         console.error('[ParentPlayers] Error creando socio automático:', memberError);
-      }
-
-      // ACCESO JUVENIL - Generar código de acceso directo (sin pasar por admin)
-      if (dataWithParentEmail.acceso_menor_autorizado && dataWithParentEmail.acceso_menor_email) {
-        try {
-          // Guardar consentimiento en el Player
-          await base44.entities.Player.update(newPlayer.id, {
-            acceso_menor_email: dataWithParentEmail.acceso_menor_email,
-            acceso_menor_autorizado: true,
-            acceso_menor_fecha_consentimiento: new Date().toISOString(),
-            acceso_menor_padre_email: currentUser?.email || dataWithParentEmail.email_padre,
-            acceso_menor_texto_version: "v1.0",
-            acceso_menor_user_agent: navigator.userAgent,
-          });
-
-          // Generar código de acceso directamente (se envía email via Resend)
-          const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
-            email: dataWithParentEmail.acceso_menor_email.trim().toLowerCase(),
-            tipo: 'juvenil',
-            nombre_destino: newPlayer.nombre?.split(' ')[0] || '',
-            jugador_id: newPlayer.id,
-            jugador_nombre: newPlayer.nombre
-          });
-
-          if (codeResult?.success) {
-            console.log('✅ Código acceso juvenil generado y enviado:', dataWithParentEmail.acceso_menor_email, 'Código:', codeResult.codigo);
-          } else {
-            console.log('⚠️ Error generando código juvenil:', codeResult?.error);
-          }
-        } catch (minorError) {
-          console.error('Error generando acceso juvenil:', minorError);
-        }
       }
 
       // DETECCIÓN AUTOMÁTICA DE JUGADOR +18
