@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
 
     const { codigo } = await req.json();
     
-    if (!codigo || codigo.trim().length < 7) {
+    if (!codigo || codigo.trim().length < 9) {
       return Response.json({ error: 'Código inválido', valid: false }, { status: 400 });
     }
 
