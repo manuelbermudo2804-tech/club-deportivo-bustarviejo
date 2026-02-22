@@ -20,6 +20,7 @@ import StepNormativa from "./wizard/StepNormativa";
 import StepSummary from "./wizard/StepSummary";
 import SecondParentSection from "./SecondParentSection";
 import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
+import { compressImage } from "../utils/imageCompressor";
 
 // --- Helpers (same as original PlayerForm) ---
 const calculateAge = (birthDate) => {
@@ -181,15 +182,21 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
   }, [isParent, isAdultPlayerSelfRegistration, player]);
 
-  // File upload helper
+  // File upload helper with image compression for mobile compatibility
   const handleFileUpload = async (file, setUploading) => {
     if (!file) return null;
     setUploading(true);
     try {
-      const response = await base44.integrations.Core.UploadFile({ file });
+      // Comprimir imágenes grandes para evitar problemas en iOS/Android
+      const processedFile = await compressImage(file, { maxWidth: 1200, maxHeight: 1200, quality: 0.8 });
+      const response = await base44.integrations.Core.UploadFile({ file: processedFile });
       toast.success("Archivo subido correctamente");
       return response.file_url;
-    } catch { toast.error("Error al subir el archivo"); return null; } finally { setUploading(false); }
+    } catch (err) {
+      console.error('[Upload] Error:', err);
+      toast.error("Error al subir el archivo. Inténtalo de nuevo.");
+      return null;
+    } finally { setUploading(false); }
   };
 
   const handlePhotoUpload = async (e) => { const url = await handleFileUpload(e.target.files?.[0], setUploadingPhoto); if (url) setCurrentPlayer(p => ({ ...p, foto_url: url })); };

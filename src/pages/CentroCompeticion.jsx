@@ -23,6 +23,7 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 
 const CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -812,23 +813,31 @@ export default function CentroCompeticion() {
       </div>
 
       {/* Contenido */}
-      {view === 'clasificacion' && (
-        loadingStandings ? (
-          <Card><CardContent className="p-8 text-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div><p className="text-slate-600 text-sm">Cargando clasificación...</p></CardContent></Card>
-        ) : filteredStandingsPack ? (
-                        <StandingsDisplay data={filteredStandingsPack} fullPage={true} />
-                      ) : (
-          <Card className="border-2 border-dashed"><CardContent className="p-8 text-center text-slate-500">Sin datos de clasificación para {category}</CardContent></Card>
-        )
-      )}
+      <ErrorBoundary fallback={
+        <Card><CardContent className="p-8 text-center">
+          <p className="text-lg mb-2">⚠️</p>
+          <p className="text-slate-700 mb-3">Error al cargar los datos de competición.</p>
+          <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700">Recargar</button>
+        </CardContent></Card>
+      }>
+        {view === 'clasificacion' && (
+          loadingStandings ? (
+            <Card><CardContent className="p-8 text-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div><p className="text-slate-600 text-sm">Cargando clasificación...</p></CardContent></Card>
+          ) : filteredStandingsPack ? (
+            <StandingsDisplay data={filteredStandingsPack} fullPage={true} />
+          ) : (
+            <Card className="border-2 border-dashed"><CardContent className="p-8 text-center text-slate-500">Sin datos de clasificación para {category}</CardContent></Card>
+          )
+        )}
 
-      {view === 'resultados' && (
-        <ResultsList categoryFullName={category} isAdmin={isAdmin} />
-      )}
+        {view === 'resultados' && (
+          <ResultsList categoryFullName={category} isAdmin={isAdmin} />
+        )}
 
-      {view === 'goleadores' && (
-        <ScorersList categoryFullName={category} isAdmin={isAdmin} />
-      )}
+        {view === 'goleadores' && (
+          <ScorersList categoryFullName={category} isAdmin={isAdmin} />
+        )}
+      </ErrorBoundary>
 
       {/* Notas */}
       <div className="mt-8 text-xs text-slate-400 text-center border-t pt-4">

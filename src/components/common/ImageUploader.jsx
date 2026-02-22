@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { compressImage } from "./utils/imageCompressor";
 
 export default function ImageUploader({ images = [], onChange, max = 4 }) {
   const [loading, setLoading] = useState(false);
@@ -11,8 +12,13 @@ export default function ImageUploader({ images = [], onChange, max = 4 }) {
     setLoading(true);
     const out = [];
     for (const f of list) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: f });
-      out.push(file_url);
+      try {
+        const compressed = await compressImage(f, { maxWidth: 1600, maxHeight: 1600, quality: 0.8 });
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
+        out.push(file_url);
+      } catch (err) {
+        console.error('[ImageUploader] Error subiendo imagen:', err);
+      }
     }
     onChange([...(images || []), ...out]);
     setLoading(false);
