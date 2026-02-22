@@ -6,20 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Users, AlertCircle, ChevronDown, ChevronUp, Mail, Clock, Send, Loader2, Sparkles, Info, CheckCircle2 } from "lucide-react";
+import { Users, AlertCircle, ChevronDown, ChevronUp, Clock, Loader2, Sparkles, Info, CheckCircle2, Send, KeyRound } from "lucide-react";
 import { toast } from "sonner";
-
-const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-const APP_URL = window.location.origin;
-
-// Generar UUID v4
-const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-};
 
 export default function SecondParentSection({ 
   currentPlayer, 
@@ -30,10 +18,9 @@ export default function SecondParentSection({
   const [isOpen, setIsOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [existingSecondParent, setExistingSecondParent] = useState(null);
-  const [pendingInvitation, setPendingInvitation] = useState(null);
+  const [pendingCode, setPendingCode] = useState(null);
   const [isSendingInvitation, setIsSendingInvitation] = useState(false);
   
-  // Detectar si ya hay segundo progenitor en otros hermanos
   const segundoProgenitorEnOtrosHermanos = existingFamilyPlayers?.some(p => 
     p.email_tutor_2 && p.email_tutor_2.trim() !== ""
   );
@@ -46,7 +33,6 @@ export default function SecondParentSection({
     base44.auth.me().then(setCurrentUser).catch(console.error);
   }, []);
 
-  // Buscar si ya existe un segundo progenitor registrado en otros hijos
   useEffect(() => {
     if (existingFamilyPlayers.length > 0 && currentUser) {
       const playerWithSecondParent = existingFamilyPlayers.find(p => 
@@ -54,7 +40,6 @@ export default function SecondParentSection({
         p.email_tutor_2 !== currentUser.email &&
         p.nombre_tutor_2
       );
-      
       if (playerWithSecondParent) {
         setExistingSecondParent({
           nombre: playerWithSecondParent.nombre_tutor_2,
@@ -65,28 +50,28 @@ export default function SecondParentSection({
     }
   }, [existingFamilyPlayers, currentUser]);
 
-  // Buscar invitaciones pendientes para este jugador
+  // Buscar código de acceso pendiente para este jugador (tipo segundo_progenitor)
   useEffect(() => {
     if (currentPlayer.id && currentPlayer.email_tutor_2) {
-      checkPendingInvitation();
+      checkPendingCode();
     }
   }, [currentPlayer.id, currentPlayer.email_tutor_2]);
 
-  const checkPendingInvitation = async () => {
+  const checkPendingCode = async () => {
     try {
-      const invitations = await base44.entities.SecondParentInvitation.filter({
+      const codes = await base44.entities.AccessCode.filter({
         jugador_id: currentPlayer.id,
+        tipo: "segundo_progenitor",
         estado: "pendiente"
       });
-      if (invitations.length > 0) {
-        setPendingInvitation(invitations[0]);
+      if (codes.length > 0) {
+        setPendingCode(codes[0]);
       }
     } catch (err) {
-      console.error("Error checking invitations:", err);
+      console.error("Error checking access codes:", err);
     }
   };
 
-  // Usar datos del segundo progenitor existente
   const useExistingSecondParent = () => {
     if (existingSecondParent) {
       setCurrentPlayer({
@@ -99,136 +84,41 @@ export default function SecondParentSection({
     }
   };
 
-  // Solicitar invitación al segundo progenitor (notifica al admin)
+  // Enviar invitación directa al segundo progenitor (genera código de acceso)
   const sendInvitation = async () => {
     if (!currentPlayer.email_tutor_2?.trim()) {
       toast.error("Introduce el email del segundo progenitor");
       return;
     }
-
     if (!currentPlayer.id) {
-      toast.info("La solicitud se enviará automáticamente al guardar el jugador");
+      toast.info("Primero guarda el jugador, luego podrás enviar la invitación");
       return;
     }
 
     setIsSendingInvitation(true);
-
     try {
-      const token = generateUUID();
-      const expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + 30);
-
-      // Crear registro de invitación (para tracking)
-      const invitation = await base44.entities.SecondParentInvitation.create({
-        token: token,
-        email_destino: currentPlayer.email_tutor_2.trim().toLowerCase(),
+      const { data } = await base44.functions.invoke("generateAccessCode", {
+        email: currentPlayer.email_tutor_2.trim().toLowerCase(),
+        tipo: "segundo_progenitor",
         nombre_destino: currentPlayer.nombre_tutor_2 || "",
         jugador_id: currentPlayer.id,
-        jugador_nombre: currentPlayer.nombre,
-        invitado_por_email: currentUser?.email,
-        invitado_por_nombre: currentUser?.full_name,
-        estado: "pendiente",
-        fecha_envio: new Date().toISOString(),
-        fecha_expiracion: expirationDate.toISOString()
+        jugador_nombre: currentPlayer.nombre
       });
 
-      // Ya no enviamos email - solo se registra en la BD para que aparezca en admin
-
-      setPendingInvitation(invitation);
-      toast.success("✅ Solicitud enviada al administrador");
+      if (data.success) {
+        setPendingCode({ codigo: data.codigo, estado: 'pendiente' });
+        toast.success(`✅ Invitación enviada a ${currentPlayer.email_tutor_2}`);
+      } else {
+        toast.error(data.error || "Error al enviar invitación");
+      }
     } catch (err) {
-      console.error("Error enviando solicitud:", err);
-      toast.error("Error al enviar la solicitud");
+      console.error("Error enviando invitación:", err);
+      toast.error("Error al enviar la invitación");
     } finally {
       setIsSendingInvitation(false);
     }
   };
 
-  const generateInvitationEmail = (nombreDestino, nombreInvitador, nombreJugador, validationUrl) => {
-    return `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f1f5f9;">
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
-
-<!-- Header naranja -->
-<tr>
-<td bgcolor="#ea580c" style="padding:30px;text-align:center;">
-<img src="${CLUB_LOGO_URL}" alt="CD Bustarviejo" width="80" height="80" style="width:80px;height:80px;border-radius:12px;border:3px solid #ffffff;display:block;margin:0 auto;">
-<h1 style="color:#ffffff;margin:15px 0 5px 0;font-size:26px;font-family:Arial,Helvetica,sans-serif;">CD BUSTARVIEJO</h1>
-<p style="color:#fed7aa;margin:0;font-size:14px;">Club Deportivo</p>
-</td>
-</tr>
-
-<!-- Contenido -->
-<tr>
-<td bgcolor="#ffffff" style="padding:30px;">
-<h2 style="color:#1e293b;margin:0 0 15px 0;font-size:22px;text-align:center;font-family:Arial,Helvetica,sans-serif;">👋 ¡Te han invitado!</h2>
-
-<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
-Hola <strong>${nombreDestino}</strong>,
-</p>
-
-<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px 0;">
-<strong style="color:#ea580c;">${nombreInvitador}</strong> te ha invitado a unirte a la aplicación del CD Bustarviejo como <strong>segundo progenitor</strong> de <strong>${nombreJugador}</strong>.
-</p>
-
-<!-- Info box -->
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:25px;">
-<tr>
-<td bgcolor="#f0fdf4" style="padding:15px;border-left:4px solid #22c55e;border-radius:0 8px 8px 0;">
-<p style="color:#166534;font-size:14px;margin:0;"><strong>✅ ¿Qué podrás hacer?</strong></p>
-<ul style="color:#166534;font-size:13px;margin:10px 0 0 0;padding-left:20px;">
-<li><strong>Acceso completo:</strong> verás exactamente lo mismo que el primer progenitor</li>
-<li>Ver convocatorias de partidos y confirmar asistencia</li>
-<li>Hacer pagos de cuotas y ropa</li>
-<li>Chatear con entrenadores y coordinador</li>
-<li>Ver calendario, documentos, galería y eventos</li>
-</ul>
-</td>
-</tr>
-</table>
-
-<p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 25px 0;text-align:center;">
-Para completar tu registro, haz clic en el botón:
-</p>
-
-<!-- Boton -->
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 25px auto;">
-<tr>
-<td bgcolor="#ea580c" style="border-radius:8px;">
-<a href="${validationUrl}" target="_blank" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 35px;font-weight:bold;font-size:16px;font-family:Arial,Helvetica,sans-serif;">COMPLETAR REGISTRO →</a>
-</td>
-</tr>
-</table>
-
-<!-- Warning -->
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:20px;">
-<tr>
-<td bgcolor="#fef3c7" style="padding:15px;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
-<p style="color:#92400e;font-size:13px;margin:0;">⏰ <strong>Este enlace es válido durante 30 días.</strong> Solo necesitas completar unos datos básicos para activar tu acceso.</p>
-</td>
-</tr>
-</table>
-
-<p style="color:#94a3b8;font-size:12px;text-align:center;margin:0;">Si no esperabas este email, puedes ignorarlo.</p>
-</td>
-</tr>
-
-<!-- Footer -->
-<tr>
-<td bgcolor="#1e293b" style="padding:20px;text-align:center;">
-<p style="color:#94a3b8;font-size:13px;margin:0 0 5px 0;">⚽ 🏀</p>
-<p style="color:#64748b;font-size:12px;margin:0;">cdbustarviejo@gmail.com</p>
-</td>
-</tr>
-
-</table>
-</body>
-</html>`;
-  };
-
-  // Si ya hay segundo progenitor con datos completos, mostrar solo resumen
   const hasCompleteSecondParent = currentPlayer.nombre_tutor_2 && 
                                    currentPlayer.email_tutor_2 && 
                                    currentPlayer.telefono_tutor_2;
@@ -252,10 +142,10 @@ Para completar tu registro, haz clic en el botón:
                   Registrado
                 </Badge>
               )}
-              {pendingInvitation && (
+              {pendingCode && (
                 <Badge className="bg-yellow-100 text-yellow-800 text-xs ml-2">
                   <Clock className="w-3 h-3 mr-1" />
-                  Invitación pendiente
+                  Invitación enviada
                 </Badge>
               )}
             </div>
@@ -295,7 +185,7 @@ Para completar tu registro, haz clic en el botón:
               </Alert>
             )}
 
-            {/* Timeline de pasos de invitación */}
+            {/* Timeline de pasos */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
               <p className="font-bold text-blue-900 mb-3 text-sm">👥 ¿Cómo funciona la invitación?</p>
               <div className="space-y-3">
@@ -305,7 +195,7 @@ Para completar tu registro, haz clic en el botón:
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-blue-900">Rellenas sus datos aquí</p>
-                    <p className="text-xs text-blue-700">Nombre, email y teléfono del segundo progenitor</p>
+                    <p className="text-xs text-blue-700">Nombre, email y teléfono</p>
                   </div>
                 </div>
                 <div className="w-px h-3 bg-blue-300 ml-3.5" />
@@ -314,8 +204,8 @@ Para completar tu registro, haz clic en el botón:
                     <span className="text-white font-bold text-xs">2</span>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-orange-900">El club revisa y envía la invitación</p>
-                    <p className="text-xs text-orange-700">El administrador procesa la solicitud y envía un email de acceso</p>
+                    <p className="text-sm font-semibold text-orange-900">Pulsas "Enviar invitación"</p>
+                    <p className="text-xs text-orange-700">Se envía un email con un código de acceso automáticamente</p>
                   </div>
                 </div>
                 <div className="w-px h-3 bg-blue-300 ml-3.5" />
@@ -324,15 +214,10 @@ Para completar tu registro, haz clic en el botón:
                     <span className="text-white font-bold text-xs">3</span>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-green-900">Acepta y accede a la app</p>
-                    <p className="text-xs text-green-700">Verá la misma ficha del jugador: pagos, convocatorias, chat, calendario…</p>
+                    <p className="text-sm font-semibold text-green-900">Se registra con el código</p>
+                    <p className="text-xs text-green-700">Accederá a la misma ficha: pagos, convocatorias, chat…</p>
                   </div>
                 </div>
-              </div>
-              <div className="mt-3 bg-white/70 rounded-lg p-2 border border-blue-200">
-                <p className="text-xs text-blue-800 text-center">
-                  ⏱️ Normalmente se procesa en <strong>menos de 24-48 horas</strong>
-                </p>
               </div>
             </div>
 
@@ -341,7 +226,7 @@ Para completar tu registro, haz clic en el botón:
               <Alert className="bg-blue-50 border-blue-200">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm">
-                  <strong>💡 Segundo progenitor detectado:</strong> Ya tienes registrado a <strong>{existingSecondParent.nombre}</strong> ({existingSecondParent.email}) como segundo progenitor en otros hijos.
+                  <strong>💡 Segundo progenitor detectado:</strong> Ya tienes registrado a <strong>{existingSecondParent.nombre}</strong> ({existingSecondParent.email}).
                   <Button 
                     type="button" 
                     variant="link" 
@@ -378,21 +263,15 @@ Para completar tu registro, haz clic en el botón:
               
               <div className="space-y-2">
                 <Label htmlFor="email_tutor_2">Correo Electrónico</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    id="email_tutor_2" 
-                    name="tutor2-email"
-                    type="email" 
-                    autoComplete="email"
-                    value={currentPlayer.email_tutor_2 || ""} 
-                    onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
-                    placeholder="padre@ejemplo.com"
-                    className="flex-1"
-                  />
-                </div>
-                <p className="text-xs text-slate-500">
-                  Al guardar, se solicitará la invitación al club
-                </p>
+                <Input 
+                  id="email_tutor_2" 
+                  name="tutor2-email"
+                  type="email" 
+                  autoComplete="email"
+                  value={currentPlayer.email_tutor_2 || ""} 
+                  onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
+                  placeholder="padre@ejemplo.com"
+                />
               </div>
               
               <div className="space-y-2">
@@ -409,35 +288,33 @@ Para completar tu registro, haz clic en el botón:
               </div>
             </div>
 
-            {/* Estado de invitación */}
+            {/* Botón de enviar invitación + Estado */}
             {isEditing && currentPlayer.email_tutor_2 && (
-              <div className="bg-slate-50 rounded-lg p-4">
-                {pendingInvitation ? (
-                  <div className="flex items-center gap-2 text-yellow-700">
-                    <Clock className="w-5 h-5" />
+              <div className="bg-slate-50 rounded-lg p-4 space-y-3">
+                {pendingCode ? (
+                  <div className="flex items-center gap-2 text-green-700">
+                    <KeyRound className="w-5 h-5" />
                     <span className="text-sm font-medium">
-                      Solicitud enviada — pendiente de aprobación del administrador
+                      ✅ Invitación enviada — código: <strong className="font-mono">{pendingCode.codigo}</strong>
                     </span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-slate-600">
-                    {hasCompleteSecondParent ? (
-                      <>
-                        <CheckCircle2 className="w-5 h-5 text-green-600" />
-                        <span className="text-sm font-medium text-green-700">
-                          Datos guardados. Al guardar se creará la solicitud de invitación.
-                        </span>
-                      </>
+                  <Button
+                    type="button"
+                    onClick={sendInvitation}
+                    disabled={isSendingInvitation || !currentPlayer.email_tutor_2?.trim()}
+                    className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white py-5 font-bold"
+                  >
+                    {isSendingInvitation ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando invitación...</>
                     ) : (
-                      <>
-                        <Info className="w-5 h-5 text-blue-600" />
-                        <span className="text-sm text-blue-700">
-                          Al guardar, se enviará una solicitud al administrador para invitar a este email
-                        </span>
-                      </>
+                      <><Send className="w-4 h-4 mr-2" /> Enviar invitación al segundo progenitor</>
                     )}
-                  </div>
+                  </Button>
                 )}
+                <p className="text-xs text-slate-500 text-center">
+                  Se enviará un email con un código de acceso. El segundo progenitor podrá registrarse y acceder inmediatamente.
+                </p>
               </div>
             )}
           </div>

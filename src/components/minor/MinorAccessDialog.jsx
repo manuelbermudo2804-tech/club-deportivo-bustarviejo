@@ -3,9 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ShieldCheck, ShieldX, Mail, Clock, FolderSearch, CheckCircle2, Loader2, AlertTriangle } from "lucide-react";
+import { ShieldCheck, ShieldX, Mail, Clock, FolderSearch, CheckCircle2, Loader2, KeyRound } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
@@ -69,24 +68,21 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
         acceso_menor_user_agent: navigator.userAgent,
       });
 
-      // 2. Crear solicitud en InvitationRequests
-      await base44.entities.InvitationRequest.create({
-        nombre_jugador: player.nombre,
-        email_jugador: email,
-        fecha_nacimiento: player.fecha_nacimiento,
-        categoria_deseada: player.categoria_principal || player.deporte,
-        tipo_solicitud: "acceso_menor",
-        solicitado_por_nombre: parentUser.full_name,
-        solicitado_por_email: parentUser.email,
-        player_id: player.id,
-        consentimiento_version: CONSENTIMIENTO_VERSION,
-        consentimiento_fecha: new Date().toISOString(),
-        consentimiento_user_agent: navigator.userAgent,
-        estado: "pendiente",
-        notas: `Acceso juvenil solicitado por ${parentUser.full_name} para ${player.nombre} (${edad} años). Categoría: ${player.categoria_principal || player.deporte}`,
+      // 2. Generar código de acceso directamente (sin pasar por admin)
+      const { data } = await base44.functions.invoke("generateAccessCode", {
+        email: email.trim().toLowerCase(),
+        tipo: "juvenil",
+        nombre_destino: player.nombre?.split(" ")[0] || "",
+        jugador_id: player.id,
+        jugador_nombre: player.nombre
       });
 
-      toast.success("¡Solicitud enviada! El administrador la revisará en menos de 24-48 horas.");
+      if (data.success) {
+        toast.success("¡Invitación enviada! Tu hijo/a recibirá un email con el código de acceso.");
+      } else {
+        toast.error(data.error || "Error al generar el código");
+      }
+
       onOpenChange(false);
       setStep(1);
       setEmail("");
@@ -122,7 +118,6 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
 
         {step === 1 && (
           <div className="space-y-4">
-            {/* Qué podrá hacer */}
             <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
               <h3 className="font-bold text-green-800 flex items-center gap-2 mb-3">
                 <ShieldCheck className="w-5 h-5" />
@@ -138,7 +133,6 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
               </div>
             </div>
 
-            {/* Qué NO podrá hacer */}
             <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
               <h3 className="font-bold text-red-800 flex items-center gap-2 mb-3">
                 <ShieldX className="w-5 h-5" />
@@ -154,10 +148,9 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
               </div>
             </div>
 
-            {/* Qué pasará ahora - VISIBLE DESDE EL PRIMER PASO */}
             <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
               <h3 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
-                <Clock className="w-5 h-5" />
+                <KeyRound className="w-5 h-5" />
                 ¿Qué pasará al activarlo?
               </h3>
               <div className="space-y-3">
@@ -167,22 +160,18 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
-                  <p className="text-sm text-orange-900">Se enviará una <strong>solicitud al administrador</strong> del club</p>
+                  <p className="text-sm text-orange-900">Se envía automáticamente un <strong>código de acceso</strong> a su email</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">3</span>
-                  <p className="text-sm text-orange-900">El admin revisará y <strong>enviará una invitación</strong> al email de tu hijo/a</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">4</span>
-                  <p className="text-sm text-orange-900">Tu hijo/a crea su cuenta y <strong>accede a su panel juvenil</strong> con permisos limitados</p>
+                  <p className="text-sm text-orange-900">Tu hijo/a se registra con el código y <strong>accede a su panel juvenil</strong></p>
                 </div>
               </div>
             </div>
 
             <Alert className="border-blue-200 bg-blue-50">
               <AlertDescription className="text-blue-800 text-sm">
-                💡 <strong>Importante:</strong> Tú seguirás teniendo acceso completo y podrás desactivar el acceso de tu hijo/a en cualquier momento desde la ficha del jugador.
+                💡 <strong>Importante:</strong> Tú seguirás teniendo acceso completo y podrás desactivar el acceso de tu hijo/a en cualquier momento.
               </AlertDescription>
             </Alert>
 
@@ -198,7 +187,6 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
 
         {step === 2 && (
           <div className="space-y-4">
-            {/* Campo email */}
             <div>
               <label className="text-sm font-bold text-slate-700 mb-2 block">
                 <Mail className="w-4 h-4 inline mr-1" />
@@ -212,19 +200,17 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
                 className="text-lg py-6"
               />
               <p className="text-xs text-slate-500 mt-1">
-                Este email recibirá la invitación para crear su cuenta
+                Recibirá un email con un código de acceso para registrarse
               </p>
             </div>
 
-            {/* Recordatorio SPAM */}
             <Alert className="border-yellow-200 bg-yellow-50">
               <AlertDescription className="text-yellow-800 text-sm flex items-center gap-2">
                 <FolderSearch className="w-4 h-4 flex-shrink-0" />
-                <span>Que tu hijo/a <strong>revise la carpeta de SPAM</strong> si no le llega el correo de invitación.</span>
+                <span>Que tu hijo/a <strong>revise la carpeta de SPAM</strong> si no le llega el correo.</span>
               </AlertDescription>
             </Alert>
 
-            {/* Checkbox de consentimiento explícito */}
             <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <Checkbox
@@ -248,9 +234,9 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
               className="w-full bg-green-600 hover:bg-green-700 py-6 text-lg font-bold disabled:opacity-50"
             >
               {loading ? (
-                <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Enviando solicitud...</>
+                <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Enviando código de acceso...</>
               ) : (
-                <><CheckCircle2 className="w-5 h-5 mr-2" /> Enviar solicitud de acceso</>
+                <><CheckCircle2 className="w-5 h-5 mr-2" /> Enviar código de acceso</>
               )}
             </Button>
 
