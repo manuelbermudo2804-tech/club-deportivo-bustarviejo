@@ -1901,15 +1901,9 @@ export default function Layout({ children, currentPageName }) {
                     // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
 
                     // 0) Verificación de código de acceso - para usuarios nuevos que no tienen código validado
-                    // Solo si el usuario NO tiene tipo_panel Y NO tiene codigo_acceso_validado
+                    // El código ya asigna tipo_panel automáticamente (padre_nuevo→familia, jugador_adulto→jugador_adulto, etc.)
                     if (!user.codigo_acceso_validado && !user.tipo_panel && user.es_segundo_progenitor !== true && user.es_menor !== true) {
                       setOnboardingView('access_code');
-                      return;
-                    }
-
-                    // 1) Elegir panel (familia o jugador) - NO mostrar al segundo progenitor ni a menores
-                    if (!user.tipo_panel && user.es_segundo_progenitor !== true && user.es_menor !== true) {
-                      setOnboardingView('selector');
                       return;
                     }
 
