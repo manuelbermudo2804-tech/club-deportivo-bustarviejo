@@ -377,7 +377,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                   Editar
                 </Button>
               )}
-              {!readOnly && onDelete && (player.estado_renovacion === "no_renueva" || !player.activo) && (
+              {!readOnly && onDelete && (
                 <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(player); }} className="flex-1 hover:bg-red-50 hover:text-red-700 border-red-300">
                   <UserX className="w-4 h-4 mr-1" />
                   Eliminar
