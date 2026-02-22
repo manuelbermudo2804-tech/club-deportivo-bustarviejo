@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { 
   Mail, UserPlus, Clock, CheckCircle2, XCircle, Loader2, 
-  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal
+  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal, ShieldAlert
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -195,6 +195,13 @@ export default function AdminAccessCodes() {
     staleTime: 60000,
   });
 
+  // Intentos de acceso (para detectar fraude)
+  const { data: accessAttempts = [] } = useQuery({
+    queryKey: ['accessAttempts'],
+    queryFn: () => base44.entities.AccessCodeAttempt.list('-created_date', 200),
+    staleTime: 30000,
+  });
+
   const stuckUsers = allUsers.filter(u => 
     u.role !== 'admin' && 
     !u.codigo_acceso_validado && 
@@ -210,6 +217,53 @@ export default function AdminAccessCodes() {
     const existingCode = accessCodes.find(c => c.email?.toLowerCase() === u.email?.toLowerCase() && c.estado === 'pendiente');
     return { ...u, existingCode };
   });
+
+  // Análisis de seguridad: agrupar intentos por email
+  const securityAlerts = React.useMemo(() => {
+    const byEmail = {};
+    accessAttempts.forEach(a => {
+      const email = a.user_email?.toLowerCase();
+      if (!email) return;
+      if (!byEmail[email]) byEmail[email] = { email, attempts: [], screenViews: 0, failures: 0, blocked: 0, wrongEmail: 0, invalidCodes: 0, lastAttempt: null };
+      byEmail[email].attempts.push(a);
+      if (a.motivo_fallo === 'pantalla_acceso') byEmail[email].screenViews++;
+      else if (!a.exitoso) {
+        byEmail[email].failures++;
+        if (a.motivo_fallo === 'bloqueado') byEmail[email].blocked++;
+        if (a.motivo_fallo === 'email_incorrecto') byEmail[email].wrongEmail++;
+        if (a.motivo_fallo === 'codigo_invalido') byEmail[email].invalidCodes++;
+      }
+      const date = new Date(a.created_date);
+      if (!byEmail[email].lastAttempt || date > byEmail[email].lastAttempt) byEmail[email].lastAttempt = date;
+    });
+
+    // Marcar como sospechoso si: tiene bloqueos, muchos intentos fallidos, o intentó email incorrecto
+    return Object.values(byEmail)
+      .filter(e => e.blocked > 0 || e.failures >= 3 || e.wrongEmail > 0)
+      .sort((a, b) => {
+        // Priorizar: bloqueados > muchos fallos > email incorrecto
+        if (a.blocked !== b.blocked) return b.blocked - a.blocked;
+        return b.failures - a.failures;
+      });
+  }, [accessAttempts]);
+
+  // Usuarios que visitaron pantalla de código pero NO tienen código generado (posible acceso fraudulento)
+  const unauthorizedScreenVisits = React.useMemo(() => {
+    const screenEmails = [...new Set(accessAttempts.filter(a => a.motivo_fallo === 'pantalla_acceso').map(a => a.user_email?.toLowerCase()))];
+    return screenEmails
+      .filter(email => {
+        // No tiene código generado para ese email
+        const hasCode = accessCodes.some(c => c.email?.toLowerCase() === email);
+        return !hasCode;
+      })
+      .map(email => {
+        const userObj = allUsers.find(u => u.email?.toLowerCase() === email);
+        const visits = accessAttempts.filter(a => a.user_email?.toLowerCase() === email && a.motivo_fallo === 'pantalla_acceso');
+        const failedAttempts = accessAttempts.filter(a => a.user_email?.toLowerCase() === email && !a.exitoso && a.motivo_fallo !== 'pantalla_acceso');
+        return { email, user: userObj, visitCount: visits.length, failedAttempts: failedAttempts.length, lastVisit: visits[0]?.created_date };
+      })
+      .sort((a, b) => b.failedAttempts - a.failedAttempts || b.visitCount - a.visitCount);
+  }, [accessAttempts, accessCodes, allUsers]);
 
   const generateMutation = useMutation({
     mutationFn: async (data) => {
@@ -313,6 +367,102 @@ export default function AdminAccessCodes() {
           </Button>
         </div>
       </div>
+
+      {/* 🚨 ALERTAS DE SEGURIDAD */}
+      {(securityAlerts.length > 0 || unauthorizedScreenVisits.length > 0) && (
+        <Card className="mb-6 border-2 border-red-400 bg-red-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-red-800 text-lg">
+              <ShieldAlert className="w-5 h-5" />
+              Alertas de Seguridad
+            </CardTitle>
+            <p className="text-sm text-red-700">
+              Actividad sospechosa detectada. Estos usuarios pueden estar intentando acceder sin invitación.
+            </p>
+          </CardHeader>
+          <CardContent className="pt-2 space-y-3">
+            {/* Usuarios que visitaron la pantalla sin tener código */}
+            {unauthorizedScreenVisits.length > 0 && (
+              <div>
+                <p className="text-xs font-bold text-red-700 uppercase mb-2">🔍 Accesos sin invitación ({unauthorizedScreenVisits.length})</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {unauthorizedScreenVisits.map(u => (
+                    <div key={u.email} className="flex items-center justify-between gap-3 bg-white rounded-xl p-3 border border-red-200">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-slate-900 truncate">{u.user?.full_name || u.email}</p>
+                        <p className="text-xs text-slate-500">{u.email}</p>
+                        <div className="flex gap-2 mt-1 flex-wrap">
+                          <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px]">
+                            Sin invitación
+                          </Badge>
+                          {u.failedAttempts > 0 && (
+                            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-[10px]">
+                              {u.failedAttempts} intento{u.failedAttempts !== 1 ? 's' : ''} fallido{u.failedAttempts !== 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-[10px]">
+                            {u.lastVisit ? new Date(u.lastVisit).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                          </Badge>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
+                        onClick={() => {
+                          generateMutation.mutate({ email: u.email, nombre_destino: u.user?.full_name || '', tipo: 'padre_nuevo' });
+                        }}
+                        disabled={generateMutation.isPending}
+                      >
+                        <SendHorizonal className="w-3 h-3 mr-1" />
+                        Enviar Código
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Usuarios con intentos sospechosos de fuerza bruta */}
+            {securityAlerts.length > 0 && (
+              <div>
+                <p className="text-xs font-bold text-red-700 uppercase mb-2">⚠️ Intentos sospechosos ({securityAlerts.length})</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {securityAlerts.map(alert => (
+                    <div key={alert.email} className="flex items-center justify-between gap-3 bg-white rounded-xl p-3 border border-red-200">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-slate-900 truncate">{alert.email}</p>
+                        <div className="flex gap-1.5 mt-1 flex-wrap">
+                          {alert.blocked > 0 && (
+                            <Badge className="bg-red-500 text-white text-[10px]">
+                              🔒 Bloqueado {alert.blocked}x
+                            </Badge>
+                          )}
+                          {alert.wrongEmail > 0 && (
+                            <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-[10px]">
+                              📧 Email incorrecto {alert.wrongEmail}x
+                            </Badge>
+                          )}
+                          {alert.invalidCodes > 0 && (
+                            <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-[10px]">
+                              🔑 Códigos inválidos: {alert.invalidCodes}
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-[10px]">
+                            Total fallos: {alert.failures}
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px]">
+                            Último: {alert.lastAttempt ? new Date(alert.lastAttempt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Banner: usuarios sin código */}
       {stuckUsersWithStatus.length > 0 && (

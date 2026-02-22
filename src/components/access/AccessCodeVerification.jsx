@@ -18,6 +18,22 @@ export default function AccessCodeVerification({ user, onSuccess }) {
 
   const LOCKOUT_MINUTES = 15;
 
+  // Registrar que este usuario llegó a la pantalla de código (posible acceso no autorizado)
+  React.useEffect(() => {
+    if (!user?.email) return;
+    const key = `access_screen_logged_${user.email}`;
+    if (sessionStorage.getItem(key)) return; // Solo una vez por sesión
+    sessionStorage.setItem(key, 'true');
+    
+    // Registrar el intento en AccessCodeAttempt como "pantalla_acceso"
+    base44.entities.AccessCodeAttempt.create({
+      user_email: user.email,
+      codigo_intentado: "—",
+      exitoso: false,
+      motivo_fallo: "pantalla_acceso"
+    }).catch(() => {}); // Silencioso
+  }, [user?.email]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!code.trim()) return;
