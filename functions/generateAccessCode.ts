@@ -34,20 +34,88 @@ function generateCode() {
   return code;
 }
 
-function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado) {
+function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado, jugadorNombre) {
   const tipoLabels = {
-    padre_nuevo: 'Invitación para Familias',
-    segundo_progenitor: 'Invitación Segundo Progenitor',
-    juvenil: 'Acceso Juvenil',
-    jugador_adulto: 'Acceso Jugador +18'
+    padre_nuevo: '⚽ Bienvenido/a a la Familia del CD Bustarviejo',
+    segundo_progenitor: '👨‍👩‍👧 Acceso para Segundo Progenitor',
+    juvenil: '🏆 ¡Tu Acceso Juvenil al CD Bustarviejo!',
+    jugador_adulto: '⚽ ¡Bienvenido Jugador!'
+  };
+
+  const tipoEmoji = {
+    padre_nuevo: '👋',
+    segundo_progenitor: '👨‍👩‍👧',
+    juvenil: '🎮',
+    jugador_adulto: '⚽'
   };
 
   const tipoDescriptions = {
-    padre_nuevo: 'Has sido invitado/a a unirte a la app del <strong>CD Bustarviejo</strong> para gestionar la inscripción y actividades de tus hijos.',
-    segundo_progenitor: 'El primer progenitor te ha dado acceso a la app del <strong>CD Bustarviejo</strong> para seguir las actividades de vuestros hijos.',
-    juvenil: 'Tu padre/tutor te ha autorizado para acceder a la app del <strong>CD Bustarviejo</strong> con tu propio perfil juvenil.',
-    jugador_adulto: 'Has sido invitado/a a acceder a la app del <strong>CD Bustarviejo</strong> como jugador.'
+    padre_nuevo: `¡Enhorabuena! Has sido invitado/a a unirte a la <strong>aplicación oficial del CD Bustarviejo</strong>. 
+      Desde aquí podrás gestionar todo lo relacionado con la actividad deportiva de tus hijos en el club de forma fácil y rápida.`,
+    segundo_progenitor: `El otro progenitor/tutor te ha dado acceso a la <strong>aplicación del CD Bustarviejo</strong> para que tú también puedas seguir de cerca las actividades deportivas de vuestros hijos${jugadorNombre ? ` (<strong>${jugadorNombre}</strong>)` : ''}.`,
+    juvenil: `¡Hola! Tu padre/madre/tutor te ha autorizado para que tengas <strong>tu propio acceso</strong> a la app del CD Bustarviejo${jugadorNombre ? ` como jugador/a de <strong>${jugadorNombre}</strong>` : ''}. ¡Ya puedes ver tus convocatorias y mucho más!`,
+    jugador_adulto: `¡Bienvenido/a! Has sido invitado/a a acceder a la <strong>aplicación oficial del CD Bustarviejo</strong> como jugador/a${jugadorNombre ? ` (<strong>${jugadorNombre}</strong>)` : ''}. Desde aquí podrás gestionar tus convocatorias, pagos y comunicarte con el equipo.`
   };
+
+  const featuresByType = {
+    padre_nuevo: [
+      { icon: '📋', text: '<strong>Inscripciones:</strong> Registra y renueva a tus hijos de forma digital' },
+      { icon: '💳', text: '<strong>Pagos:</strong> Gestiona cuotas y ve el estado de tus pagos' },
+      { icon: '📅', text: '<strong>Convocatorias:</strong> Recibe y confirma asistencia a partidos al instante' },
+      { icon: '💬', text: '<strong>Chat:</strong> Comunícate directamente con entrenadores y coordinadores' },
+      { icon: '📆', text: '<strong>Calendario:</strong> Horarios de entrenamientos, partidos y eventos del club' },
+      { icon: '🏆', text: '<strong>Competición:</strong> Clasificaciones, resultados y goleadores en tiempo real' },
+      { icon: '📢', text: '<strong>Anuncios:</strong> Información importante del club siempre a mano' },
+      { icon: '🖊️', text: '<strong>Firmas:</strong> Firma documentos de federación desde el móvil' },
+      { icon: '🛍️', text: '<strong>Equipación:</strong> Pide la ropa del club y haz seguimiento de pedidos' },
+      { icon: '🖼️', text: '<strong>Galería:</strong> Fotos y recuerdos de entrenamientos y partidos' },
+    ],
+    segundo_progenitor: [
+      { icon: '📅', text: '<strong>Convocatorias:</strong> Ve y confirma asistencia a partidos' },
+      { icon: '💳', text: '<strong>Pagos:</strong> Consulta el estado de cuotas y pagos' },
+      { icon: '💬', text: '<strong>Chat:</strong> Comunícate con entrenadores y coordinadores' },
+      { icon: '📆', text: '<strong>Calendario:</strong> Horarios de entrenamientos y partidos' },
+      { icon: '🏆', text: '<strong>Competición:</strong> Clasificaciones y resultados' },
+      { icon: '📢', text: '<strong>Anuncios:</strong> Información del club siempre actualizada' },
+      { icon: '📄', text: '<strong>Documentos:</strong> Accede a documentos y notificaciones' },
+    ],
+    juvenil: [
+      { icon: '📅', text: '<strong>Convocatorias:</strong> Ve cuándo estás convocado/a para partidos' },
+      { icon: '📆', text: '<strong>Calendario:</strong> Tus horarios de entrenamiento y partidos' },
+      { icon: '🏆', text: '<strong>Competición:</strong> Clasificaciones y resultados de tu equipo' },
+      { icon: '📢', text: '<strong>Anuncios:</strong> Noticias del club que te interesan' },
+      { icon: '⭐', text: '<strong>Evaluaciones:</strong> Sigue tu progreso como jugador/a' },
+      { icon: '✉️', text: '<strong>Buzón:</strong> Envía mensajes a la coordinación del club' },
+      { icon: '🖼️', text: '<strong>Galería:</strong> Fotos de tu equipo' },
+    ],
+    jugador_adulto: [
+      { icon: '📅', text: '<strong>Convocatorias:</strong> Recibe y confirma asistencia a partidos' },
+      { icon: '💳', text: '<strong>Pagos:</strong> Gestiona tus cuotas y ve el estado de pagos' },
+      { icon: '💬', text: '<strong>Chat:</strong> Comunícate con entrenadores y coordinadores' },
+      { icon: '📆', text: '<strong>Calendario:</strong> Horarios de entrenamiento y partidos' },
+      { icon: '🏆', text: '<strong>Competición:</strong> Clasificaciones, resultados y goleadores' },
+      { icon: '🖊️', text: '<strong>Firmas:</strong> Firma documentos de federación desde el móvil' },
+      { icon: '📢', text: '<strong>Anuncios:</strong> Información del club siempre actualizada' },
+      { icon: '🖼️', text: '<strong>Galería:</strong> Fotos de entrenamientos y partidos' },
+    ]
+  };
+
+  const features = featuresByType[tipo] || featuresByType.padre_nuevo;
+
+  const importantNotes = {
+    padre_nuevo: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este mismo email</strong> (el que has recibido esta invitación). Si usas otro email, el código no funcionará.',
+    segundo_progenitor: '⚠️ <strong>Importante:</strong> Debes registrarte con <strong>este mismo email</strong>. Ambos progenitores tendréis acceso independiente a la misma información de vuestros hijos.',
+    juvenil: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este email</strong>. Tu padre/tutor ha autorizado este acceso y puede revocarlo en cualquier momento. Recuerda ser respetuoso/a en el uso de la app.',
+    jugador_adulto: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este mismo email</strong> para que tu perfil de jugador quede vinculado correctamente.'
+  };
+
+  const featuresHTML = features.map(f => `
+                <tr><td style="padding:6px 0;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                    <td width="30" valign="top" style="font-size:16px;padding-top:2px;">${f.icon}</td>
+                    <td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#334155;line-height:20px;">${f.text}</td>
+                  </tr></table>
+                </td></tr>`).join('');
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -65,22 +133,31 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado)
 <!-- Main card -->
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
 
-  <!-- Header -->
+  <!-- Header con gradiente -->
   <tr>
-    <td style="background-color:#ea580c;padding:32px 24px;text-align:center;border-radius:16px 16px 0 0;">
-      <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" style="width:600px" arcsize="3%" fillcolor="#ea580c" stroke="f"><v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0"><![endif]-->
+    <td style="background-color:#ea580c;padding:36px 24px 28px;text-align:center;border-radius:16px 16px 0 0;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr><td align="center" style="padding-bottom:16px;">
-          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="CD Bustarviejo" width="72" height="72" style="display:block;border:3px solid #ffffff;border-radius:14px;" />
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="CD Bustarviejo" width="80" height="80" style="display:block;border:4px solid #ffffff;border-radius:16px;" />
         </td></tr>
-        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:bold;color:#ffffff;letter-spacing:1px;">
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:28px;font-weight:bold;color:#ffffff;letter-spacing:1px;">
           CD BUSTARVIEJO
         </td></tr>
-        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#fed7aa;padding-top:6px;letter-spacing:0.5px;">
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#fed7aa;padding-top:6px;letter-spacing:1px;text-transform:uppercase;">
+          Temporada 2025/2026
+        </td></tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Barra tipo invitación -->
+  <tr>
+    <td style="background-color:#1e293b;padding:12px 28px;text-align:center;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#f97316;letter-spacing:0.5px;">
           ${tipoLabels[tipo] || 'Invitación'}
         </td></tr>
       </table>
-      <!--[if mso]></v:textbox></v:roundrect><![endif]-->
     </td>
   </tr>
 
@@ -90,93 +167,178 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado)
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         
         <!-- Saludo -->
-        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:17px;color:#1e293b;padding-bottom:12px;">
-          ${nombreDestino ? `Hola <strong>${nombreDestino}</strong>,` : 'Hola,'}
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:20px;color:#1e293b;padding-bottom:16px;font-weight:bold;">
+          ${tipoEmoji[tipo]} ${nombreDestino ? `¡Hola ${nombreDestino}!` : '¡Hola!'}
         </td></tr>
 
         <!-- Descripción -->
-        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#475569;line-height:24px;padding-bottom:20px;">
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#475569;line-height:26px;padding-bottom:24px;">
           ${tipoDescriptions[tipo]}
         </td></tr>
 
         ${mensajePersonalizado ? `
         <!-- Mensaje personalizado -->
-        <tr><td style="padding-bottom:20px;">
+        <tr><td style="padding-bottom:24px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
             <tr>
               <td width="4" style="background-color:#ea580c;border-radius:4px;"></td>
-              <td style="background-color:#fef7f0;padding:14px 18px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#78350f;font-style:italic;line-height:22px;">
-                ${mensajePersonalizado}
+              <td style="background-color:#fef7f0;padding:16px 20px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#78350f;font-style:italic;line-height:22px;">
+                &ldquo;${mensajePersonalizado}&rdquo;
               </td>
             </tr>
           </table>
         </td></tr>` : ''}
 
         <!-- Código de acceso -->
-        <tr><td style="padding-bottom:24px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:12px;overflow:hidden;">
-            <tr><td style="background-color:#1e293b;padding:28px 20px;text-align:center;">
+        <tr><td style="padding-bottom:28px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:14px;overflow:hidden;">
+            <tr><td style="background-color:#1e293b;padding:32px 20px;text-align:center;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;padding-bottom:10px;">
-                  Tu código de acceso
+                <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:3px;padding-bottom:12px;">
+                  &#128273; Tu código de acceso personal
                 </td></tr>
-                <tr><td align="center" style="font-family:'Courier New',Courier,monospace;font-size:38px;font-weight:bold;color:#f97316;letter-spacing:8px;padding-bottom:10px;">
+                <tr><td align="center" style="font-family:'Courier New',Courier,monospace;font-size:42px;font-weight:bold;color:#f97316;letter-spacing:10px;padding-bottom:12px;">
                   ${code}
                 </td></tr>
                 <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#64748b;">
-                  Válido 7 días &bull; Vinculado a tu email
+                  &#128337; Válido durante 7 días &bull; &#128274; Vinculado a tu email
                 </td></tr>
               </table>
             </td></tr>
           </table>
         </td></tr>
 
-        <!-- Pasos -->
-        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#1e293b;padding-bottom:12px;">
-          &#128241; Cómo acceder:
-        </td></tr>
+        <!-- Nota importante -->
         <tr><td style="padding-bottom:24px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bbf7d0;border-radius:10px;overflow:hidden;">
-            <tr><td style="background-color:#f0fdf4;padding:18px 22px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #fde68a;border-radius:10px;overflow:hidden;">
+            <tr><td style="background-color:#fffbeb;padding:14px 20px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:28px;">
-                  <strong>1.</strong> Pulsa el botón de abajo para abrir la app<br/>
-                  <strong>2.</strong> Regístrate con <strong>este mismo email</strong><br/>
-                  <strong>3.</strong> Introduce el código: <strong style="color:#ea580c;">${code}</strong><br/>
-                  <strong>4.</strong> ¡Listo! Ya tendrás acceso completo
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#92400e;line-height:22px;">
+                  ${importantNotes[tipo]}
                 </td></tr>
               </table>
             </td></tr>
           </table>
         </td></tr>
 
-        <!-- Botón -->
-        <tr><td align="center" style="padding-bottom:28px;">
+        <!-- Pasos para acceder -->
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#1e293b;padding-bottom:14px;">
+          &#128640; ¿Cómo empezar? Muy fácil:
+        </td></tr>
+        <tr><td style="padding-bottom:28px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bbf7d0;border-radius:12px;overflow:hidden;">
+            <tr><td style="background-color:#f0fdf4;padding:22px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="padding:8px 0;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                    <td width="36" valign="top" style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;background-color:#16a34a;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;">1</td>
+                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:22px;"><strong>Pulsa el botón verde</strong> de abajo para abrir la app</td>
+                  </tr></table>
+                </td></tr>
+                <tr><td style="padding:8px 0;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                    <td width="36" valign="top" style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;background-color:#16a34a;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;">2</td>
+                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:22px;"><strong>Crea tu cuenta</strong> usando <u>este mismo email</u></td>
+                  </tr></table>
+                </td></tr>
+                <tr><td style="padding:8px 0;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                    <td width="36" valign="top" style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;background-color:#16a34a;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;">3</td>
+                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:22px;">Introduce tu código: <strong style="color:#ea580c;font-size:16px;">${code}</strong></td>
+                  </tr></table>
+                </td></tr>
+                <tr><td style="padding:8px 0;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                    <td width="36" valign="top" style="font-family:Arial,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;background-color:#16a34a;width:28px;height:28px;text-align:center;line-height:28px;border-radius:50%;">4</td>
+                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#166534;line-height:22px;"><strong>¡Listo!</strong> Accederás directamente a tu panel</td>
+                  </tr></table>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Botón principal -->
+        <tr><td align="center" style="padding-bottom:32px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-            <tr><td align="center" style="border-radius:10px;background-color:#ea580c;">
-              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${appUrl}" style="height:50px;v-text-anchor:middle;width:260px;" arcsize="20%" fillcolor="#ea580c" stroke="f"><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">Abrir la App del Club</center></v:roundrect><![endif]-->
+            <tr><td align="center" style="border-radius:12px;background-color:#16a34a;">
+              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${appUrl}" style="height:56px;v-text-anchor:middle;width:300px;" arcsize="18%" fillcolor="#16a34a" stroke="f"><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:18px;font-weight:bold;">&#9998; Abrir la App del Club</center></v:roundrect><![endif]-->
               <!--[if !mso]><!-->
-              <a href="${appUrl}" target="_blank" style="display:inline-block;background-color:#ea580c;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;text-decoration:none;padding:16px 40px;border-radius:10px;">
-                Abrir la App del Club &#8594;
+              <a href="${appUrl}" target="_blank" style="display:inline-block;background-color:#16a34a;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;text-decoration:none;padding:18px 48px;border-radius:12px;">
+                &#9998; Abrir la App del Club
               </a>
               <!--<![endif]-->
             </td></tr>
           </table>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <tr><td align="center" style="padding-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;">
+              Si el botón no funciona, copia este enlace en tu navegador: ${appUrl}
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Separador -->
+        <tr><td style="padding-bottom:24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="border-bottom:2px solid #f1f5f9;">&nbsp;</td></tr>
+          </table>
+        </td></tr>
+
+        <!-- ¿Qué podrás hacer? -->
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#1e293b;padding-bottom:16px;">
+          &#127775; ¿Qué podrás hacer desde la app?
+        </td></tr>
+        <tr><td style="padding-bottom:28px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+            <tr><td style="background-color:#fafbfc;padding:18px 22px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${featuresHTML}
+              </table>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Separador -->
+        <tr><td style="padding-bottom:24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="border-bottom:2px solid #f1f5f9;">&nbsp;</td></tr>
+          </table>
         </td></tr>
 
         <!-- Instalar app -->
-        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#1e293b;padding-bottom:12px;">
-          &#128242; Instala la app en tu móvil:
+        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#1e293b;padding-bottom:14px;">
+          &#128242; Instala la app en tu móvil (recomendado):
         </td></tr>
-        <tr><td style="padding-bottom:16px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bfdbfe;border-radius:10px;overflow:hidden;">
-            <tr><td style="background-color:#eff6ff;padding:16px 22px;">
+        <tr><td style="padding-bottom:8px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #bfdbfe;border-radius:12px;overflow:hidden;">
+            <tr><td style="background-color:#eff6ff;padding:20px 22px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e40af;font-weight:bold;padding-bottom:4px;">iPhone (Safari):</td></tr>
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#3b82f6;padding-bottom:12px;">Abre en Safari &rarr; Compartir (&#8593;) &rarr; &quot;Añadir a pantalla de inicio&quot;</td></tr>
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e40af;font-weight:bold;padding-bottom:4px;">Android (Chrome):</td></tr>
-                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#3b82f6;">Abre en Chrome &rarr; Menú (&#8942;) &rarr; &quot;Instalar aplicación&quot;</td></tr>
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e40af;font-weight:bold;padding-bottom:8px;">
+                  &#127822; iPhone / iPad (Safari):
+                </td></tr>
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#3b82f6;padding-bottom:16px;line-height:22px;">
+                  1. Abre el enlace en <strong>Safari</strong> (no Chrome)<br/>
+                  2. Pulsa el botón <strong>Compartir</strong> (&#8593;) abajo en la pantalla<br/>
+                  3. Busca <strong>&quot;Añadir a pantalla de inicio&quot;</strong><br/>
+                  4. Pulsa <strong>&quot;Añadir&quot;</strong> arriba a la derecha
+                </td></tr>
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e40af;font-weight:bold;padding-bottom:8px;">
+                  &#129302; Android (Chrome):
+                </td></tr>
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#3b82f6;line-height:22px;">
+                  1. Abre el enlace en <strong>Chrome</strong><br/>
+                  2. Pulsa el <strong>menú</strong> (&#8942; tres puntos) arriba a la derecha<br/>
+                  3. Pulsa <strong>&quot;Instalar aplicación&quot;</strong> o &quot;Añadir a inicio&quot;<br/>
+                  4. Confirma pulsando <strong>&quot;Instalar&quot;</strong>
+                </td></tr>
               </table>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="padding-bottom:24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#64748b;line-height:20px;padding:8px 0;">
+              &#128161; <strong>Tip:</strong> Al instalarla tendrás un icono en tu pantalla de inicio como cualquier otra app, y recibirás notificaciones de convocatorias y novedades.
             </td></tr>
           </table>
         </td></tr>
@@ -187,10 +349,29 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado)
 
   <!-- Footer -->
   <tr>
-    <td style="background-color:#f8fafc;padding:20px 28px;border-radius:0 0 16px 16px;border-top:1px solid #e2e8f0;text-align:center;">
+    <td style="background-color:#1e293b;padding:28px;border-radius:0 0 16px 16px;text-align:center;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#94a3b8;">
-          CD Bustarviejo &bull; <a href="mailto:cdbustarviejo@gmail.com" style="color:#ea580c;text-decoration:none;">cdbustarviejo@gmail.com</a>
+        <tr><td align="center" style="padding-bottom:12px;">
+          <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="CD Bustarviejo" width="40" height="40" style="display:inline-block;border-radius:8px;" />
+        </td></tr>
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#ffffff;padding-bottom:4px;">
+          CD Bustarviejo
+        </td></tr>
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#94a3b8;padding-bottom:12px;">
+          Fútbol &bull; Baloncesto &bull; Desde 1950
+        </td></tr>
+        <tr><td align="center" style="padding-bottom:12px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="padding:0 8px;">
+                <a href="mailto:cdbustarviejo@gmail.com" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#f97316;text-decoration:none;">&#9993; cdbustarviejo@gmail.com</a>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+        <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#64748b;line-height:18px;">
+          Este correo ha sido enviado porque alguien del CD Bustarviejo te ha invitado a la app del club.<br/>
+          Si no esperabas este email, puedes ignorarlo con total tranquilidad.
         </td></tr>
       </table>
     </td>
