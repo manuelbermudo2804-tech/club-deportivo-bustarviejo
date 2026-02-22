@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { 
   Mail, UserPlus, Clock, CheckCircle2, XCircle, Loader2, 
-  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban
+  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal
 } from "lucide-react";
 import { toast } from "sonner";
 
