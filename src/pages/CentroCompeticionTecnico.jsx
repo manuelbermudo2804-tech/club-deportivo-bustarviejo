@@ -111,25 +111,14 @@ export default function CentroCompeticionTecnico() {
     window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
   }, [category, view]);
 
-  // Prefetch resultados/goleadores para carga rápida
-  React.useEffect(() => {
-    queryClient.prefetchQuery({
-      queryKey: ["resultados", category],
-      queryFn: () => base44.entities.Resultado.filter({ categoria: category }, "-jornada", 500),
-      staleTime: 30_000,
-    });
-    queryClient.prefetchQuery({
-      queryKey: ["goleadores", category],
-      queryFn: () => base44.entities.Goleador.filter({ categoria: category }, "-goles", 500),
-      staleTime: 30_000,
-    });
-  }, [category, queryClient]);
+  // Prefetch desactivado - se carga bajo demanda al cambiar de vista
+  // Esto reduce uso de memoria en dispositivos con poca RAM
 
   // Clasificación (último pack como en CentroCompeticion)
   const { data: standingsPack, isLoading } = useQuery({
     queryKey: ["centro-standings-tech", category],
     queryFn: async () => {
-      const recs = await base44.entities.Clasificacion.filter({ categoria: category }, "-updated_date", 400);
+      const recs = await base44.entities.Clasificacion.filter({ categoria: category }, "-updated_date", 200);
       if (!recs || recs.length === 0) return null;
       const latest = recs[0];
       const temporada = latest.temporada;
@@ -180,13 +169,8 @@ export default function CentroCompeticionTecnico() {
   const autoAnalysisDoneRef = React.useRef(false);
   const autoObservationDoneRef = React.useRef(false);
 
-  // Auto: analizar próximo rival al entrar
-  React.useEffect(() => {
-    if (nextCallup && !autoAnalysisDoneRef.current) {
-      autoAnalysisDoneRef.current = true;
-      analyzeRival();
-    }
-  }, [nextCallup]);
+  // Auto-análisis desactivado al entrar para evitar consumo de memoria/red en dispositivos bajos
+  // El usuario puede pulsar el botón "Analizar Próximo Rival" manualmente
 
   // Auto: abrir registro rápido tras el partido O si viene de la alerta con openObservation=true
   React.useEffect(() => {

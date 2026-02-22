@@ -1,14 +1,22 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Trophy, TrendingUp, TrendingDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import StandingsStats from "./StandingsStats";
-import NextMatchStats from "./NextMatchStats";
-import TeamComparison from "./TeamComparison";
 import TeamSummaryBanner from "./TeamSummaryBanner";
-import PositionEvolutionChart from "./PositionEvolutionChart";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
+
+// Lazy load componentes pesados para reducir uso de memoria en dispositivos bajos
+const StandingsStats = React.lazy(() => import("./StandingsStats"));
+const NextMatchStats = React.lazy(() => import("./NextMatchStats"));
+const TeamComparison = React.lazy(() => import("./TeamComparison"));
+const PositionEvolutionChart = React.lazy(() => import("./PositionEvolutionChart"));
+
+const LazyFallback = () => (
+  <div className="h-20 flex items-center justify-center">
+    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-500" />
+  </div>
+);
 
 export default function StandingsDisplay({ data, onClose, fullPage = false }) {
   const navigate = useNavigate();
@@ -37,20 +45,25 @@ export default function StandingsDisplay({ data, onClose, fullPage = false }) {
         </div>
       </div>
 
-      {/* Resumen visual del equipo */}
+      {/* Resumen visual del equipo - ligero, se carga siempre */}
       <TeamSummaryBanner standings={sortedData} categoria={data.categoria} />
 
-      {/* Evolución de posición */}
-      <PositionEvolutionChart categoria={data.categoria} />
+      {/* Componentes pesados: lazy load para no saturar memoria */}
+      <Suspense fallback={<LazyFallback />}>
+        <PositionEvolutionChart categoria={data.categoria} />
+      </Suspense>
 
-      {/* Próximo partido y comparativa */}
-      <NextMatchStats categoria={data.categoria} standings={sortedData} />
+      <Suspense fallback={<LazyFallback />}>
+        <NextMatchStats categoria={data.categoria} standings={sortedData} />
+      </Suspense>
 
-      {/* Estadísticas calculadas */}
-      <StandingsStats data={data} />
+      <Suspense fallback={<LazyFallback />}>
+        <StandingsStats data={data} />
+      </Suspense>
 
-      {/* Comparador de equipos */}
-      <TeamComparison standings={sortedData} categoria={data.categoria} />
+      <Suspense fallback={<LazyFallback />}>
+        <TeamComparison standings={sortedData} categoria={data.categoria} />
+      </Suspense>
 
       <div className="overflow-x-auto -mx-2 sm:mx-0">
         <table className="w-full text-xs sm:text-sm min-w-[600px]">

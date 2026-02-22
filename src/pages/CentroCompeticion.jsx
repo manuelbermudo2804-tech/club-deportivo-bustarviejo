@@ -108,23 +108,8 @@ export default function CentroCompeticion() {
             window.history.replaceState({}, '', newUrl);
           }, [category, view]);
 
-          // Prefetch resultados y goleadores para carga instantánea al cambiar de vista
-          React.useEffect(() => {
-            if (view !== 'resultados') {
-              queryClient.prefetchQuery({
-                queryKey: ['resultados', category],
-                queryFn: () => base44.entities.Resultado.filter({ categoria: category }, '-jornada', 500),
-                staleTime: 30_000,
-              });
-            }
-            if (view !== 'goleadores') {
-              queryClient.prefetchQuery({
-                queryKey: ['goleadores', category],
-                queryFn: () => base44.entities.Goleador.filter({ categoria: category }, '-goles', 500),
-                staleTime: 30_000,
-              });
-            }
-          }, [category, view, queryClient]);
+          // Prefetch desactivado - se carga bajo demanda al cambiar de vista
+          // Esto reduce uso de memoria en dispositivos con poca RAM
 
   const toggleFav = () => {
     if (fav) {
@@ -251,7 +236,7 @@ export default function CentroCompeticion() {
   const { data: standingsPack, isLoading: loadingStandings } = useQuery({
     queryKey: ['centro-standings', category],
     queryFn: async () => {
-      const recs = await base44.entities.Clasificacion.filter({ categoria: category }, '-updated_date', 400);
+      const recs = await base44.entities.Clasificacion.filter({ categoria: category }, '-updated_date', 200);
       if (!recs || recs.length === 0) return null;
       const latest = recs[0];
       const temporada = latest.temporada;

@@ -10,7 +10,7 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
   const queryClient = useQueryClient();
   const { data: scorers = [], isLoading } = useQuery({
     queryKey: ['goleadores', categoryFullName],
-    queryFn: () => base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 500),
+    queryFn: () => base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 200),
     staleTime: 30_000,
     gcTime: 10 * 60_000,
     refetchOnWindowFocus: false,
