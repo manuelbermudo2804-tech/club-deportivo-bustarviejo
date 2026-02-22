@@ -451,11 +451,11 @@ Deno.serve(async (req) => {
       });
 
       const appUrl = 'https://app.cdbustarviejo.com';
-      const emailHTML = buildEmailHTML(codigo, existingCode.tipo, existingCode.nombre_destino, appUrl, existingCode.mensaje_personalizado);
+      const emailHTML = buildEmailHTML(codigo, existingCode.tipo, existingCode.nombre_destino, appUrl, existingCode.mensaje_personalizado, existingCode.jugador_nombre);
       
       await sendWithResend(
         existingCode.email,
-        `🔑 CD Bustarviejo - Tu nuevo código de acceso: ${codigo}`,
+        `⚽ CD Bustarviejo - Tu invitación al club (Código: ${codigo})`,
         emailHTML
       );
 
@@ -482,11 +482,11 @@ Deno.serve(async (req) => {
       if (now < expDate) {
         // Todavía válido, reenviar
         const appUrl = 'https://app.cdbustarviejo.com';
-        const emailHTML = buildEmailHTML(existing.codigo, tipo, nombre_destino || existing.nombre_destino, appUrl, mensaje_personalizado);
+        const emailHTML = buildEmailHTML(existing.codigo, tipo, nombre_destino || existing.nombre_destino, appUrl, mensaje_personalizado, jugador_nombre || existing.jugador_nombre);
         
         await sendWithResend(
           email.toLowerCase().trim(),
-          `🔑 CD Bustarviejo - Tu código de acceso: ${existing.codigo}`,
+          `⚽ CD Bustarviejo - Tu invitación al club (Código: ${existing.codigo})`,
           emailHTML
         );
 
@@ -537,11 +537,11 @@ Deno.serve(async (req) => {
 
     // Enviar email
     const appUrl = 'https://app.cdbustarviejo.com';
-    const emailHTML = buildEmailHTML(codigo, tipo, nombre_destino, appUrl, mensaje_personalizado);
+    const emailHTML = buildEmailHTML(codigo, tipo, nombre_destino, appUrl, mensaje_personalizado, jugador_nombre);
     
     await sendWithResend(
       email.toLowerCase().trim(),
-      `🔑 CD Bustarviejo - Tu código de acceso: ${codigo}`,
+      `⚽ CD Bustarviejo - Tu invitación al club (Código: ${codigo})`,
       emailHTML
     );
 
