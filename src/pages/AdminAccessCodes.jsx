@@ -274,10 +274,21 @@ export default function AdminAccessCodes() {
           <h1 className="text-3xl font-bold text-slate-900">🔑 Códigos de Acceso</h1>
           <p className="text-slate-600 mt-1">Genera y gestiona los códigos de invitación al club</p>
         </div>
-        <Button onClick={() => setInviteOpen(true)} className="bg-orange-600 hover:bg-orange-700">
-          <UserPlus className="w-4 h-4 mr-2" />
-          Nueva Invitación
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleBulkResend}
+            disabled={bulkResending || counts.pendiente === 0}
+            size="sm"
+          >
+            {bulkResending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <RefreshCw className="w-4 h-4 mr-1" />}
+            Reenviar todas ({counts.pendiente})
+          </Button>
+          <Button onClick={() => setInviteOpen(true)} className="bg-orange-600 hover:bg-orange-700" size="sm">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Nueva Invitación
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
