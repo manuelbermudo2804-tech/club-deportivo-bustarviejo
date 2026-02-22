@@ -21,25 +21,62 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
   const [tipo, setTipo] = useState("padre_nuevo");
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
+  const [searchPlayer, setSearchPlayer] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+
+  const needsPlayer = tipo === 'segundo_progenitor' || tipo === 'juvenil';
+
+  const { data: allPlayers = [] } = useQuery({
+    queryKey: ['playersForInvite'],
+    queryFn: () => base44.entities.Player.filter({ activo: true }),
+    enabled: open,
+  });
+
+  const filteredPlayers = searchPlayer.trim().length >= 2
+    ? allPlayers.filter(p => 
+        p.nombre?.toLowerCase().includes(searchPlayer.toLowerCase()) ||
+        p.email_padre?.toLowerCase().includes(searchPlayer.toLowerCase())
+      ).slice(0, 10)
+    : [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim()) return;
+    if (needsPlayer && !selectedPlayer) {
+      toast.error("Selecciona el jugador al que vincular esta invitación");
+      return;
+    }
     setLoading(true);
     try {
-      await onInvite({ email: email.trim(), nombre_destino: nombre.trim(), tipo, mensaje_personalizado: mensaje.trim() });
+      await onInvite({ 
+        email: email.trim(), 
+        nombre_destino: nombre.trim(), 
+        tipo, 
+        mensaje_personalizado: mensaje.trim(),
+        ...(selectedPlayer ? { jugador_id: selectedPlayer.id, jugador_nombre: selectedPlayer.nombre } : {})
+      });
       setEmail("");
       setNombre("");
       setMensaje("");
+      setSelectedPlayer(null);
+      setSearchPlayer("");
       onOpenChange(false);
     } finally {
       setLoading(false);
     }
   };
 
+  // Reset jugador al cambiar tipo
+  React.useEffect(() => {
+    if (!needsPlayer) {
+      setSelectedPlayer(null);
+      setSearchPlayer("");
+    }
+  }, [tipo]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-orange-600" />
@@ -47,24 +84,6 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label>Email del destinatario *</Label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ejemplo@email.com"
-              required
-            />
-          </div>
-          <div>
-            <Label>Nombre (opcional)</Label>
-            <Input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Nombre del destinatario"
-            />
-          </div>
           <div>
             <Label>Tipo de invitación</Label>
             <Select value={tipo} onValueChange={setTipo}>
@@ -77,6 +96,78 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Selector de jugador vinculado (para segundo_progenitor y juvenil) */}
+          {needsPlayer && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                ⚽ Jugador vinculado *
+              </Label>
+              {selectedPlayer ? (
+                <div className="flex items-center justify-between bg-green-50 border-2 border-green-300 rounded-lg p-3">
+                  <div>
+                    <p className="font-bold text-sm text-green-900">{selectedPlayer.nombre}</p>
+                    <p className="text-xs text-green-700">
+                      {selectedPlayer.categoria_principal || 'Sin categoría'} · Padre: {selectedPlayer.email_padre}
+                    </p>
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { setSelectedPlayer(null); setSearchPlayer(""); }} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                    <XCircle className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Input
+                    value={searchPlayer}
+                    onChange={(e) => setSearchPlayer(e.target.value)}
+                    placeholder="Busca por nombre del jugador o email del padre..."
+                  />
+                  {filteredPlayers.length > 0 && (
+                    <div className="border rounded-lg max-h-40 overflow-y-auto divide-y">
+                      {filteredPlayers.map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => { setSelectedPlayer(p); setSearchPlayer(""); }}
+                          className="w-full text-left px-3 py-2 hover:bg-orange-50 transition-colors"
+                        >
+                          <p className="font-medium text-sm">{p.nombre}</p>
+                          <p className="text-xs text-slate-500">{p.categoria_principal} · {p.email_padre}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {searchPlayer.trim().length >= 2 && filteredPlayers.length === 0 && (
+                    <p className="text-xs text-slate-500 text-center py-2">No se encontraron jugadores</p>
+                  )}
+                </div>
+              )}
+              <p className="text-xs text-slate-500">
+                {tipo === 'segundo_progenitor' 
+                  ? '⚠️ Selecciona el hijo/a al que el segundo progenitor tendrá acceso'
+                  : '⚠️ Selecciona el jugador que recibirá acceso juvenil (debe tener 13-17 años)'}
+              </p>
+            </div>
+          )}
+
+          <div>
+            <Label>Email del destinatario *</Label>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={tipo === 'juvenil' ? "email.del.menor@gmail.com" : "ejemplo@email.com"}
+              required
+            />
+          </div>
+          <div>
+            <Label>Nombre (opcional)</Label>
+            <Input
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              placeholder="Nombre del destinatario"
+            />
+          </div>
           <div>
             <Label>Mensaje personalizado (opcional)</Label>
             <Input
@@ -85,7 +176,7 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
               placeholder="Bienvenido al club..."
             />
           </div>
-          <Button type="submit" disabled={loading || !email.trim()} className="w-full bg-orange-600 hover:bg-orange-700">
+          <Button type="submit" disabled={loading || !email.trim() || (needsPlayer && !selectedPlayer)} className="w-full bg-orange-600 hover:bg-orange-700">
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
             Generar Código y Enviar Email
           </Button>
