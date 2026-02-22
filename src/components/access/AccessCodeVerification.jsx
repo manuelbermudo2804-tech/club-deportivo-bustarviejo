@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ShieldCheck, AlertCircle, KeyRound } from "lucide-react";
+import { Loader2, ShieldCheck, AlertCircle, KeyRound, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
@@ -13,6 +13,10 @@ export default function AccessCodeVerification({ user, onSuccess }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [blocked, setBlocked] = useState(false);
+  const [blockedMinutes, setBlockedMinutes] = useState(0);
+
+  const LOCKOUT_MINUTES = 15;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,10 +33,19 @@ export default function AccessCodeVerification({ user, onSuccess }) {
         onSuccess(data);
       } else {
         setError(data.error || "Código inválido");
+        if (data.blocked) {
+          setBlocked(true);
+          setBlockedMinutes(data.minutes_left || LOCKOUT_MINUTES);
+        }
       }
     } catch (err) {
-      const errorMsg = err?.response?.data?.error || err.message || "Error al verificar el código";
+      const errData = err?.response?.data;
+      const errorMsg = errData?.error || err.message || "Error al verificar el código";
       setError(errorMsg);
+      if (errData?.blocked) {
+        setBlocked(true);
+        setBlockedMinutes(errData.minutes_left || LOCKOUT_MINUTES);
+      }
     } finally {
       setLoading(false);
     }
@@ -40,8 +53,8 @@ export default function AccessCodeVerification({ user, onSuccess }) {
 
   const formatCode = (value) => {
     const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (clean.length > 3) {
-      return clean.slice(0, 3) + "-" + clean.slice(3, 6);
+    if (clean.length > 4) {
+      return clean.slice(0, 4) + "-" + clean.slice(4, 8);
     }
     return clean;
   };
@@ -78,9 +91,9 @@ export default function AccessCodeVerification({ user, onSuccess }) {
               <Input
                 value={code}
                 onChange={(e) => setCode(formatCode(e.target.value))}
-                placeholder="ABC-123"
-                maxLength={7}
-                className="text-center text-2xl font-mono font-bold tracking-[6px] h-16 pl-12 pr-4 border-2 border-slate-200 focus:border-orange-500"
+                placeholder="ABCD-1234"
+                maxLength={9}
+                className="text-center text-2xl font-mono font-bold tracking-[4px] h-16 pl-12 pr-4 border-2 border-slate-200 focus:border-orange-500"
                 autoFocus
                 disabled={loading}
               />
@@ -95,10 +108,15 @@ export default function AccessCodeVerification({ user, onSuccess }) {
 
             <Button
               type="submit"
-              disabled={loading || code.length < 7}
+              disabled={loading || code.length < 9 || blocked}
               className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 py-6 text-lg font-bold"
             >
-              {loading ? (
+              {blocked ? (
+                <>
+                  <ShieldOff className="w-5 h-5 mr-2" />
+                  Bloqueado ({blockedMinutes} min)
+                </>
+              ) : loading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Verificando...

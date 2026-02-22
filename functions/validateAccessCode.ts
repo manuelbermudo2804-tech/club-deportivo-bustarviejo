@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -11,26 +14,82 @@ Deno.serve(async (req) => {
 
     const { codigo } = await req.json();
     
-    if (!codigo || codigo.trim().length < 5) {
+    if (!codigo || codigo.trim().length < 7) {
       return Response.json({ error: 'Código inválido', valid: false }, { status: 400 });
     }
 
     const codeNormalized = codigo.trim().toUpperCase();
+    const userEmail = user.email.toLowerCase();
+
+    // --- RATE LIMITING: comprobar intentos fallidos recientes ---
+    const lockoutTime = new Date(Date.now() - LOCKOUT_MINUTES * 60 * 1000);
     
-    // Buscar el código
+    const recentAttempts = await base44.asServiceRole.entities.AccessCodeAttempt.filter({
+      user_email: userEmail,
+      exitoso: false
+    });
+
+    // Filtrar solo los intentos dentro de la ventana de bloqueo
+    const recentFailures = recentAttempts.filter(a => new Date(a.created_date) > lockoutTime);
+
+    if (recentFailures.length >= MAX_ATTEMPTS) {
+      const oldestInWindow = new Date(Math.min(...recentFailures.map(a => new Date(a.created_date).getTime())));
+      const unblockTime = new Date(oldestInWindow.getTime() + LOCKOUT_MINUTES * 60 * 1000);
+      const minutesLeft = Math.ceil((unblockTime - Date.now()) / 60000);
+
+      // Registrar intento bloqueado
+      await base44.asServiceRole.entities.AccessCodeAttempt.create({
+        user_email: userEmail,
+        codigo_intentado: codeNormalized,
+        exitoso: false,
+        motivo_fallo: 'bloqueado'
+      });
+
+      return Response.json({ 
+        error: `Demasiados intentos fallidos. Espera ${minutesLeft} minuto${minutesLeft !== 1 ? 's' : ''} para volver a intentarlo.`, 
+        valid: false,
+        blocked: true,
+        minutes_left: minutesLeft
+      }, { status: 429 });
+    }
+
+    // --- BUSCAR CÓDIGO ---
     const codes = await base44.asServiceRole.entities.AccessCode.filter({ codigo: codeNormalized });
     
     if (!codes || codes.length === 0) {
-      return Response.json({ error: 'Código no encontrado', valid: false }, { status: 404 });
+      await base44.asServiceRole.entities.AccessCodeAttempt.create({
+        user_email: userEmail,
+        codigo_intentado: codeNormalized,
+        exitoso: false,
+        motivo_fallo: 'codigo_invalido'
+      });
+      
+      const attemptsLeft = MAX_ATTEMPTS - recentFailures.length - 1;
+      return Response.json({ 
+        error: `Código no encontrado.${attemptsLeft <= 2 ? ` Te quedan ${attemptsLeft} intento${attemptsLeft !== 1 ? 's' : ''}.` : ''}`, 
+        valid: false 
+      }, { status: 404 });
     }
 
     const accessCode = codes[0];
 
     // Verificar estado
     if (accessCode.estado === 'usado') {
+      await base44.asServiceRole.entities.AccessCodeAttempt.create({
+        user_email: userEmail,
+        codigo_intentado: codeNormalized,
+        exitoso: false,
+        motivo_fallo: 'usado'
+      });
       return Response.json({ error: 'Este código ya fue utilizado', valid: false }, { status: 400 });
     }
     if (accessCode.estado === 'cancelado') {
+      await base44.asServiceRole.entities.AccessCodeAttempt.create({
+        user_email: userEmail,
+        codigo_intentado: codeNormalized,
+        exitoso: false,
+        motivo_fallo: 'cancelado'
+      });
       return Response.json({ error: 'Este código ha sido cancelado', valid: false }, { status: 400 });
     }
 
@@ -38,21 +97,42 @@ Deno.serve(async (req) => {
     const now = new Date();
     if (accessCode.fecha_expiracion && new Date(accessCode.fecha_expiracion) < now) {
       await base44.asServiceRole.entities.AccessCode.update(accessCode.id, { estado: 'expirado' });
+      await base44.asServiceRole.entities.AccessCodeAttempt.create({
+        user_email: userEmail,
+        codigo_intentado: codeNormalized,
+        exitoso: false,
+        motivo_fallo: 'expirado'
+      });
       return Response.json({ error: 'Este código ha expirado. Solicita uno nuevo.', valid: false }, { status: 400 });
     }
 
-    // Verificar que el email coincide
-    if (accessCode.email.toLowerCase() !== user.email.toLowerCase()) {
+    // --- VERIFICAR EMAIL (seguridad clave) ---
+    if (accessCode.email.toLowerCase() !== userEmail) {
+      await base44.asServiceRole.entities.AccessCodeAttempt.create({
+        user_email: userEmail,
+        codigo_intentado: codeNormalized,
+        exitoso: false,
+        motivo_fallo: 'email_incorrecto'
+      });
+      
+      const attemptsLeft = MAX_ATTEMPTS - recentFailures.length - 1;
       return Response.json({ 
-        error: `Este código está vinculado a otro email. Asegúrate de registrarte con el email correcto.`, 
+        error: `Este código está vinculado a otro email. Asegúrate de registrarte con el email correcto.${attemptsLeft <= 2 ? ` Te quedan ${attemptsLeft} intento${attemptsLeft !== 1 ? 's' : ''}.` : ''}`, 
         valid: false 
       }, { status: 400 });
     }
 
-    // Código válido - marcar como usado
+    // --- CÓDIGO VÁLIDO ---
     await base44.asServiceRole.entities.AccessCode.update(accessCode.id, {
       estado: 'usado',
       fecha_uso: now.toISOString()
+    });
+
+    // Registrar intento exitoso
+    await base44.asServiceRole.entities.AccessCodeAttempt.create({
+      user_email: userEmail,
+      codigo_intentado: codeNormalized,
+      exitoso: true
     });
 
     // Configurar el usuario según el tipo
