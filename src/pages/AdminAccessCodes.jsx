@@ -180,6 +180,7 @@ export default function AdminAccessCodes() {
   const [filter, setFilter] = useState("pendiente");
   const [searchTerm, setSearchTerm] = useState("");
   const [resendingId, setResendingId] = useState(null);
+  const [bulkResending, setBulkResending] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: accessCodes = [], isLoading } = useQuery({
