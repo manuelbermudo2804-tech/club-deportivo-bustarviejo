@@ -341,6 +341,8 @@ export default function Voluntariado() {
           profiles={allProfiles}
           onEdit={openEditOther}
           onDelete={handleDeleteProfile}
+          senderUser={user}
+          existingOpportunities={opportunities}
         />
       )}
 

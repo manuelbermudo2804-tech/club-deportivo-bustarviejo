@@ -14,7 +14,7 @@ const AREA_LABELS = {
   bar: "Bar", transporte: "Transporte", fotografia: "Fotografía"
 };
 
-export default function VolunteerDirectory({ profiles = [], onEdit, onDelete }) {
+export default function VolunteerDirectory({ profiles = [], onEdit, onDelete, senderUser, existingOpportunities = [] }) {
   const [q, setQ] = useState("");
   const [relacion, setRelacion] = useState("todas");
   const [area, setArea] = useState("todas");
@@ -113,6 +113,8 @@ export default function VolunteerDirectory({ profiles = [], onEdit, onDelete }) 
         open={showConvocar}
         onOpenChange={setShowConvocar}
         volunteers={filtered}
+        senderUser={senderUser}
+        existingOpportunities={existingOpportunities}
       />
     </>
   );
