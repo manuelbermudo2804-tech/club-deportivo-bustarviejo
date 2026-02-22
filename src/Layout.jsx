@@ -1008,7 +1008,8 @@ export default function Layout({ children, currentPageName }) {
         // DETECCIÓN DE MENOR (13-17) con acceso juvenil
         // Si el usuario no tiene tipo_panel o ya es jugador_menor, verificar si hay ficha vinculada
         let minorDetected = currentUser.tipo_panel === 'jugador_menor' || currentUser.es_menor === true;
-        if (!minorDetected && currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
+        // Auto-detección de menor SOLO si ya validó su código de acceso
+        if (!minorDetected && currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero && currentUser.codigo_acceso_validado === true) {
           try {
             const linkedAsMinor = await base44.entities.Player.filter({
               acceso_menor_email: currentUser.email,
