@@ -35,6 +35,7 @@ import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 const RegistrationTypeSelector = React.lazy(() => import("./components/players/RegistrationTypeSelector"));
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 const MinorOnboarding = React.lazy(() => import("./components/minor/MinorOnboarding"));
+const AccessCodeVerification = React.lazy(() => import("./components/access/AccessCodeVerification"));
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 const NotificationManager = React.lazy(() => import("./components/notifications/NotificationManager"));
 const AutomaticNotificationEngine = React.lazy(() => import("./components/notifications/AutomaticNotificationEngine"));
