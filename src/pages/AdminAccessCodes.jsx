@@ -603,6 +603,28 @@ export default function AdminAccessCodes() {
         </Card>
       )}
 
+      {/* Info: sistema de reenvío automático */}
+      <Card className="mb-6 border-2 border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-blue-900 text-sm">🔄 Sistema de reenvío automático activo</p>
+              <p className="text-xs text-blue-700 mt-1 leading-relaxed">
+                Cuando un código <strong>expira sin ser usado</strong>, el sistema automáticamente genera un código nuevo y lo reenvía al destinatario (máximo 3 veces). 
+                Si después de 3 reenvíos sigue sin validarlo, se marca como <strong>expirado definitivamente</strong> y recibirás un email de aviso. 
+                También puedes reenviar manualmente en cualquier momento pulsando "Reenviar".
+              </p>
+              <div className="flex gap-4 mt-2 text-[11px] text-blue-600">
+                <span>✅ Reenvío auto cada 7 días</span>
+                <span>📧 Hasta 3 reenvíos</span>
+                <span>🔔 Notificación al admin si expira</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <Card className="bg-yellow-50 border-yellow-200">
