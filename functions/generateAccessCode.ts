@@ -186,27 +186,8 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
           </table>
         </td></tr>` : ''}
 
-        <!-- =============================== -->
-        <!-- BOTÓN PRINCIPAL - PRIMERO -->
-        <!-- =============================== -->
-        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#1e293b;padding-bottom:12px;text-align:center;">
-          &#128640; Empezar es muy f&aacute;cil. Pulsa este bot&oacute;n:
-        </td></tr>
-        <tr><td align="center" style="padding-bottom:28px;">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-            <tr><td align="center" style="border-radius:14px;background-color:#16a34a;">
-              <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${appUrl}" style="height:60px;v-text-anchor:middle;width:340px;" arcsize="18%" fillcolor="#16a34a" stroke="f"><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:20px;font-weight:bold;">&#128242; Abrir la App del Club</center></v:roundrect><![endif]-->
-              <!--[if !mso]><!-->
-              <a href="${appUrl}" target="_blank" style="display:inline-block;background-color:#16a34a;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:bold;text-decoration:none;padding:20px 52px;border-radius:14px;">
-                &#128242; Abrir la App del Club
-              </a>
-              <!--<![endif]-->
-            </td></tr>
-          </table>
-        </td></tr>
-
         <!-- ============================================ -->
-        <!-- PASO 1: INSTALAR LA APP DESDE EL NAVEGADOR  -->
+        <!-- PASO 1: INSTALAR LA APP EN TU MÓVIL        -->
         <!-- ============================================ -->
         <tr><td style="padding-bottom:24px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #16a34a;border-radius:16px;overflow:hidden;">
@@ -216,7 +197,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
                   &#128242; PASO 1: Instala la app en tu m&oacute;vil
                 </td></tr>
                 <tr><td align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#bbf7d0;padding-top:4px;">
-                  Al pulsar el bot&oacute;n verde se abrir&aacute; la web en tu navegador. Ahora inst&aacute;lala como app:
+                  Es como WhatsApp o cualquier otra app &mdash; tarda menos de 1 minuto
                 </td></tr>
               </table>
             </td></tr>
@@ -235,17 +216,20 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
                     </td></tr>
                     <tr><td style="background-color:#f0fdf4;padding:16px;">
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#166534;line-height:24px;">
-                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:6px;">
-                            <tr><td style="font-family:Arial,sans-serif;font-size:13px;color:#166534;line-height:22px;">
-                              &#127881; <strong>En muchos Android se instala autom&aacute;ticamente.</strong> Al pulsar el bot&oacute;n verde, Chrome te mostrar&aacute; un aviso de <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong>. Simplemente pulsa <strong>Instalar</strong> y listo.
-                            </td></tr>
-                          </table>
-                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;margin-bottom:4px;">
-                            <tr><td style="font-family:Arial,sans-serif;font-size:12px;color:#166534;background-color:#dcfce7;padding:8px 12px;border-radius:8px;line-height:20px;">
-                              Si no sale ese aviso: pulsa el <strong>men&uacute;</strong> (&#8942; tres puntos arriba a la derecha) &rarr; <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong> o <strong>&quot;A&ntilde;adir a pantalla de inicio&quot;</strong>
-                            </td></tr>
-                          </table>
+                        <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#166534;line-height:22px;">
+                          &#128073; <strong>Pulsa este bot&oacute;n</strong> y la propia p&aacute;gina te guiar&aacute; para instalarla:
+                        </td></tr>
+                      </table>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;" width="100%">
+                        <tr><td align="center">
+                          <a href="${appUrl}" target="_blank" style="display:inline-block;background-color:#16a34a;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:12px;">
+                            &#128242; Instalar App (Android)
+                          </a>
+                        </td></tr>
+                      </table>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:10px;">
+                        <tr><td style="font-family:Arial,sans-serif;font-size:12px;color:#15803d;background-color:#dcfce7;padding:8px 12px;border-radius:8px;line-height:20px;">
+                          &#128161; En muchos Android se instala autom&aacute;ticamente al abrir el enlace. Si no, la p&aacute;gina te indicar&aacute; los pasos.
                         </td></tr>
                       </table>
                     </td></tr>
@@ -265,15 +249,24 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
                     <tr><td style="background-color:#eff6ff;padding:16px;">
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                         <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#1e3a5f;line-height:22px;">
-                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;">
-                            <tr><td style="font-family:Arial,sans-serif;font-size:13px;color:#dc2626;line-height:20px;background-color:#fef2f2;padding:8px 12px;border-radius:8px;border:1px solid #fecaca;">
-                              &#9888; <strong>IMPORTANTE:</strong> En iPhone la app solo se puede instalar desde <strong>Safari</strong>. Si al pulsar el bot&oacute;n se abre otro navegador (Chrome, Gmail, etc.), copia la direcci&oacute;n <strong>app.cdbustarviejo.com</strong> y p&eacute;gala en Safari.
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+                            <tr><td style="font-family:Arial,sans-serif;font-size:13px;color:#1e40af;line-height:20px;background-color:#dbeafe;padding:10px 14px;border-radius:8px;border:1px solid #93c5fd;">
+                              &#9888; En iPhone <strong>hay que usar Safari</strong>. Abre la app de <strong>Safari</strong> (no Chrome ni otro navegador) y escribe en la barra de arriba:
                             </td></tr>
                           </table>
-                          <strong>Una vez est&eacute;s en Safari:</strong>
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+                            <tr><td align="center" style="background-color:#1e293b;padding:14px;border-radius:10px;">
+                              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                <tr><td style="font-family:'Courier New',Courier,monospace;font-size:22px;font-weight:bold;color:#f97316;letter-spacing:1px;">
+                                  app.cdbustarviejo.com
+                                </td></tr>
+                              </table>
+                            </td></tr>
+                          </table>
+                          <strong>Una vez est&eacute;s en Safari con esa p&aacute;gina:</strong>
                           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
                             <tr><td style="background-color:#1e40af;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">1</td>
-                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#1e3a5f;">Pulsa el bot&oacute;n <strong>Compartir</strong> (el cuadrado con flecha hacia arriba &#8593;, est&aacute; abajo en la pantalla)</td></tr>
+                            <td style="padding-left:10px;font-family:Arial,sans-serif;font-size:13px;color:#1e3a5f;">Pulsa el bot&oacute;n <strong>Compartir</strong> (el cuadrado con flecha hacia arriba &#8593;, abajo en la pantalla)</td></tr>
                           </table>
                           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px;">
                             <tr><td style="background-color:#1e40af;color:#fff;width:24px;height:24px;text-align:center;line-height:24px;border-radius:50%;font-size:12px;font-weight:bold;">2</td>
