@@ -17,8 +17,8 @@ export default function ImageUploader({ images = [], onChange, max = 4 }) {
         // Solo valida tamaño (máx 5MB), NO procesa la imagen en frontend
         await validateImage(f);
 
-        // Subir al backend para resize+compresión (sharp)
-        const response = await base44.functions.invoke('processImage', f);
+        // Subir al backend para resize+compresión (multipart/form-data automático)
+        const response = await base44.functions.invoke('processImage', { image: f });
         const data = response.data;
         if (data?.error) {
           toast.error(data.userMessage || data.error, { duration: 8000 });
