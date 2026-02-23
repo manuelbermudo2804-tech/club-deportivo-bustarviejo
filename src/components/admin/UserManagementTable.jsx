@@ -165,11 +165,27 @@ export default function UserManagementTable({
 
             return (
               <React.Fragment key={user.id}>
+                {/* PAIR HEADER - solo para el primer miembro de la pareja */}
+                {pairGroup?.position === 'first' && (
+                  <tr className="bg-gradient-to-r from-pink-50 to-purple-50 border-t-2 border-pink-300">
+                    <td colSpan="13" className="px-4 py-1.5">
+                      <div className="flex items-center gap-2">
+                        <HeartHandshake className="w-4 h-4 text-pink-500" />
+                        <span className="text-xs font-bold text-pink-700">
+                          Pareja: {user.full_name || user.email?.split("@")[0]} ⇄ {pairGroup.partner?.full_name || pairGroup.partner?.email}
+                        </span>
+                        <span className="text-[10px] text-pink-500">
+                          · {pairGroup.sharedPlayers?.length || 0} hijo{(pairGroup.sharedPlayers?.length || 0) !== 1 ? 's' : ''} en común ({pairGroup.sharedPlayers?.map(p => p.nombre).join(', ')})
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
                 {/* ROW PRINCIPAL */}
                 <tr
                   className={`hover:bg-slate-50 transition-colors ${
                     isRestricted ? "bg-red-50" : isDeleted ? "bg-slate-100" : ""
-                  }`}
+                  } ${pairGroup ? 'border-l-4 border-l-pink-400' : ''}`}
                 >
                   {/* Usuario */}
                   <td className="px-4 py-3">
@@ -187,17 +203,6 @@ export default function UserManagementTable({
                         <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
                       )}
                     </div>
-                    {pairInfo && (
-                      <div className="flex items-center gap-1 mt-1 bg-pink-50 border border-pink-200 rounded px-2 py-0.5">
-                        <HeartHandshake className="w-3 h-3 text-pink-500 flex-shrink-0" />
-                        <span className="text-[10px] text-pink-700 truncate">
-                          Pareja: <strong>{pairInfo.partner?.full_name || pairInfo.partner?.email}</strong>
-                        </span>
-                        <span className="text-[10px] text-pink-500 flex-shrink-0">
-                          · {pairInfo.sharedPlayers?.length || 0} hijo{(pairInfo.sharedPlayers?.length || 0) !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    )}
                   </td>
 
                   {/* Acceso */}
