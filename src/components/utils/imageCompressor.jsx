@@ -1,21 +1,20 @@
 /**
  * Comprime una imagen antes de subirla.
- * OPTIMIZADO para iPhones antiguos y Android con poca memoria.
+ * OPTIMIZADO para iPhones antiguos y Android con poca memoria (ej: Redmi Note 12 Pro 200MP).
  * 
  * Estrategias:
- * 1. Usa createImageBitmap (más eficiente que Image + readAsDataURL) cuando está disponible
+ * 1. Usa createImageBitmap con resizeWidth/resizeHeight (descarga en GPU, no consume RAM del canvas)
  * 2. Limita el canvas a dimensiones seguras para iOS Safari (max ~4096px)
  * 3. Libera memoria agresivamente (revokeObjectURL, nullificar canvas)
  * 4. Fallback robusto: si algo falla, sube el original
  * 5. Timeout de seguridad para evitar que el proceso se quede colgado
+ * 6. Para Android con fotos enormes (>10MP), usa createImageBitmap con resize nativo
  */
 
-// Tamaño máximo seguro de canvas para iOS Safari antiguo
-// iOS Safari tiene un límite de ~16.7 MP pero en iPhones antiguos (6s, 7, SE1) puede ser ~4 MP
-// Usamos 5MP como límite seguro universal para evitar crash/pantalla en blanco
-const MAX_CANVAS_PIXELS = 2560 * 2048; // ~5MP - seguro incluso en iPhone 6s/7/SE
-const MAX_CANVAS_SIDE = 2560; // Ningún lado mayor a esto
-const TIMEOUT_MS = 20000; // 20 segundos máximo por imagen (HEIC puede tardar más)
+// Tamaño máximo seguro de canvas
+const MAX_CANVAS_PIXELS = 2560 * 2048; // ~5MP
+const MAX_CANVAS_SIDE = 2560;
+const TIMEOUT_MS = 25000; // 25 segundos (fotos 200MP tardan más en decodificar)
 
 /**
  * Crea una promesa con timeout
