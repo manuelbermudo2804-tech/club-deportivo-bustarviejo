@@ -263,6 +263,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const handleDNITutorUpload = async (e) => {
     const file = e.target.files?.[0];
     if (e.target) e.target.value = '';
+    if (!file || file.size === 0) return;
     const url = await handleFileUpload(file, setUploadingDNITutor, false);
     if (url) setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
   };
