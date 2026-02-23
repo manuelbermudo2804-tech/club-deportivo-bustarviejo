@@ -38,81 +38,136 @@ function HeroSection({ player, user }) {
   const edad = calcularEdad(player?.fecha_nacimiento);
   const hora = new Date().getHours();
   const saludo = hora < 12 ? "Buenos días" : hora < 20 ? "Buenas tardes" : "Buenas noches";
+  const saludoEmoji = hora < 12 ? "☀️" : hora < 20 ? "⚡" : "🌙";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -30 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 p-6 shadow-2xl"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 p-6 pb-5 shadow-2xl"
     >
-      {/* Animated background circles */}
+      {/* Animated background effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-60 h-60 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-green-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-cyan-500/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "2s" }} />
+        <motion.div
+          className="absolute -top-20 -right-20 w-72 h-72 bg-orange-500/15 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -bottom-24 -left-24 w-72 h-72 bg-green-500/15 rounded-full blur-3xl"
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.15, 0.25, 0.15] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-0 right-0 w-40 h-40 bg-cyan-400/10 rounded-full blur-2xl"
+          animate={{ x: [0, 20, 0], y: [0, -10, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Sparkle dots */}
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-white/30 rounded-full"
+            style={{ left: `${15 + i * 18}%`, top: `${20 + (i % 3) * 25}%` }}
+            animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
+            transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }}
+          />
+        ))}
       </div>
 
-      <div className="relative z-10 flex items-center gap-4">
-        {player?.foto_url ? (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2 }}
-            className="relative"
+      <div className="relative z-10">
+        {/* Greeting with animated emoji */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex items-center gap-2 mb-4"
+        >
+          <motion.span
+            className="text-2xl"
+            animate={{ rotate: [0, 14, -8, 14, -4, 10, 0], y: [0, -3, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
           >
-            <img
-              src={player.foto_url}
-              alt={player.nombre}
-              className="w-20 h-20 rounded-2xl object-cover ring-4 ring-orange-500/50 shadow-xl"
-            />
-            <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-lg shadow">
-              {player.posicion !== "Sin asignar" ? player.posicion : "⚽"}
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2 }}
-            className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center text-4xl shadow-xl ring-4 ring-orange-500/50"
+            👋
+          </motion.span>
+          <span className="text-orange-300 font-semibold text-base">{saludo}</span>
+          <motion.span
+            className="text-lg"
+            animate={{ scale: [1, 1.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
           >
-            ⚽
-          </motion.div>
-        )}
-        <div className="flex-1 min-w-0">
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-orange-300 text-sm font-medium"
-          >
-            {saludo} 👋
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-2xl font-black text-white truncate"
-          >
-            {firstName}
-          </motion.h1>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex items-center gap-2 mt-1"
-          >
-            {player?.categoria_principal && (
-              <Badge className="bg-orange-500/80 text-white text-xs border-none">
-                {player.categoria_principal}
-              </Badge>
-            )}
-            {edad && (
-              <Badge variant="outline" className="text-green-300 border-green-500/50 text-xs">
-                {edad} años
-              </Badge>
-            )}
-          </motion.div>
+            {saludoEmoji}
+          </motion.span>
+        </motion.div>
+
+        <div className="flex items-center gap-4">
+          {player?.foto_url ? (
+            <motion.div
+              initial={{ scale: 0, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", delay: 0.3, bounce: 0.5 }}
+              className="relative flex-shrink-0"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-green-500 rounded-2xl blur-md opacity-50 scale-105" />
+              <img
+                src={player.foto_url}
+                alt={player.nombre}
+                className="relative w-22 h-22 rounded-2xl object-cover ring-4 ring-orange-400/60 shadow-2xl"
+                style={{ width: 88, height: 88 }}
+              />
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", delay: 0.6, bounce: 0.6 }}
+                className="absolute -bottom-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-xl shadow-lg border-2 border-slate-900"
+              >
+                {player.posicion !== "Sin asignar" ? player.posicion : "⚽"}
+              </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ scale: 0, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", delay: 0.3, bounce: 0.5 }}
+              className="w-22 h-22 rounded-2xl bg-gradient-to-br from-orange-500 to-green-500 flex items-center justify-center shadow-2xl ring-4 ring-orange-400/60"
+              style={{ width: 88, height: 88 }}
+            >
+              <motion.span
+                className="text-4xl"
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              >
+                ⚽
+              </motion.span>
+            </motion.div>
+          )}
+          <div className="flex-1 min-w-0">
+            <motion.h1
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, type: "spring" }}
+              className="text-3xl font-black text-white truncate leading-tight"
+            >
+              {firstName}
+            </motion.h1>
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.55 }}
+              className="flex flex-wrap items-center gap-2 mt-2"
+            >
+              {player?.categoria_principal && (
+                <Badge className="bg-orange-500/90 text-white text-xs border-none shadow-md">
+                  ⚽ {player.categoria_principal}
+                </Badge>
+              )}
+              {edad && (
+                <Badge variant="outline" className="text-green-300 border-green-400/50 text-xs">
+                  🎂 {edad} años
+                </Badge>
+              )}
+            </motion.div>
+          </div>
         </div>
       </div>
     </motion.div>
