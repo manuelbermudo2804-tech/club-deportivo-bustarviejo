@@ -9,12 +9,22 @@ export default function ImageMessageUpload({ file, onUploadComplete, onRemove })
   const [uploadedUrl, setUploadedUrl] = useState(null);
   const [error, setError] = useState(null);
 
-  // Generar preview local INMEDIATAMENTE
+  // Generar preview local INMEDIATAMENTE (solo si el archivo es válido)
   useEffect(() => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => setPreview(e.target.result);
-    reader.readAsDataURL(file);
+    if (!file || file.size === 0) return;
+    // URL.createObjectURL es más eficiente que FileReader en Android moderno
+    // y no bloquea el hilo principal con base64
+    let objectUrl;
+    try {
+      objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+    } catch {
+      // Fallback para Android WebView antiguo que no soporta createObjectURL bien
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
   }, [file]);
 
   // Subir imagen en segundo plano via backend processImage
