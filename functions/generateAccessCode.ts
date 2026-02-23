@@ -232,8 +232,8 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
                           &#128161; <strong>Si NO te sale el instalador autom&aacute;tico:</strong><br/>
                           1. Abre <strong>Chrome</strong> en tu m&oacute;vil<br/>
                           2. Pulsa los <strong>3 puntos</strong> de arriba a la derecha (&#8942;)<br/>
-                          3. Pulsa <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong> o <strong>&quot;A&ntilde;adir a pantalla de inicio&quot;</strong><br/>
-                          4. Confirma pulsando <strong>&quot;Instalar&quot;</strong> &mdash; &iexcl;Listo! &#127881;
+                          3. Busca <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong> o <strong>&quot;A&ntilde;adir a pantalla de inicio&quot;</strong> (seg&uacute;n el m&oacute;vil sale uno u otro)<br/>
+                          4. Confirma pulsando <strong>&quot;Instalar&quot;</strong> o <strong>&quot;A&ntilde;adir&quot;</strong> &mdash; &iexcl;Listo! &#127881;
                         </td></tr>
                       </table>
                     </td></tr>
