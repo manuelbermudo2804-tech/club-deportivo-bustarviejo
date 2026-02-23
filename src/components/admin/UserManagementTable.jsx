@@ -60,6 +60,31 @@ export default function UserManagementTable({
     return date.toLocaleDateString("es-ES");
   };
 
+  // Reordenar usuarios agrupando parejas consecutivas
+  const sortedUsers = (() => {
+    if (!users || !pairByEmail) return users || [];
+    const result = [];
+    const placed = new Set();
+    
+    users.forEach((user) => {
+      if (placed.has(user.id)) return;
+      placed.add(user.id);
+      result.push(user);
+      
+      // Si tiene pareja, buscar y colocar justo después
+      const pair = pairByEmail[user.email?.toLowerCase()];
+      if (pair?.partner?.email) {
+        const partner = users.find(u => u.email?.toLowerCase() === pair.partner.email.toLowerCase());
+        if (partner && !placed.has(partner.id)) {
+          placed.add(partner.id);
+          result.push(partner);
+        }
+      }
+    });
+    
+    return result;
+  })();
+
   if (!users || users.length === 0) {
     return (
       <div className="text-center py-12 text-slate-500">
@@ -68,6 +93,26 @@ export default function UserManagementTable({
       </div>
     );
   }
+
+  // Precalcular qué emails forman parte de una pareja (para saber quién es primero y quién segundo)
+  const pairGroupMap = (() => {
+    const map = {};
+    if (!pairByEmail) return map;
+    const processed = new Set();
+    sortedUsers.forEach((user) => {
+      const email = user.email?.toLowerCase();
+      if (!email || processed.has(email)) return;
+      const pair = pairByEmail[email];
+      if (!pair?.partner?.email) return;
+      const partnerEmail = pair.partner.email.toLowerCase();
+      if (processed.has(partnerEmail)) return;
+      processed.add(email);
+      processed.add(partnerEmail);
+      map[email] = { position: 'first', partner: pair.partner, sharedPlayers: pair.sharedPlayers };
+      map[partnerEmail] = { position: 'second', partner: user, sharedPlayers: pair.sharedPlayers };
+    });
+    return map;
+  })();
 
   return (
     <div className="overflow-x-auto">
@@ -107,8 +152,8 @@ export default function UserManagementTable({
             <th className="px-4 py-3 text-center font-semibold text-slate-700">Acciones</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200">
-          {users.map((user) => {
+        <tbody>
+          {sortedUsers.map((user) => {
             const userPlayers = getUserPlayers(user.email);
             const isExpanded = expandedUser === user.id;
             const isRestricted = user.acceso_activo === false;
@@ -116,6 +161,7 @@ export default function UserManagementTable({
             const hasAnomalies =
               isRestricted || isDeleted || (user.role === "user" && userPlayers.length === 0);
             const pairInfo = pairByEmail?.[user.email?.toLowerCase()];
+            const pairGroup = pairGroupMap[user.email?.toLowerCase()];
 
             return (
               <React.Fragment key={user.id}>
