@@ -11,24 +11,42 @@ export default function FileAttachmentButton({ onFileUploaded, disabled = false 
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    // Validar tamaño (5MB máx)
+    if (file.size > 5 * 1024 * 1024) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(0);
+      toast.error(`El archivo pesa ${sizeMB}MB y el máximo es 5MB. Reduce la resolución o envía por WhatsApp a ti mismo.`, { duration: 10000 });
+      return;
+    }
+
+    const isImage = file.type?.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      onFileUploaded({
-        url: file_url,
-        nombre: file.name,
-        tipo: file.type
-      });
+      let fileUrl, fileName, fileType;
+      if (isImage) {
+        // Imágenes → processImage (resize + compresión backend)
+        const response = await base44.functions.invoke('processImage', { image: file });
+        const data = response.data;
+        if (data?.error) throw new Error(data.userMessage || data.error);
+        fileUrl = data.file_url;
+        fileName = file.name;
+        fileType = 'image/jpeg';
+      } else {
+        // Otros archivos → subida directa
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        fileUrl = file_url;
+        fileName = file.name;
+        fileType = file.type;
+      }
+      onFileUploaded({ url: fileUrl, nombre: fileName, tipo: fileType });
       toast.success("Archivo subido");
     } catch (error) {
-      toast.error("Error al subir archivo");
+      toast.error(error?.message || "Error al subir archivo");
       console.error(error);
     } finally {
       setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
