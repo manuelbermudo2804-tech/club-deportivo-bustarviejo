@@ -723,6 +723,13 @@ export default function AdminAccessCodes() {
         onOpenChange={setInviteOpen}
         onInvite={(data) => generateMutation.mutateAsync(data)}
       />
+
+      <BulkInviteDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        existingCodes={accessCodes}
+        onBulkGenerate={() => queryClient.invalidateQueries({ queryKey: ['accessCodes'] })}
+      />
     </div>
   );
 }
