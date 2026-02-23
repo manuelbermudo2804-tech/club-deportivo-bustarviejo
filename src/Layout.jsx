@@ -2373,7 +2373,7 @@ export default function Layout({ children, currentPageName }) {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         
-        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 to-orange-700 shadow-lg safe-area-top">
+        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 shadow-lg safe-area-top" style={{ background: 'linear-gradient(to right, #ea580c, #c2410c)' }}>
           <div className="flex items-center justify-between p-2">
             <div className="flex items-center gap-2">
               <MobileBackButton />
