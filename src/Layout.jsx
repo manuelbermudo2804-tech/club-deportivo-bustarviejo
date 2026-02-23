@@ -1447,7 +1447,7 @@ export default function Layout({ children, currentPageName }) {
                                                                                       )}
 
                                                     <button
-                                                    onClick={() => window.location.reload()}
+                                                    onClick={() => { localStorage.setItem('app_build_version', BUILD_VERSION); window.location.reload(); }}
                                                     className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all mb-2 ${hasNewVersion ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg animate-pulse' : 'bg-blue-500/20 text-white hover:bg-blue-500/30'}`}
                                                     >
                                                     <RotateCw className="w-6 h-6" />
