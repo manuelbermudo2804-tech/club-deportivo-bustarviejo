@@ -119,12 +119,7 @@ export default function UserManagementTable({
 
   return (
     <div className="overflow-x-auto">
-      {/* Debug info */}
-      {pairKeys.length > 0 && (
-        <div className="bg-pink-50 border border-pink-300 rounded-lg p-2 mb-2 text-xs text-pink-700">
-          💑 {pairKeys.length / 2} parejas detectadas: {pairKeys.slice(0, 4).join(', ')}{pairKeys.length > 4 ? '...' : ''}
-        </div>
-      )}
+      {/* Pair count summary */}
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-300">
