@@ -152,13 +152,30 @@ function compressViaObjectURL(file, maxWidth, maxHeight, quality) {
 }
 
 /**
- * Comprime usando createImageBitmap (más eficiente, disponible en navegadores modernos)
+ * Comprime usando createImageBitmap con resize nativo del navegador.
+ * En Android Chrome, createImageBitmap con resizeWidth/resizeHeight 
+ * hace la decodificación+resize en GPU/nativo, sin cargar la imagen completa en RAM.
+ * Esto es CRÍTICO para cámaras de 200MP como el Redmi Note 12 Pro.
  */
 async function compressViaImageBitmap(file, maxWidth, maxHeight, quality) {
   try {
     if (typeof createImageBitmap !== 'function') return null;
 
-    const bitmap = await createImageBitmap(file);
+    // Intentar primero con resize nativo (más eficiente en memoria)
+    // Esto evita cargar la imagen completa en RAM antes de redimensionar
+    let bitmap;
+    try {
+      // Crear bitmap con resize nativo - el navegador decodifica directamente al tamaño final
+      bitmap = await createImageBitmap(file, {
+        resizeWidth: maxWidth,
+        resizeHeight: maxHeight,
+        resizeQuality: 'medium' // 'low' | 'medium' | 'high' - medium es buen equilibrio
+      });
+    } catch {
+      // Fallback: algunos navegadores no soportan las opciones de resize
+      bitmap = await createImageBitmap(file);
+    }
+
     const { width, height } = getSafeDimensions(bitmap.width, bitmap.height, maxWidth, maxHeight);
 
     const canvas = document.createElement('canvas');
@@ -176,7 +193,8 @@ async function compressViaImageBitmap(file, maxWidth, maxHeight, quality) {
     return new Promise((resolve) => {
       canvas.toBlob(
         (blob) => {
-          // Limpiar canvas
+          // Limpiar canvas agresivamente
+          try { ctx.clearRect(0, 0, 1, 1); } catch {}
           canvas.width = 1;
           canvas.height = 1;
 
