@@ -518,6 +518,7 @@ const handleChatBlock = (user) => {
       if (p1) map[p1] = { partner: pair.parent2, sharedPlayers: pair.sharedPlayers };
       if (p2) map[p2] = { partner: pair.parent1, sharedPlayers: pair.sharedPlayers };
     });
+    console.log('🔍 [PAIRS] parentPairs:', parentPairs.length, 'pairByEmail keys:', Object.keys(map));
     return map;
   })();
 
