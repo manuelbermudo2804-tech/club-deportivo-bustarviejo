@@ -222,24 +222,41 @@ export function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality
                     /\.(jpe?g|png|webp|heic|heif|bmp|gif)$/i.test(file.name || '');
     if (!isImage) { resolve(file); return; }
 
-    // Si es muy pequeña (< 300KB), no comprimir
-    if (file.size < 300 * 1024) { resolve(file); return; }
+    // Si es muy pequeña (< 200KB), no comprimir
+    if (file.size < 200 * 1024) { resolve(file); return; }
 
-    // Para archivos muy grandes (> 15MB), ser más agresivo con la compresión
+    // Detectar dispositivo para ajustar límites
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
+    const isOldDevice = isIOSDevice && /OS (9|10|11|12|13|14)_/.test(navigator.userAgent || '');
+    
+    // Para archivos muy grandes o dispositivos viejos, ser más agresivo
     let effectiveMaxWidth = maxWidth;
     let effectiveMaxHeight = maxHeight;
     let effectiveQuality = quality;
     
-    if (file.size > 15 * 1024 * 1024) {
+    if (isOldDevice) {
+      // iPhones antiguos: limitar mucho más para evitar crash del canvas
       effectiveMaxWidth = Math.min(maxWidth, 800);
       effectiveMaxHeight = Math.min(maxHeight, 800);
-      effectiveQuality = 0.6;
+      effectiveQuality = Math.min(quality, 0.65);
+      console.log('[ImageCompressor] Dispositivo iOS antiguo detectado, usando compresión conservadora');
+    }
+    
+    if (file.size > 15 * 1024 * 1024) {
+      effectiveMaxWidth = Math.min(effectiveMaxWidth, 700);
+      effectiveMaxHeight = Math.min(effectiveMaxHeight, 700);
+      effectiveQuality = 0.55;
       console.log('[ImageCompressor] Archivo muy grande (>15MB), usando compresión agresiva');
     } else if (file.size > 8 * 1024 * 1024) {
-      effectiveMaxWidth = Math.min(maxWidth, 1000);
-      effectiveMaxHeight = Math.min(maxHeight, 1000);
-      effectiveQuality = 0.65;
+      effectiveMaxWidth = Math.min(effectiveMaxWidth, 900);
+      effectiveMaxHeight = Math.min(effectiveMaxHeight, 900);
+      effectiveQuality = 0.6;
       console.log('[ImageCompressor] Archivo grande (>8MB), reduciendo dimensiones');
+    } else if (file.size > 4 * 1024 * 1024) {
+      effectiveMaxWidth = Math.min(effectiveMaxWidth, 1000);
+      effectiveMaxHeight = Math.min(effectiveMaxHeight, 1000);
+      effectiveQuality = Math.min(effectiveQuality, 0.65);
+      console.log('[ImageCompressor] Archivo mediano (>4MB), ajustando dimensiones');
     }
 
     // Intentar comprimir con timeout de seguridad
