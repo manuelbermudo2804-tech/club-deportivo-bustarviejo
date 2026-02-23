@@ -189,7 +189,18 @@ export default function Layout({ children, currentPageName }) {
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
   
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
-  const [hasNewVersion, setHasNewVersion] = useState(false);
+  const [hasNewVersion, setHasNewVersion] = useState(() => {
+    // Check immediately on mount if there's a new build version
+    try {
+      const savedVersion = localStorage.getItem('app_build_version');
+      if (savedVersion && savedVersion !== BUILD_VERSION) {
+        return true; // New version detected!
+      }
+      // First visit or same version - save current
+      localStorage.setItem('app_build_version', BUILD_VERSION);
+      return false;
+    } catch { return false; }
+  });
   // Mercadillo badge
   const [marketCount, setMarketCount] = useState(0);
   const [marketNewCount, setMarketNewCount] = useState(0);
