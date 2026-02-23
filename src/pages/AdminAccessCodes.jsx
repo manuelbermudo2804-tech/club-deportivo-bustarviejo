@@ -15,6 +15,7 @@ import {
   RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal, ShieldAlert, Info, Copy, Zap
 } from "lucide-react";
 import { toast } from "sonner";
+import BulkInviteDialog from "@/components/admin/BulkInviteDialog";
 
 function InviteDialog({ open, onOpenChange, onInvite }) {
   const [email, setEmail] = useState("");
