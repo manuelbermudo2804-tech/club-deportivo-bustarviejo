@@ -1115,6 +1115,87 @@ body.theme-dark .skeleton-shimmer {
   @apply outline-2 outline-orange-500 outline-offset-2;
 }
 
+/* ============================
+   COMPATIBILIDAD iOS / MÓVILES ANTIGUOS
+   ============================ */
+
+/* Prevenir el bounce scroll en iOS */
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Fix para gradient en Safari antiguo */
+.bg-gradient-to-br,
+.bg-gradient-to-r,
+.bg-gradient-to-b {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Fix botones iOS - prevenir estilo por defecto */
+button, [role="button"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Fix para position: fixed en iOS con teclado virtual */
+.fixed-safe {
+  position: fixed;
+  position: -webkit-sticky;
+}
+
+/* Fix para flex gap en Safari 14 y anteriores */
+@supports not (gap: 1px) {
+  .flex > * + * {
+    margin-left: 0.25rem;
+  }
+}
+
+/* Fix para overflow: hidden con border-radius en Safari */
+.rounded-2xl, .rounded-3xl, .rounded-xl, .rounded-lg {
+  -webkit-mask-image: -webkit-radix-gradient(white, black);
+  transform: translateZ(0);
+}
+
+/* Fix para que los inputs no hagan zoom en iOS (font-size < 16px) */
+input, select, textarea {
+  font-size: max(16px, 1em) !important;
+}
+
+@media (min-width: 1024px) {
+  input, select, textarea {
+    font-size: inherit !important;
+  }
+}
+
+/* Fix safe area bottom para bottom bars */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: constant(safe-area-inset-bottom, 0px);
+}
+
+/* Fix para animaciones en móviles antiguos - prefiere reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Fix para min-height en iOS safari (100vh es más alto de lo visible) */
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+}
+
 /* Loading spinner */
 @keyframes spin {
   to {
