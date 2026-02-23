@@ -397,6 +397,21 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
           </table>
         </td></tr>
 
+        <!-- Acceso desde web del club -->
+        <tr><td style="padding-bottom:16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #cbd5e1;border-radius:12px;overflow:hidden;">
+            <tr><td style="background-color:#f8fafc;padding:16px 20px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#475569;line-height:22px;">
+                  &#128187; <strong>&iquest;Prefieres acceder desde el ordenador?</strong><br/>
+                  Tambi&eacute;n puedes entrar a la app desde la web del club:<br/>
+                  <a href="https://www.cdbustarviejo.com" target="_blank" style="color:#ea580c;font-weight:bold;text-decoration:none;">www.cdbustarviejo.com</a> &rarr; <strong>&Aacute;rea Interna</strong>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+        </td></tr>
+
       </table>
     </td>
   </tr>
