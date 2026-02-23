@@ -10,10 +10,12 @@
  * 5. Timeout de seguridad para evitar que el proceso se quede colgado
  */
 
-// Tamaño máximo seguro de canvas para iOS Safari antiguo (~16 megapíxeles)
-const MAX_CANVAS_PIXELS = 4096 * 4096; // 16MP - seguro para la mayoría de dispositivos
-const MAX_CANVAS_SIDE = 4096; // Ningún lado mayor a esto
-const TIMEOUT_MS = 15000; // 15 segundos máximo por imagen
+// Tamaño máximo seguro de canvas para iOS Safari antiguo
+// iOS Safari tiene un límite de ~16.7 MP pero en iPhones antiguos (6s, 7, SE1) puede ser ~4 MP
+// Usamos 5MP como límite seguro universal para evitar crash/pantalla en blanco
+const MAX_CANVAS_PIXELS = 2560 * 2048; // ~5MP - seguro incluso en iPhone 6s/7/SE
+const MAX_CANVAS_SIDE = 2560; // Ningún lado mayor a esto
+const TIMEOUT_MS = 20000; // 20 segundos máximo por imagen (HEIC puede tardar más)
 
 /**
  * Crea una promesa con timeout
