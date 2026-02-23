@@ -344,6 +344,9 @@ export default function MinorDashboard() {
           />
         )}
 
+        {/* Evolución de evaluaciones */}
+        {linkedPlayer?.id && <MinorEvalEvolution playerId={linkedPlayer.id} />}
+
         {/* Logros / Insignias */}
         {linkedPlayer?.id && (
           <MinorBadgesWidget
@@ -355,6 +358,17 @@ export default function MinorDashboard() {
             metasCompletadas={playerGoals.filter(g => g.completada).length}
           />
         )}
+
+        {/* Ranking de asistencia del equipo */}
+        {linkedPlayer?.id && attendances.length > 0 && (
+          <MinorTeamRanking attendances={attendances} playerId={linkedPlayer.id} />
+        )}
+
+        {/* Frase motivacional del día */}
+        <MinorMotivationalQuote />
+
+        {/* Fotos del equipo */}
+        {playerCategory && <MinorChatPhotos playerCategory={playerCategory} />}
 
         {/* === SECCIÓN 3: Acceso rápido === */}
         <motion.div
