@@ -3,6 +3,30 @@ css
 @tailwind components;
 @tailwind utilities;
 
+/* Fix: inputs file ocultos no deben afectar al layout en ningún móvil */
+input[type="file"].hidden,
+input[type="file"][style*="display: none"] {
+  display: none !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Fix: imágenes en formularios no deben desbordar en móviles */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix: canvas no debe ser visible (usado para compresión de imágenes) */
+canvas[width="1"][height="1"] {
+  display: none !important;
+}
+
 @layer base {
   :root {
     /* Safe area support for mobile devices (iOS notch, Android nav) */
