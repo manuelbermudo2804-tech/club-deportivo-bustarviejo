@@ -240,7 +240,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (e.target) e.target.value = ''; // Reset input para permitir re-seleccionar
+    if (e.target) e.target.value = '';
+    // Guard: algunos Android WebView devuelven files[0] undefined o con size=0 al cancelar
+    if (!file || file.size === 0) return;
     const url = await handleFileUpload(file, setUploadingPhoto, true);
     if (url) setCurrentPlayer(p => ({ ...p, foto_url: url }));
   };
