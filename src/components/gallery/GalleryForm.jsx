@@ -27,8 +27,11 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
   const handlePhotoUpload = async (e) => {
-    const files = Array.from(e.target.files);
+    // Guard Android WebView: e.target.files puede ser null o vacío al cancelar
+    const rawFiles = e.target.files;
     if (e.target) e.target.value = '';
+    if (!rawFiles || rawFiles.length === 0) return;
+    const files = Array.from(rawFiles).filter(f => f && f.size > 0);
     if (files.length === 0) return;
 
     setUploadingPhotos(true);
