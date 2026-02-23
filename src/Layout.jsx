@@ -2800,7 +2800,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         )}
 
-        <main className={`lg:ml-72 min-h-screen pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-4'}`}>
+        <main className={`lg:ml-72 pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-20 lg:pb-4'}`} style={{ minHeight: '100vh', minHeight: '-webkit-fill-available' }}>
 
           {/* Widget de cumpleaños hoy */}
 
