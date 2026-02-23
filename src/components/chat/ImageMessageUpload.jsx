@@ -30,6 +30,8 @@ export default function ImageMessageUpload({ file, onUploadComplete, onRemove })
   // Subir imagen en segundo plano via backend processImage
   useEffect(() => {
     if (!file || uploadedUrl) return;
+    // Guard: archivo vacío o inválido (Android WebView al cancelar o fallo de cámara)
+    if (file.size === 0) { setStatus('error'); setError('La imagen está vacía. Inténtalo de nuevo.'); return; }
 
     const uploadImage = async () => {
       try {
