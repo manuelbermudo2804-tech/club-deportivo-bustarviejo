@@ -265,6 +265,28 @@ export default function MinorDashboard() {
     enabled: !!user?.email,
   });
 
+  // Goals for badges
+  const { data: playerGoals = [] } = useQuery({
+    queryKey: ["minorPlayerGoals", linkedPlayer?.id],
+    queryFn: () => base44.entities.PlayerGoal.filter({ jugador_id: linkedPlayer.id }),
+    enabled: !!linkedPlayer?.id,
+  });
+
+  // Scorers for badge count
+  const { data: scorers = [] } = useQuery({
+    queryKey: ["minorScorersBadge", playerCategory],
+    queryFn: () => base44.entities.Goleador.filter({ categoria: playerCategory, equipo: "C.D. BUSTARVIEJO" }),
+    enabled: !!playerCategory,
+    staleTime: 300000,
+  });
+
+  const myGolesCount = React.useMemo(() => {
+    if (!linkedPlayer?.nombre || !scorers.length) return 0;
+    const norm = (n) => n?.toLowerCase().trim().replace(/,\s*/g, " ").split(" ").reverse().join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ") || "";
+    const found = scorers.find(s => norm(s.jugador_nombre) === norm(linkedPlayer.nombre));
+    return found?.goles || 0;
+  }, [linkedPlayer?.nombre, scorers]);
+
   const unreadAnnouncements = announcements.filter((a) => {
     const leido = (a.leido_por || []).some((l) => l.email === user?.email);
     return !leido;
