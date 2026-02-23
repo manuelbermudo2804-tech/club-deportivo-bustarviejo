@@ -53,7 +53,7 @@ export default function DropzoneWithPreview({ id, accept = "image/*", preview, o
       />
       {preview ? (
         <div className="relative">
-          <img src={preview} alt="Previsualización" className="max-h-64 mx-auto rounded-lg shadow" />
+          <img src={preview} alt="Previsualización" className="max-h-64 mx-auto rounded-lg shadow" loading="lazy" decoding="async" />
           <div className="mt-2 text-xs text-slate-600 flex items-center justify-center gap-3">
             {dimensions && (
               <span>
