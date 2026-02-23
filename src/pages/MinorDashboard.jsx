@@ -309,13 +309,50 @@ export default function MinorDashboard() {
       <div className="max-w-lg mx-auto p-4 space-y-4 pb-24">
         <HeroSection player={linkedPlayer} user={user} />
         {linkedPlayer && <MinorAgeTransitionBanner player={linkedPlayer} />}
+
+        {/* === SECCIÓN 1: Lo urgente === */}
         <NextCallupBanner callup={nextCallup} />
+
+        {/* Próximo entrenamiento */}
+        {playerCategory && <MinorNextTraining playerCategory={playerCategory} />}
+
+        {/* Racha de entrenamientos */}
+        {linkedPlayer?.id && attendances.length > 0 && (
+          <MinorStreakWidget attendances={attendances} playerId={linkedPlayer.id} />
+        )}
 
         {/* Goles marcados */}
         {linkedPlayer?.nombre && playerCategory && (
           <MinorGoalsCard playerName={linkedPlayer.nombre} playerCategory={playerCategory} />
         )}
 
+        {/* === SECCIÓN 2: Mi progreso === */}
+        {/* Mini evaluación */}
+        {linkedPlayer?.id && <MinorEvalWidget playerId={linkedPlayer.id} />}
+
+        {/* Mis metas personales */}
+        {linkedPlayer?.id && (
+          <MinorGoalsWidget
+            playerId={linkedPlayer.id}
+            playerName={linkedPlayer.nombre}
+            userEmail={user.email}
+            userName={user.full_name}
+          />
+        )}
+
+        {/* Logros / Insignias */}
+        {linkedPlayer?.id && (
+          <MinorBadgesWidget
+            attendances={attendances}
+            playerId={linkedPlayer.id}
+            goles={myGolesCount}
+            convocatorias={callups.length}
+            metas={playerGoals.length}
+            metasCompletadas={playerGoals.filter(g => g.completada).length}
+          />
+        )}
+
+        {/* === SECCIÓN 3: Acceso rápido === */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -327,84 +364,18 @@ export default function MinorDashboard() {
         </motion.div>
 
         <div className="grid gap-3">
-          <QuickActionCard
-            emoji="📋"
-            title="Convocatorias"
-            subtitle="Confirma tu asistencia a partidos"
-            href={createPageUrl("ParentCallups")}
-            color="from-green-600 to-emerald-700"
-            badge={pendingCallups}
-            delay={0.1}
-          />
-          <QuickActionCard
-            emoji="📅"
-            title="Calendario"
-            subtitle="Horarios de entrenamiento y partidos"
-            href={createPageUrl("CalendarAndSchedules")}
-            color="from-blue-600 to-cyan-700"
-            delay={0.15}
-          />
-          <QuickActionCard
-            emoji="🏆"
-            title="Competición"
-            subtitle="Clasificaciones y resultados"
-            href={createPageUrl("CentroCompeticion")}
-            color="from-yellow-500 to-orange-600"
-            delay={0.2}
-          />
-          <QuickActionCard
-            emoji="📢"
-            title="Anuncios"
-            subtitle="Noticias y comunicados del club"
-            href={createPageUrl("Announcements")}
-            color="from-pink-500 to-rose-600"
-            badge={unreadAnnouncements}
-            delay={0.25}
-          />
-          <QuickActionCard
-            emoji="🎉"
-            title="Eventos"
-            subtitle="Fiestas, torneos y actividades"
-            href={createPageUrl("ParentEventRSVP")}
-            color="from-purple-500 to-violet-600"
-            delay={0.3}
-          />
-          <QuickActionCard
-            emoji="📊"
-            title="Mis Valoraciones"
-            subtitle="Notas de tu entrenador sobre cómo juegas"
-            href={createPageUrl("PlayerEvaluations")}
-            color="from-indigo-500 to-blue-600"
-            delay={0.35}
-          />
-          <QuickActionCard
-            emoji="🖼️"
-            title="Galería"
-            subtitle="Fotos de partidos y eventos"
-            href={createPageUrl("Gallery")}
-            color="from-teal-500 to-cyan-600"
-            delay={0.4}
-          />
-          <QuickActionCard
-            emoji="✉️"
-            title="Mi Buzón"
-            subtitle="Cuéntanos lo que quieras, tu voz importa"
-            href={createPageUrl("JuniorMailbox")}
-            color="from-pink-500 to-purple-600"
-            badge={unreadMailbox}
-            delay={0.45}
-          />
-          <QuickActionCard
-            emoji="📋"
-            title="Encuestas"
-            subtitle="Tu opinión nos importa"
-            href={createPageUrl("Surveys")}
-            color="from-orange-500 to-amber-600"
-            delay={0.5}
-          />
+          <QuickActionCard emoji="📋" title="Convocatorias" subtitle="Confirma tu asistencia a partidos" href={createPageUrl("ParentCallups")} color="from-green-600 to-emerald-700" badge={pendingCallups} delay={0.1} />
+          <QuickActionCard emoji="📅" title="Calendario" subtitle="Horarios de entrenamiento y partidos" href={createPageUrl("CalendarAndSchedules")} color="from-blue-600 to-cyan-700" delay={0.15} />
+          <QuickActionCard emoji="🏆" title="Competición" subtitle="Clasificaciones y resultados" href={createPageUrl("CentroCompeticion")} color="from-yellow-500 to-orange-600" delay={0.2} />
+          <QuickActionCard emoji="📢" title="Anuncios" subtitle="Noticias y comunicados del club" href={createPageUrl("Announcements")} color="from-pink-500 to-rose-600" badge={unreadAnnouncements} delay={0.25} />
+          <QuickActionCard emoji="🎉" title="Eventos" subtitle="Fiestas, torneos y actividades" href={createPageUrl("ParentEventRSVP")} color="from-purple-500 to-violet-600" delay={0.3} />
+          <QuickActionCard emoji="📊" title="Mis Valoraciones" subtitle="Notas de tu entrenador sobre cómo juegas" href={createPageUrl("PlayerEvaluations")} color="from-indigo-500 to-blue-600" delay={0.35} />
+          <QuickActionCard emoji="🖼️" title="Galería" subtitle="Fotos de partidos y eventos" href={createPageUrl("Gallery")} color="from-teal-500 to-cyan-600" delay={0.4} />
+          <QuickActionCard emoji="✉️" title="Mi Buzón" subtitle="Cuéntanos lo que quieras, tu voz importa" href={createPageUrl("JuniorMailbox")} color="from-pink-500 to-purple-600" badge={unreadMailbox} delay={0.45} />
+          <QuickActionCard emoji="📋" title="Encuestas" subtitle="Tu opinión nos importa" href={createPageUrl("Surveys")} color="from-orange-500 to-amber-600" delay={0.5} />
         </div>
 
-        {/* Attendance section */}
+        {/* === SECCIÓN 4: Mi asistencia detallada === */}
         {linkedPlayer?.id && attendances.length > 0 && (
           <>
             <motion.div
