@@ -76,20 +76,21 @@ export default function AccessCodeVerification({ user, onSuccess }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-green-900 flex items-center justify-center p-6">
+    <div className="flex items-center justify-center p-4 sm:p-6" style={{ minHeight: '100vh', minHeight: '-webkit-fill-available', minHeight: '100dvh', background: 'linear-gradient(to bottom right, #0f172a, #1e293b, #14532d)' }}>
       <Card className="max-w-md w-full border-none shadow-2xl">
-        <CardContent className="p-8 text-center space-y-6">
+        <CardContent className="p-6 sm:p-8 text-center space-y-5">
           <div className="flex justify-center">
             <img 
               src={CLUB_LOGO_URL} 
               alt="CD Bustarviejo" 
-              className="w-24 h-24 rounded-2xl shadow-xl object-cover ring-4 ring-orange-500/50" 
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl shadow-xl object-cover" 
+              style={{ border: '3px solid rgba(249, 115, 22, 0.5)' }}
             />
           </div>
           
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Bienvenido al CD Bustarviejo</h1>
-            <p className="text-slate-600 mt-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Bienvenido al CD Bustarviejo</h1>
+            <p className="text-slate-600 mt-2 text-sm sm:text-base">
               Para activar tu cuenta, introduce el código de acceso que recibiste por email.
             </p>
           </div>
@@ -97,27 +98,32 @@ export default function AccessCodeVerification({ user, onSuccess }) {
           {user && (
             <div className="bg-slate-50 rounded-xl p-3">
               <p className="text-xs text-slate-500">Conectado como</p>
-              <p className="font-medium text-slate-900">{user.email}</p>
+              <p className="font-medium text-slate-900 text-sm break-all">{user.email}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
-              <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-orange-500" />
+              <KeyRound className="absolute left-3 top-1/2 text-orange-500" style={{ transform: 'translateY(-50%)', width: '20px', height: '20px' }} />
               <Input
                 value={code}
                 onChange={(e) => setCode(formatCode(e.target.value))}
                 placeholder="ABCD-1234"
                 maxLength={9}
-                className="text-center text-2xl font-mono font-bold tracking-[4px] h-16 pl-12 pr-4 border-2 border-slate-200 focus:border-orange-500"
-                autoFocus
+                className="text-center font-mono font-bold border-2 border-slate-200 focus:border-orange-500"
+                style={{ fontSize: '22px', letterSpacing: '3px', height: '56px', paddingLeft: '44px', paddingRight: '16px', WebkitAppearance: 'none' }}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="characters"
+                spellCheck="false"
+                inputMode="text"
                 disabled={loading}
               />
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
-                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
@@ -125,7 +131,8 @@ export default function AccessCodeVerification({ user, onSuccess }) {
             <Button
               type="submit"
               disabled={loading || code.length < 9 || blocked}
-              className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 py-6 text-lg font-bold"
+              className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-lg font-bold"
+              style={{ height: '52px', WebkitAppearance: 'none', minHeight: '52px' }}
             >
               {blocked ? (
                 <>
