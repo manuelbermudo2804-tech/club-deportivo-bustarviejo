@@ -62,6 +62,8 @@ function getSafeDimensions(origWidth, origHeight, maxWidth, maxHeight) {
 
 /**
  * Comprime usando createObjectURL + Image (más eficiente en memoria que readAsDataURL)
+ * NOTA: En iOS Safari antiguo, Image puede crashear con fotos muy grandes.
+ * Por eso limitamos dimensiones ANTES de dibujar en canvas.
  */
 function compressViaObjectURL(file, maxWidth, maxHeight, quality) {
   return new Promise((resolve) => {
@@ -75,12 +77,23 @@ function compressViaObjectURL(file, maxWidth, maxHeight, quality) {
 
     const img = new Image();
     
+    // Timeout de seguridad: si la imagen no carga en 10s, abortar
+    const loadTimeout = setTimeout(() => {
+      try { if (objectUrl) URL.revokeObjectURL(objectUrl); } catch {}
+      img.onload = null;
+      img.onerror = null;
+      img.src = '';
+      resolve(null);
+    }, 10000);
+    
     img.onerror = () => {
+      clearTimeout(loadTimeout);
       try { URL.revokeObjectURL(objectUrl); } catch {}
       resolve(null);
     };
     
     img.onload = () => {
+      clearTimeout(loadTimeout);
       try {
         const { width, height } = getSafeDimensions(img.naturalWidth, img.naturalHeight, maxWidth, maxHeight);
 
@@ -96,13 +109,15 @@ function compressViaObjectURL(file, maxWidth, maxHeight, quality) {
 
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Liberar objectURL inmediatamente
+        // Liberar objectURL y referencia a img inmediatamente
         try { URL.revokeObjectURL(objectUrl); } catch {}
         objectUrl = null;
+        img.src = ''; // Liberar memoria de la imagen decodificada
 
         canvas.toBlob(
           (blob) => {
             // Limpiar canvas para liberar memoria
+            try { ctx.clearRect(0, 0, 1, 1); } catch {}
             canvas.width = 1;
             canvas.height = 1;
 
@@ -126,7 +141,8 @@ function compressViaObjectURL(file, maxWidth, maxHeight, quality) {
           'image/jpeg',
           quality
         );
-      } catch {
+      } catch (err) {
+        console.warn('[ImageCompressor] Error en canvas:', err);
         try { if (objectUrl) URL.revokeObjectURL(objectUrl); } catch {}
         resolve(null);
       }
