@@ -40,9 +40,9 @@ export default function ImageUploader({ images = [], onChange, max = 4 }) {
         ))}
       </div>
       <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
-        <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
-        <Button type="button" variant="outline" disabled={loading || (images?.length || 0) >= max}>
-          <ImageIcon className="w-4 h-4" /> {loading ? "Subiendo..." : "Subir imágenes"}
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="hidden" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }} />
+        <Button type="button" variant="outline" disabled={loading || (images?.length || 0) >= max} style={{ minHeight: '44px', WebkitAppearance: 'none' }}>
+          <ImageIcon className="w-4 h-4 mr-1" /> {loading ? "Subiendo..." : "Subir imágenes"}
         </Button>
       </label>
     </div>
