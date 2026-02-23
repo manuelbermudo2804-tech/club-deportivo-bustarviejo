@@ -376,11 +376,12 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
 
-    // Validar tamaño de archivo (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("El archivo es demasiado grande. Máximo 10MB");
-      e.target.value = ''; // Reset input
+    // Validar tamaño (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(0);
+      toast.error(`El archivo pesa ${sizeMB}MB y el máximo es 5MB. Reduce la resolución o envía la foto por WhatsApp a ti mismo.`, { duration: 10000 });
       return;
     }
 
@@ -397,7 +398,6 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
       toast.error("Error al subir el justificante. Intenta con un archivo más pequeño.");
     } finally {
       setUploadingFile(false);
-      e.target.value = ''; // Reset input
     }
   };
 

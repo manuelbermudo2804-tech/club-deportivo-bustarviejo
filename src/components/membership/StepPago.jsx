@@ -4,6 +4,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Upload, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { validateImage } from "../utils/imageCompressor";
 
 export default function StepPago({
   formData,
@@ -168,12 +169,23 @@ export default function StepPago({
       {/* Subir justificante */}
       <div className="space-y-2">
         <Label className="font-semibold">Subir Justificante de Pago *</Label>
-        <p className="text-xs text-slate-600">Obligatorio solo para Transferencia/Bizum. Si eliges Tarjeta no hace falta.</p>
+        <p className="text-xs text-slate-600">Obligatorio solo para Transferencia/Bizum. Si eliges Tarjeta no hace falta. Máx 5MB.</p>
         <div className="flex items-center gap-2">
           <input
             type="file"
-            accept="image/*,application/pdf"
-            onChange={onJustificanteUpload}
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              // Validar tamaño antes de subir
+              if (file.size > 5 * 1024 * 1024) {
+                const sizeMB = (file.size / 1024 / 1024).toFixed(0);
+                toast.error(`El archivo pesa ${sizeMB}MB y el máximo es 5MB. Reduce la resolución o envía la foto por WhatsApp a ti mismo.`, { duration: 10000 });
+                e.target.value = '';
+                return;
+              }
+              onJustificanteUpload(e);
+            }}
             className="hidden"
             id="justificante-upload"
           />

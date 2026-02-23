@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Upload, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
+import { validateImage } from "../utils/imageCompressor";
 
 export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, userRole = "admin", coachCategories = [] }) {
   const [currentAlbum, setCurrentAlbum] = useState(album || {
@@ -27,30 +28,35 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
 
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
+    if (e.target) e.target.value = '';
     if (files.length === 0) return;
 
     setUploadingPhotos(true);
-    try {
-      const uploadPromises = files.map(async (file) => {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        return {
-          url: file_url,
-          descripcion: "",
-          jugadores_etiquetados: []
-        };
-      });
-
-      const uploadedPhotos = await Promise.all(uploadPromises);
-      setCurrentAlbum({
-        ...currentAlbum,
-        fotos: [...currentAlbum.fotos, ...uploadedPhotos]
-      });
-      toast.success(`${files.length} foto(s) subida(s) correctamente`);
-    } catch (error) {
-      toast.error("Error al subir las fotos");
-    } finally {
-      setUploadingPhotos(false);
+    const uploaded = [];
+    for (const file of files) {
+      try {
+        await validateImage(file);
+        if (files.length > 1) toast.info(`Subiendo ${uploaded.length + 1}/${files.length}...`, { duration: 2000 });
+        const response = await base44.functions.invoke('processImage', { image: file });
+        const data = response.data;
+        if (data?.error) {
+          toast.error(data.userMessage || data.error, { duration: 8000 });
+          continue;
+        }
+        uploaded.push({ url: data.file_url, descripcion: "", jugadores_etiquetados: [] });
+      } catch (err) {
+        if (err?.userMessage) {
+          toast.error(err.userMessage, { duration: 10000 });
+        } else {
+          toast.error(`Error al subir ${file.name}. Prueba con otra foto.`);
+        }
+      }
     }
+    if (uploaded.length > 0) {
+      setCurrentAlbum({ ...currentAlbum, fotos: [...currentAlbum.fotos, ...uploaded] });
+      toast.success(`${uploaded.length} foto(s) subida(s) correctamente`);
+    }
+    setUploadingPhotos(false);
   };
 
   const handleRemovePhoto = (index) => {

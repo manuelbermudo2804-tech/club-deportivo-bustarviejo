@@ -17,18 +17,23 @@ export default function ImageMessageUpload({ file, onUploadComplete, onRemove })
     reader.readAsDataURL(file);
   }, [file]);
 
-  // Subir imagen en segundo plano
+  // Subir imagen en segundo plano via backend processImage
   useEffect(() => {
     if (!file || uploadedUrl) return;
 
     const uploadImage = async () => {
       try {
-        // Comprimir imagen antes de subir
-        const compressed = await compressImage(file);
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
-        setUploadedUrl(file_url);
+        // Validar tamaño (5MB máx)
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error(`La foto pesa ${(file.size/1024/1024).toFixed(0)}MB y el máximo es 5MB.`);
+        }
+        // Enviar al backend para resize+compresión
+        const response = await base44.functions.invoke('processImage', { image: file });
+        const data = response.data;
+        if (data?.error) throw new Error(data.userMessage || data.error);
+        setUploadedUrl(data.file_url);
         setStatus('sent');
-        onUploadComplete?.({ url: file_url, nombre: file.name, tipo: file.type });
+        onUploadComplete?.({ url: data.file_url, nombre: file.name, tipo: 'image/jpeg' });
       } catch (err) {
         setError(err.message);
         setStatus('error');
@@ -37,54 +42,6 @@ export default function ImageMessageUpload({ file, onUploadComplete, onRemove })
 
     uploadImage();
   }, [file, uploadedUrl, onUploadComplete]);
-
-  const compressImage = async (file) => {
-    // Si la imagen ya es pequeña, no comprimir
-    if (file.size < 500000) { // < 500KB
-      return file;
-    }
-
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 800;
-
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Usar webp (más rápido y ligero)
-        canvas.toBlob((blob) => {
-          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' }));
-        }, 'image/webp', 0.75);
-      };
-
-      // Leer directamente sin convertir a DataURL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  };
 
   const retry = () => {
     setStatus('uploading');
