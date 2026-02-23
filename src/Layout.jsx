@@ -1901,9 +1901,10 @@ export default function Layout({ children, currentPageName }) {
 
                     // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
 
-                    // 0) Verificación de código de acceso - TODOS los usuarios nuevos sin código validado
+                    // 0) Verificación de código de acceso - TODOS los usuarios sin código validado
                     // Incluye segundos progenitores, juveniles, padres nuevos, jugadores adultos
-                    if (!user.codigo_acceso_validado && !user.tipo_panel) {
+                    // SEGURIDAD: Solo se puede saltar si el código fue validado explícitamente
+                    if (!user.codigo_acceso_validado) {
                       setOnboardingView('access_code');
                       return;
                     }
