@@ -102,6 +102,13 @@ export default function InstallInstructionsModal({ show, context, isIOS, isAndro
           </p>
         </div>
 
+        <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+          <p className="text-xs text-slate-600 text-center">
+            💻 <strong>¿Prefieres acceder desde el ordenador?</strong><br />
+            Entra en <a href="https://www.cdbustarviejo.com" target="_blank" rel="noopener noreferrer" className="text-orange-600 font-bold hover:underline">www.cdbustarviejo.com</a> → <strong>Área Interna</strong>
+          </p>
+        </div>
+
         <Button onClick={onInstalled} className="w-full mt-4 bg-green-600 hover:bg-green-700 py-4 text-lg font-bold">
           ✅ Ya la tengo instalada
         </Button>
