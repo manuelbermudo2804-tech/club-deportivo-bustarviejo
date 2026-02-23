@@ -17,6 +17,8 @@ import MinorEvalWidget from "@/components/minor/MinorEvalWidget";
 import MinorGoalsWidget from "@/components/minor/MinorGoalsWidget";
 import MinorBadgesWidget from "@/components/minor/MinorBadgesWidget";
 import MinorNextTraining from "@/components/minor/MinorNextTraining";
+import MinorMotivationalQuote from "@/components/minor/MinorMotivationalQuote";
+import MinorBirthdayBanner from "@/components/minor/MinorBirthdayBanner";
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
@@ -310,6 +312,9 @@ export default function MinorDashboard() {
         <HeroSection player={linkedPlayer} user={user} />
         {linkedPlayer && <MinorAgeTransitionBanner player={linkedPlayer} />}
 
+        {/* Cumpleaños */}
+        {linkedPlayer && <MinorBirthdayBanner player={linkedPlayer} />}
+
         {/* === SECCIÓN 1: Lo urgente === */}
         <NextCallupBanner callup={nextCallup} />
 
@@ -390,6 +395,9 @@ export default function MinorDashboard() {
             <MinorAttendanceCard attendances={attendances} playerId={linkedPlayer.id} />
           </>
         )}
+
+        {/* Frase motivacional diaria */}
+        <MinorMotivationalQuote />
 
         {/* Footer motivacional */}
         <motion.div
