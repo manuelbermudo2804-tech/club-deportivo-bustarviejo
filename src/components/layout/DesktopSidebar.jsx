@@ -119,7 +119,7 @@ export default function DesktopSidebar({
         <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
           <p className="font-medium">Temporada {currentSeason}</p>
           {hasNewVersion ? (
-            <Button onClick={() => window.location.reload()} size="sm" className="w-full mt-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs h-9 animate-pulse font-bold shadow-lg">
+            <Button onClick={() => { try { localStorage.setItem('app_build_version', Date.now().toString()); } catch {} window.location.reload(); }} size="sm" className="w-full mt-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs h-9 animate-pulse font-bold shadow-lg">
               🆕 Nueva versión disponible
             </Button>
           ) : (
