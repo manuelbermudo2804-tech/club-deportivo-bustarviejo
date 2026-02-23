@@ -1953,7 +1953,7 @@ export default function Layout({ children, currentPageName }) {
   // AHORA SÍ - todos los returns condicionales DESPUÉS de TODOS los hooks
   if (isLoading && !isPublicPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 flex items-center justify-center">
+      <div className="flex items-center justify-center" style={{ minHeight: '100vh', minHeight: '-webkit-fill-available', minHeight: '100dvh', background: 'linear-gradient(to bottom right, #ea580c, #c2410c, #15803d)' }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
           <p className="text-white mt-4 text-sm">Cargando...</p>
