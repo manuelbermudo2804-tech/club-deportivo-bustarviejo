@@ -17,6 +17,10 @@ import MinorEvalWidget from "@/components/minor/MinorEvalWidget";
 import MinorGoalsWidget from "@/components/minor/MinorGoalsWidget";
 import MinorBadgesWidget from "@/components/minor/MinorBadgesWidget";
 import MinorNextTraining from "@/components/minor/MinorNextTraining";
+import MinorMotivationalQuote from "@/components/minor/MinorMotivationalQuote";
+import MinorTeamRanking from "@/components/minor/MinorTeamRanking";
+import MinorEvalEvolution from "@/components/minor/MinorEvalEvolution";
+import MinorChatPhotos from "@/components/minor/MinorChatPhotos";
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
