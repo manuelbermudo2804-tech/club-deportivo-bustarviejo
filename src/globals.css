@@ -370,6 +370,19 @@ css
   .transition-smooth {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  /* Fallback for backdrop-blur on older browsers */
+  .backdrop-blur-safe {
+    background-color: rgba(255, 255, 255, 0.97);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .backdrop-blur-safe {
+      background-color: rgba(255, 255, 255, 0.98);
+    }
+  }
 }
 
 /* Apply to buttons and navigation globally */
