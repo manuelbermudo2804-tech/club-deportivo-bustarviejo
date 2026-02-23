@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Users, UserCircle, UserPlus, AlertTriangle } from "lucide-react";
+import { Users, UserCircle, UserPlus } from "lucide-react";
 
-export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdultPlayer, onSelectSecondParent }) {
-  const [showSecondParentInfo, setShowSecondParentInfo] = useState(false);
+export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdultPlayer }) {
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-4">
@@ -18,61 +17,16 @@ export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdult
           </p>
         </div>
 
-        {/* AVISO IMPORTANTE SEGUNDO PROGENITOR */}
+        {/* INFO SEGUNDO PROGENITOR */}
         <Alert className="mb-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-400 shadow-lg">
           <UserPlus className="h-5 w-5 text-cyan-700" />
           <AlertDescription className="text-cyan-900">
             <p className="font-bold text-base mb-1">
               👥 ¿Tu pareja ya ha dado de alta a vuestro/a hijo/a?
             </p>
-            <p className="text-sm mb-2">
-              <strong>NO des de alta al jugador otra vez.</strong> Tu pareja debe añadirte como "segundo progenitor" desde la ficha del jugador. Así ambos tendréis acceso a la misma ficha sin duplicar datos.
+            <p className="text-sm">
+              <strong>NO des de alta al jugador otra vez.</strong> Tu pareja te habrá enviado una invitación por email con un código de acceso. Usa ese código para entrar directamente.
             </p>
-            <Button 
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-cyan-500 text-cyan-800 hover:bg-cyan-100"
-              onClick={() => setShowSecondParentInfo(!showSecondParentInfo)}
-            >
-              {showSecondParentInfo ? "Ocultar instrucciones" : "¿Cómo funciona? Ver instrucciones"}
-            </Button>
-            {showSecondParentInfo && (
-              <div className="mt-3 bg-white rounded-xl p-4 border border-cyan-300 space-y-3">
-                <p className="text-sm font-bold text-cyan-900">📋 Pasos para el segundo progenitor:</p>
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2">
-                    <span className="bg-cyan-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
-                    <p className="text-sm">El <strong>primer progenitor</strong> (el que ya tiene la cuenta) entra en la app → <strong>Mis Jugadores</strong> → edita la ficha del hijo/a</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="bg-cyan-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
-                    <p className="text-sm">En la sección <strong>"Segundo Progenitor"</strong>, escribe tu nombre, email y teléfono</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
-                    <p className="text-sm">El club recibirá la solicitud y te enviará una <strong>invitación por email</strong></p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
-                    <p className="text-sm">Aceptas la invitación y <strong>ya tienes acceso completo</strong> a la misma ficha: pagos, convocatorias, chat, etc.</p>
-                  </div>
-                </div>
-                <div className="bg-amber-50 border border-amber-300 rounded-lg p-3">
-                  <p className="text-xs text-amber-800">
-                    <strong>⚠️ Si ya te han invitado</strong> (tienes un email del club), simplemente inicia sesión con el email que le diste a tu pareja. Si no te han invitado todavía, dile a tu pareja que te añada como segundo progenitor.
-                  </p>
-                </div>
-                {onSelectSecondParent && (
-                  <Button 
-                    onClick={onSelectSecondParent}
-                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold"
-                  >
-                    Ya me han invitado, continuar como Familia →
-                  </Button>
-                )}
-              </div>
-            )}
           </AlertDescription>
         </Alert>
 

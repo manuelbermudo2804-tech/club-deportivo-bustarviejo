@@ -31,15 +31,9 @@ export default function OnboardingController({
                 onSelectFamily={async () => {
                   localStorage.setItem('installPromptAfterOnboarding', 'true');
                   localStorage.setItem('hasSeenWelcome', 'true');
-                  // Nota: updateMe debe estar disponible en el contexto del usuario
                   window.location.reload();
                 }}
                 onSelectAdultPlayer={async () => {
-                  localStorage.setItem('installPromptAfterOnboarding', 'true');
-                  localStorage.setItem('hasSeenWelcome', 'true');
-                  window.location.reload();
-                }}
-                onSelectSecondParent={async () => {
                   localStorage.setItem('installPromptAfterOnboarding', 'true');
                   localStorage.setItem('hasSeenWelcome', 'true');
                   window.location.reload();
