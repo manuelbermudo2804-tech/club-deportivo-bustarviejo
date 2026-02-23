@@ -935,6 +935,7 @@ const handleChatBlock = (user) => {
             <UserManagementTable
               users={filteredUsers}
               players={players}
+              pairByEmail={pairByEmail}
               onCoachToggle={handleCoachToggle}
               onCoordinatorToggle={handleCoordinatorToggle}
               onTreasurerToggle={handleTreasurerToggle}
