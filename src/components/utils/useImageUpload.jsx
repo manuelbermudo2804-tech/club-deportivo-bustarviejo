@@ -132,7 +132,11 @@ export function useImageUpload() {
 
       if (error) {
         logUploadError(file, new Error(error), 'backend');
-        toast.error(error, { duration: 8000 });
+        const isMobile = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
+        const errorMsg = isMobile 
+          ? `${error}\n\n💡 Si persiste el problema, prueba desde un ordenador.`
+          : error;
+        toast.error(errorMsg, { duration: 8000 });
         return null;
       }
 
