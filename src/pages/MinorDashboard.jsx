@@ -12,6 +12,11 @@ import {
 import MinorAttendanceCard from "@/components/minor/MinorAttendanceCard";
 import MinorGoalsCard from "@/components/minor/MinorGoalsCard";
 import { MinorAgeTransitionBanner } from "@/components/transitions/AgeTransitionBanner";
+import MinorStreakWidget from "@/components/minor/MinorStreakWidget";
+import MinorEvalWidget from "@/components/minor/MinorEvalWidget";
+import MinorGoalsWidget from "@/components/minor/MinorGoalsWidget";
+import MinorBadgesWidget from "@/components/minor/MinorBadgesWidget";
+import MinorNextTraining from "@/components/minor/MinorNextTraining";
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
