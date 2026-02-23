@@ -2445,7 +2445,7 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-sm">
+          <div className="lg:hidden fixed inset-0 z-[100]" style={{ backgroundColor: 'rgba(15, 23, 42, 0.97)' }}>
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-600 to-orange-700">
                 <div className="text-white">
