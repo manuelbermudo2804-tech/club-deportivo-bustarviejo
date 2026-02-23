@@ -315,6 +315,9 @@ export default function MinorDashboard() {
         {/* Cumpleaños */}
         {linkedPlayer && <MinorBirthdayBanner player={linkedPlayer} />}
 
+        {/* Frase motivacional diaria */}
+        <MinorMotivationalQuote />
+
         {/* === SECCIÓN 1: Lo urgente === */}
         <NextCallupBanner callup={nextCallup} />
 
@@ -395,9 +398,6 @@ export default function MinorDashboard() {
             <MinorAttendanceCard attendances={attendances} playerId={linkedPlayer.id} />
           </>
         )}
-
-        {/* Frase motivacional diaria */}
-        <MinorMotivationalQuote />
 
         {/* Footer motivacional */}
         <motion.div
