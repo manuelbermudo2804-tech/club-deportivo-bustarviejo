@@ -245,6 +245,7 @@ export function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality
     // Detectar dispositivo para ajustar límites
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
     const isOldDevice = isIOSDevice && /OS (9|10|11|12|13|14)_/.test(navigator.userAgent || '');
+    const isAndroid = /android/i.test(navigator.userAgent || '');
     
     // Para archivos muy grandes o dispositivos viejos, ser más agresivo
     let effectiveMaxWidth = maxWidth;
@@ -252,21 +253,27 @@ export function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality
     let effectiveQuality = quality;
     
     if (isOldDevice) {
-      // iPhones antiguos: limitar mucho más para evitar crash del canvas
       effectiveMaxWidth = Math.min(maxWidth, 800);
       effectiveMaxHeight = Math.min(maxHeight, 800);
       effectiveQuality = Math.min(quality, 0.65);
-      console.log('[ImageCompressor] Dispositivo iOS antiguo detectado, usando compresión conservadora');
+      console.log('[ImageCompressor] iOS antiguo, compresión conservadora');
     }
     
-    if (file.size > 15 * 1024 * 1024) {
+    // Android con fotos enormes (Redmi Note 12 Pro = 200MP = ~50MB JPG, ~25MB HEIF)
+    // Estas fotos pueden tener 12000x16000px y desbordar la RAM al decodificar
+    if (file.size > 20 * 1024 * 1024) {
+      effectiveMaxWidth = Math.min(effectiveMaxWidth, 600);
+      effectiveMaxHeight = Math.min(effectiveMaxHeight, 600);
+      effectiveQuality = 0.5;
+      console.log(`[ImageCompressor] Archivo enorme (${(file.size/1024/1024).toFixed(1)}MB), compresión muy agresiva`);
+    } else if (file.size > 15 * 1024 * 1024) {
       effectiveMaxWidth = Math.min(effectiveMaxWidth, 700);
       effectiveMaxHeight = Math.min(effectiveMaxHeight, 700);
       effectiveQuality = 0.55;
-      console.log('[ImageCompressor] Archivo muy grande (>15MB), usando compresión agresiva');
+      console.log('[ImageCompressor] Archivo muy grande (>15MB), compresión agresiva');
     } else if (file.size > 8 * 1024 * 1024) {
-      effectiveMaxWidth = Math.min(effectiveMaxWidth, 900);
-      effectiveMaxHeight = Math.min(effectiveMaxHeight, 900);
+      effectiveMaxWidth = Math.min(effectiveMaxWidth, 800);
+      effectiveMaxHeight = Math.min(effectiveMaxHeight, 800);
       effectiveQuality = 0.6;
       console.log('[ImageCompressor] Archivo grande (>8MB), reduciendo dimensiones');
     } else if (file.size > 4 * 1024 * 1024) {
