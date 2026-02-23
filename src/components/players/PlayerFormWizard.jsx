@@ -201,15 +201,21 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
                       /\.(jpe?g|png|webp|heic|heif|bmp|gif)$/i.test(file.name || '');
       
       if (isImage) {
-        // Fotos de carnet: más agresivo (800px). Documentos: mantener legibilidad (1200px)
-        const maxDim = isPhoto ? 800 : 1200;
-        const quality = isPhoto ? 0.7 : 0.75;
+        // Fotos de carnet: más agresivo (600px en móvil). Documentos: legibilidad (1000px)
+        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
+        const maxDim = isPhoto ? (isIOSDevice ? 600 : 800) : (isIOSDevice ? 1000 : 1200);
+        const quality = isPhoto ? 0.65 : 0.7;
+        
+        // Mostrar feedback al usuario en archivos grandes
+        if (file.size > 5 * 1024 * 1024) {
+          toast.info("Procesando imagen, espera un momento...", { duration: 3000 });
+        }
         
         processedFile = await compressImage(file, { maxWidth: maxDim, maxHeight: maxDim, quality });
         
-        // Si la compresión devolvió el original y es > 10MB, avisar
-        if (processedFile === file && file.size > 10 * 1024 * 1024) {
-          toast.info("Procesando imagen grande, puede tardar unos segundos...");
+        // Si la compresión devolvió el original y es > 8MB, subir igualmente pero avisar
+        if (processedFile === file && file.size > 8 * 1024 * 1024) {
+          console.warn('[Upload] Compresión no redujo tamaño, subiendo original');
         }
       }
 
@@ -219,9 +225,10 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     } catch (err) {
       console.error('[Upload] Error:', err);
       // Mensaje más útil según el error
-      if (err?.message?.includes('network') || err?.message?.includes('fetch')) {
+      const msg = (err?.message || '').toLowerCase();
+      if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed')) {
         toast.error("Error de conexión. Comprueba tu internet e inténtalo de nuevo.");
-      } else if (err?.message?.includes('size') || err?.message?.includes('large')) {
+      } else if (msg.includes('size') || msg.includes('large') || msg.includes('payload')) {
         toast.error("La imagen es demasiado grande. Intenta hacer la foto con menor resolución.");
       } else {
         toast.error("Error al subir. Inténtalo de nuevo o prueba con otra imagen.");
