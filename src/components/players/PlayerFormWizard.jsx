@@ -201,14 +201,18 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
                       /\.(jpe?g|png|webp|heic|heif|bmp|gif)$/i.test(file.name || '');
       
       if (isImage) {
-        // Fotos de carnet: más agresivo (600px en móvil). Documentos: legibilidad (1000px)
+        // Fotos de carnet: más agresivo. Documentos: legibilidad
         const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
-        const maxDim = isPhoto ? (isIOSDevice ? 600 : 800) : (isIOSDevice ? 1000 : 1200);
-        const quality = isPhoto ? 0.65 : 0.7;
+        // Android con cámaras 200MP (Redmi Note 12 Pro, Samsung S24 Ultra): ser agresivo
+        const isHighResMobile = !isIOSDevice && file.size > 10 * 1024 * 1024;
+        const maxDim = isPhoto 
+          ? (isHighResMobile ? 600 : isIOSDevice ? 600 : 800) 
+          : (isHighResMobile ? 800 : isIOSDevice ? 1000 : 1200);
+        const quality = isPhoto ? 0.6 : 0.65;
         
         // Mostrar feedback al usuario en archivos grandes
-        if (file.size > 5 * 1024 * 1024) {
-          toast.info("Procesando imagen, espera un momento...", { duration: 3000 });
+        if (file.size > 3 * 1024 * 1024) {
+          toast.info("Procesando imagen, espera un momento...", { duration: 4000 });
         }
         
         processedFile = await compressImage(file, { maxWidth: maxDim, maxHeight: maxDim, quality });
