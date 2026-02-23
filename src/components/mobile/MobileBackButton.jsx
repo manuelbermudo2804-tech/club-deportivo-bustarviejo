@@ -69,8 +69,9 @@ export default function MobileBackButton() {
           navigate(-1);
         }
       }}
-      className="lg:hidden p-2 text-white hover:bg-white/20 rounded-lg transition-colors no-select"
-      title="Atrás"
+      className="lg:hidden p-2 text-white rounded-lg no-select active:opacity-70"
+      style={{ minWidth: '44px', minHeight: '44px', WebkitTapHighlightColor: 'transparent', WebkitAppearance: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      aria-label="Atrás"
     >
       <ChevronLeft className="w-6 h-6" />
     </button>
