@@ -1,9 +1,9 @@
+import React, { Suspense } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { LogOut, Smartphone, RotateCw, MessageCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Suspense } from "react";
 import NotificationCenter from "../NotificationCenter";
 import ThemeToggle from "../ThemeToggle";
 import LanguageSelector from "../LanguageSelector";
