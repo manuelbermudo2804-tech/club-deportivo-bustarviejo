@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { compressImage } from "../utils/imageCompressor";
+import { validateImage } from "../utils/imageCompressor";
 import { toast } from "sonner";
 
 export default function ImageUploader({ images = [], onChange, max = 4 }) {
@@ -14,10 +14,17 @@ export default function ImageUploader({ images = [], onChange, max = 4 }) {
     const out = [];
     for (const f of list) {
       try {
-        // compressImage ya rechaza >10MB, maneja HEIC, y nunca usa base64
-        const compressed = await compressImage(f, { maxWidth: 1200, maxHeight: 1200, quality: 0.7 });
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
-        out.push(file_url);
+        // Solo valida tamaño (máx 5MB), NO procesa la imagen en frontend
+        await validateImage(f);
+
+        // Subir al backend para resize+compresión (sharp)
+        const response = await base44.functions.invoke('processImage', f);
+        const data = response.data;
+        if (data?.error) {
+          toast.error(data.userMessage || data.error, { duration: 8000 });
+          continue;
+        }
+        out.push(data.file_url);
       } catch (err) {
         console.error('[ImageUploader] Error subiendo imagen:', err);
         if (err?.userMessage) {
