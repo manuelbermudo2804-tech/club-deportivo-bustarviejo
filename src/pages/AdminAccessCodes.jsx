@@ -270,6 +270,7 @@ function CodeCard({ code, onResend, onCancel, isResending }) {
 
 export default function AdminAccessCodes() {
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [filter, setFilter] = useState("pendiente");
   const [searchTerm, setSearchTerm] = useState("");
   const [resendingId, setResendingId] = useState(null);
