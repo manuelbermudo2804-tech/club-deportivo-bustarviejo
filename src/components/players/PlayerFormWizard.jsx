@@ -20,7 +20,8 @@ import StepNormativa from "./wizard/StepNormativa";
 import StepSummary from "./wizard/StepSummary";
 import SecondParentSection from "./SecondParentSection";
 import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
-import { compressImage } from "../utils/imageCompressor";
+import { useImageUpload } from "../utils/useImageUpload";
+import { logUploadError } from "../utils/uploadLogger";
 
 // --- Helpers (same as original PlayerForm) ---
 const calculateAge = (birthDate) => {
