@@ -64,6 +64,9 @@ import InstallSuccessOverlay from "./components/pwa/InstallSuccessOverlay";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
 
+// BUILD VERSION - se actualiza automáticamente con cada deploy/publicación
+const BUILD_VERSION = "2026-02-23T18:00:00";
+
 const getCurrentSeason = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
