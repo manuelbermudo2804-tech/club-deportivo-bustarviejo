@@ -1946,7 +1946,11 @@ const handleChatBlock = (user) => {
            )}
 
            <DialogFooter>
-             <Button onClick={() => setShowPairingResults(false)} className="bg-blue-600 hover:bg-blue-700">
+             <Button onClick={async () => {
+               setShowPairingResults(false);
+               // Forzar recarga de players para que pairByEmail se recalcule
+               await queryClient.refetchQueries({ queryKey: ['players'] });
+             }} className="bg-blue-600 hover:bg-blue-700">
                ✅ Entendido
              </Button>
            </DialogFooter>
