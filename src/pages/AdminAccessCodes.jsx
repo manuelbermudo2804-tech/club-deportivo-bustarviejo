@@ -9,9 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Mail, UserPlus, Clock, CheckCircle2, XCircle, Loader2, 
-  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal, ShieldAlert, Info
+  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal, ShieldAlert, Info, Copy, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 
