@@ -14,19 +14,20 @@ export default function ImageUploader({ images = [], onChange, max = 4 }) {
     const out = [];
     for (const f of list) {
       try {
+        // compressImage ya rechaza >10MB, maneja HEIC, y nunca usa base64
         const compressed = await compressImage(f, { maxWidth: 1200, maxHeight: 1200, quality: 0.7 });
         const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
         out.push(file_url);
       } catch (err) {
         console.error('[ImageUploader] Error subiendo imagen:', err);
         if (err?.userMessage) {
-          toast.error(err.userMessage, { duration: 8000 });
+          toast.error(err.userMessage, { duration: 10000 });
         } else {
           toast.error("Error al subir la imagen. Inténtalo con otra foto.");
         }
       }
     }
-    onChange([...(images || []), ...out]);
+    if (out.length > 0) onChange([...(images || []), ...out]);
     setLoading(false);
   };
 
