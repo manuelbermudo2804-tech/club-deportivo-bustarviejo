@@ -188,8 +188,8 @@ export default function UserManagementTable({
                 {/* ROW PRINCIPAL */}
                 <tr
                   className={`hover:bg-slate-50 transition-colors ${
-                    isRestricted ? "bg-red-50" : isDeleted ? "bg-slate-100" : ""
-                  } ${pairGroup ? 'border-l-4 border-l-pink-400' : ''}`}
+                    isRestricted ? "bg-red-50" : isDeleted ? "bg-slate-100" : pairGroup ? "bg-pink-50/30" : ""
+                  } ${pairGroup ? 'border-l-4 border-l-pink-400' : ''} ${pairGroup?.position === 'second' ? 'border-b-2 border-b-pink-300' : ''}`}
                 >
                   {/* Usuario */}
                   <td className="px-4 py-3">
