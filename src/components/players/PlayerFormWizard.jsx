@@ -209,8 +209,8 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         toast.info("Subiendo imagen al servidor...", { duration: 4000 });
       }
 
-      // Subir al backend para resize+compresión (multipart/form-data)
-      const response = await base44.functions.invoke('processImage', file);
+      // Subir al backend para resize+compresión (multipart/form-data automático por SDK)
+      const response = await base44.functions.invoke('processImage', { image: file });
       const data = response.data;
 
       if (data?.error) {
