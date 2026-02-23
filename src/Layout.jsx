@@ -20,8 +20,8 @@ import MobileBottomBar from "./components/mobile/MobileBottomBar";
 import MobileBackButton from "./components/mobile/MobileBackButton";
 import PullToRefresh from "./components/mobile/PullToRefresh";
 import DeleteAccountDialog from "./components/DeleteAccountDialog";
-
 import FeedbackModal from "./components/feedback/FeedbackModal";
+import GlobalErrorHandler from "./components/utils/GlobalErrorHandler";
 
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
