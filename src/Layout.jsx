@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
+import { useFetchUser } from "./components/layout/useFetchUser";
 
 
 import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert, UserX, RotateCw, CheckCircle2, Trophy, ChevronLeft, KeyRound } from "lucide-react";
@@ -92,47 +93,28 @@ const getPeriodType = () => {
 import { ClosedSeasonScreen, InscriptionPeriodScreen, VacationPeriodScreen, RestrictedAccessScreen } from "./components/layout/SeasonScreens";
 
 export default function Layout({ children, currentPageName }) {
-
-
   const location = useLocation();
   const navigate = useNavigate();
   const currentSeason = getCurrentSeason();
-  const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isCoach, setIsCoach] = useState(false);
-  const [isCoordinator, setIsCoordinator] = useState(false);
-  const [isTreasurer, setIsTreasurer] = useState(false);
-  const [isPlayer, setIsPlayer] = useState(false);
-  const [isMinor, setIsMinor] = useState(false);
-  const [minorPlayerData, setMinorPlayerData] = useState(null);
-  const [hasPlayers, setHasPlayers] = useState(false);
-  const [playerName, setPlayerName] = useState(null);
-  const [onboardingView, setOnboardingView] = useState('loading');
   const [rateLimited, setRateLimited] = useState(false);
   const rateLimitTimerRef = useRef(null);
+  const [onboardingView, setOnboardingView] = useState('loading');
 
-  const [isJunta, setIsJunta] = useState(false);
-  const [activeSeasonConfig, setActiveSeasonConfig] = useState(null);
+  const {
+    user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, minorPlayerData,
+    hasPlayers, playerName, isLoading, showSpecialScreen, activeSeasonConfig, isMemberPaid,
+    loteriaVisible, sponsorBannerVisible, extraChargeVisible, authChecked, isPublicPageRef,
+    executeFetch
+  } = useFetchUser(location);
   const clothingStoreUrl = activeSeasonConfig?.tienda_ropa_url || null;
   const merchStoreUrl = activeSeasonConfig?.tienda_merch_url || null;
 
-  // Función para recargar la configuración (usada por polling y eventos de visibilidad)
   const fetchSeasonConfig = async () => {
     try {
-      // Intentar obtener la configuración activa
       const configs = await base44.entities.SeasonConfig.filter({ activa: true });
       const activeConfig = configs[0];
-      
       if (activeConfig) {
-        setActiveSeasonConfig(activeConfig);
-        setLoteriaVisible(activeConfig.loteria_navidad_abierta === true);
-        setSponsorBannerVisible(activeConfig.mostrar_patrocinadores === true);
-        setProgramaSociosActivo(activeConfig.programa_socios_activo === true);
-        
-        console.log('🔄 [LAYOUT] Configuración de temporada actualizada', {
-          referidos: activeConfig.programa_referidos_activo,
-          socios: activeConfig.programa_socios_activo
-        });
+        console.log('🔄 [LAYOUT] Configuración de temporada actualizada');
       }
     } catch (error) {
       console.error("Error refreshing season config:", error);
@@ -191,18 +173,12 @@ export default function Layout({ children, currentPageName }) {
     isPlayer,
   };
 
-  const [showSpecialScreen, setShowSpecialScreen] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('es');
-  const [loteriaVisible, setLoteriaVisible] = useState(false);
-  const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [showMemberCard, setShowMemberCard] = useState(false);
-  const [extraChargeVisible, setExtraChargeVisible] = useState(null);
   const [extraChargeModalOpen, setExtraChargeModalOpen] = useState(false);
   const [memberCardActive, setMemberCardActive] = useState(false);
-  const [isMemberPaid, setIsMemberPaid] = useState(false);
   const [programaSociosActivo, setProgramaSociosActivo] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
@@ -427,11 +403,6 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [location.pathname, marketCount]);
 
-  // Detectar si estamos en página pública (ClubMembership, ValidateAdminInvitation, PWA aliases)
-  const [authChecked, setAuthChecked] = useState(false);
-  const fetchUserOnceRef = useRef(false);
-  const isPublicPageRef = useRef(false);
-
   // Redirigir alias de PWA a la ruta canónica
   useEffect(() => {
     const p = window.location.pathname.toLowerCase();
@@ -471,478 +442,9 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   useEffect(() => {
-    if (fetchUserOnceRef.current) return;
-    fetchUserOnceRef.current = true;
-    
-    // Calcular isPublicPage UNA SOLA VEZ y guardar en ref
-    const lowerPath = location.pathname.toLowerCase();
-    const isPublicPage = lowerPath.includes('clubmembership') || 
-                         lowerPath.includes('validateadmininvitation') ||
-                         lowerPath.includes('pwaentry') ||
-                         lowerPath.includes('joinreferral') ||
-                         lowerPath.includes('joinfemenino');
-    isPublicPageRef.current = isPublicPage;
-    
-    const fetchUser = async () => {
-                        console.log('🔐 [LAYOUT DEBUG] Iniciando fetchUser...');
-                        try {
-                        // Fix para PWA: detectar si estamos en standalone mode
-                        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                                     window.navigator.standalone === true;
-                        console.log('📱 [LAYOUT] Modo standalone (PWA):', isStandalone);
+    executeFetch();
+  }, [location.pathname]);
 
-                        // Verificar si es primera vez del usuario (mostrar WelcomeScreen)
-                        const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-                        const installTrigger = localStorage.getItem('installPromptAfterOnboarding') === 'true';
-                        if (!hasSeenWelcome && !isPublicPage && !installTrigger) {
-                          setShowWelcome(true);
-                        }
-
-                        // Sistema de invitaciones legacy (AdminInvitation) eliminado
-                        // Las invitaciones ahora se gestionan con códigos de acceso (AccessCode)
-                        // Limpiar tokens legacy si existen en localStorage
-                        localStorage.removeItem('pending_invitation_token');
-                        localStorage.removeItem('pending_invitation_type');
-
-                        // Si es página pública, verificar si hay usuario autenticado sin forzar login
-                        if (isPublicPage) {
-          try {
-            const isAuthenticated = await base44.auth.isAuthenticated();
-            if (!isAuthenticated) {
-              // Usuario no autenticado en página pública - permitir acceso sin login
-              setUser(null);
-              setAuthChecked(true);
-              return;
-            }
-            // Intentar obtener usuario, pero si falla, permitir acceso anónimo
-            try {
-              const currentUser = await base44.auth.me();
-              setUser(currentUser);
-              setAuthChecked(true);
-            } catch (userError) {
-              // Usuario autenticado pero no existe en la BD - permitir acceso anónimo
-              console.log("Usuario no encontrado en BD, acceso anónimo permitido");
-              setUser(null);
-              setAuthChecked(true);
-              return;
-            }
-            return;
-          } catch (authError) {
-            // Error al verificar autenticación - permitir acceso anónimo
-            setUser(null);
-            setAuthChecked(true);
-            return;
-          }
-        }
-
-        let currentUser;
-        try {
-          currentUser = await base44.auth.me();
-          console.log('✅ [LAYOUT DEBUG] Usuario cargado:', currentUser.email);
-        } catch (authError) {
-          console.error('❌ [LAYOUT] Error auth.me():', authError);
-          setIsLoading(false);
-          // Si falla la autenticación, redirigir al login
-          base44.auth.redirectToLogin();
-          return;
-        }
-
-        setUser(currentUser);
-        setIsAdmin(currentUser.role === "admin");
-        setIsCoach(currentUser.es_entrenador === true);
-        setIsCoordinator(currentUser.es_coordinador === true);
-        setIsTreasurer(currentUser.es_tesorero === true);
-        setIsJunta(currentUser.es_junta === true);
-
-        // Auto-catalogar segundo progenitor por email en fichas de jugadores
-        // SOLO si ya validó su código de acceso (para no saltarse la verificación)
-        try {
-          if (currentUser.es_segundo_progenitor !== true && currentUser.codigo_acceso_validado === true) {
-            const linkedAsSecond = await base44.entities.Player.filter({ email_tutor_2: currentUser.email });
-            if (linkedAsSecond.length > 0) {
-                                await base44.auth.updateMe({ es_segundo_progenitor: true, tipo_panel: 'familia' });
-                                setUser((prev) => ({ ...(prev || {}), es_segundo_progenitor: true, tipo_panel: 'familia' }));
-                                console.log('✅ [LAYOUT] Marcado como segundo progenitor');
-                              }
-          }
-        } catch (e) {
-          console.log('ℹ️ [LAYOUT] Verificación segundo progenitor fallida:', e);
-        }
-
-        // DETECCIÓN DE MENOR (13-17) con acceso juvenil
-        // Si el usuario no tiene tipo_panel o ya es jugador_menor, verificar si hay ficha vinculada
-        let minorDetected = currentUser.tipo_panel === 'jugador_menor' || currentUser.es_menor === true;
-        // Auto-detección de menor SOLO si ya validó su código de acceso
-        if (!minorDetected && currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero && currentUser.codigo_acceso_validado === true) {
-          try {
-            const linkedAsMinor = await base44.entities.Player.filter({
-              acceso_menor_email: currentUser.email,
-              acceso_menor_autorizado: true,
-              activo: true,
-            });
-            const minorPlayer = linkedAsMinor[0];
-            if (minorPlayer && !minorPlayer.acceso_menor_revocado) {
-              console.log('👦 [LAYOUT] Detectado menor con acceso juvenil:', minorPlayer.nombre);
-              minorDetected = true;
-              setMinorPlayerData(minorPlayer);
-              if (currentUser.tipo_panel !== 'jugador_menor') {
-                await base44.auth.updateMe({ tipo_panel: 'jugador_menor', es_menor: true, player_id: minorPlayer.id });
-                setUser((prev) => ({ ...(prev || {}), tipo_panel: 'jugador_menor', es_menor: true, player_id: minorPlayer.id }));
-              }
-            }
-          } catch (e) {
-            console.log('ℹ️ [LAYOUT] Verificación menor fallida:', e);
-          }
-        } else if (minorDetected) {
-          // Cargar datos del jugador para el menor ya catalogado
-          try {
-            const linkedAsMinor2 = await base44.entities.Player.filter({
-              acceso_menor_email: currentUser.email,
-              acceso_menor_autorizado: true,
-              activo: true,
-            });
-            if (linkedAsMinor2[0] && !linkedAsMinor2[0].acceso_menor_revocado) {
-              setMinorPlayerData(linkedAsMinor2[0]);
-            } else {
-              // Acceso revocado - resetear
-              minorDetected = false;
-            }
-          } catch {}
-        }
-        setIsMinor(minorDetected);
-
-        // Si es menor, no seguir con el resto de detección de roles
-        if (minorDetected) {
-          setHasPlayers(false); // Menores NO tienen "mis hijos" - evita mostrar modal de alta
-          setIsPlayer(false); // Menores NO son jugadores adultos
-          setIsLoading(false);
-          // Redirigir a MinorDashboard si es primera carga
-          const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
-          const currentPath = window.location.pathname.toLowerCase();
-          if (!hasInitialRedirect && !currentPath.includes('minordashboard')) {
-            sessionStorage.setItem('initialRedirectDone', 'true');
-            window.location.href = createPageUrl('MinorDashboard');
-            return;
-          }
-          // No continuar con detección de jugador +18, padres, etc.
-          return;
-        }
-
-        // DETECCIÓN DE JUGADOR +18
-        // 1. Si el usuario tiene tipo_panel = 'jugador_adulto' O es_jugador = true, ES JUGADOR (aunque no tenga ficha aún)
-        // 2. Si no tiene esos campos, buscar si hay una ficha de Player vinculada
-        let playerDetected = currentUser.tipo_panel === 'jugador_adulto' || currentUser.es_jugador === true;
-
-        console.log('🔍 [LAYOUT] Verificación inicial jugador:', {
-          email: currentUser.email,
-          tipo_panel: currentUser.tipo_panel,
-          es_jugador: currentUser.es_jugador,
-          playerDetected
-        });
-
-        // Detección de jugador +18: se ejecuta para TODOS los roles excepto admin
-        // Un entrenador/coordinador/tesorero también puede ser jugador +18
-        if (!playerDetected && currentUser.role !== "admin") {
-          try {
-            const linkedCandidates = await base44.entities.Player.filter({ 
-              email_jugador: currentUser.email, 
-              acceso_jugador_autorizado: true, 
-              activo: true 
-            });
-            const linkedPlayer = linkedCandidates[0];
-
-            if (linkedPlayer) {
-              // Verificar si es mayor de 18
-              const calcularEdad = (fechaNac) => {
-                if (!fechaNac) return null;
-                const hoy = new Date();
-                const nacimiento = new Date(fechaNac);
-                let edad = hoy.getFullYear() - nacimiento.getFullYear();
-                const m = hoy.getMonth() - nacimiento.getMonth();
-                if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-                return edad;
-              };
-
-              const edad = calcularEdad(linkedPlayer.fecha_nacimiento);
-              const esMayorDe18 = edad >= 18 || linkedPlayer.es_mayor_edad === true;
-
-              if (esMayorDe18) {
-                console.log('🎯 [LAYOUT] Detectado jugador +18 autorizado:', linkedPlayer.nombre);
-                // Actualizar automáticamente el usuario como jugador
-                // Si también es entrenador/coordinador, no cambiar tipo_panel para no interferir con su panel principal
-                const updateData = { es_jugador: true, player_id: linkedPlayer.id };
-                if (!currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
-                  updateData.tipo_panel = 'jugador_adulto';
-                }
-                await base44.auth.updateMe(updateData);
-                playerDetected = true;
-                setPlayerName(linkedPlayer.nombre);
-                console.log('✅ [LAYOUT] Usuario actualizado como Jugador +18 automáticamente (también entrenador:', currentUser.es_entrenador, ')');
-              }
-            }
-          } catch (error) {
-            console.error('Error detectando jugador +18:', error);
-          }
-        } else if (playerDetected) {
-          // Si ya está marcado como jugador, intentar cargar el nombre si existe ficha
-          try {
-            const linkedCandidates2 = await base44.entities.Player.filter({ 
-              email_jugador: currentUser.email, 
-              acceso_jugador_autorizado: true, 
-              activo: true 
-            });
-            const linkedPlayer = linkedCandidates2[0];
-            if (linkedPlayer) {
-              setPlayerName(linkedPlayer.nombre);
-              console.log('✅ [LAYOUT] Nombre de jugador cargado:', linkedPlayer.nombre);
-            } else {
-              console.log('⚠️ [LAYOUT] Jugador sin ficha de Player vinculada (normal en primera carga)');
-            }
-          } catch (error) {
-            console.log('⚠️ [LAYOUT] Error al cargar nombre de jugador:', error);
-          }
-        }
-
-        setIsPlayer(playerDetected);
-
-        // Sistema de contadores eliminado - se implementará nuevo sistema last_read_at
-
-        // Fast path: render UI immediately while background data loads
-        setIsLoading(false);
-
-        console.log('🔍 ROLES DETECTADOS:', {
-          email: currentUser.email,
-          isAdmin: currentUser.role === "admin",
-          isCoach: currentUser.es_entrenador === true && !currentUser.es_coordinador,
-          isCoordinator: currentUser.es_coordinador === true,
-          role_RAW: currentUser.role
-        });
-
-        // Cargar configuración de temporada AQUÍ (dentro del fetchUser) - PRIMERA CARGA
-        // NOTA: El useEffect de polling ya se encarga de mantener esto actualizado, 
-        // pero lo mantenemos aquí para la carga inicial rápida junto con el usuario y los cobros extra.
-        try {
-          // Usamos la función compartida si es posible, o duplicamos para asegurar sincronía inicial
-          const configs = await base44.entities.SeasonConfig.filter({ activa: true });
-          const activeConfig = configs[0];
-          setActiveSeasonConfig(activeConfig); // Actualizar estado local
-          setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
-          setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
-          const sociosActivo = activeConfig?.programa_socios_activo === true;
-          setProgramaSociosActivo(sociosActivo);
-          console.log('[LAYOUT] 🎫 Config cargada - programa_socios_activo:', sociosActivo);
-
-        // Cargar Cobros Extra activos asignados al usuario (filtrado por destinatarios)
-        try {
-          if (currentUser?.email) {
-            const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
-
-            // Jugadores vinculados a este usuario (padre, tutor2 o jugador adulto)
-            let myPlayers = [];
-            try {
-              myPlayers = await base44.entities.Player.filter({
-                $or: [
-                  { email_padre: currentUser.email },
-                  { email_tutor_2: currentUser.email },
-                  { email_jugador: currentUser.email }
-                ],
-                activo: true
-              });
-            } catch {}
-
-            const isCoach = currentUser.es_entrenador === true;
-            const isCoordinator = currentUser.es_coordinador === true;
-            const isTreasurer = currentUser.es_tesorero === true;
-            const isAdminUser = currentUser.role === 'admin';
-
-            const categoryNames = new Set([
-              ...(myPlayers || []).map(p => p.categoria_principal).filter(Boolean),
-              ...((myPlayers || []).flatMap(p => p.categorias || []))
-            ]);
-            const playerIds = new Set((myPlayers || []).map(p => p.id));
-
-            const matchesUser = (charge) => {
-              const dests = charge.destinatarios || [];
-              if (dests.length === 0) return true; // sin filtro => todos
-
-              if (dests.some(d => d.tipo === 'categoria' && categoryNames.has(d.valor))) return true;
-              if (dests.some(d => d.tipo === 'jugador' && playerIds.has(d.valor))) return true;
-
-              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:entrenadores') && isCoach) return true;
-              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:coordinadores') && isCoordinator) return true;
-              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:tesoreria') && isTreasurer) return true;
-              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:admins') && isAdminUser) return true;
-              return false;
-            };
-
-            const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
-            const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
-            // Minimizar llamadas: obtener todos mis pagos una sola vez
-            const myPayments = await base44.entities.ExtraChargePayment.filter({
-              usuario_email: currentUser.email,
-              $or: [{ estado: 'Pagado' }, { estado: 'En revisión' }]
-            });
-            let visibleCharge = null;
-            for (const c of candidates) {
-              try {
-                const requiredSum = (c.items || [])
-                  .filter(i => i.obligatorio)
-                  .reduce((sum, i) => sum + Number(i.precio || 0) * 1, 0);
-                const paymentsForCharge = (myPayments || []).filter(p => p.extra_charge_id === c.id);
-                let hasPaidRequired = false;
-                if ((paymentsForCharge || []).length > 0) {
-                  for (const p of paymentsForCharge) {
-                    const sel = p.seleccion || [];
-                    const mandatoryNames = new Set((c.items || []).filter(i => i.obligatorio).map(i => i.nombre));
-                    const paidMandatorySum = sel
-                      .filter(s => mandatoryNames.has(s.item_nombre))
-                      .reduce((sum, s) => sum + Number(s.cantidad || 0) * Number(s.precio_unitario || 0), 0);
-                    if ((requiredSum > 0 && paidMandatorySum >= requiredSum) || (requiredSum === 0 && Number(p.total || 0) > 0)) {
-                      hasPaidRequired = true;
-                      break;
-                    }
-                  }
-                }
-                if (!hasPaidRequired) { visibleCharge = c; break; }
-              } catch (e) {
-                visibleCharge = c; break;
-              }
-            }
-            setExtraChargeVisible(visibleCharge);
-          }
-        } catch (e) { console.log('⚠️ No hay cobros extra activos:', e); }
-
-        // Verificar si el usuario es socio pagado (para TODOS los usuarios, incluso sin hijos)
-        try {
-          const members = await base44.entities.ClubMember.filter({ 
-            email: currentUser.email,
-            estado_pago: "Pagado"
-          });
-          const isPaid = members.length > 0;
-          console.log('[LAYOUT] 🎫 Verificación socio pagado:', {
-            email: currentUser.email,
-            socios_encontrados: members.length,
-            isPaid,
-            programa_socios_activo: sociosActivo
-          });
-          setIsMemberPaid(isPaid);
-        } catch (e) { console.log('⚠️ Error verificando socio pagado:', e); }
-        } catch (error) {
-        console.error("Error fetching season config:", error);
-        }
-
-        // Para admin/entrenadores/coordinadores/tesoreros, SOLO usar el campo manual (no verificar BD)
-                if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
-                  const tienehijos = currentUser.tiene_hijos_jugando === true;
-                  console.log('🔍 DEPURACIÓN:', {
-                    email: currentUser.email,
-                    role: currentUser.role,
-                    es_entrenador: currentUser.es_entrenador,
-                    es_coordinador: currentUser.es_coordinador,
-                    tiene_hijos_jugando_RAW: currentUser.tiene_hijos_jugando,
-                    tiene_hijos_jugando_TYPE: typeof currentUser.tiene_hijos_jugando,
-                    resultado_hasPlayers: tienehijos
-                  });
-                  setHasPlayers(tienehijos);
-                  setIsLoading(false);
-                } else if (playerDetected && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
-                  // Si es SOLO jugador +18 (sin rol de staff), redirigir a PlayerDashboard
-                  console.log('⚽ [LAYOUT] Usuario detectado como JUGADOR +18 (sin rol staff)');
-                  setHasPlayers(false);
-                  setIsLoading(false);
-
-                  const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
-                  const currentPath = window.location.pathname.toLowerCase();
-
-                  if (!hasInitialRedirect && currentPath !== '/playerdashboard') {
-                    console.log('🔄 [LAYOUT] Primera carga JUGADOR +18 - redirigiendo a PlayerDashboard');
-                    sessionStorage.setItem('initialRedirectDone', 'true');
-                    window.location.href = createPageUrl('PlayerDashboard');
-                    return;
-                  }
-                } else {
-                  // Para padres normales, verificar en la base de datos
-                  const myPlayers = await base44.entities.Player.filter({ 
-                    $or: [
-                      { email_padre: currentUser.email },
-                      { email_tutor_2: currentUser.email }
-                    ]
-                  });
-                  console.log('👨‍👩‍👧 [LAYOUT] Padre normal - jugadores encontrados:', myPlayers.length);
-                  setHasPlayers(myPlayers.length > 0);
-
-
-
-                  setIsLoading(false);
-
-                  // REDIRECCIÓN AUTOMÁTICA AL DASHBOARD PRINCIPAL (primera carga)
-                  // Solo si ya tiene tipo_panel definido y app_instalada
-                  if (currentUser.tipo_panel === 'familia' && (currentUser.app_instalada === true || currentUser.es_segundo_progenitor === true)) {
-                    const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
-                    const currentPath = window.location.pathname.toLowerCase();
-
-                    if (!hasInitialRedirect && currentPath !== '/parentdashboard') {
-                      console.log('🔄 [LAYOUT] Primera carga PADRE - redirigiendo a ParentDashboard');
-                      sessionStorage.setItem('initialRedirectDone', 'true');
-                      window.location.href = createPageUrl('ParentDashboard');
-                      return;
-                    }
-                  }
-                  }
-
-                  // REDIRECCIÓN AUTOMÁTICA PARA TESORERO (primera carga)
-                  if (currentUser.es_tesorero === true && !currentUser.es_coordinador && currentUser.role !== "admin") {
-                  setIsLoading(false);
-                  const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
-                  const currentPath = window.location.pathname.toLowerCase();
-
-                  if (!hasInitialRedirect && currentPath !== '/treasurerdashboard') {
-                  console.log('🔄 [LAYOUT] Primera carga TESORERO - redirigiendo a TreasurerDashboard');
-                  sessionStorage.setItem('initialRedirectDone', 'true');
-                  window.location.href = createPageUrl('TreasurerDashboard');
-                  return;
-                  }
-                  }
-
-                  // Sistema unificado maneja esto ahora
-
-                  
-
-        // Sistema unificado maneja observaciones ahora
-
-        // Sistema unificado maneja todos los badges ahora
-
-          if (currentUser.acceso_activo === false && currentUser.role !== "admin") {
-          setShowSpecialScreen("restricted");
-          return;
-          }
-
-        // Solo aplicar pantallas especiales a padres sin roles (NO a entrenadores, coordinadores, tesoreros)
-        if (currentUser.role !== "admin" && 
-          !currentUser.es_entrenador && 
-          !currentUser.es_coordinador &&
-          !currentUser.es_tesorero) {
-          const period = getPeriodType();
-          if (period === "closed") {
-            setShowSpecialScreen("closed");
-          } else if (period === "inscriptions") {
-            setShowSpecialScreen("inscriptions");
-          } else if (period === "vacation") {
-            setShowSpecialScreen("vacation");
-          }
-          }
-          } catch (error) {
-                      console.error("❌ [LAYOUT DEBUG] Error fetching user:", error);
-                      setIsLoading(false);
-                      // Si es página pública y hay error, permitir acceso anónimo
-                      if (isPublicPage) {
-                        setUser(null);
-                        setAuthChecked(true);
-                      }
-                    }
-                  };
-                  fetchUser();
-                }, []);
 
   // useEffect de redirección ELIMINADO - causaba loops infinitos de React #310
 
