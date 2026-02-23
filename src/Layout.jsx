@@ -33,8 +33,8 @@ import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 
 
 const OnboardingController = React.lazy(() => import("./components/layout/OnboardingController"));
-import InstallInstructionsModal from "./components/layout/InstallInstructionsModal";
-import DesktopSidebar from "./components/layout/DesktopSidebar";
+const InstallInstructionsModal = React.lazy(() => import("./components/layout/InstallInstructionsModal"));
+const DesktopSidebar = React.lazy(() => import("./components/layout/DesktopSidebar"));
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 const NotificationManager = React.lazy(() => import("./components/notifications/NotificationManager"));
 const AutomaticNotificationEngine = React.lazy(() => import("./components/notifications/AutomaticNotificationEngine"));
