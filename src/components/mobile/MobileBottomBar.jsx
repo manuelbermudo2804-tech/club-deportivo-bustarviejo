@@ -115,29 +115,33 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   }, [navigate, currentPath]);
 
   return (
-    <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.06)] ${isInChat ? 'hidden' : ''}`}>
-      <div className="flex items-center justify-around">
+    <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] ${isInChat ? 'hidden' : ''}`}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
+      <div className="flex items-stretch justify-around">
         {tabs.map(({ icon: Icon, label, url, key, badge }) => {
           const isActive = activeTabKey === key;
           return (
             <button
               key={key}
               onClick={() => handleTabClick({ key, url })}
-              className={`flex-1 flex flex-col items-center justify-center py-2 pb-1 min-h-[56px] relative transition-all duration-200 no-select`}
+              aria-label={label}
+              className="flex-1 flex flex-col items-center justify-center py-2 pb-1 no-select active:opacity-70"
+              style={{ minHeight: '56px', WebkitTapHighlightColor: 'transparent', WebkitAppearance: 'none' }}
             >
               {/* Active indicator pill */}
               {isActive && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-orange-500 rounded-full" />
+                <div className="absolute top-0 w-8 h-[3px] bg-orange-500 rounded-full" style={{ left: '50%', transform: 'translateX(-50%)' }} />
               )}
-              <div className={`relative transition-transform duration-200 ${isActive ? 'scale-110 -translate-y-0.5' : ''}`}>
-                <Icon className={`w-6 h-6 transition-colors duration-200 ${isActive ? 'text-orange-600' : 'text-slate-400'}`} />
+              <div className="relative" style={{ transform: isActive ? 'scale(1.1) translateY(-2px)' : 'none' }}>
+                <Icon className={`w-6 h-6 ${isActive ? 'text-orange-600' : 'text-slate-400'}`} />
                 {badge > 0 && (
-                  <div className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 shadow-sm animate-in fade-in">
+                  <div className="absolute -top-1.5 -right-2 bg-red-500 text-white rounded-full font-bold px-1 shadow-sm flex items-center justify-center" style={{ fontSize: '10px', minWidth: '18px', height: '18px' }}>
                     {badge > 99 ? '99+' : badge}
                   </div>
                 )}
               </div>
-              <span className={`text-[10px] mt-0.5 leading-tight transition-colors duration-200 ${isActive ? 'text-orange-600 font-bold' : 'text-slate-400'}`}>{label}</span>
+              <span className={`mt-0.5 leading-tight ${isActive ? 'text-orange-600 font-bold' : 'text-slate-400'}`} style={{ fontSize: '10px' }}>{label}</span>
             </button>
           );
         })}
