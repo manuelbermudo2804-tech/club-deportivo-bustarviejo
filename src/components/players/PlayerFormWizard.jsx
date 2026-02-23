@@ -118,11 +118,12 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   });
 
   const [usePreviousTutorData, setUsePreviousTutorData] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [uploadingDNI, setUploadingDNI] = useState(false);
-  const [uploadingLibroFamilia, setUploadingLibroFamilia] = useState(false);
-  const [uploadingDNITutor, setUploadingDNITutor] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+
+  const [uploadingPhoto, uploadFile_photo] = useImageUpload();
+  const [uploadingDNI, uploadFile_dni] = useImageUpload();
+  const [uploadingLibroFamilia, uploadFile_libro] = useImageUpload();
+  const [uploadingDNITutor, uploadFile_tutordni] = useImageUpload();
 
   const categories = useCategoriesFromConfig();
 
