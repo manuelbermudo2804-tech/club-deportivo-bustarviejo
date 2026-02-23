@@ -455,6 +455,10 @@ export default function AdminAccessCodes() {
             {bulkResending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <RefreshCw className="w-4 h-4 mr-1" />}
             Reenviar todas ({counts.pendiente})
           </Button>
+          <Button onClick={() => setBulkOpen(true)} className="bg-purple-600 hover:bg-purple-700" size="sm">
+            <Zap className="w-4 h-4 mr-2" />
+            Masiva ({(() => { const s = new Set(); (accessCodes || []).forEach(c => { if (c.estado === 'pendiente' || c.estado === 'usado') s.add(c.email?.toLowerCase()); }); return s; })().size} ya)
+          </Button>
           <Button onClick={() => setInviteOpen(true)} className="bg-orange-600 hover:bg-orange-700" size="sm">
             <UserPlus className="w-4 h-4 mr-2" />
             Nueva Invitación
