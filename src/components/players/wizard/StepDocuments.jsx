@@ -60,7 +60,7 @@ export default function StepDocuments({
           Subir {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"} Jugador (escaneado) {requiresDNI ? "*" : ""}
         </Label>
         <div className="flex items-center gap-2">
-          <input type="file" accept="image/*,application/pdf" onChange={onDNIUpload} className="hidden" id="wiz-dni-upload" />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onDNIUpload} className="hidden" id="wiz-dni-upload" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
           <Button
             type="button"
             variant={fieldErrors.dni_jugador_url ? "destructive" : "outline"}
@@ -85,7 +85,7 @@ export default function StepDocuments({
             Libro de Familia (si no tiene DNI) *
           </Label>
           <div className="flex items-center gap-2">
-            <input type="file" accept="image/*,application/pdf" onChange={onLibroFamiliaUpload} className="hidden" id="wiz-libro-upload" />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onLibroFamiliaUpload} className="hidden" id="wiz-libro-upload" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
             <Button
               type="button"
               variant={fieldErrors.libro_familia_url ? "destructive" : "outline"}
