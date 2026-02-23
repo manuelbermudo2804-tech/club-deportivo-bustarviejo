@@ -477,7 +477,7 @@ const handleChatBlock = (user) => {
     players.forEach(player => {
       const p1 = (player.email_padre || '').trim().toLowerCase();
       const p2 = (player.email_tutor_2 || '').trim().toLowerCase();
-      if (!p1 || !p2) return;
+      if (!p1 || !p2) return; // Ambos emails necesarios para ser pareja
 
       const pairKey = [p1, p2].sort().join('|');
       if (processedPairs.has(pairKey)) return;
