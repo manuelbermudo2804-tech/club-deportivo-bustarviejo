@@ -186,9 +186,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
           </table>
         </td></tr>` : ''}
 
-        <!-- ============================================ -->
-        <!-- PASO 1: INSTALAR LA APP EN TU MÓVIL        -->
-        <!-- ============================================ -->
+        <!-- PASO 1: INSTALAR -->
         <tr><td style="padding-bottom:24px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #16a34a;border-radius:16px;overflow:hidden;">
             <tr><td style="background-color:#16a34a;padding:16px 22px;text-align:center;">
@@ -232,7 +230,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
                           &#128161; <strong>Si NO te sale el instalador autom&aacute;tico:</strong><br/>
                           1. Abre <strong>Chrome</strong> en tu m&oacute;vil<br/>
                           2. Pulsa los <strong>3 puntos</strong> de arriba a la derecha (&#8942;)<br/>
-                          3. Busca <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong> o <strong>&quot;A&ntilde;adir a pantalla de inicio&quot;</strong> (seg&uacute;n el m&oacute;vil sale uno u otro)<br/>
+                          3. Busca <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong> o <strong>&quot;A&ntilde;adir a pantalla de inicio&quot;</strong><br/>
                           4. Confirma pulsando <strong>&quot;Instalar&quot;</strong> o <strong>&quot;A&ntilde;adir&quot;</strong> &mdash; &iexcl;Listo! &#127881;
                         </td></tr>
                       </table>
@@ -291,9 +289,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
           </table>
         </td></tr>
 
-        <!-- ======================================= -->
-        <!-- PASO 2: CREAR CUENTA E INTRODUCIR CÓDIGO -->
-        <!-- ======================================= -->
+        <!-- PASO 2: CÓDIGO -->
         <tr><td style="padding-bottom:24px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #ea580c;border-radius:16px;overflow:hidden;">
             <tr><td style="background-color:#ea580c;padding:16px 22px;text-align:center;">
@@ -306,7 +302,6 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
             <tr><td style="background-color:#fff7ed;padding:24px 22px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 
-                <!-- Instrucciones -->
                 <tr><td style="padding-bottom:16px;">
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                     <tr><td style="padding:6px 0;">
@@ -355,7 +350,6 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
                   </table>
                 </td></tr>
 
-                <!-- Nota importante -->
                 <tr><td>
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:2px solid #fde68a;border-radius:10px;overflow:hidden;">
                     <tr><td style="background-color:#fffbeb;padding:14px 20px;">
@@ -445,6 +439,91 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
 </html>`;
 }
 
+async function generateSingleCode(base44, user, { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado }) {
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Check existing pending code
+  const existingCodes = await base44.asServiceRole.entities.AccessCode.filter({ 
+    email: normalizedEmail,
+    tipo,
+    estado: 'pendiente'
+  });
+  
+  if (existingCodes.length > 0) {
+    const existing = existingCodes[0];
+    const now = new Date();
+    const expDate = new Date(existing.fecha_expiracion);
+    
+    if (now < expDate) {
+      // Still valid, resend
+      const appUrl = 'https://app.cdbustarviejo.com';
+      const emailHTML = buildEmailHTML(existing.codigo, tipo, nombre_destino || existing.nombre_destino, appUrl, mensaje_personalizado, jugador_nombre || existing.jugador_nombre);
+      
+      await sendWithResend(
+        normalizedEmail,
+        `⚽ CD Bustarviejo - Tu invitación al club (Código: ${existing.codigo})`,
+        emailHTML
+      );
+
+      await base44.asServiceRole.entities.AccessCode.update(existing.id, {
+        reenvios: (existing.reenvios || 0) + 1,
+        ultimo_reenvio: now.toISOString(),
+        email_enviado: true
+      });
+
+      return { success: true, codigo: existing.codigo, reenvio: true, id: existing.id, email: normalizedEmail };
+    }
+  }
+
+  // Generate new unique code
+  let codigo = generateCode();
+  const checkExisting = await base44.asServiceRole.entities.AccessCode.filter({ codigo });
+  if (checkExisting.length > 0) {
+    codigo = generateCode();
+  }
+
+  const now = new Date();
+  const expiracion = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  let rolAsignado = 'familia';
+  if (tipo === 'juvenil') rolAsignado = 'jugador_menor';
+  if (tipo === 'jugador_adulto') rolAsignado = 'jugador_adulto';
+  if (tipo === 'segundo_progenitor') rolAsignado = 'familia';
+
+  const accessCode = await base44.asServiceRole.entities.AccessCode.create({
+    codigo,
+    email: normalizedEmail,
+    tipo,
+    estado: 'pendiente',
+    nombre_destino: nombre_destino || '',
+    jugador_id: jugador_id || '',
+    jugador_nombre: jugador_nombre || '',
+    invitado_por_email: user.email,
+    invitado_por_nombre: user.full_name || user.email,
+    fecha_envio: now.toISOString(),
+    fecha_expiracion: expiracion.toISOString(),
+    email_enviado: false,
+    reenvios: 0,
+    rol_asignado: rolAsignado,
+    mensaje_personalizado: mensaje_personalizado || ''
+  });
+
+  const appUrl = 'https://app.cdbustarviejo.com';
+  const emailHTML = buildEmailHTML(codigo, tipo, nombre_destino, appUrl, mensaje_personalizado, jugador_nombre);
+  
+  await sendWithResend(
+    normalizedEmail,
+    `⚽ CD Bustarviejo - Tu invitación al club (Código: ${codigo})`,
+    emailHTML
+  );
+
+  await base44.asServiceRole.entities.AccessCode.update(accessCode.id, {
+    email_enviado: true
+  });
+
+  return { success: true, codigo, id: accessCode.id, email: normalizedEmail };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -457,22 +536,75 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado, action } = body;
 
-    // Padres pueden generar códigos de tipo segundo_progenitor y juvenil
-    // Admins pueden generar cualquier tipo
     const isAdmin = user.role === 'admin';
     const allowedParentTypes = ['segundo_progenitor', 'juvenil'];
-    
-    if (!isAdmin && action !== 'resend') {
-      if (!allowedParentTypes.includes(tipo)) {
-        return Response.json({ error: 'No tienes permisos para generar este tipo de invitación' }, { status: 403 });
+
+    // ========================
+    // ACTION: BULK GENERATE
+    // ========================
+    if (action === 'bulk') {
+      if (!isAdmin) {
+        return Response.json({ error: 'Solo admins pueden generar códigos masivos' }, { status: 403 });
       }
+
+      const { emails, tipo: bulkTipo } = body;
+      if (!emails || !Array.isArray(emails) || emails.length === 0) {
+        return Response.json({ error: 'Lista de emails vacía' }, { status: 400 });
+      }
+      if (emails.length > 200) {
+        return Response.json({ error: 'Máximo 200 emails por lote' }, { status: 400 });
+      }
+
+      const results = [];
+      let sent = 0;
+      let errors = 0;
+
+      for (const emailEntry of emails) {
+        const entryEmail = (typeof emailEntry === 'string' ? emailEntry : emailEntry.email || '').trim().toLowerCase();
+        const entryName = (typeof emailEntry === 'object' ? emailEntry.nombre || '' : '');
+        
+        if (!entryEmail || !entryEmail.includes('@')) {
+          results.push({ email: entryEmail, success: false, error: 'Email inválido' });
+          errors++;
+          continue;
+        }
+
+        try {
+          const result = await generateSingleCode(base44, user, {
+            email: entryEmail,
+            tipo: bulkTipo || 'padre_nuevo',
+            nombre_destino: entryName,
+            jugador_id: '',
+            jugador_nombre: '',
+            mensaje_personalizado: body.mensaje_personalizado || ''
+          });
+          results.push({ email: entryEmail, success: true, codigo: result.codigo, reenvio: result.reenvio || false });
+          sent++;
+          // Small delay to avoid rate limiting
+          await new Promise(r => setTimeout(r, 200));
+        } catch (err) {
+          console.error(`[bulk] Error para ${entryEmail}:`, err.message);
+          results.push({ email: entryEmail, success: false, error: err.message });
+          errors++;
+        }
+      }
+
+      return Response.json({ 
+        success: true, 
+        action: 'bulk',
+        total: emails.length, 
+        sent, 
+        errors, 
+        results 
+      });
     }
 
-    // Action: resend - reenviar un código existente
+    // ========================
+    // ACTION: RESEND
+    // ========================
     if (action === 'resend') {
       const { access_code_id } = body;
       
-      // Solo admin o el creador original puede reenviar
       const codes = await base44.asServiceRole.entities.AccessCode.filter({ id: access_code_id });
       if (!codes || codes.length === 0) {
         return Response.json({ error: 'Código no encontrado' }, { status: 404 });
@@ -484,7 +616,6 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'No tienes permisos para reenviar este código' }, { status: 403 });
       }
       
-      // Si está expirado, generar nuevo código
       let codigo = existingCode.codigo;
       const now = new Date();
       const expDate = new Date(existingCode.fecha_expiracion);
@@ -519,94 +650,21 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, codigo, reenvio: true });
     }
 
-    // Generate new code
+    // ========================
+    // ACTION: SINGLE GENERATE
+    // ========================
+    if (!isAdmin) {
+      if (!allowedParentTypes.includes(tipo)) {
+        return Response.json({ error: 'No tienes permisos para generar este tipo de invitación' }, { status: 403 });
+      }
+    }
+
     if (!email || !tipo) {
       return Response.json({ error: 'Email y tipo son obligatorios' }, { status: 400 });
     }
 
-    // Verificar que no haya un código pendiente para este email y tipo
-    const existingCodes = await base44.asServiceRole.entities.AccessCode.filter({ 
-      email: email.toLowerCase().trim(),
-      tipo,
-      estado: 'pendiente'
-    });
-    
-    if (existingCodes.length > 0) {
-      const existing = existingCodes[0];
-      const now = new Date();
-      const expDate = new Date(existing.fecha_expiracion);
-      
-      if (now < expDate) {
-        // Todavía válido, reenviar
-        const appUrl = 'https://app.cdbustarviejo.com';
-        const emailHTML = buildEmailHTML(existing.codigo, tipo, nombre_destino || existing.nombre_destino, appUrl, mensaje_personalizado, jugador_nombre || existing.jugador_nombre);
-        
-        await sendWithResend(
-          email.toLowerCase().trim(),
-          `⚽ CD Bustarviejo - Tu invitación al club (Código: ${existing.codigo})`,
-          emailHTML
-        );
-
-        await base44.asServiceRole.entities.AccessCode.update(existing.id, {
-          reenvios: (existing.reenvios || 0) + 1,
-          ultimo_reenvio: now.toISOString(),
-          email_enviado: true
-        });
-
-        return Response.json({ success: true, codigo: existing.codigo, reenvio: true, id: existing.id });
-      }
-    }
-
-    // Generar nuevo código único
-    let codigo = generateCode();
-    const checkExisting = await base44.asServiceRole.entities.AccessCode.filter({ codigo });
-    if (checkExisting.length > 0) {
-      codigo = generateCode();
-    }
-
-    const now = new Date();
-    const expiracion = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-    // Determinar rol
-    let rolAsignado = 'familia';
-    if (tipo === 'juvenil') rolAsignado = 'jugador_menor';
-    if (tipo === 'jugador_adulto') rolAsignado = 'jugador_adulto';
-    if (tipo === 'segundo_progenitor') rolAsignado = 'familia';
-
-    // Crear registro
-    const accessCode = await base44.asServiceRole.entities.AccessCode.create({
-      codigo,
-      email: email.toLowerCase().trim(),
-      tipo,
-      estado: 'pendiente',
-      nombre_destino: nombre_destino || '',
-      jugador_id: jugador_id || '',
-      jugador_nombre: jugador_nombre || '',
-      invitado_por_email: user.email,
-      invitado_por_nombre: user.full_name || user.email,
-      fecha_envio: now.toISOString(),
-      fecha_expiracion: expiracion.toISOString(),
-      email_enviado: false,
-      reenvios: 0,
-      rol_asignado: rolAsignado,
-      mensaje_personalizado: mensaje_personalizado || ''
-    });
-
-    // Enviar email
-    const appUrl = 'https://app.cdbustarviejo.com';
-    const emailHTML = buildEmailHTML(codigo, tipo, nombre_destino, appUrl, mensaje_personalizado, jugador_nombre);
-    
-    await sendWithResend(
-      email.toLowerCase().trim(),
-      `⚽ CD Bustarviejo - Tu invitación al club (Código: ${codigo})`,
-      emailHTML
-    );
-
-    await base44.asServiceRole.entities.AccessCode.update(accessCode.id, {
-      email_enviado: true
-    });
-
-    return Response.json({ success: true, codigo, id: accessCode.id });
+    const result = await generateSingleCode(base44, user, { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado });
+    return Response.json(result);
 
   } catch (error) {
     console.error('Error:', error);
