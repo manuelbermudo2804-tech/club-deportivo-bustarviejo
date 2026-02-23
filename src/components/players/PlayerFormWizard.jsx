@@ -182,53 +182,41 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
   }, [isParent, isAdultPlayerSelfRegistration, player]);
 
-  // File upload helper with image compression for mobile compatibility
-  // Optimizado para iPhones antiguos y Android con poca memoria
+  // File upload helper — toda compresión se hace con compressImage() que:
+  // - Rechaza archivos >10MB ANTES de intentar procesarlos (evita OOM)
+  // - Usa createImageBitmap (GPU) o ObjectURL+canvas como fallback
+  // - NUNCA usa base64 (readAsDataURL), siempre multipart File/Blob
+  // - Maneja HEIC: si el navegador no lo soporta, rechaza con mensaje claro
   const handleFileUpload = async (file, setUploading, isPhoto = false) => {
     if (!file) return null;
     setUploading(true);
     try {
-      // Verificar tamaño máximo (25MB límite absoluto)
-      if (file.size > 25 * 1024 * 1024) {
-        toast.error("El archivo es demasiado grande (máx 25MB). Intenta con una foto más pequeña.");
-        return null;
+      // PDFs se suben directamente sin procesar (pero con límite de 10MB)
+      const isPDF = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
+      if (isPDF) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error("El PDF es demasiado grande (máx 10MB).");
+          return null;
+        }
+        const response = await base44.integrations.Core.UploadFile({ file });
+        toast.success("Documento subido correctamente");
+        return response.file_url;
       }
 
-      let processedFile = file;
-      
-      // Solo comprimir imágenes, no PDFs
-      const isImage = file.type?.startsWith('image/') || 
-                      /\.(jpe?g|png|webp|heic|heif|bmp|gif)$/i.test(file.name || '');
-      
-      if (isImage) {
-        // Fotos de carnet: más agresivo. Documentos: legibilidad
-        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
-        // Android con cámaras 200MP (Redmi Note 12 Pro, Samsung S24 Ultra): ser agresivo
-        const isHighResMobile = !isIOSDevice && file.size > 10 * 1024 * 1024;
-        const maxDim = isPhoto 
-          ? (isHighResMobile ? 600 : isIOSDevice ? 600 : 800) 
-          : (isHighResMobile ? 800 : isIOSDevice ? 1000 : 1200);
-        const quality = isPhoto ? 0.6 : 0.65;
-        
-        // Mostrar feedback al usuario en archivos grandes
-        if (file.size > 3 * 1024 * 1024) {
-          toast.info("Procesando imagen, espera un momento...", { duration: 4000 });
-        }
-        
-        processedFile = await compressImage(file, { maxWidth: maxDim, maxHeight: maxDim, quality });
-        
-        // Si la compresión devolvió el original y es > 8MB, subir igualmente pero avisar
-        if (processedFile === file && file.size > 8 * 1024 * 1024) {
-          console.warn('[Upload] Compresión no redujo tamaño, subiendo original');
-        }
+      // Imágenes: comprimir vía compressImage (rechaza >10MB automáticamente)
+      const maxDim = isPhoto ? 800 : 1200;
+      const quality = isPhoto ? 0.6 : 0.65;
+
+      if (file.size > 2 * 1024 * 1024) {
+        toast.info("Procesando imagen, espera un momento...", { duration: 4000 });
       }
 
+      const processedFile = await compressImage(file, { maxWidth: maxDim, maxHeight: maxDim, quality });
       const response = await base44.integrations.Core.UploadFile({ file: processedFile });
       toast.success("Archivo subido correctamente");
       return response.file_url;
     } catch (err) {
       console.error('[Upload] Error:', err);
-      // Si el compresor rechazó la imagen por ser demasiado grande, mostrar su mensaje
       if (err?.userMessage) {
         toast.error(err.userMessage, { duration: 10000 });
         return null;
@@ -237,7 +225,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed')) {
         toast.error("Error de conexión. Comprueba tu internet e inténtalo de nuevo.");
       } else if (msg.includes('size') || msg.includes('large') || msg.includes('payload')) {
-        toast.error("La imagen es demasiado grande. Baja la resolución de la cámara en Ajustes e inténtalo de nuevo.");
+        toast.error("Archivo demasiado grande. Baja la resolución de la cámara en Ajustes e inténtalo.");
       } else {
         toast.error("Error al subir. Inténtalo de nuevo o prueba con otra imagen.");
       }
