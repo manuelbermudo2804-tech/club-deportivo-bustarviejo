@@ -1644,9 +1644,9 @@ export default function Layout({ children, currentPageName }) {
             <SeasonProvider externalConfig={activeSeasonConfig}>
             <ChatUnreadProvider user={user}>
             <>
+              <GlobalErrorHandler />
               <ChatCountsBridge onCounts={setChatCounts} />
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
-              {/* Chat notification bubbles - desactivadas, se reimplementarán */}
 
               {/* Modal de instrucciones de instalación */}
               {showInstallInstructions && (
