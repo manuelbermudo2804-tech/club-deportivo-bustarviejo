@@ -18,6 +18,15 @@ export default function AccessCodeVerification({ user, onSuccess }) {
 
   const LOCKOUT_MINUTES = 15;
 
+  // Actualizar contador de bloqueo cada segundo
+  React.useEffect(() => {
+    if (!blocked || blockedMinutes <= 0) return;
+    const timer = setInterval(() => {
+      setBlockedMinutes(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [blocked, blockedMinutes]);
+
   // Registrar que este usuario llegó a la pantalla de código (posible acceso no autorizado)
   React.useEffect(() => {
     if (!user?.email) return;
