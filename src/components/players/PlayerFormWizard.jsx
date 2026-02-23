@@ -182,20 +182,19 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
   }, [isParent, isAdultPlayerSelfRegistration, player]);
 
-  // File upload helper — toda compresión se hace con compressImage() que:
-  // - Rechaza archivos >10MB ANTES de intentar procesarlos (evita OOM)
-  // - Usa createImageBitmap (GPU) o ObjectURL+canvas como fallback
-  // - NUNCA usa base64 (readAsDataURL), siempre multipart File/Blob
-  // - Maneja HEIC: si el navegador no lo soporta, rechaza con mensaje claro
+  // File upload helper:
+  // - Frontend SOLO valida tamaño (máx 5MB) — NO redimensiona ni comprime
+  // - Subida via multipart/form-data al backend processImage que hace resize+JPG+compresión
+  // - PDFs se suben directo sin procesar
   const handleFileUpload = async (file, setUploading, isPhoto = false) => {
     if (!file) return null;
     setUploading(true);
     try {
-      // PDFs se suben directamente sin procesar (pero con límite de 10MB)
+      // PDFs: subir directo (sin procesar imagen)
       const isPDF = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
       if (isPDF) {
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error("El PDF es demasiado grande (máx 10MB).");
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error("El PDF es demasiado grande (máx 5MB).");
           return null;
         }
         const response = await base44.integrations.Core.UploadFile({ file });
@@ -203,29 +202,35 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         return response.file_url;
       }
 
-      // Imágenes: comprimir vía compressImage (rechaza >10MB automáticamente)
-      const maxDim = isPhoto ? 800 : 1200;
-      const quality = isPhoto ? 0.6 : 0.65;
+      // Imágenes: validar tamaño en frontend (sin procesar)
+      await compressImage(file); // Solo valida — rechaza >5MB con mensaje claro
 
-      if (file.size > 2 * 1024 * 1024) {
-        toast.info("Procesando imagen, espera un momento...", { duration: 4000 });
+      if (file.size > 1 * 1024 * 1024) {
+        toast.info("Subiendo imagen al servidor...", { duration: 4000 });
       }
 
-      const processedFile = await compressImage(file, { maxWidth: maxDim, maxHeight: maxDim, quality });
-      const response = await base44.integrations.Core.UploadFile({ file: processedFile });
+      // Subir al backend para resize+compresión (multipart/form-data)
+      const response = await base44.functions.invoke('processImage', file);
+      const data = response.data;
+
+      if (data?.error) {
+        toast.error(data.userMessage || data.error, { duration: 8000 });
+        return null;
+      }
+
       toast.success("Archivo subido correctamente");
-      return response.file_url;
+      return data.file_url;
     } catch (err) {
       console.error('[Upload] Error:', err);
       if (err?.userMessage) {
         toast.error(err.userMessage, { duration: 10000 });
         return null;
       }
-      const msg = (err?.message || '').toLowerCase();
+      const msg = (err?.message || err?.response?.data?.error || '').toString().toLowerCase();
       if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed')) {
         toast.error("Error de conexión. Comprueba tu internet e inténtalo de nuevo.");
-      } else if (msg.includes('size') || msg.includes('large') || msg.includes('payload')) {
-        toast.error("Archivo demasiado grande. Baja la resolución de la cámara en Ajustes e inténtalo.");
+      } else if (msg.includes('size') || msg.includes('large') || msg.includes('413')) {
+        toast.error("Archivo demasiado grande. Baja la resolución de la cámara en Ajustes.");
       } else {
         toast.error("Error al subir. Inténtalo de nuevo o prueba con otra imagen.");
       }
