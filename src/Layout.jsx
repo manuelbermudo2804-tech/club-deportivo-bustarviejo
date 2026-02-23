@@ -1509,6 +1509,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <Button
                 onClick={() => {
+                  localStorage.setItem('app_build_version', BUILD_VERSION);
                   setShowUpdateNotification(false);
                   window.location.reload();
                 }}
