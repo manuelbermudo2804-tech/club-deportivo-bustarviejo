@@ -22,6 +22,7 @@ import {
 export default function UserManagementTable({
   users,
   players,
+  pairByEmail,
   onCoachToggle,
   onCoordinatorToggle,
   onTreasurerToggle,
@@ -113,6 +114,7 @@ export default function UserManagementTable({
             const isDeleted = user.eliminado === true;
             const hasAnomalies =
               isRestricted || isDeleted || (user.role === "user" && userPlayers.length === 0);
+            const pairInfo = pairByEmail?.[user.email?.toLowerCase()];
 
             return (
               <React.Fragment key={user.id}>
@@ -138,6 +140,17 @@ export default function UserManagementTable({
                         <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
                       )}
                     </div>
+                    {pairInfo && (
+                      <div className="flex items-center gap-1 mt-1 bg-pink-50 border border-pink-200 rounded px-2 py-0.5">
+                        <HeartHandshake className="w-3 h-3 text-pink-500 flex-shrink-0" />
+                        <span className="text-[10px] text-pink-700 truncate">
+                          Pareja: <strong>{pairInfo.partner?.full_name || pairInfo.partner?.email}</strong>
+                        </span>
+                        <span className="text-[10px] text-pink-500 flex-shrink-0">
+                          · {pairInfo.sharedPlayers?.length || 0} hijo{(pairInfo.sharedPlayers?.length || 0) !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    )}
                   </td>
 
                   {/* Acceso */}
