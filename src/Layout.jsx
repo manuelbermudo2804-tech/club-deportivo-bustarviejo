@@ -1560,69 +1560,19 @@ export default function Layout({ children, currentPageName }) {
     return <VacationPeriodScreen user={user} isAdmin={isAdmin} />;
   }
 
-  const renderOnboarding = () => {
-        switch (onboardingView) {
-          case 'access_code':
-            return (
-              <Suspense fallback={null}>
-                <AccessCodeVerification
-                  user={user}
-                  onSuccess={(data) => {
-                    // Código validado - recargar para aplicar el rol asignado
-                    window.location.reload();
-                  }}
-                />
-              </Suspense>
-            );
-          case 'selector':
-            return (
-              <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
-                <Suspense fallback={null}>
-                  <RegistrationTypeSelector
-                    onSelectFamily={async () => {
-                      localStorage.setItem('installPromptAfterOnboarding', 'true');
-                      localStorage.setItem('hasSeenWelcome', 'true');
-                      await base44.auth.updateMe({ tipo_panel: 'familia' });
-                      window.location.reload();
-                    }}
-                    onSelectAdultPlayer={async () => {
-                      localStorage.setItem('installPromptAfterOnboarding', 'true');
-                      localStorage.setItem('hasSeenWelcome', 'true');
-                      await base44.auth.updateMe({ tipo_panel: 'jugador_adulto', es_jugador: true });
-                      window.location.reload();
-                    }}
-                    onSelectSecondParent={async () => {
-                      localStorage.setItem('installPromptAfterOnboarding', 'true');
-                      localStorage.setItem('hasSeenWelcome', 'true');
-                      await base44.auth.updateMe({ tipo_panel: 'familia', es_segundo_progenitor: true });
-                      window.location.reload();
-                    }}
-                  />
-                </Suspense>
-              </div>
-            );
-          case 'minor_onboarding':
-            return (
-              <Suspense fallback={null}>
-                <MinorOnboarding
-                  playerName={minorPlayerData?.nombre}
-                  parentName={minorPlayerData?.nombre_tutor_legal || minorPlayerData?.email_padre}
-                  onComplete={() => {
-                    localStorage.setItem('hasSeenWelcome', 'true');
-                    window.location.reload();
-                  }}
-                />
-              </Suspense>
-            );
-          default:
-            return null;
-        }
-      };
+  const onboardingComponent = onboardingView !== 'none' ? (
+    <Suspense fallback={null}>
+      <OnboardingController
+        onboardingView={onboardingView}
+        user={user}
+        minorPlayerData={minorPlayerData}
+      />
+    </Suspense>
+  ) : null;
 
-      const onboardingComponent = renderOnboarding();
-      if (onboardingComponent) {
-        return onboardingComponent;
-      }
+  if (onboardingComponent) {
+    return onboardingComponent;
+  }
 
 
     // Mostrar WelcomeScreen si es primera vez
