@@ -309,10 +309,30 @@ export function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality
         return;
       }
 
-      // Si ningún método funcionó, devolver original
+      // ÚLTIMO RECURSO: Si la foto es enorme y no se pudo comprimir,
+      // NO devolver el original (50MB crashearía la subida y dejaría la app en blanco).
+      // En su lugar, rechazar con un error claro para que el usuario sepa qué hacer.
+      if (file.size > 5 * 1024 * 1024) {
+        console.error(`[ImageCompressor] No se pudo comprimir archivo de ${(file.size/1024/1024).toFixed(1)}MB. Rechazando.`);
+        // Crear un error que el código que llama pueda capturar
+        const error = new Error('IMAGEN_DEMASIADO_GRANDE');
+        error.userMessage = `La foto es demasiado grande (${(file.size/1024/1024).toFixed(0)}MB). Por favor, baja la resolución de la cámara en Ajustes (de 200MP a 12MP o 50MP) e inténtalo de nuevo.`;
+        reject(error);
+        return;
+      }
+
+      // Para archivos pequeños que fallaron la compresión, devolver original
       console.warn('[ImageCompressor] Compresión fallida, usando archivo original');
       resolve(file);
     } catch (err) {
+      // Si es un archivo enorme, NO devolver original
+      if (file.size > 5 * 1024 * 1024) {
+        console.error(`[ImageCompressor] Error con archivo de ${(file.size/1024/1024).toFixed(1)}MB:`, err);
+        const error = new Error('IMAGEN_DEMASIADO_GRANDE');
+        error.userMessage = `No se pudo procesar la foto (${(file.size/1024/1024).toFixed(0)}MB). Baja la resolución de la cámara en Ajustes e inténtalo de nuevo.`;
+        reject(error);
+        return;
+      }
       console.warn('[ImageCompressor] Error inesperado, usando archivo original:', err);
       resolve(file);
     }
