@@ -186,6 +186,7 @@ export default function Layout({ children, currentPageName }) {
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
   
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
+  const [hasNewVersion, setHasNewVersion] = useState(false);
   // Mercadillo badge
   const [marketCount, setMarketCount] = useState(0);
   const [marketNewCount, setMarketNewCount] = useState(0);
@@ -282,7 +283,7 @@ export default function Layout({ children, currentPageName }) {
           // Forzar búsqueda en el servidor
           await reg.update();
           // Si hay una versión esperando, mostrar aviso
-          if (reg.waiting) setShowUpdateNotification(true);
+          if (reg.waiting) { setShowUpdateNotification(true); setHasNewVersion(true); }
         } catch (e) { 
           console.error('Error verificando actualizaciones:', e); 
         }
@@ -302,8 +303,9 @@ export default function Layout({ children, currentPageName }) {
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistration().then(reg => {
               if (reg?.waiting) {
-                setShowUpdateNotification(true);
-              }
+                              setShowUpdateNotification(true);
+                              setHasNewVersion(true);
+                            }
             });
           }
         }
@@ -320,8 +322,9 @@ export default function Layout({ children, currentPageName }) {
               if (newWorker) {
                 newWorker.addEventListener('statechange', () => {
                   if (newWorker.state === 'installed' && reg.waiting) {
-                    setShowUpdateNotification(true);
-                  }
+                                    setShowUpdateNotification(true);
+                                    setHasNewVersion(true);
+                                  }
                 });
               }
             });
@@ -1420,10 +1423,10 @@ export default function Layout({ children, currentPageName }) {
 
                                                     <button
                                                     onClick={() => window.location.reload()}
-                                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-blue-500/20 text-white hover:bg-blue-500/30 transition-all mb-2"
+                                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all mb-2 ${hasNewVersion ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg animate-pulse' : 'bg-blue-500/20 text-white hover:bg-blue-500/30'}`}
                                                     >
                                                     <RotateCw className="w-6 h-6" />
-                                                    <span className="font-semibold text-lg">Actualizar Datos</span>
+                                                    <span className="font-semibold text-lg">{hasNewVersion ? '🆕 Nueva versión disponible' : 'Actualizar Datos'}</span>
                                                     </button>
 
                                                     <button
@@ -1465,6 +1468,7 @@ export default function Layout({ children, currentPageName }) {
           onShowFeedback={() => setShowFeedback(true)}
           onShowDeleteAccount={() => setShowDeleteAccount(true)}
           playerName={playerName}
+          hasNewVersion={hasNewVersion}
         />
 
         {/* Notificación de nueva versión disponible */}

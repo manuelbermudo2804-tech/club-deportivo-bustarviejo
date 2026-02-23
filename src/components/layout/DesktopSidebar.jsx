@@ -16,7 +16,7 @@ export default function DesktopSidebar({
   user, isAdmin, isCoordinator, isTreasurer, isCoach, isPlayer, isAppInstalled,
   navigationItems, currentSeason, enginesReady, currentLang, onLanguageChange,
   onLogout, onShowInstall, onCheckUpdates, onShowFeedback, onShowDeleteAccount,
-  playerName
+  playerName, hasNewVersion
 }) {
   const location = useLocation();
 
@@ -118,10 +118,16 @@ export default function DesktopSidebar({
         </Button>
         <div className="text-center text-xs text-green-400 mt-4 pt-4 border-t border-green-500/30">
           <p className="font-medium">Temporada {currentSeason}</p>
-          <Button onClick={onCheckUpdates} variant="outline" size="sm" className="w-full mt-3 border-orange-500/50 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 text-xs h-8">
-            <RotateCw className="w-3 h-3 mr-2" />
-            Buscar Actualizaciones
-          </Button>
+          {hasNewVersion ? (
+            <Button onClick={() => window.location.reload()} size="sm" className="w-full mt-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs h-9 animate-pulse font-bold shadow-lg">
+              🆕 Nueva versión disponible
+            </Button>
+          ) : (
+            <Button onClick={onCheckUpdates} variant="outline" size="sm" className="w-full mt-3 border-orange-500/50 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 text-xs h-8">
+              <RotateCw className="w-3 h-3 mr-2" />
+              Buscar Actualizaciones
+            </Button>
+          )}
           <p className="text-slate-500 mt-3 text-[10px]">© CD Bustarviejo (v1.0)</p>
           <p className="text-slate-500 text-[10px]">🔒 Tus datos están protegidos según RGPD</p>
         </div>
