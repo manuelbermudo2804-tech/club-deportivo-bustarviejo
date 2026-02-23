@@ -63,12 +63,14 @@ export default function RegistrationTypeSelector({ onSelectFamily, onSelectAdult
                     <strong>⚠️ Si ya te han invitado</strong> (tienes un email del club), simplemente inicia sesión con el email que le diste a tu pareja. Si no te han invitado todavía, dile a tu pareja que te añada como segundo progenitor.
                   </p>
                 </div>
-                <Button 
-                  onClick={onSelectSecondParent}
-                  className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold"
-                >
-                  Ya me han invitado, continuar como Familia →
-                </Button>
+                {onSelectSecondParent && (
+                  <Button 
+                    onClick={onSelectSecondParent}
+                    className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold"
+                  >
+                    Ya me han invitado, continuar como Familia →
+                  </Button>
+                )}
               </div>
             )}
           </AlertDescription>
