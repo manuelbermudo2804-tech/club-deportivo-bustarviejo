@@ -1049,6 +1049,8 @@ export default function Layout({ children, currentPageName }) {
 
         // Si es menor, no seguir con el resto de detección de roles
         if (minorDetected) {
+          setHasPlayers(false); // Menores NO tienen "mis hijos" - evita mostrar modal de alta
+          setIsPlayer(false); // Menores NO son jugadores adultos
           setIsLoading(false);
           // Redirigir a MinorDashboard si es primera carga
           const hasInitialRedirect = sessionStorage.getItem('initialRedirectDone');
