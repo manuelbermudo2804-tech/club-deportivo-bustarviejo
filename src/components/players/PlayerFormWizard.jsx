@@ -228,12 +228,16 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       return response.file_url;
     } catch (err) {
       console.error('[Upload] Error:', err);
-      // Mensaje más útil según el error
+      // Si el compresor rechazó la imagen por ser demasiado grande, mostrar su mensaje
+      if (err?.userMessage) {
+        toast.error(err.userMessage, { duration: 10000 });
+        return null;
+      }
       const msg = (err?.message || '').toLowerCase();
       if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed')) {
         toast.error("Error de conexión. Comprueba tu internet e inténtalo de nuevo.");
       } else if (msg.includes('size') || msg.includes('large') || msg.includes('payload')) {
-        toast.error("La imagen es demasiado grande. Intenta hacer la foto con menor resolución.");
+        toast.error("La imagen es demasiado grande. Baja la resolución de la cámara en Ajustes e inténtalo de nuevo.");
       } else {
         toast.error("Error al subir. Inténtalo de nuevo o prueba con otra imagen.");
       }
