@@ -24,19 +24,22 @@ Deno.serve(async (req) => {
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
-      const file = formData.get('file');
+      // SDK sends the file under the parameter name used in invoke (e.g. 'image')
+      const file = formData.get('image') || formData.get('file');
       if (!file || !(file instanceof File)) {
-        return Response.json({ error: 'No se envió ningún archivo' }, { status: 400 });
+        return Response.json({ error: 'No se envió ningún archivo. Usa {image: File}' }, { status: 400 });
       }
       originalName = file.name || 'photo.jpg';
       fileBlob = file;
+    } else if (contentType.includes('application/json')) {
+      // JSON body — no file attached
+      return Response.json({ error: 'Envía la imagen como File, no como JSON' }, { status: 400 });
     } else {
-      // Raw binary body (base44 SDK sends binary when you pass a File)
+      // Raw binary body fallback
       const body = await req.arrayBuffer();
       if (!body || body.byteLength === 0) {
         return Response.json({ error: 'Cuerpo vacío' }, { status: 400 });
       }
-      // Detect type from the content-type header
       const ct = contentType || 'image/jpeg';
       fileBlob = new Blob([body], { type: ct });
     }
