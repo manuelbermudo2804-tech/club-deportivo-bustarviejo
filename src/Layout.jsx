@@ -357,6 +357,17 @@ export default function Layout({ children, currentPageName }) {
       };
     }, []);
 
+    // Build version check - detect new deploys without SW dependency
+    useEffect(() => {
+      const savedVersion = localStorage.getItem('app_build_version');
+      if (savedVersion && savedVersion !== BUILD_VERSION) {
+        setHasNewVersion(true);
+        setShowUpdateNotification(true);
+      } else {
+        localStorage.setItem('app_build_version', BUILD_VERSION);
+      }
+    }, []);
+
     // Rate limit guard - pausa consultas si recibimos 429
     useEffect(() => {
       const onRateLimit = (e) => {
