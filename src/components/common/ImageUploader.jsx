@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { compressImage } from "../utils/imageCompressor";
+import { toast } from "sonner";
 
 export default function ImageUploader({ images = [], onChange, max = 4 }) {
   const [loading, setLoading] = useState(false);
