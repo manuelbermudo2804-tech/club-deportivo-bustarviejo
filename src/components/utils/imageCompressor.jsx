@@ -230,7 +230,7 @@ async function compressViaImageBitmap(file, maxWidth, maxHeight, quality) {
  * @returns {Promise<File>} - Archivo comprimido o el original si falla
  */
 export function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality = 0.7 } = {}) {
-  return new Promise(async (resolve) => {
+  return new Promise(async (resolve, reject) => {
     // Validaciones básicas
     if (!file) { resolve(file); return; }
     
