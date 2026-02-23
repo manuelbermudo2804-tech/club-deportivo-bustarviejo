@@ -856,7 +856,11 @@ const handleChatBlock = (user) => {
               const { data } = await base44.functions.invoke('detectParentPairs');
               setPairingResults(data);
               setShowPairingResults(true);
-              queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+              // Refrescar players Y users para que pairByEmail se recalcule con los datos actualizados
+              await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['players'] }),
+                queryClient.invalidateQueries({ queryKey: ['allUsers'] }),
+              ]);
               toast.success(`✅ Se detectaron ${data.pairsDetected} parejas de progenitores`);
             } catch (error) {
               toast.error('Error detectando parejas: ' + error.message);
