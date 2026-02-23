@@ -249,6 +249,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const handleDNIUpload = async (e) => {
     const file = e.target.files?.[0];
     if (e.target) e.target.value = '';
+    if (!file || file.size === 0) return;
     const url = await handleFileUpload(file, setUploadingDNI, false);
     if (url) setCurrentPlayer(p => ({ ...p, dni_jugador_url: url }));
   };
