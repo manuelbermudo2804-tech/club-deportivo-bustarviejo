@@ -256,6 +256,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const handleLibroFamiliaUpload = async (e) => {
     const file = e.target.files?.[0];
     if (e.target) e.target.value = '';
+    if (!file || file.size === 0) return;
     const url = await handleFileUpload(file, setUploadingLibroFamilia, false);
     if (url) setCurrentPlayer(p => ({ ...p, libro_familia_url: url }));
   };
