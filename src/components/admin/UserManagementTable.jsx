@@ -85,6 +85,9 @@ export default function UserManagementTable({
     return result;
   })();
 
+  // Debug: mostrar estado de pairByEmail
+  const pairKeys = pairByEmail ? Object.keys(pairByEmail) : [];
+
   if (!users || users.length === 0) {
     return (
       <div className="text-center py-12 text-slate-500">
