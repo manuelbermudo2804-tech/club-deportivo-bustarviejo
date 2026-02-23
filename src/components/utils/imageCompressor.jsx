@@ -23,9 +23,22 @@ export function validateImage(file) {
   return new Promise((resolve, reject) => {
     if (!file) { resolve(file); return; }
 
-    // Verificar que es imagen
-    const isImage = file.type?.startsWith('image/') ||
-                    /\.(jpe?g|png|webp|heic|heif|bmp|gif)$/i.test(file.name || '');
+    // Archivo vacío (tamaño 0) — ocurre en algunos Android WebView al cancelar cámara
+    if (file.size === 0) {
+      const error = new Error('ARCHIVO_VACIO');
+      error.userMessage = 'La imagen está vacía o no se pudo leer. Inténtalo de nuevo.';
+      reject(error);
+      return;
+    }
+
+    // Normalizar MIME: algunos Android devuelven "" o "application/octet-stream"
+    const mimeType = file.type || '';
+    const isImageByMime = mimeType.startsWith('image/');
+    const isImageByExt = /\.(jpe?g|png|webp|heic|heif|bmp|gif)$/i.test(file.name || '');
+    const isUnknownMime = mimeType === '' || mimeType === 'application/octet-stream';
+
+    // Verificar que es imagen (por MIME o por extensión, o MIME genérico aceptable)
+    const isImage = isImageByMime || isImageByExt || isUnknownMime;
     if (!isImage) { resolve(file); return; }
 
     // Límite de tamaño: 5MB
