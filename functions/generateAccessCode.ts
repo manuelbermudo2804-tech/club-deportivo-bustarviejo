@@ -227,9 +227,13 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
                           </a>
                         </td></tr>
                       </table>
-                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:10px;">
-                        <tr><td style="font-family:Arial,sans-serif;font-size:12px;color:#15803d;background-color:#dcfce7;padding:8px 12px;border-radius:8px;line-height:20px;">
-                          &#128161; En muchos Android se instala autom&aacute;ticamente al abrir el enlace. Si no, la p&aacute;gina te indicar&aacute; los pasos.
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
+                        <tr><td style="font-family:Arial,sans-serif;font-size:12px;color:#15803d;background-color:#dcfce7;padding:10px 14px;border-radius:8px;line-height:20px;">
+                          &#128161; <strong>Si NO te sale el instalador autom&aacute;tico:</strong><br/>
+                          1. Abre <strong>Chrome</strong> en tu m&oacute;vil<br/>
+                          2. Pulsa los <strong>3 puntos</strong> de arriba a la derecha (&#8942;)<br/>
+                          3. Pulsa <strong>&quot;Instalar aplicaci&oacute;n&quot;</strong> o <strong>&quot;A&ntilde;adir a pantalla de inicio&quot;</strong><br/>
+                          4. Confirma pulsando <strong>&quot;Instalar&quot;</strong> &mdash; &iexcl;Listo! &#127881;
                         </td></tr>
                       </table>
                     </td></tr>
