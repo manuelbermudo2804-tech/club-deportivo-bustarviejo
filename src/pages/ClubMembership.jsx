@@ -551,6 +551,14 @@ export default function ClubMembership() {
   const handleJustificanteUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (e.target) e.target.value = '';
+
+    // Validar tamaño (5MB máx)
+    if (file.size > 5 * 1024 * 1024) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(0);
+      toast.error(`El archivo pesa ${sizeMB}MB y el máximo es 5MB. Reduce la resolución o envía la foto por WhatsApp a ti mismo.`, { duration: 10000 });
+      return;
+    }
 
     setUploadingJustificante(true);
     try {
@@ -558,7 +566,7 @@ export default function ClubMembership() {
       setFormData(prev => ({ ...prev, justificante_url: response.file_url }));
       toast.success("✅ Justificante subido");
     } catch (error) {
-      toast.error("Error al subir el archivo");
+      toast.error("Error al subir el archivo. Intenta con un archivo más pequeño.");
     } finally {
       setUploadingJustificante(false);
     }
