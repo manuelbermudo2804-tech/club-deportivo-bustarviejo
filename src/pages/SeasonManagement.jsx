@@ -956,81 +956,38 @@ export default function SeasonManagement() {
       currentStep++;
       setProcessingProgress((currentStep / totalSteps) * 100);
 
-      // 7.1 IMPORTANTE: Crear CategoryConfig para la nueva temporada copiando con precios actuales
-      setProcessingStep("Preparando las 9 categorías BASE para nueva temporada...");
+      // 7.1 Desactivar categorías antiguas y crear las de la nueva temporada
+      setProcessingStep("Preparando categorías para nueva temporada...");
       const BASE_CATEGORIES = [
-        "Fútbol Pre-Benjamín (Mixto)",
-        "Fútbol Benjamín (Mixto)",
-        "Fútbol Alevín (Mixto)",
-        "Fútbol Infantil (Mixto)",
-        "Fútbol Cadete",
-        "Fútbol Juvenil",
-        "Fútbol Aficionado",
-        "Fútbol Femenino",
-        "Baloncesto (Mixto)"
+        "Fútbol Pre-Benjamín (Mixto)", "Fútbol Benjamín (Mixto)", "Fútbol Alevín (Mixto)",
+        "Fútbol Infantil (Mixto)", "Fútbol Cadete", "Fútbol Juvenil",
+        "Fútbol Aficionado", "Fútbol Femenino", "Baloncesto (Mixto)"
       ];
-      
+      const DEFAULT_QUOTAS = {
+        "Fútbol Pre-Benjamín (Mixto)": { i: 100, s: 75, t: 75 }, "Fútbol Benjamín (Mixto)": { i: 100, s: 75, t: 75 },
+        "Fútbol Alevín (Mixto)": { i: 115, s: 83, t: 83 }, "Fútbol Infantil (Mixto)": { i: 115, s: 83, t: 83 },
+        "Fútbol Cadete": { i: 135, s: 100, t: 95 }, "Fútbol Juvenil": { i: 135, s: 100, t: 95 },
+        "Fútbol Aficionado": { i: 165, s: 100, t: 95 }, "Fútbol Femenino": { i: 135, s: 100, t: 95 },
+        "Baloncesto (Mixto)": { i: 50, s: 50, t: 50 }
+      };
       const allExistingCategories = await base44.entities.CategoryConfig.list();
-      const newSeasonCategories = allExistingCategories.filter(c => c.temporada === resetConfig.newSeasonName);
-      
-      // Si la nueva temporada YA tiene categorías, solo verificar que estén las 9 BASE
-      if (newSeasonCategories.length > 0) {
-        for (const baseName of BASE_CATEGORIES) {
-          const exists = newSeasonCategories.some(c => c.nombre === baseName);
-          if (!exists) {
-            const sourceCategory = allExistingCategories.find(c => c.nombre === baseName && c.es_base === true);
-            if (sourceCategory) {
-              const { id, created_date, updated_date, ...catData } = sourceCategory;
-              await base44.entities.CategoryConfig.create({
-                ...catData,
-                temporada: resetConfig.newSeasonName,
-                activa: true
-              });
-              console.log(`✅ Categoría faltante añadida: ${baseName}`);
-            }
-          }
-        }
-      } else {
-        // Copiar las 9 categorías BASE de la temporada actual
-        for (const baseName of BASE_CATEGORIES) {
-          const sourceCategory = allExistingCategories.find(c => c.nombre === baseName && c.es_base === true);
-          if (sourceCategory) {
-            const { id, created_date, updated_date, ...catData } = sourceCategory;
-            await base44.entities.CategoryConfig.create({
-              ...catData,
-              temporada: resetConfig.newSeasonName,
-              es_base: true,
-              activa: true
-            });
-          } else {
-            // Fallback: crear con precios por defecto si no existe
-            const DEFAULT_QUOTAS = {
-              "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75 },
-              "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75 },
-              "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83 },
-              "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83 },
-              "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95 },
-              "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95 },
-              "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95 },
-              "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95 },
-              "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50 }
-            };
-            const cuotas = DEFAULT_QUOTAS[baseName];
-            await base44.entities.CategoryConfig.create({
-              nombre: baseName,
-              deporte: baseName.includes("Baloncesto") ? "Baloncesto" : "Fútbol",
-              cuota_inscripcion: cuotas.inscripcion,
-              cuota_segunda: cuotas.segunda,
-              cuota_tercera: cuotas.tercera,
-              cuota_total: cuotas.inscripcion + cuotas.segunda + cuotas.tercera,
-              temporada: resetConfig.newSeasonName,
-              es_base: true,
-              activa: true
-            });
-          }
-        }
-        console.log('✅ 9 categorías BASE creadas para nueva temporada con sus precios actuales');
+      // 1) Desactivar TODAS las categorías que NO son de la nueva temporada
+      for (const oldCat of allExistingCategories.filter(c => c.temporada !== resetConfig.newSeasonName && c.activa)) {
+        await base44.entities.CategoryConfig.update(oldCat.id, { activa: false });
       }
+      // 2) Crear categorías BASE que falten en la nueva temporada
+      const newSeasonCats = allExistingCategories.filter(c => c.temporada === resetConfig.newSeasonName);
+      for (const baseName of BASE_CATEGORIES) {
+        if (newSeasonCats.some(c => c.nombre === baseName)) continue;
+        const src = allExistingCategories.find(c => c.nombre === baseName);
+        const q = src ? { i: src.cuota_inscripcion, s: src.cuota_segunda, t: src.cuota_tercera } : DEFAULT_QUOTAS[baseName];
+        await base44.entities.CategoryConfig.create({
+          nombre: baseName, temporada: resetConfig.newSeasonName, activa: true, es_base: true,
+          deporte: baseName.includes("Baloncesto") ? "Baloncesto" : "Fútbol",
+          cuota_inscripcion: q.i, cuota_segunda: q.s, cuota_tercera: q.t, cuota_total: q.i + q.s + q.t
+        });
+      }
+      console.log('✅ Categorías antiguas desactivadas, nuevas creadas');
 
       // 8. Registrar en historial
       await base44.entities.ResetHistory.create({
