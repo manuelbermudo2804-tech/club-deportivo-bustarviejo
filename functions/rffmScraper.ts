@@ -399,44 +399,32 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, scorers, total: scorers.length });
       }
 
-      // Debug standings page structure
+      // Debug standings page structure - try multiple URL variations
       case 'debug_standings': {
         const tryJ = jornada || '13';
-        const sHtml = await fetchPage(buildClassificationUrl(p, tryJ), cookies);
-        const $ds = load(sHtml);
         
-        // Check for frames/iframes
-        const frames = $ds('frame, iframe').map((_, f) => ({ name: $ds(f).attr('name') || '', src: ($ds(f).attr('src') || '').substring(0, 300) })).get();
+        // Try multiple URL formats to find which one has the classification table
+        const urls = [
+          { label: 'NFG_VisClasificacion (no jornada)', url: buildClassificationUrl(p) },
+          { label: 'NFG_VisClasificacion (with jornada)', url: buildClassificationUrl(p, tryJ) },
+          { label: 'NFG_CmpClasificacion', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${tryJ}` },
+          { label: 'NFG_CmpClasificacion (no jornada)', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}` },
+          { label: 'tipojuego=1', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${tryJ}&Sch_Tipo_Juego=1` },
+        ];
         
-        // Check for forms with select boxes (jornada/temporada selectors)
-        const selects = [];
-        $ds('select').each((_, sel) => {
-          const name = $ds(sel).attr('name') || $ds(sel).attr('id') || '';
-          const opts = $ds(sel).find('option').map((__, o) => ({ val: $ds(o).attr('value'), text: $ds(o).text().trim().substring(0,40), selected: $ds(o).attr('selected') !== undefined })).get().slice(0, 10);
-          selects.push({ name, optionCount: $ds(sel).find('option').length, options: opts });
-        });
+        const results = [];
+        for (const u of urls) {
+          const html = await fetchPage(u.url, cookies);
+          const $d = load(html);
+          const tableCount = $d('table').length;
+          const hasEquipo = html.toLowerCase().includes('equipo');
+          const hasPts = html.toLowerCase().includes('pts') || html.toLowerCase().includes('ptos');
+          const noData = html.includes('No hay clasificaci');
+          const snippet = html.substring(0, 200);
+          results.push({ label: u.label, url: u.url, htmlLen: html.length, tableCount, hasEquipo, hasPts, noData, snippet: snippet.substring(0, 150) });
+        }
         
-        const sTables = [];
-        $ds('table').each((i, table) => {
-          const rows = [];
-          $ds(table).find('tr').each((_, tr) => {
-            const cells = $ds(tr).find('th, td').map((__, c) => $ds(c).text().replace(/\s+/g, ' ').trim().substring(0, 80)).get();
-            if (cells.some(c => c.length > 0)) rows.push(cells);
-          });
-          if (rows.length > 0) sTables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 15) });
-        });
-        
-        // Also grab a raw HTML snippet around "clasificacion"
-        const classIdx = sHtml.toLowerCase().indexOf('clasificaci');
-        const classSnippet = classIdx >= 0 ? sHtml.substring(Math.max(0, classIdx - 200), classIdx + 500) : 'Not found';
-        
-        return Response.json({ 
-          success: true, jornada: tryJ, htmlLength: sHtml.length, 
-          frames, selects,
-          tablesCount: sTables.length, tables: sTables.slice(0, 12), 
-          classificationSnippet: classSnippet.substring(0, 800),
-          urlUsed: buildClassificationUrl(p, tryJ)
-        });
+        return Response.json({ success: true, jornada: tryJ, results });
       }
 
       // Debug scorers page structure
