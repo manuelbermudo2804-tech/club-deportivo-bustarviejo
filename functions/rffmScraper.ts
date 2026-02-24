@@ -124,21 +124,28 @@ function parseJornadaMatches(html) {
     let golesLocal = null, golesVisitante = null, jugado = false;
     let fecha = null, hora = null;
     
-    // Try to extract score
-    const scoreMatch = centerText.match(/(\d+)\s*[-–]\s*(\d+)/);
-    if (scoreMatch) {
-      golesLocal = parseInt(scoreMatch[1]);
-      golesVisitante = parseInt(scoreMatch[2]);
-      jugado = true;
-    }
-    
-    // Extract date (dd-mm-yyyy or dd/mm/yyyy)
+    // IMPORTANT: Extract date FIRST to avoid confusing "25/04/2026" as score "25-4"
+    // Date formats: dd-mm-yyyy, dd/mm/yyyy, dd-mm-yy, dd/mm/yy
     const dateMatch = centerText.match(/(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/);
     if (dateMatch) fecha = dateMatch[1].replace(/-/g, '/');
     
     // Extract time (HH:MM)
     const timeMatch = centerText.match(/(\d{1,2}:\d{2})/);
     if (timeMatch) hora = timeMatch[1];
+    
+    // Remove the date and time from the text before looking for scores
+    let textWithoutDate = centerText;
+    if (dateMatch) textWithoutDate = textWithoutDate.replace(dateMatch[0], '');
+    if (timeMatch) textWithoutDate = textWithoutDate.replace(timeMatch[0], '');
+    textWithoutDate = textWithoutDate.trim();
+    
+    // Now try to extract score from remaining text (e.g. "1 - 2")
+    const scoreMatch = textWithoutDate.match(/(\d+)\s*[-–]\s*(\d+)/);
+    if (scoreMatch) {
+      golesLocal = parseInt(scoreMatch[1]);
+      golesVisitante = parseInt(scoreMatch[2]);
+      jugado = true;
+    }
     
     // Also check if next td has campo for the NEXT match
     // td[3] onwards may have next match's campo
