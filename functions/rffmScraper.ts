@@ -85,6 +85,66 @@ function buildExecUrl(type, p, extra = {}) {
   return `${base}${type}?${params.toString()}`;
 }
 
+// Parse matches from the NFG_CmpPartido page (the actual content page)
+function parseMatchesFromPartido(html) {
+  const $ = load(html);
+  const matches = [];
+  
+  // Strategy 1: Look for table rows with team names and scores
+  $('table').each((_, table) => {
+    $(table).find('tr').each((__, row) => {
+      const cells = $(row).find('td');
+      if (cells.length < 3) return;
+      
+      const texts = cells.map((_, td) => $(td).text().trim()).get();
+      
+      // Look for score pattern in any cell
+      for (let i = 0; i < texts.length; i++) {
+        const scoreMatch = texts[i].match(/^(\d+)\s*[-–]\s*(\d+)$/);
+        if (scoreMatch && i > 0 && i < texts.length - 1) {
+          const local = texts[i - 1].replace(/\s+/g, ' ').trim();
+          const visitante = texts[i + 1].replace(/\s+/g, ' ').trim();
+          if (local.length > 2 && visitante.length > 2 && !/^\d+$/.test(local)) {
+            const match = { local, visitante, goles_local: parseInt(scoreMatch[1]), goles_visitante: parseInt(scoreMatch[2]), jugado: true };
+            for (const t of texts) {
+              const dateM = t.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+              if (dateM) match.fecha = dateM[1];
+              const timeM = t.match(/(\d{1,2}:\d{2})/);
+              if (timeM && !match.hora) match.hora = timeM[1];
+            }
+            matches.push(match);
+          }
+        }
+      }
+    });
+  });
+  
+  // Strategy 2: Look for specific div-based match structures
+  $('div, span').each((_, el) => {
+    const text = $(el).text().trim();
+    // Pattern: "TEAM A  N - N  TEAM B"
+    const matchPattern = text.match(/^(.{3,40}?)\s+(\d+)\s*[-–]\s*(\d+)\s+(.{3,40})$/);
+    if (matchPattern) {
+      matches.push({
+        local: matchPattern[1].trim(),
+        visitante: matchPattern[4].trim(),
+        goles_local: parseInt(matchPattern[2]),
+        goles_visitante: parseInt(matchPattern[3]),
+        jugado: true
+      });
+    }
+  });
+  
+  // Deduplicate
+  const seen = new Set();
+  return matches.filter(m => {
+    const key = `${m.local}__${m.visitante}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 // Parse match results from the _Exec page
 function parseMatchesExec(html) {
   const $ = load(html);
