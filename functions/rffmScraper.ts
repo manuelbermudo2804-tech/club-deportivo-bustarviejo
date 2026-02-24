@@ -481,52 +481,35 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, scorers, total: scorers.length });
       }
 
-      // Debug standings page structure - focus on table 5 which has 14 rows
+      // Debug standings page structure
       case 'debug_standings': {
-        const tryJ = jornada || '13';
+        const tryJ = jornada || '16';
         const html = await fetchPage(buildClassificationUrl(p, tryJ), cookies);
         const $d = load(html);
         
-        // Find divs with CL_Resumen or CL_Detalle (from JS functions VerDetalle/VerResumen)
-        const divContent = {};
-        ['CL_Resumen', 'CL_Detalle'].forEach(id => {
-          const div = $d(`#${id}`);
-          if (div.length) {
-            // Get tables inside this div
-            const innerTables = [];
-            div.find('table').each((i, t) => {
-              const rows = [];
-              $d(t).find('tr').each((_, tr) => {
-                const cells = $d(tr).find('th, td').map((__, c) => {
-                  // Get direct text content only (not nested elements)
-                  const text = $d(c).clone().children().remove().end().text().replace(/\s+/g, ' ').trim();
-                  const full = $d(c).text().replace(/\s+/g, ' ').trim();
-                  return { direct: text.substring(0, 50), full: full.substring(0, 80) };
-                }).get();
-                rows.push(cells);
-              });
-              innerTables.push({ rows: rows.slice(0, 5), rowCount: rows.length, colCount: rows[0]?.length || 0 });
+        const container = $d('#CL_Resumen');
+        const scope = container.length ? container : $d('body');
+        const debugRows = [];
+        
+        scope.find('table').each((tIdx, table) => {
+          const allText = $d(table).text();
+          if (!allText.includes('Puntos') || !allText.includes('J.')) return;
+          
+          $d(table).find('tr').each((rIdx, tr) => {
+            const cells = $d(tr).find('td').toArray();
+            const cellData = cells.map((c, cIdx) => {
+              const clone = $d(c).clone();
+              clone.find('script, style').remove();
+              const text = clone.text().replace(/\s+/g, ' ').trim().substring(0, 120);
+              const hasImg = $d(c).find('img').length > 0;
+              return { i: cIdx, t: text, img: hasImg };
             });
-            divContent[id] = { found: true, tableCount: innerTables.length, tables: innerTables.slice(0, 3) };
-          } else {
-            divContent[id] = { found: false };
-          }
+            debugRows.push({ r: rIdx, n: cells.length, cells: cellData });
+          });
+          return false;
         });
         
-        // Also try table idx 5 specifically (which had 14 rows in previous debug)
-        const allTables = $d('table').toArray();
-        const table5Info = {};
-        if (allTables[5]) {
-          const rows = [];
-          $d(allTables[5]).find('tr').each((_, tr) => {
-            const cells = $d(tr).find('th, td').map((__, c) => $d(c).text().replace(/\s+/g, ' ').trim().substring(0, 80)).get();
-            rows.push({ cellCount: cells.length, cells });
-          });
-          table5Info.rows = rows.slice(0, 6);
-          table5Info.rowCount = rows.length;
-        }
-        
-        return Response.json({ success: true, divContent, table5: table5Info, totalTables: allTables.length });
+        return Response.json({ success: true, totalRows: debugRows.length, rows: debugRows.slice(0, 6) });
       }
 
       // Debug scorers page structure
