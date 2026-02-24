@@ -372,8 +372,23 @@ Deno.serve(async (req) => {
 
       // Fetch classification/standings
       case 'standings': {
-        const html = await fetchPage(buildClassificationUrl(p), cookies);
-        const standings = parseStandings(html);
+        // First try without jornada
+        let html = await fetchPage(buildClassificationUrl(p), cookies);
+        let standings = parseStandings(html);
+        
+        // If empty, the page needs a CodJornada param - detect from jornada page
+        if (standings.length === 0) {
+          // Get total jornadas from jornada 1 page
+          const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
+          const totalJ = detectTotalJornadas(j1Html);
+          
+          // Try from the latest jornada backwards to find one with standings
+          for (let tryJ = totalJ; tryJ >= 1 && standings.length === 0; tryJ--) {
+            html = await fetchPage(buildClassificationUrl(p, tryJ), cookies);
+            standings = parseStandings(html);
+          }
+        }
+        
         return Response.json({ success: true, standings });
       }
 
