@@ -382,6 +382,22 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, scorers, total: scorers.length });
       }
 
+      // Debug standings page structure
+      case 'debug_standings': {
+        const sHtml = await fetchPage(buildClassificationUrl(p), cookies);
+        const $ds = load(sHtml);
+        const sTables = [];
+        $ds('table').each((i, table) => {
+          const rows = [];
+          $ds(table).find('tr').each((_, tr) => {
+            const cells = $ds(tr).find('th, td').map((__, c) => $ds(c).text().replace(/\s+/g, ' ').trim().substring(0, 80)).get();
+            if (cells.some(c => c.length > 0)) rows.push(cells);
+          });
+          if (rows.length > 0) sTables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 10) });
+        });
+        return Response.json({ success: true, htmlLength: sHtml.length, tablesCount: sTables.length, tables: sTables.slice(0, 10), titleSnippet: sHtml.substring(0, 500) });
+      }
+
       // Debug scorers page structure
       case 'debug_scorers': {
         // Correct URL from navigation: NFG_CMP_Goleadores (not NFG_CmpGoleadores)
