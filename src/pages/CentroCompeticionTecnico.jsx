@@ -208,44 +208,7 @@ export default function CentroCompeticionTecnico() {
     };
   }, [dbMatch, category]);
 
-  const matchForForm = nextCallup || lastPlayed;
   const matchForAnalysis = nextCallup || nextRivalFromDB;
-
-  // Registro rápido post-partido
-  const [showObservationForm, setShowObservationForm] = React.useState(false);
-  const [editingAutoObs, setEditingAutoObs] = React.useState(null);
-  const autoAnalysisDoneRef = React.useRef(false);
-  const autoObservationDoneRef = React.useRef(false);
-
-  // Check for auto-generated observations pending coach review
-  const { data: pendingAutoObs } = useQuery({
-    queryKey: ['pending-auto-obs', category],
-    queryFn: async () => {
-      const obs = await base44.entities.MatchObservation.filter({ categoria: category, auto_generada: true, completada_por_entrenador: false }, '-jornada', 5);
-      return obs;
-    },
-    staleTime: 60_000,
-  });
-
-  // Auto-análisis desactivado al entrar para evitar consumo de memoria/red en dispositivos bajos
-  // El usuario puede pulsar el botón "Analizar Próximo Rival" manualmente
-
-  // Auto: abrir registro rápido tras el partido O si viene de la alerta con openObservation=true
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const shouldOpen = params.get('openObservation') === 'true';
-    
-    if (shouldOpen && !autoObservationDoneRef.current) {
-      autoObservationDoneRef.current = true;
-      setShowObservationForm(true);
-      // Limpiar param de la URL
-      params.delete('openObservation');
-      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
-    } else if (!nextCallup && lastPlayed && !autoObservationDoneRef.current) {
-      autoObservationDoneRef.current = true;
-      setShowObservationForm(true);
-    }
-  }, [nextCallup, lastPlayed]);
 
   // Análisis de rival (usa el mismo patrón de CoachStandingsAnalysis)
   const [isAnalyzingRival, setIsAnalyzingRival] = React.useState(false);
