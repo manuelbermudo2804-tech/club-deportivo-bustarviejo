@@ -439,12 +439,16 @@ Deno.serve(async (req) => {
       // Find next unplayed match for Bustarviejo
       case 'next_match': {
         const startJ = parseInt(jornada || p.CodJornada || '1');
-        // Search from the given jornada forward
-        for (let j = startJ; j <= startJ + 10; j++) {
+        // Search from the given jornada forward (up to 15 jornadas ahead)
+        for (let j = startJ; j <= startJ + 15; j++) {
           const html = await fetchPage(buildJornadaUrl(p, j), cookies);
           const matches = parseJornadaMatches(html);
           const bust = matches.find(m =>
-            !m.jugado && (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO'))
+            !m.jugado &&
+            (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')) &&
+            // Skip "Descansa" entries
+            !m.local?.toUpperCase().includes('DESCANSA') &&
+            !m.visitante?.toUpperCase().includes('DESCANSA')
           );
           if (bust) return Response.json({ success: true, jornada: j, match: bust });
         }

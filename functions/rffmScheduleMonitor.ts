@@ -129,7 +129,12 @@ async function findNextMatch(url, cookies) {
   for (let j = 1; j <= Math.min(total, 30); j++) {
     const html = j === 1 ? j1Html : await fetchPage(buildJornadaUrl(p, j), cookies);
     const matches = parseJornadaMatches(html);
-    const bust = matches.find(m => !m.jugado && (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')));
+    const bust = matches.find(m =>
+      !m.jugado &&
+      (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')) &&
+      !m.local?.toUpperCase().includes('DESCANSA') &&
+      !m.visitante?.toUpperCase().includes('DESCANSA')
+    );
     if (bust) return { jornada: j, match: bust };
   }
   return { match: null };
