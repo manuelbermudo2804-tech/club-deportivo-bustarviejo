@@ -328,13 +328,28 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, standings });
       }
 
+      // Fetch scorers
+      case 'scorers': {
+        // The RFFM scorers page is NFG_CmpGoleadores
+        const scorersUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
+        const html = await fetchPage(scorersUrl, cookies);
+        const scorers = parseScorers(html);
+        return Response.json({ success: true, scorers });
+      }
+
       // Test/debug a single jornada
       case 'test': {
         const j = jornada || p.CodJornada || '1';
         const html = await fetchPage(buildJornadaUrl(p, j), cookies);
         const matches = parseJornadaMatches(html);
         const totalJornadas = detectTotalJornadas(html);
-        return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length });
+        
+        // Also test scorers URL
+        const scorersUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
+        const scorersHtml = await fetchPage(scorersUrl, cookies);
+        const scorers = parseScorers(scorersHtml);
+        
+        return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length, scorers, scorersCount: scorers.length });
       }
 
       default:
