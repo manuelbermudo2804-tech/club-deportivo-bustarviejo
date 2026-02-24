@@ -46,7 +46,6 @@ export default function CoachAlertCenter({
             <RoleAlertBlock color="blue" icon="🏃" title="Tareas Entrenador" subtitle="Deportiva">
               <AlertCenter 
                 pendingCallupResponses={pendingCallupResponsesCoach}
-                pendingMatchObservations={pendingMatchObservations}
                 isAdmin={false}
                 isCoach={true}
                 isParent={false}
