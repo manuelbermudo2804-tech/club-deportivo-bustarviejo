@@ -291,51 +291,63 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'test': {
         const j = jornada || p.CodJornada || '1';
-        // NFG_CmpPartido has actual match data (70KB+). Let's extract the key info.
+        // NFG_CmpPartido has "Ficha de Partido" but data is JS-obfuscated via eval()
+        // Let's try to decode it AND look at the frameset structure for jornada lists
         const matchUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpPartido?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`;
         const html = await fetchPage(matchUrl, cookies);
+        
+        // Extract eval() packed scripts and try to decode them
+        const evalScripts = [];
+        const evalRe = /eval\(function\(p,a,c,k,e,d\)\{.*?\}\('(.*?)',(\d+),(\d+),'(.*?)'\.split\('\|'\)/gs;
+        let m;
+        while ((m = evalRe.exec(html)) !== null) {
+          // Decode p,a,c,k packer
+          const p2 = m[1];
+          const a2 = parseInt(m[2]);
+          const c2 = parseInt(m[3]);
+          const k2 = m[4].split('|');
+          let decoded = p2;
+          const e2 = (c) => c.toString(a2 > 36 ? 36 : a2);
+          // Simple unpacker
+          for (let ci = c2 - 1; ci >= 0; ci--) {
+            if (k2[ci]) {
+              const pattern = new RegExp('\\b' + e2(ci) + '\\b', 'g');
+              decoded = decoded.replace(pattern, k2[ci]);
+            }
+          }
+          evalScripts.push(decoded.substring(0, 2000));
+        }
+        
+        // Also extract any inline scripts that write content
         const $ = load(html);
-        
-        // Extract team names - look for h-tags, bold text, specific class patterns
-        const h_tags = [];
-        $('h1,h2,h3,h4,h5').each((_, el) => h_tags.push($(el).text().trim().substring(0, 100)));
-        
-        // Look for scoring/result elements
-        const boldTexts = [];
-        $('b, strong').each((_, el) => {
-          const t = $(el).text().trim();
-          if (t.length > 2 && t.length < 80) boldTexts.push(t);
+        const allScripts = [];
+        $('script').each((i, el) => {
+          const content = $(el).html() || '';
+          if (content.length > 50 && content.length < 5000 && !content.includes('eval(function')) {
+            allScripts.push(content.substring(0, 500));
+          }
         });
         
-        // Find "Temporada", "Fecha", "Jornada", team names, scores
-        const bodyText = $('body').text().replace(/\s+/g, ' ');
-        
-        // Extract info around "Ficha de Partido"
-        const fichaIdx = bodyText.indexOf('Ficha de Partido');
-        const fichaContext = fichaIdx >= 0 ? bodyText.substring(fichaIdx, fichaIdx + 500) : '';
-        
-        // Look for team names near score patterns like "N - N" or specific markers
-        const scoreMatches = bodyText.match(/\d+\s*[-–]\s*\d+/g) || [];
-        
-        // Also try the main frameset page to see if it has links to individual matches
+        // The main frameset: let's look at its structure
         const mainHtml = await fetchPage(url, cookies);
-        const $main = load(mainHtml);
-        const frameSrcs = $main('frame, iframe').map((_, f) => $main(f).attr('src')).get();
+        const $m = load(mainHtml);
+        const frameSrcs = $m('frame, iframe').map((_, f) => ({ name: $m(f).attr('name'), src: $m(f).attr('src') })).get();
         
-        // Check NFG_CmpJornadac (the content frame for the jornada list)
-        const cUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornadac?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`;
-        const cHtml = await fetchPage(cUrl, cookies);
+        // Extract innerHTML writes from the Exec page (which populates the dropdowns)
+        const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
+        const execHtml = await fetchPage(execUrl, cookies);
+        // Look for jornada data arrays
+        const jornadaRe = /jornadas\s*=\s*new\s+Array\(([^)]+)\)/;
+        const jornadaMatch = jornadaRe.exec(execHtml);
         
         return Response.json({ 
           success: true,
           matchUrl,
-          fichaContext,
-          scorePatterns: scoreMatches.slice(0, 10),
-          h_tags: h_tags.slice(0, 10),
-          boldTexts: boldTexts.slice(0, 30),
+          evalScriptsFound: evalScripts.length,
+          evalDecoded: evalScripts.slice(0, 3),
+          inlineScripts: allScripts.slice(0, 5),
           frameSrcs,
-          cFrameLength: cHtml.length,
-          cFramePreview: cHtml.substring(0, 3000),
+          jornadaData: jornadaMatch ? jornadaMatch[1].substring(0, 1000) : null,
         });
       }
 
