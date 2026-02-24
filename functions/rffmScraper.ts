@@ -104,9 +104,19 @@ function parseJornadaMatches(html) {
     
     if (!hasEscudo) {
       // Campo-only table: extract campo name for the NEXT match
+      // Full text example: "Campo: BUITRAGO (HA) - Hierba Artificial"
+      // We want: "BUITRAGO" (city/facility name, without surface type)
       const text = $(table).text().replace(/\s+/g, ' ').trim();
-      const campoM = text.match(/Campo:\s*(.+?)(?:\s*\(|$)/);
-      if (campoM) currentCampo = campoM[1].trim();
+      const campoFull = text.match(/Campo:\s*(.+)/);
+      if (campoFull) {
+        let c = campoFull[1].trim();
+        // Remove surface type suffixes: "(HA) - Hierba Artificial", "- Tierra", etc.
+        c = c.replace(/\s*\(H\.?A\.?\)\s*-\s*.*/i, '').trim();
+        c = c.replace(/\s*-\s*Hierba\s*.*/i, '').trim();
+        c = c.replace(/\s*-\s*Tierra\s*.*/i, '').trim();
+        c = c.replace(/\s*-\s*Cesped\s*.*/i, '').trim();
+        if (c) currentCampo = c;
+      }
       continue;
     }
     
