@@ -170,8 +170,11 @@ Deno.serve(async (req) => {
     const changes = [];
     const errors = [];
 
-    // 3. For each category, check next match
-    for (const config of activeConfigs) {
+    // 3. Only check categories that have an open convocatoria (saves huge time)
+    const categoriesWithCallups = new Set(openCallups.map(c => c.categoria));
+    const relevantConfigs = activeConfigs.filter(c => categoriesWithCallups.has(c.categoria));
+
+    for (const config of relevantConfigs) {
       try {
         const url = config.rfef_results_url || config.rfef_url;
         
