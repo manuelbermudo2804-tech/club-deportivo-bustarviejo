@@ -581,22 +581,22 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length });
       }
 
-      // Debug jornada HTML structure - show ALL tables including 0,1,2
+      // Debug jornada HTML structure - show raw HTML for specific tables
       case 'debug_jornada': {
         const j = jornada || '1';
         const html = await fetchPage(buildJornadaUrl(p, j), cookies);
         const $j = load(html);
         const tables = $j('table').toArray();
         const tableInfos = [];
-        for (let i = 0; i < Math.min(tables.length, 30); i++) {
+        // Show tables 2-5 with full HTML to diagnose first match detection
+        for (let i = 2; i < Math.min(tables.length, 7); i++) {
           const table = tables[i];
           const tableHtml = $j(table).html() || '';
           const hasEscudo = tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes');
+          const hasImg = tableHtml.includes('<img');
           const tds = $j(table).find('td').toArray();
-          const tdTexts = tds.map(td => $j(td).text().replace(/\s+/g, ' ').trim().substring(0, 150));
-          // Also grab raw HTML snippet for first few tables to see structure
-          const snippet = i < 5 ? tableHtml.substring(0, 500) : undefined;
-          tableInfos.push({ idx: i, hasEscudo, tdCount: tds.length, tds: tdTexts, ...(snippet ? { htmlSnippet: snippet } : {}) });
+          const tdTexts = tds.map(td => $j(td).text().replace(/\s+/g, ' ').trim().substring(0, 200));
+          tableInfos.push({ idx: i, hasEscudo, hasImg, tdCount: tds.length, tds: tdTexts, rawHtml: tableHtml.substring(0, 1200) });
         }
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
