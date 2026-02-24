@@ -588,15 +588,15 @@ Deno.serve(async (req) => {
         const $j = load(html);
         const tables = $j('table').toArray();
         const tableInfos = [];
-        for (let i = 3; i < Math.min(tables.length, 25); i++) {
+        for (let i = 0; i < Math.min(tables.length, 30); i++) {
           const table = tables[i];
           const tableHtml = $j(table).html() || '';
           const hasEscudo = tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes');
           const tds = $j(table).find('td').toArray();
-          const tdTexts = tds.map(td => $j(td).text().replace(/\s+/g, ' ').trim().substring(0, 120));
+          const tdTexts = tds.map(td => $j(td).text().replace(/\s+/g, ' ').trim().substring(0, 150));
           tableInfos.push({ idx: i, hasEscudo, tdCount: tds.length, tds: tdTexts });
         }
-        return Response.json({ success: true, tablesFrom3: tableInfos });
+        return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
 
       default:
