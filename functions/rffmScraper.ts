@@ -370,11 +370,9 @@ Deno.serve(async (req) => {
 
       // Fetch scorers
       case 'scorers': {
-        // The RFFM scorers page is NFG_CmpGoleadores
-        const scorersUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
-        const html = await fetchPage(scorersUrl, cookies);
+        const html = await fetchPage(buildScorersUrl(p), cookies);
         const scorers = parseScorers(html);
-        return Response.json({ success: true, scorers });
+        return Response.json({ success: true, scorers, total: scorers.length });
       }
 
       // Debug scorers page structure
