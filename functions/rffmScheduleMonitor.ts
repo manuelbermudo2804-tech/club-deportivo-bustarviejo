@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { load } from 'npm:cheerio@1.0.0';
 
 /**
- * RFFM Schedule Monitor — runs every 6 hours
+ * RFFM Schedule Monitor — runs every 6 hours (v2 - with auto-callup creation)
  * For each category with a configured RFFM URL:
  *   1. Fetches next Bustarviejo match from the intranet
  *   2. If no convocatoria exists → creates a draft (publicada: false)
