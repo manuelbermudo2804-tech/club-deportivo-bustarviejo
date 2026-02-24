@@ -40,7 +40,7 @@ const DAY_COLORS = {
 const UBICACION_MAPS_URL = "https://www.google.com/maps/place/Campo+de+F%C3%BAtbol+Municipal+Bustarviejo/@40.8569444,-3.7230556,17z";
 
 export default function CalendarAndSchedules() {
-  const [activeTab, setActiveTab] = useState("calendario");
+  const [activeTab, setActiveTab] = useState("partidos");
   const [typeFilter, setTypeFilter] = useState("all");
   const [sportFilter, setSportFilter] = useState("all");
   const [viewMode, setViewMode] = useState("calendar");
