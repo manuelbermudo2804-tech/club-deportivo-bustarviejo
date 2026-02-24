@@ -438,8 +438,30 @@ Deno.serve(async (req) => {
 
       // Find next unplayed match for Bustarviejo
       case 'next_match': {
-        const startJ = parseInt(jornada || p.CodJornada || '1');
-        // Search from the given jornada forward (up to 15 jornadas ahead)
+        let startJ = parseInt(jornada || p.CodJornada || '1');
+        
+        // If startJ is very low (1-3), try to find where we really are by scanning
+        // Check if we need to auto-detect the current jornada
+        if (startJ <= 3) {
+          // Detect total jornadas first
+          const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
+          const totalJ = detectTotalJornadas(j1Html);
+          
+          // Binary-ish search: check middle jornada to find where played/unplayed boundary is
+          let low = 1, high = totalJ, bestPlayed = 0;
+          // Check a few key points to find the last played jornada quickly
+          for (const checkJ of [Math.floor(totalJ/2), Math.floor(totalJ*3/4), Math.floor(totalJ/4), totalJ]) {
+            if (checkJ < 1 || checkJ > totalJ) continue;
+            const html = await fetchPage(buildJornadaUrl(p, checkJ), cookies);
+            const ms = parseJornadaMatches(html);
+            const hasPlayed = ms.some(m => m.jugado);
+            const allPlayed = ms.length > 0 && ms.filter(m => !m.visitante?.toUpperCase().includes('DESCANSA') && !m.local?.toUpperCase().includes('DESCANSA')).every(m => m.jugado);
+            if (allPlayed && checkJ > bestPlayed) bestPlayed = checkJ;
+          }
+          if (bestPlayed > 0) startJ = bestPlayed;
+        }
+        
+        // Search from startJ forward (up to 15 jornadas ahead)
         for (let j = startJ; j <= startJ + 15; j++) {
           const html = await fetchPage(buildJornadaUrl(p, j), cookies);
           const matches = parseJornadaMatches(html);
