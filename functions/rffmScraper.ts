@@ -291,63 +291,62 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'test': {
         const j = jornada || p.CodJornada || '1';
-        // NFG_CmpPartido has "Ficha de Partido" but data is JS-obfuscated via eval()
-        // Let's try to decode it AND look at the frameset structure for jornada lists
+        // NFG_CmpPartido has match data in 70KB of HTML. Let's extract team names, date, score.
         const matchUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpPartido?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`;
         const html = await fetchPage(matchUrl, cookies);
-        
-        // Extract eval() packed scripts and try to decode them
-        const evalScripts = [];
-        const evalRe = /eval\(function\(p,a,c,k,e,d\)\{.*?\}\('(.*?)',(\d+),(\d+),'(.*?)'\.split\('\|'\)/gs;
-        let m;
-        while ((m = evalRe.exec(html)) !== null) {
-          // Decode p,a,c,k packer
-          const p2 = m[1];
-          const a2 = parseInt(m[2]);
-          const c2 = parseInt(m[3]);
-          const k2 = m[4].split('|');
-          let decoded = p2;
-          const e2 = (c) => c.toString(a2 > 36 ? 36 : a2);
-          // Simple unpacker
-          for (let ci = c2 - 1; ci >= 0; ci--) {
-            if (k2[ci]) {
-              const pattern = new RegExp('\\b' + e2(ci) + '\\b', 'g');
-              decoded = decoded.replace(pattern, k2[ci]);
-            }
-          }
-          evalScripts.push(decoded.substring(0, 2000));
-        }
-        
-        // Also extract any inline scripts that write content
         const $ = load(html);
-        const allScripts = [];
-        $('script').each((i, el) => {
-          const content = $(el).html() || '';
-          if (content.length > 50 && content.length < 5000 && !content.includes('eval(function')) {
-            allScripts.push(content.substring(0, 500));
+        
+        // Extract all text content near "Temporada", "Fecha", "Jornada" labels
+        // and any text that looks like team names
+        const allInputs = [];
+        $('input').each((_, el) => {
+          const name = $(el).attr('name') || $(el).attr('id') || '';
+          const value = $(el).attr('value') || '';
+          if (value.length > 0) allInputs.push({ name, value: value.substring(0, 100) });
+        });
+        
+        // Look for specific data attributes or class names
+        const dataElements = [];
+        $('[data-original-title], [title]').each((_, el) => {
+          const title = $(el).attr('data-original-title') || $(el).attr('title') || '';
+          if (title.length > 2) dataElements.push({ tag: el.tagName, title: title.substring(0, 100), text: $(el).text().trim().substring(0, 100) });
+        });
+        
+        // Look for specific spans/divs that might contain team name
+        const teamCandidates = [];
+        $('td, th, span, div, a').each((_, el) => {
+          const text = $(el).text().trim();
+          const children = $(el).children().length;
+          // Only leaf-ish elements with reasonable text
+          if (children < 3 && text.length > 3 && text.length < 50 && !/^\d+$/.test(text) && !/eval|function|var |return /.test(text)) {
+            const cls = $(el).attr('class') || '';
+            if (cls.includes('equipo') || cls.includes('team') || /^[A-ZÁÉÍÓÚÑ\s\.]+$/.test(text) || /C\.D\.|C\.F\.|A\.D\.|E\.F\.|F\.C\./.test(text)) {
+              teamCandidates.push({ tag: el.tagName, class: cls.substring(0, 50), text });
+            }
           }
         });
         
-        // The main frameset: let's look at its structure
-        const mainHtml = await fetchPage(url, cookies);
-        const $m = load(mainHtml);
-        const frameSrcs = $m('frame, iframe').map((_, f) => ({ name: $m(f).attr('name'), src: $m(f).attr('src') })).get();
+        // Try raw regex on the HTML for team patterns
+        const rawTeamMatches = [];
+        // Pattern: text between specific HTML tags that looks like team names
+        const teamRe = /(?:C\.D\.|C\.F\.|A\.D\.|E\.F\.|F\.C\.)[^<]{2,40}/gi;
+        let tm;
+        while ((tm = teamRe.exec(html)) !== null) {
+          rawTeamMatches.push(tm[0].substring(0, 80));
+        }
         
-        // Extract innerHTML writes from the Exec page (which populates the dropdowns)
-        const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
-        const execHtml = await fetchPage(execUrl, cookies);
-        // Look for jornada data arrays
-        const jornadaRe = /jornadas\s*=\s*new\s+Array\(([^)]+)\)/;
-        const jornadaMatch = jornadaRe.exec(execHtml);
+        // Search for "Bustarviejo" specifically
+        const bustIdx = html.toLowerCase().indexOf('bustarviejo');
+        const bustContext = bustIdx >= 0 ? html.substring(Math.max(0, bustIdx - 200), bustIdx + 200) : 'NOT FOUND';
         
         return Response.json({ 
           success: true,
-          matchUrl,
-          evalScriptsFound: evalScripts.length,
-          evalDecoded: evalScripts.slice(0, 3),
-          inlineScripts: allScripts.slice(0, 5),
-          frameSrcs,
-          jornadaData: jornadaMatch ? jornadaMatch[1].substring(0, 1000) : null,
+          htmlLength: html.length,
+          inputs: allInputs.slice(0, 20),
+          dataElements: dataElements.slice(0, 15),
+          teamCandidates: teamCandidates.slice(0, 20),
+          rawTeamMatches: [...new Set(rawTeamMatches)].slice(0, 20),
+          bustarviejo: bustContext
         });
       }
 
