@@ -128,7 +128,6 @@ function parseJornadaMatches(html) {
     let fecha = null, hora = null;
     
     // IMPORTANT: Extract date FIRST to avoid confusing "25/04/2026" as score "25-4"
-    // Date formats: dd-mm-yyyy, dd/mm/yyyy, dd-mm-yy, dd/mm/yy
     const dateMatch = centerText.match(/(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/);
     if (dateMatch) fecha = dateMatch[1].replace(/-/g, '/');
     
@@ -150,13 +149,20 @@ function parseJornadaMatches(html) {
       jugado = true;
     }
     
-    // Also check if next td has campo for the NEXT match
-    // td[3] onwards may have next match's campo
-    let nextCampo = null;
+    // Campo: The REAL campo for THIS match is in tds[3] of the match table itself.
+    // The preceding campo-only table is just a visual header/duplicate.
+    // Extract campo from tds[3], keeping the full name (city + facility).
+    let matchCampo = currentCampo; // fallback to preceding campo table
     if (tds.length > 3) {
-      const nextCampoText = $(tds[3]).text().replace(/\s+/g, ' ').trim();
-      const ncM = nextCampoText.match(/Campo:\s*(.+?)(?:\s*\(|$)/);
-      if (ncM) nextCampo = ncM[1].trim();
+      const campoText = $(tds[3]).text().replace(/\s+/g, ' ').trim();
+      const campoMatch = campoText.match(/Campo:\s*(.+?)(?:\s*-\s*Hierba|\s*-\s*Tierra|\s*-\s*Cesped|$)/i);
+      if (campoMatch) {
+        matchCampo = campoMatch[1].replace(/\s*\(HA\)\s*$/i, '').replace(/\s*\(H\.A\.\)\s*$/i, '').trim();
+      } else {
+        // Fallback: just take everything after "Campo:"
+        const simpleCampo = campoText.match(/Campo:\s*(.+)/);
+        if (simpleCampo) matchCampo = simpleCampo[1].trim();
+      }
     }
     
     matches.push({
@@ -167,11 +173,8 @@ function parseJornadaMatches(html) {
       jugado,
       fecha,
       hora,
-      campo: currentCampo
+      campo: matchCampo
     });
-    
-    // The campo embedded in tds[3+] is for the NEXT match
-    if (nextCampo) currentCampo = nextCampo;
   }
   
   return matches;
