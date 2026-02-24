@@ -404,7 +404,7 @@ Deno.serve(async (req) => {
       }
 
       default:
-        return Response.json({ error: 'Actions: test, results, all_results, next_match, standings' }, { status: 400 });
+        return Response.json({ error: 'Actions: test, results, all_results, next_match, standings, scorers' }, { status: 400 });
     }
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
