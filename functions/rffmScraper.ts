@@ -601,6 +601,33 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
 
+      // Debug acta links - find all links in a jornada page
+      case 'debug_actas': {
+        const j = jornada || '19';
+        const html = await fetchPage(buildJornadaUrl(p, j), cookies);
+        const $a = load(html);
+        const links = [];
+        $a('a').each((_, el) => {
+          const href = $a(el).attr('href') || '';
+          const text = $a(el).text().replace(/\s+/g, ' ').trim().substring(0, 100);
+          const onclick = $a(el).attr('onclick') || '';
+          if (href.includes('Acta') || href.includes('acta') || onclick.includes('Acta') || onclick.includes('acta') || text.includes('Acta') || text.includes('acta')) {
+            links.push({ href: href.substring(0, 300), text, onclick: onclick.substring(0, 300) });
+          }
+        });
+        // Also check for acta-related patterns in full HTML
+        const actaPatterns = (html.match(/NFG_CmpActa[^"'\s]*/gi) || []).slice(0, 10);
+        const actaInputs = [];
+        $a('input, img').each((_, el) => {
+          const src = $a(el).attr('src') || '';
+          const onclick2 = $a(el).attr('onclick') || '';
+          if (src.includes('acta') || src.includes('Acta') || onclick2.includes('Acta') || onclick2.includes('acta')) {
+            actaInputs.push({ tag: el.tagName, src: src.substring(0, 200), onclick: onclick2.substring(0, 300) });
+          }
+        });
+        return Response.json({ success: true, jornada: j, links, actaPatterns, actaInputs });
+      }
+
       default:
         return Response.json({ error: 'Actions: test, results, all_results, next_match, standings, scorers, debug_standings' }, { status: 400 });
     }
