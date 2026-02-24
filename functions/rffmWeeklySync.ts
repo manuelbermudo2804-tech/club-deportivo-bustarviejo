@@ -168,6 +168,86 @@ async function syncCategory(config, cookies, base44, temporada) {
             estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
           }));
           if (records.length) { await base44.asServiceRole.entities.Resultado.bulkCreate(records); result.results = { jornada: latestJ, matches: records.length }; }
+
+          // AUTO-GENERATE MatchObservation for Bustarviejo matches
+          try {
+            const bustMatch = latestM.find(m => m.jugado && (/bustarviejo/i.test(m.local) || /bustarviejo/i.test(m.visitante)));
+            if (bustMatch) {
+              const isLocal = /bustarviejo/i.test(bustMatch.local);
+              const rival = isLocal ? bustMatch.visitante : bustMatch.local;
+              const gf = isLocal ? bustMatch.goles_local : bustMatch.goles_visitante;
+              const gc = isLocal ? bustMatch.goles_visitante : bustMatch.goles_local;
+              const tipo = gf > gc ? 'Victoria' : gf === gc ? 'Empate' : 'Derrota';
+              const emoji = tipo === 'Victoria' ? '✅' : tipo === 'Empate' ? '🤝' : '❌';
+
+              // Check if observation already exists for this jornada+category
+              const existingObs = await base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ });
+              if (!existingObs.length) {
+                await base44.asServiceRole.entities.MatchObservation.create({
+                  categoria: cat,
+                  rival,
+                  fecha_partido: bustMatch.fecha ? bustMatch.fecha.split('/').reverse().join('-') : new Date().toISOString().split('T')[0],
+                  resultado: `${bustMatch.goles_local}-${bustMatch.goles_visitante} (${tipo})`,
+                  temporada,
+                  jornada: latestJ,
+                  auto_generada: true,
+                  local_visitante: isLocal ? 'Local' : 'Visitante',
+                  goles_favor: gf,
+                  goles_contra: gc,
+                  resultado_tipo: tipo,
+                  campo: bustMatch.campo || '',
+                  completada_por_entrenador: false,
+                  email_enviado: false,
+                  entrenador_email: '',
+                  entrenador_nombre: '',
+                });
+                result.autoObservation = { rival, resultado: `${gf}-${gc}`, tipo };
+
+                // Find coach for this category and send email
+                try {
+                  const users = await base44.asServiceRole.entities.User.list();
+                  const coaches = users.filter(u => u.es_entrenador && (u.categorias_entrenador || []).some(c => c === cat));
+                  for (const coach of coaches) {
+                    if (!coach.email) continue;
+                    const appUrl = 'https://app.base44.com'; // Will be replaced by actual app URL
+                    const emailBody = `
+                      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background: linear-gradient(to right, #ea580c, #c2410c); padding: 20px; border-radius: 12px 12px 0 0;">
+                          <h2 style="color: white; margin: 0;">⚽ Ficha de partido generada</h2>
+                          <p style="color: #fed7aa; margin: 4px 0 0;">${cat} — Jornada ${latestJ}</p>
+                        </div>
+                        <div style="background: #fff; padding: 24px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                          <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 16px;">
+                            <p style="font-size: 28px; margin: 0;">${emoji}</p>
+                            <p style="font-size: 24px; font-weight: bold; margin: 4px 0;">CD Bustarviejo ${gf} - ${gc} ${rival}</p>
+                            <p style="color: #64748b; margin: 4px 0;">${tipo} · ${isLocal ? 'Local' : 'Visitante'}${bustMatch.campo ? ' · ' + bustMatch.campo : ''}</p>
+                          </div>
+                          <p style="color: #334155;">Hola ${coach.full_name || 'Entrenador'},</p>
+                          <p style="color: #334155;">Ya hemos registrado automáticamente la ficha del partido de <strong>${cat}</strong> contra <strong>${rival}</strong>.</p>
+                          <p style="color: #334155;">Si quieres, puedes <strong>añadir tus observaciones</strong> (valoración táctica, estado físico, qué mejorar...). Solo te llevará 30 segundos:</p>
+                          <div style="text-align: center; margin: 24px 0;">
+                            <a href="${appUrl}" style="display: inline-block; background: linear-gradient(to right, #ea580c, #c2410c); color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                              📋 Completar ficha del partido
+                            </a>
+                          </div>
+                          <p style="color: #94a3b8; font-size: 12px; text-align: center;">Si no añades nada, la ficha se guarda con los datos oficiales de la RFFM. ¡No es obligatorio!</p>
+                        </div>
+                      </div>`;
+                    await base44.asServiceRole.integrations.Core.SendEmail({
+                      to: coach.email,
+                      subject: `${emoji} Ficha de partido: ${gf}-${gc} vs ${rival} (${cat})`,
+                      body: emailBody,
+                      from_name: 'CD Bustarviejo',
+                    });
+                    // Update observation with coach info
+                    const obs = await base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ });
+                    if (obs[0]) await base44.asServiceRole.entities.MatchObservation.update(obs[0].id, { entrenador_email: coach.email, entrenador_nombre: coach.full_name || '', email_enviado: true });
+                  }
+                } catch (coachErr) { console.error('Error sending coach email:', coachErr.message); }
+              }
+            }
+          } catch (obsErr) { console.error('Error auto-generating observation:', obsErr.message); }
+
         } else { result.results = { jornada: latestJ, skipped: true }; }
       }
     } catch (e) { result.errors.push({ type: 'results', error: e.message }); }
