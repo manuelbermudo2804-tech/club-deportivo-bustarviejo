@@ -535,69 +535,7 @@ export default function CentroCompeticion() {
               )}
             </div>
 
-            {/* Checklist Lunes (integrado) */}
-            <div className="bg-slate-50 rounded-xl p-3 border">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <ClipboardCheck className="w-4 h-4 text-orange-600" />
-                  <span className="font-semibold">Checklist Lunes — {view}</span>
-                  <Badge variant="outline">{weekKey()}</Badge>
-                  {loadingAssets && <span className="text-xs text-slate-500">cargando…</span>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-red-100 text-red-700">Cambiadas: {statusCounts.cambiado}</Badge>
-                  <Badge className="bg-green-100 text-green-700">Igual: {statusCounts.igual}</Badge>
-                  {statusCounts.error > 0 && (
-                    <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> {statusCounts.error}</Badge>
-                  )}
-                  <Badge variant="outline">Por revisar: {pendingThisWeek}</Badge>
-                  <Button variant="outline" onClick={() => setShowAddUrls(true)} className="gap-2"><Plus className="w-4 h-4"/> Añadir URLs</Button>
-                  <Button onClick={() => checkAssetsMutation.mutate()} disabled={checkAssetsMutation.isPending} className="gap-2 bg-orange-600 hover:bg-orange-700">
-                    <RefreshCw className={`w-4 h-4 ${checkAssetsMutation.isPending ? 'animate-spin' : ''}`} /> Comprobar
-                  </Button>
-                </div>
-              </div>
-              <div className="mt-2 grid gap-2">
-                {assetsForSection.map(a => (
-                  <div key={a.id} className="flex items-center justify-between gap-2 bg-white rounded-lg border p-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="truncate text-sm max-w-[56ch]" title={a.url}>{a.url}</span>
-                      <Badge className="capitalize">{a.tipo || 'otro'}</Badge>
-                      <Badge className={`capitalize ${a.status === 'cambiado' ? 'bg-red-100 text-red-700' : a.status === 'igual' ? 'bg-green-100 text-green-700' : a.status === 'error' ? 'bg-yellow-100 text-yellow-800' : 'bg-slate-100 text-slate-700'}`}>
-                        {a.status || 'nuevo'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">{a.last_checked_at ? new Date(a.last_checked_at).toLocaleString() : '—'}</span>
-                      <Button variant="outline" size="sm" onClick={() => markReviewed(a)}>
-                        <CheckCircle2 className="w-4 h-4 mr-1" /> Revisado
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {assetsForSection.length === 0 && (
-                  <div className="text-xs text-slate-500">Sin URLs registradas para esta vista/categoría.</div>
-                )}
-              </div>
 
-              {/* Dialog Añadir URLs */}
-              <Dialog open={showAddUrls} onOpenChange={setShowAddUrls}>
-                <DialogContent className="max-w-xl">
-                  <DialogHeader>
-                    <DialogTitle>Añadir URLs para {category} — {tipoForView}</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-3">
-                    <textarea value={pasteUrls} onChange={e => setPasteUrls(e.target.value)} rows={6} className="w-full border rounded-md p-3" placeholder="Pega una URL por línea"/>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setShowAddUrls(false)}>Cancelar</Button>
-                      <Button onClick={handleAddUrls} disabled={!pasteUrls.trim() || upsertAssets.isPending} className="bg-orange-600 hover:bg-orange-700">
-                        {upsertAssets.isPending ? 'Guardando…' : 'Guardar'}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
 
             {/* Modo de entrada: solo pegar texto */}
             <div className="flex items-center gap-2">
