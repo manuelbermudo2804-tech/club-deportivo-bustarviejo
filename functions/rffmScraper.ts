@@ -229,7 +229,7 @@ Deno.serve(async (req) => {
         const html = await fetchPage(url, cookies);
         const $ = load(html);
         const title = $('title').text().trim();
-        // Return ALL tables with raw cell data for analysis
+        // Focus on tables that likely contain match data (skip filter/nav tables)
         const tables = [];
         $('table').each((i, table) => {
           const rows = [];
@@ -237,18 +237,25 @@ Deno.serve(async (req) => {
             const cells = [];
             $(tr).find('th, td').each((_, c) => {
               cells.push({
-                tag: c.tagName,
-                text: $(c).text().trim().substring(0, 200),
+                text: $(c).text().trim().substring(0, 150),
                 cls: $(c).attr('class')?.substring(0, 50) || '',
-                colspan: $(c).attr('colspan') || ''
+                href: $(c).find('a').attr('href')?.substring(0, 100) || ''
               });
             });
             if (cells.some(c => c.text.length > 0)) rows.push(cells);
           });
-          // Only include tables with 2+ rows and skip the big filter table (index 0)
-          if (rows.length > 1 && i > 0) tables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 20) });
+          // Skip tiny tables and filter tables
+          if (rows.length >= 2) {
+            const hasMatchData = rows.some(r => r.some(c => 
+              /\d+\s*[-–]\s*\d+/.test(c.text) || /\d{1,2}:\d{2}/.test(c.text) ||
+              /bustarviejo/i.test(c.text) || /jornada/i.test(c.text)
+            ));
+            tables.push({ idx: i, rowCount: rows.length, hasMatchData, rows: rows.slice(0, 20) });
+          }
         });
-        return Response.json({ success: true, title, loginWorked: !title.toLowerCase().includes('login'), tables });
+        // Sort: match-data tables first
+        tables.sort((a, b) => (b.hasMatchData ? 1 : 0) - (a.hasMatchData ? 1 : 0));
+        return Response.json({ success: true, title, loginWorked: !title.toLowerCase().includes('login'), tables: tables.slice(0, 6) });
       }
 
       case 'standings': {
