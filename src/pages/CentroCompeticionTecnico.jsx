@@ -357,6 +357,9 @@ export default function CentroCompeticionTecnico() {
         )}
       </Card>
 
+      {/* Próximo partido RFFM */}
+      <NextMatchRffm config={standingsConfig} category={category} standings={standingsPack} />
+
       {/* Contenido principal */}
       <ErrorBoundary fallback={
         <Card><CardContent className="p-8 text-center">
