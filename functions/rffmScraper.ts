@@ -68,37 +68,109 @@ async function fetchPage(url, cookies) {
   return await resp.text();
 }
 
-function parseParams(url) {
-  const u = new URL(url);
-  return {
-    cod_primaria: u.searchParams.get('cod_primaria'),
-    CodCompeticion: u.searchParams.get('CodCompeticion'),
-    CodGrupo: u.searchParams.get('CodGrupo'),
-    CodTemporada: u.searchParams.get('CodTemporada'),
-    CodJornada: u.searchParams.get('CodJornada'),
-  };
+// The RFFM uses frames. Main URL loads the frame container.
+// Actual match data is in NFG_CmpJornada_Exec (inner frame).
+// Classification data is in NFG_VisClasificacion_Exec.
+// Scorers data is in NFG_VisGoleadores_Exec.
+
+function buildExecUrl(type, p, extra = {}) {
+  const base = 'https://intranet.ffmadrid.es/nfg/NPcd/';
+  const params = new URLSearchParams({
+    cod_primaria: p.cod_primaria,
+    codtemporada: p.CodTemporada,
+    codcompeticion: p.CodCompeticion,
+    codgrupo: p.CodGrupo,
+    ...extra
+  });
+  return `${base}${type}?${params.toString()}`;
 }
 
-function buildUrl(base, p, extra = {}) {
-  const params = new URLSearchParams({ cod_primaria: p.cod_primaria, CodCompeticion: p.CodCompeticion, CodGrupo: p.CodGrupo, CodTemporada: p.CodTemporada, ...extra });
-  return `https://intranet.ffmadrid.es/nfg/NPcd/${base}?${params.toString()}`;
+// Parse match results from the _Exec page
+function parseMatchesExec(html) {
+  const $ = load(html);
+  const matches = [];
+  
+  // The Exec page has direct match data in tables
+  $('table').each((_, table) => {
+    $(table).find('tr').each((__, row) => {
+      const cells = $(row).find('td');
+      if (cells.length < 3) return;
+      
+      const texts = cells.map((_, td) => $(td).text().trim()).get();
+      const fullRow = texts.join(' | ');
+      
+      // Try to find score pattern: "N - N" 
+      for (let i = 0; i < texts.length; i++) {
+        const scoreMatch = texts[i].match(/^(\d+)\s*[-–]\s*(\d+)$/);
+        if (scoreMatch && i > 0 && i < texts.length - 1) {
+          const local = texts[i - 1].replace(/\s+/g, ' ').trim();
+          const visitante = texts[i + 1].replace(/\s+/g, ' ').trim();
+          if (local.length > 2 && visitante.length > 2 && !/^\d+$/.test(local)) {
+            const match = {
+              local, visitante,
+              goles_local: parseInt(scoreMatch[1]),
+              goles_visitante: parseInt(scoreMatch[2]),
+              jugado: true
+            };
+            // Check for date and time in surrounding cells
+            for (const t of texts) {
+              const dateM = t.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+              if (dateM) match.fecha = dateM[1];
+              const timeM = t.match(/(\d{1,2}:\d{2})/);
+              if (timeM && !match.hora) match.hora = timeM[1];
+            }
+            matches.push(match);
+          }
+        }
+        
+        // Upcoming match: time in middle (no score yet)
+        const timeOnlyMatch = texts[i].match(/^(\d{1,2}:\d{2})$/);
+        if (timeOnlyMatch && i > 0 && i < texts.length - 1) {
+          const local = texts[i - 1].replace(/\s+/g, ' ').trim();
+          const visitante = texts[i + 1].replace(/\s+/g, ' ').trim();
+          if (local.length > 2 && visitante.length > 2 && !/^\d+$/.test(local) && !/^\d+$/.test(visitante)) {
+            const match = { local, visitante, hora: timeOnlyMatch[1], jugado: false };
+            for (const t of texts) {
+              const dateM = t.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+              if (dateM) match.fecha = dateM[1];
+            }
+            matches.push(match);
+          }
+        }
+      }
+      
+      // Also check for "Descansa" (bye week)
+      if (fullRow.toLowerCase().includes('descansa')) {
+        const team = texts.find(t => t.length > 3 && !/descansa/i.test(t) && !/^\d/.test(t));
+        if (team) matches.push({ local: team, visitante: 'DESCANSA', jugado: false, descansa: true });
+      }
+    });
+  });
+  
+  // Deduplicate
+  const seen = new Set();
+  return matches.filter(m => {
+    const key = `${m.local}__${m.visitante}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
-// ---- PARSERS ----
-
-function parseStandings(html) {
+// Parse classification/standings from _Exec page
+function parseStandingsExec(html) {
   const $ = load(html);
   const standings = [];
-  // Find table with classification headers (Equipo, Pts, PJ, etc.)
+  
   $('table').each((_, table) => {
-    const headerText = $(table).find('th, thead td').map((_, el) => $(el).text().trim().toLowerCase()).get().join(' ');
-    if (headerText.includes('equipo') || headerText.includes('pts') || headerText.includes('ptos')) {
-      $(table).find('tbody tr, tr').each((__, row) => {
+    const headerText = $(table).find('th').map((_, el) => $(el).text().trim().toLowerCase()).get().join(' ');
+    if (headerText.includes('equipo') || headerText.includes('pts') || headerText.includes('ptos') || headerText.includes('pj')) {
+      $(table).find('tr').each((__, row) => {
         const cells = $(row).find('td');
         if (cells.length >= 8) {
           const t = cells.map((_, td) => $(td).text().trim()).get();
           const pos = parseInt(t[0]);
-          if (!isNaN(pos) && pos > 0 && pos < 30) {
+          if (!isNaN(pos) && pos > 0 && pos < 50) {
             standings.push({
               posicion: pos, equipo: t[1], puntos: parseInt(t[2]) || 0,
               pj: parseInt(t[3]) || 0, pg: parseInt(t[4]) || 0, pe: parseInt(t[5]) || 0,
@@ -112,88 +184,14 @@ function parseStandings(html) {
   return standings;
 }
 
-function parseMatchesFromJornada(html) {
-  const $ = load(html);
-  const matches = [];
-  
-  // Each match typically in a table with local team, score/time, visitor team
-  // Try multiple strategies
-  
-  // Strategy 1: Look for tables with match-like structure (3+ cells, team - score - team)
-  $('table').each((_, table) => {
-    $(table).find('tr').each((__, row) => {
-      const cells = $(row).find('td');
-      const texts = cells.map((_, td) => $(td).text().trim()).get();
-      const fullRow = texts.join('|');
-      
-      // Match pattern: team name | score like "2 - 1" or time like "12:00" | team name
-      for (let i = 0; i < texts.length; i++) {
-        // Score pattern
-        const scoreMatch = texts[i].match(/^(\d+)\s*[-–]\s*(\d+)$/);
-        if (scoreMatch && i > 0 && i < texts.length - 1) {
-          const local = texts[i - 1];
-          const visitante = texts[i + 1];
-          if (local.length > 2 && visitante.length > 2) {
-            matches.push({
-              local, visitante,
-              goles_local: parseInt(scoreMatch[1]),
-              goles_visitante: parseInt(scoreMatch[2]),
-              jugado: true
-            });
-          }
-        }
-        
-        // Time pattern (upcoming match)
-        const timeMatch = texts[i].match(/^(\d{1,2}:\d{2})$/);
-        if (timeMatch && i > 0 && i < texts.length - 1) {
-          const local = texts[i - 1];
-          const visitante = texts[i + 1];
-          if (local.length > 2 && visitante.length > 2) {
-            matches.push({ local, visitante, hora: timeMatch[1], jugado: false });
-          }
-        }
-      }
-      
-      // Check for date in the row
-      const dateMatch = fullRow.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
-      if (dateMatch && matches.length > 0) {
-        matches[matches.length - 1].fecha = dateMatch[1];
-      }
-    });
-  });
-  
-  // Strategy 2: If no matches found, try more aggressive text parsing
-  if (matches.length === 0) {
-    const bodyText = $('body').text();
-    // Look for "EQUIPO A  2 - 1  EQUIPO B" patterns
-    const re = /([A-ZÁÉÍÓÚÜÑ][A-Za-záéíóúüñ\.\s\-']{2,40}?)\s+(\d+)\s*[-–]\s*(\d+)\s+([A-ZÁÉÍÓÚÜÑ][A-Za-záéíóúüñ\.\s\-']{2,40})/g;
-    let m;
-    while ((m = re.exec(bodyText)) !== null) {
-      matches.push({
-        local: m[1].trim(), visitante: m[4].trim(),
-        goles_local: parseInt(m[2]), goles_visitante: parseInt(m[3]),
-        jugado: true
-      });
-    }
-  }
-  
-  // Deduplicate
-  const seen = new Set();
-  return matches.filter(m => {
-    const key = `${m.local}__${m.visitante}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function parseScorers(html) {
+// Parse scorers from _Exec page
+function parseScorersExec(html) {
   const $ = load(html);
   const scorers = [];
   $('table').each((_, table) => {
     const headerText = $(table).find('th').map((_, el) => $(el).text().trim().toLowerCase()).get().join(' ');
     if (headerText.includes('gol') || headerText.includes('jugador')) {
-      $(table).find('tbody tr, tr').each((__, row) => {
+      $(table).find('tr').each((__, row) => {
         const cells = $(row).find('td');
         if (cells.length >= 3) {
           const t = cells.map((_, td) => $(td).text().trim()).get();
@@ -222,76 +220,76 @@ Deno.serve(async (req) => {
     if (!url) return Response.json({ error: 'Missing url' }, { status: 400 });
 
     const cookies = await rffmLogin();
-    const p = parseParams(url);
+    const p = {
+      cod_primaria: new URL(url).searchParams.get('cod_primaria'),
+      CodCompeticion: new URL(url).searchParams.get('CodCompeticion') || new URL(url).searchParams.get('codcompeticion'),
+      CodGrupo: new URL(url).searchParams.get('CodGrupo') || new URL(url).searchParams.get('codgrupo'),
+      CodTemporada: new URL(url).searchParams.get('CodTemporada') || new URL(url).searchParams.get('codtemporada'),
+      CodJornada: new URL(url).searchParams.get('CodJornada') || new URL(url).searchParams.get('codjornada'),
+    };
 
     switch (action) {
       case 'test': {
-        const html = await fetchPage(url, cookies);
+        // Fetch the inner frame (Exec) to see actual match data
+        const j = jornada || p.CodJornada || '1';
+        const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
+        const html = await fetchPage(execUrl, cookies);
         const $ = load(html);
-        const title = $('title').text().trim();
         
-        // Extract ALL Ajax/fetch calls and URLs from scripts
-        const scriptContent = [];
-        $('script').each((_, s) => {
-          const text = $(s).html() || '';
-          if (text.includes('Nova_Ajax') || text.includes('NFG_') || text.includes('jornada') || text.includes('partido')) {
-            scriptContent.push(text.substring(0, 2000));
-          }
+        // Extract all table data for debugging
+        const tables = [];
+        $('table').each((i, table) => {
+          const rows = [];
+          $(table).find('tr').each((_, tr) => {
+            const cells = $(tr).find('th, td').map((__, c) => $(c).text().trim().substring(0, 150)).get();
+            if (cells.some(c => c.length > 0)) rows.push(cells);
+          });
+          if (rows.length > 0) tables.push({ idx: i, rows: rows.slice(0, 15) });
         });
         
-        // Find Nova_Ajax calls with their full parameters
-        const ajaxCalls = [];
-        const allScripts = $('script').map((_, s) => $(s).html() || '').get().join('\n');
-        const ajaxRe = /Nova_Ajax\s*\([^)]{5,500}\)/g;
-        let m;
-        while ((m = ajaxRe.exec(allScripts)) !== null) {
-          ajaxCalls.push(m[0]);
-        }
-        
-        // Also find any direct URL references to NFG_ endpoints
-        const urlRefs = [];
-        const urlRe = /['"]([^'"]*NFG_[^'"]+)['"]/g;
-        while ((m = urlRe.exec(allScripts)) !== null) {
-          urlRefs.push(m[1].substring(0, 300));
-        }
+        const matches = parseMatchesExec(html);
         
         return Response.json({ 
-          success: true, title, loginWorked: !title.toLowerCase().includes('login'),
-          ajaxCalls: ajaxCalls.slice(0, 15),
-          urlRefs: [...new Set(urlRefs)].slice(0, 20),
-          scriptSnippets: scriptContent.slice(0, 5)
+          success: true,
+          execUrl,
+          htmlLength: html.length,
+          tables: tables.slice(0, 10),
+          parsedMatches: matches
         });
-      }
-
-      case 'standings': {
-        const sUrl = buildUrl('NFG_VisClasificacion', p);
-        const html = await fetchPage(sUrl, cookies);
-        return Response.json({ success: true, standings: parseStandings(html) });
       }
 
       case 'results': {
         const j = jornada || p.CodJornada;
-        const rUrl = buildUrl('NFG_CmpJornada', p, { CodJornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
-        const html = await fetchPage(rUrl, cookies);
-        return Response.json({ success: true, matches: parseMatchesFromJornada(html), jornada: j });
+        const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
+        const html = await fetchPage(execUrl, cookies);
+        const matches = parseMatchesExec(html);
+        return Response.json({ success: true, matches, jornada: j });
       }
 
       case 'next_match': {
         const current = parseInt(p.CodJornada) || 1;
         const next = current + 1;
-        const rUrl = buildUrl('NFG_CmpJornada', p, { CodJornada: next, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
-        const html = await fetchPage(rUrl, cookies);
-        const allMatches = parseMatchesFromJornada(html);
+        const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: next, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
+        const html = await fetchPage(execUrl, cookies);
+        const allMatches = parseMatchesExec(html);
         const bust = allMatches.find(m =>
           m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')
         );
         return Response.json({ success: true, jornada: next, all_matches: allMatches, bustarviejo_match: bust || null });
       }
 
+      case 'standings': {
+        const execUrl = buildExecUrl('NFG_VisClasificacion_Exec', p);
+        const html = await fetchPage(execUrl, cookies);
+        const standings = parseStandingsExec(html);
+        return Response.json({ success: true, standings });
+      }
+
       case 'scorers': {
-        const gUrl = buildUrl('NFG_VisGoleadores', p);
-        const html = await fetchPage(gUrl, cookies);
-        return Response.json({ success: true, scorers: parseScorers(html) });
+        const execUrl = buildExecUrl('NFG_VisGoleadores_Exec', p);
+        const html = await fetchPage(execUrl, cookies);
+        const scorers = parseScorersExec(html);
+        return Response.json({ success: true, scorers });
       }
 
       default:
