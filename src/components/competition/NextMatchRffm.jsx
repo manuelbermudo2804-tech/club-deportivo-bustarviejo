@@ -31,7 +31,7 @@ function formatDate(dateStr) {
   return date.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
 }
 
-export default function NextMatchRffm({ config, category, standings }) {
+export default function NextMatchRffm({ config, category, standings, onMatchLoaded }) {
   const intranetUrl = config?.rfef_results_url ? buildIntranetUrl(config.rfef_results_url) : 
                       config?.rfef_url ? buildIntranetUrl(config.rfef_url) : null;
 
