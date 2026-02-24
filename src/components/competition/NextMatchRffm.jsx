@@ -35,11 +35,20 @@ export default function NextMatchRffm({ config, category, standings, onMatchLoad
   const intranetUrl = config?.rfef_results_url ? buildIntranetUrl(config.rfef_results_url) : 
                       config?.rfef_url ? buildIntranetUrl(config.rfef_url) : null;
 
-  // Detect starting jornada from standings data (last played jornada + 1)
+  // Detect starting jornada: use standings if available, otherwise extract from URL, fallback to auto-detect (0)
   const startJornada = React.useMemo(() => {
-    if (!standings?.jornada) return 1;
-    return (standings.jornada || 0) + 1;
-  }, [standings]);
+    if (standings?.jornada) return (standings.jornada || 0) + 1;
+    // Try to extract CodJornada from the config URL as a reasonable starting point
+    try {
+      const url = config?.rfef_results_url || config?.rfef_url;
+      if (url) {
+        const u = new URL(url);
+        const j = parseInt(u.searchParams.get('CodJornada'));
+        if (j > 0) return j;
+      }
+    } catch {}
+    return 1;
+  }, [standings, config]);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['next-match-rffm', category, startJornada],
