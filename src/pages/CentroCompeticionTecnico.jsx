@@ -217,6 +217,16 @@ export default function CentroCompeticionTecnico() {
   const autoAnalysisDoneRef = React.useRef(false);
   const autoObservationDoneRef = React.useRef(false);
 
+  // Check for auto-generated observations pending coach review
+  const { data: pendingAutoObs } = useQuery({
+    queryKey: ['pending-auto-obs', category],
+    queryFn: async () => {
+      const obs = await base44.entities.MatchObservation.filter({ categoria: category, auto_generada: true, completada_por_entrenador: false }, '-jornada', 5);
+      return obs;
+    },
+    staleTime: 60_000,
+  });
+
   // Auto-análisis desactivado al entrar para evitar consumo de memoria/red en dispositivos bajos
   // El usuario puede pulsar el botón "Analizar Próximo Rival" manualmente
 
