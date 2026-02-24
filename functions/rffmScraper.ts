@@ -399,32 +399,51 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, scorers, total: scorers.length });
       }
 
-      // Debug standings page structure - try multiple URL variations
+      // Debug standings page structure
       case 'debug_standings': {
         const tryJ = jornada || '13';
+        const sHtml = await fetchPage(buildClassificationUrl(p), cookies);
         
-        // Try multiple URL formats to find which one has the classification table
-        const urls = [
-          { label: 'NFG_VisClasificacion (no jornada)', url: buildClassificationUrl(p) },
-          { label: 'NFG_VisClasificacion (with jornada)', url: buildClassificationUrl(p, tryJ) },
-          { label: 'NFG_CmpClasificacion', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${tryJ}` },
-          { label: 'NFG_CmpClasificacion (no jornada)', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}` },
-          { label: 'tipojuego=1', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${tryJ}&Sch_Tipo_Juego=1` },
-        ];
-        
-        const results = [];
-        for (const u of urls) {
-          const html = await fetchPage(u.url, cookies);
-          const $d = load(html);
-          const tableCount = $d('table').length;
-          const hasEquipo = html.toLowerCase().includes('equipo');
-          const hasPts = html.toLowerCase().includes('pts') || html.toLowerCase().includes('ptos');
-          const noData = html.includes('No hay clasificaci');
-          const snippet = html.substring(0, 200);
-          results.push({ label: u.label, url: u.url, htmlLen: html.length, tableCount, hasEquipo, hasPts, noData, snippet: snippet.substring(0, 150) });
+        // Look for AJAX/JS URLs in the HTML that might load classification data
+        const ajaxUrls = [];
+        const jsMatches = sHtml.match(/(?:url|src|href|action|fetch|ajax|load)\s*[:=(\s]+\s*['"]([^'"]*(?:clasif|cmp|ranking)[^'"]*)['"]/gi) || [];
+        for (const m of jsMatches) {
+          const urlMatch = m.match(/['"]([^'"]+)['"]/);
+          if (urlMatch) ajaxUrls.push(urlMatch[1]);
         }
         
-        return Response.json({ success: true, jornada: tryJ, results });
+        // Also check for any URLs in script tags
+        const scriptContent = [];
+        const $ds = load(sHtml);
+        $ds('script').each((_, s) => {
+          const text = $ds(s).html() || '';
+          if (text.includes('Clasif') || text.includes('clasif') || text.includes('NFG_') || text.includes('ajax') || text.includes('$.post') || text.includes('$.get') || text.includes('fetch(')) {
+            scriptContent.push(text.substring(0, 500));
+          }
+        });
+        
+        // Find all forms and their actions
+        const forms = [];
+        $ds('form').each((_, f) => {
+          forms.push({ action: $ds(f).attr('action') || '', method: $ds(f).attr('method') || '', id: $ds(f).attr('id') || '' });
+        });
+        
+        // Also try a POST to the classification URL (some pages need POST with form data)
+        const postResp = await fetch(buildClassificationUrl(p), {
+          method: 'POST',
+          headers: { 'User-Agent': 'Mozilla/5.0', 'Cookie': cookies, 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ CodJornada: tryJ, CodGrupo: p.CodGrupo, CodCompeticion: p.CodCompeticion, CodTemporada: p.CodTemporada }).toString()
+        });
+        const postHtml = await postResp.text();
+        const postStandings = parseStandings(postHtml);
+        
+        return Response.json({ 
+          success: true, jornada: tryJ,
+          ajaxUrls,
+          scriptSnippets: scriptContent.slice(0, 5),
+          forms,
+          postResult: { htmlLen: postHtml.length, standings: postStandings.length, noData: postHtml.includes('No hay clasificaci') }
+        });
       }
 
       // Debug scorers page structure
