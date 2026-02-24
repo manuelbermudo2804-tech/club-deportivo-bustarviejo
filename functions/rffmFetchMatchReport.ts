@@ -253,15 +253,18 @@ Deno.serve(async (req) => {
     // Debug mode: return raw text for analysis
     if (action === 'debug_html') {
       const $ = load(html);
-      // Remove scripts
       $('script').remove();
       $('style').remove();
       const cleanedText = $('body').text().replace(/\s+/g, ' ').trim();
+      const offset = parseInt(body.offset) || 0;
+      const chunk = 4000;
       return Response.json({ 
         success: true, 
         htmlLength: html.length,
-        textPreview: cleanedText.substring(0, 5000),
-        textLength: cleanedText.length
+        textLength: cleanedText.length,
+        offset,
+        text: cleanedText.substring(offset, offset + chunk),
+        hasMore: (offset + chunk) < cleanedText.length
       });
     }
 
