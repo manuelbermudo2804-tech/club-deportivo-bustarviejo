@@ -432,22 +432,6 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length });
       }
 
-      // Debug standings page structure
-      case 'debug_standings': {
-        const html = await fetchPage(buildClassificationUrl(p), cookies);
-        const $d = load(html);
-        const tables = [];
-        $d('table').each((i, table) => {
-          const rows = [];
-          $d(table).find('tr').each((_, tr) => {
-            const cells = $d(tr).find('th, td').map((__, c) => $d(c).text().replace(/\s+/g, ' ').trim().substring(0, 80)).get();
-            if (cells.some(c => c.length > 0)) rows.push(cells);
-          });
-          if (rows.length > 0) tables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 10) });
-        });
-        return Response.json({ success: true, htmlLength: html.length, tablesCount: tables.length, tables: tables.slice(0, 10), titleSnippet: html.substring(0, 500) });
-      }
-
       default:
         return Response.json({ error: 'Actions: test, results, all_results, next_match, standings, scorers, debug_standings' }, { status: 400 });
     }
