@@ -388,19 +388,40 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, scorers });
       }
 
+      // Debug scorers page structure
+      case 'debug_scorers': {
+        const scorersUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
+        const html = await fetchPage(scorersUrl, cookies);
+        const $s = load(html);
+        
+        // Check if it's a frameset
+        const frames = $s('frame, iframe').map((_, f) => ({ name: $s(f).attr('name') || '', src: ($s(f).attr('src') || '').substring(0, 300) })).get();
+        
+        // Get all tables info
+        const tables = [];
+        $s('table').each((i, table) => {
+          const rows = [];
+          $s(table).find('tr').each((_, tr) => {
+            const cells = $s(tr).find('th, td').map((__, c) => $s(c).text().replace(/\s+/g, ' ').trim().substring(0, 100)).get();
+            if (cells.some(c => c.length > 0)) rows.push(cells);
+          });
+          if (rows.length > 0) tables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 8) });
+        });
+        
+        return Response.json({ 
+          success: true, htmlLength: html.length, frames, 
+          tablesCount: tables.length, tables: tables.slice(0, 8),
+          preview: html.substring(0, 2000)
+        });
+      }
+
       // Test/debug a single jornada
       case 'test': {
         const j = jornada || p.CodJornada || '1';
         const html = await fetchPage(buildJornadaUrl(p, j), cookies);
         const matches = parseJornadaMatches(html);
         const totalJornadas = detectTotalJornadas(html);
-        
-        // Also test scorers URL
-        const scorersUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
-        const scorersHtml = await fetchPage(scorersUrl, cookies);
-        const scorers = parseScorers(scorersHtml);
-        
-        return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length, scorers, scorersCount: scorers.length });
+        return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length });
       }
 
       default:
