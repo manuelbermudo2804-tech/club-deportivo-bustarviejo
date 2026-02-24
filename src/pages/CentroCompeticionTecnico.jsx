@@ -33,12 +33,23 @@ export default function CentroCompeticionTecnico() {
   const isCoach = !!me?.es_entrenador && !me?.es_coordinador;
   const isCoordinator = !!me?.es_coordinador;
 
+  // Categorías dinámicas: solo las que tienen compite_en_liga=true
+  const { data: dynamicCategories } = useQuery({
+    queryKey: ['competition-categories'],
+    queryFn: async () => {
+      const all = await base44.entities.CategoryConfig.filter({ compite_en_liga: true, activa: true });
+      return all.map(c => c.nombre).filter(Boolean);
+    },
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const CATEGORIES = (dynamicCategories && dynamicCategories.length > 0) ? dynamicCategories : FALLBACK_CATEGORIES;
+
   // Categorías visibles para el técnico
   const myCats = React.useMemo(() => {
-    // Técnicos (entrenador o coordinador) ven TODAS las categorías y luego filtran en Configuración
     if (isCoordinator || isCoach) return CATEGORIES;
     return CATEGORIES;
-  }, [isCoordinator, isCoach]);
+  }, [isCoordinator, isCoach, CATEGORIES]);
 
   const getUrlParam = (key, fallback) => {
     const params = new URLSearchParams(window.location.search);

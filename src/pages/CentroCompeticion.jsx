@@ -45,7 +45,7 @@ const getUrlParam = (key, fallback) => {
 
 export default function CentroCompeticion() {
   const storedFav = typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') : null;
-  const defaultCat = getUrlParam('cat', storedFav || CATEGORIES[0]);
+  const defaultCat = getUrlParam('cat', storedFav || FALLBACK_CATEGORIES[0]);
   const defaultView = getUrlParam('vista', 'clasificacion');
 
   const [category, setCategory] = React.useState(defaultCat);
@@ -55,6 +55,18 @@ export default function CentroCompeticion() {
   const queryClient = useQueryClient();
   const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
   const isAdmin = me?.role === 'admin';
+
+  // Categorías dinámicas: solo las que tienen compite_en_liga=true
+  const { data: dynamicCategories } = useQuery({
+    queryKey: ['competition-categories'],
+    queryFn: async () => {
+      const all = await base44.entities.CategoryConfig.filter({ compite_en_liga: true, activa: true });
+      return all.map(c => c.nombre).filter(Boolean);
+    },
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const CATEGORIES = (dynamicCategories && dynamicCategories.length > 0) ? dynamicCategories : FALLBACK_CATEGORIES;
   React.useEffect(() => {
     if (me && !isAdmin && (me.es_entrenador || me.es_coordinador)) {
       window.location.href = createPageUrl('CentroCompeticionTecnico');
