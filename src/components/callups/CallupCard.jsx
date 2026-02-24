@@ -250,6 +250,17 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
             <div className="flex flex-wrap gap-2 pt-2">
               {!canDelete && callup.estado_convocatoria !== "cancelada" && (
                 <>
+                  {/* Botón PUBLICAR prominente para borradores */}
+                  {!callup.publicada && (
+                    <Button
+                      onClick={() => onPublish?.(callup)}
+                      size="sm"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg font-semibold mb-1"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      🚀 Publicar y Enviar Convocatoria
+                    </Button>
+                  )}
                   <Button
                     onClick={() => onEdit?.(callup)}
                     variant="outline"
