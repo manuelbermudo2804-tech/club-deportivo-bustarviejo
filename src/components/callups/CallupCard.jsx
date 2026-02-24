@@ -9,7 +9,7 @@ import CallupStatusBanner from "./CallupStatusBanner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseNow, onReopen, isAdmin, onRefresh, onCancel, onReschedule }) {
+export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseNow, onReopen, isAdmin, onRefresh, onCancel, onReschedule, onPublish }) {
   const [showQuickConfirm, setShowQuickConfirm] = React.useState(false);
   const jugadores = callup.jugadores_convocados || [];
   const confirmed = jugadores.filter(j => j.confirmacion === "asistire").length;
