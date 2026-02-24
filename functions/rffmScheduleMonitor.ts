@@ -165,21 +165,19 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message: 'No configs with RFFM URLs', changes: [] });
     }
 
-    // 2. Get all open convocatorias (not closed, not cancelled)
+    // 2. Get all convocatorias (open = not closed, not cancelled, future)
     const today = new Date().toISOString().split('T')[0];
     const allCallups = await base44.asServiceRole.entities.Convocatoria.list('-fecha_partido');
     const openCallups = allCallups.filter(c => 
-      c.publicada && !c.cerrada && c.estado_convocatoria !== 'cancelada' && c.fecha_partido >= today
+      !c.cerrada && c.estado_convocatoria !== 'cancelada' && c.fecha_partido >= today
     );
 
     const changes = [];
+    const created = [];
     const errors = [];
 
-    // 3. Only check categories that have an open convocatoria (saves huge time)
-    const categoriesWithCallups = new Set(openCallups.map(c => c.categoria));
-    const relevantConfigs = activeConfigs.filter(c => categoriesWithCallups.has(c.categoria));
-
-    for (const config of relevantConfigs) {
+    // 3. Check ALL categories with RFFM URLs (not just those with callups)
+    for (const config of activeConfigs) {
       try {
         const url = config.rfef_results_url || config.rfef_url;
         
@@ -198,11 +196,49 @@ Deno.serve(async (req) => {
           }
         }
 
+        const isLocal = match.local?.toUpperCase().includes('BUSTARVIEJO');
+        const rival = isLocal ? match.visitante : match.local;
+
         // Find matching convocatoria for this category
         const callup = openCallups.find(c => c.categoria === config.categoria);
-        if (!callup) continue; // No convocatoria for this category, skip
 
-        // Compare: date, time, venue
+        // --- FASE 4: Auto-create draft if no convocatoria exists ---
+        if (!callup) {
+          if (!matchDate) continue; // Can't create without a date
+
+          // Get active players for this category
+          const players = await base44.asServiceRole.entities.Player.filter({ 
+            categoria_principal: config.categoria, activo: true 
+          });
+          const jugadores_convocados = players.map(p => ({
+            jugador_id: p.id,
+            jugador_nombre: p.nombre,
+            email_padre: p.email_padre || '',
+            email_jugador: p.email_jugador || '',
+            confirmacion: 'pendiente',
+          }));
+
+          await base44.asServiceRole.entities.Convocatoria.create({
+            titulo: `Jornada ${jornada} vs ${rival}`,
+            categoria: config.categoria,
+            tipo: 'Partido',
+            rival,
+            fecha_partido: matchDate,
+            hora_partido: match.hora || '00:00',
+            ubicacion: match.campo || 'Por confirmar',
+            local_visitante: isLocal ? 'Local' : 'Visitante',
+            jugadores_convocados,
+            entrenador_email: 'sistema@cdbustarviejo.es',
+            entrenador_nombre: 'Sistema automático',
+            publicada: false,
+            descripcion: `Convocatoria creada automáticamente desde RFFM (Jornada ${jornada}). Revisa y publica cuando esté lista.`,
+          });
+
+          created.push({ categoria: config.categoria, rival, jornada, fecha: matchDate });
+          continue;
+        }
+
+        // --- Existing callup: check for changes ---
         const dateChanged = matchDate && callup.fecha_partido !== matchDate;
         const timeChanged = match.hora && callup.hora_partido !== match.hora;
         const venueChanged = match.campo && callup.ubicacion && 
