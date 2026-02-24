@@ -291,42 +291,66 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'test': {
         const j = jornada || p.CodJornada || '1';
-        // The RFFM main page is a frameset. The _Exec page populates dropdowns via JS arrays.
-        // The actual MATCH LIST for a jornada is loaded via the NFG_CmpJornadac frame.
-        // Since NFG_CmpJornadac returns empty, the list is likely loaded differently.
         
-        // Strategy: Let's look at what the _Exec page JavaScript says about
-        // how to navigate to match results. It writes select options and then 
-        // calls parent functions. Let's decode the _Exec response fully.
-        const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
-        const execHtml = await fetchPage(execUrl, cookies);
+        // The CmpJornada frameset loads with 2 frames: one for the form/dropdowns, one for data.
+        // The main page HTML itself has the framesets.
+        // Let's look at the main page HTML to find the frame structure.
+        const mainHtml = await fetchPage(url, cookies);
+        const $m = load(mainHtml);
         
-        // Also try NFG_CmpCalendario which might list matches for a jornada
-        const calUrls = [
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpCalendario?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`,
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpCalendarioc?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`,
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`,
+        // Get all frame srcs
+        const frames = [];
+        $m('frame, iframe').each((_, f) => {
+          frames.push({ name: $m(f).attr('name') || '', src: ($m(f).attr('src') || '').substring(0, 300) });
+        });
+        
+        // The CmpJornada page might actually have data directly in its HTML (table within the frameset page)
+        // Let's look at ALL tables in the main page
+        const mainTables = [];
+        $m('table').each((i, table) => {
+          const rows = [];
+          $m(table).find('tr').each((_, tr) => {
+            const cells = $m(tr).find('th, td').map((__, c) => $m(c).text().trim().substring(0, 80)).get();
+            if (cells.some(c => c.length > 0)) rows.push(cells);
+          });
+          if (rows.length > 0) mainTables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 10) });
+        });
+        
+        // Try the NFG_CmpJornadac.html (static HTML template that might be the content frame)
+        const cHtmlUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornadac.html`;
+        const cHtml = await fetchPage(cHtmlUrl, cookies);
+        
+        // Try variations of the URL for the content area
+        const varUrls = [
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada_Exec?cod_primaria=${p.cod_primaria}&codtemporada=${p.CodTemporada}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}&codjornada=${j}&cod_agrupacion=1`,
         ];
         
-        const calResults = [];
-        for (const cu of calUrls) {
-          const ch = await fetchPage(cu, cookies);
-          calResults.push({
-            url: cu.split('?')[0].split('/').pop(),
-            length: ch.length,
-            hasTeams: /bustarviejo/i.test(ch) || /C\.D\.|C\.F\./i.test(ch),
-            hasTable: /<table/i.test(ch),
-            hasFrame: /<frame/i.test(ch),
-            frameSrcs: (() => { const $c = load(ch); return $c('frame, iframe').map((_, f) => $c(f).attr('src')).get(); })(),
-            preview: ch.substring(0, 3000)
-          });
+        const varResults = [];
+        for (const vu of varUrls) {
+          const vh = await fetchPage(vu, cookies);
+          // Look for the innerHTML write that contains the MATCH TABLE data
+          // The Exec page should write innerHTML to the 'content' div via parent.document.getElementById
+          const innerHtmlWrites = [];
+          const ihRe = /innerHTML\s*=\s*"((?:[^"\\]|\\.)*)"/g;
+          let ihm;
+          while ((ihm = ihRe.exec(vh)) !== null) {
+            const content = ihm[1].replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+            if (content.length > 50) {
+              innerHtmlWrites.push(content.substring(0, 2000));
+            }
+          }
+          varResults.push({ url: vu.split('?')[0].split('/').pop(), length: vh.length, innerHtmlWrites: innerHtmlWrites.slice(0, 5) });
         }
-        
+
         return Response.json({ 
           success: true,
-          execLength: execHtml.length,
-          execPreview: execHtml.substring(0, 2000),
-          calResults
+          mainLength: mainHtml.length,
+          frames,
+          mainTablesCount: mainTables.length,
+          mainTables: mainTables.slice(0, 3),
+          cHtmlLength: cHtml.length,
+          cHtmlPreview: cHtml.substring(0, 1500),
+          varResults,
         });
       }
 
