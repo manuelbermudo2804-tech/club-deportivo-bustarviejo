@@ -601,56 +601,36 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
 
-      // Debug acta links - find acta-related links only
+      // Debug acta links - dump raw HTML around score area
       case 'debug_actas': {
         const ja = jornada || '19';
         const htmlA = await fetchPage(buildJornadaUrl(p, ja), cookies);
-        const $da = load(htmlA);
-        // Collect only match-related links (teams, scores, actas)
-        const matchLinks = [];
-        $da('a').each((idx2, el) => {
-          const href2 = $da(el).attr('href') || '';
-          const text2 = $da(el).text().replace(/\s+/g, ' ').trim().substring(0, 150);
-          const onclick2 = $da(el).attr('onclick') || '';
-          const cls2 = $da(el).attr('class') || '';
-          // Only include match-related links
-          if (href2.includes('NFG_Cmp') || href2.includes('Equipo') || href2.includes('Acta') || href2.includes('acta') ||
-              onclick2.includes('Acta') || onclick2.includes('acta') || cls2.includes('resultado') ||
-              href2.includes('resultado') || text2.match(/\d+\s*-\s*\d+/)) {
-            matchLinks.push({ href: href2.substring(0, 400), text: text2, onclick: onclick2.substring(0, 400), cls: cls2 });
-          }
-        });
-        // Collect imgs with onclick (acta icons)
-        const actaImgs = [];
-        $da('img').each((idx3, el) => {
-          const src3 = $da(el).attr('src') || '';
-          const onclick3 = $da(el).attr('onclick') || '';
-          if (onclick3.length > 1) {
-            actaImgs.push({ src: src3.substring(0, 200), onclick: onclick3.substring(0, 400) });
-          }
-        });
-        // Search HTML for acta/resultado patterns
-        const actaUrls = (htmlA.match(/NFG_CmpActa[^"'\s<]*/gi) || []).slice(0, 10);
-        const resultadoUrls = (htmlA.match(/resultado_cerrada[^"'\s<]*/gi) || []).slice(0, 5);
-        // Find the <span class="resultado_cerrada"> context - extract parent <a> hrefs
-        const resultLinks = [];
-        $da('span.resultado_cerrada').each((_, sp) => {
-          const parentA = $da(sp).closest('a');
-          const href3 = parentA.attr('href') || '';
-          const text3 = $da(sp).text().replace(/\s+/g, ' ').trim();
-          resultLinks.push({ score: text3, href: href3.substring(0, 400) });
-        });
-        // Also search for any <a> inside score cells (td with score)
-        const scoreCellLinks = [];
-        $da('td').each((_, td) => {
-          const tdText = $da(td).text().replace(/\s+/g, ' ').trim();
-          if (tdText.match(/\d+\s*[-–]\s*\d+/)) {
-            $da(td).find('a').each((_2, a) => {
-              scoreCellLinks.push({ href: ($da(a).attr('href') || '').substring(0, 400), text: $da(a).text().trim().substring(0, 100) });
-            });
-          }
-        });
-        return Response.json({ success: true, jornada: ja, matchLinks, actaImgs: actaImgs.slice(0, 20), actaUrls, resultadoUrls, resultLinks, scoreCellLinks });
+        // Search for acta patterns directly in raw HTML
+        const actaMatches = [];
+        const re = /NFG_CmpActa[^"'\s<>]{0,200}/gi;
+        let m2;
+        while ((m2 = re.exec(htmlA)) !== null) actaMatches.push(m2[0]);
+        // Search for NFG_Vis links (acta viewer)
+        const visMatches = [];
+        const re2 = /NFG_Vis[A-Za-z]*Acta[^"'\s<>]{0,200}/gi;
+        while ((m2 = re2.exec(htmlA)) !== null) visMatches.push(m2[0]);
+        // Find context around "resultado_cerrada" class - 500 chars before and after
+        const contexts = [];
+        let searchIdx = 0;
+        while (contexts.length < 3) {
+          const pos = htmlA.indexOf('resultado_cerrada', searchIdx);
+          if (pos === -1) break;
+          contexts.push(htmlA.substring(Math.max(0, pos - 300), Math.min(htmlA.length, pos + 500)));
+          searchIdx = pos + 50;
+        }
+        // Search for any link pattern with Cod near scores
+        const codLinks = [];
+        const re3 = /href="([^"]*CodPartido[^"]*)"/gi;
+        while ((m2 = re3.exec(htmlA)) !== null) codLinks.push(m2[1]);
+        const re4 = /href="([^"]*NFG_Cmp[^"]*)"/gi;
+        const cmpLinks = [];
+        while ((m2 = re4.exec(htmlA)) !== null) cmpLinks.push(m2[1].substring(0, 300));
+        return Response.json({ success: true, jornada: ja, actaMatches, visMatches, codLinks, cmpLinks: [...new Set(cmpLinks)], contexts });
       }
 
       default:
