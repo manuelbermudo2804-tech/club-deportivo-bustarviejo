@@ -243,6 +243,13 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
           </Card>
         ))}
       </div>
+
+      {/* Match Report Modal */}
+      <MatchReportModal
+        open={!!selectedMatch}
+        onClose={() => setSelectedMatch(null)}
+        resultado={selectedMatch}
+      />
     </div>
   );
 }
