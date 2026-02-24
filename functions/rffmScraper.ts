@@ -230,21 +230,38 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case 'test': {
-        // Fetch the inner frame (Exec) to see actual match data
         const j = jornada || p.CodJornada || '1';
-        const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
-        const html = await fetchPage(execUrl, cookies);
         
-        // Return raw HTML for analysis - the Exec page might use different structure
-        return Response.json({ 
-          success: true,
-          execUrl,
-          htmlLength: html.length,
-          rawHtml: html.substring(0, 10000),
-          hasTable: html.includes('<table'),
-          hasDiv: html.includes('<div'),
-          hasScript: html.includes('<script'),
-        });
+        // Try multiple URL patterns - the RFFM frameset loads content in different frames
+        const urlsToTry = [
+          // The 'c' variant (content frame with match data)
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornadac?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}&cod_agrupacion=1&Sch_Tipo_Juego=`,
+          // NFG_CmpPartido
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpPartido?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`,
+          // The main frameset page
+          url,
+          // Exec variant
+          buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' }),
+        ];
+        
+        const results = [];
+        for (const testUrl of urlsToTry) {
+          const html = await fetchPage(testUrl, cookies);
+          const $f = load(html);
+          const frames = $f('frame, iframe').map((_, f) => $f(f).attr('src')).get();
+          results.push({
+            url: testUrl.substring(0, 250),
+            length: html.length,
+            hasTeams: /bustarviejo/i.test(html),
+            hasScore: /\d+\s*[-]\s*\d+/.test(html),
+            hasTable: /<table/i.test(html),
+            hasFrame: /<frame/i.test(html),
+            frames,
+            preview: html.substring(0, 3000)
+          });
+        }
+        
+        return Response.json({ success: true, results });
       }
 
       case 'results': {
