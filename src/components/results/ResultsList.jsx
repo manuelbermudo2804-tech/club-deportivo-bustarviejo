@@ -4,9 +4,10 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
+  const [showAll, setShowAll] = React.useState(false);
   const queryClient = useQueryClient();
   const { data: results = [], isLoading } = useQuery({
     queryKey: ['resultados', categoryFullName],
@@ -35,7 +36,9 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
     return acc;
   }, {});
 
-  const groups = Object.values(grouped).sort((a, b) => (b.jornada ?? 0) - (a.jornada ?? 0));
+  const allGroups = Object.values(grouped).sort((a, b) => (b.jornada ?? 0) - (a.jornada ?? 0));
+  // By default show only latest 2 jornadas, expand to all on demand
+  const groups = showAll ? allGroups : allGroups.slice(0, 2);
 
   const initials = (s) => {
     const str = String(s || '').trim();
@@ -131,6 +134,20 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
                 })}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toggle historial */}
+      {allGroups.length > 2 && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => setShowAll(!showAll)}
+            className="gap-2 rounded-xl border-2 border-orange-300 text-orange-700 hover:bg-orange-50"
+          >
+            {showAll ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {showAll ? 'Ver solo últimas jornadas' : `Ver historial completo (${allGroups.length} jornadas)`}
+          </Button>
         </div>
       )}
 
