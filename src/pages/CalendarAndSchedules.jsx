@@ -19,6 +19,7 @@ import AgendaView from "../components/calendar/AgendaView";
 import TrainingScheduleForm from "../components/training/TrainingScheduleForm";
 import ContactCard from "../components/ContactCard";
 import { useActiveSeason } from "../components/season/SeasonProvider";
+import UpcomingMatchesSection from "../components/calendar/UpcomingMatchesSection";
 
 const DIAS_ORDEN = {
   "Lunes": 1,
@@ -354,14 +355,18 @@ export default function CalendarAndSchedules() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+          <TabsTrigger value="partidos" className="flex items-center gap-2">
+            <Trophy className="w-4 h-4" />
+            Partidos
+          </TabsTrigger>
           <TabsTrigger value="calendario" className="flex items-center gap-2">
             <CalendarIcon className="w-4 h-4" />
             Calendario
           </TabsTrigger>
           <TabsTrigger value="horarios" className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            Horarios Entrenamientos
+            Horarios
           </TabsTrigger>
         </TabsList>
 
