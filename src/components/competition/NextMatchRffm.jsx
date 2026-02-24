@@ -50,10 +50,33 @@ export default function NextMatchRffm({ config, category, standings, onMatchLoad
         url: intranetUrl,
         jornada: startJornada,
       });
+      // Auto-save to ProximoPartido entity so non-admins can see it
+      if (res.data?.match) {
+        try {
+          const m = res.data.match;
+          const fechaIso = m.fecha ? (() => {
+            const [d, mo, y] = m.fecha.split("/");
+            return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`;
+          })() : null;
+          // Delete old record for this category, then create new
+          const old = await base44.entities.ProximoPartido.filter({ categoria: category });
+          for (const o of old) { try { await base44.entities.ProximoPartido.delete(o.id); } catch {} }
+          await base44.entities.ProximoPartido.create({
+            categoria: category,
+            jornada: res.data.jornada || startJornada,
+            local: m.local,
+            visitante: m.visitante,
+            fecha: m.fecha,
+            hora: m.hora,
+            campo: m.campo,
+            fecha_iso: fechaIso,
+          });
+        } catch (e) { console.error("Error saving ProximoPartido:", e); }
+      }
       return res.data;
     },
     enabled: !!intranetUrl,
-    staleTime: 30 * 60_000, // 30 min cache
+    staleTime: 30 * 60_000,
     gcTime: 60 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
