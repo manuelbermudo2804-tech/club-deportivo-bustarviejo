@@ -142,8 +142,8 @@ Deno.serve(async (req) => {
             }
           }
 
-          // Small delay
-          await new Promise(r => setTimeout(r, 200));
+          // Delay to avoid rate limits
+          await new Promise(r => setTimeout(r, 500));
         }
 
         results.push({ categoria: cat, jornadasChecked: jornadasToFetch.length, updated });
