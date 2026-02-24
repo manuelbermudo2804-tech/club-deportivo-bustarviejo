@@ -229,17 +229,26 @@ Deno.serve(async (req) => {
         const html = await fetchPage(url, cookies);
         const $ = load(html);
         const title = $('title').text().trim();
-        // Return key tables for analysis
+        // Return ALL tables with raw cell data for analysis
         const tables = [];
         $('table').each((i, table) => {
           const rows = [];
           $(table).find('tr').each((j, tr) => {
-            const cells = $(tr).find('th, td').map((_, c) => $(c).text().trim()).get();
-            if (cells.some(c => c.length > 0)) rows.push(cells);
+            const cells = [];
+            $(tr).find('th, td').each((_, c) => {
+              cells.push({
+                tag: c.tagName,
+                text: $(c).text().trim().substring(0, 200),
+                cls: $(c).attr('class')?.substring(0, 50) || '',
+                colspan: $(c).attr('colspan') || ''
+              });
+            });
+            if (cells.some(c => c.text.length > 0)) rows.push(cells);
           });
-          if (rows.length > 1) tables.push({ idx: i, rows: rows.slice(0, 10) });
+          // Only include tables with 2+ rows and skip the big filter table (index 0)
+          if (rows.length > 1 && i > 0) tables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 20) });
         });
-        return Response.json({ success: true, title, loginWorked: !title.toLowerCase().includes('login'), tables: tables.slice(0, 8) });
+        return Response.json({ success: true, title, loginWorked: !title.toLowerCase().includes('login'), tables });
       }
 
       case 'standings': {
