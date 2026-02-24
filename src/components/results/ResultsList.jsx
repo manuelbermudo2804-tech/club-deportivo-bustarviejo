@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { Trash2, ChevronDown, ChevronUp, FileText } from "lucide-react";
 
 export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
   const [showAll, setShowAll] = React.useState(false);
