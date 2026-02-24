@@ -176,26 +176,6 @@ function parseJornadaMatches(html) {
       }
     }
     
-    // Extract acta URL from the score link (NFG_CmpPartido?...CodActa=...)
-    let actaUrl = null;
-    const scoreTd = tds[1];
-    const scoreLinks = $(scoreTd).find('a');
-    if (scoreLinks.length > 0) {
-      const href = $(scoreLinks[0]).attr('href') || '';
-      if (href.includes('CodActa') || href.includes('cod_acta')) {
-        actaUrl = href.startsWith('http') ? href : `https://intranet.ffmadrid.es${href.startsWith('/') ? '' : '/nfg/NPcd/'}${href}`;
-      }
-    }
-    // Fallback: look for NFG_CmpPartido link in center td HTML
-    if (!actaUrl) {
-      const tdHtml = $(scoreTd).html() || '';
-      const actaMatch = tdHtml.match(/href="([^"]*NFG_CmpPartido[^"]*)"/i);
-      if (actaMatch) {
-        const href = actaMatch[1];
-        actaUrl = href.startsWith('http') ? href : `https://intranet.ffmadrid.es${href.startsWith('/') ? '' : '/nfg/NPcd/'}${href}`;
-      }
-    }
-
     matches.push({
       local: localName,
       visitante: visitanteName,
@@ -204,8 +184,7 @@ function parseJornadaMatches(html) {
       jugado,
       fecha,
       hora,
-      campo: matchCampo,
-      acta_url: actaUrl
+      campo: matchCampo
     });
   }
   
@@ -622,36 +601,44 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
 
-      // Debug acta links - dump raw HTML around score area
+      // Debug acta/ficha links - search for "ficha" and related patterns
       case 'debug_actas': {
         const ja = jornada || '19';
         const htmlA = await fetchPage(buildJornadaUrl(p, ja), cookies);
-        // Search for acta patterns directly in raw HTML
-        const actaMatches = [];
-        const re = /NFG_CmpActa[^"'\s<>]{0,200}/gi;
-        let m2;
-        while ((m2 = re.exec(htmlA)) !== null) actaMatches.push(m2[0]);
-        // Search for NFG_Vis links (acta viewer)
-        const visMatches = [];
-        const re2 = /NFG_Vis[A-Za-z]*Acta[^"'\s<>]{0,200}/gi;
-        while ((m2 = re2.exec(htmlA)) !== null) visMatches.push(m2[0]);
-        // Find context around "resultado_cerrada" class - 500 chars before and after
-        const contexts = [];
-        let searchIdx = 0;
-        while (contexts.length < 3) {
-          const pos = htmlA.indexOf('resultado_cerrada', searchIdx);
+        // Search for "ficha" anywhere in HTML (case insensitive)
+        const fichaContexts = [];
+        let si = 0;
+        const htmlLower = htmlA.toLowerCase();
+        while (fichaContexts.length < 8) {
+          const pos = htmlLower.indexOf('ficha', si);
           if (pos === -1) break;
-          contexts.push(htmlA.substring(Math.max(0, pos - 300), Math.min(htmlA.length, pos + 500)));
-          searchIdx = pos + 50;
+          fichaContexts.push({ pos, context: htmlA.substring(Math.max(0, pos - 200), Math.min(htmlA.length, pos + 300)) });
+          si = pos + 10;
         }
-        // Search for any link pattern with Cod near scores
-        const codLinks = [];
+        // Search for CodPartido in links
+        const codPartidoLinks = [];
         const re3 = /href="([^"]*CodPartido[^"]*)"/gi;
-        while ((m2 = re3.exec(htmlA)) !== null) codLinks.push(m2[1]);
+        let m2;
+        while ((m2 = re3.exec(htmlA)) !== null) codPartidoLinks.push(m2[1].substring(0, 400));
+        // Unique NFG_Cmp link patterns
+        const cmpLinksSet = new Set();
         const re4 = /href="([^"]*NFG_Cmp[^"]*)"/gi;
-        const cmpLinks = [];
-        while ((m2 = re4.exec(htmlA)) !== null) cmpLinks.push(m2[1].substring(0, 300));
-        return Response.json({ success: true, jornada: ja, actaMatches, visMatches, codLinks, cmpLinks: [...new Set(cmpLinks)], contexts });
+        while ((m2 = re4.exec(htmlA)) !== null) cmpLinksSet.add(m2[1].substring(0, 400));
+        // Search for acta/Acta in raw HTML
+        const actaContexts = [];
+        si = 0;
+        while (actaContexts.length < 5) {
+          const pos = htmlLower.indexOf('acta', si);
+          if (pos === -1) break;
+          actaContexts.push({ pos, context: htmlA.substring(Math.max(0, pos - 100), Math.min(htmlA.length, pos + 200)) });
+          si = pos + 10;
+        }
+        return Response.json({ 
+          success: true, jornada: ja, htmlLen: htmlA.length,
+          fichaContexts, codPartidoLinks, 
+          cmpLinks: [...cmpLinksSet],
+          actaContexts
+        });
       }
 
       default:
