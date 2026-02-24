@@ -293,6 +293,19 @@ Deno.serve(async (req) => {
         const jornadaUrl = buildJornadaUrl(p, j);
         const html = await fetchPage(jornadaUrl, cookies);
         
+        // Detailed debug: look at the structure around the first few match blocks
+        const $ = load(html);
+        const tables = $('table').toArray();
+        const debugBlocks = [];
+        for (let i = 3; i < Math.min(tables.length, 11); i++) {
+          const t = tables[i];
+          const text = $(t).text().replace(/\s+/g, ' ').trim().substring(0, 300);
+          const hasEscudo = ($(t).html() || '').includes('escudo_clb');
+          const tds = $(t).find('td').toArray();
+          const tdTexts = tds.map(td => $(td).text().replace(/\s+/g, ' ').trim().substring(0, 120));
+          debugBlocks.push({ idx: i, hasEscudo, tdCount: tds.length, tdTexts, textPreview: text });
+        }
+        
         const matchesV1 = parseJornadaMatches(html);
         const matchesV2 = parseJornadaMatchesV2(html);
         
@@ -300,9 +313,9 @@ Deno.serve(async (req) => {
           success: true,
           htmlLength: html.length,
           jornada: j,
+          debugBlocks,
           matchesV1,
           matchesV2,
-          matchCount: Math.max(matchesV1.length, matchesV2.length)
         });
       }
 
