@@ -327,19 +327,28 @@ export default function CategoryConfigAdmin() {
               <thead className="bg-green-50 border-b-2 border-green-300">
                 <tr>
                   <th className="px-4 py-2 text-left font-bold text-slate-900">Categoría</th>
+                  <th className="px-4 py-2 text-center font-bold text-slate-900">Liga</th>
                   <th className="px-4 py-2 text-right font-bold text-slate-900">Inscripción</th>
                   <th className="px-4 py-2 text-right font-bold text-slate-900">2ª Cuota</th>
                   <th className="px-4 py-2 text-right font-bold text-slate-900">3ª Cuota</th>
                   <th className="px-4 py-2 text-right font-bold text-slate-900">Total</th>
                   <th className="px-4 py-2 text-center font-bold text-slate-900">Acciones</th>
                 </tr>
-              </thead>
-              <tbody>
+                </thead>
+                <tbody>
                 {baseCategories.sort((a, b) => a.nombre.localeCompare(b.nombre)).map((cat) => (
                   <tr key={cat.id} className={`border-b hover:bg-green-50 transition ${!cat.activa ? 'opacity-50 bg-slate-50' : ''}`}>
                     <td className="px-4 py-3 font-medium text-slate-900">
                       {cat.nombre}
                       {!cat.activa && <Badge className="ml-2 bg-slate-500 text-white text-xs">Oculta</Badge>}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => updateCategoryMutation.mutate({ id: cat.id, data: { compite_en_liga: !cat.compite_en_liga } })}
+                        className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.compite_en_liga ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                      >
+                        {cat.compite_en_liga ? '⚽ Sí' : 'No'}
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
                     <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
@@ -395,19 +404,28 @@ export default function CategoryConfigAdmin() {
                 <thead className="bg-orange-50 border-b-2 border-orange-300">
                   <tr>
                     <th className="px-4 py-2 text-left font-bold text-slate-900">Categoría</th>
+                    <th className="px-4 py-2 text-center font-bold text-slate-900">Liga</th>
                     <th className="px-4 py-2 text-right font-bold text-slate-900">Inscripción</th>
                     <th className="px-4 py-2 text-right font-bold text-slate-900">2ª Cuota</th>
                     <th className="px-4 py-2 text-right font-bold text-slate-900">3ª Cuota</th>
                     <th className="px-4 py-2 text-right font-bold text-slate-900">Total</th>
                     <th className="px-4 py-2 text-center font-bold text-slate-900">Acciones</th>
                   </tr>
-                </thead>
-                <tbody>
+                  </thead>
+                  <tbody>
                   {extraCategories.map((cat) => (
                     <tr key={cat.id} className={`border-b hover:bg-orange-50 transition ${!cat.activa ? 'opacity-50 bg-slate-50' : ''}`}>
                       <td className="px-4 py-3 font-medium text-slate-900">
                         {cat.nombre}
                         {!cat.activa && <Badge className="ml-2 bg-slate-500 text-white text-xs">Oculta</Badge>}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => updateCategoryMutation.mutate({ id: cat.id, data: { compite_en_liga: !cat.compite_en_liga } })}
+                          className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.compite_en_liga ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                        >
+                          {cat.compite_en_liga ? '⚽ Sí' : 'No'}
+                        </button>
                       </td>
                       <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
                       <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
