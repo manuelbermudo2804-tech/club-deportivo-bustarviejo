@@ -326,87 +326,16 @@ export default function CentroCompeticionTecnico() {
         <Badge variant="outline" className="hidden md:inline-flex">{category}</Badge>
       </div>
 
-      {/* Fichas auto-generadas pendientes de completar */}
-      {pendingAutoObs && pendingAutoObs.length > 0 && (
-        <div className="space-y-3 mb-4">
-          {pendingAutoObs.map(obs => (
-            <Card key={obs.id} className="border-2 border-amber-400 bg-amber-50">
-              <CardContent className="p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge className="bg-amber-500 text-white">📋 Ficha automática</Badge>
-                      <Badge variant="outline">J{obs.jornada}</Badge>
-                    </div>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {obs.resultado_tipo === 'Victoria' ? '✅' : obs.resultado_tipo === 'Empate' ? '🤝' : '❌'}{' '}
-                      CD Bustarviejo {obs.goles_favor}-{obs.goles_contra} vs {obs.rival}
-                    </p>
-                    <p className="text-xs text-slate-600">{obs.local_visitante}{obs.campo ? ` · ${obs.campo}` : ''} · {obs.fecha_partido}</p>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      setEditingAutoObs(obs);
-                      setShowObservationForm(true);
-                    }}
-                    className="bg-amber-600 hover:bg-amber-700 gap-2"
-                    size="sm"
-                  >
-                    <Zap className="w-4 h-4" /> Añadir valoración (30s)
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Acciones técnicas de partido */}
+      {/* Herramienta de análisis de rival */}
       <Card className="mb-4 border-2 border-emerald-500">
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center justify-between gap-2">
             <span>Herramientas de Partido</span>
-            <div className="flex gap-2 flex-wrap">
-              <Button onClick={analyzeRival} disabled={isAnalyzingRival} className="bg-red-600 hover:bg-red-700">
-                {isAnalyzingRival ? 'Analizando…' : (<><Target className="w-4 h-4 mr-2" /> Analizar Próximo Rival</>)}
-              </Button>
-              <Button variant="outline" onClick={() => { setEditingAutoObs(null); setShowObservationForm((v) => !v); }}>
-                <Zap className="w-4 h-4 mr-2" /> {showObservationForm ? 'Ocultar Registro Rápido' : 'Registro Rápido Post-Partido'}
-              </Button>
-            </div>
+            <Button onClick={analyzeRival} disabled={isAnalyzingRival} className="bg-red-600 hover:bg-red-700">
+              {isAnalyzingRival ? 'Analizando…' : (<><Target className="w-4 h-4 mr-2" /> Analizar Próximo Rival</>)}
+            </Button>
           </CardTitle>
         </CardHeader>
-        {showObservationForm && (matchForForm || editingAutoObs) && (
-          <CardContent>
-            <QuickMatchObservationForm
-              categoria={editingAutoObs?.categoria || matchForForm?.categoria}
-              rival={editingAutoObs?.rival || matchForForm?.rival}
-              fechaPartido={editingAutoObs?.fecha_partido || matchForForm?.fecha_partido}
-              jornada={editingAutoObs?.jornada || standingsPack?.jornada}
-              onSave={async (data) => {
-                if (editingAutoObs) {
-                  // Update existing auto-generated observation
-                  await base44.entities.MatchObservation.update(editingAutoObs.id, {
-                    ...data,
-                    completada_por_entrenador: true,
-                    auto_generada: true,
-                  });
-                  queryClient.invalidateQueries({ queryKey: ['pending-auto-obs', category] });
-                } else {
-                  await base44.entities.MatchObservation.create(data);
-                }
-              }}
-              onCancel={() => { setShowObservationForm(false); setEditingAutoObs(null); }}
-              entrenadorEmail={me?.email}
-              entrenadorNombre={me?.full_name}
-            />
-          </CardContent>
-        )}
-        {showObservationForm && !matchForForm && !editingAutoObs && (
-          <CardContent>
-            <p className="text-sm text-slate-600">No hay partidos recientes o próximos para {category}.</p>
-          </CardContent>
-        )}
       </Card>
 
       {/* Próximo partido (lee de BD, guardado por admin) */}
