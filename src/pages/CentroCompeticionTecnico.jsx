@@ -38,7 +38,7 @@ export default function CentroCompeticionTecnico() {
     queryKey: ['competition-categories'],
     queryFn: async () => {
       const all = await base44.entities.CategoryConfig.filter({ compite_en_liga: true, activa: true });
-      return all.map(c => c.nombre).filter(Boolean);
+      return [...new Set(all.map(c => c.nombre).filter(Boolean))];
     },
     staleTime: 10 * 60_000,
     refetchOnWindowFocus: false,
