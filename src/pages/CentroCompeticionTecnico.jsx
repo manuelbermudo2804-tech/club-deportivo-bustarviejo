@@ -357,8 +357,8 @@ export default function CentroCompeticionTecnico() {
         )}
       </Card>
 
-      {/* Próximo partido RFFM */}
-      <NextMatchRffm config={standingsConfig} category={category} standings={standingsPack} />
+      {/* Próximo partido (lee de BD, guardado por admin) */}
+      <NextMatchFromDB category={category} standings={standingsPack} />
 
       {/* Contenido principal */}
       <ErrorBoundary fallback={
