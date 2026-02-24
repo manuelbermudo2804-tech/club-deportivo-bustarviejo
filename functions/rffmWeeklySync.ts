@@ -237,39 +237,42 @@ Deno.serve(async (req) => {
         } catch (e) { summary.errors.push({ cat, type: 'standings', error: e.message }); }
       }
 
-      // --- RESULTS ---
+      // --- RESULTS (scan backwards from last jornada to find latest played) ---
       if (config.rfef_results_url || config.rfef_url) {
         try {
           const url = config.rfef_results_url || config.rfef_url;
           const p = extractParams(url);
           const firstHtml = await fetchPage(buildJornadaUrl(p, 1), cookies);
           const totalJornadas = detectTotalJornadas(firstHtml);
-          const allJornadas = [{ jornada: 1, matches: parseJornadaMatches(firstHtml) }];
-          for (let batch = 2; batch <= totalJornadas; batch += 5) {
-            const batchEnd = Math.min(batch + 4, totalJornadas);
-            const promises = [];
-            for (let j = batch; j <= batchEnd; j++) {
-              promises.push(fetchPage(buildJornadaUrl(p, j), cookies).then(h => ({ jornada: j, matches: parseJornadaMatches(h) })).catch(() => ({ jornada: j, matches: [] })));
+          
+          // Scan backwards from the last jornada to find the latest one with played matches
+          let latestJornada = null;
+          let latestMatches = null;
+          for (let j = totalJornadas; j >= 1; j--) {
+            const html = j === 1 ? firstHtml : await fetchPage(buildJornadaUrl(p, j), cookies);
+            const matches = parseJornadaMatches(html);
+            if (matches.some(m => m.jugado)) {
+              latestJornada = j;
+              latestMatches = matches;
+              break;
             }
-            allJornadas.push(...(await Promise.all(promises)));
           }
-          const played = allJornadas.filter(j => j.matches.some(m => m.jugado));
-          const latest = played.length ? played[played.length - 1] : null;
-          if (latest) {
-            const existing = await base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latest.jornada });
+          
+          if (latestJornada && latestMatches) {
+            const existing = await base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJornada });
             if (existing.length === 0) {
-              const records = latest.matches.filter(m => m.jugado).map(m => ({
-                temporada, categoria: cat, jornada: latest.jornada,
+              const records = latestMatches.filter(m => m.jugado).map(m => ({
+                temporada, categoria: cat, jornada: latestJornada,
                 local: m.local, visitante: m.visitante,
                 goles_local: m.goles_local, goles_visitante: m.goles_visitante,
                 estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
               }));
               if (records.length) {
                 await base44.asServiceRole.entities.Resultado.bulkCreate(records);
-                summary.results.push({ cat, jornada: latest.jornada, matches: records.length });
+                summary.results.push({ cat, jornada: latestJornada, matches: records.length });
               }
             } else {
-              summary.results.push({ cat, jornada: latest.jornada, skipped: true });
+              summary.results.push({ cat, jornada: latestJornada, skipped: true });
             }
           }
         } catch (e) { summary.errors.push({ cat, type: 'results', error: e.message }); }
