@@ -222,53 +222,42 @@ function parseStandings(html) {
   return standings;
 }
 
-// Parse scorers from NFG_CmpGoleadores page
+// Build the correct scorers URL: NFG_CMP_Goleadores (with underscores)
+function buildScorersUrl(p) {
+  return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=0&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`;
+}
+
+// Parse scorers from NFG_CMP_Goleadores page
+// Table structure: Jugador | Equipo | Grupo | Partidos Jugados | Goles | Goles partido
 function parseScorers(html) {
   const $ = load(html);
   const scorers = [];
   
+  // Find the table with "Jugador" header (table idx 4 based on debug)
   $('table').each((_, table) => {
-    const headerText = $(table).find('th').map((__, el) => $(el).text().trim().toLowerCase()).get().join(' ');
-    // Look for tables with scorer-related headers
-    if (headerText.includes('jugador') || headerText.includes('gol') || headerText.includes('nombre')) {
-      $(table).find('tr').each((__, row) => {
-        const cells = $(row).find('td');
-        if (cells.length >= 3) {
-          const t = cells.map((___, td) => $(td).text().trim()).get();
-          // Typical structure: pos, player name, team, goals
-          const pos = parseInt(t[0]);
-          if (!isNaN(pos) && pos > 0) {
-            scorers.push({
-              posicion: pos,
-              jugador: t[1] || '',
-              equipo: t[2] || '',
-              goles: parseInt(t[3]) || parseInt(t[t.length - 1]) || 0
-            });
-          }
-        }
-      });
-    }
-  });
-  
-  // If no structured table found, try a more generic approach
-  if (scorers.length === 0) {
-    // Look for any table rows with numbers that could be goals
-    $('table tr').each((_, row) => {
+    const firstRowText = $(table).find('tr').first().find('td, th').map((__, c) => $(c).text().trim().toLowerCase()).get().join(' ');
+    if (!firstRowText.includes('jugador')) return;
+    
+    let isHeader = true;
+    $(table).find('tr').each((__, row) => {
+      if (isHeader) { isHeader = false; return; } // Skip header row
+      
       const cells = $(row).find('td');
-      if (cells.length >= 2) {
-        const texts = cells.map((__, td) => $(td).text().trim()).get();
-        // Check if last cell is a number (goals)
-        const lastNum = parseInt(texts[texts.length - 1]);
-        if (!isNaN(lastNum) && lastNum > 0 && lastNum < 100 && texts[0].length > 2) {
-          scorers.push({
-            jugador: texts[0],
-            equipo: texts.length >= 3 ? texts[1] : '',
-            goles: lastNum
-          });
-        }
+      if (cells.length < 5) return;
+      
+      const t = cells.map((___, td) => $(td).text().trim()).get();
+      const jugador = t[0];
+      const equipo = t[1];
+      const grupo = t[2];
+      const pj = parseInt(t[3]) || 0;
+      const goles = parseInt(t[4]) || 0;
+      const golesPorPartido = parseFloat(t[5]) || 0;
+      
+      if (jugador && goles > 0) {
+        scorers.push({ jugador, equipo, grupo, partidos_jugados: pj, goles, goles_partido: golesPorPartido });
       }
     });
-  }
+  });
   
   return scorers;
 }
