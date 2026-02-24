@@ -257,6 +257,25 @@ export default function MatchReportModal({ open, onClose, resultado }) {
               {/* Alineaciones */}
               <PlayerList players={report.alineacion_local} teamName={resultado?.local || 'Local'} />
               <PlayerList players={report.alineacion_visitante} teamName={resultado?.visitante || 'Visitante'} />
+
+              {/* Re-download button */}
+              {actaUrl && (
+                <div className="text-center pt-2 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleScrape} 
+                    disabled={scraping}
+                    className="text-xs"
+                  >
+                    {scraping ? (
+                      <><Loader2 className="w-3 h-3 animate-spin mr-1" /> Actualizando...</>
+                    ) : (
+                      '🔄 Volver a descargar ficha'
+                    )}
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>
