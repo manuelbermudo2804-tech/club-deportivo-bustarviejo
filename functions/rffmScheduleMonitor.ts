@@ -350,9 +350,9 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      checked: relevantConfigs.length,
-      categories_with_callups: [...categoriesWithCallups],
+      checked: activeConfigs.length,
       changes,
+      created,
       errors: errors.length ? errors : undefined,
       timestamp: new Date().toISOString(),
     });
