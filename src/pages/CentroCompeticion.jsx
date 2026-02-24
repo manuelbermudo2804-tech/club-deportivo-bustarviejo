@@ -9,13 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
-import UploadStandingsForm from "../components/standings/UploadStandingsForm";
 import PasteStandingsForm from "../components/standings/PasteStandingsForm";
 import ReviewStandingsTable from "../components/standings/ReviewStandingsTable";
-import UploadResultsForm from "../components/results/UploadResultsForm";
 import PasteResultsForm from "../components/results/PasteResultsForm";
 import ReviewResultsTable from "../components/results/ReviewResultsTable";
-import UploadScorersForm from "../components/scorers/UploadScorersForm";
 import PasteScorersForm from "../components/scorers/PasteScorersForm";
 import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
 import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle, Plus, Settings } from "lucide-react";
@@ -207,7 +204,6 @@ export default function CentroCompeticion() {
     return assetsForSection.filter(a => !(Array.isArray(a.reviewed_weeks) && a.reviewed_weeks.includes(wk))).length;
   }, [assetsForSection]);
 
-  const [uploadMode, setUploadMode] = React.useState('paste'); // 'paste' | 'image'
   const [showAddUrls, setShowAddUrls] = React.useState(false);
   const [pasteUrls, setPasteUrls] = React.useState("");
 
@@ -657,26 +653,9 @@ export default function CentroCompeticion() {
               </Dialog>
             </div>
 
-            {/* Toggle Pegar Texto / Subir Imagen */}
+            {/* Modo de entrada: solo pegar texto */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-slate-700">Modo de entrada:</span>
-              <div className="grid grid-cols-2 rounded-lg border overflow-hidden">
-                <Button
-                  variant={uploadMode === 'paste' ? 'default' : 'ghost'}
-                  onClick={() => setUploadMode('paste')}
-                  className={`${uploadMode === 'paste' ? 'bg-green-600 hover:bg-green-700 text-white' : ''} rounded-none h-9 text-xs gap-1`}
-                >
-                  📋 Pegar Texto
-                  <Badge className="bg-green-100 text-green-700 text-[10px] ml-1">⚡ Rápido</Badge>
-                </Button>
-                <Button
-                  variant={uploadMode === 'image' ? 'default' : 'ghost'}
-                  onClick={() => setUploadMode('image')}
-                  className={`${uploadMode === 'image' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} rounded-none h-9 text-xs gap-1`}
-                >
-                  🖼️ Subir Imagen
-                </Button>
-              </div>
+              <span className="text-sm font-medium text-slate-700">📋 Modo de entrada: Pegar Texto</span>
             </div>
 
             {adminTab === 'clasificacion' && (
@@ -694,19 +673,11 @@ export default function CentroCompeticion() {
                   </Button>
                 </div>
                 {!standingsDraft ? (
-                  uploadMode === 'paste' ? (
                     <PasteStandingsForm
                       preselectedCategory={category}
                       onDataExtracted={(d) => setStandingsDraft(d)}
                       onCancel={() => setStandingsDraft(null)}
                     />
-                  ) : (
-                    <UploadStandingsForm
-                      preselectedCategory={category}
-                      onDataExtracted={(d) => setStandingsDraft(d)}
-                      onCancel={() => setStandingsDraft(null)}
-                    />
-                  )
                 ) : (
                   <ReviewStandingsTable
                     data={standingsDraft}
@@ -733,11 +704,7 @@ export default function CentroCompeticion() {
                   </Button>
                 </div>
                 {!resultsDraft ? (
-                  uploadMode === 'paste' ? (
                     <PasteResultsForm categoria={category} onDataExtracted={(d) => setResultsDraft(d)} onCancel={() => setResultsDraft(null)} />
-                  ) : (
-                    <UploadResultsForm categoria={category} onDataExtracted={(d) => setResultsDraft(d)} onCancel={() => setResultsDraft(null)} />
-                  )
                 ) : (
                   <ReviewResultsTable data={resultsDraft} onCancel={() => setResultsDraft(null)} onConfirm={saveResultsToDB} isSubmitting={savingResults} />
                 )}
@@ -759,11 +726,7 @@ export default function CentroCompeticion() {
                   </Button>
                 </div>
                 {!scorersDraft ? (
-                  uploadMode === 'paste' ? (
                     <PasteScorersForm categoria={category} onDataExtracted={(d) => setScorersDraft(d)} onCancel={() => setScorersDraft(null)} />
-                  ) : (
-                    <UploadScorersForm categoria={category} onDataExtracted={(d) => setScorersDraft(d)} onCancel={() => setScorersDraft(null)} />
-                  )
                 ) : (
                   <ReviewScorersTable data={scorersDraft} onCancel={() => setScorersDraft(null)} onConfirm={saveScorersToDB} isSubmitting={savingScorers} />
                 )}
