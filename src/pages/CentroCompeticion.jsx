@@ -19,7 +19,7 @@ import RffmImportButton from "../components/competition/RffmImportButton";
 import RffmUrlManager from "../components/competition/RffmUrlManager";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
-import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2 } from "lucide-react";
+import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 import { toast } from "sonner";
@@ -169,6 +169,24 @@ export default function CentroCompeticion() {
   };
 
   const [showUrlManager, setShowUrlManager] = React.useState(false);
+  const [importingHistory, setImportingHistory] = React.useState(false);
+
+  const importFullHistory = async () => {
+    if (!confirm(`¿Importar historial COMPLETO de resultados de "${category}" desde la RFFM?\n\nEsto descargará todas las jornadas jugadas que no estén ya en la base de datos. Puede tardar 1-2 minutos.`)) return;
+    setImportingHistory(true);
+    try {
+      const res = await base44.functions.invoke('rffmFullHistorySync', { categoria: category });
+      const data = res.data;
+      if (data.error) { toast.error(data.error); return; }
+      const msg = `✅ Historial importado:\n• ${data.imported?.length || 0} jornadas nuevas\n• ${data.skipped || 0} ya existentes\n• Total jornadas: ${data.totalJornadas}`;
+      toast.success(msg);
+      queryClient.refetchQueries({ queryKey: ['resultados', category] });
+    } catch (e) {
+      toast.error('Error al importar: ' + (e.message || 'desconocido'));
+    } finally {
+      setImportingHistory(false);
+    }
+  };
 
   const { data: standingsPack, isLoading: loadingStandings } = useQuery({
     queryKey: ['centro-standings', category],
@@ -576,7 +594,19 @@ export default function CentroCompeticion() {
 
             {adminTab === 'resultados' && (
               <>
-                <RffmImportButton type="results" config={config} category={category} onDataReady={(d) => setResultsDraft(d)} />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <RffmImportButton type="results" config={config} category={category} onDataReady={(d) => setResultsDraft(d)} />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={importFullHistory}
+                    disabled={importingHistory}
+                    className="gap-1.5 border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
+                    {importingHistory ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <History className="w-3.5 h-3.5" />}
+                    {importingHistory ? 'Importando...' : 'Importar historial completo'}
+                  </Button>
+                </div>
                 <div className="flex gap-2">
                   <Button variant="destructive" size="sm" onClick={async () => {
                     if (!confirm(`¿Borrar TODOS los resultados de "${category}"? Esta acción no se puede deshacer.`)) return;
