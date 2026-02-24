@@ -206,58 +206,97 @@ function detectTotalJornadas(html) {
 }
 
 // Parse standings from NFG_VisClasificacion page
-// The table structure: rows of tds where first cell is position number,
-// second is team name, then pts, pj, pg, pe, pp, gf, gc (may have extra cols)
+// Structure: Inside #CL_Resumen div, second table has the classification
+// Header row has: (icon col) | Ordenar por: | Puntos | J. | G. | E. | P. | F. | C. | (últimos) | (sanción)
+// Data rows: (pos icon) | Team name (with JS noise) | pts | pj | pg | pe | pp | gf | gc | ... 
 function parseStandings(html) {
   const $ = load(html);
   const standings = [];
   
-  $('table').each((_, table) => {
-    // Method 1: Check th headers
-    const headerText = $(table).find('th').map((__, el) => $(el).text().trim().toLowerCase()).get().join(' ');
-    const hasHeader = headerText.includes('equipo') || headerText.includes('pts') || headerText.includes('ptos') || headerText.includes('pj');
+  // Strategy: find the table inside #CL_Resumen that has "Puntos" and "J." headers
+  const container = $('#CL_Resumen');
+  const searchScope = container.length ? container : $('body');
+  
+  searchScope.find('table').each((_, table) => {
+    // Check if this table has classification headers
+    const allText = $(table).text();
+    if (!allText.includes('Puntos') || !allText.includes('J.')) return;
     
-    // Method 2: Check if table has rows where first td is a sequential number and has enough columns
-    // This handles the RFFM intranet which uses td-only tables
     const rows = $(table).find('tr').toArray();
-    let hasSequentialNumbers = false;
-    let validRowCount = 0;
-    for (const row of rows.slice(0, 5)) {
-      const cells = $(row).find('td');
-      if (cells.length >= 8) {
-        const firstCell = $(cells[0]).text().trim();
-        const pos = parseInt(firstCell);
-        if (!isNaN(pos) && pos >= 1 && pos <= 50) validRowCount++;
-      }
-    }
-    if (validRowCount >= 2) hasSequentialNumbers = true;
+    // Skip header rows - find first data row (has a number in position column)
+    let posCounter = 0;
     
-    if (!hasHeader && !hasSequentialNumbers) return;
-    
-    $(table).find('tr').each((__, row) => {
-      const cells = $(row).find('td');
-      if (cells.length >= 8) {
-        // Extract clean text from each cell
-        const t = cells.map((___, td) => $(td).text().replace(/\s+/g, ' ').trim()).get();
-        const pos = parseInt(t[0]);
-        if (!isNaN(pos) && pos > 0 && pos < 50) {
-          // Clean team name - remove eval() and other JS noise that cheerio may pick up
-          let teamName = t[1];
-          const evalIdx = teamName.indexOf('eval(');
-          if (evalIdx > 0) teamName = teamName.substring(0, evalIdx).trim();
-          // Also remove any trailing ntype/JS artifacts
-          const ntypeIdx = teamName.indexOf('ntype(');
-          if (ntypeIdx > 0) teamName = teamName.substring(0, ntypeIdx).trim();
-          
-          standings.push({
-            posicion: pos, equipo: teamName, puntos: parseInt(t[2]) || 0,
-            pj: parseInt(t[3]) || 0, pg: parseInt(t[4]) || 0, pe: parseInt(t[5]) || 0,
-            pp: parseInt(t[6]) || 0, gf: parseInt(t[7]) || 0, gc: parseInt(t[8]) || 0
-          });
+    for (const row of rows) {
+      const cells = $(row).find('td').toArray();
+      if (cells.length < 8) continue;
+      
+      // The first cell might be an icon/position indicator
+      // The second cell should be team name
+      // Try to find a pattern: look for a cell with just a number (position)
+      // or a cell with team name followed by numeric cells
+      
+      // Get clean text from each cell (direct text only, not nested script content)
+      const cellTexts = cells.map(c => {
+        // Remove script tags and their content before extracting text
+        const clone = $(c).clone();
+        clone.find('script, style').remove();
+        return clone.text().replace(/\s+/g, ' ').trim();
+      });
+      
+      // Find the team name cell - it's the one with the longest text that isn't a number
+      // Typical pattern: cell[0] = empty/pos, cell[1] = team name, cell[2+] = numbers
+      
+      // Try to extract: check if we can find sequential numeric values for pts, pj, pg, pe, pp, gf, gc
+      let teamIdx = -1;
+      let numericStart = -1;
+      
+      for (let i = 0; i < cellTexts.length - 6; i++) {
+        // Check if cells i through i+6 are all numeric
+        let allNumeric = true;
+        for (let j = i; j <= i + 6; j++) {
+          if (j >= cellTexts.length || !/^\d+$/.test(cellTexts[j])) { allNumeric = false; break; }
+        }
+        if (allNumeric) {
+          numericStart = i;
+          teamIdx = i - 1;
+          break;
         }
       }
-    });
+      
+      if (teamIdx < 0 || numericStart < 0) continue;
+      
+      // Clean team name
+      let teamName = cellTexts[teamIdx];
+      // Remove JS artifacts (eval, ntype, etc.)
+      for (const noise of ['eval(', 'ntype(', 'function(', 'var ', 'document.']) {
+        const idx = teamName.indexOf(noise);
+        if (idx > 0) teamName = teamName.substring(0, idx).trim();
+      }
+      // Remove trailing special chars
+      teamName = teamName.replace(/[#\-\s]+$/, '').trim();
+      
+      if (!teamName || teamName.length < 2) continue;
+      
+      posCounter++;
+      const nums = cellTexts.slice(numericStart, numericStart + 7).map(n => parseInt(n) || 0);
+      
+      standings.push({
+        posicion: posCounter,
+        equipo: teamName,
+        puntos: nums[0],
+        pj: nums[1],
+        pg: nums[2],
+        pe: nums[3],
+        pp: nums[4],
+        gf: nums[5],
+        gc: nums[6]
+      });
+    }
+    
+    // If we found standings in this table, stop looking
+    if (standings.length > 0) return false;
   });
+  
   return standings;
 }
 
