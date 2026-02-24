@@ -94,11 +94,11 @@ function parseJornadaMatches(html) {
   
   // First pass: find the "campo" info from campo-only tables (no escudo, has "Campo:")
   // Second pass: extract matches from escudo tables
-  // NOTE: Start from index 0, not 3 - the first match can be in early tables
+  // NOTE: Start from index 2 - the first match can be in table[2], not always table[3+]
   
   let currentCampo = null;
   
-  for (let i = 3; i < tables.length; i++) {
+  for (let i = 2; i < tables.length; i++) {
     const table = tables[i];
     const tableHtml = $(table).html() || '';
     const hasEscudo = tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes');
