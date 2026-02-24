@@ -112,8 +112,17 @@ Deno.serve(async (req) => {
       try {
         const p = extractParams(url);
 
-        // Get results missing acta_url for this category
-        const allResults = await base44.asServiceRole.entities.Resultado.filter({ categoria: cat }, '-jornada', 5000);
+        // Get results missing acta_url for this category (paginated to avoid rate limits)
+        let allResults = [];
+        let offset = 0;
+        const pageSize = 100;
+        while (true) {
+          const batch = await base44.asServiceRole.entities.Resultado.filter({ categoria: cat }, '-jornada', pageSize, offset);
+          allResults = allResults.concat(batch);
+          if (batch.length < pageSize) break;
+          offset += pageSize;
+          await new Promise(r => setTimeout(r, 800));
+        }
         const missingActa = allResults.filter(r => !r.acta_url && r.estado === 'finalizado');
         
         if (missingActa.length === 0) {
@@ -131,19 +140,27 @@ Deno.serve(async (req) => {
 
           // Match scraped actas to DB records
           const dbRecords = missingActa.filter(r => r.jornada === j);
+          // Collect updates, then apply with delay between each
+          const updates = [];
           for (const dbr of dbRecords) {
             const match = scraped.find(s => 
               normalizeTeam(s.local) === normalizeTeam(dbr.local) && 
               normalizeTeam(s.visitante) === normalizeTeam(dbr.visitante)
             );
             if (match?.acta_url) {
-              await base44.asServiceRole.entities.Resultado.update(dbr.id, { acta_url: match.acta_url });
-              updated++;
+              updates.push({ id: dbr.id, acta_url: match.acta_url });
             }
           }
 
-          // Delay to avoid rate limits
-          await new Promise(r => setTimeout(r, 1500));
+          // Apply updates one by one with delay
+          for (const u of updates) {
+            await base44.asServiceRole.entities.Resultado.update(u.id, { acta_url: u.acta_url });
+            updated++;
+            await new Promise(r => setTimeout(r, 300));
+          }
+
+          // Delay between jornadas to avoid RFFM + DB rate limits
+          await new Promise(r => setTimeout(r, 2000));
         }
 
         results.push({ categoria: cat, jornadasChecked: jornadasToFetch.length, updated });
