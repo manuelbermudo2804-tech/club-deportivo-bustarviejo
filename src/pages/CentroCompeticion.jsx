@@ -16,9 +16,10 @@ import ReviewResultsTable from "../components/results/ReviewResultsTable";
 import PasteScorersForm from "../components/scorers/PasteScorersForm";
 import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
 import RffmImportButton from "../components/competition/RffmImportButton";
+import RffmUrlManager from "../components/competition/RffmUrlManager";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
-import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle, Plus, Settings } from "lucide-react";
+import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle, Plus, Settings, Link2 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -228,6 +229,7 @@ export default function CentroCompeticion() {
   }, [assetsForSection]);
 
   const [showAddUrls, setShowAddUrls] = React.useState(false);
+  const [showUrlManager, setShowUrlManager] = React.useState(false);
   const [pasteUrls, setPasteUrls] = React.useState("");
 
   const upsertAssets = useMutation({
@@ -524,7 +526,12 @@ export default function CentroCompeticion() {
         <Card className="mb-4 border-2 border-orange-500">
           <CardContent className="p-4 space-y-3">
             <div className="grid gap-2 md:grid-cols-[1fr_auto] items-start">
-              <div className="font-semibold">Herramientas de Administración</div>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold">Herramientas de Administración</span>
+                <Button variant="outline" size="sm" onClick={() => setShowUrlManager(true)} className="gap-1.5 text-xs border-blue-300 text-blue-700 hover:bg-blue-50">
+                  <Link2 className="w-3.5 h-3.5" /> Gestionar URLs RFFM
+                </Button>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full md:w-auto">
                 <Button
                   variant={adminTab === 'clasificacion' ? 'default' : 'outline'}
@@ -824,6 +831,9 @@ export default function CentroCompeticion() {
       <div className="mt-8 text-xs text-slate-400 text-center border-t pt-4">
         ⚽ Datos según la última actualización disponible · Comparativa de equipos disponible en Clasificación
       </div>
+
+      {/* Gestión URLs RFFM */}
+      {isAdmin && <RffmUrlManager open={showUrlManager} onOpenChange={setShowUrlManager} />}
 
       {/* Configuración de categorías */}
       <Dialog open={showConfig} onOpenChange={setShowConfig}>
