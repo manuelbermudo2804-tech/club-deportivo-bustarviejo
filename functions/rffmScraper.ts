@@ -184,7 +184,8 @@ function parseJornadaMatches(html) {
       jugado,
       fecha,
       hora,
-      campo: matchCampo
+      campo: matchCampo,
+      acta_url: null // will be filled below
     });
   }
   
@@ -601,43 +602,36 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
 
-      // Debug acta/ficha links - dump raw HTML per match table to see ficha buttons
+      // Debug acta links - show full td[1] HTML for first 3 matches
       case 'debug_actas': {
         const ja = jornada || '19';
         const htmlA = await fetchPage(buildJornadaUrl(p, ja), cookies);
         const $da = load(htmlA);
-        const tables = $da('table').toArray();
-        // For each match table (with escudo), show the ficha link if present
+        const tablesA = $da('table').toArray();
         const matchDetails = [];
-        for (let i = 2; i < tables.length && matchDetails.length < 8; i++) {
-          const table = tables[i];
-          const tableHtml = $da(table).html() || '';
-          const hasEscudo = tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes');
-          if (!hasEscudo) continue;
-          const tds = $da(table).find('td').toArray();
-          if (tds.length < 3) continue;
-          const localName = $da(tds[0]).find('span').first().text().trim();
-          const visitanteName = $da(tds[2]).find('span').first().text().trim();
-          // Look for ficha link: <a> with NFG_CmpPartido href
-          const fichaLinks = [];
-          $da(table).find('a[href*="NFG_CmpPartido"]').each((_, a) => {
-            fichaLinks.push($da(a).attr('href'));
+        for (let i2 = 2; i2 < tablesA.length && matchDetails.length < 4; i2++) {
+          const tblA = tablesA[i2];
+          const tblHtml = $da(tblA).html() || '';
+          if (!tblHtml.includes('escudo_clb') && !tblHtml.includes('pimg/Clubes')) continue;
+          const tdsA = $da(tblA).find('td').toArray();
+          if (tdsA.length < 3) continue;
+          const local2 = $da(tdsA[0]).find('span').first().text().trim();
+          const visit2 = $da(tdsA[2]).find('span').first().text().trim();
+          const centerHtml = $da(tdsA[1]).html()?.substring(0, 800) || '';
+          const centerText = $da(tdsA[1]).text().replace(/\s+/g, ' ').trim();
+          // Find ALL links in the ENTIRE match table row
+          const allLinksInTable = [];
+          $da(tblA).find('a').each((_3, a) => {
+            allLinksInTable.push({ href: ($da(a).attr('href') || '').substring(0, 300), text: $da(a).text().trim().substring(0, 80) });
           });
-          // Also check next sibling tables for the ficha button area
-          let nextTable = $da(table).next('table');
-          for (let k = 0; k < 3 && nextTable.length; k++) {
-            const nh = nextTable.html() || '';
-            if (nh.includes('NFG_CmpPartido')) {
-              nextTable.find('a[href*="NFG_CmpPartido"]').each((_, a) => {
-                fichaLinks.push($da(a).attr('href'));
-              });
-            }
-            if (nh.includes('escudo_clb') || nh.includes('pimg/Clubes')) break;
-            nextTable = nextTable.next('table');
-          }
-          matchDetails.push({ local: localName, visitante: visitanteName, fichaLinks });
+          matchDetails.push({ local: local2, visit: visit2, centerText, centerHtml, tdCount: tdsA.length, allLinksInTable });
         }
-        return Response.json({ success: true, jornada: ja, matchDetails });
+        // Also list all NFG_CmpPartido links
+        const partidoLinks = [];
+        const re5 = /href="([^"]*NFG_CmpPartido[^"]*)"/gi;
+        let m3;
+        while ((m3 = re5.exec(htmlA)) !== null) partidoLinks.push(m3[1]);
+        return Response.json({ success: true, jornada: ja, matchDetails, partidoLinks });
       }
 
       default:
