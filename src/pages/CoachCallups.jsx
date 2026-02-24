@@ -425,7 +425,7 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
   const handlePublish = async (callup) => {
     if (!window.confirm(`¿Publicar y enviar la convocatoria "${callup.titulo}"?\n\nSe notificará a todos los jugadores convocados por email y chat.`)) return;
     
-    const updatedData = { ...callup, publicada: true };
+    const updatedData = { ...callup, publicada: true, fecha_publicacion: new Date().toISOString() };
     updateCallupMutation.mutate({ id: callup.id, callupData: updatedData });
   };
 
