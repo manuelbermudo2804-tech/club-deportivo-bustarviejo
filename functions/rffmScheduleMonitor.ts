@@ -324,6 +324,19 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
+    // Alert admin on failure
+    try {
+      const base44Err = createClientFromRequest(req);
+      const admins = await base44Err.asServiceRole.entities.User.filter({ role: 'admin' });
+      for (const admin of admins) {
+        await base44Err.asServiceRole.integrations.Core.SendEmail({
+          to: admin.email,
+          subject: '🚨 Error en monitor de horarios RFFM',
+          body: `<div style="font-family: Arial; max-width: 600px;"><div style="background: #dc2626; padding: 16px; border-radius: 12px 12px 0 0;"><h2 style="color: white; margin: 0;">🚨 Fallo en rffmScheduleMonitor</h2></div><div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;"><p>El monitor de horarios ha fallado:</p><pre style="background: #f1f5f9; padding: 12px; border-radius: 8px; overflow-x: auto;">${error.message}</pre><p style="color: #64748b; font-size: 12px;">Fecha: ${new Date().toISOString()}</p></div></div>`,
+          from_name: 'CD Bustarviejo',
+        });
+      }
+    } catch {}
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
