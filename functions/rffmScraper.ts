@@ -437,44 +437,53 @@ Deno.serve(async (req) => {
       }
 
       // Find next unplayed match for Bustarviejo
+      // Strategy: scan ALL jornadas (1 to total) for unplayed Bustarviejo matches,
+      // then pick the one with the earliest date. This handles postponed matches correctly.
       case 'next_match': {
-        let startJ = parseInt(jornada || p.CodJornada || '1');
+        const refJ = parseInt(jornada || p.CodJornada || '1');
+        const j1Html = await fetchPage(buildJornadaUrl(p, refJ), cookies);
+        const totalJ = detectTotalJornadas(j1Html);
         
-        // If startJ is very low (1-3), try to find where we really are by scanning
-        // Check if we need to auto-detect the current jornada
-        if (startJ <= 3) {
-          // Detect total jornadas first
-          const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
-          const totalJ = detectTotalJornadas(j1Html);
-          
-          // Binary-ish search: check middle jornada to find where played/unplayed boundary is
-          let low = 1, high = totalJ, bestPlayed = 0;
-          // Check a few key points to find the last played jornada quickly
-          for (const checkJ of [Math.floor(totalJ/2), Math.floor(totalJ*3/4), Math.floor(totalJ/4), totalJ]) {
-            if (checkJ < 1 || checkJ > totalJ) continue;
-            const html = await fetchPage(buildJornadaUrl(p, checkJ), cookies);
-            const ms = parseJornadaMatches(html);
-            const hasPlayed = ms.some(m => m.jugado);
-            const allPlayed = ms.length > 0 && ms.filter(m => !m.visitante?.toUpperCase().includes('DESCANSA') && !m.local?.toUpperCase().includes('DESCANSA')).every(m => m.jugado);
-            if (allPlayed && checkJ > bestPlayed) bestPlayed = checkJ;
+        // Collect ALL unplayed Bustarviejo matches across all jornadas
+        const candidates = [];
+        
+        // Scan from jornada 1 to totalJ (batch fetching for speed)
+        for (let batch = 1; batch <= totalJ; batch += 5) {
+          const batchEnd = Math.min(batch + 4, totalJ);
+          const promises = [];
+          for (let j = batch; j <= batchEnd; j++) {
+            promises.push(
+              fetchPage(buildJornadaUrl(p, j), cookies)
+                .then(html => {
+                  const ms = parseJornadaMatches(html);
+                  const bust = ms.find(m =>
+                    !m.jugado &&
+                    (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')) &&
+                    !m.local?.toUpperCase().includes('DESCANSA') &&
+                    !m.visitante?.toUpperCase().includes('DESCANSA')
+                  );
+                  if (bust) candidates.push({ jornada: j, match: bust });
+                })
+                .catch(() => {})
+            );
           }
-          if (bestPlayed > 0) startJ = bestPlayed;
+          await Promise.all(promises);
         }
         
-        // Search from startJ forward (up to 15 jornadas ahead)
-        for (let j = startJ; j <= startJ + 15; j++) {
-          const html = await fetchPage(buildJornadaUrl(p, j), cookies);
-          const matches = parseJornadaMatches(html);
-          const bust = matches.find(m =>
-            !m.jugado &&
-            (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')) &&
-            // Skip "Descansa" entries
-            !m.local?.toUpperCase().includes('DESCANSA') &&
-            !m.visitante?.toUpperCase().includes('DESCANSA')
-          );
-          if (bust) return Response.json({ success: true, jornada: j, match: bust });
+        if (candidates.length === 0) {
+          return Response.json({ success: true, match: null, message: 'No upcoming matches found' });
         }
-        return Response.json({ success: true, match: null, message: 'No upcoming matches found' });
+        
+        // Sort candidates by date (earliest first), then by jornada
+        candidates.sort((a, b) => {
+          const dateA = a.match.fecha ? a.match.fecha.split('/').reverse().join('') : '99999999';
+          const dateB = b.match.fecha ? b.match.fecha.split('/').reverse().join('') : '99999999';
+          if (dateA !== dateB) return dateA.localeCompare(dateB);
+          return a.jornada - b.jornada;
+        });
+        
+        const best = candidates[0];
+        return Response.json({ success: true, jornada: best.jornada, match: best.match });
       }
 
       // Fetch classification/standings
