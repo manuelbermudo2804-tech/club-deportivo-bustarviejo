@@ -215,8 +215,85 @@ Deno.serve(async (req) => {
       results.push(r);
     }
 
-    return Response.json({ success: true, temporada, synced: results, timestamp: new Date().toISOString() });
+    // Build weekly summary for admin
+    const summaryLines = [];
+    let totalErrors = 0;
+    const bustResults = [];
+
+    for (const r of results) {
+      const parts = [];
+      if (r.standings) parts.push(`Clasificación (J${r.standings.jornada}, ${r.standings.teams} equipos)`);
+      if (r.results && !r.results.skipped) parts.push(`Jornada ${r.results.jornada}: ${r.results.matches} resultados`);
+      if (r.results?.skipped) parts.push(`Jornada ${r.results.jornada}: ya importada`);
+      if (r.scorers) parts.push(`${r.scorers.players} goleadores`);
+      if (r.errors.length) { parts.push(`⚠️ ${r.errors.length} error(es)`); totalErrors += r.errors.length; }
+      if (parts.length) summaryLines.push(`• ${r.cat}: ${parts.join(' | ')}`);
+
+      // Check Bustarviejo results this week
+      if (r.results && !r.results.skipped) {
+        try {
+          const recs = await base44.asServiceRole.entities.Resultado.filter({ categoria: r.cat, temporada, jornada: r.results.jornada });
+          const bust = recs.find(m => m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO'));
+          if (bust) {
+            const isLocal = bust.local?.toUpperCase().includes('BUSTARVIEJO');
+            const rival = isLocal ? bust.visitante : bust.local;
+            const won = isLocal ? bust.goles_local > bust.goles_visitante : bust.goles_visitante > bust.goles_local;
+            const draw = bust.goles_local === bust.goles_visitante;
+            const emoji = won ? '✅' : draw ? '🤝' : '❌';
+            bustResults.push(`${emoji} ${r.cat}: ${bust.goles_local}-${bust.goles_visitante} vs ${rival}`);
+          }
+        } catch {}
+      }
+    }
+
+    const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    let resumen = `📊 *Resumen semanal RFFM — ${fecha}*\n\n`;
+    resumen += `✅ Sincronizadas ${results.length} categorías\n`;
+    if (summaryLines.length) resumen += summaryLines.join('\n') + '\n';
+    if (totalErrors) resumen += `\n⚠️ Errores totales: ${totalErrors}\n`;
+    if (bustResults.length) resumen += `\n🏆 *Bustarviejo esta semana:*\n${bustResults.join('\n')}\n`;
+
+    // Send summary email to admin
+    try {
+      const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+      const emailBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
+            <h2 style="color: white; margin: 0;">📊 Resumen semanal RFFM</h2>
+            <p style="color: #fed7aa; margin: 4px 0 0;">${fecha}</p>
+          </div>
+          <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+            <p><strong>${results.length} categorías sincronizadas</strong></p>
+            <ul style="padding-left: 20px;">${summaryLines.map(l => `<li>${l.replace('• ', '')}</li>`).join('')}</ul>
+            ${totalErrors ? `<div style="background: #fef2f2; border: 1px solid #ef4444; border-radius: 8px; padding: 12px; margin: 12px 0;"><strong>⚠️ ${totalErrors} error(es) detectados</strong></div>` : ''}
+            ${bustResults.length ? `<h3>🏆 Bustarviejo esta semana</h3><ul>${bustResults.map(r2 => `<li>${r2}</li>`).join('')}</ul>` : ''}
+          </div>
+        </div>`;
+      for (const admin of admins) {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: admin.email,
+          subject: `📊 Resumen RFFM semanal — ${fecha}`,
+          body: emailBody,
+          from_name: 'CD Bustarviejo',
+        });
+      }
+    } catch (emailErr) { console.error('Error sending summary email:', emailErr.message); }
+
+    return Response.json({ success: true, temporada, synced: results, summary: resumen, timestamp: new Date().toISOString() });
   } catch (error) {
+    // Alert admin on failure
+    try {
+      const base44Err = createClientFromRequest(req);
+      const admins = await base44Err.asServiceRole.entities.User.filter({ role: 'admin' });
+      for (const admin of admins) {
+        await base44Err.asServiceRole.integrations.Core.SendEmail({
+          to: admin.email,
+          subject: '🚨 Error en sincronización RFFM semanal',
+          body: `<div style="font-family: Arial; max-width: 600px;"><div style="background: #dc2626; padding: 16px; border-radius: 12px 12px 0 0;"><h2 style="color: white; margin: 0;">🚨 Fallo en rffmWeeklySync</h2></div><div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;"><p>La sincronización semanal ha fallado:</p><pre style="background: #f1f5f9; padding: 12px; border-radius: 8px; overflow-x: auto;">${error.message}</pre><p style="color: #64748b; font-size: 12px;">Fecha: ${new Date().toISOString()}</p></div></div>`,
+          from_name: 'CD Bustarviejo',
+        });
+      }
+    } catch {}
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
