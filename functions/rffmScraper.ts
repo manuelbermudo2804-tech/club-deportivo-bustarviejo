@@ -400,34 +400,39 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, scorers, total: scorers.length });
       }
 
-      // Debug standings page structure
+      // Debug standings page structure - dump tables from the big page
       case 'debug_standings': {
         const tryJ = jornada || '13';
+        const html = await fetchPage(buildClassificationUrl(p, tryJ), cookies);
+        const $d = load(html);
         
-        // Try with codgrupo=0 (as the JS IrA function does) and with codgrupo=CodGrupo
-        const urls = [
-          { label: 'codgrupo=0, codjornada=' + tryJ, url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codgrupo=0&codcompeticion=${p.CodCompeticion}&codjornada=${tryJ}` },
-          { label: 'codgrupo=CodGrupo, codjornada=' + tryJ, url: buildClassificationUrl(p, tryJ) },
-          { label: 'codgrupo=0, no jornada', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codgrupo=0&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}` },
-          { label: 'CodTemporada added, codgrupo=0', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codgrupo=0&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codjornada=${tryJ}` },
-        ];
-        
-        const results = [];
-        for (const u of urls) {
-          const html = await fetchPage(u.url, cookies);
-          const standings = parseStandings(html);
-          const noData = html.includes('No hay clasificaci');
-          // Get snippet around "equipo" keyword
-          const eqIdx = html.toLowerCase().indexOf('equipo');
-          const eqSnippet = eqIdx >= 0 ? html.substring(eqIdx, eqIdx + 300) : '';
-          results.push({ 
-            label: u.label, htmlLen: html.length, standingsCount: standings.length, noData,
-            standings: standings.slice(0, 3),
-            equipoSnippet: eqSnippet.substring(0, 200)
+        // Dump ALL tables with their content
+        const tables = [];
+        $d('table').each((i, table) => {
+          const rows = [];
+          $d(table).find('tr').each((_, tr) => {
+            const cells = $d(tr).find('th, td').map((__, c) => $d(c).text().replace(/\s+/g, ' ').trim().substring(0, 60)).get();
+            if (cells.some(c => c.length > 0)) rows.push(cells);
           });
-        }
+          if (rows.length > 0) tables.push({ idx: i, rowCount: rows.length, colCount: rows[0]?.length || 0, rows: rows.slice(0, 8) });
+        });
         
-        return Response.json({ success: true, jornada: tryJ, results });
+        // Also look for div-based tables or specific class names
+        const divIds = [];
+        $d('div[id]').each((_, d) => {
+          const id = $d(d).attr('id') || '';
+          if (id.toLowerCase().includes('clasif') || id.toLowerCase().includes('resumen') || id.toLowerCase().includes('detalle') || id.toLowerCase().includes('tabla')) {
+            const text = $d(d).text().replace(/\s+/g, ' ').trim().substring(0, 200);
+            divIds.push({ id, textSnippet: text });
+          }
+        });
+        
+        return Response.json({ 
+          success: true, htmlLen: html.length, 
+          tablesCount: tables.length, tables: tables.slice(0, 15),
+          relevantDivs: divIds.slice(0, 10),
+          noData: html.includes('No hay clasificaci')
+        });
       }
 
       // Debug scorers page structure
