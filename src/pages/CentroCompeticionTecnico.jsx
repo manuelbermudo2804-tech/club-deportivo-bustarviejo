@@ -242,11 +242,11 @@ export default function CentroCompeticionTecnico() {
   const [rivalAnalysis, setRivalAnalysis] = React.useState(null);
   const [showAnalysisModal, setShowAnalysisModal] = React.useState(false);
   const analyzeRival = async () => {
-    if (!nextCallup) return alert("No hay próximo partido para analizar");
+    if (!matchForAnalysis) return alert("No hay próximo partido para analizar");
     setIsAnalyzingRival(true);
     try {
       const latest = standingsPack;
-      const rivalName = nextCallup.rival;
+      const rivalName = matchForAnalysis.rival;
       const rivalStanding = latest?.data?.find((s) => s.nombre_equipo?.toLowerCase().includes((rivalName || "").toLowerCase()));
 
       const resultados = await base44.entities.Resultado.filter({ categoria: category }, "-jornada", 200);
@@ -263,7 +263,7 @@ export default function CentroCompeticionTecnico() {
         .slice(0, 3);
 
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Genera un informe PRE-PARTIDO breve y práctico para el cuerpo técnico.\n\nRival: ${rivalName}\nCategoría: ${category}\nFecha: ${nextCallup.fecha_partido} (${nextCallup.hora_partido || 'por confirmar'})\nCampo: ${nextCallup.local_visitante || 'N/A'}\n\nClasificación rival: ${rivalStanding ? `${rivalStanding.posicion}º, ${rivalStanding.puntos} pts` : 'sin datos'}\n\nÚltimos resultados del rival:\n${rivalResults.map(r => `J${r.jornada}: ${r.local} ${r.goles_local ?? '?'}-${r.goles_visitante ?? '?'} ${r.visitante}`).join('\n') || '-'}\n\nGoleadores destacados del rival:\n${rivalScorers.map(g => `${g.jugador_nombre} (${g.goles})`).join('\n') || '-'}\n\nDevuelve: racha (1 frase), puntos_fuertes (3 bullets), debilidades (3 bullets), plan_tactico (3 bullets).`,
+        prompt: `Genera un informe PRE-PARTIDO breve y práctico para el cuerpo técnico.\n\nRival: ${rivalName}\nCategoría: ${category}\nFecha: ${matchForAnalysis.fecha_partido} (${matchForAnalysis.hora_partido || 'por confirmar'})\nCampo: ${matchForAnalysis.local_visitante || 'N/A'}\n\nClasificación rival: ${rivalStanding ? `${rivalStanding.posicion}º, ${rivalStanding.puntos} pts` : 'sin datos'}\n\nÚltimos resultados del rival:\n${rivalResults.map(r => `J${r.jornada}: ${r.local} ${r.goles_local ?? '?'}-${r.goles_visitante ?? '?'} ${r.visitante}`).join('\n') || '-'}\n\nGoleadores destacados del rival:\n${rivalScorers.map(g => `${g.jugador_nombre} (${g.goles})`).join('\n') || '-'}\n\nDevuelve: racha (1 frase), puntos_fuertes (3 bullets), debilidades (3 bullets), plan_tactico (3 bullets).`,
         response_json_schema: {
           type: "object",
           properties: {
@@ -456,9 +456,9 @@ export default function CentroCompeticionTecnico() {
       open={showAnalysisModal}
       onClose={setShowAnalysisModal}
       analysis={rivalAnalysis}
-      rival={nextCallup?.rival}
+      rival={matchForAnalysis?.rival}
       categoria={category}
-      fecha={nextCallup?.fecha_partido}
+      fecha={matchForAnalysis?.fecha_partido}
     />
   </div>
   );
