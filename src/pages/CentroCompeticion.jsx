@@ -766,8 +766,12 @@ export default function CentroCompeticion() {
         <Badge className="bg-orange-100 text-orange-800 border-orange-300 hidden md:inline-flex">{category}</Badge>
       </div>
 
-      {/* Próximo partido RFFM */}
-      <NextMatchRffm config={config} category={category} standings={standingsPack} />
+      {/* Próximo partido: Admin usa scraper directo (y auto-guarda), resto lee de BD */}
+      {isAdmin ? (
+        <NextMatchRffm config={config} category={category} standings={standingsPack} />
+      ) : (
+        <NextMatchFromDB category={category} standings={standingsPack} />
+      )}
 
       {/* Contenido */}
       <ErrorBoundary fallback={
