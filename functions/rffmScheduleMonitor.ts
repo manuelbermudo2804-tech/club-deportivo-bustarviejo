@@ -277,8 +277,6 @@ Deno.serve(async (req) => {
 
         // Send chat message to the team
         const grupo_id = config.categoria;
-        const isLocal = match.local?.toUpperCase().includes('BUSTARVIEJO');
-        const rival = isLocal ? match.visitante : match.local;
 
         const mensaje = `⚠️ *CAMBIO DE HORARIO* ⚠️\n\n` +
           `Partido: CD Bustarviejo vs ${rival}\n` +
