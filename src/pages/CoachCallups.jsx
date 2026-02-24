@@ -476,10 +476,12 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
   const today = new Date().toISOString().split('T')[0];
   const upcomingCallups = myCallups.filter(c => c.fecha_partido >= today && !c.cerrada);
 
-  // Filter by status
+  // Filter by status - handle undefined/null publicada as false (draft)
   const filteredByStatus = statusFilter === "all" 
     ? upcomingCallups 
-    : upcomingCallups.filter(c => c.publicada === (statusFilter === "published"));
+    : statusFilter === "published"
+      ? upcomingCallups.filter(c => c.publicada === true)
+      : upcomingCallups.filter(c => !c.publicada);
 
   // AUTO-CIERRE: 2h15 tras hora_partido o 00:30 del día siguiente si no hay hora
   const autoCloseRanRef = React.useRef(false);
