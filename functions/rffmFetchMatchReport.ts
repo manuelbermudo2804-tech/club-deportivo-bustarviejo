@@ -2,27 +2,25 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { load } from 'npm:cheerio@1.0.0';
 
 /**
- * Scrapes a match report (ficha) from the RFFM intranet and saves it to MatchReport entity.
- * Any authenticated user can use it.
+ * Scrapes a match report (ficha) from the RFFM intranet.
  *
  * RFFM ficha text structure (verified Feb 2026):
  * ─────────────────────────────────────────
  * [menu noise...]
  * Ficha de Partido Temporada YYYY-YYYY Fecha: DD-MM-YYYY Hora: HH:MM h
  * COMPETICION (Grupo X) Jornada N
- * EQUIPO_LOCAL_NAME
- * Titulares: dorsal SURNAME, Name dorsal SURNAME, Name ...
- * Suplentes: [optional players]
- * CUERPO TÉCNICO ... SUSTITUCIONES [subs] TARJETAS [cards]
- * 0 -
- * ÁRBITROS ARBITRO : NOMBRE
- * GOLES score1 - score2 NOMBRE (min') ...
- * ESTADIO: CAMPO_NAME ...
- * EQUIPO_VISITANTE_NAME
- * Titulares: dorsal SURNAME, Name ...
- * Suplentes: ...
- * CUERPO TÉCNICO ... SUSTITUCIONES [subs] TARJETAS [cards]
- * Anterior [end marker]
+ * EQUIPO_LOCAL
+ *   Titulares: dorsal NAME, ... Suplentes: ... CUERPO TÉCNICO ...
+ *   SUSTITUCIONES entra sale (min') ...
+ *   TARJETAS NAME (min') ...
+ * SCORE_LOCAL - SCORE_VISITANTE
+ * ÁRBITROS ARBITRO : NAME
+ * GOLES score1 - score2 NAME (min') ...
+ * ESTADIO: CAMPO ...
+ * EQUIPO_VISITANTE
+ *   Titulares: dorsal NAME, ... Suplentes: ... CUERPO TÉCNICO ...
+ *   SUSTITUCIONES ... TARJETAS ...
+ * Anterior [end]
  */
 
 async function rffmLogin() {
@@ -66,8 +64,7 @@ function clean(s) { return (s || '').replace(/\s+/g, ' ').trim(); }
  */
 function extractPlayers(text, isTitular) {
   const players = [];
-  // Each player: 1-2 digit dorsal, then UPPERCASE SURNAME + comma + first name, until next dorsal or end
-  const re = /(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s]+,\s*[A-ZÁÉÍÓÚÑÜa-záéíóúñü][A-ZÁÉÍÓÚÑÜa-záéíóúñü\s]*?)(?=\s+\d{1,2}\s+[A-ZÁÉÍÓÚÑÜ]|$)/g;
+  const re = /(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF\s]+,\s*[A-ZÁÉÍÓÚÑÜa-záéíóúñü\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜa-záéíóúñü\u0080-\uFFFF\s]*?)(?=\s+\d{1,2}\s+[A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF]|$)/g;
   let m;
   while ((m = re.exec(text)) !== null) {
     const nombre = clean(m[2]);
@@ -83,7 +80,7 @@ function extractPlayers(text, isTitular) {
  */
 function extractSubstitutions(text) {
   const subs = [];
-  const re = /(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)\s+(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)\s*\((\d+)'\)/g;
+  const re = /(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF\s,]+?)\s+(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF\s,]+?)\s*\((\d+)'\)/g;
   let m;
   while ((m = re.exec(text)) !== null) {
     const entra = clean(m[2]);
@@ -96,11 +93,12 @@ function extractSubstitutions(text) {
 }
 
 /**
- * Extract cards: "PLAYER_NAME (min')"
+ * Extract cards: "PLAYER_NAME (min')" — but NOT goal patterns like "1 - 0 NAME (min')"
  */
 function extractCards(text) {
   const cards = [];
-  const re = /([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)\s*\((\d+)'\)/g;
+  // Match "NAME (min')" but ensure it's not preceded by a score like "1 - 0"
+  const re = /([A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF\s,]+?)\s*\((\d+)'\)/g;
   let m;
   while ((m = re.exec(text)) !== null) {
     const jugador = clean(m[1]);
@@ -112,12 +110,12 @@ function extractCards(text) {
 }
 
 /**
- * Parse a single team block (from team name through TARJETAS section)
+ * Parse a single team block.
+ * Input: text from team name through end of TARJETAS section.
  */
 function parseTeamBlock(text) {
   const result = { players: [], subs: [], cards: [] };
 
-  // Titulares
   const titularesIdx = text.indexOf('Titulares:');
   const suplentesIdx = text.indexOf('Suplentes:');
   const cuerpoIdx = text.indexOf('CUERPO');
@@ -126,29 +124,26 @@ function parseTeamBlock(text) {
 
   if (titularesIdx < 0) return result;
 
-  // Extract titulares text
+  // Titulares
   const titEnd = suplentesIdx > titularesIdx ? suplentesIdx : (cuerpoIdx > titularesIdx ? cuerpoIdx : text.length);
-  const titularesText = text.substring(titularesIdx + 10, titEnd);
-  result.players.push(...extractPlayers(titularesText, true));
+  result.players.push(...extractPlayers(text.substring(titularesIdx + 10, titEnd), true));
 
-  // Extract suplentes text (if present)
+  // Suplentes
   if (suplentesIdx > 0) {
     const supEnd = cuerpoIdx > suplentesIdx ? cuerpoIdx : (subsIdx > suplentesIdx ? subsIdx : text.length);
-    const suplentesText = text.substring(suplentesIdx + 10, supEnd);
-    result.players.push(...extractPlayers(suplentesText, false));
+    result.players.push(...extractPlayers(text.substring(suplentesIdx + 10, supEnd), false));
   }
 
-  // Extract substitutions
+  // Substitutions
   if (subsIdx >= 0) {
     const subsEnd = tarjetasIdx > subsIdx ? tarjetasIdx : text.length;
-    const subsText = text.substring(subsIdx + 14, subsEnd);
-    result.subs = extractSubstitutions(subsText);
+    result.subs = extractSubstitutions(text.substring(subsIdx + 14, subsEnd));
   }
 
-  // Extract cards
+  // Cards
   if (tarjetasIdx >= 0) {
-    const cardsText = text.substring(tarjetasIdx + 9);
-    result.cards = extractCards(cardsText);
+    // Cards section ends at the end of the block
+    result.cards = extractCards(text.substring(tarjetasIdx + 9));
   }
 
   return result;
@@ -166,47 +161,80 @@ function parseMatchReport(html) {
     goles: [], tarjetas: [], cambios: []
   };
 
-  // ── Find the start of the actual ficha content ──
-  // Key marker: "Ficha de Partido"
+  // Find the ficha content
   const fichaStart = allText.indexOf('Ficha de Partido');
-  if (fichaStart < 0) return report; // Not a valid ficha page
+  if (fichaStart < 0) return report;
   const fichaText = allText.substring(fichaStart);
 
-  // ── Header info ──
+  // Header
   const fechaMatch = fichaText.match(/Fecha:\s*(\d{1,2}-\d{1,2}-\d{4})/i);
   if (fechaMatch) report.fecha = fechaMatch[1].replace(/-/g, '/');
-  
   const horaMatch = fichaText.match(/Hora:\s*(\d{1,2}:\d{2})/i);
   if (horaMatch) report.hora = horaMatch[1];
 
-  // ── Find the separator "0 -" that splits LOCAL from middle section ──
-  // The pattern is a standalone "0 -" followed by ÁRBITROS
-  const separatorIdx = fichaText.indexOf('0 -');
-  if (separatorIdx < 0) return report; // Can't parse without separator
+  // ── KEY INSIGHT: The separator between LOCAL team block and the middle section
+  // is a score line like "2 - 03" or "0 - 15" followed by "ÁRBITROS".
+  // We find "ÁRBITROS" as the reliable landmark. ──
+  const arbitrosIdx = fichaText.indexOf('RBITROS');
+  if (arbitrosIdx < 0) return report;
 
-  // ── LOCAL team block: from first "Titulares:" to the separator ──
+  // Find the score just before ÁRBITROS — it's like "X - YZ" right before it
+  // The score block is between the last TARJETAS section of local team and ÁRBITROS
+  // We look backwards from ÁRBITROS for the score pattern
+  const beforeArbitros = fichaText.substring(0, arbitrosIdx);
+  
+  // Find the score line: digits - digits followed by special char (Á of ÁRBITROS)
+  // Pattern: "TARJETAS ... cards ... SCORE_L - SCORE_V ÁRBITROS"
+  // The score is like "2 - 03" or "0 -" (when 0 away goals, appears as "0 -")
+  const scoreMatch = beforeArbitros.match(/(\d+)\s*-\s*(\d*)\s*$/);
+  
+  // ── LOCAL team block: from first "Titulares:" to the local TARJETAS section end ──
+  // We need to find the end of the local team block. The TARJETAS section of local team
+  // ends right before the score. We find TARJETAS before ÁRBITROS.
+  
   const firstTitulares = fichaText.indexOf('Titulares:');
   if (firstTitulares < 0) return report;
   
-  const localBlock = fichaText.substring(firstTitulares, separatorIdx);
-  const localParsed = parseTeamBlock(localBlock);
-  report.alineacion_local = localParsed.players;
-  localParsed.subs.forEach(s => s.equipo = 'local');
-  localParsed.cards.forEach(c => c.equipo = 'local');
-  report.cambios.push(...localParsed.subs);
-  report.tarjetas.push(...localParsed.cards);
+  // Find the last TARJETAS before ÁRBITROS (this is local team's TARJETAS)
+  let localTarjetasEnd = -1;
+  let searchFrom = 0;
+  let lastTarjetasBeforeArbitros = -1;
+  while (true) {
+    const idx = fichaText.indexOf('TARJETAS', searchFrom);
+    if (idx < 0 || idx > arbitrosIdx) break;
+    lastTarjetasBeforeArbitros = idx;
+    searchFrom = idx + 8;
+  }
+  
+  // The local block is from first Titulares to end of TARJETAS content
+  // TARJETAS content ends where the score starts, which is right before ÁRBITROS
+  // We need to find where TARJETAS content ends = just before the score digits
+  
+  // Get text from last TARJETAS to ÁRBITROS - this contains local cards + the score
+  if (lastTarjetasBeforeArbitros >= 0) {
+    const tarjetasToArbitros = fichaText.substring(lastTarjetasBeforeArbitros + 8, arbitrosIdx);
+    // Remove the trailing score from the cards section
+    // Score pattern at end: "digit(s) - digit(s)" or "digit(s) -"
+    const cardsTextCleaned = tarjetasToArbitros.replace(/\s*\d+\s*-\s*\d*\s*$/, '');
+    
+    // Build the full local block
+    const localBlockEnd = lastTarjetasBeforeArbitros + 8; // after "TARJETAS"
+    const localBlock = fichaText.substring(firstTitulares, localBlockEnd) + cardsTextCleaned;
+    
+    const localParsed = parseTeamBlock(localBlock);
+    report.alineacion_local = localParsed.players;
+    localParsed.subs.forEach(s => s.equipo = 'local');
+    localParsed.cards.forEach(c => c.equipo = 'local');
+    report.cambios.push(...localParsed.subs);
+    report.tarjetas.push(...localParsed.cards);
+  }
 
   // ── Middle section: ÁRBITROS, GOLES, ESTADIO ──
-  // Find where the visitante team starts (second "Titulares:" after the separator)
-  const afterSeparator = fichaText.substring(separatorIdx);
-  const visitanteTitularesIdx = afterSeparator.indexOf('Titulares:');
+  const afterArbitros = fichaText.substring(arbitrosIdx);
   
-  let middleSection;
-  if (visitanteTitularesIdx > 0) {
-    middleSection = afterSeparator.substring(0, visitanteTitularesIdx);
-  } else {
-    middleSection = afterSeparator;
-  }
+  // Find visitante start (next "Titulares:" after ÁRBITROS)
+  const visitanteTitIdx = afterArbitros.indexOf('Titulares:');
+  const middleSection = visitanteTitIdx > 0 ? afterArbitros.substring(0, visitanteTitIdx) : afterArbitros;
 
   // Arbitro
   const arbitroMatch = middleSection.match(/ARBITRO\s*:\s*([A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF\s,.\-]+?)(?=\s+GOLES|\s*$)/i);
@@ -216,9 +244,11 @@ function parseMatchReport(html) {
   }
 
   // Goles
-  const golesMatch = middleSection.match(/GOLES\s+([\s\S]+?)(?=\s+ESTADIO|\s*$)/i);
-  if (golesMatch) {
-    const golesText = golesMatch[1];
+  const golesIdx = middleSection.indexOf('GOLES');
+  const estadioIdx = middleSection.indexOf('ESTADIO');
+  if (golesIdx >= 0) {
+    const golesEnd = estadioIdx > golesIdx ? estadioIdx : middleSection.length;
+    const golesText = middleSection.substring(golesIdx + 5, golesEnd);
     const goalRe = /(\d+)\s*-\s*(\d+)\s+([A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF\s,]+?)\s*\((\d+)'\)/g;
     let gm;
     while ((gm = goalRe.exec(golesText)) !== null) {
@@ -230,19 +260,26 @@ function parseMatchReport(html) {
   }
 
   // Campo / Estadio
-  const estadioMatch = middleSection.match(/ESTADIO:\s*(.+?)(?:\s*Ciudad:|\s*$)/i);
-  if (estadioMatch) {
-    let c = clean(estadioMatch[1]);
-    c = c.replace(/\s*\(H\.?A\.?\).*/i, '').replace(/\s*-\s*Hierba.*/i, '').replace(/\s*-\s*Tierra.*/i, '').trim();
-    if (c.length > 3 && c.length < 150) report.campo = c;
+  if (estadioIdx >= 0) {
+    const estadioMatch = middleSection.substring(estadioIdx).match(/ESTADIO:\s*(.+?)(?:\s*Ciudad:|\s*$)/i);
+    if (estadioMatch) {
+      let c = clean(estadioMatch[1]);
+      c = c.replace(/\s*\(H\.?A\.?\).*/i, '').replace(/\s*-\s*Hierba.*/i, '').replace(/\s*-\s*Tierra.*/i, '').trim();
+      if (c.length > 3 && c.length < 150) report.campo = c;
+    }
   }
 
-  // ── VISITANTE team block: from second "Titulares:" to "Anterior" ──
-  if (visitanteTitularesIdx > 0) {
-    const visitanteStart = afterSeparator.substring(visitanteTitularesIdx);
+  // ── VISITANTE team block ──
+  if (visitanteTitIdx > 0) {
+    const visitanteStart = afterArbitros.substring(visitanteTitIdx);
     const anteriorIdx = visitanteStart.indexOf('Anterior');
-    const visitanteBlock = anteriorIdx > 0 ? visitanteStart.substring(0, anteriorIdx) : visitanteStart;
+    // Also cut at "©" or "Perfil de Usuario" which marks end of content
+    let endIdx = visitanteStart.length;
+    if (anteriorIdx > 0) endIdx = Math.min(endIdx, anteriorIdx);
+    const perfilIdx = visitanteStart.indexOf('Perfil de Usuario');
+    if (perfilIdx > 0) endIdx = Math.min(endIdx, perfilIdx);
     
+    const visitanteBlock = visitanteStart.substring(0, endIdx);
     const visitanteParsed = parseTeamBlock(visitanteBlock);
     report.alineacion_visitante = visitanteParsed.players;
     visitanteParsed.subs.forEach(s => s.equipo = 'visitante');
@@ -262,7 +299,6 @@ function parseMatchReport(html) {
     } else if (visitanteNames.has(upperName)) {
       gol.equipo = 'visitante';
     } else {
-      // Partial match by surname
       const surname = upperName.split(',')[0].trim();
       const isLocal = [...localNames].some(n => n.startsWith(surname));
       const isVisitante = [...visitanteNames].some(n => n.startsWith(surname));
@@ -306,11 +342,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === 'debug_parse') {
+      const parsed = parseMatchReport(html);
+      return Response.json({ success: true, parsed });
+    }
+
     if (!resultado_id) {
       return Response.json({ error: 'Missing resultado_id' }, { status: 400 });
     }
 
-    // Check if already scraped — if so, delete old one and re-scrape (to fix duplicates)
+    // Delete old reports for this resultado (prevent duplicates)
     const existing = await base44.asServiceRole.entities.MatchReport.filter({ resultado_id });
     for (const old of existing) {
       await base44.asServiceRole.entities.MatchReport.delete(old.id);
