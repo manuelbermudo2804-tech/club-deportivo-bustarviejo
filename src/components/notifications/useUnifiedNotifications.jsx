@@ -533,41 +533,8 @@ export function useUnifiedNotifications(user, options = {}) {
       pendingDeletionRequests = (rawData.accountDeletionRequests || []).length;
     }
 
-    // OBSERVACIONES DE PARTIDOS
-     let pendingMatchObservations = 0;
-     if (user.es_entrenador === true || user.es_coordinador === true) {
-      const myCallups = (rawData.convocatorias || []).filter(c => c.entrenador_email === user.email && c.publicada);
-      const now = new Date();
-      
-      myCallups.forEach(callup => {
-        const matchDate = new Date(callup.fecha_partido);
-        if (matchDate > now) return;
-        
-        let matchEnded = false;
-        if (callup.hora_partido) {
-          const [h, m] = callup.hora_partido.split(':').map(Number);
-          const start = new Date(matchDate);
-          start.setHours(h, m, 0, 0);
-          const end = new Date(start.getTime() + 135 * 60000);
-          matchEnded = now >= end;
-        } else {
-          const nextDay = new Date(matchDate);
-          nextDay.setDate(nextDay.getDate() + 1);
-          matchEnded = now >= nextDay;
-        }
-
-        if (!matchEnded) return;
-
-        const hasObservation = (rawData.matchObservations || []).some(obs =>
-          obs.categoria === callup.categoria &&
-          obs.rival === callup.rival &&
-          obs.fecha_partido === callup.fecha_partido &&
-          obs.entrenador_email === user.email
-        );
-        
-        if (!hasObservation) pendingMatchObservations++;
-      });
-    }
+    // OBSERVACIONES DE PARTIDOS - ELIMINADO (registro post-partido desactivado)
+    const pendingMatchObservations = 0;
 
     // CONVERSACIÓN ACTIVA CON ADMIN - desactivado
     const hasActiveAdminConversation = false;
