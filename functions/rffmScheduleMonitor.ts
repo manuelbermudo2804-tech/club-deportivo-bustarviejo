@@ -37,8 +37,8 @@ Deno.serve(async (req) => {
       try {
         const url = config.rfef_results_url || config.rfef_url;
         
-        // Call the scraper for next match
-        const res = await base44.asServiceRole.functions.invoke('rffmScraper', {
+        // Call the scraper for next match (use user-level invoke, not service role, because rffmScraper checks admin role)
+        const res = await base44.functions.invoke('rffmScraper', {
           action: 'next_match',
           url,
           jornada: 1, // Start from 1 and it will scan forward

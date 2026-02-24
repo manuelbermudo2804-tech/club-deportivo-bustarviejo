@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
       // --- STANDINGS ---
       if (config.rfef_url) {
         try {
-          const res = await base44.asServiceRole.functions.invoke('rffmScraper', {
+          const res = await base44.functions.invoke('rffmScraper', {
             action: 'standings', url: config.rfef_url,
           });
           const standings = res?.data?.standings;
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       if (config.rfef_results_url || config.rfef_url) {
         try {
           const url = config.rfef_results_url || config.rfef_url;
-          const res = await base44.asServiceRole.functions.invoke('rffmScraper', {
+          const res = await base44.functions.invoke('rffmScraper', {
             action: 'all_results', url,
           });
           const jornadas = res?.data?.jornadas;
@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
       // --- SCORERS ---
       if (config.rfef_scorers_url) {
         try {
-          const res = await base44.asServiceRole.functions.invoke('rffmScraper', {
+          const res = await base44.functions.invoke('rffmScraper', {
             action: 'scorers', url: config.rfef_scorers_url,
           });
           const scorers = res?.data?.scorers;
