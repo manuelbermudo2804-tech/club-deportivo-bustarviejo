@@ -9,11 +9,10 @@ import { Input } from "@/components/ui/input";
 import StandingsDisplay from "../components/standings/StandingsDisplay";
 import ResultsList from "../components/results/ResultsList";
 import ScorersList from "../components/scorers/ScorersList";
-import QuickMatchObservationForm from "../components/coach/QuickMatchObservationForm";
 import RivalAnalysisModal from "../components/coach/RivalAnalysisModal";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
-import { Trophy, List, Users, Target, Zap, Search, Star, StarOff, Settings } from "lucide-react";
+import { Trophy, List, Users, Target, Search, Star, StarOff, Settings } from "lucide-react";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
 const FALLBACK_CATEGORIES = [
