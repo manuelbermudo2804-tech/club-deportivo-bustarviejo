@@ -275,10 +275,6 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'No autenticado' }, { status: 401 });
-    // Allow admin, coaches, and coordinators to fetch match reports
-    if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador) {
-      return Response.json({ error: 'No tienes permisos para descargar fichas' }, { status: 403 });
-    }
 
     const body = await req.json().catch(() => ({}));
     const { action, acta_url, resultado_id, categoria, temporada, jornada, local, visitante, goles_local, goles_visitante } = body;
