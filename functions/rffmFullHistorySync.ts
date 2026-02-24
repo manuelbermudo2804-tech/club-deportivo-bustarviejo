@@ -68,21 +68,18 @@ function parseMatches(html) {
     const sm = noDate.match(/(\d+)\s*[-–]\s*(\d+)/); if (sm) { gl = parseInt(sm[1]); gv = parseInt(sm[2]); jug = true; }
     let mc = campo;
     if (tds.length > 3) { const ctx = $(tds[3]).text().replace(/\s+/g,' ').trim(); const cmm = ctx.match(/Campo:\s*(.+?)(?:\s*-\s*Hierba|\s*-\s*Tierra|\s*-\s*Cesped|$)/i); if (cmm) mc = cmm[1].replace(/\s*\(HA\)\s*$/i,'').replace(/\s*\(H\.A\.\)\s*$/i,'').trim(); else { const sc = ctx.match(/Campo:\s*(.+)/); if (sc) mc = sc[1].trim(); } }
-    matches.push({ local: loc, visitante: vis, goles_local: gl, goles_visitante: gv, jugado: jug, fecha, hora, campo: mc, acta_url: null, _tableIdx: i });
-  }
-  // Second pass: find ficha links (NFG_CmpPartido) and associate with preceding match
-  for (let i = 3; i < tables.length; i++) {
-    const th = $(tables[i]).html() || '';
-    if (th.includes('escudo_clb') || th.includes('pimg/Clubes')) continue;
-    const fl = $(tables[i]).find('a[href*="NFG_CmpPartido"]').first();
-    if (!fl.length) continue;
-    const href = fl.attr('href') || '';
-    if (!href) continue;
-    for (let m = matches.length - 1; m >= 0; m--) {
-      if (matches[m]._tableIdx < i) { matches[m].acta_url = 'https://intranet.ffmadrid.es' + href; break; }
+    // Look for ficha link in sibling tables after this match table
+    let actaUrl = null;
+    let nextT = $(t).next('table');
+    for (let k = 0; k < 3 && nextT.length; k++) {
+      const nh = nextT.html() || '';
+      if (nh.includes('escudo_clb') || nh.includes('pimg/Clubes')) break;
+      const fichaLink = nextT.find('a[href*="NFG_CmpPartido"]').first();
+      if (fichaLink.length) { const h = fichaLink.attr('href') || ''; if (h) actaUrl = 'https://intranet.ffmadrid.es' + h; break; }
+      nextT = nextT.next('table');
     }
+    matches.push({ local: loc, visitante: vis, goles_local: gl, goles_visitante: gv, jugado: jug, fecha, hora, campo: mc, acta_url: actaUrl });
   }
-  for (const m of matches) delete m._tableIdx;
   return matches;
 }
 
