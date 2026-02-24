@@ -33,7 +33,8 @@ Deno.serve(async (req) => {
           const res = await base44.functions.invoke('rffmScraper', {
             action: 'standings', url: config.rfef_url,
           });
-          const standings = res?.data?.standings;
+          const resData = res?.data || res;
+          const standings = resData?.standings;
           if (standings?.length) {
             // Delete old standings for this category+season
             const old = await base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada });
@@ -63,7 +64,8 @@ Deno.serve(async (req) => {
           const res = await base44.functions.invoke('rffmScraper', {
             action: 'all_results', url,
           });
-          const jornadas = res?.data?.jornadas;
+          const resData = res?.data || res;
+          const jornadas = resData?.jornadas;
           if (jornadas?.length) {
             // Find latest jornada with played matches
             const played = jornadas.filter(j => j.matches.some(m => m.jugado));
@@ -73,7 +75,7 @@ Deno.serve(async (req) => {
               const existing = await base44.asServiceRole.entities.Resultado.filter({
                 categoria: cat, temporada, jornada: latest.jornada,
               });
-              if (!existing.length) {
+              if (existing.length === 0) {
                 // Insert new results
                 const records = latest.matches.filter(m => m.jugado).map(m => ({
                   temporada, categoria: cat, jornada: latest.jornada,
@@ -100,7 +102,8 @@ Deno.serve(async (req) => {
           const res = await base44.functions.invoke('rffmScraper', {
             action: 'scorers', url: config.rfef_scorers_url,
           });
-          const scorers = res?.data?.scorers;
+          const resDataS = res?.data || res;
+          const scorers = resDataS?.scorers;
           if (scorers?.length) {
             // Delete old scorers for this category+season
             const old = await base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada });

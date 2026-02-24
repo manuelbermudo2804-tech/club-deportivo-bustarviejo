@@ -44,10 +44,12 @@ Deno.serve(async (req) => {
           jornada: 1, // Start from 1 and it will scan forward
         });
 
-        const match = res?.data?.match || res?.match;
+        // functions.invoke returns {data: {success, match, ...}, status, ...}
+        const resData = res?.data || res;
+        const match = resData?.match;
         if (!match) continue;
 
-        const jornada = res?.data?.jornada || res?.jornada;
+        const jornada = resData?.jornada;
 
         // Parse RFFM date (dd/mm/yyyy) to ISO (yyyy-mm-dd)
         let matchDate = null;
