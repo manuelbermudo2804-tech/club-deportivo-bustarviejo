@@ -9,6 +9,9 @@ import { Calendar, Clock, MapPin, Trophy, Loader2, RefreshCw } from "lucide-reac
 function buildIntranetUrl(publicUrl) {
   if (!publicUrl) return null;
   try {
+    // If already an intranet URL, use it directly
+    if (publicUrl.includes("intranet.ffmadrid.es")) return publicUrl;
+    // Otherwise convert from public rffm.es URL
     const u = new URL(publicUrl);
     const comp = u.searchParams.get("competicion");
     const grupo = u.searchParams.get("grupo");
