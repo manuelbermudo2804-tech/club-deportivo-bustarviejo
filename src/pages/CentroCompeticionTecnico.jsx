@@ -214,6 +214,7 @@ export default function CentroCompeticionTecnico() {
 
   // Registro rápido post-partido
   const [showObservationForm, setShowObservationForm] = React.useState(false);
+  const [editingAutoObs, setEditingAutoObs] = React.useState(null);
   const autoAnalysisDoneRef = React.useRef(false);
   const autoObservationDoneRef = React.useRef(false);
 
