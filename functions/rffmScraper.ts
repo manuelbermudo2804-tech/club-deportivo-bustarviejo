@@ -390,47 +390,27 @@ Deno.serve(async (req) => {
 
       // Debug scorers page structure
       case 'debug_scorers': {
-        const urlVariants = [
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`,
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=0`,
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`,
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpGoleador?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`,
-        ];
+        // Correct URL from navigation: NFG_CMP_Goleadores (not NFG_CmpGoleadores)
+        const scorersUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=${p.CodJornada || '15'}&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`;
+        const html = await fetchPage(scorersUrl, cookies);
+        const $s = load(html);
         
-        const results = [];
-        for (const u of urlVariants) {
-          const html = await fetchPage(u, cookies);
-          const $s = load(html);
-          const frames = $s('frame, iframe').map((_, f) => ({ name: $s(f).attr('name') || '', src: ($s(f).attr('src') || '').substring(0, 300) })).get();
-          const tablesCount = $s('table').length;
-          results.push({ 
-            url: u.split('?')[0].split('/').pop(), 
-            length: html.length, 
-            frames,
-            tablesCount,
-            hasGol: /gol/i.test(html),
-            hasJugador: /jugador/i.test(html),
-            preview: html.substring(0, 1500)
+        const frames = $s('frame, iframe').map((_, f) => ({ name: $s(f).attr('name') || '', src: ($s(f).attr('src') || '').substring(0, 300) })).get();
+        
+        const tables = [];
+        $s('table').each((i, table) => {
+          const rows = [];
+          $s(table).find('tr').each((_, tr) => {
+            const cells = $s(tr).find('th, td').map((__, c) => $s(c).text().replace(/\s+/g, ' ').trim().substring(0, 100)).get();
+            if (cells.some(c => c.length > 0)) rows.push(cells);
           });
-        }
-        
-        // Also check what buttons/links exist on the main jornada page for navigation
-        const mainHtml = await fetchPage(buildJornadaUrl(p, p.CodJornada || '15'), cookies);
-        const $m = load(mainHtml);
-        const buttons = [];
-        $m('a, button, input[type="button"], input[type="submit"]').each((_, el) => {
-          const text = $m(el).text().trim();
-          const href = $m(el).attr('href') || '';
-          const onclick = $m(el).attr('onclick') || '';
-          if ((text.length > 0 || href.length > 0 || onclick.length > 0) && 
-              (text.toLowerCase().includes('gol') || href.toLowerCase().includes('gol') || onclick.toLowerCase().includes('gol') ||
-               text.toLowerCase().includes('calendario') || text.toLowerCase().includes('clasificaci') || text.toLowerCase().includes('tabla') ||
-               text.toLowerCase().includes('cruzad'))) {
-            buttons.push({ text: text.substring(0, 80), href: href.substring(0, 200), onclick: onclick.substring(0, 200) });
-          }
+          if (rows.length > 0) tables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 15) });
         });
         
-        return Response.json({ success: true, urlResults: results, navigationButtons: buttons });
+        return Response.json({ 
+          success: true, scorersUrl, htmlLength: html.length, frames, 
+          tablesCount: tables.length, tables: tables.slice(0, 8),
+        });
       }
 
       // Test/debug a single jornada
