@@ -173,6 +173,28 @@ function parseJornadaMatches(html) {
     });
   }
   
+  // Second pass: find ficha links (NFG_CmpPartido) and associate with matches
+  // The ficha button appears in non-match tables between match tables
+  // Strategy: for each non-match table with a ficha link, assign it to the preceding match
+  for (let i = 2; i < tables.length; i++) {
+    const tableHtml = $(tables[i]).html() || '';
+    if (tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes')) continue;
+    const fichaLink = $(tables[i]).find('a[href*="NFG_CmpPartido"]').first();
+    if (!fichaLink.length) continue;
+    const href = fichaLink.attr('href') || '';
+    if (!href) continue;
+    // Find the last match whose _tableIdx < i
+    for (let m = matches.length - 1; m >= 0; m--) {
+      if (matches[m]._tableIdx < i) {
+        matches[m].acta_url = 'https://intranet.ffmadrid.es' + href;
+        break;
+      }
+    }
+  }
+  
+  // Clean up internal tracking field
+  for (const m of matches) delete m._tableIdx;
+  
   return matches;
 }
 
