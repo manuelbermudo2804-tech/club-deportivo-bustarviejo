@@ -581,7 +581,7 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length });
       }
 
-      // Debug jornada HTML structure to see campo mapping
+      // Debug jornada HTML structure - show ALL tables including 0,1,2
       case 'debug_jornada': {
         const j = jornada || '1';
         const html = await fetchPage(buildJornadaUrl(p, j), cookies);
@@ -594,7 +594,9 @@ Deno.serve(async (req) => {
           const hasEscudo = tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes');
           const tds = $j(table).find('td').toArray();
           const tdTexts = tds.map(td => $j(td).text().replace(/\s+/g, ' ').trim().substring(0, 150));
-          tableInfos.push({ idx: i, hasEscudo, tdCount: tds.length, tds: tdTexts });
+          // Also grab raw HTML snippet for first few tables to see structure
+          const snippet = i < 5 ? tableHtml.substring(0, 500) : undefined;
+          tableInfos.push({ idx: i, hasEscudo, tdCount: tds.length, tds: tdTexts, ...(snippet ? { htmlSnippet: snippet } : {}) });
         }
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
