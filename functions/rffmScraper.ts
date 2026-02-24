@@ -234,27 +234,16 @@ Deno.serve(async (req) => {
         const j = jornada || p.CodJornada || '1';
         const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
         const html = await fetchPage(execUrl, cookies);
-        const $ = load(html);
         
-        // Extract all table data for debugging
-        const tables = [];
-        $('table').each((i, table) => {
-          const rows = [];
-          $(table).find('tr').each((_, tr) => {
-            const cells = $(tr).find('th, td').map((__, c) => $(c).text().trim().substring(0, 150)).get();
-            if (cells.some(c => c.length > 0)) rows.push(cells);
-          });
-          if (rows.length > 0) tables.push({ idx: i, rows: rows.slice(0, 15) });
-        });
-        
-        const matches = parseMatchesExec(html);
-        
+        // Return raw HTML for analysis - the Exec page might use different structure
         return Response.json({ 
           success: true,
           execUrl,
           htmlLength: html.length,
-          tables: tables.slice(0, 10),
-          parsedMatches: matches
+          rawHtml: html.substring(0, 10000),
+          hasTable: html.includes('<table'),
+          hasDiv: html.includes('<div'),
+          hasScript: html.includes('<script'),
         });
       }
 
