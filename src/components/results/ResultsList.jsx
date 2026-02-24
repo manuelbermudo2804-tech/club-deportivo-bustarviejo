@@ -225,26 +225,17 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
                       <div className={`pl-1 text-xs sm:text-sm whitespace-normal break-words font-medium text-right ${isBustarviejo(m.visitante) ? 'text-orange-700 font-bold' : 'text-slate-800'}`}>
                         {m.visitante}{isBustarviejo(m.visitante) && ' ⚽'}
                       </div>
-                      {m.acta_url && isBust && (() => {
-                        // Convert intranet URL to public URL
-                        let publicUrl = m.acta_url;
-                        if (publicUrl.includes('intranet.ffmadrid.es')) {
-                          publicUrl = publicUrl.replace('intranet.ffmadrid.es', 'publicad.ffmadrid.es');
-                        }
-                        return (
-                          <div className="col-span-3 flex justify-center pt-1">
-                            <a
-                              href={publicUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 font-medium hover:underline"
-                            >
-                              <FileText className="w-3 h-3" />
-                              Ficha del partido
-                            </a>
-                          </div>
-                        );
-                      })()}
+                      {m.acta_url && isBust && (
+                        <div className="col-span-3 flex justify-center pt-1">
+                          <button
+                            onClick={() => setSelectedMatch(m)}
+                            className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                          >
+                            <FileText className="w-3 h-3" />
+                            Ficha del partido
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
