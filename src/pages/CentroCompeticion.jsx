@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,9 @@ import RffmImportButton from "../components/competition/RffmImportButton";
 import RffmUrlManager from "../components/competition/RffmUrlManager";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
-import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle, Plus, Settings, Link2 } from "lucide-react";
+import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2 } from "lucide-react";
 import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
+
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ErrorBoundary from "../components/common/ErrorBoundary";
