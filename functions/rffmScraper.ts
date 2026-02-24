@@ -291,62 +291,42 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'test': {
         const j = jornada || p.CodJornada || '1';
-        // NFG_CmpPartido has match data in 70KB of HTML. Let's extract team names, date, score.
-        const matchUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpPartido?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`;
-        const html = await fetchPage(matchUrl, cookies);
-        const $ = load(html);
+        // The RFFM main page is a frameset. The _Exec page populates dropdowns via JS arrays.
+        // The actual MATCH LIST for a jornada is loaded via the NFG_CmpJornadac frame.
+        // Since NFG_CmpJornadac returns empty, the list is likely loaded differently.
         
-        // Extract all text content near "Temporada", "Fecha", "Jornada" labels
-        // and any text that looks like team names
-        const allInputs = [];
-        $('input').each((_, el) => {
-          const name = $(el).attr('name') || $(el).attr('id') || '';
-          const value = $(el).attr('value') || '';
-          if (value.length > 0) allInputs.push({ name, value: value.substring(0, 100) });
-        });
+        // Strategy: Let's look at what the _Exec page JavaScript says about
+        // how to navigate to match results. It writes select options and then 
+        // calls parent functions. Let's decode the _Exec response fully.
+        const execUrl = buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' });
+        const execHtml = await fetchPage(execUrl, cookies);
         
-        // Look for specific data attributes or class names
-        const dataElements = [];
-        $('[data-original-title], [title]').each((_, el) => {
-          const title = $(el).attr('data-original-title') || $(el).attr('title') || '';
-          if (title.length > 2) dataElements.push({ tag: el.tagName, title: title.substring(0, 100), text: $(el).text().trim().substring(0, 100) });
-        });
+        // Also try NFG_CmpCalendario which might list matches for a jornada
+        const calUrls = [
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpCalendario?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`,
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpCalendarioc?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`,
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`,
+        ];
         
-        // Look for specific spans/divs that might contain team name
-        const teamCandidates = [];
-        $('td, th, span, div, a').each((_, el) => {
-          const text = $(el).text().trim();
-          const children = $(el).children().length;
-          // Only leaf-ish elements with reasonable text
-          if (children < 3 && text.length > 3 && text.length < 50 && !/^\d+$/.test(text) && !/eval|function|var |return /.test(text)) {
-            const cls = $(el).attr('class') || '';
-            if (cls.includes('equipo') || cls.includes('team') || /^[A-ZÁÉÍÓÚÑ\s\.]+$/.test(text) || /C\.D\.|C\.F\.|A\.D\.|E\.F\.|F\.C\./.test(text)) {
-              teamCandidates.push({ tag: el.tagName, class: cls.substring(0, 50), text });
-            }
-          }
-        });
-        
-        // Try raw regex on the HTML for team patterns
-        const rawTeamMatches = [];
-        // Pattern: text between specific HTML tags that looks like team names
-        const teamRe = /(?:C\.D\.|C\.F\.|A\.D\.|E\.F\.|F\.C\.)[^<]{2,40}/gi;
-        let tm;
-        while ((tm = teamRe.exec(html)) !== null) {
-          rawTeamMatches.push(tm[0].substring(0, 80));
+        const calResults = [];
+        for (const cu of calUrls) {
+          const ch = await fetchPage(cu, cookies);
+          calResults.push({
+            url: cu.split('?')[0].split('/').pop(),
+            length: ch.length,
+            hasTeams: /bustarviejo/i.test(ch) || /C\.D\.|C\.F\./i.test(ch),
+            hasTable: /<table/i.test(ch),
+            hasFrame: /<frame/i.test(ch),
+            frameSrcs: (() => { const $c = load(ch); return $c('frame, iframe').map((_, f) => $c(f).attr('src')).get(); })(),
+            preview: ch.substring(0, 3000)
+          });
         }
-        
-        // Search for "Bustarviejo" specifically
-        const bustIdx = html.toLowerCase().indexOf('bustarviejo');
-        const bustContext = bustIdx >= 0 ? html.substring(Math.max(0, bustIdx - 200), bustIdx + 200) : 'NOT FOUND';
         
         return Response.json({ 
           success: true,
-          htmlLength: html.length,
-          inputs: allInputs.slice(0, 20),
-          dataElements: dataElements.slice(0, 15),
-          teamCandidates: teamCandidates.slice(0, 20),
-          rawTeamMatches: [...new Set(rawTeamMatches)].slice(0, 20),
-          bustarviejo: bustContext
+          execLength: execHtml.length,
+          execPreview: execHtml.substring(0, 2000),
+          calResults
         });
       }
 
