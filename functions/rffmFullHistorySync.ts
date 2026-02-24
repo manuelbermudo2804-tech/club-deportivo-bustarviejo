@@ -130,6 +130,7 @@ Deno.serve(async (req) => {
           local: m.local, visitante: m.visitante,
           goles_local: m.goles_local, goles_visitante: m.goles_visitante,
           estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
+          ...(m.acta_url ? { acta_url: m.acta_url } : {}),
         }));
 
         // bulkCreate in batches of 10

@@ -166,6 +166,7 @@ async function syncCategory(config, cookies, base44, temporada) {
             temporada, categoria: cat, jornada: latestJ, local: m.local, visitante: m.visitante,
             goles_local: m.goles_local, goles_visitante: m.goles_visitante,
             estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
+            ...(m.acta_url ? { acta_url: m.acta_url } : {}),
           }));
           if (records.length) { await base44.asServiceRole.entities.Resultado.bulkCreate(records); result.results = { jornada: latestJ, matches: records.length }; }
 
