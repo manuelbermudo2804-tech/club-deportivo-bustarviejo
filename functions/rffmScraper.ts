@@ -176,6 +176,26 @@ function parseJornadaMatches(html) {
       }
     }
     
+    // Extract acta URL from the score link (NFG_CmpPartido?...CodActa=...)
+    let actaUrl = null;
+    const scoreTd = tds[1];
+    const scoreLinks = $(scoreTd).find('a');
+    if (scoreLinks.length > 0) {
+      const href = $(scoreLinks[0]).attr('href') || '';
+      if (href.includes('CodActa') || href.includes('cod_acta')) {
+        actaUrl = href.startsWith('http') ? href : `https://intranet.ffmadrid.es${href.startsWith('/') ? '' : '/nfg/NPcd/'}${href}`;
+      }
+    }
+    // Fallback: look for NFG_CmpPartido link in center td HTML
+    if (!actaUrl) {
+      const tdHtml = $(scoreTd).html() || '';
+      const actaMatch = tdHtml.match(/href="([^"]*NFG_CmpPartido[^"]*)"/i);
+      if (actaMatch) {
+        const href = actaMatch[1];
+        actaUrl = href.startsWith('http') ? href : `https://intranet.ffmadrid.es${href.startsWith('/') ? '' : '/nfg/NPcd/'}${href}`;
+      }
+    }
+
     matches.push({
       local: localName,
       visitante: visitanteName,
@@ -184,7 +204,8 @@ function parseJornadaMatches(html) {
       jugado,
       fecha,
       hora,
-      campo: matchCampo
+      campo: matchCampo,
+      acta_url: actaUrl
     });
   }
   
@@ -601,44 +622,36 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
 
-      // Debug acta/ficha links - search for "ficha" and related patterns
+      // Debug acta links - show full td[1] HTML for first 3 matches
       case 'debug_actas': {
         const ja = jornada || '19';
         const htmlA = await fetchPage(buildJornadaUrl(p, ja), cookies);
-        // Search for "ficha" anywhere in HTML (case insensitive)
-        const fichaContexts = [];
-        let si = 0;
-        const htmlLower = htmlA.toLowerCase();
-        while (fichaContexts.length < 8) {
-          const pos = htmlLower.indexOf('ficha', si);
-          if (pos === -1) break;
-          fichaContexts.push({ pos, context: htmlA.substring(Math.max(0, pos - 200), Math.min(htmlA.length, pos + 300)) });
-          si = pos + 10;
+        const $da = load(htmlA);
+        const tablesA = $da('table').toArray();
+        const matchDetails = [];
+        for (let i2 = 2; i2 < tablesA.length && matchDetails.length < 4; i2++) {
+          const tblA = tablesA[i2];
+          const tblHtml = $da(tblA).html() || '';
+          if (!tblHtml.includes('escudo_clb') && !tblHtml.includes('pimg/Clubes')) continue;
+          const tdsA = $da(tblA).find('td').toArray();
+          if (tdsA.length < 3) continue;
+          const local2 = $da(tdsA[0]).find('span').first().text().trim();
+          const visit2 = $da(tdsA[2]).find('span').first().text().trim();
+          const centerHtml = $da(tdsA[1]).html()?.substring(0, 800) || '';
+          const centerText = $da(tdsA[1]).text().replace(/\s+/g, ' ').trim();
+          // Find ALL links in the ENTIRE match table row
+          const allLinksInTable = [];
+          $da(tblA).find('a').each((_3, a) => {
+            allLinksInTable.push({ href: ($da(a).attr('href') || '').substring(0, 300), text: $da(a).text().trim().substring(0, 80) });
+          });
+          matchDetails.push({ local: local2, visit: visit2, centerText, centerHtml, tdCount: tdsA.length, allLinksInTable });
         }
-        // Search for CodPartido in links
-        const codPartidoLinks = [];
-        const re3 = /href="([^"]*CodPartido[^"]*)"/gi;
-        let m2;
-        while ((m2 = re3.exec(htmlA)) !== null) codPartidoLinks.push(m2[1].substring(0, 400));
-        // Unique NFG_Cmp link patterns
-        const cmpLinksSet = new Set();
-        const re4 = /href="([^"]*NFG_Cmp[^"]*)"/gi;
-        while ((m2 = re4.exec(htmlA)) !== null) cmpLinksSet.add(m2[1].substring(0, 400));
-        // Search for acta/Acta in raw HTML
-        const actaContexts = [];
-        si = 0;
-        while (actaContexts.length < 5) {
-          const pos = htmlLower.indexOf('acta', si);
-          if (pos === -1) break;
-          actaContexts.push({ pos, context: htmlA.substring(Math.max(0, pos - 100), Math.min(htmlA.length, pos + 200)) });
-          si = pos + 10;
-        }
-        return Response.json({ 
-          success: true, jornada: ja, htmlLen: htmlA.length,
-          fichaContexts, codPartidoLinks, 
-          cmpLinks: [...cmpLinksSet],
-          actaContexts
-        });
+        // Also list all NFG_CmpPartido links
+        const partidoLinks = [];
+        const re5 = /href="([^"]*NFG_CmpPartido[^"]*)"/gi;
+        let m3;
+        while ((m3 = re5.exec(htmlA)) !== null) partidoLinks.push(m3[1]);
+        return Response.json({ success: true, jornada: ja, matchDetails, partidoLinks });
       }
 
       default:
