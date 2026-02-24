@@ -230,30 +230,38 @@ Deno.serve(async (req) => {
         const $ = load(html);
         const title = $('title').text().trim();
         
-        // Extract the raw HTML of the content area (skip navigation/header)
-        // Look for div.contenido or similar content wrapper
-        let contentHtml = '';
-        const contentDiv = $('.contenido, .contenido_responsive, #contenido, .content').first();
-        if (contentDiv.length) {
-          contentHtml = contentDiv.html()?.substring(0, 8000) || '';
-        }
+        // Look for the match/jornada-specific part of HTML
+        // Search for keywords and extract surrounding HTML
+        const keywords = ['Jornada', 'BUSTARVIEJO', 'NFG_VisPartido', 'partido', 'resultado'];
+        const snippets = [];
         
-        // Also extract ALL text that looks like match data
-        const bodyText = $('body').text();
-        const matchLines = [];
-        const lines = bodyText.split(/\n/).map(l => l.trim()).filter(l => l.length > 3);
-        for (const line of lines) {
-          if (/bustarviejo/i.test(line) || /\d+\s*[-–]\s*\d+/.test(line) || /\d{1,2}:\d{2}/.test(line) || /jornada\s*\d/i.test(line) || /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line)) {
-            matchLines.push(line.substring(0, 300));
+        for (const kw of keywords) {
+          let idx = 0;
+          while (idx < html.length) {
+            const pos = html.indexOf(kw, idx);
+            if (pos === -1) break;
+            const start = Math.max(0, pos - 100);
+            const end = Math.min(html.length, pos + 500);
+            snippets.push({ keyword: kw, position: pos, html: html.substring(start, end) });
+            idx = pos + kw.length;
+            if (snippets.length > 20) break;
           }
         }
         
+        // Also try to find all links (may contain match/detail links)
+        const links = [];
+        $('a').each((_, el) => {
+          const href = $(el).attr('href') || '';
+          const text = $(el).text().trim();
+          if (href.includes('Partido') || href.includes('Acta') || href.includes('CmpJornada') || text.includes('Jornada') || /bustarviejo/i.test(text)) {
+            links.push({ href: href.substring(0, 200), text: text.substring(0, 100) });
+          }
+        });
+        
         return Response.json({ 
-          success: true, title, 
-          loginWorked: !title.toLowerCase().includes('login'),
-          contentHtml: contentHtml.substring(0, 5000),
-          matchLines: matchLines.slice(0, 50),
-          rawHtmlSnippet: html.substring(html.indexOf('Jornada') > -1 ? Math.max(0, html.indexOf('Jornada') - 200) : html.length - 5000, html.indexOf('Jornada') > -1 ? html.indexOf('Jornada') + 3000 : html.length).substring(0, 5000)
+          success: true, title, loginWorked: !title.toLowerCase().includes('login'),
+          snippets: snippets.slice(0, 15),
+          links: links.slice(0, 20)
         });
       }
 
