@@ -601,31 +601,38 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
 
-      // Debug acta links - find all links in a jornada page
+      // Debug acta links - find all links and relevant elements in a jornada page
       case 'debug_actas': {
-        const j = jornada || '19';
-        const html = await fetchPage(buildJornadaUrl(p, j), cookies);
-        const $a = load(html);
-        const links = [];
-        $a('a').each((_, el) => {
-          const href = $a(el).attr('href') || '';
-          const text = $a(el).text().replace(/\s+/g, ' ').trim().substring(0, 100);
-          const onclick = $a(el).attr('onclick') || '';
-          if (href.includes('Acta') || href.includes('acta') || onclick.includes('Acta') || onclick.includes('acta') || text.includes('Acta') || text.includes('acta')) {
-            links.push({ href: href.substring(0, 300), text, onclick: onclick.substring(0, 300) });
+        const ja = jornada || '19';
+        const htmlA = await fetchPage(buildJornadaUrl(p, ja), cookies);
+        const $da = load(htmlA);
+        // Collect ALL links
+        const allLinks = [];
+        $da('a').each((idx2, el) => {
+          const href2 = $da(el).attr('href') || '';
+          const text2 = $da(el).text().replace(/\s+/g, ' ').trim().substring(0, 100);
+          const onclick2 = $da(el).attr('onclick') || '';
+          const cls2 = $da(el).attr('class') || '';
+          if (href2.length > 1 || onclick2.length > 1) {
+            allLinks.push({ i: idx2, href: href2.substring(0, 300), text: text2, onclick: onclick2.substring(0, 300), cls: cls2 });
           }
         });
-        // Also check for acta-related patterns in full HTML
-        const actaPatterns = (html.match(/NFG_CmpActa[^"'\s]*/gi) || []).slice(0, 10);
-        const actaInputs = [];
-        $a('input, img').each((_, el) => {
-          const src = $a(el).attr('src') || '';
-          const onclick2 = $a(el).attr('onclick') || '';
-          if (src.includes('acta') || src.includes('Acta') || onclick2.includes('Acta') || onclick2.includes('acta')) {
-            actaInputs.push({ tag: el.tagName, src: src.substring(0, 200), onclick: onclick2.substring(0, 300) });
+        // Collect all img with onclick
+        const allImgs = [];
+        $da('img').each((idx3, el) => {
+          const src3 = $da(el).attr('src') || '';
+          const onclick3 = $da(el).attr('onclick') || '';
+          const cls3 = $da(el).attr('class') || '';
+          if (onclick3 || src3.includes('acta') || src3.includes('Acta') || src3.includes('pdf') || src3.includes('PDF')) {
+            allImgs.push({ i: idx3, src: src3.substring(0, 200), onclick: onclick3.substring(0, 300), cls: cls3 });
           }
         });
-        return Response.json({ success: true, jornada: j, links, actaPatterns, actaInputs });
+        // Search for acta patterns in raw HTML
+        const actaPats = (htmlA.match(/[Aa]cta[^"'\s<]{0,100}/g) || []).slice(0, 20);
+        const pdfPats = (htmlA.match(/\.pdf[^"'\s<]{0,50}/gi) || []).slice(0, 10);
+        // Search for NFG_Cmp links
+        const nfgLinks = (htmlA.match(/NFG_Cmp[A-Za-z]+[^"'\s<]*/g) || []).slice(0, 20);
+        return Response.json({ success: true, jornada: ja, totalLinks: allLinks.length, links: allLinks.slice(0, 40), imgs: allImgs, actaPats, pdfPats, nfgLinks, htmlLen: htmlA.length });
       }
 
       default:
