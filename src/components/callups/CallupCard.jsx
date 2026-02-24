@@ -33,14 +33,19 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
       exit={{ opacity: 0, y: -20 }}
     >
       <Card className={`border-2 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden ${
-        canDelete ? 'border-slate-200 opacity-70' : pending > 0 ? 'border-amber-300' : 'border-green-200'
+        !callup.publicada && !canDelete
+          ? 'border-dashed border-slate-400 bg-slate-50/50'
+          : canDelete ? 'border-slate-200 opacity-70' 
+          : pending > 0 ? 'border-amber-300' : 'border-green-200'
       }`}>
         <CardHeader className={`text-white pb-4 ${
-          canDelete 
-            ? 'bg-gradient-to-r from-slate-500 to-slate-600' 
-            : pending > 0 
-              ? 'bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700'
-              : 'bg-gradient-to-r from-green-600 to-green-700'
+          !callup.publicada && !canDelete
+            ? 'bg-gradient-to-r from-slate-600 to-slate-700'
+            : canDelete 
+              ? 'bg-gradient-to-r from-slate-500 to-slate-600' 
+              : pending > 0 
+                ? 'bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700'
+                : 'bg-gradient-to-r from-green-600 to-green-700'
         }`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
