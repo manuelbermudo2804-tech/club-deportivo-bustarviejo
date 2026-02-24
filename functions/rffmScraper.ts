@@ -230,38 +230,43 @@ Deno.serve(async (req) => {
         const $ = load(html);
         const title = $('title').text().trim();
         
-        // Look for the match/jornada-specific part of HTML
-        // Search for keywords and extract surrounding HTML
-        const keywords = ['Jornada', 'BUSTARVIEJO', 'NFG_VisPartido', 'partido', 'resultado'];
-        const snippets = [];
+        // Dump the inner HTML of all divs that contain team/match data
+        // The RFFM uses dynamic content loaded via JavaScript - check if that's the case
+        const hasAjaxContent = html.includes('Nova_Ajax') || html.includes('$.ajax') || html.includes('XMLHttpRequest');
         
-        for (const kw of keywords) {
-          let idx = 0;
-          while (idx < html.length) {
-            const pos = html.indexOf(kw, idx);
-            if (pos === -1) break;
-            const start = Math.max(0, pos - 100);
-            const end = Math.min(html.length, pos + 500);
-            snippets.push({ keyword: kw, position: pos, html: html.substring(start, end) });
-            idx = pos + kw.length;
-            if (snippets.length > 20) break;
-          }
+        // Get raw HTML around BUSTARVIEJO or any match data
+        const bustarIdx = html.toUpperCase().indexOf('BUSTARVIEJO');
+        let bustarSnippet = null;
+        if (bustarIdx > -1) {
+          bustarSnippet = html.substring(Math.max(0, bustarIdx - 500), bustarIdx + 2000);
         }
         
-        // Also try to find all links (may contain match/detail links)
-        const links = [];
-        $('a').each((_, el) => {
-          const href = $(el).attr('href') || '';
-          const text = $(el).text().trim();
-          if (href.includes('Partido') || href.includes('Acta') || href.includes('CmpJornada') || text.includes('Jornada') || /bustarviejo/i.test(text)) {
-            links.push({ href: href.substring(0, 200), text: text.substring(0, 100) });
+        // Check for Nova_Ajax calls that load match data dynamically
+        const ajaxCalls = [];
+        const ajaxRe = /Nova_Ajax\([^)]+\)/g;
+        let m;
+        while ((m = ajaxRe.exec(html)) !== null) {
+          ajaxCalls.push(m[0].substring(0, 300));
+        }
+        
+        // Check for <div id="..."> that might be populated via AJAX
+        const dynamicDivs = [];
+        $('div[id]').each((_, div) => {
+          const id = $(div).attr('id') || '';
+          const content = $(div).text().trim();
+          if (content.length > 20 && content.length < 5000) {
+            dynamicDivs.push({ id, textLength: content.length, preview: content.substring(0, 200) });
           }
         });
         
         return Response.json({ 
           success: true, title, loginWorked: !title.toLowerCase().includes('login'),
-          snippets: snippets.slice(0, 15),
-          links: links.slice(0, 20)
+          hasAjaxContent,
+          bustarviejoFound: bustarIdx > -1,
+          bustarSnippet: bustarSnippet?.substring(0, 3000),
+          ajaxCalls: ajaxCalls.slice(0, 10),
+          dynamicDivs: dynamicDivs.slice(0, 15),
+          htmlLength: html.length
         });
       }
 
