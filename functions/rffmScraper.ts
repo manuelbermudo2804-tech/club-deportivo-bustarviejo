@@ -230,43 +230,36 @@ Deno.serve(async (req) => {
         const $ = load(html);
         const title = $('title').text().trim();
         
-        // Dump the inner HTML of all divs that contain team/match data
-        // The RFFM uses dynamic content loaded via JavaScript - check if that's the case
-        const hasAjaxContent = html.includes('Nova_Ajax') || html.includes('$.ajax') || html.includes('XMLHttpRequest');
-        
-        // Get raw HTML around BUSTARVIEJO or any match data
-        const bustarIdx = html.toUpperCase().indexOf('BUSTARVIEJO');
-        let bustarSnippet = null;
-        if (bustarIdx > -1) {
-          bustarSnippet = html.substring(Math.max(0, bustarIdx - 500), bustarIdx + 2000);
-        }
-        
-        // Check for Nova_Ajax calls that load match data dynamically
-        const ajaxCalls = [];
-        const ajaxRe = /Nova_Ajax\([^)]+\)/g;
-        let m;
-        while ((m = ajaxRe.exec(html)) !== null) {
-          ajaxCalls.push(m[0].substring(0, 300));
-        }
-        
-        // Check for <div id="..."> that might be populated via AJAX
-        const dynamicDivs = [];
-        $('div[id]').each((_, div) => {
-          const id = $(div).attr('id') || '';
-          const content = $(div).text().trim();
-          if (content.length > 20 && content.length < 5000) {
-            dynamicDivs.push({ id, textLength: content.length, preview: content.substring(0, 200) });
+        // Extract ALL Ajax/fetch calls and URLs from scripts
+        const scriptContent = [];
+        $('script').each((_, s) => {
+          const text = $(s).html() || '';
+          if (text.includes('Nova_Ajax') || text.includes('NFG_') || text.includes('jornada') || text.includes('partido')) {
+            scriptContent.push(text.substring(0, 2000));
           }
         });
         
+        // Find Nova_Ajax calls with their full parameters
+        const ajaxCalls = [];
+        const allScripts = $('script').map((_, s) => $(s).html() || '').get().join('\n');
+        const ajaxRe = /Nova_Ajax\s*\([^)]{5,500}\)/g;
+        let m;
+        while ((m = ajaxRe.exec(allScripts)) !== null) {
+          ajaxCalls.push(m[0]);
+        }
+        
+        // Also find any direct URL references to NFG_ endpoints
+        const urlRefs = [];
+        const urlRe = /['"]([^'"]*NFG_[^'"]+)['"]/g;
+        while ((m = urlRe.exec(allScripts)) !== null) {
+          urlRefs.push(m[1].substring(0, 300));
+        }
+        
         return Response.json({ 
           success: true, title, loginWorked: !title.toLowerCase().includes('login'),
-          hasAjaxContent,
-          bustarviejoFound: bustarIdx > -1,
-          bustarSnippet: bustarSnippet?.substring(0, 3000),
-          ajaxCalls: ajaxCalls.slice(0, 10),
-          dynamicDivs: dynamicDivs.slice(0, 15),
-          htmlLength: html.length
+          ajaxCalls: ajaxCalls.slice(0, 15),
+          urlRefs: [...new Set(urlRefs)].slice(0, 20),
+          scriptSnippets: scriptContent.slice(0, 5)
         });
       }
 
