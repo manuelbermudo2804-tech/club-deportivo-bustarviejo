@@ -601,38 +601,56 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, totalTables: tables.length, tables: tableInfos });
       }
 
-      // Debug acta links - find all links and relevant elements in a jornada page
+      // Debug acta links - find acta-related links only
       case 'debug_actas': {
         const ja = jornada || '19';
         const htmlA = await fetchPage(buildJornadaUrl(p, ja), cookies);
         const $da = load(htmlA);
-        // Collect ALL links
-        const allLinks = [];
+        // Collect only match-related links (teams, scores, actas)
+        const matchLinks = [];
         $da('a').each((idx2, el) => {
           const href2 = $da(el).attr('href') || '';
-          const text2 = $da(el).text().replace(/\s+/g, ' ').trim().substring(0, 100);
+          const text2 = $da(el).text().replace(/\s+/g, ' ').trim().substring(0, 150);
           const onclick2 = $da(el).attr('onclick') || '';
           const cls2 = $da(el).attr('class') || '';
-          if (href2.length > 1 || onclick2.length > 1) {
-            allLinks.push({ i: idx2, href: href2.substring(0, 300), text: text2, onclick: onclick2.substring(0, 300), cls: cls2 });
+          // Only include match-related links
+          if (href2.includes('NFG_Cmp') || href2.includes('Equipo') || href2.includes('Acta') || href2.includes('acta') ||
+              onclick2.includes('Acta') || onclick2.includes('acta') || cls2.includes('resultado') ||
+              href2.includes('resultado') || text2.match(/\d+\s*-\s*\d+/)) {
+            matchLinks.push({ href: href2.substring(0, 400), text: text2, onclick: onclick2.substring(0, 400), cls: cls2 });
           }
         });
-        // Collect all img with onclick
-        const allImgs = [];
+        // Collect imgs with onclick (acta icons)
+        const actaImgs = [];
         $da('img').each((idx3, el) => {
           const src3 = $da(el).attr('src') || '';
           const onclick3 = $da(el).attr('onclick') || '';
-          const cls3 = $da(el).attr('class') || '';
-          if (onclick3 || src3.includes('acta') || src3.includes('Acta') || src3.includes('pdf') || src3.includes('PDF')) {
-            allImgs.push({ i: idx3, src: src3.substring(0, 200), onclick: onclick3.substring(0, 300), cls: cls3 });
+          if (onclick3.length > 1) {
+            actaImgs.push({ src: src3.substring(0, 200), onclick: onclick3.substring(0, 400) });
           }
         });
-        // Search for acta patterns in raw HTML
-        const actaPats = (htmlA.match(/[Aa]cta[^"'\s<]{0,100}/g) || []).slice(0, 20);
-        const pdfPats = (htmlA.match(/\.pdf[^"'\s<]{0,50}/gi) || []).slice(0, 10);
-        // Search for NFG_Cmp links
-        const nfgLinks = (htmlA.match(/NFG_Cmp[A-Za-z]+[^"'\s<]*/g) || []).slice(0, 20);
-        return Response.json({ success: true, jornada: ja, totalLinks: allLinks.length, links: allLinks.slice(0, 40), imgs: allImgs, actaPats, pdfPats, nfgLinks, htmlLen: htmlA.length });
+        // Search HTML for acta/resultado patterns
+        const actaUrls = (htmlA.match(/NFG_CmpActa[^"'\s<]*/gi) || []).slice(0, 10);
+        const resultadoUrls = (htmlA.match(/resultado_cerrada[^"'\s<]*/gi) || []).slice(0, 5);
+        // Find the <span class="resultado_cerrada"> context - extract parent <a> hrefs
+        const resultLinks = [];
+        $da('span.resultado_cerrada').each((_, sp) => {
+          const parentA = $da(sp).closest('a');
+          const href3 = parentA.attr('href') || '';
+          const text3 = $da(sp).text().replace(/\s+/g, ' ').trim();
+          resultLinks.push({ score: text3, href: href3.substring(0, 400) });
+        });
+        // Also search for any <a> inside score cells (td with score)
+        const scoreCellLinks = [];
+        $da('td').each((_, td) => {
+          const tdText = $da(td).text().replace(/\s+/g, ' ').trim();
+          if (tdText.match(/\d+\s*[-–]\s*\d+/)) {
+            $da(td).find('a').each((_2, a) => {
+              scoreCellLinks.push({ href: ($da(a).attr('href') || '').substring(0, 400), text: $da(a).text().trim().substring(0, 100) });
+            });
+          }
+        });
+        return Response.json({ success: true, jornada: ja, matchLinks, actaImgs: actaImgs.slice(0, 20), actaUrls, resultadoUrls, resultLinks, scoreCellLinks });
       }
 
       default:
