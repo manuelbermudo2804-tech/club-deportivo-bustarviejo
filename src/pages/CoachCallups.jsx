@@ -422,6 +422,13 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
     setShowSuccess(true);
   };
 
+  const handlePublish = async (callup) => {
+    if (!window.confirm(`¿Publicar y enviar la convocatoria "${callup.titulo}"?\n\nSe notificará a todos los jugadores convocados por email y chat.`)) return;
+    
+    const updatedData = { ...callup, publicada: true };
+    updateCallupMutation.mutate({ id: callup.id, callupData: updatedData });
+  };
+
   const handleNewCallup = () => {
     setEditingCallup(null);
     setShowForm(true);
