@@ -665,13 +665,19 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
         </div>
       </div>
 
-      <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
-        <TabsList>
-          <TabsTrigger value="all">Todas</TabsTrigger>
-          <TabsTrigger value="published">Publicadas</TabsTrigger>
-          <TabsTrigger value="draft">Borradores</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {(() => {
+        const publishedCount = upcomingCallups.filter(c => c.publicada === true).length;
+        const draftCount = upcomingCallups.filter(c => !c.publicada).length;
+        return (
+          <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
+            <TabsList>
+              <TabsTrigger value="all">Todas ({upcomingCallups.length})</TabsTrigger>
+              <TabsTrigger value="published">✅ Publicadas ({publishedCount})</TabsTrigger>
+              <TabsTrigger value="draft">📝 Borradores ({draftCount})</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        );
+      })()}
 
       <AnimatePresence mode="wait">
         {showForm && canCreateCallup && (
