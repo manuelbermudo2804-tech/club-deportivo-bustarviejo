@@ -223,7 +223,7 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
                       <div className={`pl-1 text-xs sm:text-sm whitespace-normal break-words font-medium text-right ${isBustarviejo(m.visitante) ? 'text-orange-700 font-bold' : 'text-slate-800'}`}>
                         {m.visitante}{isBustarviejo(m.visitante) && ' ⚽'}
                       </div>
-                      {m.acta_url && (
+                      {m.acta_url && isBust && (
                         <div className="col-span-3 flex justify-center pt-1">
                           <a
                             href={m.acta_url}
