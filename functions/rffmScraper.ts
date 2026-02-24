@@ -219,73 +219,73 @@ function detectTotalJornadas(html) {
 }
 
 // Parse standings from NFG_VisClasificacion page
-// Structure: Inside #CL_Resumen div, second table has the classification
-// Header row has: (icon col) | Ordenar por: | Puntos | J. | G. | E. | P. | F. | C. | (últimos) | (sanción)
-// Data rows: (pos icon) | Team name (with JS noise) | pts | pj | pg | pe | pp | gf | gc | ... 
+// Structure varies by competition:
+//   Standard (11 cols): [img] [equipo] [puntos] [pj] [pg] [pe] [pp] [gf] [gc] [últimos] [sanción]
+//   With Pts/PJ (13 cols): [img] [pos#] [equipo] [pts/pj] [puntos] [pj] [pg] [pe] [pp] [gf] [gc] [últimos] [sanción]
 function parseStandings(html) {
   const $ = load(html);
   const standings = [];
   
-  // Strategy: find the table inside #CL_Resumen that has "Puntos" and "J." headers
   const container = $('#CL_Resumen');
   const searchScope = container.length ? container : $('body');
   
   searchScope.find('table').each((_, table) => {
-    // Check if this table has classification headers
     const allText = $(table).text();
     if (!allText.includes('Puntos') || !allText.includes('J.')) return;
     
     const rows = $(table).find('tr').toArray();
-    // Skip header rows - find first data row (has a number in position column)
     let posCounter = 0;
     
     for (const row of rows) {
       const cells = $(row).find('td').toArray();
       if (cells.length < 8) continue;
       
-      // The first cell might be an icon/position indicator
-      // The second cell should be team name
-      // Try to find a pattern: look for a cell with just a number (position)
-      // or a cell with team name followed by numeric cells
-      
-      // Get clean text from each cell (direct text only, not nested script content)
       const cellTexts = cells.map(c => {
-        // Remove script tags and their content before extracting text
         const clone = $(c).clone();
         clone.find('script, style').remove();
         return clone.text().replace(/\s+/g, ' ').trim();
       });
       
-      // Find the team name cell - it's the one with the longest text that isn't a number
-      // Typical pattern: cell[0] = empty/pos, cell[1] = team name, cell[2+] = numbers
-      
-      // Try to extract: check if we can find sequential numeric values for pts, pj, pg, pe, pp, gf, gc
-      let teamIdx = -1;
+      // Strategy: Find 7 consecutive integer cells (puntos, pj, pg, pe, pp, gf, gc)
+      // But also allow skipping a decimal cell (Pts/PJ like "2,7333") before them
       let numericStart = -1;
       
       for (let i = 0; i < cellTexts.length - 6; i++) {
-        // Check if cells i through i+6 are all numeric
-        let allNumeric = true;
+        let allInt = true;
         for (let j = i; j <= i + 6; j++) {
-          if (j >= cellTexts.length || !/^\d+$/.test(cellTexts[j])) { allNumeric = false; break; }
+          if (j >= cellTexts.length || !/^\d+$/.test(cellTexts[j])) { allInt = false; break; }
         }
-        if (allNumeric) {
+        if (allInt) {
           numericStart = i;
-          teamIdx = i - 1;
           break;
         }
       }
       
-      if (teamIdx < 0 || numericStart < 0) continue;
+      if (numericStart < 0) continue;
       
-      // Clean team name
+      // Now find the team name: search backwards from numericStart for a non-numeric, non-empty cell
+      // Skip any decimal cells (Pts/PJ) and pure position number cells
+      let teamIdx = -1;
+      for (let i = numericStart - 1; i >= 0; i--) {
+        const t = cellTexts[i];
+        if (!t) continue;
+        // Skip decimal values like "2,7333" (Pts/PJ column)
+        if (/^\d+[.,]\d+$/.test(t)) continue;
+        // Skip pure position numbers like "1", "2", etc.
+        if (/^\d{1,2}$/.test(t)) continue;
+        // This should be the team name
+        teamIdx = i;
+        break;
+      }
+      
+      if (teamIdx < 0) continue;
+      
       let teamName = cellTexts[teamIdx];
-      // Remove JS artifacts (eval, ntype, etc.)
+      // Remove JS artifacts
       for (const noise of ['eval(', 'ntype(', 'function(', 'var ', 'document.']) {
         const idx = teamName.indexOf(noise);
         if (idx > 0) teamName = teamName.substring(0, idx).trim();
       }
-      // Remove trailing special chars
       teamName = teamName.replace(/[#\-\s]+$/, '').trim();
       
       if (!teamName || teamName.length < 2) continue;
@@ -306,7 +306,6 @@ function parseStandings(html) {
       });
     }
     
-    // If we found standings in this table, stop looking
     if (standings.length > 0) return false;
   });
   
