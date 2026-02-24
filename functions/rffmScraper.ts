@@ -229,33 +229,32 @@ Deno.serve(async (req) => {
         const html = await fetchPage(url, cookies);
         const $ = load(html);
         const title = $('title').text().trim();
-        // Focus on tables that likely contain match data (skip filter/nav tables)
-        const tables = [];
-        $('table').each((i, table) => {
-          const rows = [];
-          $(table).find('tr').each((j, tr) => {
-            const cells = [];
-            $(tr).find('th, td').each((_, c) => {
-              cells.push({
-                text: $(c).text().trim().substring(0, 150),
-                cls: $(c).attr('class')?.substring(0, 50) || '',
-                href: $(c).find('a').attr('href')?.substring(0, 100) || ''
-              });
-            });
-            if (cells.some(c => c.text.length > 0)) rows.push(cells);
-          });
-          // Skip tiny tables and filter tables
-          if (rows.length >= 2) {
-            const hasMatchData = rows.some(r => r.some(c => 
-              /\d+\s*[-–]\s*\d+/.test(c.text) || /\d{1,2}:\d{2}/.test(c.text) ||
-              /bustarviejo/i.test(c.text) || /jornada/i.test(c.text)
-            ));
-            tables.push({ idx: i, rowCount: rows.length, hasMatchData, rows: rows.slice(0, 20) });
+        
+        // Extract the raw HTML of the content area (skip navigation/header)
+        // Look for div.contenido or similar content wrapper
+        let contentHtml = '';
+        const contentDiv = $('.contenido, .contenido_responsive, #contenido, .content').first();
+        if (contentDiv.length) {
+          contentHtml = contentDiv.html()?.substring(0, 8000) || '';
+        }
+        
+        // Also extract ALL text that looks like match data
+        const bodyText = $('body').text();
+        const matchLines = [];
+        const lines = bodyText.split(/\n/).map(l => l.trim()).filter(l => l.length > 3);
+        for (const line of lines) {
+          if (/bustarviejo/i.test(line) || /\d+\s*[-–]\s*\d+/.test(line) || /\d{1,2}:\d{2}/.test(line) || /jornada\s*\d/i.test(line) || /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line)) {
+            matchLines.push(line.substring(0, 300));
           }
+        }
+        
+        return Response.json({ 
+          success: true, title, 
+          loginWorked: !title.toLowerCase().includes('login'),
+          contentHtml: contentHtml.substring(0, 5000),
+          matchLines: matchLines.slice(0, 50),
+          rawHtmlSnippet: html.substring(html.indexOf('Jornada') > -1 ? Math.max(0, html.indexOf('Jornada') - 200) : html.length - 5000, html.indexOf('Jornada') > -1 ? html.indexOf('Jornada') + 3000 : html.length).substring(0, 5000)
         });
-        // Sort: match-data tables first
-        tables.sort((a, b) => (b.hasMatchData ? 1 : 0) - (a.hasMatchData ? 1 : 0));
-        return Response.json({ success: true, title, loginWorked: !title.toLowerCase().includes('login'), tables: tables.slice(0, 6) });
       }
 
       case 'standings': {
