@@ -68,7 +68,6 @@ async function fetchPage(url, cookies) {
   return await resp.text();
 }
 
-// Build URLs for the RFFM intranet
 function buildJornadaUrl(p, jornada) {
   return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${jornada}&cod_agrupacion=1&Sch_Tipo_Juego=`;
 }
@@ -77,164 +76,123 @@ function buildClassificationUrl(p) {
   return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
 }
 
-// Parse match data from NFG_CmpJornada page
-// Structure: tables from index 3 onwards, every 2 tables = 1 match
-// Table pattern: [campo info] then [local team | score | visitante team | date/time | field name]
+// Parse matches from NFG_CmpJornada page.
+// Structure discovered:
+//   Tables from idx 3+, alternating: [campo-only table] [match-data table]
+//   Match-data table has 8 tds:
+//     td[0] = local team name (with escudo img)
+//     td[1] = "SCORE  DATE  TIME" or just date/time if not played
+//     td[2] = visitante team name (with escudo img)
+//     td[3..7] = next campo info + padding (belongs to NEXT match visually)
 function parseJornadaMatches(html) {
   const $ = load(html);
   const matches = [];
   const tables = $('table').toArray();
   
-  // Skip first 3 tables (filter/form area), then process match tables
+  // First pass: find the "campo" info from campo-only tables (no escudo, has "Campo:")
+  // Second pass: extract matches from escudo tables
+  
+  let currentCampo = null;
+  
   for (let i = 3; i < tables.length; i++) {
     const table = tables[i];
-    const rows = $(table).find('tr').toArray();
+    const tableHtml = $(table).html() || '';
+    const hasEscudo = tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes');
     
-    for (const row of rows) {
-      const cells = $(row).find('td').toArray();
-      if (cells.length < 2) continue;
-      
-      // Get text from each cell
-      const cellTexts = cells.map(c => $(c).text().replace(/\s+/g, ' ').trim());
-      const cellHtmls = cells.map(c => $(c).html() || '');
-      
-      // Look for team name pattern: text with "C.D.", "C.F.", etc. or escudo image
-      // and score pattern like "N -" or "- N" in h4 tags
-      
-      // Check if any cell has an escudo image (team indicator)
-      const hasEscudo = cellHtmls.some(h => h.includes('escudo_clb') || h.includes('pimg/Clubes'));
-      if (!hasEscudo) continue;
-      
-      // Extract team names from cells with escudo images
-      const teamCells = [];
-      cells.forEach((c, idx) => {
-        if ($(c).html()?.includes('escudo_clb') || $(c).html()?.includes('pimg/Clubes')) {
-          // Team name is in a span or direct text
-          let teamName = $(c).find('span').first().text().trim();
-          if (!teamName) teamName = cellTexts[idx].replace(/^\s*\d+\s*$/, '').trim();
-          if (teamName) teamCells.push({ idx, name: teamName });
-        }
-      });
-      
-      // Extract score from h4 tags
-      let golesLocal = null, golesVisitante = null, jugado = false;
-      const h4s = $(row).find('h4');
-      if (h4s.length > 0) {
-        const scoreText = h4s.map((_, h) => $(h).text().trim()).get().join(' ');
-        const scoreMatch = scoreText.match(/(\d+)\s*[-–]\s*(\d+)/);
-        if (scoreMatch) {
-          golesLocal = parseInt(scoreMatch[1]);
-          golesVisitante = parseInt(scoreMatch[2]);
-          jugado = true;
-        }
-      }
-      
-      // Extract date, time, field from surrounding cells or text
-      let fecha = null, hora = null, campo = null;
-      const allText = cellTexts.join(' ');
-      const dateM = allText.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
-      if (dateM) fecha = dateM[1];
-      const timeM = allText.match(/(\d{1,2}:\d{2})\s*h/);
-      if (timeM) hora = timeM[1];
-      
-      // Also check previous table row / sibling for "Campo:" info
-      const prevTable = i > 3 ? tables[i - 1] : null;
-      if (prevTable) {
-        const prevText = $(prevTable).text().replace(/\s+/g, ' ').trim();
-        const campoM = prevText.match(/Campo:\s*(.+?)(?:\(|$)/);
-        if (campoM) campo = campoM[1].trim();
-        if (!fecha) {
-          const pd = prevText.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
-          if (pd) fecha = pd[1];
-        }
-        if (!hora) {
-          const pt = prevText.match(/(\d{1,2}:\d{2})\s*h/);
-          if (pt) hora = pt[1];
-        }
-      }
-      
-      if (teamCells.length >= 2) {
-        matches.push({
-          local: teamCells[0].name,
-          visitante: teamCells[1].name,
-          goles_local: golesLocal,
-          goles_visitante: golesVisitante,
-          jugado,
-          fecha,
-          hora,
-          campo
-        });
-      }
+    if (!hasEscudo) {
+      // Campo-only table: extract campo name for the NEXT match
+      const text = $(table).text().replace(/\s+/g, ' ').trim();
+      const campoM = text.match(/Campo:\s*(.+?)(?:\s*\(|$)/);
+      if (campoM) currentCampo = campoM[1].trim();
+      continue;
     }
-  }
-  
-  // Deduplicate
-  const seen = new Set();
-  return matches.filter(m => {
-    const key = `${m.local}__${m.visitante}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-// Alternative: parse based on the pattern we found in test results
-// Each match block has: campo row, then team row with escudo + name + score
-function parseJornadaMatchesV2(html) {
-  const $ = load(html);
-  const matches = [];
-  
-  // Find all escudo images and work outward to find match context
-  const escudoEls = $('img.escudo_clb, img[src*="pimg/Clubes"]').toArray();
-  
-  // Group escudos in pairs (local, visitante)
-  for (let i = 0; i < escudoEls.length - 1; i += 2) {
-    const localEl = escudoEls[i];
-    const visitanteEl = escudoEls[i + 1];
     
-    // Get team names from the parent td/div
-    const localTd = $(localEl).closest('td');
-    const visitanteTd = $(visitanteEl).closest('td');
+    // Match data table with escudos
+    const tds = $(table).find('td').toArray();
+    if (tds.length < 3) continue;
     
-    let localName = localTd.find('span').first().text().trim() || localTd.text().replace(/\s+/g, ' ').trim();
-    let visitanteName = visitanteTd.find('span').first().text().trim() || visitanteTd.text().replace(/\s+/g, ' ').trim();
-    
-    // Clean up names (remove extra whitespace, numbers)
-    localName = localName.replace(/^\d+\s*/, '').replace(/\s+/g, ' ').trim();
-    visitanteName = visitanteName.replace(/^\d+\s*/, '').replace(/\s+/g, ' ').trim();
+    // td[0] = local, td[1] = score/date, td[2] = visitante
+    const localName = $(tds[0]).find('span').first().text().trim() || $(tds[0]).text().replace(/\s+/g, ' ').trim();
+    const visitanteName = $(tds[2]).find('span').first().text().trim() || $(tds[2]).text().replace(/\s+/g, ' ').trim();
     
     if (!localName || !visitanteName) continue;
     
-    // Find the score - should be in h4 between the two teams
-    const matchRow = $(localEl).closest('tr');
-    let golesLocal = null, golesVisitante = null, jugado = false;
+    // td[1] contains score + date + time all together, e.g. "1 - 2 22-02-2026 10:00"
+    // or just "22-02-2026 10:00" if not yet played, or could be "Aplazado"
+    const centerText = $(tds[1]).text().replace(/\s+/g, ' ').trim();
     
-    const h4s = matchRow.find('h4');
-    const allH4Text = h4s.map((_, h) => $(h).text().trim()).get().join(' ');
-    const scoreMatch = allH4Text.match(/(\d+)\s*[-–]\s*(\d+)/);
+    let golesLocal = null, golesVisitante = null, jugado = false;
+    let fecha = null, hora = null;
+    
+    // Try to extract score
+    const scoreMatch = centerText.match(/(\d+)\s*[-–]\s*(\d+)/);
     if (scoreMatch) {
       golesLocal = parseInt(scoreMatch[1]);
       golesVisitante = parseInt(scoreMatch[2]);
       jugado = true;
     }
     
-    // Find date, time, campo from surrounding context
-    const matchTable = $(localEl).closest('table');
-    const prevTable = matchTable.prev('table');
-    const contextText = (prevTable.text() + ' ' + matchTable.text()).replace(/\s+/g, ' ');
+    // Extract date (dd-mm-yyyy or dd/mm/yyyy)
+    const dateMatch = centerText.match(/(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/);
+    if (dateMatch) fecha = dateMatch[1].replace(/-/g, '/');
     
-    let fecha = null, hora = null, campo = null;
-    const dateM = contextText.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
-    if (dateM) fecha = dateM[1];
-    const timeM = contextText.match(/(\d{1,2}:\d{2})\s*h/);
-    if (timeM) hora = timeM[1];
-    const campoM = contextText.match(/Campo:\s*(.+?)(?:\(|Fecha|$)/);
-    if (campoM) campo = campoM[1].trim();
+    // Extract time (HH:MM)
+    const timeMatch = centerText.match(/(\d{1,2}:\d{2})/);
+    if (timeMatch) hora = timeMatch[1];
     
-    matches.push({ local: localName, visitante: visitanteName, goles_local: golesLocal, goles_visitante: golesVisitante, jugado, fecha, hora, campo });
+    // Also check if next td has campo for the NEXT match
+    // td[3] onwards may have next match's campo
+    let nextCampo = null;
+    if (tds.length > 3) {
+      const nextCampoText = $(tds[3]).text().replace(/\s+/g, ' ').trim();
+      const ncM = nextCampoText.match(/Campo:\s*(.+?)(?:\s*\(|$)/);
+      if (ncM) nextCampo = ncM[1].trim();
+    }
+    
+    matches.push({
+      local: localName,
+      visitante: visitanteName,
+      goles_local: golesLocal,
+      goles_visitante: golesVisitante,
+      jugado,
+      fecha,
+      hora,
+      campo: currentCampo
+    });
+    
+    // The campo embedded in tds[3+] is for the NEXT match
+    if (nextCampo) currentCampo = nextCampo;
   }
   
   return matches;
+}
+
+// Detect total number of jornadas from the page's select dropdown
+function detectTotalJornadas(html) {
+  const $ = load(html);
+  let maxJornada = 0;
+  
+  // Look for jornada selector options
+  $('select option').each((_, opt) => {
+    const text = $(opt).text().trim();
+    const val = $(opt).attr('value');
+    // Jornada options usually have numeric values
+    const num = parseInt(val);
+    if (!isNaN(num) && num > 0 && num < 100) {
+      if (num > maxJornada) maxJornada = num;
+    }
+  });
+  
+  // Fallback: search for "Jornada N" patterns
+  if (maxJornada === 0) {
+    const jornadaMatches = html.match(/Jornada\s+(\d+)/gi) || [];
+    for (const jm of jornadaMatches) {
+      const n = parseInt(jm.match(/(\d+)/)[1]);
+      if (n > maxJornada) maxJornada = n;
+    }
+  }
+  
+  return maxJornada || 30; // Default to 30 if can't detect
 }
 
 // Parse standings from NFG_VisClasificacion page
@@ -243,12 +201,12 @@ function parseStandings(html) {
   const standings = [];
   
   $('table').each((_, table) => {
-    const headerText = $(table).find('th').map((_, el) => $(el).text().trim().toLowerCase()).get().join(' ');
+    const headerText = $(table).find('th').map((__, el) => $(el).text().trim().toLowerCase()).get().join(' ');
     if (headerText.includes('equipo') || headerText.includes('pts') || headerText.includes('ptos') || headerText.includes('pj')) {
       $(table).find('tr').each((__, row) => {
         const cells = $(row).find('td');
         if (cells.length >= 8) {
-          const t = cells.map((_, td) => $(td).text().trim()).get();
+          const t = cells.map((___, td) => $(td).text().trim()).get();
           const pos = parseInt(t[0]);
           if (!isNaN(pos) && pos > 0 && pos < 50) {
             standings.push({
@@ -288,68 +246,99 @@ Deno.serve(async (req) => {
     const p = extractParams(url);
 
     switch (action) {
-      case 'test': {
+      // Fetch a single jornada
+      case 'results': {
         const j = jornada || p.CodJornada || '1';
-        const jornadaUrl = buildJornadaUrl(p, j);
-        const html = await fetchPage(jornadaUrl, cookies);
+        const html = await fetchPage(buildJornadaUrl(p, j), cookies);
+        const matches = parseJornadaMatches(html);
+        return Response.json({ success: true, jornada: parseInt(j), matches });
+      }
+
+      // Fetch ALL jornadas at once
+      case 'all_results': {
+        // First, load jornada 1 to detect total jornadas
+        const firstHtml = await fetchPage(buildJornadaUrl(p, 1), cookies);
+        const totalJornadas = detectTotalJornadas(firstHtml);
         
-        // Detailed debug: look at the structure around the first few match blocks
-        const $ = load(html);
-        const tables = $('table').toArray();
-        const debugBlocks = [];
-        for (let i = 3; i < Math.min(tables.length, 11); i++) {
-          const t = tables[i];
-          const text = $(t).text().replace(/\s+/g, ' ').trim().substring(0, 300);
-          const hasEscudo = ($(t).html() || '').includes('escudo_clb');
-          const tds = $(t).find('td').toArray();
-          const tdTexts = tds.map(td => $(td).text().replace(/\s+/g, ' ').trim().substring(0, 120));
-          debugBlocks.push({ idx: i, hasEscudo, tdCount: tds.length, tdTexts, textPreview: text });
+        const allJornadas = [];
+        
+        // Parse jornada 1 which we already fetched
+        const j1Matches = parseJornadaMatches(firstHtml);
+        allJornadas.push({ jornada: 1, matches: j1Matches });
+        
+        // Fetch remaining jornadas in batches of 5 to avoid overloading
+        for (let batch = 2; batch <= totalJornadas; batch += 5) {
+          const batchEnd = Math.min(batch + 4, totalJornadas);
+          const promises = [];
+          for (let j = batch; j <= batchEnd; j++) {
+            promises.push(
+              fetchPage(buildJornadaUrl(p, j), cookies)
+                .then(html => ({ jornada: j, matches: parseJornadaMatches(html) }))
+                .catch(() => ({ jornada: j, matches: [], error: true }))
+            );
+          }
+          const results = await Promise.all(promises);
+          allJornadas.push(...results);
         }
         
-        const matchesV1 = parseJornadaMatches(html);
-        const matchesV2 = parseJornadaMatchesV2(html);
+        // Sort by jornada number
+        allJornadas.sort((a, b) => a.jornada - b.jornada);
         
-        return Response.json({ 
+        // Extract Bustarviejo matches specifically
+        const bustarviejo = [];
+        for (const j of allJornadas) {
+          const bm = j.matches.find(m =>
+            m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')
+          );
+          if (bm) bustarviejo.push({ jornada: j.jornada, ...bm });
+        }
+        
+        return Response.json({
           success: true,
-          htmlLength: html.length,
-          jornada: j,
-          debugBlocks,
-          matchesV1,
-          matchesV2,
+          total_jornadas: totalJornadas,
+          jornadas: allJornadas,
+          bustarviejo_matches: bustarviejo,
+          summary: {
+            total_matches: allJornadas.reduce((s, j) => s + j.matches.length, 0),
+            played: allJornadas.reduce((s, j) => s + j.matches.filter(m => m.jugado).length, 0),
+            pending: allJornadas.reduce((s, j) => s + j.matches.filter(m => !m.jugado).length, 0),
+          }
         });
       }
 
-      case 'results': {
-        const j = jornada || p.CodJornada;
-        const jornadaUrl = buildJornadaUrl(p, j);
-        const html = await fetchPage(jornadaUrl, cookies);
-        // Try V2 first (escudo-based), fall back to V1
-        let matches = parseJornadaMatchesV2(html);
-        if (matches.length === 0) matches = parseJornadaMatches(html);
-        return Response.json({ success: true, matches, jornada: j });
-      }
-
+      // Find next unplayed match for Bustarviejo
       case 'next_match': {
-        const j = jornada || p.CodJornada || '1';
-        const jornadaUrl = buildJornadaUrl(p, j);
-        const html = await fetchPage(jornadaUrl, cookies);
-        let allMatches = parseJornadaMatchesV2(html);
-        if (allMatches.length === 0) allMatches = parseJornadaMatches(html);
-        const bust = allMatches.find(m =>
-          m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')
-        );
-        return Response.json({ success: true, jornada: j, all_matches: allMatches, bustarviejo_match: bust || null });
+        const startJ = parseInt(jornada || p.CodJornada || '1');
+        // Search from the given jornada forward
+        for (let j = startJ; j <= startJ + 10; j++) {
+          const html = await fetchPage(buildJornadaUrl(p, j), cookies);
+          const matches = parseJornadaMatches(html);
+          const bust = matches.find(m =>
+            !m.jugado && (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO'))
+          );
+          if (bust) return Response.json({ success: true, jornada: j, match: bust });
+        }
+        return Response.json({ success: true, match: null, message: 'No upcoming matches found' });
       }
 
+      // Fetch classification/standings
       case 'standings': {
-        const classUrl = buildClassificationUrl(p);
-        const html = await fetchPage(classUrl, cookies);
+        const html = await fetchPage(buildClassificationUrl(p), cookies);
         const standings = parseStandings(html);
         return Response.json({ success: true, standings });
       }
 
+      // Test/debug a single jornada
+      case 'test': {
+        const j = jornada || p.CodJornada || '1';
+        const html = await fetchPage(buildJornadaUrl(p, j), cookies);
+        const matches = parseJornadaMatches(html);
+        const totalJornadas = detectTotalJornadas(html);
+        return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length });
+      }
+
       default:
-        return Response.json({ error: 'Use: test, results, next_match, standings' }, { status: 400 });
+        return Response.json({ error: 'Actions: test, results, all_results, next_match, standings' }, { status: 400 });
     }
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
