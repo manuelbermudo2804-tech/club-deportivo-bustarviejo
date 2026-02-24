@@ -404,6 +404,18 @@ Deno.serve(async (req) => {
         const tryJ = jornada || '13';
         const sHtml = await fetchPage(buildClassificationUrl(p, tryJ), cookies);
         const $ds = load(sHtml);
+        
+        // Check for frames/iframes
+        const frames = $ds('frame, iframe').map((_, f) => ({ name: $ds(f).attr('name') || '', src: ($ds(f).attr('src') || '').substring(0, 300) })).get();
+        
+        // Check for forms with select boxes (jornada/temporada selectors)
+        const selects = [];
+        $ds('select').each((_, sel) => {
+          const name = $ds(sel).attr('name') || $ds(sel).attr('id') || '';
+          const opts = $ds(sel).find('option').map((__, o) => ({ val: $ds(o).attr('value'), text: $ds(o).text().trim().substring(0,40), selected: $ds(o).attr('selected') !== undefined })).get().slice(0, 10);
+          selects.push({ name, optionCount: $ds(sel).find('option').length, options: opts });
+        });
+        
         const sTables = [];
         $ds('table').each((i, table) => {
           const rows = [];
@@ -413,7 +425,18 @@ Deno.serve(async (req) => {
           });
           if (rows.length > 0) sTables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 15) });
         });
-        return Response.json({ success: true, jornada: tryJ, htmlLength: sHtml.length, tablesCount: sTables.length, tables: sTables.slice(0, 12), titleSnippet: sHtml.substring(0, 500) });
+        
+        // Also grab a raw HTML snippet around "clasificacion"
+        const classIdx = sHtml.toLowerCase().indexOf('clasificaci');
+        const classSnippet = classIdx >= 0 ? sHtml.substring(Math.max(0, classIdx - 200), classIdx + 500) : 'Not found';
+        
+        return Response.json({ 
+          success: true, jornada: tryJ, htmlLength: sHtml.length, 
+          frames, selects,
+          tablesCount: sTables.length, tables: sTables.slice(0, 12), 
+          classificationSnippet: classSnippet.substring(0, 800),
+          urlUsed: buildClassificationUrl(p, tryJ)
+        });
       }
 
       // Debug scorers page structure
