@@ -3,55 +3,47 @@ import { load } from 'npm:cheerio@1.0.0';
 
 // Helper: Login to RFFM intranet and get session cookies
 async function rffmLogin() {
-  const user = Deno.env.get('RFFM_USER');
-  const pass = Deno.env.get('RFFM_PASSWORD');
+  const rffmUser = Deno.env.get('RFFM_USER');
+  const rffmPass = Deno.env.get('RFFM_PASSWORD');
   
-  if (!user || !pass) throw new Error('RFFM credentials not configured');
+  if (!rffmUser || !rffmPass) throw new Error('RFFM credentials not configured');
 
-  // Step 1: GET the intranet base to get redirected to login and capture cookies
+  // Step 1: GET a protected page to get redirected to login
   const baseResp = await fetch('https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion', {
     redirect: 'manual',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    }
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
   });
   
-  // Collect cookies
   const setCookies1 = baseResp.headers.getSetCookie?.() || [];
-  let cookieJar = setCookies1.map(c => c.split(';')[0]).join('; ');
-  
-  // Follow redirect if needed
-  const loginUrl = baseResp.headers.get('location') || 'https://intranet.ffmadrid.es/nfg/NLogin';
-  
-  // Step 2: GET the login page
-  const loginPageResp = await fetch(loginUrl.startsWith('http') ? loginUrl : `https://intranet.ffmadrid.es${loginUrl}`, {
-    redirect: 'manual',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Cookie': cookieJar
-    }
-  });
-  
-  const loginPageCookies = loginPageResp.headers.getSetCookie?.() || [];
-  const loginHtml = await loginPageResp.text();
-  
-  // Update cookie jar
-  const allCookies1 = [...setCookies1, ...loginPageCookies];
   const cookieMap = {};
-  for (const c of allCookies1) {
+  for (const c of setCookies1) {
     const name = c.split(';')[0].split('=')[0].trim();
     cookieMap[name] = c.split(';')[0];
   }
-  cookieJar = Object.values(cookieMap).join('; ');
-
-  // Parse login form to find action URL and any hidden fields
-  const $ = load(loginHtml);
-  let formAction = $('form').attr('action') || '/nfg/NLogin';
-  if (!formAction.startsWith('http')) {
-    formAction = `https://intranet.ffmadrid.es${formAction}`;
+  
+  const loginUrl = baseResp.headers.get('location') || 'https://intranet.ffmadrid.es/nfg/NLogin';
+  const fullLoginUrl = loginUrl.startsWith('http') ? loginUrl : `https://intranet.ffmadrid.es${loginUrl}`;
+  
+  // Step 2: GET the login page
+  const loginPageResp = await fetch(fullLoginUrl, {
+    redirect: 'manual',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Cookie': Object.values(cookieMap).join('; ')
+    }
+  });
+  
+  for (const c of (loginPageResp.headers.getSetCookie?.() || [])) {
+    const name = c.split(';')[0].split('=')[0].trim();
+    cookieMap[name] = c.split(';')[0];
   }
   
-  // Get hidden fields
+  const loginHtml = await loginPageResp.text();
+  const $ = load(loginHtml);
+  
+  let formAction = $('form').attr('action') || '/nfg/NLogin';
+  if (!formAction.startsWith('http')) formAction = `https://intranet.ffmadrid.es${formAction}`;
+  
   const hiddenFields = {};
   $('input[type="hidden"]').each((_, el) => {
     const name = $(el).attr('name');
@@ -59,16 +51,11 @@ async function rffmLogin() {
     if (name) hiddenFields[name] = value;
   });
   
-  // Find username and password field names
   const userField = $('input[type="text"]').attr('name') || 'NUser';
   const passField = $('input[type="password"]').attr('name') || 'NPass';
 
   // Step 3: POST login
-  const loginBody = new URLSearchParams({
-    ...hiddenFields,
-    [userField]: user,
-    [passField]: pass,
-  });
+  const loginBody = new URLSearchParams({ ...hiddenFields, [userField]: rffmUser, [passField]: rffmPass });
 
   const loginResp = await fetch(formAction, {
     method: 'POST',
@@ -76,45 +63,40 @@ async function rffmLogin() {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Cookie': cookieJar,
-      'Referer': loginUrl.startsWith('http') ? loginUrl : `https://intranet.ffmadrid.es${loginUrl}`
+      'Cookie': Object.values(cookieMap).join('; '),
+      'Referer': fullLoginUrl
     },
     body: loginBody.toString()
   });
 
-  // Collect cookies from login response
-  const loginRespCookies = loginResp.headers.getSetCookie?.() || [];
-  for (const c of loginRespCookies) {
+  for (const c of (loginResp.headers.getSetCookie?.() || [])) {
     const name = c.split(';')[0].split('=')[0].trim();
     cookieMap[name] = c.split(';')[0];
   }
   
-  // Follow redirect chain after login
+  // Follow redirects
   let redirectUrl = loginResp.headers.get('location');
   let maxRedirects = 5;
   while (redirectUrl && maxRedirects > 0) {
-    const fullUrl = redirectUrl.startsWith('http') ? redirectUrl : `https://intranet.ffmadrid.es${redirectUrl}`;
-    const redirResp = await fetch(fullUrl, {
+    const full = redirectUrl.startsWith('http') ? redirectUrl : `https://intranet.ffmadrid.es${redirectUrl}`;
+    const r = await fetch(full, {
       redirect: 'manual',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Cookie': Object.values(cookieMap).join('; ')
       }
     });
-    const redirCookies = redirResp.headers.getSetCookie?.() || [];
-    for (const c of redirCookies) {
+    for (const c of (r.headers.getSetCookie?.() || [])) {
       const name = c.split(';')[0].split('=')[0].trim();
       cookieMap[name] = c.split(';')[0];
     }
-    redirectUrl = redirResp.headers.get('location');
+    redirectUrl = r.headers.get('location');
     maxRedirects--;
   }
 
-  const sessionCookies = Object.values(cookieMap).join('; ');
-  return sessionCookies;
+  return Object.values(cookieMap).join('; ');
 }
 
-// Helper: Fetch a page with session cookies
 async function fetchWithSession(url, cookies) {
   const resp = await fetch(url, {
     headers: {
@@ -125,7 +107,6 @@ async function fetchWithSession(url, cookies) {
   return await resp.text();
 }
 
-// Parse URL params
 function parseRffmUrl(url) {
   const u = new URL(url);
   return {
@@ -137,75 +118,83 @@ function parseRffmUrl(url) {
   };
 }
 
-function buildStandingsUrl(p) {
-  return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
-}
-
 function buildResultsUrl(p, jornada) {
   return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${jornada}&cod_agrupacion=1&Sch_Tipo_Juego=`;
-}
-
-function buildScorersUrl(p) {
-  return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisGoleadores?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
 }
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (user?.role !== 'admin') {
+    const authUser = await base44.auth.me();
+    if (authUser?.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
     const { action, url, jornada } = body;
 
-    // Login to RFFM
     const cookies = await rffmLogin();
     const params = parseRffmUrl(url);
 
-    if (action === 'test') {
-      // Fetch the given URL and return debug info
+    if (action === 'debug_tables') {
+      // Fetch page and return structured table data for analysis
       const html = await fetchWithSession(url, cookies);
       const $ = load(html);
       const title = $('title').text().trim();
-      const tableCount = $('table').length;
-      const bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 5000);
-      const tablesHtml = [];
+      
+      const tables = [];
       $('table').each((i, table) => {
-        if (i < 5) tablesHtml.push($(table).html()?.substring(0, 3000));
+        const rows = [];
+        $(table).find('tr').each((j, tr) => {
+          const cells = [];
+          $(tr).find('th, td').each((k, cell) => {
+            cells.push({
+              tag: cell.tagName,
+              text: $(cell).text().trim(),
+              colspan: $(cell).attr('colspan') || null,
+              class: $(cell).attr('class') || null
+            });
+          });
+          if (cells.length > 0) rows.push(cells);
+        });
+        if (rows.length > 0) {
+          tables.push({ index: i, rowCount: rows.length, rows: rows.slice(0, 15) }); // First 15 rows
+        }
       });
-      return Response.json({ 
-        success: true, 
-        title, 
-        tableCount, 
-        bodyTextPreview: bodyText,
-        tablesPreview: tablesHtml,
-        params,
-        loginWorked: !title.toLowerCase().includes('login')
-      });
+      
+      return Response.json({ success: true, title, tableCount: tables.length, tables, loginWorked: !title.toLowerCase().includes('login') });
     }
 
-    if (action === 'standings') {
-      const standingsUrl = buildStandingsUrl(params);
-      const html = await fetchWithSession(standingsUrl, cookies);
-      const $ = load(html);
-      const title = $('title').text().trim();
-      const bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 5000);
-      return Response.json({ success: true, title, bodyPreview: bodyText, url: standingsUrl, loginWorked: !title.toLowerCase().includes('login') });
-    }
-
-    if (action === 'results') {
+    if (action === 'debug_results') {
       const targetJornada = jornada || params.CodJornada;
       const resultsUrl = buildResultsUrl(params, targetJornada);
       const html = await fetchWithSession(resultsUrl, cookies);
       const $ = load(html);
       const title = $('title').text().trim();
-      const bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 5000);
-      return Response.json({ success: true, title, bodyPreview: bodyText, jornada: targetJornada, url: resultsUrl, loginWorked: !title.toLowerCase().includes('login') });
+      
+      const tables = [];
+      $('table').each((i, table) => {
+        const rows = [];
+        $(table).find('tr').each((j, tr) => {
+          const cells = [];
+          $(tr).find('th, td').each((k, cell) => {
+            cells.push({
+              tag: cell.tagName,
+              text: $(cell).text().trim(),
+              class: $(cell).attr('class') || null
+            });
+          });
+          if (cells.length > 0) rows.push(cells);
+        });
+        if (rows.length > 0) {
+          tables.push({ index: i, rowCount: rows.length, rows: rows.slice(0, 15) });
+        }
+      });
+      
+      return Response.json({ success: true, title, jornada: targetJornada, tableCount: tables.length, tables, url: resultsUrl, loginWorked: !title.toLowerCase().includes('login') });
     }
 
-    return Response.json({ error: 'Invalid action. Use: test, standings, results' }, { status: 400 });
+    return Response.json({ error: 'Invalid action. Use: debug_tables, debug_results' }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
   }
