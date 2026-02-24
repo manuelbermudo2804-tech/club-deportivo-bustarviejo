@@ -176,6 +176,26 @@ function parseJornadaMatches(html) {
       }
     }
     
+    // Extract acta URL from the score link (NFG_CmpPartido?...CodActa=...)
+    let actaUrl = null;
+    const scoreTd = tds[1];
+    const scoreLinks = $(scoreTd).find('a');
+    if (scoreLinks.length > 0) {
+      const href = $(scoreLinks[0]).attr('href') || '';
+      if (href.includes('CodActa') || href.includes('cod_acta')) {
+        actaUrl = href.startsWith('http') ? href : `https://intranet.ffmadrid.es${href.startsWith('/') ? '' : '/nfg/NPcd/'}${href}`;
+      }
+    }
+    // Fallback: look for NFG_CmpPartido link in center td HTML
+    if (!actaUrl) {
+      const tdHtml = $(scoreTd).html() || '';
+      const actaMatch = tdHtml.match(/href="([^"]*NFG_CmpPartido[^"]*)"/i);
+      if (actaMatch) {
+        const href = actaMatch[1];
+        actaUrl = href.startsWith('http') ? href : `https://intranet.ffmadrid.es${href.startsWith('/') ? '' : '/nfg/NPcd/'}${href}`;
+      }
+    }
+
     matches.push({
       local: localName,
       visitante: visitanteName,
@@ -184,7 +204,8 @@ function parseJornadaMatches(html) {
       jugado,
       fecha,
       hora,
-      campo: matchCampo
+      campo: matchCampo,
+      acta_url: actaUrl
     });
   }
   
