@@ -765,6 +765,9 @@ export default function CentroCompeticion() {
         <Badge className="bg-orange-100 text-orange-800 border-orange-300 hidden md:inline-flex">{category}</Badge>
       </div>
 
+      {/* Próximo partido RFFM */}
+      <NextMatchRffm config={config} category={category} standings={standingsPack} />
+
       {/* Contenido */}
       <ErrorBoundary fallback={
         <Card><CardContent className="p-8 text-center">
