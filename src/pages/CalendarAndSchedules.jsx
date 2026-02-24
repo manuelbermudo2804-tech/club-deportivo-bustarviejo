@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Calendar as CalendarIcon, Bell, Grid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, ExternalLink, Info } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Bell, Grid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, ExternalLink, Info, Trophy } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import CalendarSyncButton from "../components/calendar/CalendarSyncButton";
 import { toast } from "sonner";
@@ -369,6 +369,12 @@ export default function CalendarAndSchedules() {
             Horarios
           </TabsTrigger>
         </TabsList>
+
+        {/* PARTIDOS TAB */}
+        <TabsContent value="partidos" className="space-y-4 mt-4">
+          <UpcomingMatchesSection />
+          <ContactCard />
+        </TabsContent>
 
         {/* CALENDARIO TAB */}
         <TabsContent value="calendario" className="space-y-4 mt-4">
