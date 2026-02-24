@@ -550,6 +550,24 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, jornada: parseInt(j), totalJornadas, matches, matchCount: matches.length });
       }
 
+      // Debug jornada HTML structure to see campo mapping
+      case 'debug_jornada': {
+        const j = jornada || '1';
+        const html = await fetchPage(buildJornadaUrl(p, j), cookies);
+        const $j = load(html);
+        const tables = $j('table').toArray();
+        const tableInfos = [];
+        for (let i = 3; i < Math.min(tables.length, 25); i++) {
+          const table = tables[i];
+          const tableHtml = $j(table).html() || '';
+          const hasEscudo = tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes');
+          const tds = $j(table).find('td').toArray();
+          const tdTexts = tds.map(td => $j(td).text().replace(/\s+/g, ' ').trim().substring(0, 120));
+          tableInfos.push({ idx: i, hasEscudo, tdCount: tds.length, tds: tdTexts });
+        }
+        return Response.json({ success: true, tablesFrom3: tableInfos });
+      }
+
       default:
         return Response.json({ error: 'Actions: test, results, all_results, next_match, standings, scorers, debug_standings' }, { status: 400 });
     }
