@@ -206,28 +206,57 @@ function detectTotalJornadas(html) {
 }
 
 // Parse standings from NFG_VisClasificacion page
+// The table structure: rows of tds where first cell is position number,
+// second is team name, then pts, pj, pg, pe, pp, gf, gc (may have extra cols)
 function parseStandings(html) {
   const $ = load(html);
   const standings = [];
   
   $('table').each((_, table) => {
+    // Method 1: Check th headers
     const headerText = $(table).find('th').map((__, el) => $(el).text().trim().toLowerCase()).get().join(' ');
-    if (headerText.includes('equipo') || headerText.includes('pts') || headerText.includes('ptos') || headerText.includes('pj')) {
-      $(table).find('tr').each((__, row) => {
-        const cells = $(row).find('td');
-        if (cells.length >= 8) {
-          const t = cells.map((___, td) => $(td).text().trim()).get();
-          const pos = parseInt(t[0]);
-          if (!isNaN(pos) && pos > 0 && pos < 50) {
-            standings.push({
-              posicion: pos, equipo: t[1], puntos: parseInt(t[2]) || 0,
-              pj: parseInt(t[3]) || 0, pg: parseInt(t[4]) || 0, pe: parseInt(t[5]) || 0,
-              pp: parseInt(t[6]) || 0, gf: parseInt(t[7]) || 0, gc: parseInt(t[8]) || 0
-            });
-          }
-        }
-      });
+    const hasHeader = headerText.includes('equipo') || headerText.includes('pts') || headerText.includes('ptos') || headerText.includes('pj');
+    
+    // Method 2: Check if table has rows where first td is a sequential number and has enough columns
+    // This handles the RFFM intranet which uses td-only tables
+    const rows = $(table).find('tr').toArray();
+    let hasSequentialNumbers = false;
+    let validRowCount = 0;
+    for (const row of rows.slice(0, 5)) {
+      const cells = $(row).find('td');
+      if (cells.length >= 8) {
+        const firstCell = $(cells[0]).text().trim();
+        const pos = parseInt(firstCell);
+        if (!isNaN(pos) && pos >= 1 && pos <= 50) validRowCount++;
+      }
     }
+    if (validRowCount >= 2) hasSequentialNumbers = true;
+    
+    if (!hasHeader && !hasSequentialNumbers) return;
+    
+    $(table).find('tr').each((__, row) => {
+      const cells = $(row).find('td');
+      if (cells.length >= 8) {
+        // Extract clean text from each cell
+        const t = cells.map((___, td) => $(td).text().replace(/\s+/g, ' ').trim()).get();
+        const pos = parseInt(t[0]);
+        if (!isNaN(pos) && pos > 0 && pos < 50) {
+          // Clean team name - remove eval() and other JS noise that cheerio may pick up
+          let teamName = t[1];
+          const evalIdx = teamName.indexOf('eval(');
+          if (evalIdx > 0) teamName = teamName.substring(0, evalIdx).trim();
+          // Also remove any trailing ntype/JS artifacts
+          const ntypeIdx = teamName.indexOf('ntype(');
+          if (ntypeIdx > 0) teamName = teamName.substring(0, ntypeIdx).trim();
+          
+          standings.push({
+            posicion: pos, equipo: teamName, puntos: parseInt(t[2]) || 0,
+            pj: parseInt(t[3]) || 0, pg: parseInt(t[4]) || 0, pe: parseInt(t[5]) || 0,
+            pp: parseInt(t[6]) || 0, gf: parseInt(t[7]) || 0, gc: parseInt(t[8]) || 0
+          });
+        }
+      }
+    });
   });
   return standings;
 }
