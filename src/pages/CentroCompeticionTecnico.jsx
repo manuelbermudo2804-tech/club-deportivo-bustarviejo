@@ -115,6 +115,19 @@ export default function CentroCompeticionTecnico() {
   // Prefetch desactivado - se carga bajo demanda al cambiar de vista
   // Esto reduce uso de memoria en dispositivos con poca RAM
 
+  // StandingsConfig for RFFM URLs
+  const { data: standingsConfig } = useQuery({
+    queryKey: ['standings-config-tech', category],
+    queryFn: async () => {
+      const list = await base44.entities.StandingsConfig.filter({ categoria: category });
+      return list?.[0] || null;
+    },
+    staleTime: 10 * 60_000,
+    gcTime: 60 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
   // Clasificación (último pack como en CentroCompeticion)
   const { data: standingsPack, isLoading } = useQuery({
     queryKey: ["centro-standings-tech", category],
