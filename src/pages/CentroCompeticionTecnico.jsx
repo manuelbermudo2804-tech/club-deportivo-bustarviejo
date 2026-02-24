@@ -175,6 +175,13 @@ export default function CentroCompeticionTecnico() {
     queryFn: () => base44.entities.Convocatoria.filter({ categoria: category }, "-fecha_partido", 200),
   });
 
+  // Próximo partido desde BD (guardado por admin/scraper)
+  const { data: proximoPartidoDB } = useQuery({
+    queryKey: ['proximo-partido-db-tech', category],
+    queryFn: () => base44.entities.ProximoPartido.filter({ categoria: category }, '-updated_date', 1),
+    staleTime: 5 * 60_000,
+  });
+
   const today = new Date().toISOString().split("T")[0];
   const nextCallup = React.useMemo(() =>
     (callups || [])
@@ -188,7 +195,22 @@ export default function CentroCompeticionTecnico() {
       .sort((a, b) => b.fecha_partido.localeCompare(a.fecha_partido) || (b.hora_partido || "").localeCompare(a.hora_partido || ""))[0]
   , [callups, today]);
 
+  // Determinar rival del próximo partido: convocatoria > ProximoPartido BD
+  const dbMatch = proximoPartidoDB?.[0];
+  const nextRivalFromDB = React.useMemo(() => {
+    if (!dbMatch) return null;
+    const isLocal = dbMatch.local?.toUpperCase().includes("BUSTARVIEJO");
+    return {
+      rival: isLocal ? dbMatch.visitante : dbMatch.local,
+      fecha_partido: dbMatch.fecha_iso || dbMatch.fecha,
+      hora_partido: dbMatch.hora,
+      local_visitante: isLocal ? "Local" : "Visitante",
+      categoria: category,
+    };
+  }, [dbMatch, category]);
+
   const matchForForm = nextCallup || lastPlayed;
+  const matchForAnalysis = nextCallup || nextRivalFromDB;
 
   // Registro rápido post-partido
   const [showObservationForm, setShowObservationForm] = React.useState(false);
