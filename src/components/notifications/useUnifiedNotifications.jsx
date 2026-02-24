@@ -379,32 +379,7 @@ export function useUnifiedNotifications(user, options = {}) {
                   unsubscribers.push(unsubInv, unsubSecInv, unsubClothing, unsubLottery, unsubMembers, unsubDeletionReq);
     }
 
-    // ===== ENTRENADORES/COORDINADORES =====
-     if (user.es_entrenador === true || user.es_coordinador === true) {
-      const loadObservations = async () => {
-        const obs = await run(() => base44.entities.MatchObservation.list('-updated_date', 40));
-        setRawData(prev => ({ ...prev, matchObservations: obs }));
-      };
-      if (forceRefreshKey > 0) {
-        run(loadObservations);
-      } else {
-        setTimeout(() => run(loadObservations), 12500);
-      }
-      let lastObsUpdate = 0;
-      const unsubObs = base44.entities.MatchObservation.subscribe((event) => {
-        const now = Date.now();
-        if (now - lastObsUpdate < 1000) return;
-        lastObsUpdate = now;
-        setRawData(prev => {
-          let updated = [...prev.matchObservations];
-          if (event.type === 'create') updated = [event.data, ...updated];
-          else if (event.type === 'update') updated = updated.map(o => o.id === event.id ? event.data : o);
-          else if (event.type === 'delete') updated = updated.filter(o => o.id !== event.id);
-          return { ...prev, matchObservations: updated };
-        });
-      });
-      unsubscribers.push(unsubObs);
-    }
+    // ===== ENTRENADORES/COORDINADORES - matchObservations ELIMINADO =====
 
     return () => {
       unsubscribers.forEach(unsub => unsub());
