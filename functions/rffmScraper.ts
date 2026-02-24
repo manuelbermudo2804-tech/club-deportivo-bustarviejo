@@ -231,37 +231,53 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'test': {
         const j = jornada || p.CodJornada || '1';
+        // NFG_CmpPartido is the correct URL that contains actual match data
+        const matchUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpPartido?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`;
+        const html = await fetchPage(matchUrl, cookies);
+        const $ = load(html);
         
-        // Try multiple URL patterns - the RFFM frameset loads content in different frames
-        const urlsToTry = [
-          // The 'c' variant (content frame with match data)
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornadac?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}&cod_agrupacion=1&Sch_Tipo_Juego=`,
-          // NFG_CmpPartido
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpPartido?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`,
-          // The main frameset page
-          url,
-          // Exec variant
-          buildExecUrl('NFG_CmpJornada_Exec', p, { codjornada: j, cod_agrupacion: 1, Sch_Tipo_Juego: '' }),
-        ];
-        
-        const results = [];
-        for (const testUrl of urlsToTry) {
-          const html = await fetchPage(testUrl, cookies);
-          const $f = load(html);
-          const frames = $f('frame, iframe').map((_, f) => $f(f).attr('src')).get();
-          results.push({
-            url: testUrl.substring(0, 250),
-            length: html.length,
-            hasTeams: /bustarviejo/i.test(html),
-            hasScore: /\d+\s*[-]\s*\d+/.test(html),
-            hasTable: /<table/i.test(html),
-            hasFrame: /<frame/i.test(html),
-            frames,
-            preview: html.substring(0, 3000)
+        // Debug: extract table structures to understand the HTML layout
+        const tables = [];
+        $('table').each((i, table) => {
+          const rows = [];
+          $(table).find('tr').each((_, tr) => {
+            const cells = $(tr).find('th, td').map((__, c) => {
+              const $c = $(c);
+              return { text: $c.text().trim().substring(0, 100), class: $c.attr('class') || '', colspan: $c.attr('colspan') || '' };
+            }).get();
+            if (cells.some(c => c.text.length > 0)) rows.push(cells);
           });
-        }
+          if (rows.length > 0) tables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 20) });
+        });
         
-        return Response.json({ success: true, results });
+        // Also look for match-specific div structures
+        const matchDivs = [];
+        $('[class*="partido"], [class*="match"], [class*="equipo"], [class*="result"]').each((i, el) => {
+          if (i < 10) matchDivs.push({ tag: el.tagName, class: $(el).attr('class'), text: $(el).text().trim().substring(0, 200) });
+        });
+        
+        // Try to find team names in links or specific elements
+        const teamLinks = [];
+        $('a').each((_, a) => {
+          const text = $(a).text().trim();
+          const href = $(a).attr('href') || '';
+          if (text.length > 3 && (href.includes('Equipo') || href.includes('equipo') || /bustarviejo/i.test(text))) {
+            teamLinks.push({ text, href: href.substring(0, 150) });
+          }
+        });
+        
+        const matches = parseMatchesFromPartido(html);
+        
+        return Response.json({ 
+          success: true,
+          matchUrl,
+          htmlLength: html.length,
+          tablesFound: tables.length,
+          tables: tables.slice(0, 5),
+          matchDivs,
+          teamLinks: teamLinks.slice(0, 20),
+          parsedMatches: matches
+        });
       }
 
       case 'results': {
