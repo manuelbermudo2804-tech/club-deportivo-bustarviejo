@@ -291,52 +291,51 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'test': {
         const j = jornada || p.CodJornada || '1';
-        // NFG_CmpPartido is the correct URL that contains actual match data
+        // NFG_CmpPartido has actual match data (70KB+). Let's extract the key info.
         const matchUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpPartido?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`;
         const html = await fetchPage(matchUrl, cookies);
         const $ = load(html);
         
-        // Debug: extract table structures to understand the HTML layout
-        const tables = [];
-        $('table').each((i, table) => {
-          const rows = [];
-          $(table).find('tr').each((_, tr) => {
-            const cells = $(tr).find('th, td').map((__, c) => {
-              const $c = $(c);
-              return { text: $c.text().trim().substring(0, 100), class: $c.attr('class') || '', colspan: $c.attr('colspan') || '' };
-            }).get();
-            if (cells.some(c => c.text.length > 0)) rows.push(cells);
-          });
-          if (rows.length > 0) tables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 20) });
+        // Extract team names - look for h-tags, bold text, specific class patterns
+        const h_tags = [];
+        $('h1,h2,h3,h4,h5').each((_, el) => h_tags.push($(el).text().trim().substring(0, 100)));
+        
+        // Look for scoring/result elements
+        const boldTexts = [];
+        $('b, strong').each((_, el) => {
+          const t = $(el).text().trim();
+          if (t.length > 2 && t.length < 80) boldTexts.push(t);
         });
         
-        // Also look for match-specific div structures
-        const matchDivs = [];
-        $('[class*="partido"], [class*="match"], [class*="equipo"], [class*="result"]').each((i, el) => {
-          if (i < 10) matchDivs.push({ tag: el.tagName, class: $(el).attr('class'), text: $(el).text().trim().substring(0, 200) });
-        });
+        // Find "Temporada", "Fecha", "Jornada", team names, scores
+        const bodyText = $('body').text().replace(/\s+/g, ' ');
         
-        // Try to find team names in links or specific elements
-        const teamLinks = [];
-        $('a').each((_, a) => {
-          const text = $(a).text().trim();
-          const href = $(a).attr('href') || '';
-          if (text.length > 3 && (href.includes('Equipo') || href.includes('equipo') || /bustarviejo/i.test(text))) {
-            teamLinks.push({ text, href: href.substring(0, 150) });
-          }
-        });
+        // Extract info around "Ficha de Partido"
+        const fichaIdx = bodyText.indexOf('Ficha de Partido');
+        const fichaContext = fichaIdx >= 0 ? bodyText.substring(fichaIdx, fichaIdx + 500) : '';
         
-        const matches = parseMatchesFromPartido(html);
+        // Look for team names near score patterns like "N - N" or specific markers
+        const scoreMatches = bodyText.match(/\d+\s*[-–]\s*\d+/g) || [];
+        
+        // Also try the main frameset page to see if it has links to individual matches
+        const mainHtml = await fetchPage(url, cookies);
+        const $main = load(mainHtml);
+        const frameSrcs = $main('frame, iframe').map((_, f) => $main(f).attr('src')).get();
+        
+        // Check NFG_CmpJornadac (the content frame for the jornada list)
+        const cUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornadac?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}`;
+        const cHtml = await fetchPage(cUrl, cookies);
         
         return Response.json({ 
           success: true,
           matchUrl,
-          htmlLength: html.length,
-          tablesFound: tables.length,
-          tables: tables.slice(0, 5),
-          matchDivs,
-          teamLinks: teamLinks.slice(0, 20),
-          parsedMatches: matches
+          fichaContext,
+          scorePatterns: scoreMatches.slice(0, 10),
+          h_tags: h_tags.slice(0, 10),
+          boldTexts: boldTexts.slice(0, 30),
+          frameSrcs,
+          cFrameLength: cHtml.length,
+          cFramePreview: cHtml.substring(0, 3000),
         });
       }
 
