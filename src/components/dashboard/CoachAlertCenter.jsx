@@ -19,7 +19,6 @@ export default function CoachAlertCenter({
   
   // Stats de ENTRENADOR
   pendingCallupResponsesCoach,
-  pendingMatchObservations,
 }) {
   return (
     <Card className="border border-orange-200 bg-white shadow-md overflow-hidden rounded-xl">
