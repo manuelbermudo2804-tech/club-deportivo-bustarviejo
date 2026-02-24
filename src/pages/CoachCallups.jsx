@@ -707,6 +707,7 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
                   onReopen={handleReopen}
                   onCancel={handleOpenCancelDialog}
                   onReschedule={handleOpenRescheduleDialog}
+                  onPublish={handlePublish}
                   isCoach={user?.es_entrenador || user?.role === "admin"}
                   isAdmin={user?.role === "admin"}
                   onRefresh={() => queryClient.invalidateQueries({ queryKey: ['convocatorias'] })}
