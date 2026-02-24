@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, ChevronDown, ChevronUp, FileText } from "lucide-react";
+import MatchReportModal from "./MatchReportModal";
 
 export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
   const [showAll, setShowAll] = React.useState(false);
+  const [selectedMatch, setSelectedMatch] = React.useState(null);
   const queryClient = useQueryClient();
   const { data: results = [], isLoading } = useQuery({
     queryKey: ['resultados', categoryFullName],
