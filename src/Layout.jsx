@@ -156,7 +156,7 @@ export default function Layout({ children, currentPageName }) {
   const pendingCallupResponses = sanitize(notifications.pendingCallupResponses);
   const unreadAnnouncementsCount = notifications.unreadAnnouncements || 0;
   // hasActiveAdminConversation eliminado - AdminChat borrado
-  const pendingMatchObservations = sanitize(notifications.pendingMatchObservations);
+  const pendingMatchObservations = 0; // Registro post-partido eliminado
   const unresolvedAdminChats = notifications.unresolvedAdminChats || 0;
   const paymentsInReview = notifications.paymentsInReview || 0;
   const playersNeedingReview = notifications.playersNeedingReview || 0;
