@@ -139,10 +139,17 @@ export default function CentroCompeticion() {
   const [visibleCats, setVisibleCats] = React.useState(() => {
     try {
       const stored = localStorage.getItem('comp_visible_categories_family');
-      const arr = stored ? JSON.parse(stored) : CATEGORIES;
-      return Array.isArray(arr) && arr.length ? arr : CATEGORIES;
-    } catch { return CATEGORIES; }
+      const arr = stored ? JSON.parse(stored) : null;
+      return Array.isArray(arr) && arr.length ? arr : [];
+    } catch { return []; }
   });
+
+  // Sync visible cats when dynamic categories load
+  React.useEffect(() => {
+    if (CATEGORIES.length > 0 && visibleCats.length === 0) {
+      setVisibleCats(CATEGORIES);
+    }
+  }, [CATEGORIES]);
 
   React.useEffect(() => {
     if (!visibleCats.includes(category)) {
@@ -153,8 +160,8 @@ export default function CentroCompeticion() {
   const toggleCatVisibility = (cat) => {
     setVisibleCats((prev) => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
   };
-  const selectAllCats = () => setVisibleCats(CATEGORIES);
-  const resetCats = () => setVisibleCats(CATEGORIES);
+  const selectAllCats = () => setVisibleCats([...CATEGORIES]);
+  const resetCats = () => setVisibleCats([...CATEGORIES]);
   const saveCats = () => {
     try { localStorage.setItem('comp_visible_categories_family', JSON.stringify(visibleCats)); } catch {}
     setShowConfig(false);
