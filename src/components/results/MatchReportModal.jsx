@@ -111,6 +111,7 @@ function SubsList({ cambios }) {
 export default function MatchReportModal({ open, onClose, resultado }) {
   const [scraping, setScraping] = useState(false);
   const [scrapeError, setScrapeError] = useState(null);
+  const [autoTriggered, setAutoTriggered] = useState(false);
 
   const resultadoId = resultado?.id;
   const actaUrl = resultado?.acta_url;
@@ -128,7 +129,7 @@ export default function MatchReportModal({ open, onClose, resultado }) {
     setScraping(true);
     setScrapeError(null);
     try {
-      await base44.functions.invoke('rffmFetchMatchReport', {
+      const res = await base44.functions.invoke('rffmFetchMatchReport', {
         acta_url: actaUrl,
         resultado_id: resultadoId,
         categoria: resultado.categoria,
@@ -139,13 +140,33 @@ export default function MatchReportModal({ open, onClose, resultado }) {
         goles_local: resultado.goles_local,
         goles_visitante: resultado.goles_visitante,
       });
-      await refetch();
+      if (res.data?.error) {
+        setScrapeError(res.data.error);
+      } else {
+        await refetch();
+      }
     } catch (e) {
       setScrapeError(e?.response?.data?.error || e.message || 'Error al obtener ficha');
     } finally {
       setScraping(false);
     }
   };
+
+  // Auto-trigger scrape when modal opens and no report exists yet
+  React.useEffect(() => {
+    if (open && !isLoading && !report && actaUrl && !scraping && !autoTriggered && !scrapeError) {
+      setAutoTriggered(true);
+      handleScrape();
+    }
+  }, [open, isLoading, report, actaUrl, autoTriggered]);
+
+  // Reset auto-trigger when modal closes
+  React.useEffect(() => {
+    if (!open) {
+      setAutoTriggered(false);
+      setScrapeError(null);
+    }
+  }, [open]);
 
   const hasScore = Number.isFinite(resultado?.goles_local) && Number.isFinite(resultado?.goles_visitante);
 
