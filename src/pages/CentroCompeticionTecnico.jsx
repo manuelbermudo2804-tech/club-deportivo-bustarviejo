@@ -15,7 +15,7 @@ import NextMatchRffm from "../components/competition/NextMatchRffm";
 import { Trophy, List, Users, Target, Zap, Search, Star, StarOff, Settings } from "lucide-react";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
-const CATEGORIES = [
+const FALLBACK_CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
   "Fútbol Benjamín (Mixto)",
   "Fútbol Alevín (Mixto)",

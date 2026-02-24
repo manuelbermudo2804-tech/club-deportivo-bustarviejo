@@ -25,7 +25,8 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
-const CATEGORIES = [
+// Fallback hardcodeado por si aún no hay CategoryConfig
+const FALLBACK_CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
   "Fútbol Benjamín (Mixto)",
   "Fútbol Alevín (Mixto)",
