@@ -5,8 +5,8 @@ import { load } from 'npm:cheerio@1.0.0';
  * RFFM Schedule Monitor — runs every 6 hours
  * For each category with a configured RFFM URL:
  *   1. Fetches next Bustarviejo match from the intranet
- *   2. Compares with existing convocatoria (if any)
- *   3. If date/time/venue changed → updates convocatoria + sends chat message
+ *   2. If no convocatoria exists → creates a draft (publicada: false)
+ *   3. If convocatoria exists and date/time/venue changed → updates it + notifies
  */
 
 // ---- Inline RFFM helpers (same as rffmScraper but self-contained) ----
