@@ -120,13 +120,26 @@ function parseJornadaMatches(html) {
 
 async function findNextMatch(url, cookies) {
   const p = extractParams(url);
-  for (let j = 1; j <= 40; j++) {
-    const html = await fetchPage(buildJornadaUrl(p, j), cookies);
+  // Only scan 15 jornadas max, starting from a reasonable point
+  // First detect total, then scan backwards from last played +1
+  const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
+  const total = detectTotalJornadas(j1Html);
+  
+  // Quick scan: check last few jornadas to find where we are
+  for (let j = 1; j <= Math.min(total, 30); j++) {
+    const html = j === 1 ? j1Html : await fetchPage(buildJornadaUrl(p, j), cookies);
     const matches = parseJornadaMatches(html);
     const bust = matches.find(m => !m.jugado && (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')));
     if (bust) return { jornada: j, match: bust };
   }
   return { match: null };
+}
+
+function detectTotalJornadas(html) {
+  const $ = load(html);
+  let maxJornada = 0;
+  $('select option').each((_, opt) => { const num = parseInt($(opt).attr('value')); if (!isNaN(num) && num > 0 && num < 100 && num > maxJornada) maxJornada = num; });
+  return maxJornada || 30;
 }
 
 // ---- End RFFM helpers ----
