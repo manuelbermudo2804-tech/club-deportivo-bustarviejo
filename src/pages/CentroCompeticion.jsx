@@ -15,6 +15,7 @@ import PasteResultsForm from "../components/results/PasteResultsForm";
 import ReviewResultsTable from "../components/results/ReviewResultsTable";
 import PasteScorersForm from "../components/scorers/PasteScorersForm";
 import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
+import RffmImportButton from "../components/competition/RffmImportButton";
 import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle, Plus, Settings } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -660,6 +661,7 @@ export default function CentroCompeticion() {
 
             {adminTab === 'clasificacion' && (
               <>
+                <RffmImportButton type="standings" config={config} category={category} onDataReady={(d) => setStandingsDraft(d)} />
                 <div className="flex gap-2">
                   <Button variant="destructive" size="sm" onClick={async () => {
                     if (!confirm(`¿Borrar TODA la clasificación de "${category}"? Esta acción no se puede deshacer.`)) return;
@@ -691,6 +693,7 @@ export default function CentroCompeticion() {
 
             {adminTab === 'resultados' && (
               <>
+                <RffmImportButton type="results" config={config} category={category} onDataReady={(d) => setResultsDraft(d)} />
                 <div className="flex gap-2">
                   <Button variant="destructive" size="sm" onClick={async () => {
                     if (!confirm(`¿Borrar TODOS los resultados de "${category}"? Esta acción no se puede deshacer.`)) return;
@@ -713,6 +716,7 @@ export default function CentroCompeticion() {
 
             {adminTab === 'goleadores' && (
               <>
+                <RffmImportButton type="scorers" config={config} category={category} onDataReady={(d) => setScorersDraft(d)} />
                 <div className="flex gap-2">
                   <Button variant="destructive" size="sm" onClick={async () => {
                     if (!confirm(`¿Borrar TODOS los goleadores de "${category}"? Esta acción no se puede deshacer.`)) return;
