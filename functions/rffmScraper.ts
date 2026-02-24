@@ -403,48 +403,31 @@ Deno.serve(async (req) => {
       // Debug standings page structure
       case 'debug_standings': {
         const tryJ = jornada || '13';
-        const sHtml = await fetchPage(buildClassificationUrl(p), cookies);
         
-        // Look for AJAX/JS URLs in the HTML that might load classification data
-        const ajaxUrls = [];
-        const jsMatches = sHtml.match(/(?:url|src|href|action|fetch|ajax|load)\s*[:=(\s]+\s*['"]([^'"]*(?:clasif|cmp|ranking)[^'"]*)['"]/gi) || [];
-        for (const m of jsMatches) {
-          const urlMatch = m.match(/['"]([^'"]+)['"]/);
-          if (urlMatch) ajaxUrls.push(urlMatch[1]);
+        // Try with codgrupo=0 (as the JS IrA function does) and with codgrupo=CodGrupo
+        const urls = [
+          { label: 'codgrupo=0, codjornada=' + tryJ, url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codgrupo=0&codcompeticion=${p.CodCompeticion}&codjornada=${tryJ}` },
+          { label: 'codgrupo=CodGrupo, codjornada=' + tryJ, url: buildClassificationUrl(p, tryJ) },
+          { label: 'codgrupo=0, no jornada', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codgrupo=0&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}` },
+          { label: 'CodTemporada added, codgrupo=0', url: `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codgrupo=0&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codjornada=${tryJ}` },
+        ];
+        
+        const results = [];
+        for (const u of urls) {
+          const html = await fetchPage(u.url, cookies);
+          const standings = parseStandings(html);
+          const noData = html.includes('No hay clasificaci');
+          // Get snippet around "equipo" keyword
+          const eqIdx = html.toLowerCase().indexOf('equipo');
+          const eqSnippet = eqIdx >= 0 ? html.substring(eqIdx, eqIdx + 300) : '';
+          results.push({ 
+            label: u.label, htmlLen: html.length, standingsCount: standings.length, noData,
+            standings: standings.slice(0, 3),
+            equipoSnippet: eqSnippet.substring(0, 200)
+          });
         }
         
-        // Also check for any URLs in script tags
-        const scriptContent = [];
-        const $ds = load(sHtml);
-        $ds('script').each((_, s) => {
-          const text = $ds(s).html() || '';
-          if (text.includes('Clasif') || text.includes('clasif') || text.includes('NFG_') || text.includes('ajax') || text.includes('$.post') || text.includes('$.get') || text.includes('fetch(')) {
-            scriptContent.push(text.substring(0, 500));
-          }
-        });
-        
-        // Find all forms and their actions
-        const forms = [];
-        $ds('form').each((_, f) => {
-          forms.push({ action: $ds(f).attr('action') || '', method: $ds(f).attr('method') || '', id: $ds(f).attr('id') || '' });
-        });
-        
-        // Also try a POST to the classification URL (some pages need POST with form data)
-        const postResp = await fetch(buildClassificationUrl(p), {
-          method: 'POST',
-          headers: { 'User-Agent': 'Mozilla/5.0', 'Cookie': cookies, 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({ CodJornada: tryJ, CodGrupo: p.CodGrupo, CodCompeticion: p.CodCompeticion, CodTemporada: p.CodTemporada }).toString()
-        });
-        const postHtml = await postResp.text();
-        const postStandings = parseStandings(postHtml);
-        
-        return Response.json({ 
-          success: true, jornada: tryJ,
-          ajaxUrls,
-          scriptSnippets: scriptContent.slice(0, 5),
-          forms,
-          postResult: { htmlLen: postHtml.length, standings: postStandings.length, noData: postHtml.includes('No hay clasificaci') }
-        });
+        return Response.json({ success: true, jornada: tryJ, results });
       }
 
       // Debug scorers page structure
