@@ -16,6 +16,7 @@ import ReviewResultsTable from "../components/results/ReviewResultsTable";
 import PasteScorersForm from "../components/scorers/PasteScorersForm";
 import ReviewScorersTable from "../components/scorers/ReviewScorersTable";
 import RffmImportButton from "../components/competition/RffmImportButton";
+import NextMatchRffm from "../components/competition/NextMatchRffm";
 import { Trophy, List, Users, Star, StarOff, Share2, Search, ClipboardCheck, RefreshCw, CheckCircle2, AlertTriangle, Plus, Settings } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
