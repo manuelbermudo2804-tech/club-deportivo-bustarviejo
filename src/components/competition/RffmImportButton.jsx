@@ -12,12 +12,14 @@ import { toast } from "sonner";
  */
 function buildIntranetUrl(publicUrl) {
   if (!publicUrl) return null;
+  // If the URL is already an intranet URL, use it directly
+  if (publicUrl.includes("intranet.ffmadrid.es")) return publicUrl;
+  // Otherwise convert from public rffm.es URL
   const u = new URL(publicUrl);
   const comp = u.searchParams.get("competicion");
   const grupo = u.searchParams.get("grupo");
   const temp = u.searchParams.get("temporada");
   if (!comp || !grupo || !temp) return null;
-  // Build a fake intranet URL with the required params so extractParams in the backend works
   return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=1000128&CodCompeticion=${comp}&CodGrupo=${grupo}&CodTemporada=${temp}`;
 }
 
