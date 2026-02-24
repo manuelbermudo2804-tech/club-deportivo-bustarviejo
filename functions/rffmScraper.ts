@@ -98,7 +98,7 @@ function parseJornadaMatches(html) {
   
   let currentCampo = null;
   
-  for (let i = 0; i < tables.length; i++) {
+  for (let i = 3; i < tables.length; i++) {
     const table = tables[i];
     const tableHtml = $(table).html() || '';
     const hasEscudo = tableHtml.includes('escudo_clb') || tableHtml.includes('pimg/Clubes');
