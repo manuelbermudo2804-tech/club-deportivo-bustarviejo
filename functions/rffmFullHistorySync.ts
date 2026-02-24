@@ -68,15 +68,19 @@ function parseMatches(html) {
     const sm = noDate.match(/(\d+)\s*[-–]\s*(\d+)/); if (sm) { gl = parseInt(sm[1]); gv = parseInt(sm[2]); jug = true; }
     let mc = campo;
     if (tds.length > 3) { const ctx = $(tds[3]).text().replace(/\s+/g,' ').trim(); const cmm = ctx.match(/Campo:\s*(.+?)(?:\s*-\s*Hierba|\s*-\s*Tierra|\s*-\s*Cesped|$)/i); if (cmm) mc = cmm[1].replace(/\s*\(HA\)\s*$/i,'').replace(/\s*\(H\.A\.\)\s*$/i,'').trim(); else { const sc = ctx.match(/Campo:\s*(.+)/); if (sc) mc = sc[1].trim(); } }
-    // Look for ficha link in sibling tables after this match table
+    // Look for ficha link: first inside the match table itself, then in sibling tables
     let actaUrl = null;
-    let nextT = $(t).next('table');
-    for (let k = 0; k < 3 && nextT.length; k++) {
-      const nh = nextT.html() || '';
-      if (nh.includes('escudo_clb') || nh.includes('pimg/Clubes')) break;
-      const fichaLink = nextT.find('a[href*="NFG_CmpPartido"]').first();
-      if (fichaLink.length) { const h = fichaLink.attr('href') || ''; if (h) actaUrl = 'https://intranet.ffmadrid.es' + h; break; }
-      nextT = nextT.next('table');
+    const inlineLink = $(t).find('a[href*="NFG_CmpPartido"]').first();
+    if (inlineLink.length) { const h = inlineLink.attr('href') || ''; if (h) actaUrl = 'https://intranet.ffmadrid.es' + h; }
+    if (!actaUrl) {
+      let nextT = $(t).next('table');
+      for (let k = 0; k < 3 && nextT.length; k++) {
+        const nh = nextT.html() || '';
+        if (nh.includes('escudo_clb') || nh.includes('pimg/Clubes')) break;
+        const fichaLink = nextT.find('a[href*="NFG_CmpPartido"]').first();
+        if (fichaLink.length) { const h = fichaLink.attr('href') || ''; if (h) actaUrl = 'https://intranet.ffmadrid.es' + h; break; }
+        nextT = nextT.next('table');
+      }
     }
     matches.push({ local: loc, visitante: vis, goles_local: gl, goles_visitante: gv, jugado: jug, fecha, hora, campo: mc, acta_url: actaUrl });
   }
