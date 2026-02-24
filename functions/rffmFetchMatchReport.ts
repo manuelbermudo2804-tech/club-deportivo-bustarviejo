@@ -3,9 +3,30 @@ import { load } from 'npm:cheerio@1.0.0';
 
 /**
  * Scrapes a match report (ficha) from the RFFM intranet and saves it to MatchReport entity.
- * Admin only. Requires acta_url (intranet URL) and resultado_id.
+ * Admin only. Requires acta_url and resultado_id.
  * 
- * Also supports action: "debug_html" to return raw scraped data for diagnostics.
+ * Supports action: "debug_html" to return raw text for diagnostics.
+ * 
+ * RFFM ficha text structure (after login):
+ * ─────────────────────────────────────────
+ * Ficha de Partido Temporada 2025-2026 Fecha: DD-MM-YYYY Hora: HH:MM h
+ * COMPETICION (Grupo X) Jornada N
+ * 
+ * EQUIPO_LOCAL_NAME
+ * Titulares: dorsal NOMBRE, ... Suplentes: dorsal NOMBRE, ...
+ * CUERPO TÉCNICO ... ENTRENADOR ...
+ * SUSTITUCIONES  entra_dorsal ENTRA_NOMBRE  sale_dorsal SALE_NOMBRE (min') ...
+ * TARJETAS  NOMBRE (min') ...
+ * 
+ * 0 - (separator)
+ * 
+ * ÁRBITROS  ARBITRO : NOMBRE
+ * 
+ * GOLES  score NOMBRE (min') ...
+ * 
+ * EQUIPO_VISITANTE_NAME
+ * Titulares: ... Suplentes: ...
+ * CUERPO TÉCNICO ... SUSTITUCIONES ... TARJETAS ...
  */
 
 async function rffmLogin() {
@@ -41,117 +62,181 @@ async function rffmLogin() {
   return Object.values(cookieMap).join('; ');
 }
 
-function cleanText(s) {
-  return (s || '').replace(/\s+/g, ' ').trim();
+function clean(s) { return (s || '').replace(/\s+/g, ' ').trim(); }
+
+// Parse: "dorsal SURNAME, Name" entries from a text block
+function extractPlayers(text, isTitular) {
+  const players = [];
+  // Pattern: 1-2 digit number followed by UPPERCASE SURNAME, then mixed-case first name
+  const re = /(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s]+,\s*[A-ZÁÉÍÓÚÑÜa-záéíóúñü][A-ZÁÉÍÓÚÑÜa-záéíóúñü\s]*?)(?=\s+\d{1,2}\s+[A-ZÁÉÍÓÚÑÜ]|$)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const nombre = clean(m[2]);
+    if (nombre.length > 3 && nombre.length < 80) {
+      players.push({ dorsal: m[1], nombre, titular: isTitular });
+    }
+  }
+  return players;
+}
+
+// Parse substitutions: "entra_dorsal ENTRA_NAME sale_dorsal SALE_NAME (min')"
+function extractSubstitutions(text) {
+  const subs = [];
+  // Pattern: dorsal + name + dorsal + name + (minute)
+  // Each substitution pair: entering player dorsal+name, then leaving player dorsal+name (min')
+  const re = /(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)\s+(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)\s*\((\d+)'\)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const entra = clean(m[2]);
+    const sale = clean(m[4]);
+    const minuto = m[5];
+    if (entra.length > 3 && sale.length > 3) {
+      subs.push({ minuto, entra, sale, equipo: '' });
+    }
+  }
+  return subs;
+}
+
+// Parse tarjetas: "PLAYER_NAME (min')"
+function extractCards(text) {
+  const cards = [];
+  const re = /([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)\s*\((\d+)'\)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const jugador = clean(m[1]);
+    if (jugador.length > 3 && jugador.length < 80) {
+      cards.push({ minuto: m[2], jugador, equipo: '', tipo: 'amarilla' });
+    }
+  }
+  return cards;
 }
 
 function parseMatchReport(html) {
   const $ = load(html);
+  $('script').remove();
+  $('style').remove();
+  const allText = $('body').text().replace(/\s+/g, ' ').trim();
+
   const report = {
-    arbitro: null,
-    fecha: null,
-    hora: null,
-    campo: null,
-    competicion: null,
-    alineacion_local: [],
-    alineacion_visitante: [],
-    goles: [],
-    tarjetas: [],
-    cambios: []
+    arbitro: null, fecha: null, hora: null, campo: null,
+    alineacion_local: [], alineacion_visitante: [],
+    goles: [], tarjetas: [], cambios: []
   };
 
-  // ========== HEADER INFO ==========
-  // The page has a structure like:
-  // "Ficha de Partido" ... "Temporada 2025-2026" ... "Fecha: 21-02-2026 Hora: 20:15 h"
-  // "SEGUNDA JUVENIL (Grupo 2) Jornada 19"
-  const bodyText = $('body').text();
-  
-  const fechaMatch = bodyText.match(/Fecha:\s*(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/i);
+  // ── Header info ──
+  const fechaMatch = allText.match(/Fecha:\s*(\d{1,2}-\d{1,2}-\d{4})/i);
   if (fechaMatch) report.fecha = fechaMatch[1].replace(/-/g, '/');
   
-  const horaMatch = bodyText.match(/Hora:\s*(\d{1,2}:\d{2})/i);
+  const horaMatch = allText.match(/Hora:\s*(\d{1,2}:\d{2})/i);
   if (horaMatch) report.hora = horaMatch[1];
-  
-  const arbitroMatch = bodyText.match(/ARBITRO\s*:\s*([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,.\-]+)/i);
+
+  const arbitroMatch = allText.match(/ARBITRO\s*:\s*([A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF\s,.\-]+?)(?=\s+GOLES|\s+Anterior|\s*$)/i);
   if (arbitroMatch) {
-    let arb = arbitroMatch[1].trim();
-    // Clean up - stop at common next-section markers
-    arb = arb.split(/\d/)[0].trim(); // Stop at first digit
+    let arb = clean(arbitroMatch[1]);
     if (arb.length > 3) report.arbitro = arb.substring(0, 100);
   }
 
-  const compMatch = bodyText.match(/((?:PRIMERA|SEGUNDA|TERCERA|PREFERENTE|DIVISION)[A-ZÁÉÍÓÚÑÜ\s\(\)]+(?:Grupo\s*\d+)?)/i);
-  if (compMatch) report.competicion = cleanText(compMatch[1]).substring(0, 100);
-
-  // ========== PLAYER LISTS ==========
-  // RFFM ficha structure: team tables have players listed with dorsal numbers
-  // Pattern: tables containing "Titulares:" followed by player rows
-  // Each player row: [dorsal_number] [player_name] displayed in td cells
+  // ── Split into team sections ──
+  // The text has two team blocks separated by a section containing "ÁRBITROS" and "GOLES"
+  // Strategy: Find "Titulares:" occurrences to locate team blocks
   
-  // Strategy: find all text blocks that look like "Titulares:" sections
-  // The page text contains sections like:
-  // "EQUIPO_NAME Titulares: 25 SERRANO FONTECHA, JON 4 RICO PINTO, ..."
-  
-  // Better strategy: parse the raw text for player lists
-  const allText = bodyText.replace(/eval\(function\([^)]*\)\{[^}]*\}[^)]*\)/g, ''); // Remove JS
-  
-  // Find team sections - separated by "Titulares:" keyword
-  const teamSections = allText.split(/Titulares\s*:/i);
-  
-  for (let secIdx = 1; secIdx < teamSections.length && secIdx <= 2; secIdx++) {
-    const section = teamSections[secIdx];
-    const players = [];
-    
-    // Extract player entries: dorsal (number) followed by SURNAME, Name format
-    // Pattern: number + space + UPPERCASE_NAME, Name_part
-    const playerPattern = /(\d{1,2})\s+([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s]+,\s*[A-ZÁÉÍÓÚÑÜa-záéíóúñü][A-ZÁÉÍÓÚÑÜa-záéíóúñü\s]*)/g;
-    let match;
-    while ((match = playerPattern.exec(section)) !== null) {
-      const dorsal = match[1];
-      let nombre = cleanText(match[2]);
-      // Clean trailing garbage
-      nombre = nombre.replace(/\s*eval\(.*/i, '').replace(/\s*ntype\(.*/i, '').trim();
-      if (nombre.length > 3 && nombre.length < 80) {
-        players.push({ dorsal, nombre, titular: true });
-      }
-    }
-    
-    // Check for "Suplentes:" marker to split titulares/suplentes
-    const suplentesIdx = section.indexOf('Suplentes');
-    if (suplentesIdx > 0) {
-      const titularesText = section.substring(0, suplentesIdx);
-      const titularCount = (titularesText.match(/\d{1,2}\s+[A-ZÁÉÍÓÚÑÜ]/g) || []).length;
-      for (let i = titularCount; i < players.length; i++) {
-        players[i].titular = false;
-      }
-    } else if (players.length > 11) {
-      // Default: first 11 are titulares
-      for (let i = 11; i < players.length; i++) {
-        players[i].titular = false;
-      }
-    }
-    
-    if (secIdx === 1) report.alineacion_local = players;
-    else report.alineacion_visitante = players;
+  const titularesPositions = [];
+  let searchStart = 0;
+  while (true) {
+    const idx = allText.indexOf('Titulares:', searchStart);
+    if (idx === -1) break;
+    titularesPositions.push(idx);
+    searchStart = idx + 10;
   }
 
-  // ========== GOALS ==========
-  // Goals appear in the text as: "0 - 1 PLAYER_NAME (minute')"
-  // Pattern: score_line followed by player + minute
-  const goalPattern = /(\d+)\s*-\s*(\d+)\s+([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)\s*\((\d+)['\s]*\)/g;
-  let goalMatch;
-  while ((goalMatch = goalPattern.exec(allText)) !== null) {
-    const scoreBefore = parseInt(goalMatch[1]);
-    const scoreAfter = parseInt(goalMatch[2]);
-    const jugador = cleanText(goalMatch[3]);
-    const minuto = goalMatch[4];
+  if (titularesPositions.length < 2) {
+    // Fallback: try with just "Titulares"
+    searchStart = 0;
+    while (true) {
+      const idx = allText.indexOf('Titulares', searchStart);
+      if (idx === -1) break;
+      titularesPositions.push(idx);
+      searchStart = idx + 9;
+    }
+  }
+
+  // Parse each team section
+  for (let teamIdx = 0; teamIdx < Math.min(titularesPositions.length, 2); teamIdx++) {
+    const startPos = titularesPositions[teamIdx];
+    // End of this team section: next "Anterior" or next "Titulares" or end of text
+    const nextTitulares = teamIdx + 1 < titularesPositions.length ? titularesPositions[teamIdx + 1] : allText.length;
+    const anteriorIdx = allText.indexOf('Anterior', startPos);
+    const endPos = anteriorIdx > startPos && anteriorIdx < nextTitulares ? anteriorIdx : nextTitulares;
     
-    if (jugador.length > 3 && jugador.length < 80) {
-      report.goles.push({
-        minuto,
-        jugador,
-        equipo: '' // Will determine from alineaciones later
-      });
+    const teamBlock = allText.substring(startPos, endPos);
+    
+    // Split at "Suplentes:" 
+    const suplentesIdx = teamBlock.indexOf('Suplentes:');
+    let titularesText, suplentesText, restText;
+    
+    if (suplentesIdx > 0) {
+      titularesText = teamBlock.substring(teamBlock.indexOf(':') + 1, suplentesIdx);
+      const cuerpoIdx = teamBlock.indexOf('CUERPO', suplentesIdx);
+      suplentesText = teamBlock.substring(suplentesIdx + 10, cuerpoIdx > 0 ? cuerpoIdx : endPos - startPos);
+      restText = cuerpoIdx > 0 ? teamBlock.substring(cuerpoIdx) : '';
+    } else {
+      titularesText = teamBlock.substring(teamBlock.indexOf(':') + 1);
+      suplentesText = '';
+      restText = '';
+    }
+    
+    const titulares = extractPlayers(titularesText, true);
+    const suplentes = extractPlayers(suplentesText, false);
+    const allPlayers = [...titulares, ...suplentes];
+
+    // Parse substitutions from "SUSTITUCIONES" section within this team block
+    const subsIdx = restText.indexOf('SUSTITUCIONES');
+    const tarjetasIdx = restText.indexOf('TARJETAS');
+    
+    let subsText = '';
+    let cardsText = '';
+    
+    if (subsIdx >= 0) {
+      const subsEnd = tarjetasIdx > subsIdx ? tarjetasIdx : restText.length;
+      subsText = restText.substring(subsIdx + 14, subsEnd);
+    }
+    
+    if (tarjetasIdx >= 0) {
+      // Cards section ends at next major section or end
+      const nextSection = restText.indexOf('0 -', tarjetasIdx);
+      cardsText = restText.substring(tarjetasIdx + 9, nextSection > tarjetasIdx ? nextSection : restText.length);
+    }
+
+    const subs = extractSubstitutions(subsText);
+    const cards = extractCards(cardsText);
+    
+    const equipoLabel = teamIdx === 0 ? 'local' : 'visitante';
+    
+    subs.forEach(s => s.equipo = equipoLabel);
+    cards.forEach(c => c.equipo = equipoLabel);
+    
+    if (teamIdx === 0) {
+      report.alineacion_local = allPlayers;
+    } else {
+      report.alineacion_visitante = allPlayers;
+    }
+    
+    report.cambios.push(...subs);
+    report.tarjetas.push(...cards);
+  }
+
+  // ── Goals ──
+  // Pattern: "score1 - score2 PLAYER_NAME (minute')"
+  const golesSection = allText.match(/GOLES\s+([\s\S]+?)(?=\s+[A-ZÁÉÍÓÚÑÜ]{3,}\s+(?:Titulares|Suplentes)|Anterior|\s*$)/i);
+  if (golesSection) {
+    const golesText = golesSection[1];
+    const goalRe = /(\d+)\s*-\s*(\d+)\s+([A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF][A-ZÁÉÍÓÚÑÜ\u0080-\uFFFF\s,]+?)\s*\((\d+)'\)/g;
+    let gm;
+    while ((gm = goalRe.exec(golesText)) !== null) {
+      const jugador = clean(gm[3]);
+      if (jugador.length > 3 && jugador.length < 80) {
+        report.goles.push({ minuto: gm[4], jugador, equipo: '' });
+      }
     }
   }
   
@@ -166,7 +251,7 @@ function parseMatchReport(html) {
     } else if (visitanteNames.has(upperName)) {
       gol.equipo = 'visitante';
     } else {
-      // Try partial match (surname only)
+      // Partial match by surname
       const surname = upperName.split(',')[0].trim();
       const isLocal = [...localNames].some(n => n.startsWith(surname));
       const isVisitante = [...visitanteNames].some(n => n.startsWith(surname));
@@ -174,59 +259,11 @@ function parseMatchReport(html) {
     }
   }
 
-  // ========== CARDS (tarjetas) ==========
-  // Cards typically appear in specific table rows or text patterns
-  // Yellow card symbols: 🟡 or text "Amonestado", "T.A."
-  // Red card symbols: 🔴 or text "Expulsado", "T.R."
-  
-  // Look for card patterns in tables
-  $('table').each((_, table) => {
-    const rows = $(table).find('tr').toArray();
-    for (const row of rows) {
-      const rowHtml = $(row).html() || '';
-      const rowText = cleanText($(row).text());
-      
-      // Check for yellow/red card images or text
-      const hasYellow = rowHtml.includes('tarjeta_amarilla') || rowHtml.includes('yellow') || 
-                        rowText.includes('T.A.') || rowText.includes('Amonest');
-      const hasRed = rowHtml.includes('tarjeta_roja') || rowHtml.includes('red') ||
-                     rowText.includes('T.R.') || rowText.includes('Expuls');
-      
-      if (!hasYellow && !hasRed) continue;
-      
-      const tipo = hasRed ? 'roja' : 'amarilla';
-      // Extract player name and minute
-      const cardNameMatch = rowText.match(/([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)\s*(?:\((\d+)['\s]*\))?/);
-      if (cardNameMatch && cardNameMatch[1].length > 3) {
-        report.tarjetas.push({
-          minuto: cardNameMatch[2] || '',
-          jugador: cleanText(cardNameMatch[1]).substring(0, 80),
-          equipo: '',
-          tipo
-        });
-      }
-    }
-  });
-
-  // ========== SUBSTITUTIONS ==========
-  // Substitutions: "Sale: PLAYER_A Entra: PLAYER_B (min')"
-  const cambioPattern = /(?:Sale|Sustitu)[:\s]*([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)[\s]*(?:Entra|por)[:\s]*([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,]+?)[\s]*(?:\((\d+)['\s]*\))?/gi;
-  let cambioMatch;
-  while ((cambioMatch = cambioPattern.exec(allText)) !== null) {
-    const sale = cleanText(cambioMatch[1]);
-    const entra = cleanText(cambioMatch[2]);
-    const minuto = cambioMatch[3] || '';
-    if (sale.length > 3 && entra.length > 3 && sale.length < 80 && entra.length < 80) {
-      report.cambios.push({ minuto, sale, entra, equipo: '' });
-    }
-  }
-
-  // ========== CAMPO ==========
-  // Try to find campo info
-  const campoMatch = bodyText.match(/Campo[:\s]+([^\n\r]+)/i);
+  // ── Campo (may not be present in all fichas) ──
+  const campoMatch = allText.match(/Campo[:\s]+([^\n\r]+)/i);
   if (campoMatch) {
-    let c = cleanText(campoMatch[1]);
-    c = c.replace(/\s*\(H\.?A\.?\)\s*-\s*.*/i, '').replace(/\s*-\s*Hierba\s*.*/i, '').replace(/\s*-\s*Tierra\s*.*/i, '').replace(/\s*-\s*Cesped\s*.*/i, '').trim();
+    let c = clean(campoMatch[1]);
+    c = c.replace(/\s*\(H\.?A\.?\).*/i, '').replace(/\s*-\s*Hierba.*/i, '').replace(/\s*-\s*Tierra.*/i, '').trim();
     if (c.length > 3 && c.length < 150) report.campo = c;
   }
 
@@ -248,9 +285,10 @@ Deno.serve(async (req) => {
 
     // Login and fetch the ficha page
     const cookies = await rffmLogin();
-    const html = await (await fetch(acta_url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Cookie': cookies } })).text();
+    const resp = await fetch(acta_url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Cookie': cookies } });
+    const html = await resp.text();
 
-    // Debug mode: return raw text for analysis
+    // Debug mode
     if (action === 'debug_html') {
       const $ = load(html);
       $('script').remove();
@@ -259,11 +297,8 @@ Deno.serve(async (req) => {
       const offset = parseInt(body.offset) || 0;
       const chunk = 4000;
       return Response.json({ 
-        success: true, 
-        htmlLength: html.length,
-        textLength: cleanedText.length,
-        offset,
-        text: cleanedText.substring(offset, offset + chunk),
+        success: true, htmlLength: html.length, textLength: cleanedText.length,
+        offset, text: cleanedText.substring(offset, offset + chunk),
         hasMore: (offset + chunk) < cleanedText.length
       });
     }
@@ -295,7 +330,6 @@ Deno.serve(async (req) => {
       hora: parsed.hora || '',
       campo: parsed.campo || '',
       arbitro: parsed.arbitro || '',
-      competicion: parsed.competicion || '',
       alineacion_local: parsed.alineacion_local || [],
       alineacion_visitante: parsed.alineacion_visitante || [],
       goles: parsed.goles || [],
