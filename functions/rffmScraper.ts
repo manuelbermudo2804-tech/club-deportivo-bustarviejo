@@ -73,8 +73,9 @@ function buildJornadaUrl(p, jornada) {
 }
 
 function buildClassificationUrl(p, jornada) {
-  let url = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`;
-  if (jornada) url += `&CodJornada=${jornada}`;
+  // The intranet uses LOWERCASE params for classification: codcompeticion, codgrupo, codtemporada, codjornada
+  let url = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}&codtemporada=${p.CodTemporada}`;
+  if (jornada) url += `&codjornada=${jornada}`;
   return url;
 }
 
