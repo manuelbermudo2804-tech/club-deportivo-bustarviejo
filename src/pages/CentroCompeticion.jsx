@@ -44,6 +44,27 @@ const getUrlParam = (key, fallback) => {
   return params.get(key) || fallback;
 };
 
+const getShortCategoryName = (cat) => {
+  if (!cat) return "";
+  return cat
+    .replace("Fútbol ", "")
+    .replace("Baloncesto ", "🏀 ")
+    .replace(" (Mixto)", "")
+    .trim();
+};
+
+const timeAgo = (dateStr) => {
+  if (!dateStr) return null;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "hace un momento";
+  if (mins < 60) return `hace ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `hace ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `hace ${days}d`;
+};
+
 export default function CentroCompeticion() {
   const storedFav = typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') : null;
   const defaultCat = getUrlParam('cat', storedFav || FALLBACK_CATEGORIES[0]);
@@ -218,7 +239,7 @@ export default function CentroCompeticion() {
     const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
-      alert('Enlace copiado');
+      toast.success('Enlace copiado');
     } catch (e) {
       try {
         const ta = document.createElement('textarea');
@@ -227,11 +248,27 @@ export default function CentroCompeticion() {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        alert('Enlace copiado');
+        toast.success('Enlace copiado');
       } catch {
         prompt('Copia el enlace:', url);
       }
     }
+  };
+
+  const shareWhatsApp = () => {
+    const shortCat = getShortCategoryName(category);
+    let msg = `⚽ CD Bustarviejo — ${shortCat}`;
+    if (view === 'clasificacion' && standingsPack) {
+      const bust = standingsPack.data?.find(s => 
+        s.nombre_equipo?.toLowerCase().includes('bustarviejo')
+      );
+      if (bust) {
+        msg += `\n🏆 Clasificación: ${bust.posicion}º con ${bust.puntos} pts (Jornada ${standingsPack.jornada})`;
+      }
+    }
+    msg += `\n\n👉 ${window.location.href}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
   };
 
   const saveStandingsToDB = async (payload) => {
@@ -446,6 +483,9 @@ export default function CentroCompeticion() {
               <Settings className="w-4 h-4" />
             </Button>
             <Button variant="outline" onClick={copyLink} title="Copiar enlace" className="h-9 px-3 border-slate-600 text-slate-300 hover:text-white hover:bg-white/10"><Share2 className="w-4 h-4"/></Button>
+            <Button variant="outline" onClick={shareWhatsApp} title="Compartir por WhatsApp" className="h-9 px-3 border-green-600 text-green-400 hover:text-white hover:bg-green-600/20">
+              💬
+            </Button>
           </div>
         </div>
         {/* View Toggle integrado en el header */}
@@ -655,15 +695,16 @@ export default function CentroCompeticion() {
 
 
 
-      {/* Categorías */}
+      {/* Categorías - nombres acortados */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
         {(visibleCats && visibleCats.length ? visibleCats : CATEGORIES).map(cat => (
           <button
             key={cat}
             onClick={() => { setCategory(cat); setFav(localStorage.getItem('fav_comp_cat') === cat); }}
             className={`px-4 py-2.5 rounded-xl whitespace-nowrap border-2 text-sm font-medium transition-all ${category === cat ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-600/30' : 'bg-white hover:bg-orange-50 hover:border-orange-300 border-slate-200'}`}
+            title={cat}
           >
-            {cat}
+            {getShortCategoryName(cat)}
           </button>
         ))}
       </div>
@@ -711,9 +752,15 @@ export default function CentroCompeticion() {
         )}
       </ErrorBoundary>
 
-      {/* Notas */}
-      <div className="mt-8 text-xs text-slate-400 text-center border-t pt-4">
-        ⚽ Datos según la última actualización disponible · Comparativa de equipos disponible en Clasificación
+      {/* Última actualización + Notas */}
+      <div className="mt-8 text-xs text-slate-400 text-center border-t pt-4 space-y-1">
+        {standingsPack?.fecha_actualizacion && (
+          <p className="flex items-center justify-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            Última actualización: {timeAgo(standingsPack.fecha_actualizacion)}
+          </p>
+        )}
+        <p>⚽ Comparativa de equipos disponible en Clasificación</p>
       </div>
 
       {/* Gestión URLs RFFM */}
