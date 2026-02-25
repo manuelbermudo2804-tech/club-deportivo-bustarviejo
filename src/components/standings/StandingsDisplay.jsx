@@ -54,10 +54,6 @@ export default function StandingsDisplay({ data, onClose, fullPage = false }) {
       </Suspense>
 
       <Suspense fallback={<LazyFallback />}>
-        <NextMatchStats categoria={data.categoria} standings={sortedData} />
-      </Suspense>
-
-      <Suspense fallback={<LazyFallback />}>
         <StandingsStats data={data} />
       </Suspense>
 
