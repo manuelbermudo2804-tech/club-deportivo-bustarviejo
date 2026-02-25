@@ -18,7 +18,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No autenticado' }, { status: 401 });
     }
 
+    // Ping de precalentamiento — responder inmediatamente sin procesar nada
     const contentType = req.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      try {
+        const body = await req.json();
+        if (body?.ping) {
+          return Response.json({ pong: true });
+        }
+      } catch {}
+      return Response.json({ error: 'Envía la imagen como File, no como JSON' }, { status: 400 });
+    }
+
     let fileBlob;
     let originalName = 'photo.jpg';
 
