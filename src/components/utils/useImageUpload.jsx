@@ -1,13 +1,18 @@
 /**
  * useImageUpload — hook centralizado para subida de imágenes.
  * 
- * Principios:
- * - Nunca lanza excepciones al árbol React (todo try/catch interno)
- * - Valida archivo ANTES de cualquier operación
- * - Acepta MIME vacío / genérico (Android WebView, iOS captura)
- * - Soporta HEIC (el backend lo convierte)
- * - En modo degradado: sin preview, subida directa
- * - Logging automático para diagnóstico
+ * SISTEMA DE CASCADA AGRESIVA:
+ * Intenta TODOS los métodos posibles hasta que uno funcione.
+ * El usuario SIEMPRE ve su foto subida, cueste lo que cueste.
+ * 
+ * Cascada de estrategias (en orden):
+ * 1. Comprimir en frontend (canvas 800px) + subir comprimido
+ * 2. processImage (backend resize/compress)
+ * 3. Subida directa sin procesar
+ * 4. Comprimir a miniatura (400px) + subir
+ * 5. Convertir a base64 blob + subir
+ * 
+ * Nunca lanza excepciones al árbol React.
  */
 
 import { useState, useCallback } from "react";
@@ -16,39 +21,24 @@ import { base44 } from "@/api/base44Client";
 import { isDegradedMode, getDeviceCapabilities } from "./deviceCapabilities";
 import { logUploadStart, logUploadError, logUploadSuccess, logFileValidationReject, generateDiagnosticCode } from "./uploadLogger";
 
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB — subimos el límite, el sistema se encarga de reducir
 
 /**
  * Validación ultra defensiva del archivo.
- * Devuelve { ok: true } o { ok: false, message: string }
  */
 function validateFile(file) {
-  // 1. ¿Existe?
-  if (file === null || file === undefined) {
-    return { ok: false, message: null }; // cancelación silenciosa
-  }
+  if (file === null || file === undefined) return { ok: false, message: null };
+  if (typeof file !== 'object') return { ok: false, message: null };
 
-  // 2. ¿Es un File real?
-  if (typeof file !== 'object') {
-    return { ok: false, message: null };
-  }
-
-  // 3. Tamaño numérico y > 0
   const size = typeof file.size === 'number' ? file.size : NaN;
   if (isNaN(size) || size === 0) {
     return { ok: false, message: 'La imagen está vacía o no se pudo leer. Inténtalo de nuevo.' };
   }
-
-  // 4. Tamaño máximo
   if (size > MAX_SIZE_BYTES) {
     const mb = (size / 1024 / 1024).toFixed(0);
-    return {
-      ok: false,
-      message: `La foto pesa ${mb}MB y el máximo es 5MB.\n• Baja la resolución en Ajustes de la cámara\n• O envíala por WhatsApp a ti mismo y súbela desde allí`
-    };
+    return { ok: false, message: `La foto pesa ${mb}MB (máx 15MB). Baja la resolución de la cámara.` };
   }
 
-  // 5. Tipo MIME (aceptar vacío / genérico — Android WebView y cámara iOS devuelven esto)
   const mime = (file.type || '').toLowerCase();
   const name = (file.name || '').toLowerCase();
   const isImageMime = mime.startsWith('image/');
@@ -56,28 +46,189 @@ function validateFile(file) {
   const isImageExt = /\.(jpe?g|png|webp|heic|heif|gif|bmp|avif)$/.test(name);
   const isPDF = mime === 'application/pdf' || name.endsWith('.pdf');
 
-  // Si tiene MIME explícito que NO es imagen ni PDF → rechazar
   if (!isImageMime && !isUnknownMime && !isPDF && !isImageExt) {
-    return { ok: false, message: 'Formato no válido. Usa una imagen (JPG, PNG, HEIC) o PDF.' };
+    return { ok: false, message: 'Formato no válido. Usa JPG, PNG, HEIC o PDF.' };
   }
 
   return { ok: true, isPDF };
 }
 
+// ===== ESTRATEGIAS DE SUBIDA (cascada) =====
+
+/**
+ * Comprime una imagen en frontend usando canvas.
+ * Seguro en memoria: usa dimensiones muy conservadoras.
+ * @param {File} file
+ * @param {number} maxDim — máximo px del lado largo
+ * @param {number} quality — 0-1 JPEG quality
+ * @returns {Promise<Blob|null>}
+ */
+function compressInFrontend(file, maxDim = 800, quality = 0.6) {
+  return new Promise((resolve) => {
+    try {
+      // Verificar que tenemos las APIs necesarias
+      if (typeof HTMLCanvasElement === 'undefined' || typeof Image === 'undefined') {
+        resolve(null);
+        return;
+      }
+
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      
+      // Timeout de 10s — si no carga, devolvemos null
+      const timeout = setTimeout(() => { 
+        try { URL.revokeObjectURL(url); } catch {}
+        resolve(null); 
+      }, 10000);
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        try {
+          let w = img.naturalWidth;
+          let h = img.naturalHeight;
+          
+          // Redimensionar manteniendo proporción
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { resolve(null); return; }
+          ctx.drawImage(img, 0, 0, w, h);
+
+          canvas.toBlob((blob) => {
+            try { URL.revokeObjectURL(url); } catch {}
+            canvas.width = 1; canvas.height = 1; // liberar memoria
+            resolve(blob);
+          }, 'image/jpeg', quality);
+        } catch {
+          try { URL.revokeObjectURL(url); } catch {}
+          resolve(null);
+        }
+      };
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        try { URL.revokeObjectURL(url); } catch {}
+        resolve(null);
+      };
+
+      img.src = url;
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Estrategia 1: Comprimir en frontend (800px, JPEG 60%) y subir.
+ * Consume poca memoria. Ideal para dispositivos limitados.
+ */
+async function strategy_frontendCompress(file) {
+  try {
+    console.info('[Upload] 🔄 Estrategia 1: Compresión frontend (800px)...');
+    const blob = await compressInFrontend(file, 800, 0.6);
+    if (!blob || blob.size === 0) return { error: 'compress_failed' };
+    
+    const compressedFile = new File([blob], file.name?.replace(/\.[^.]+$/, '.jpg') || 'photo.jpg', { type: 'image/jpeg' });
+    console.info(`[Upload] Comprimido: ${Math.round(file.size/1024)}KB → ${Math.round(compressedFile.size/1024)}KB`);
+    
+    const response = await base44.integrations.Core.UploadFile({ file: compressedFile });
+    const url = response?.file_url || response?.data?.file_url;
+    if (!url) return { error: 'no_url' };
+    return { url, strategy: 'frontend_compress_800' };
+  } catch (err) {
+    return { error: err?.message || 'frontend_compress_error' };
+  }
+}
+
+/**
+ * Estrategia 2: processImage (backend resize + compresión con sharp).
+ * Mejor calidad pero requiere más memoria en el envío.
+ */
+async function strategy_processImage(file) {
+  try {
+    console.info('[Upload] 🔄 Estrategia 2: processImage (backend)...');
+    const response = await base44.functions.invoke('processImage', { image: file });
+    const data = response?.data;
+    if (!data || data.error || !data.file_url) return { error: data?.error || 'no_url' };
+    return { url: data.file_url, strategy: 'process_image' };
+  } catch (err) {
+    return { error: err?.message || 'process_image_error' };
+  }
+}
+
+/**
+ * Estrategia 3: Subida directa sin ningún procesamiento.
+ */
+async function strategy_directUpload(file) {
+  try {
+    console.info('[Upload] 🔄 Estrategia 3: Subida directa...');
+    const response = await base44.integrations.Core.UploadFile({ file });
+    const url = response?.file_url || response?.data?.file_url;
+    if (!url) return { error: 'no_url' };
+    return { url, strategy: 'direct' };
+  } catch (err) {
+    return { error: err?.message || 'direct_error' };
+  }
+}
+
+/**
+ * Estrategia 4: Miniatura agresiva (400px, JPEG 40%) + subir.
+ * Último recurso para dispositivos con muy poca memoria.
+ */
+async function strategy_tinyCompress(file) {
+  try {
+    console.info('[Upload] 🔄 Estrategia 4: Miniatura agresiva (400px)...');
+    const blob = await compressInFrontend(file, 400, 0.4);
+    if (!blob || blob.size === 0) return { error: 'tiny_compress_failed' };
+    
+    const tinyFile = new File([blob], 'photo_tiny.jpg', { type: 'image/jpeg' });
+    console.info(`[Upload] Miniatura: ${Math.round(file.size/1024)}KB → ${Math.round(tinyFile.size/1024)}KB`);
+    
+    const response = await base44.integrations.Core.UploadFile({ file: tinyFile });
+    const url = response?.file_url || response?.data?.file_url;
+    if (!url) return { error: 'no_url' };
+    return { url, strategy: 'tiny_400' };
+  } catch (err) {
+    return { error: err?.message || 'tiny_error' };
+  }
+}
+
+/**
+ * Estrategia 5: Leer como base64, crear blob y subir.
+ * Alternativa por si el File no se envía bien en FormData.
+ */
+async function strategy_base64Upload(file) {
+  try {
+    console.info('[Upload] 🔄 Estrategia 5: Base64 → Blob → Subir...');
+    const arrayBuffer = await file.arrayBuffer();
+    const blob = new Blob([arrayBuffer], { type: file.type || 'image/jpeg' });
+    const newFile = new File([blob], file.name || 'photo.jpg', { type: file.type || 'image/jpeg' });
+    
+    const response = await base44.integrations.Core.UploadFile({ file: newFile });
+    const url = response?.file_url || response?.data?.file_url;
+    if (!url) return { error: 'no_url' };
+    return { url, strategy: 'base64_blob' };
+  } catch (err) {
+    return { error: err?.message || 'base64_error' };
+  }
+}
+
 /**
  * Detecta si el dispositivo tiene memoria limitada.
- * En estos dispositivos, processImage puede matar la PWA.
  */
 function isLowMemoryDevice() {
   try {
-    // navigator.deviceMemory (Chrome/Android) — en GB
     if (navigator.deviceMemory && navigator.deviceMemory < 3) return true;
-    // performance.memory (Chrome) — heap usado
     if (performance?.memory?.jsHeapSizeLimit) {
       const heapLimitMB = performance.memory.jsHeapSizeLimit / 1024 / 1024;
       if (heapLimitMB < 512) return true;
     }
-    // Android antiguo (Chrome < 100) + PWA → alto riesgo
     const ua = navigator.userAgent || '';
     const chromeMatch = ua.match(/Chrome\/(\d+)/);
     if (chromeMatch && parseInt(chromeMatch[1]) < 100 && /Android/.test(ua)) return true;
@@ -86,77 +237,60 @@ function isLowMemoryDevice() {
 }
 
 /**
- * Subida directa (sin procesamiento en backend). Fallback seguro.
+ * CASCADA PRINCIPAL — prueba todas las estrategias hasta que una funcione.
+ * Orden adaptativo según el dispositivo.
+ * Nunca devuelve error si al menos una estrategia funciona.
  */
-async function directUpload(file) {
-  try {
-    const response = await base44.integrations.Core.UploadFile({ file });
-    const url = response?.file_url || response?.data?.file_url;
-    if (!url) return { error: 'No se recibió URL del servidor.' };
-    return { url };
-  } catch (err) {
-    return { error: `Error al subir directamente: ${err?.message || 'desconocido'}` };
+async function cascadeUpload(file, isPDF = false) {
+  // PDFs van siempre directo
+  if (isPDF) {
+    const result = await strategy_directUpload(file);
+    return result;
   }
-}
 
-/**
- * Subida segura al backend con estrategia adaptativa:
- * 1. Dispositivos con poca RAM → subida directa (sin processImage)
- * 2. Dispositivos normales → processImage con fallback a directa
- * Nunca lanza — devuelve { url } o { error }.
- */
-async function safeUploadToBackend(file, isPDF = false) {
-  try {
-    if (isPDF) {
-      return await directUpload(file);
-    }
+  const lowMem = isLowMemoryDevice();
+  const errors = [];
 
-    // Dispositivos con poca memoria → subida directa, sin arriesgar crash
-    const lowMem = isLowMemoryDevice();
-    if (lowMem) {
-      console.info('[Upload] Dispositivo con poca memoria — subida directa sin processImage');
-      return await directUpload(file);
-    }
+  // Definir orden de estrategias según el dispositivo
+  const strategies = lowMem
+    ? [
+        // Dispositivo con poca RAM: empezar por compresión frontend (no usa backend pesado)
+        { name: 'Frontend 800px', fn: () => strategy_frontendCompress(file) },
+        { name: 'Miniatura 400px', fn: () => strategy_tinyCompress(file) },
+        { name: 'Directa', fn: () => strategy_directUpload(file) },
+        { name: 'Base64', fn: () => strategy_base64Upload(file) },
+        // processImage al final — en estos dispositivos puede crashear
+        { name: 'processImage', fn: () => strategy_processImage(file) },
+      ]
+    : [
+        // Dispositivo normal: processImage primero (mejor calidad)
+        { name: 'processImage', fn: () => strategy_processImage(file) },
+        { name: 'Frontend 800px', fn: () => strategy_frontendCompress(file) },
+        { name: 'Directa', fn: () => strategy_directUpload(file) },
+        { name: 'Miniatura 400px', fn: () => strategy_tinyCompress(file) },
+        { name: 'Base64', fn: () => strategy_base64Upload(file) },
+      ];
 
-    // Dispositivo normal → processImage (resize + compresión en servidor)
+  for (const strategy of strategies) {
     try {
-      const response = await base44.functions.invoke('processImage', { image: file });
-      const data = response?.data;
-
-      if (!data) throw new Error('empty_response');
-      if (data.error) {
-        // Si processImage falló en el servidor, intentar subida directa
-        console.warn('[Upload] processImage error, fallback a subida directa:', data.error);
-        return await directUpload(file);
+      const result = await strategy.fn();
+      if (result.url) {
+        console.info(`[Upload] ✅ Éxito con estrategia: ${strategy.name} (${result.strategy})`);
+        return result;
       }
-      if (!data.file_url) throw new Error('no_file_url');
-
-      return { url: data.file_url };
-    } catch (processErr) {
-      // processImage falló (timeout, red, crash) → fallback a subida directa
-      console.warn('[Upload] processImage falló, fallback a subida directa:', processErr?.message);
-      const directResult = await directUpload(file);
-      if (directResult.url) return directResult;
-      // Si también falla la directa, reportar el error original
-      return { error: `No se pudo subir la imagen. ${processErr?.message || ''}` };
+      errors.push(`${strategy.name}: ${result.error}`);
+      console.warn(`[Upload] ❌ ${strategy.name} falló: ${result.error}`);
+    } catch (err) {
+      errors.push(`${strategy.name}: ${err?.message || 'crash'}`);
+      console.warn(`[Upload] ❌ ${strategy.name} crash: ${err?.message}`);
     }
-  } catch (err) {
-    const msg = (err?.message || '').toLowerCase();
-    const status = err?.response?.status || err?.status;
-    if (msg.includes('network') || msg.includes('fetch') || msg.includes('load') || msg.includes('failed to fetch')) {
-      return { error: `Error de conexión (${status || 'sin respuesta'}). Comprueba tu internet e inténtalo de nuevo.` };
-    }
-    if (msg.includes('413') || msg.includes('large') || msg.includes('size') || status === 413) {
-      return { error: 'Archivo demasiado grande para el servidor. Baja la resolución de la cámara.' };
-    }
-    if (msg.includes('timeout') || msg.includes('timed out') || status === 504) {
-      return { error: 'La subida tardó demasiado. Comprueba tu conexión WiFi/datos.' };
-    }
-    if (status === 500) {
-      return { error: `Error del servidor (500). ${err?.response?.data?.userMessage || 'Inténtalo de nuevo.'}` };
-    }
-    return { error: `Error al subir (${status || msg.substring(0,50) || 'desconocido'}). Inténtalo de nuevo.` };
   }
+
+  // TODAS las estrategias fallaron
+  return { 
+    error: `Se probaron ${strategies.length} métodos y ninguno funcionó.\n${errors.join(' | ')}`,
+    allErrors: errors 
+  };
 }
 
 /**
@@ -170,7 +304,6 @@ export function useImageUpload() {
   const [uploading, setUploading] = useState(false);
 
   const uploadFile = useCallback(async (file) => {
-    // Validación defensiva
     const validation = validateFile(file);
     if (!validation.ok) {
       if (validation.message) {
@@ -184,30 +317,33 @@ export function useImageUpload() {
     setUploading(true);
 
     try {
-      if (file.size > 1 * 1024 * 1024 && !validation.isPDF) {
-        toast.info('Subiendo imagen al servidor...', { duration: 4000 });
-      }
+      const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+      toast.info(`Subiendo imagen (${sizeMB}MB)... Un momento`, { duration: 6000 });
 
-      const { url, error } = await safeUploadToBackend(file, validation.isPDF);
+      const result = await cascadeUpload(file, validation.isPDF);
 
-      if (error) {
+      if (result.error) {
         const diagCode = generateDiagnosticCode();
-        logUploadError(file, new Error(`[${diagCode}] ${error}`), 'backend');
+        logUploadError(file, new Error(`[${diagCode}] ${result.error}`), 'cascade_all_failed');
         const isMobile = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
         const sizeTxt = file?.size ? `${Math.round(file.size/1024)}KB` : '?';
-        const typeTxt = file?.type || 'sin tipo';
-        const errorMsg = isMobile 
-          ? `${error}\n\n📋 ${file?.name || '?'} (${sizeTxt}, ${typeTxt})\n🔑 Código: ${diagCode}\n💡 Si persiste, envía este código al club o prueba desde un ordenador.`
-          : `${error}\n\n📋 ${file?.name || '?'} (${sizeTxt}, ${typeTxt})\n🔑 Código: ${diagCode}`;
-        toast.error(errorMsg, { duration: 15000 });
+        toast.error(
+          `No se pudo subir la imagen tras probar todos los métodos.\n\n` +
+          `📋 ${file?.name || '?'} (${sizeTxt})\n🔑 Código: ${diagCode}\n` +
+          (isMobile ? '💡 Prueba enviarte la foto por WhatsApp y súbela desde la galería.' : ''),
+          { duration: 20000 }
+        );
         return null;
       }
 
-      logUploadSuccess(file, url);
-      toast.success('Archivo subido correctamente');
-      return url;
+      logUploadSuccess(file, result.url);
+      if (result.strategy === 'tiny_400') {
+        toast.success('Foto subida (calidad reducida por limitaciones del dispositivo)');
+      } else {
+        toast.success('Foto subida correctamente ✅');
+      }
+      return result.url;
     } catch (unexpectedErr) {
-      // Captura de último recurso — no debería llegar aquí
       logUploadError(file, unexpectedErr, 'unexpected');
       toast.error('Error inesperado al subir. Inténtalo de nuevo.');
       return null;
@@ -221,21 +357,17 @@ export function useImageUpload() {
 
 /**
  * Genera una URL de preview local de forma segura.
- * En modo degradado devuelve null (sin preview).
  * Nunca lanza.
- * 
- * @param {File} file
- * @returns {string|null} objectURL o null
  */
 export function createSafePreviewUrl(file) {
   if (!file || file.size === 0) return null;
-  if (isDegradedMode()) return null; // modo degradado: sin preview
+  if (isDegradedMode()) return null;
 
   try {
     const caps = getDeviceCapabilities();
     if (caps.supportsCreateObjectURL) {
       return URL.createObjectURL(file);
     }
-  } catch { /* ignorar */ }
+  } catch {}
   return null;
 }
