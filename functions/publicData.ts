@@ -102,19 +102,25 @@ Deno.serve(async (req) => {
       goleadores: goleadoresPorCategoria,
     };
 
-    // Si piden formato HTML, devolver página web completa
-    const url = new URL(req.url);
-    if (url.searchParams.get('format') === 'html') {
-      const htmlPage = generarHTML(data);
-      return new Response(htmlPage, {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'text/html; charset=utf-8',
-        },
-      });
+    // Detectar si piden JSON explícitamente, si no → HTML por defecto
+    let wantsJSON = false;
+    try {
+      const url = new URL(req.url);
+      wantsJSON = url.searchParams.get('format') === 'json';
+    } catch {}
+
+    if (wantsJSON) {
+      return Response.json(data, { headers: corsHeaders });
     }
 
-    return Response.json(data, { headers: corsHeaders });
+    // Por defecto devolver página HTML completa
+    const htmlPage = generarHTML(data);
+    return new Response(htmlPage, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+      },
+    });
 
   } catch (error) {
     console.error('Error en publicData:', error);
