@@ -18,8 +18,10 @@ export default function StepDocuments({
   requiresDNI,
   isAdultPlayerSelfRegistration,
   uploadingDNI,
+  uploadingDNITrasero,
   uploadingLibroFamilia,
   onDNIUpload,
+  onDNITraseroUpload,
   onLibroFamiliaUpload,
   dniUploadFailed = false,
   libroUploadFailed = false
@@ -67,10 +69,10 @@ export default function StepDocuments({
         {fieldErrors.dni_jugador && <p className="text-xs text-red-600">{fieldErrors.dni_jugador}</p>}
       </div>
 
-      {/* Subir DNI escaneado */}
+      {/* Subir DNI escaneado - CARA DELANTERA */}
       <div className="space-y-2">
         <Label className={fieldErrors.dni_jugador_url ? "text-red-600 font-bold" : ""}>
-          Subir {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"} Jugador (escaneado) {requiresDNI ? "*" : ""}
+          {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"} Jugador — Cara delantera {requiresDNI ? "*" : ""}
         </Label>
         <div className="flex items-center gap-2">
           <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onDNIUpload} className="hidden" id="wiz-dni-upload" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
@@ -82,24 +84,22 @@ export default function StepDocuments({
             className="flex-1 min-h-[44px]"
           >
             {uploadingDNI ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-            {currentPlayer.dni_jugador_url ? "✓ Cambiar documento" : "Subir documento"}
+            {currentPlayer.dni_jugador_url ? "✓ Cambiar cara delantera" : "Subir cara delantera"}
           </Button>
           {currentPlayer.dni_jugador_url && (
-            <PrivateFileViewer fileUri={currentPlayer.dni_jugador_url} label="Ver DNI" />
+            <PrivateFileViewer fileUri={currentPlayer.dni_jugador_url} label="Ver" />
           )}
         </div>
         {currentPlayer.dni_jugador_url && !fieldErrors.dni_jugador_url && (
           <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
-            <p className="text-green-800 text-sm font-bold">✅ Documento subido correctamente</p>
-            <p className="text-green-700 text-xs">Si no ves la vista previa, no te preocupes — el archivo está guardado.</p>
+            <p className="text-green-800 text-sm font-bold">✅ Cara delantera subida</p>
           </div>
         )}
         {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
         
-        {/* Alternativa portapapeles para DNI — solo si falló la subida normal */}
         {!currentPlayer.dni_jugador_url && dniUploadFailed && (
           <PasteFromClipboard 
-            label="documento" 
+            label="cara delantera" 
             disabled={uploadingDNI}
             onUploadComplete={(url) => {
               setCurrentPlayer(prev => ({ ...prev, dni_jugador_url: url }));
@@ -108,6 +108,36 @@ export default function StepDocuments({
           />
         )}
       </div>
+
+      {/* DNI Jugador - CARA TRASERA */}
+      {currentPlayer.tipo_documento === "DNI" && (
+        <div className="space-y-2">
+          <Label>
+            DNI Jugador — Cara trasera {requiresDNI ? "*" : "(recomendado)"}
+          </Label>
+          <div className="flex items-center gap-2">
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onDNITraseroUpload} className="hidden" id="wiz-dni-trasero-upload" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => { markCameraOpening('wiz-dni-trasero-upload'); logUploadButtonClick('wiz-dni-trasero-upload', 'dni_jugador_trasero'); document.getElementById('wiz-dni-trasero-upload').click(); }}
+              disabled={uploadingDNITrasero}
+              className="flex-1 min-h-[44px]"
+            >
+              {uploadingDNITrasero ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+              {currentPlayer.dni_jugador_trasero_url ? "✓ Cambiar cara trasera" : "Subir cara trasera"}
+            </Button>
+            {currentPlayer.dni_jugador_trasero_url && (
+              <PrivateFileViewer fileUri={currentPlayer.dni_jugador_trasero_url} label="Ver" />
+            )}
+          </div>
+          {currentPlayer.dni_jugador_trasero_url && (
+            <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
+              <p className="text-green-800 text-sm font-bold">✅ Cara trasera subida</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Libro de Familia (menores sin DNI) */}
       {!requiresDNI && !isAdultPlayerSelfRegistration && (
@@ -131,7 +161,7 @@ export default function StepDocuments({
               <PrivateFileViewer fileUri={currentPlayer.libro_familia_url} label="Ver Libro" />
             )}
           </div>
-          <p className="text-xs text-blue-700">Si el jugador es menor de 14 años y no tiene DNI, sube el libro de familia</p>
+          <p className="text-xs text-blue-700">📌 Solo necesitas subir la <strong>página donde aparece el jugador</strong>. No hace falta el libro entero.</p>
           {currentPlayer.libro_familia_url && !fieldErrors.libro_familia_url && (
             <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
               <p className="text-green-800 text-sm font-bold">✅ Libro de familia subido correctamente</p>

@@ -22,7 +22,9 @@ export default function StepTutor({
   onLoadPreviousTutorData,
   onClearTutorData,
   uploadingDNITutor,
-  onDNITutorUpload
+  onDNITutorUpload,
+  uploadingDNITutorTrasero,
+  onDNITutorTraseroUpload
 }) {
   // Si es auto-registro +18, mostrar datos de contacto propios
   if (isAdultPlayerSelfRegistration) {
@@ -145,10 +147,10 @@ export default function StepTutor({
         </div>
       </div>
 
-      {/* Subir DNI tutor */}
+      {/* Subir DNI tutor - CARA DELANTERA */}
       <div className="space-y-2">
         <Label className={fieldErrors.dni_tutor_legal_url ? "text-red-600 font-bold" : ""}>
-          Subir {currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte" : "DNI"} Tutor (escaneado) *
+          {currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte" : "DNI"} Tutor — Cara delantera *
         </Label>
         <div className="flex items-center gap-2">
           <input type="file" accept="image/*,application/pdf" onChange={onDNITutorUpload} className="hidden" id="wiz-dni-tutor-upload" />
@@ -160,14 +162,47 @@ export default function StepTutor({
             className="flex-1 min-h-[44px]"
           >
             {uploadingDNITutor ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-            {currentPlayer.dni_tutor_legal_url ? "✓ Cambiar documento" : "Subir documento"}
+            {currentPlayer.dni_tutor_legal_url ? "✓ Cambiar cara delantera" : "Subir cara delantera"}
           </Button>
           {currentPlayer.dni_tutor_legal_url && (
-            <PrivateFileViewer fileUri={currentPlayer.dni_tutor_legal_url} label="Ver DNI Tutor" />
+            <PrivateFileViewer fileUri={currentPlayer.dni_tutor_legal_url} label="Ver" />
           )}
         </div>
+        {currentPlayer.dni_tutor_legal_url && !fieldErrors.dni_tutor_legal_url && (
+          <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
+            <p className="text-green-800 text-sm font-bold">✅ Cara delantera subida</p>
+          </div>
+        )}
         {fieldErrors.dni_tutor_legal_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_tutor_legal_url}</p>}
       </div>
+
+      {/* DNI Tutor - CARA TRASERA */}
+      {currentPlayer.tipo_documento_tutor === "DNI" && (
+        <div className="space-y-2">
+          <Label>DNI Tutor — Cara trasera *</Label>
+          <div className="flex items-center gap-2">
+            <input type="file" accept="image/*,application/pdf" onChange={onDNITutorTraseroUpload} className="hidden" id="wiz-dni-tutor-trasero-upload" />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => { markCameraOpening('wiz-dni-tutor-trasero-upload'); logUploadButtonClick('wiz-dni-tutor-trasero-upload', 'dni_tutor_trasero'); document.getElementById('wiz-dni-tutor-trasero-upload').click(); }}
+              disabled={uploadingDNITutorTrasero}
+              className="flex-1 min-h-[44px]"
+            >
+              {uploadingDNITutorTrasero ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+              {currentPlayer.dni_tutor_legal_trasero_url ? "✓ Cambiar cara trasera" : "Subir cara trasera"}
+            </Button>
+            {currentPlayer.dni_tutor_legal_trasero_url && (
+              <PrivateFileViewer fileUri={currentPlayer.dni_tutor_legal_trasero_url} label="Ver" />
+            )}
+          </div>
+          {currentPlayer.dni_tutor_legal_trasero_url && (
+            <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
+              <p className="text-green-800 text-sm font-bold">✅ Cara trasera subida</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Email y teléfono */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
