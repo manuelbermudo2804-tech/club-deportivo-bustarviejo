@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Camera, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
+import CameraPermissionCheck from "../../upload/CameraPermissionCheck";
 
 export default function StepPlayerData({
   currentPlayer,
@@ -21,6 +22,9 @@ export default function StepPlayerData({
       <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
         👤 Datos del Jugador
       </h3>
+
+      {/* CHECK PERMISOS CÁMARA */}
+      <CameraPermissionCheck />
 
       {/* FOTO TIPO CARNET */}
       <div className={`space-y-4 border-2 rounded-lg p-4 ${fieldErrors.foto_url ? 'border-red-500 bg-red-50' : 'border-orange-300 bg-orange-50'}`}>
