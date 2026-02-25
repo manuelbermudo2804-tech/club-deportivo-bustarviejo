@@ -17,7 +17,8 @@ export default function StepPlayerData({
   isMayorDeEdad,
   requiresDNI,
   uploadingPhoto,
-  onPhotoUpload
+  onPhotoUpload,
+  photoUploadFailed = false
 }) {
   return (
     <div className="space-y-6">
@@ -73,8 +74,8 @@ export default function StepPlayerData({
             <p className="text-xs text-blue-800">💡 <strong>¿Problemas?</strong> Si la app se cierra al hacer la foto, prueba con <strong>"Subir desde galería"</strong>. Si tampoco funciona, usa la opción de pegar más abajo.</p>
           </div>
           
-          {/* Alternativa de último recurso: pegar desde portapapeles */}
-          {!currentPlayer.foto_url && (
+          {/* Alternativa de último recurso: solo aparece si falló la subida normal */}
+          {!currentPlayer.foto_url && photoUploadFailed && (
             <PasteFromClipboard 
               label="foto" 
               disabled={uploadingPhoto}
