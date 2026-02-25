@@ -1,10 +1,12 @@
 /**
- * Upload Logger — logging temporal para diagnóstico de fallos en móviles.
- * Registra nombre, tamaño, tipo MIME, entorno y errores durante subida de imágenes.
+ * Upload Logger — diagnóstico de fallos de subida en móviles.
  * 
- * Este módulo NO usa ninguna API externa; guarda en localStorage y console.
- * Para ver los logs: localStorage.getItem('upload_log')
+ * - Guarda en localStorage (para debug local)
+ * - Envía ERRORES al servidor (SystemAlert) para que el admin los vea
+ * - Console logs para diagnóstico en tiempo real
  */
+
+import { base44 } from "@/api/base44Client";
 
 const LOG_KEY = 'upload_log';
 const MAX_LOGS = 50;
@@ -31,10 +33,83 @@ function getEnvInfo() {
     // Android WebView detection
     const isWebView = isAndroid && /wv/.test(ua.toLowerCase());
 
-    return { isIOS, isAndroid, isSafari, chromeVersion, isPWA, isIframe, iosVersion, isWebView, ua: ua.substring(0, 120) };
+    // Memory info (Chrome only)
+    let memoryMB = null;
+    try {
+      if (performance?.memory) {
+        memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
+      }
+    } catch {}
+
+    // Connection info
+    let connection = null;
+    try {
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (conn) {
+        connection = { type: conn.effectiveType || conn.type, downlink: conn.downlink, rtt: conn.rtt };
+      }
+    } catch {}
+
+    return { isIOS, isAndroid, isSafari, chromeVersion, isPWA, isIframe, iosVersion, isWebView, memoryMB, connection, ua: ua.substring(0, 150) };
   } catch {
     return { error: 'env_detection_failed' };
   }
+}
+
+/**
+ * Envía un error de subida al servidor como SystemAlert para que el admin lo vea.
+ * Fire-and-forget, nunca rompe.
+ */
+async function _reportToServer(entry) {
+  try {
+    const env = entry.env || getEnvInfo();
+    const device = env.isIOS ? `iOS${env.iosVersion || ''}` 
+      : env.isAndroid ? `Android Chrome${env.chromeVersion || ''}${env.isWebView ? ' WebView' : ''}`
+      : 'Desktop';
+    const pwa = env.isPWA ? ' PWA' : ' Browser';
+    const conn = env.connection ? ` ${env.connection.type}/${env.connection.downlink}Mbps` : '';
+    const mem = env.memoryMB ? ` ${env.memoryMB}MB` : '';
+
+    // Obtener email del usuario si es posible
+    let userEmail = 'desconocido';
+    try { const me = await base44.auth.me(); userEmail = me?.email || 'anon'; } catch {}
+
+    const titulo = `📸 Error subida: ${entry.error || entry.reason || 'desconocido'}`;
+    const descripcion = [
+      `👤 Usuario: ${userEmail}`,
+      `📱 Dispositivo: ${device}${pwa}${conn}${mem}`,
+      `📄 Archivo: ${entry.name || '?'} (${entry.size ? Math.round(entry.size/1024) + 'KB' : '?'}, ${entry.type || 'sin tipo'})`,
+      `⚠️ Error: ${entry.error || entry.reason || 'sin detalle'}`,
+      `🔧 Contexto: ${entry.context || entry.event || '?'}`,
+      `🕐 Hora: ${entry.ts}`,
+      `🌐 UA: ${env.ua || '?'}`,
+    ].join('\n');
+
+    await base44.entities.SystemAlert.create({
+      titulo: titulo.substring(0, 200),
+      descripcion,
+      categoria: 'error',
+      severidad: 'medium',
+      estado: 'activo',
+      primera_ocurrencia: entry.ts,
+      ultima_ocurrencia: entry.ts,
+      ocurrencias: 1,
+      solucion_sugerida: 'Revisar logs del usuario y tipo de dispositivo',
+      evidencia: { 
+        file_name: entry.name, 
+        file_size: entry.size, 
+        file_type: entry.type, 
+        error: entry.error || entry.reason,
+        context: entry.context,
+        device, 
+        user_agent: env.ua,
+        connection: env.connection,
+        memory_mb: env.memoryMB,
+        is_pwa: env.isPWA,
+        user_email: userEmail,
+      },
+    });
+  } catch { /* nunca romper la app por un log */ }
 }
 
 export function logUploadStart(file) {
