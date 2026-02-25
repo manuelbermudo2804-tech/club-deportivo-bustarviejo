@@ -266,12 +266,11 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!file) return;
       const url = await uploadFile_libro(file);
       if (url) {
-        setCurrentPlayer(p => {
-          const updated = { ...p, libro_familia_url: url };
-          saveFormDraft(updated, step);
-          return updated;
-        });
-        toast.success('✅ Libro de familia subido correctamente');
+        try {
+          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
+          if (draft.playerData) { draft.playerData.libro_familia_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
+        } catch {}
+        setCurrentPlayer(p => ({ ...p, libro_familia_url: url }));
       }
     } catch (err) { logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
   };
@@ -284,12 +283,11 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!file) return;
       const url = await uploadFile_tutordni(file);
       if (url) {
-        setCurrentPlayer(p => {
-          const updated = { ...p, dni_tutor_legal_url: url };
-          saveFormDraft(updated, step);
-          return updated;
-        });
-        toast.success('✅ Documento del tutor subido correctamente');
+        try {
+          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
+          if (draft.playerData) { draft.playerData.dni_tutor_legal_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
+        } catch {}
+        setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
       }
     } catch (err) { logUploadError(null, err, 'handleDNITutorUpload_catch'); }
   };
