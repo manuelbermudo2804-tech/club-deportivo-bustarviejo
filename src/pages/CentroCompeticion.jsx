@@ -19,7 +19,8 @@ import RffmImportButton from "../components/competition/RffmImportButton";
 import RffmUrlManager from "../components/competition/RffmUrlManager";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
-import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2 } from "lucide-react";
+import RffmMonitorPanel from "../components/competition/RffmMonitorPanel";
+import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2, Database } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 import { toast } from "sonner";
