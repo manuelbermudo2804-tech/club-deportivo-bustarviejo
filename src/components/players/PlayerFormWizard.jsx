@@ -452,11 +452,19 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
             <CardTitle className="text-xl">
               {isEditing ? "Editar Jugador" : isMayorDeEdad ? "Inscripción Jugador +18" : "Nuevo Jugador"}
             </CardTitle>
-            <Button variant="ghost" size="icon" onClick={onCancel}><X className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => { clearFormDraft(); onCancel(); }}><X className="w-5 h-5" /></Button>
           </div>
           <WizardProgress currentStep={step} totalSteps={totalSteps} stepLabels={stepLabels} />
         </CardHeader>
         <CardContent className="pt-6">
+          {restoredFromDraft && (
+            <Alert className="mb-4 bg-blue-50 border-blue-200">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                📋 <strong>Formulario recuperado.</strong> Tu progreso se guardó antes de abrir la cámara. Puedes continuar donde lo dejaste.
+              </AlertDescription>
+            </Alert>
+          )}
           {siblingDiscount.hasDiscount && step === 0 && (
             <Alert className="mb-4 bg-green-50 border-green-200">
               <AlertCircle className="h-4 w-4 text-green-600" />
