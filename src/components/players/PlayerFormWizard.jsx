@@ -174,30 +174,28 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
   }, [step, currentPlayer.nombre, currentPlayer.foto_url, currentPlayer.dni_jugador_url, currentPlayer.libro_familia_url, currentPlayer.dni_tutor_legal_url]);
 
-  // Detectar recarga por cámara al montar
+  // Detectar recarga (por cámara o por crash) y restaurar borrador al montar
   const [restoredFromDraft, setRestoredFromDraft] = useState(false);
   useEffect(() => {
+    if (isEditing) return; // No restaurar en modo edición
     const cameraReload = checkCameraReload();
-    if (cameraReload) {
-      // La app se recargó después de abrir cámara/galería
-      const draft = loadFormDraft();
-      if (draft?.playerData) {
-        setCurrentPlayer(draft.playerData);
-        setStep(draft.step || 0);
-        setRestoredFromDraft(true);
-        toast.info('📋 Hemos recuperado tu formulario. La app se recargó al usar la cámara. Puedes continuar donde lo dejaste.', { duration: 10000 });
-        // Registrar en diagnóstico
-        try {
-          base44.entities.UploadDiagnostic.create({
-            user_email: draft.playerData.email_padre || 'unknown',
-            event_type: 'diagnostic_report',
-            context: 'camera_reload_detected',
-            error_message: `App se recargó tras abrir cámara (input: ${cameraReload.inputId}). Formulario restaurado desde borrador.`,
-            device: cameraReload.userAgent?.substring(0, 200) || 'unknown',
-            extra_data: { step: draft.step, inputId: cameraReload.inputId, timeSinceCameraOpen: Date.now() - cameraReload.time }
-          });
-        } catch {}
-      }
+    const draft = loadFormDraft();
+    if (draft?.playerData && (draft.playerData.nombre || draft.playerData.foto_url)) {
+      setCurrentPlayer(draft.playerData);
+      setStep(draft.step || 0);
+      setRestoredFromDraft(true);
+      const reason = cameraReload ? 'cámara' : 'recarga/error';
+      toast.info(`📋 Formulario recuperado (${reason}). Puedes continuar donde lo dejaste.`, { duration: 8000 });
+      try {
+        base44.entities.UploadDiagnostic.create({
+          user_email: draft.playerData.email_padre || 'unknown',
+          event_type: 'diagnostic_report',
+          context: cameraReload ? 'camera_reload_detected' : 'crash_reload_detected',
+          error_message: `Formulario restaurado (${reason}). Foto: ${draft.playerData.foto_url ? 'SÍ' : 'NO'}`,
+          device: navigator.userAgent?.substring(0, 200) || 'unknown',
+          extra_data: { step: draft.step, hasFoto: !!draft.playerData.foto_url, hasDNI: !!draft.playerData.dni_jugador_url }
+        });
+      } catch {}
     }
   }, []);
 
