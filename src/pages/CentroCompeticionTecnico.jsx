@@ -27,6 +27,15 @@ const FALLBACK_CATEGORIES = [
   "Baloncesto (Mixto)",
 ];
 
+const getShortCategoryName = (cat) => {
+  if (!cat) return "";
+  return cat
+    .replace("Fútbol ", "")
+    .replace("Baloncesto ", "🏀 ")
+    .replace(" (Mixto)", "")
+    .trim();
+};
+
 export default function CentroCompeticionTecnico() {
   const queryClient = useQueryClient();
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => base44.auth.me() });
@@ -309,9 +318,10 @@ export default function CentroCompeticionTecnico() {
           <button
             key={cat}
             onClick={() => setCategory(cat)}
+            title={cat}
             className={`px-3 py-2 rounded-full whitespace-nowrap border text-sm ${category === cat ? 'bg-orange-600 text-white border-orange-600' : 'bg-white hover:bg-slate-50'}`}
           >
-            {cat}
+            {getShortCategoryName(cat)}
           </button>
         ))}
       </div>
