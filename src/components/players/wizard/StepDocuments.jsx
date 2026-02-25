@@ -8,6 +8,7 @@ import PrivateFileViewer from "../../utils/PrivateFileViewer";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
 import CameraPermissionCheck from "../../upload/CameraPermissionCheck";
 import { markCameraOpening } from "./useFormPersistence";
+import PasteFromClipboard from "../../upload/PasteFromClipboard";
 
 export default function StepDocuments({
   currentPlayer,
@@ -92,6 +93,18 @@ export default function StepDocuments({
           </div>
         )}
         {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
+        
+        {/* Alternativa portapapeles para DNI */}
+        {!currentPlayer.dni_jugador_url && (
+          <PasteFromClipboard 
+            label="documento" 
+            disabled={uploadingDNI}
+            onUploadComplete={(url) => {
+              setCurrentPlayer(prev => ({ ...prev, dni_jugador_url: url }));
+              if (fieldErrors.dni_jugador_url) setFieldErrors(prev => ({ ...prev, dni_jugador_url: null }));
+            }} 
+          />
+        )}
       </div>
 
       {/* Libro de Familia (menores sin DNI) */}
@@ -124,6 +137,18 @@ export default function StepDocuments({
             </div>
           )}
           {fieldErrors.libro_familia_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.libro_familia_url}</p>}
+          
+          {/* Alternativa portapapeles para Libro de Familia */}
+          {!currentPlayer.libro_familia_url && (
+            <PasteFromClipboard 
+              label="libro de familia" 
+              disabled={uploadingLibroFamilia}
+              onUploadComplete={(url) => {
+                setCurrentPlayer(prev => ({ ...prev, libro_familia_url: url }));
+                if (fieldErrors.libro_familia_url) setFieldErrors(prev => ({ ...prev, libro_familia_url: null }));
+              }} 
+            />
+          )}
         </div>
       )}
     </div>

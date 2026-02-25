@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
 import CameraPermissionCheck from "../../upload/CameraPermissionCheck";
 import { markCameraOpening } from "./useFormPersistence";
+import PasteFromClipboard from "../../upload/PasteFromClipboard";
 
 export default function StepPlayerData({
   currentPlayer,
@@ -71,6 +72,18 @@ export default function StepPlayerData({
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-1">
             <p className="text-xs text-blue-800">💡 <strong>¿Problemas con "Hacer Foto"?</strong> Si la app se cierra al usar la cámara, haz la foto primero con la app de cámara de tu móvil y luego súbela con "Subir desde galería".</p>
           </div>
+          
+          {/* Alternativa de último recurso: pegar desde portapapeles */}
+          {!currentPlayer.foto_url && (
+            <PasteFromClipboard 
+              label="foto" 
+              disabled={uploadingPhoto}
+              onUploadComplete={(url) => {
+                setCurrentPlayer(prev => ({ ...prev, foto_url: url }));
+                if (fieldErrors.foto_url) setFieldErrors(prev => ({ ...prev, foto_url: null }));
+              }} 
+            />
+          )}
         </div>
       </div>
 
