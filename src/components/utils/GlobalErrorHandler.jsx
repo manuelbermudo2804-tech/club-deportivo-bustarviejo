@@ -71,6 +71,21 @@ function logToStorage(event, msg) {
     if (logs.length > 50) logs.splice(0, logs.length - 50);
     localStorage.setItem('upload_log', JSON.stringify(logs));
   } catch { /* localStorage bloqueado o lleno — ignorar */ }
+
+  // Intentar enviar al servidor para diagnóstico remoto
+  try {
+    const { base44 } = require("@/api/base44Client");
+    base44.entities.UploadDiagnostic.create({
+      user_email: 'unknown',
+      event_type: 'diagnostic_report',
+      context: 'GlobalErrorHandler',
+      error_message: `[${event}] ${msg}`.substring(0, 500),
+      device: navigator.userAgent?.substring(0, 200) || 'unknown',
+      memory_mb: navigator.deviceMemory || null,
+      is_pwa: window.matchMedia?.('(display-mode: standalone)')?.matches || false,
+      extra_data: { event, url: window.location.href?.substring(0, 200) }
+    }).catch(() => {});
+  } catch {}
 }
 
 export default function GlobalErrorHandler() {
