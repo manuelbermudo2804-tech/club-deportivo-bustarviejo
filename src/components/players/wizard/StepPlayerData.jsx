@@ -47,11 +47,11 @@ export default function StepPlayerData({
           <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
 
           <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Button type="button" variant="default" className="flex-1 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-base font-semibold" style={{ minHeight: '48px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => document.getElementById('wiz-photo-camera').click()}>
+            <Button type="button" variant="default" className="flex-1 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-base font-semibold" style={{ minHeight: '48px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { logUploadButtonClick('wiz-photo-camera', 'foto_camara'); document.getElementById('wiz-photo-camera').click(); }}>
               {uploadingPhoto ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Camera className="w-5 h-5 mr-2" />}
               📸 Hacer Foto
             </Button>
-            <Button type="button" variant="outline" className="flex-1 text-base font-semibold" style={{ minHeight: '48px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => document.getElementById('wiz-photo-gallery').click()}>
+            <Button type="button" variant="outline" className="flex-1 text-base font-semibold" style={{ minHeight: '48px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { logUploadButtonClick('wiz-photo-gallery', 'foto_galeria'); document.getElementById('wiz-photo-gallery').click(); }}>
               {uploadingPhoto ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Upload className="w-5 h-5 mr-2" />}
               Subir desde galería
             </Button>
