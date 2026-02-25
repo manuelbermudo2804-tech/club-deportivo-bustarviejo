@@ -325,13 +325,9 @@ export function useImageUpload() {
       if (result.error) {
         const diagCode = generateDiagnosticCode();
         logUploadError(file, new Error(`[${diagCode}] ${result.error}`), 'cascade_all_failed');
-        const isMobile = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
-        const sizeTxt = file?.size ? `${Math.round(file.size/1024)}KB` : '?';
         toast.error(
-          `No se pudo subir la imagen tras probar todos los métodos.\n\n` +
-          `📋 ${file?.name || '?'} (${sizeTxt})\n🔑 Código: ${diagCode}\n` +
-          (isMobile ? '💡 Prueba enviarte la foto por WhatsApp y súbela desde la galería.' : ''),
-          { duration: 20000 }
+          `No se ha podido subir la imagen. Usa la opción alternativa que aparecerá debajo del botón.`,
+          { duration: 12000 }
         );
         return null;
       }

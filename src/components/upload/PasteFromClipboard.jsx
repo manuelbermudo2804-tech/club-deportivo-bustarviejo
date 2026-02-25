@@ -65,7 +65,10 @@ export default function PasteFromClipboard({ onUploadComplete, label = "foto", d
       <div className="bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl p-3 space-y-2">
         <p className="text-xs font-bold text-amber-900 flex items-center gap-1">
           <AlertCircle className="w-3.5 h-3.5" />
-          ¿No puedes subir la {label}? Prueba esto:
+          La subida no ha funcionado. Prueba esta alternativa:
+        </p>
+        <p className="text-xs text-amber-800">
+          Puedes copiar la imagen desde tu galería y pegarla aquí directamente.
         </p>
         
         <Button

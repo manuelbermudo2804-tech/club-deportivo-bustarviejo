@@ -71,7 +71,7 @@ export default function StepPlayerData({
           </div>
           <p className="text-xs text-orange-700 text-center">Foto tipo carnet de frente, fondo claro</p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-1">
-            <p className="text-xs text-blue-800">💡 <strong>¿Problemas?</strong> Si la app se cierra al hacer la foto, prueba con <strong>"Subir desde galería"</strong>. Si tampoco funciona, usa la opción de pegar más abajo.</p>
+            <p className="text-xs text-blue-800">💡 <strong>¿Problemas?</strong> Si la app se cierra al hacer la foto, prueba con <strong>"Subir desde galería"</strong>.</p>
           </div>
           
           {/* Alternativa de último recurso: solo aparece si falló la subida normal */}
