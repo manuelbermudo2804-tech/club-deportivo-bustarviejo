@@ -167,6 +167,40 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
   }, [currentPlayer.fecha_nacimiento, player]);
 
+  // Auto-guardar borrador en cada cambio de paso o datos relevantes
+  useEffect(() => {
+    if (!isEditing && currentPlayer.nombre) {
+      saveFormDraft(currentPlayer, step);
+    }
+  }, [step, currentPlayer.nombre, currentPlayer.foto_url, currentPlayer.dni_jugador_url, currentPlayer.libro_familia_url, currentPlayer.dni_tutor_legal_url]);
+
+  // Detectar recarga por cámara al montar
+  const [restoredFromDraft, setRestoredFromDraft] = useState(false);
+  useEffect(() => {
+    const cameraReload = checkCameraReload();
+    if (cameraReload) {
+      // La app se recargó después de abrir cámara/galería
+      const draft = loadFormDraft();
+      if (draft?.playerData) {
+        setCurrentPlayer(draft.playerData);
+        setStep(draft.step || 0);
+        setRestoredFromDraft(true);
+        toast.info('📋 Hemos recuperado tu formulario. La app se recargó al usar la cámara. Puedes continuar donde lo dejaste.', { duration: 10000 });
+        // Registrar en diagnóstico
+        try {
+          base44.entities.UploadDiagnostic.create({
+            user_email: draft.playerData.email_padre || 'unknown',
+            event_type: 'diagnostic_report',
+            context: 'camera_reload_detected',
+            error_message: `App se recargó tras abrir cámara (input: ${cameraReload.inputId}). Formulario restaurado desde borrador.`,
+            device: cameraReload.userAgent?.substring(0, 200) || 'unknown',
+            extra_data: { step: draft.step, inputId: cameraReload.inputId, timeSinceCameraOpen: Date.now() - cameraReload.time }
+          });
+        } catch {}
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (formRef.current) formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [step]);
