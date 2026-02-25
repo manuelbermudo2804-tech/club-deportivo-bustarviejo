@@ -40,13 +40,31 @@ const getCuotasFromConfig = (categoria, categoryConfigs) => {
 export default function InscriptionPaymentFlow({ 
   playerData,
   seasonConfig, 
-  categoryConfigs,
+  categoryConfigs: categoryConfigsProp,
   descuentoHermano = 0,
   onContinue,
   userEmail
 }) {
   const [tipoPago, setTipoPago] = useState("Único");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadedConfigs, setLoadedConfigs] = useState(null);
+  
+  // Si no llegan categoryConfigs o están vacías, cargar directamente
+  useEffect(() => {
+    if (categoryConfigsProp && categoryConfigsProp.length > 0) return;
+    (async () => {
+      try {
+        const { base44 } = await import('@/api/base44Client');
+        const configs = await base44.entities.CategoryConfig.filter({ activa: true });
+        console.log('📊 [InscriptionPaymentFlow] CategoryConfigs cargadas directamente:', configs.length);
+        setLoadedConfigs(configs);
+      } catch (e) {
+        console.error('Error cargando CategoryConfigs:', e);
+      }
+    })();
+  }, [categoryConfigsProp]);
+
+  const categoryConfigs = (categoryConfigsProp && categoryConfigsProp.length > 0) ? categoryConfigsProp : (loadedConfigs || []);
   
   // Plan Mensual: si modo test activado, solo mostrar a emails de la lista
   // Corte: solo disponible hasta el 15 de agosto (después no tiene sentido prorratear)
