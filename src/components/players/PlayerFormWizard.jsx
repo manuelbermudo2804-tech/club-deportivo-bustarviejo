@@ -21,7 +21,7 @@ import StepSummary from "./wizard/StepSummary";
 import SecondParentSection from "./SecondParentSection";
 import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
 import { useImageUpload } from "../utils/useImageUpload";
-import { logUploadError } from "../utils/uploadLogger";
+import { logUploadError, logUploadButtonClick, logInputChange, generateDiagnosticCode } from "../utils/uploadLogger";
 
 // --- Helpers (same as original PlayerForm) ---
 const calculateAge = (birthDate) => {
