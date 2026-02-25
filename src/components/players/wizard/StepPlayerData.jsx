@@ -69,7 +69,7 @@ export default function StepPlayerData({
           </div>
           <p className="text-xs text-orange-700 text-center">Foto tipo carnet de frente, fondo claro</p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-1">
-            <p className="text-xs text-blue-800">💡 <strong>¿No ves la foto después de hacerla?</strong> En móviles con poca memoria puede no mostrarse la miniatura, pero la foto se ha guardado correctamente. Puedes continuar sin problema.</p>
+            <p className="text-xs text-blue-800">💡 <strong>¿Problemas con "Hacer Foto"?</strong> Si la app se cierra al usar la cámara, haz la foto primero con la app de cámara de tu móvil y luego súbela con "Subir desde galería".</p>
           </div>
         </div>
       </div>

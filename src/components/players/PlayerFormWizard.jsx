@@ -175,23 +175,20 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   }, [step, currentPlayer.nombre, currentPlayer.foto_url, currentPlayer.dni_jugador_url, currentPlayer.libro_familia_url, currentPlayer.dni_tutor_legal_url]);
 
   // Detectar recarga (por cámara o por crash) y restaurar borrador al montar
-  const [restoredFromDraft, setRestoredFromDraft] = useState(false);
   useEffect(() => {
-    if (isEditing) return; // No restaurar en modo edición
+    if (isEditing) return;
     const cameraReload = checkCameraReload();
     const draft = loadFormDraft();
     if (draft?.playerData && (draft.playerData.nombre || draft.playerData.foto_url)) {
       setCurrentPlayer(draft.playerData);
       setStep(draft.step || 0);
-      setRestoredFromDraft(true);
-      const reason = cameraReload ? 'cámara' : 'recarga/error';
-      toast.info(`📋 Formulario recuperado (${reason}). Puedes continuar donde lo dejaste.`, { duration: 8000 });
+      // Recuperación silenciosa — sin toasts ni banners
       try {
         base44.entities.UploadDiagnostic.create({
           user_email: draft.playerData.email_padre || 'unknown',
           event_type: 'diagnostic_report',
           context: cameraReload ? 'camera_reload_detected' : 'crash_reload_detected',
-          error_message: `Formulario restaurado (${reason}). Foto: ${draft.playerData.foto_url ? 'SÍ' : 'NO'}`,
+          error_message: `Formulario restaurado silenciosamente. Foto: ${draft.playerData.foto_url ? 'SÍ' : 'NO'}`,
           device: navigator.userAgent?.substring(0, 200) || 'unknown',
           extra_data: { step: draft.step, hasFoto: !!draft.playerData.foto_url, hasDNI: !!draft.playerData.dni_jugador_url }
         });
@@ -480,14 +477,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
           <WizardProgress currentStep={step} totalSteps={totalSteps} stepLabels={stepLabels} />
         </CardHeader>
         <CardContent className="pt-6">
-          {restoredFromDraft && (
-            <Alert className="mb-4 bg-blue-50 border-blue-200">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800">
-                📋 <strong>Formulario recuperado.</strong> Tu progreso se guardó antes de abrir la cámara. Puedes continuar donde lo dejaste.
-              </AlertDescription>
-            </Alert>
-          )}
+
           {siblingDiscount.hasDiscount && step === 0 && (
             <Alert className="mb-4 bg-green-50 border-green-200">
               <AlertCircle className="h-4 w-4 text-green-600" />

@@ -226,7 +226,7 @@ export default function StepTutor({
               setCurrentPlayer({ ...currentPlayer, municipio: e.target.value });
               if (fieldErrors.municipio) setFieldErrors(prev => ({ ...prev, municipio: null }));
             }}
-            placeholder="Bustarviejo"
+            placeholder="Escribe tu municipio"
             className={fieldErrors.municipio ? "border-2 border-red-500 bg-red-50" : ""}
           />
           {fieldErrors.municipio && <p className="text-xs text-red-600">{fieldErrors.municipio}</p>}
