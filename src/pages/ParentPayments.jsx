@@ -1090,6 +1090,7 @@ export default function ParentPayments() {
                                 showPayButton={mostrarBotonPagar && !payment.isVirtual}
                                 hasPlanEspecial={hasPlanEspecial}
                                 hasPlanMensual={hasPlanMensual}
+                                feeAdjustment={player.ajuste_cuota}
                                 isSelected={isSelected}
                                 onToggleSelect={(v) => {
                                   if (payment.estado !== 'Pendiente') return;
