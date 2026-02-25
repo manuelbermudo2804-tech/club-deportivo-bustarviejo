@@ -54,7 +54,7 @@ export default function StepCategory({
       {/* Selector de categoría */}
       <div className="space-y-2">
         <Label>Categoría y Deporte *</Label>
-        <Select value={currentPlayer.deporte} onValueChange={(v) => setCurrentPlayer({ ...currentPlayer, deporte: v })}>
+        <Select value={currentPlayer.deporte} onValueChange={(v) => { if (onUserChangeCategory) onUserChangeCategory(); setCurrentPlayer({ ...currentPlayer, deporte: v }); }}>
           <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
           <SelectContent position="popper" sideOffset={4} className="z-[9999] max-h-[60vh]">
             {categories.map(cat => <SelectItem key={cat.value} value={cat.value} className="py-3 text-sm cursor-pointer">{cat.label}</SelectItem>)}
