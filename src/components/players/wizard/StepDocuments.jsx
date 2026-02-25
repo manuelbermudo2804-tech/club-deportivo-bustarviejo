@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Upload, Loader2, Download, FileText, Lock } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
+import CameraPermissionCheck from "../../upload/CameraPermissionCheck";
 
 export default function StepDocuments({
   currentPlayer,
@@ -24,6 +25,9 @@ export default function StepDocuments({
       <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
         <FileText className="w-5 h-5 text-blue-600" /> Documentación del Jugador
       </h3>
+
+      {/* CHECK PERMISOS CÁMARA/ARCHIVOS */}
+      <CameraPermissionCheck />
 
       {/* Tipo de documento */}
       <div className="space-y-2">
