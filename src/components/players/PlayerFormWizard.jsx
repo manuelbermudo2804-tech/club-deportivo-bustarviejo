@@ -341,7 +341,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (source) {
       setCurrentPlayer(prev => ({
         ...prev, nombre_tutor_legal: source.nombre_tutor_legal || "", dni_tutor_legal: source.dni_tutor_legal || "",
-        dni_tutor_legal_url: source.dni_tutor_legal_url || "", telefono: source.telefono || "",
+        dni_tutor_legal_url: source.dni_tutor_legal_url || "", dni_tutor_legal_trasero_url: source.dni_tutor_legal_trasero_url || "", telefono: source.telefono || "",
         email_padre: source.email_padre || "", nombre_tutor_2: source.nombre_tutor_2 || "",
         telefono_tutor_2: source.telefono_tutor_2 || "", email_tutor_2: source.email_tutor_2 || "",
         direccion: source.direccion || "", municipio: source.municipio || ""
