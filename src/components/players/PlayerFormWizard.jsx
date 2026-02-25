@@ -68,10 +68,19 @@ const useCategoriesFromConfig = () => {
   React.useEffect(() => {
     (async () => {
       try {
-        const configs = await base44.entities.CategoryConfig.filter({ activa: true });
-        if (configs.length > 0) {
-          // Deduplicar por nombre (puede haber misma categoría en varias temporadas)
-          const unique = [...new Map(configs.map(c => [c.nombre, c])).values()];
+        const [configs, seasons] = await Promise.all([
+          base44.entities.CategoryConfig.filter({ activa: true }),
+          base44.entities.SeasonConfig.filter({ activa: true })
+        ]);
+        const activeTemporada = seasons[0]?.temporada;
+        // Filtrar por temporada activa; si no hay coincidencias, usar todas las activas
+        let filtered = activeTemporada 
+          ? configs.filter(c => c.temporada === activeTemporada) 
+          : configs;
+        if (filtered.length === 0) filtered = configs;
+        // Deduplicar por nombre
+        const unique = [...new Map(filtered.map(c => [c.nombre, c])).values()];
+        if (unique.length > 0) {
           setCategories(unique.map(c => ({ value: c.nombre, label: c.nombre })));
         }
       } catch {}
