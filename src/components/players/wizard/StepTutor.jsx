@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, Loader2, Download, Users, X, CheckCircle2, Lock } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
+import { markCameraOpening } from "./useFormPersistence";
 
 export default function StepTutor({
   currentPlayer,
@@ -154,7 +155,7 @@ export default function StepTutor({
           <Button
             type="button"
             variant={fieldErrors.dni_tutor_legal_url ? "destructive" : "outline"}
-            onClick={() => { logUploadButtonClick('wiz-dni-tutor-upload', 'dni_tutor'); document.getElementById('wiz-dni-tutor-upload').click(); }}
+            onClick={() => { markCameraOpening('wiz-dni-tutor-upload'); logUploadButtonClick('wiz-dni-tutor-upload', 'dni_tutor'); document.getElementById('wiz-dni-tutor-upload').click(); }}
             disabled={uploadingDNITutor}
             className="flex-1 min-h-[44px]"
           >
