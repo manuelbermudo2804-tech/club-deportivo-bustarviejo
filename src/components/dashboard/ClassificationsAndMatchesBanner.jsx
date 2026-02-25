@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trophy, MapPin, Calendar, Clock, Eye, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Trophy, MapPin, Calendar, Clock, Eye, TrendingUp, TrendingDown, Minus, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -189,7 +189,7 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
               </div>
             </Link>
 
-            {/* DERECHA: PRÓXIMO PARTIDO */}
+            {/* DERECHA: MIS CONVOCATORIAS */}
             <div className="bg-gradient-to-br from-green-50 to-emerald-50">
               {nextMatch ? (
                 <button
@@ -198,8 +198,8 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5">
-                      <Trophy className="w-4 h-4 text-green-700" />
-                      <p className="font-bold text-slate-900 text-xs">Próximo Partido</p>
+                      <Bell className="w-4 h-4 text-green-700" />
+                      <p className="font-bold text-slate-900 text-xs">Mis Convocatorias</p>
                     </div>
                     {additionalMatches > 0 && (
                       <Badge className="bg-green-600 text-white text-[9px] px-1.5 py-0">+{additionalMatches}</Badge>
@@ -230,9 +230,16 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
                   </Button>
                 </button>
               ) : (
-                <div className="p-3 text-center flex items-center justify-center h-full">
-                  <p className="text-xs text-slate-500">Sin partidos próximos</p>
-                </div>
+                <Link to={createPageUrl("CalendarAndSchedules")} className="block h-full">
+                  <div className="p-3 text-center flex flex-col items-center justify-center h-full hover:bg-green-100/50 transition-colors">
+                    <Bell className="w-5 h-5 text-slate-400 mb-1" />
+                    <p className="text-[11px] font-semibold text-slate-600 mb-1">Sin convocatorias activas</p>
+                    <p className="text-[9px] text-slate-400 leading-tight mb-1.5">Tus hijos no están convocados aún</p>
+                    <span className="text-[10px] text-green-600 font-semibold flex items-center gap-1">
+                      📅 Ver partidos del club →
+                    </span>
+                  </div>
+                </Link>
               )}
             </div>
           </div>
@@ -244,8 +251,8 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-green-600" />
-              Próximos Partidos ({sortedCallups.length})
+              <Bell className="w-5 h-5 text-green-600" />
+              Mis Convocatorias ({sortedCallups.length})
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 max-h-[60vh] overflow-y-auto">
