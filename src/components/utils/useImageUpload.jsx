@@ -65,28 +65,81 @@ function validateFile(file) {
 }
 
 /**
- * Subida segura al backend (processImage para imágenes, UploadFile para PDFs).
+ * Detecta si el dispositivo tiene memoria limitada.
+ * En estos dispositivos, processImage puede matar la PWA.
+ */
+function isLowMemoryDevice() {
+  try {
+    // navigator.deviceMemory (Chrome/Android) — en GB
+    if (navigator.deviceMemory && navigator.deviceMemory < 3) return true;
+    // performance.memory (Chrome) — heap usado
+    if (performance?.memory?.jsHeapSizeLimit) {
+      const heapLimitMB = performance.memory.jsHeapSizeLimit / 1024 / 1024;
+      if (heapLimitMB < 512) return true;
+    }
+    // Android antiguo (Chrome < 100) + PWA → alto riesgo
+    const ua = navigator.userAgent || '';
+    const chromeMatch = ua.match(/Chrome\/(\d+)/);
+    if (chromeMatch && parseInt(chromeMatch[1]) < 100 && /Android/.test(ua)) return true;
+    return false;
+  } catch { return false; }
+}
+
+/**
+ * Subida directa (sin procesamiento en backend). Fallback seguro.
+ */
+async function directUpload(file) {
+  try {
+    const response = await base44.integrations.Core.UploadFile({ file });
+    const url = response?.file_url || response?.data?.file_url;
+    if (!url) return { error: 'No se recibió URL del servidor.' };
+    return { url };
+  } catch (err) {
+    return { error: `Error al subir directamente: ${err?.message || 'desconocido'}` };
+  }
+}
+
+/**
+ * Subida segura al backend con estrategia adaptativa:
+ * 1. Dispositivos con poca RAM → subida directa (sin processImage)
+ * 2. Dispositivos normales → processImage con fallback a directa
  * Nunca lanza — devuelve { url } o { error }.
  */
 async function safeUploadToBackend(file, isPDF = false) {
   try {
     if (isPDF) {
-      const response = await base44.integrations.Core.UploadFile({ file });
-      const url = response?.file_url || response?.data?.file_url;
-      if (!url) return { error: 'No se recibió URL del servidor para el PDF.' };
-      return { url };
+      return await directUpload(file);
     }
 
-    // Imagen → processImage (resize + JPEG + compresión)
-    const response = await base44.functions.invoke('processImage', { image: file });
-    const data = response?.data;
+    // Dispositivos con poca memoria → subida directa, sin arriesgar crash
+    const lowMem = isLowMemoryDevice();
+    if (lowMem) {
+      console.info('[Upload] Dispositivo con poca memoria — subida directa sin processImage');
+      return await directUpload(file);
+    }
 
-    // Respuesta inesperada (null, sin estructura)
-    if (!data) return { error: 'Respuesta inesperada del servidor. Inténtalo de nuevo.' };
-    if (data.error) return { error: data.userMessage || data.error };
-    if (!data.file_url) return { error: 'El servidor no devolvió la URL de la imagen.' };
+    // Dispositivo normal → processImage (resize + compresión en servidor)
+    try {
+      const response = await base44.functions.invoke('processImage', { image: file });
+      const data = response?.data;
 
-    return { url: data.file_url };
+      if (!data) throw new Error('empty_response');
+      if (data.error) {
+        // Si processImage falló en el servidor, intentar subida directa
+        console.warn('[Upload] processImage error, fallback a subida directa:', data.error);
+        return await directUpload(file);
+      }
+      if (!data.file_url) throw new Error('no_file_url');
+
+      return { url: data.file_url };
+    } catch (processErr) {
+      // processImage falló (timeout, red, crash) → fallback a subida directa
+      console.warn('[Upload] processImage falló, fallback a subida directa:', processErr?.message);
+      const directResult = await directUpload(file);
+      if (directResult.url) return directResult;
+      // Si también falla la directa, reportar el error original
+      return { error: `No se pudo subir la imagen. ${processErr?.message || ''}` };
+    }
   } catch (err) {
     const msg = (err?.message || '').toLowerCase();
     const status = err?.response?.status || err?.status;
