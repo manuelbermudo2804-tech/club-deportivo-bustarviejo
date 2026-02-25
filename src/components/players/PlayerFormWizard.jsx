@@ -185,37 +185,46 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   }, [isParent, isAdultPlayerSelfRegistration, player]);
 
   // Handlers de subida — usan el hook centralizado useImageUpload
+  // Cada handler registra: (1) que se disparó onChange, (2) cuántos archivos llegaron, (3) resultado
   const handlePhotoUpload = async (e) => {
     try {
+      logInputChange(e.target?.id || 'photo', e.target?.files, 'handlePhotoUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
+      if (!file) return; // cancelación silenciosa
       const url = await uploadFile_photo(file);
       if (url) setCurrentPlayer(p => ({ ...p, foto_url: url }));
-    } catch (err) { logUploadError(null, err, 'handlePhotoUpload'); }
+    } catch (err) { logUploadError(null, err, 'handlePhotoUpload_catch'); }
   };
   const handleDNIUpload = async (e) => {
     try {
+      logInputChange(e.target?.id || 'dni', e.target?.files, 'handleDNIUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
+      if (!file) return;
       const url = await uploadFile_dni(file);
       if (url) setCurrentPlayer(p => ({ ...p, dni_jugador_url: url }));
-    } catch (err) { logUploadError(null, err, 'handleDNIUpload'); }
+    } catch (err) { logUploadError(null, err, 'handleDNIUpload_catch'); }
   };
   const handleLibroFamiliaUpload = async (e) => {
     try {
+      logInputChange(e.target?.id || 'libro', e.target?.files, 'handleLibroFamiliaUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
+      if (!file) return;
       const url = await uploadFile_libro(file);
       if (url) setCurrentPlayer(p => ({ ...p, libro_familia_url: url }));
-    } catch (err) { logUploadError(null, err, 'handleLibroFamiliaUpload'); }
+    } catch (err) { logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
   };
   const handleDNITutorUpload = async (e) => {
     try {
+      logInputChange(e.target?.id || 'tutordni', e.target?.files, 'handleDNITutorUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
+      if (!file) return;
       const url = await uploadFile_tutordni(file);
       if (url) setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
-    } catch (err) { logUploadError(null, err, 'handleDNITutorUpload'); }
+    } catch (err) { logUploadError(null, err, 'handleDNITutorUpload_catch'); }
   };
 
   const handleLoadPreviousTutorData = (playerId) => {
