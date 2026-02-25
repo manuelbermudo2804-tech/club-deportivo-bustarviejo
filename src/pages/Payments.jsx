@@ -1351,6 +1351,27 @@ export default function Payments() {
                             </div>
                           </CardHeader>
                           <CardContent className="p-3 lg:p-4">
+                            {/* Banner de ajuste de cuota */}
+                            {player.ajuste_cuota?.cuota_ajustada != null && (
+                              <div className="mb-3 p-2 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-xs font-bold text-yellow-900">💰 Cuota Ajustada</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className="line-through text-slate-400 text-sm">{player.ajuste_cuota.cuota_original?.toFixed(0)}€</span>
+                                      <span className="text-lg font-bold text-green-700">{player.ajuste_cuota.cuota_ajustada?.toFixed(0)}€</span>
+                                    </div>
+                                    <p className="text-[10px] text-yellow-800 mt-0.5">{player.ajuste_cuota.motivo}</p>
+                                  </div>
+                                  {isAdmin && (
+                                    <Button size="sm" variant="outline" onClick={() => setFeeAdjustPlayer(player)} className="h-6 text-[10px] px-2">
+                                      Modificar
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
                             {/* Alerta de plan especial */}
                             {playerCustomPlan && (
                               <div className="mb-3 p-2 bg-purple-50 border-2 border-purple-300 rounded-lg">
@@ -1701,6 +1722,18 @@ export default function Payments() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de ajuste de cuota */}
+      <FeeAdjustmentDialog
+        open={!!feeAdjustPlayer}
+        onOpenChange={(open) => { if (!open) setFeeAdjustPlayer(null); }}
+        player={feeAdjustPlayer}
+        payments={payments}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+          queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
+        }}
+      />
 
       <ContactCard />
 
