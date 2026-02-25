@@ -89,13 +89,20 @@ async function safeUploadToBackend(file, isPDF = false) {
     return { url: data.file_url };
   } catch (err) {
     const msg = (err?.message || '').toLowerCase();
-    if (msg.includes('network') || msg.includes('fetch') || msg.includes('load')) {
-      return { error: 'Error de conexión. Comprueba tu internet e inténtalo de nuevo.' };
+    const status = err?.response?.status || err?.status;
+    if (msg.includes('network') || msg.includes('fetch') || msg.includes('load') || msg.includes('failed to fetch')) {
+      return { error: `Error de conexión (${status || 'sin respuesta'}). Comprueba tu internet e inténtalo de nuevo.` };
     }
-    if (msg.includes('413') || msg.includes('large') || msg.includes('size')) {
+    if (msg.includes('413') || msg.includes('large') || msg.includes('size') || status === 413) {
       return { error: 'Archivo demasiado grande para el servidor. Baja la resolución de la cámara.' };
     }
-    return { error: 'Error al subir el archivo. Inténtalo de nuevo.' };
+    if (msg.includes('timeout') || msg.includes('timed out') || status === 504) {
+      return { error: 'La subida tardó demasiado. Comprueba tu conexión WiFi/datos.' };
+    }
+    if (status === 500) {
+      return { error: `Error del servidor (500). ${err?.response?.data?.userMessage || 'Inténtalo de nuevo.'}` };
+    }
+    return { error: `Error al subir (${status || msg.substring(0,50) || 'desconocido'}). Inténtalo de nuevo.` };
   }
 }
 
