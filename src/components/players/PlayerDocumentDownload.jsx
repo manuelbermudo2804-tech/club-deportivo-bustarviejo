@@ -75,9 +75,17 @@ export default function PlayerDocumentDownload({ player, variant = "dropdown", s
     },
     {
       type: "dni_jugador",
-      label: "DNI Jugador",
+      label: "DNI Jugador (delantera)",
       url: player?.dni_jugador_url,
-      fileName: `DNI_Jugador_${playerName}.${getFileExtension(player?.dni_jugador_url)}`,
+      fileName: `DNI_Jugador_Delantera_${playerName}.${getFileExtension(player?.dni_jugador_url)}`,
+      icon: FileText,
+      color: "text-green-600"
+    },
+    {
+      type: "dni_jugador_trasero",
+      label: "DNI Jugador (trasera)",
+      url: player?.dni_jugador_trasero_url,
+      fileName: `DNI_Jugador_Trasera_${playerName}.${getFileExtension(player?.dni_jugador_trasero_url)}`,
       icon: FileText,
       color: "text-green-600"
     },
@@ -91,9 +99,17 @@ export default function PlayerDocumentDownload({ player, variant = "dropdown", s
     },
     {
       type: "dni_tutor",
-      label: "DNI Tutor Legal",
+      label: "DNI Tutor (delantera)",
       url: player?.dni_tutor_legal_url,
-      fileName: `DNI_Tutor_${tutorName}_${playerName}.${getFileExtension(player?.dni_tutor_legal_url)}`,
+      fileName: `DNI_Tutor_Delantera_${tutorName}_${playerName}.${getFileExtension(player?.dni_tutor_legal_url)}`,
+      icon: FileText,
+      color: "text-orange-600"
+    },
+    {
+      type: "dni_tutor_trasero",
+      label: "DNI Tutor (trasera)",
+      url: player?.dni_tutor_legal_trasero_url,
+      fileName: `DNI_Tutor_Trasera_${tutorName}_${playerName}.${getFileExtension(player?.dni_tutor_legal_trasero_url)}`,
       icon: FileText,
       color: "text-orange-600"
     }

@@ -23,7 +23,9 @@ export default function StepSummary({ currentPlayer, playerAge, isMayorDeEdad, s
       title: "📄 Documentación",
       items: [
         { label: "DNI Jugador", value: currentPlayer.dni_jugador || "No proporcionado" },
-        { label: "DNI escaneado", value: currentPlayer.dni_jugador_url ? "✅ Subido" : "No subido", ok: !!currentPlayer.dni_jugador_url },
+        { label: "DNI delantera", value: currentPlayer.dni_jugador_url ? "✅ Subido" : "No subido", ok: !!currentPlayer.dni_jugador_url },
+        ...(currentPlayer.tipo_documento === "DNI" ? [{ label: "DNI trasera", value: currentPlayer.dni_jugador_trasero_url ? "✅ Subido" : "No subido", ok: !!currentPlayer.dni_jugador_trasero_url }] : []),
+        ...(currentPlayer.libro_familia_url ? [{ label: "Libro de Familia", value: "✅ Subido", ok: true }] : []),
       ]
     },
   ];
@@ -34,6 +36,8 @@ export default function StepSummary({ currentPlayer, playerAge, isMayorDeEdad, s
       items: [
         { label: "Nombre tutor", value: currentPlayer.nombre_tutor_legal || "—" },
         { label: "DNI tutor", value: currentPlayer.dni_tutor_legal || "—" },
+        { label: "DNI tutor delantera", value: currentPlayer.dni_tutor_legal_url ? "✅ Subido" : "No subido", ok: !!currentPlayer.dni_tutor_legal_url },
+        ...(currentPlayer.tipo_documento_tutor === "DNI" ? [{ label: "DNI tutor trasera", value: currentPlayer.dni_tutor_legal_trasero_url ? "✅ Subido" : "No subido", ok: !!currentPlayer.dni_tutor_legal_trasero_url }] : []),
         { label: "Email", value: currentPlayer.email_padre },
         { label: "Teléfono", value: currentPlayer.telefono },
       ]
