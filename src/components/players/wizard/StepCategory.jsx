@@ -10,7 +10,8 @@ export default function StepCategory({
   setCurrentPlayer,
   categories,
   playerAge,
-  suggestCategoryByAge
+  suggestCategoryByAge,
+  onUserChangeCategory
 }) {
   return (
     <div className="space-y-6">
