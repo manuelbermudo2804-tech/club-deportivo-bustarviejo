@@ -30,6 +30,10 @@ export default function StepDocuments({
       {/* CHECK PERMISOS CÁMARA/ARCHIVOS */}
       <CameraPermissionCheck />
 
+      <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+        <p className="text-xs text-blue-800">💡 <strong>¿No ves el documento después de subirlo?</strong> En móviles con poca memoria puede no mostrarse la vista previa, pero el archivo se ha guardado correctamente. Puedes continuar sin problema.</p>
+      </div>
+
       {/* Tipo de documento */}
       <div className="space-y-2">
         <Label>Tipo de Documento del Jugador</Label>
@@ -81,6 +85,12 @@ export default function StepDocuments({
             <PrivateFileViewer fileUri={currentPlayer.dni_jugador_url} label="Ver DNI" />
           )}
         </div>
+        {currentPlayer.dni_jugador_url && !fieldErrors.dni_jugador_url && (
+          <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
+            <p className="text-green-800 text-sm font-bold">✅ Documento subido correctamente</p>
+            <p className="text-green-700 text-xs">Si no ves la vista previa, no te preocupes — el archivo está guardado.</p>
+          </div>
+        )}
         {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
       </div>
 
@@ -107,6 +117,12 @@ export default function StepDocuments({
             )}
           </div>
           <p className="text-xs text-blue-700">Si el jugador es menor de 14 años y no tiene DNI, sube el libro de familia</p>
+          {currentPlayer.libro_familia_url && !fieldErrors.libro_familia_url && (
+            <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
+              <p className="text-green-800 text-sm font-bold">✅ Libro de familia subido correctamente</p>
+              <p className="text-green-700 text-xs">Si no ves la vista previa, no te preocupes — el archivo está guardado.</p>
+            </div>
+          )}
           {fieldErrors.libro_familia_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.libro_familia_url}</p>}
         </div>
       )}

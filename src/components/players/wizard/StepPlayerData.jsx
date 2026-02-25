@@ -40,7 +40,13 @@ export default function StepPlayerData({
         <div className="flex flex-col items-center space-y-3">
           <div className="relative">
             {currentPlayer.foto_url ? (
-              <img src={currentPlayer.foto_url} alt="Foto carnet" className="w-28 h-36 object-cover border-4 border-orange-300 shadow-lg rounded-lg" />
+              <>
+                <img src={currentPlayer.foto_url} alt="Foto carnet" className="w-28 h-36 object-cover border-4 border-green-400 shadow-lg rounded-lg" />
+                <div className="mt-2 bg-green-100 border border-green-300 rounded-lg px-3 py-1.5 text-center">
+                  <p className="text-green-800 text-sm font-bold">✅ Foto subida correctamente</p>
+                  <p className="text-green-700 text-xs">Si no ves la imagen, no te preocupes — está guardada. Continúa con el formulario.</p>
+                </div>
+              </>
             ) : (
               <div className="w-28 h-36 bg-slate-200 flex items-center justify-center text-slate-500 border-4 border-dashed border-orange-300 rounded-lg">
                 <Camera className="w-8 h-8" />
@@ -62,6 +68,9 @@ export default function StepPlayerData({
             </Button>
           </div>
           <p className="text-xs text-orange-700 text-center">Foto tipo carnet de frente, fondo claro</p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-1">
+            <p className="text-xs text-blue-800">💡 <strong>¿No ves la foto después de hacerla?</strong> En móviles con poca memoria puede no mostrarse la miniatura, pero la foto se ha guardado correctamente. Puedes continuar sin problema.</p>
+          </div>
         </div>
       </div>
 
