@@ -495,7 +495,7 @@ export default function PlayerDashboard() {
         {/* Banner de renovación para jugadores +18 */}
         <PlayerRenewalBanner player={player} seasonConfig={seasonConfig} />
 
-        {/* Banner Clasificaciones y Próximo Partido */}
+        {/* Banner Clasificaciones y Mis Convocatorias */}
         <ClassificationsAndMatchesBanner 
           userEmail={user?.email} 
           myPlayers={player ? [player] : []} 
