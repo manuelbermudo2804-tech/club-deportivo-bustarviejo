@@ -46,44 +46,44 @@ export default function StepPlayerData({
             </div>
           )}
 
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0">
-              {currentPlayer.foto_url ? (
-                <div className="relative">
-                  <img src={currentPlayer.foto_url} alt="Foto carnet" className="w-24 h-32 object-cover rounded-xl border-2 border-green-400 shadow-md" />
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
+          {/* Foto centrada arriba */}
+          <div className="flex justify-center mb-4">
+            {currentPlayer.foto_url ? (
+              <div className="relative">
+                <img src={currentPlayer.foto_url} alt="Foto carnet" className="w-28 h-36 object-cover rounded-xl border-2 border-green-400 shadow-md" />
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow">
+                  <span className="text-white text-xs">✓</span>
                 </div>
-              ) : (
-                <div className="w-24 h-32 bg-slate-100 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-300 rounded-xl">
-                  <Camera className="w-6 h-6 mb-1" />
-                  <span className="text-[10px]">Sin foto</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 space-y-2">
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-
-              <Button type="button" variant="default" className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl" style={{ minHeight: '44px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-camera'); logUploadButtonClick('wiz-photo-camera', 'foto_camara'); document.getElementById('wiz-photo-camera').click(); }}>
-                {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
-                {currentPlayer.foto_url ? "Cambiar Foto" : "📸 Hacer Foto"}
-              </Button>
-              <Button type="button" variant="outline" className="w-full font-medium rounded-xl text-slate-600" style={{ minHeight: '40px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-gallery'); logUploadButtonClick('wiz-photo-gallery', 'foto_galeria'); document.getElementById('wiz-photo-gallery').click(); }}>
-                {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                Subir desde galería
-              </Button>
-
-              {currentPlayer.foto_url && (
-                <p className="text-xs text-green-700 font-medium text-center">✅ Foto guardada</p>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="w-28 h-36 bg-slate-100 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-300 rounded-xl">
+                <Camera className="w-7 h-7 mb-1" />
+                <span className="text-[11px]">Sin foto</span>
+              </div>
+            )}
           </div>
 
+          {/* Botones debajo, a ancho completo */}
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button type="button" variant="default" className="bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl text-sm" style={{ minHeight: '44px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-camera'); logUploadButtonClick('wiz-photo-camera', 'foto_camara'); document.getElementById('wiz-photo-camera').click(); }}>
+              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Camera className="w-4 h-4 mr-1" />}
+              Hacer Foto
+            </Button>
+            <Button type="button" variant="outline" className="font-medium rounded-xl text-slate-600 text-sm" style={{ minHeight: '44px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-gallery'); logUploadButtonClick('wiz-photo-gallery', 'foto_galeria'); document.getElementById('wiz-photo-gallery').click(); }}>
+              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
+              Galería
+            </Button>
+          </div>
+
+          {currentPlayer.foto_url && (
+            <p className="text-xs text-green-700 font-medium text-center mt-2">✅ Foto guardada</p>
+          )}
+
           {!currentPlayer.foto_url && (
-            <p className="text-xs text-slate-500 mt-3 text-center">💡 Si la app se cierra al hacer la foto, prueba "Subir desde galería"</p>
+            <p className="text-xs text-slate-400 mt-2 text-center">💡 Si la app se cierra, prueba "Galería"</p>
           )}
           
           {!currentPlayer.foto_url && photoUploadFailed && (
