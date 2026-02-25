@@ -14,14 +14,12 @@ import PlayerFormWizard from "../components/players/PlayerFormWizard";
 import PlayerForm from "../components/players/PlayerForm";
 import FullscreenFormModal from "../components/players/FullscreenFormModal";
 import ContactCard from "../components/ContactCard";
-import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ShareFormButton from "../components/players/ShareFormButton";
-import PlayerProgressCard from "../components/players/PlayerProgressCard";
 import MinorAccessBanner from "../components/minor/MinorAccessBanner";
 
 
@@ -134,23 +132,7 @@ export default function ParentPlayers() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: attendances } = useQuery({
-    queryKey: ['attendances'],
-    queryFn: () => base44.entities.Attendance.list('-fecha'),
-    initialData: [],
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-  });
 
-  const { data: evaluations } = useQuery({
-    queryKey: ['evaluations'],
-    queryFn: () => base44.entities.PlayerEvaluation.list('-fecha_evaluacion'),
-    initialData: [],
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-  });
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
@@ -1194,25 +1176,18 @@ Email: cdbustarviejo@gmail.com
               <div className="space-y-6">
                 <AnimatePresence>
                   {futbolPlayers.map((player) => (
-                    <div key={player.id} className="space-y-4">
-                      <PlayerCard 
-                        player={player} 
-                        onEdit={handleEdit}
-                        onRenew={handleRenew}
-                        onMarkNotRenewing={handleMarkNotRenewing}
-                        isParent={true}
-                        schedules={schedules}
-                        payments={payments}
-                        seasonConfig={seasonConfig}
-                        callups={callups}
-                      />
-                      <PlayerProgressCard player={player} />
-                      <AchievementsBadges 
-                        player={player} 
-                        attendances={attendances}
-                        evaluations={evaluations}
-                      />
-                    </div>
+                    <PlayerCard 
+                      key={player.id}
+                      player={player} 
+                      onEdit={handleEdit}
+                      onRenew={handleRenew}
+                      onMarkNotRenewing={handleMarkNotRenewing}
+                      isParent={true}
+                      schedules={schedules}
+                      payments={payments}
+                      seasonConfig={seasonConfig}
+                      callups={callups}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
@@ -1232,25 +1207,18 @@ Email: cdbustarviejo@gmail.com
               <div className="space-y-6">
                 <AnimatePresence>
                   {futbolFemeninoPlayers.map((player) => (
-                    <div key={player.id} className="space-y-4">
-                      <PlayerCard 
-                        player={player} 
-                        onEdit={handleEdit}
-                        onRenew={handleRenew}
-                        onMarkNotRenewing={handleMarkNotRenewing}
-                        isParent={true}
-                        schedules={schedules}
-                        payments={payments}
-                        seasonConfig={seasonConfig}
-                        callups={callups}
-                      />
-                      <PlayerProgressCard player={player} />
-                      <AchievementsBadges 
-                        player={player} 
-                        attendances={attendances}
-                        evaluations={evaluations}
-                      />
-                    </div>
+                    <PlayerCard 
+                      key={player.id}
+                      player={player} 
+                      onEdit={handleEdit}
+                      onRenew={handleRenew}
+                      onMarkNotRenewing={handleMarkNotRenewing}
+                      isParent={true}
+                      schedules={schedules}
+                      payments={payments}
+                      seasonConfig={seasonConfig}
+                      callups={callups}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
@@ -1270,25 +1238,18 @@ Email: cdbustarviejo@gmail.com
               <div className="space-y-6">
                 <AnimatePresence>
                   {baloncestoPlayers.map((player) => (
-                    <div key={player.id} className="space-y-4">
-                      <PlayerCard 
-                        player={player} 
-                        onEdit={handleEdit}
-                        onRenew={handleRenew}
-                        onMarkNotRenewing={handleMarkNotRenewing}
-                        isParent={true}
-                        schedules={schedules}
-                        payments={payments}
-                        seasonConfig={seasonConfig}
-                        callups={callups}
-                      />
-                      <PlayerProgressCard player={player} />
-                      <AchievementsBadges 
-                        player={player} 
-                        attendances={attendances}
-                        evaluations={evaluations}
-                      />
-                    </div>
+                    <PlayerCard 
+                      key={player.id}
+                      player={player} 
+                      onEdit={handleEdit}
+                      onRenew={handleRenew}
+                      onMarkNotRenewing={handleMarkNotRenewing}
+                      isParent={true}
+                      schedules={schedules}
+                      payments={payments}
+                      seasonConfig={seasonConfig}
+                      callups={callups}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
@@ -1308,25 +1269,18 @@ Email: cdbustarviejo@gmail.com
               <div className="space-y-6">
                 <AnimatePresence>
                   {actividadesComplementarias.map((player) => (
-                    <div key={player.id} className="space-y-4">
-                      <PlayerCard 
-                        player={player} 
-                        onEdit={handleEdit}
-                        onRenew={handleRenew}
-                        onMarkNotRenewing={handleMarkNotRenewing}
-                        isParent={true}
-                        schedules={schedules}
-                        payments={payments}
-                        seasonConfig={seasonConfig}
-                        callups={callups}
-                      />
-                      <PlayerProgressCard player={player} />
-                      <AchievementsBadges 
-                        player={player} 
-                        attendances={attendances}
-                        evaluations={evaluations}
-                      />
-                    </div>
+                    <PlayerCard 
+                      key={player.id}
+                      player={player} 
+                      onEdit={handleEdit}
+                      onRenew={handleRenew}
+                      onMarkNotRenewing={handleMarkNotRenewing}
+                      isParent={true}
+                      schedules={schedules}
+                      payments={payments}
+                      seasonConfig={seasonConfig}
+                      callups={callups}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
