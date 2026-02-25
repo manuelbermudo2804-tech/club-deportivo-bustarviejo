@@ -70,7 +70,7 @@ export default function StepDocuments({
           <Button
             type="button"
             variant={fieldErrors.dni_jugador_url ? "destructive" : "outline"}
-            onClick={() => { logUploadButtonClick('wiz-dni-upload', 'dni_jugador'); document.getElementById('wiz-dni-upload').click(); }}
+            onClick={() => { markCameraOpening('wiz-dni-upload'); logUploadButtonClick('wiz-dni-upload', 'dni_jugador'); document.getElementById('wiz-dni-upload').click(); }}
             disabled={uploadingDNI}
             className="flex-1 min-h-[44px]"
           >
@@ -95,7 +95,7 @@ export default function StepDocuments({
             <Button
               type="button"
               variant={fieldErrors.libro_familia_url ? "destructive" : "outline"}
-              onClick={() => { logUploadButtonClick('wiz-libro-upload', 'libro_familia'); document.getElementById('wiz-libro-upload').click(); }}
+              onClick={() => { markCameraOpening('wiz-libro-upload'); logUploadButtonClick('wiz-libro-upload', 'libro_familia'); document.getElementById('wiz-libro-upload').click(); }}
               disabled={uploadingLibroFamilia}
               className="flex-1 min-h-[44px]"
             >
