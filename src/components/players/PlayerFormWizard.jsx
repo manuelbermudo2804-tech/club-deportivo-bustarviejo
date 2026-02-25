@@ -215,6 +215,13 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
   }, []);
 
+  // Precalentar backend de procesamiento de imágenes al abrir el formulario
+  useEffect(() => {
+    try {
+      base44.functions.invoke('processImage', { ping: true }).catch(() => {});
+    } catch {}
+  }, []);
+
   useEffect(() => {
     if (formRef.current) formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [step]);
