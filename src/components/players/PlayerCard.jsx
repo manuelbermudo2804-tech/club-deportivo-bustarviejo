@@ -3,21 +3,15 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Mail, Phone, Eye, Heart, FileText, AlertCircle, UserX, Smartphone } from "lucide-react";
+import { Pencil, Eye, Heart, AlertCircle, UserX, Smartphone, User, FileCheck, Clock, Calendar, MapPin, FileSignature, CheckCircle2, CreditCard, Camera, FileText } from "lucide-react";
 import PlayerDetailDialog from "./PlayerDetailDialog";
 import PlayerDocumentDownload from "./PlayerDocumentDownload";
 import MinorAccessDialog from "../minor/MinorAccessDialog";
 import { getActiveCustomPlan, getPendingPaymentsCount } from "../payments/paymentHelpers";
 import { base44 } from "@/api/base44Client";
-
-import PlayerCardHeader from "./card/PlayerCardHeader";
-import PlayerCardChecklist from "./card/PlayerCardChecklist";
-import PlayerCardPayments from "./card/PlayerCardPayments";
 import PlayerCardRenewal from "./card/PlayerCardRenewal";
-import PlayerCardSignatures from "./card/PlayerCardSignatures";
-import PlayerCardNextMatch from "./card/PlayerCardNextMatch";
-import PlayerCardSchedule from "./card/PlayerCardSchedule";
-import PlayerStatsWidget from "./PlayerStatsWidget";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const categoryColors = {
   "Prebenjamín": "bg-purple-100 text-purple-700",
@@ -29,11 +23,11 @@ const categoryColors = {
   "Senior": "bg-slate-100 text-slate-700"
 };
 
-const positionColors = {
-  "Portero": "bg-blue-500",
-  "Defensa": "bg-green-500",
-  "Centrocampista": "bg-yellow-500",
-  "Delantero": "bg-red-500"
+const positionEmoji = {
+  "Portero": "🧤",
+  "Defensa": "🛡️",
+  "Medio": "🎯",
+  "Delantero": "⚡"
 };
 
 const DIAS_ORDEN = { "Lunes": 1, "Martes": 2, "Miércoles": 3, "Jueves": 4, "Viernes": 5 };
@@ -73,7 +67,6 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const [showMinorAccess, setShowMinorAccess] = useState(false);
   const [parentUser, setParentUser] = useState(null);
 
-  // Derived data
   const playerCategory = player.categoria_principal || player.deporte;
   const playerSchedules = schedules
     .filter(s => s.categoria === playerCategory && s.activo)
@@ -105,9 +98,6 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     return firmasRequeridas.every(f => f.ok) ? "complete" : "pending";
   };
   const firmasStatus = getFirmasStatus();
-  const firmasPendientes = [];
-  if (hasEnlaceFirmaJugador && !firmaJugadorOk) firmasPendientes.push("Jugador");
-  if (hasEnlaceFirmaTutor && !firmaTutorOk && !esMayorDeEdad) firmasPendientes.push("Tutor");
 
   // Season & payments
   const getCurrentSeason = () => {
@@ -127,19 +117,17 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   });
 
   const customPlan = getActiveCustomPlan(player.id, customPlans, normalizedCurrentSeason);
-  let expectedPayments, paidCount, reviewCount, pendingCount, allPaid;
+  let expectedPayments, paidCount, pendingCount, allPaid;
   if (customPlan && customPlan.cuotas) {
     expectedPayments = customPlan.cuotas.length;
     const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
     paidCount = planPayments.filter(p => p.estado === "Pagado").length;
-    reviewCount = planPayments.filter(p => p.estado === "En revisión").length;
     pendingCount = planPayments.filter(p => p.estado === "Pendiente").length;
     allPaid = paidCount === expectedPayments;
   } else {
     const hasPagoUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
     expectedPayments = hasPagoUnico ? 1 : 3;
     paidCount = playerPayments.filter(p => p.estado === "Pagado").length;
-    reviewCount = playerPayments.filter(p => p.estado === "En revisión").length;
     pendingCount = getPendingPaymentsCount(player.id, payments, customPlans, normalizedCurrentSeason);
     allPaid = hasPagoUnico
       ? playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único")?.estado === "Pagado"
@@ -163,96 +151,151 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const totalItems = Object.keys(checklistItems).length;
   const fichaCompleta = completedItems === totalItems;
 
+  // Status badge config
+  const getStatusBadge = () => {
+    if (player.estado_renovacion === "pendiente" && seasonConfig?.permitir_renovaciones)
+      return { text: "⚠️ RENOVAR", cls: "bg-red-500 text-white animate-pulse" };
+    if (player.estado_renovacion === "no_renueva" && seasonConfig?.permitir_renovaciones)
+      return { text: "❌ No renueva", cls: "bg-slate-500 text-white" };
+    if (player.activo) return { text: "Activo", cls: "bg-green-500 text-white" };
+    return { text: "Inactivo", cls: "bg-slate-400 text-white" };
+  };
+  const statusBadge = getStatusBadge();
+
+  // Payment bar
+  const PaymentBar = () => {
+    if (playerPayments.length === 0 && !customPlan) return null;
+    
+    if (customPlan && customPlan.cuotas) {
+      return (
+        <div className="flex gap-0.5 h-5 rounded-lg overflow-hidden">
+          {customPlan.cuotas.sort((a, b) => a.numero - b.numero).map((cuota) => {
+            const pagosCuota = playerPayments.filter(p => p.tipo_pago === "Plan Especial" && p.mes === `Cuota ${cuota.numero}`);
+            let pagoCuota = pagosCuota.find(p => p.estado === "Pagado") || pagosCuota.find(p => p.estado === "En revisión") || pagosCuota[0];
+            const isPaid = pagoCuota?.estado === "Pagado";
+            const isReview = pagoCuota?.estado === "En revisión";
+            return (
+              <div key={cuota.numero} className={`flex-1 flex items-center justify-center text-[9px] font-bold ${isPaid ? 'bg-green-500 text-white' : isReview ? 'bg-amber-400 text-white' : 'bg-red-400 text-white'}`}>
+                {cuota.numero}{isPaid ? '✓' : isReview ? '⏳' : ''}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+    
+    if (playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único")) {
+      const pago = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+      const isPaid = pago?.estado === "Pagado";
+      const isReview = pago?.estado === "En revisión";
+      return (
+        <div className={`h-5 rounded-lg flex items-center justify-center text-[10px] font-bold ${isPaid ? 'bg-green-500 text-white' : isReview ? 'bg-amber-400 text-white' : 'bg-red-400 text-white'}`}>
+          {isPaid ? '✅ Pagado' : isReview ? '⏳ En revisión' : '✗ Pendiente'}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex gap-0.5 h-5 rounded-lg overflow-hidden">
+        {["Junio", "Septiembre", "Diciembre"].map((mes) => {
+          const pago = playerPayments.find(p => p.mes === mes);
+          const isPaid = pago?.estado === "Pagado";
+          const isReview = pago?.estado === "En revisión";
+          return (
+            <div key={mes} className={`flex-1 flex items-center justify-center text-[9px] font-bold ${isPaid ? 'bg-green-500 text-white' : isReview ? 'bg-amber-400 text-white' : 'bg-red-400 text-white'}`}>
+              {mes.slice(0, 3)}{isPaid ? '✓' : isReview ? '⏳' : ''}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <>
       <PlayerDetailDialog player={player} open={showDetail} onOpenChange={setShowDetail} />
       {parentUser && (
-        <MinorAccessDialog
-          open={showMinorAccess}
-          onOpenChange={setShowMinorAccess}
-          player={player}
-          parentUser={parentUser}
-        />
+        <MinorAccessDialog open={showMinorAccess} onOpenChange={setShowMinorAccess} player={player} parentUser={parentUser} />
       )}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.2 }}
       >
         <Card
-          className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-400"
+          className="border-none shadow-lg hover:shadow-xl transition-shadow bg-white overflow-hidden cursor-pointer"
           onClick={(e) => {
             if (!e.target.closest('button') && !e.target.closest('a') && !e.target.closest('select')) {
               setShowDetail(true);
             }
           }}
         >
-          <PlayerCardHeader
-            player={player}
-            seasonConfig={seasonConfig}
-            fichaCompleta={fichaCompleta}
-            completedItems={completedItems}
-            totalItems={totalItems}
-          />
-
-          <CardContent className="p-4 space-y-3">
-            <div>
-              <h3 className="font-bold text-lg text-slate-900 mb-2">{player.nombre}</h3>
-              <div className="flex flex-wrap gap-2">
-                <Badge className={categoryColors[player.categoria] || "bg-slate-100 text-slate-700"}>
-                  {playerCategory || player.categoria || "Sin categoría"}
-                </Badge>
-                {player.posicion && (
-                  <Badge className={`${positionColors[player.posicion]} text-white`}>
-                    {player.posicion}
-                  </Badge>
+          {/* ═══════ HEADER: Foto + Info principal ═══════ */}
+          <div className="flex gap-4 p-4 pb-3">
+            {/* Foto */}
+            <div className="relative flex-shrink-0">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-100 to-orange-200 shadow-md">
+                {player.foto_url ? (
+                  <img src={player.foto_url} alt={player.nombre} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="w-10 h-10 text-orange-400" />
+                  </div>
                 )}
-                {isCoachOrCoordinator && hasMedicalInfo && (
-                  <Badge className="bg-red-100 text-red-700 flex items-center gap-1">
-                    <Heart className="w-3 h-3" />
-                    Ficha Médica
-                  </Badge>
-                )}
+              </div>
+              {/* Ficha status indicator */}
+              <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[10px] ${fichaCompleta ? 'bg-green-500' : 'bg-amber-500'}`}>
+                {fichaCompleta ? '✓' : `${completedItems}`}
               </div>
             </div>
 
-            {/* Category review warning (admin only) */}
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-bold text-lg text-slate-900 leading-tight truncate">{player.nombre}</h3>
+                <Badge className={`${statusBadge.cls} text-[10px] flex-shrink-0`}>{statusBadge.text}</Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {playerCategory || "Sin categoría"}
+                </span>
+                {player.posicion && player.posicion !== "Sin asignar" && (
+                  <span className="text-xs text-slate-500">
+                    {positionEmoji[player.posicion] || "📍"} {player.posicion}
+                  </span>
+                )}
+                {edadActual && (
+                  <span className="text-xs text-slate-400">{edadActual} años</span>
+                )}
+              </div>
+              {isCoachOrCoordinator && hasMedicalInfo && (
+                <Badge className="bg-red-50 text-red-600 text-[10px] mt-1.5">
+                  <Heart className="w-3 h-3 mr-0.5" /> Ficha médica
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <CardContent className="px-4 pb-4 pt-0 space-y-2.5">
+
+            {/* ═══════ CATEGORY REVIEW (admin) ═══════ */}
             {player.categoria_requiere_revision && onEdit && (
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-400 rounded-lg p-3 space-y-2">
+              <div className="bg-orange-50 border border-orange-300 rounded-xl p-3">
                 <div className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-orange-700 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-orange-900 mb-1">🔍 Categoría a Revisar</p>
-                    <p className="text-xs text-orange-800 leading-relaxed mb-2">
-                      {player.motivo_revision_categoria || "La categoría no coincide con la edad del jugador"}
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const currentUser = await base44.auth.me();
-                          await base44.entities.Player.update(player.id, {
-                            categoria_requiere_revision: false,
-                            categoria_revisada_por: currentUser?.email,
-                            fecha_revision_categoria: new Date().toISOString(),
-                            motivo_revision_categoria: ""
-                          });
-                          window.location.reload();
-                        }}
-                        variant="outline"
-                        className="flex-1 border-green-600 text-green-600 hover:bg-green-50"
-                      >
-                        ✅ Es correcta
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={(e) => { e.stopPropagation(); onEdit(player); }}
-                        className="flex-1 bg-orange-600 hover:bg-orange-700"
-                      >
-                        <Pencil className="w-3 h-3 mr-1" />
-                        Corregir
+                    <p className="text-xs font-bold text-orange-900">Categoría a revisar</p>
+                    <p className="text-[11px] text-orange-700 mt-0.5">{player.motivo_revision_categoria || "No coincide con la edad"}</p>
+                    <div className="flex gap-2 mt-2">
+                      <Button size="sm" variant="outline" className="flex-1 h-7 text-[11px] border-green-500 text-green-600" onClick={async (e) => {
+                        e.stopPropagation();
+                        const u = await base44.auth.me();
+                        await base44.entities.Player.update(player.id, { categoria_requiere_revision: false, categoria_revisada_por: u?.email, fecha_revision_categoria: new Date().toISOString(), motivo_revision_categoria: "" });
+                        window.location.reload();
+                      }}>✅ Correcta</Button>
+                      <Button size="sm" className="flex-1 h-7 text-[11px] bg-orange-600" onClick={(e) => { e.stopPropagation(); onEdit(player); }}>
+                        <Pencil className="w-3 h-3 mr-1" />Corregir
                       </Button>
                     </div>
                   </div>
@@ -260,7 +303,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               </div>
             )}
 
-            {/* Renewal section */}
+            {/* ═══════ RENEWAL ═══════ */}
             {player.estado_renovacion === "pendiente" && isParent && seasonConfig?.permitir_renovaciones && (
               <PlayerCardRenewal
                 player={player}
@@ -272,121 +315,115 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               />
             )}
 
-            {/* Medical info hint */}
-            {isCoachOrCoordinator && hasMedicalInfo && (
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 rounded-lg p-2">
-                <div className="flex items-center justify-center gap-2 text-sm text-blue-700 font-medium">
-                  <Eye className="w-4 h-4" />
-                  <span>Click para ver ficha médica completa</span>
-                </div>
-              </div>
-            )}
-
-            <PlayerStatsWidget
-              playerId={player.id}
-              playerCategory={playerCategory}
-              fechaNacimiento={player.fecha_nacimiento}
-              createdDate={player.created_date}
-              compact={true}
-            />
-
-            {!fichaCompleta && <PlayerCardChecklist checklistItems={checklistItems} />}
-            <PlayerCardNextMatch nextCallup={nextCallup} />
-            <PlayerCardSchedule playerSchedules={playerSchedules} />
-
-            {(player.email || player.telefono) && (
-              <div className="space-y-1 text-sm text-slate-600">
-                {player.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    <span className="truncate">{player.email}</span>
-                  </div>
-                )}
-                {player.telefono && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    <span>{player.telefono}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <PlayerCardSignatures
-              firmasStatus={firmasStatus}
-              firmasPendientes={firmasPendientes}
-              hasEnlaceFirmaJugador={hasEnlaceFirmaJugador}
-              hasEnlaceFirmaTutor={hasEnlaceFirmaTutor}
-              firmaJugadorOk={firmaJugadorOk}
-              firmaTutorOk={firmaTutorOk}
-              esMayorDeEdad={esMayorDeEdad}
-            />
-
-            <PlayerCardPayments
-              currentSeason={currentSeason}
-              allPaid={allPaid}
-              playerPayments={playerPayments}
-              customPlan={customPlan}
-              paidCount={paidCount}
-              expectedPayments={expectedPayments}
-              pendingCount={pendingCount}
-            />
-
-            {/* Botón acceso juvenil - solo para padres con jugadores 13-17 años sin acceso ya activado */}
-            {isParent && edadActual >= 13 && edadActual < 18 && !player.acceso_menor_autorizado && !player.acceso_menor_revocado && !player.es_mayor_edad && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Smartphone className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-bold text-green-900">📱 Acceso Juvenil Disponible</span>
-                </div>
-                <p className="text-xs text-green-800 mb-2">
-                  {player.nombre?.split(" ")[0]} tiene {edadActual} años y puede tener su propio acceso a la app del club.
+            {/* ═══════ QUICK STATUS ROW ═══════ */}
+            <div className="grid grid-cols-3 gap-2">
+              {/* Pagos */}
+              <div className={`rounded-xl p-2 text-center border ${allPaid ? 'bg-green-50 border-green-200' : pendingCount > 0 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
+                <span className="text-base">💳</span>
+                <p className={`text-[11px] font-bold ${allPaid ? 'text-green-700' : pendingCount > 0 ? 'text-red-700' : 'text-slate-500'}`}>
+                  {allPaid ? 'Al día' : playerPayments.length === 0 ? '—' : `${paidCount}/${expectedPayments}`}
                 </p>
-                <Button
-                  size="sm"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    const u = await base44.auth.me();
-                    setParentUser(u);
-                    setShowMinorAccess(true);
-                  }}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold"
-                >
-                  ⚽ Activar Acceso Juvenil
-                </Button>
+                <p className="text-[9px] text-slate-400">Pagos</p>
+              </div>
+              {/* Firmas */}
+              <div className={`rounded-xl p-2 text-center border ${firmasStatus === 'complete' ? 'bg-green-50 border-green-200' : firmasStatus === 'pending' ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                <span className="text-base">✍️</span>
+                <p className={`text-[11px] font-bold ${firmasStatus === 'complete' ? 'text-green-700' : firmasStatus === 'pending' ? 'text-amber-700' : 'text-slate-500'}`}>
+                  {firmasStatus === 'complete' ? 'OK' : firmasStatus === 'pending' ? 'Pend.' : '—'}
+                </p>
+                <p className="text-[9px] text-slate-400">Firmas</p>
+              </div>
+              {/* Docs */}
+              <div className={`rounded-xl p-2 text-center border ${checklistItems.foto && checklistItems.dni ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+                <span className="text-base">📄</span>
+                <p className={`text-[11px] font-bold ${checklistItems.foto && checklistItems.dni ? 'text-green-700' : 'text-amber-700'}`}>
+                  {checklistItems.foto && checklistItems.dni ? 'OK' : 'Faltan'}
+                </p>
+                <p className="text-[9px] text-slate-400">Docs</p>
+              </div>
+            </div>
+
+            {/* ═══════ PAYMENT BAR ═══════ */}
+            <PaymentBar />
+
+            {/* ═══════ NEXT MATCH ═══════ */}
+            {nextCallup && (
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🏆</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-indigo-900 truncate">{nextCallup.titulo || `vs ${nextCallup.rival}`}</p>
+                    <div className="flex items-center gap-2 text-[11px] text-indigo-600 mt-0.5">
+                      <span>{format(new Date(nextCallup.fecha_partido), "EEE d MMM", { locale: es })}</span>
+                      <span>·</span>
+                      <span>{nextCallup.hora_partido}</span>
+                      {nextCallup.ubicacion && (
+                        <>
+                          <span>·</span>
+                          <span className="truncate">{nextCallup.ubicacion}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Badge si ya tiene acceso juvenil activo */}
+            {/* ═══════ SCHEDULE ═══════ */}
+            {playerSchedules.length > 0 && (
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <Clock className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                <span className="truncate">
+                  {playerSchedules.map(s => `${s.dia_semana} ${s.hora_inicio}-${s.hora_fin}`).join(' · ')}
+                </span>
+              </div>
+            )}
+
+            {/* ═══════ JUVENILE ACCESS ═══════ */}
+            {isParent && edadActual >= 13 && edadActual < 18 && !player.acceso_menor_autorizado && !player.acceso_menor_revocado && !player.es_mayor_edad && (
+              <Button
+                size="sm"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  const u = await base44.auth.me();
+                  setParentUser(u);
+                  setShowMinorAccess(true);
+                }}
+                className="w-full bg-green-600 hover:bg-green-700 text-white text-xs h-8"
+              >
+                <Smartphone className="w-3.5 h-3.5 mr-1" />
+                Activar Acceso Juvenil ({player.nombre?.split(" ")[0]})
+              </Button>
+            )}
             {player.acceso_menor_autorizado && !player.acceso_menor_revocado && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-2 flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-green-600" />
-                <span className="text-xs text-green-800 font-medium">✅ Acceso juvenil activo: {player.acceso_menor_email}</span>
+              <div className="flex items-center gap-1.5 text-[11px] text-green-700 bg-green-50 rounded-lg px-2.5 py-1.5 border border-green-200">
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Acceso juvenil activo: {player.acceso_menor_email}</span>
               </div>
             )}
 
-            <div className="flex gap-2 pt-2 flex-wrap">
+            {/* ═══════ ACTIONS ═══════ */}
+            <div className="flex gap-2 pt-1">
               {onViewProfile && (
-                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onViewProfile(player, 'pagos'); }} className="flex-1 hover:bg-purple-50 hover:text-purple-700">
-                  <FileText className="w-4 h-4 mr-1" />
-                  Perfil
+                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onViewProfile(player, 'pagos'); }} className="flex-1 h-8 text-xs">
+                  <FileText className="w-3.5 h-3.5 mr-1" />Perfil
                 </Button>
               )}
               {!readOnly && onEdit && (
-                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(player); }} className="flex-1 hover:bg-orange-50 hover:text-orange-700">
-                  <Pencil className="w-4 h-4 mr-1" />
-                  Editar
+                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(player); }} className="flex-1 h-8 text-xs hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300">
+                  <Pencil className="w-3.5 h-3.5 mr-1" />Editar
                 </Button>
               )}
               {!readOnly && onDelete && (
-                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(player); }} className="flex-1 hover:bg-red-50 hover:text-red-700 border-red-300">
-                  <UserX className="w-4 h-4 mr-1" />
-                  Eliminar
+                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(player); }} className="flex-1 h-8 text-xs hover:bg-red-50 hover:text-red-700 border-red-200">
+                  <UserX className="w-3.5 h-3.5 mr-1" />Eliminar
                 </Button>
               )}
             </div>
 
+            {/* ═══════ DOCUMENT DOWNLOAD ═══════ */}
             {(player.foto_url || player.dni_jugador_url || player.libro_familia_url || player.dni_tutor_legal_url) && (
-              <div className="pt-2 border-t" onClick={(e) => e.stopPropagation()}>
+              <div className="pt-1 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
                 <PlayerDocumentDownload player={player} variant="dropdown" showLabels={true} />
               </div>
             )}
