@@ -124,8 +124,10 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
 
   const [uploadingPhoto, uploadFile_photo] = useImageUpload();
   const [uploadingDNI, uploadFile_dni] = useImageUpload();
+  const [uploadingDNITrasero, uploadFile_dniTrasero] = useImageUpload();
   const [uploadingLibroFamilia, uploadFile_libro] = useImageUpload();
   const [uploadingDNITutor, uploadFile_tutordni] = useImageUpload();
+  const [uploadingDNITutorTrasero, uploadFile_tutordniTrasero] = useImageUpload();
 
   // Flags: se activan cuando una subida normal falla → muestra alternativa "pegar"
   const [photoUploadFailed, setPhotoUploadFailed] = useState(false);
@@ -282,6 +284,23 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       }
     } catch (err) { setLibroUploadFailed(true); logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
   };
+  const handleDNITraseroUpload = async (e) => {
+    try {
+      clearCameraFlag();
+      logInputChange(e.target?.id || 'dni_trasero', e.target?.files, 'handleDNITraseroUpload');
+      const file = e.target.files?.[0];
+      if (e.target) e.target.value = '';
+      if (!file) return;
+      const url = await uploadFile_dniTrasero(file);
+      if (url) {
+        try {
+          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
+          if (draft.playerData) { draft.playerData.dni_jugador_trasero_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
+        } catch {}
+        setCurrentPlayer(p => ({ ...p, dni_jugador_trasero_url: url }));
+      }
+    } catch (err) { logUploadError(null, err, 'handleDNITraseroUpload_catch'); }
+  };
   const handleDNITutorUpload = async (e) => {
     try {
       clearCameraFlag();
@@ -298,6 +317,23 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
       }
     } catch (err) { logUploadError(null, err, 'handleDNITutorUpload_catch'); }
+  };
+  const handleDNITutorTraseroUpload = async (e) => {
+    try {
+      clearCameraFlag();
+      logInputChange(e.target?.id || 'tutor_trasero', e.target?.files, 'handleDNITutorTraseroUpload');
+      const file = e.target.files?.[0];
+      if (e.target) e.target.value = '';
+      if (!file) return;
+      const url = await uploadFile_tutordniTrasero(file);
+      if (url) {
+        try {
+          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
+          if (draft.playerData) { draft.playerData.dni_tutor_legal_trasero_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
+        } catch {}
+        setCurrentPlayer(p => ({ ...p, dni_tutor_legal_trasero_url: url }));
+      }
+    } catch (err) { logUploadError(null, err, 'handleDNITutorTraseroUpload_catch'); }
   };
 
   const handleLoadPreviousTutorData = (playerId) => {
@@ -458,8 +494,8 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     switch (step) {
       case 0: return <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto} onPhotoUpload={handlePhotoUpload} photoUploadFailed={photoUploadFailed} />;
       case 1: return <StepCategory currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} categories={categories} playerAge={playerAge} suggestCategoryByAge={suggestCategoryByAge} />;
-      case 2: return <StepDocuments currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} requiresDNI={requiresDNI} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} uploadingDNI={uploadingDNI} uploadingLibroFamilia={uploadingLibroFamilia} onDNIUpload={handleDNIUpload} onLibroFamiliaUpload={handleLibroFamiliaUpload} dniUploadFailed={dniUploadFailed} libroUploadFailed={libroUploadFailed} />;
-      case 3: return <StepTutor currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isParent={isParent} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} existingFamilyPlayers={existingFamilyPlayers} usePreviousTutorData={usePreviousTutorData} onLoadPreviousTutorData={handleLoadPreviousTutorData} onClearTutorData={handleClearTutorData} uploadingDNITutor={uploadingDNITutor} onDNITutorUpload={handleDNITutorUpload} />;
+      case 2: return <StepDocuments currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} requiresDNI={requiresDNI} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} uploadingDNI={uploadingDNI} uploadingDNITrasero={uploadingDNITrasero} uploadingLibroFamilia={uploadingLibroFamilia} onDNIUpload={handleDNIUpload} onDNITraseroUpload={handleDNITraseroUpload} onLibroFamiliaUpload={handleLibroFamiliaUpload} dniUploadFailed={dniUploadFailed} libroUploadFailed={libroUploadFailed} />;
+      case 3: return <StepTutor currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isParent={isParent} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} existingFamilyPlayers={existingFamilyPlayers} usePreviousTutorData={usePreviousTutorData} onLoadPreviousTutorData={handleLoadPreviousTutorData} onClearTutorData={handleClearTutorData} uploadingDNITutor={uploadingDNITutor} onDNITutorUpload={handleDNITutorUpload} uploadingDNITutorTrasero={uploadingDNITutorTrasero} onDNITutorTraseroUpload={handleDNITutorTraseroUpload} />;
       case 4: return (
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-slate-900">👥 Segundo Progenitor/Tutor (Opcional)</h3>
