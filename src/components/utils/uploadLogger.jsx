@@ -173,6 +173,8 @@ export function logFileValidationReject(file, reason) {
     };
     _appendLog(entry);
     console.warn('[Upload] Validación rechazada:', reason, entry.name, entry.size, 'bytes');
+    // Enviar al servidor para que el admin lo vea
+    _reportToServer(entry);
   } catch { /* nunca romper */ }
 }
 
