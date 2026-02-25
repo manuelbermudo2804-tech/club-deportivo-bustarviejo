@@ -51,6 +51,13 @@ function EventRow({ event }) {
           {event.error_message && (
             <div className="text-xs text-red-600 mt-1 font-medium">⚠️ {event.error_message}</div>
           )}
+          {isSuccess && event.result_url && (
+            <div className="mt-2">
+              <a href={event.result_url} target="_blank" rel="noopener noreferrer">
+                <img src={event.result_url} alt="Subida" className="w-16 h-16 object-cover rounded-lg border border-green-300 hover:scale-150 transition-transform cursor-pointer" onError={e => { e.target.style.display = 'none'; }} />
+              </a>
+            </div>
+          )}
         </div>
         <div className="flex-shrink-0">
           {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
