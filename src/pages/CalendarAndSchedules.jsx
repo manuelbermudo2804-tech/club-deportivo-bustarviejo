@@ -113,7 +113,8 @@ export default function CalendarAndSchedules() {
       return players.filter(p => p.id === user?.jugador_id);
     }
     return players.filter(p => 
-      (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo
+      (p.email_padre === user?.email || p.email_tutor_2 === user?.email || 
+       (p.acceso_menor_email === user?.email && p.acceso_menor_autorizado)) && p.activo
     );
   }, [players, user, userRole]);
 
