@@ -22,6 +22,7 @@ export default function PaymentCard({
   onToggleSelect,
   hasPlanEspecial,
   hasPlanMensual,
+  feeAdjustment,
 }) {
   const cfg = statusConfig[payment.estado] || statusConfig["Pendiente"];
   const StatusIcon = cfg.icon;
@@ -58,6 +59,15 @@ export default function PaymentCard({
             <p className="text-2xl font-extrabold text-slate-900 mt-1">
               {payment.cantidad?.toFixed(2)}€
             </p>
+
+            {/* Ajuste de cuota visible para la familia */}
+            {feeAdjustment?.cuota_ajustada != null && (
+              <div className="mt-1 flex items-center gap-2 flex-wrap">
+                <span className="line-through text-slate-400 text-xs">{feeAdjustment.cuota_original?.toFixed(0)}€ total</span>
+                <span className="text-xs font-bold text-green-700">→ {feeAdjustment.cuota_ajustada?.toFixed(0)}€</span>
+                <span className="text-[10px] text-yellow-700 bg-yellow-50 px-1.5 py-0.5 rounded">{feeAdjustment.motivo}</span>
+              </div>
+            )}
 
             {/* Línea 3: Info extra */}
             <div className="text-xs text-slate-500 mt-1 space-y-0.5">
