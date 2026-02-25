@@ -42,9 +42,6 @@ Deno.serve(async (req) => {
       }
       originalName = file.name || 'photo.jpg';
       fileBlob = file;
-    } else if (contentType.includes('application/json')) {
-      // JSON body — no file attached
-      return Response.json({ error: 'Envía la imagen como File, no como JSON' }, { status: 400 });
     } else {
       // Raw binary body fallback
       const body = await req.arrayBuffer();
