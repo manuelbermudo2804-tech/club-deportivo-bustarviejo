@@ -198,20 +198,6 @@ export function generateDiagnosticCode() {
   } catch { return 'DV-????'; }
 }
 
-export function logUploadSuccess(file, url) {
-  try {
-    const entry = {
-      ts: new Date().toISOString(),
-      event: 'upload_success',
-      name: file?.name || 'unknown',
-      size: file?.size ?? 'unknown',
-      url: url ? url.substring(0, 60) : null,
-    };
-    _appendLog(entry);
-    console.info('[Upload] Éxito:', entry.name);
-  } catch { /* nunca romper */ }
-}
-
 export function logUploadError(file, error, context = '') {
   try {
     const entry = {
