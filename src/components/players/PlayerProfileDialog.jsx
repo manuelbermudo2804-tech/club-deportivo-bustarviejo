@@ -7,10 +7,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   User, Mail, Phone, Calendar, MapPin, FileText, CreditCard, 
   Star, CheckCircle2, XCircle, Clock, Award, Heart, Edit,
-  TrendingUp, Activity
+  TrendingUp, Activity, Settings2
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import FeeAdjustmentDialog from "../payments/FeeAdjustmentDialog";
 
 export default function PlayerProfileDialog({ 
   player, 
@@ -24,6 +25,7 @@ export default function PlayerProfileDialog({
   initialTab = "info"
 }) {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [showFeeAdjustment, setShowFeeAdjustment] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -311,6 +313,45 @@ export default function PlayerProfileDialog({
 
           {/* Tab: Historial de Pagos */}
           <TabsContent value="pagos" className="space-y-4 mt-6">
+            {/* Banner de ajuste de cuota */}
+            {player.ajuste_cuota?.cuota_ajustada != null && (
+              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-yellow-900">💰 Cuota Ajustada</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="line-through text-slate-400 text-lg">{player.ajuste_cuota.cuota_original?.toFixed(0)}€</span>
+                      <span className="text-2xl font-bold text-green-700">{player.ajuste_cuota.cuota_ajustada?.toFixed(0)}€</span>
+                    </div>
+                    <p className="text-xs text-yellow-800 mt-1">{player.ajuste_cuota.motivo}</p>
+                    {player.ajuste_cuota.notas && (
+                      <p className="text-xs text-slate-500 mt-0.5 italic">{player.ajuste_cuota.notas}</p>
+                    )}
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Ajustado por {player.ajuste_cuota.ajustado_por} el {player.ajuste_cuota.fecha_ajuste ? new Date(player.ajuste_cuota.fecha_ajuste).toLocaleDateString('es-ES') : ''}
+                    </p>
+                  </div>
+                  {isAdmin && (
+                    <Button size="sm" variant="outline" onClick={() => setShowFeeAdjustment(true)}>
+                      <Settings2 className="w-4 h-4 mr-1" /> Modificar
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Botón ajustar cuota (solo admin, si no hay ajuste previo) */}
+            {isAdmin && !player.ajuste_cuota?.cuota_ajustada && playerPayments.length > 0 && (
+              <Button
+                variant="outline"
+                className="w-full border-orange-300 text-orange-700 hover:bg-orange-50"
+                onClick={() => setShowFeeAdjustment(true)}
+              >
+                <Settings2 className="w-4 h-4 mr-2" />
+                Ajustar Cuota del Jugador
+              </Button>
+            )}
+
             {playerPayments.length === 0 ? (
               <Card className="border-none shadow-lg">
                 <CardContent className="pt-6 text-center py-12">
@@ -610,6 +651,14 @@ export default function PlayerProfileDialog({
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* Dialog de ajuste de cuota */}
+      <FeeAdjustmentDialog
+        open={showFeeAdjustment}
+        onOpenChange={setShowFeeAdjustment}
+        player={player}
+        payments={payments}
+      />
     </Dialog>
   );
 }
