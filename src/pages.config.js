@@ -149,6 +149,7 @@ import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
 import Reminders from './pages/Reminders';
 import RenewalDashboard from './pages/RenewalDashboard';
+import RffmMonitor from './pages/RffmMonitor';
 import Schedules from './pages/Schedules';
 import SeasonManagement from './pages/SeasonManagement';
 import Shop from './pages/Shop';
@@ -164,7 +165,7 @@ import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import RffmMonitor from './pages/RffmMonitor';
+import UploadDiagnostics from './pages/UploadDiagnostics';
 import __Layout from './Layout.jsx';
 
 
@@ -271,6 +272,7 @@ export const PAGES = {
     "ReferralManagement": ReferralManagement,
     "Reminders": Reminders,
     "RenewalDashboard": RenewalDashboard,
+    "RffmMonitor": RffmMonitor,
     "Schedules": Schedules,
     "SeasonManagement": SeasonManagement,
     "Shop": Shop,
@@ -286,7 +288,7 @@ export const PAGES = {
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "RffmMonitor": RffmMonitor,
+    "UploadDiagnostics": UploadDiagnostics,
 }
 
 export const pagesConfig = {

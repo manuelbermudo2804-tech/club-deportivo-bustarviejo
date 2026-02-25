@@ -1,8 +1,8 @@
 /**
- * Upload Logger — diagnóstico de fallos de subida en móviles.
+ * Upload Logger — diagnóstico COMPLETO de subidas (éxitos + fallos).
  * 
  * - Guarda en localStorage (para debug local)
- * - Envía ERRORES al servidor (SystemAlert) para que el admin los vea
+ * - Envía TODOS los eventos al servidor (UploadDiagnostic) para visibilidad admin
  * - Console logs para diagnóstico en tiempo real
  */
 
@@ -10,6 +10,17 @@ import { base44 } from "@/api/base44Client";
 
 const LOG_KEY = 'upload_log';
 const MAX_LOGS = 50;
+
+// Session ID único por carga de página para agrupar eventos
+const SESSION_ID = `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+
+// Cache del email del usuario para no llamar a auth.me() en cada evento
+let _cachedEmail = null;
+async function _getUserEmail() {
+  if (_cachedEmail) return _cachedEmail;
+  try { const me = await base44.auth.me(); _cachedEmail = me?.email || 'anon'; } catch { _cachedEmail = 'anon'; }
+  return _cachedEmail;
+}
 
 function getEnvInfo() {
   try {
@@ -22,174 +33,130 @@ function getEnvInfo() {
     const isPWA = window.matchMedia?.('(display-mode: standalone)')?.matches ||
                   window.navigator?.standalone === true;
     const isIframe = window !== window.top;
-
-    // iOS version
     let iosVersion = null;
-    if (isIOS) {
-      const match = ua.match(/OS (\d+)_(\d+)/);
-      if (match) iosVersion = parseInt(match[1]);
-    }
-
-    // Android WebView detection
+    if (isIOS) { const match = ua.match(/OS (\d+)_(\d+)/); if (match) iosVersion = parseInt(match[1]); }
     const isWebView = isAndroid && /wv/.test(ua.toLowerCase());
-
-    // Memory info (Chrome only)
     let memoryMB = null;
-    try {
-      if (performance?.memory) {
-        memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024);
-      }
-    } catch {}
-
-    // Connection info
+    try { if (performance?.memory) { memoryMB = Math.round(performance.memory.usedJSHeapSize / 1024 / 1024); } } catch {}
     let connection = null;
     try {
       const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      if (conn) {
-        connection = { type: conn.effectiveType || conn.type, downlink: conn.downlink, rtt: conn.rtt };
-      }
+      if (conn) { connection = { type: conn.effectiveType || conn.type, downlink: conn.downlink, rtt: conn.rtt }; }
     } catch {}
-
     return { isIOS, isAndroid, isSafari, chromeVersion, isPWA, isIframe, iosVersion, isWebView, memoryMB, connection, ua: ua.substring(0, 150) };
-  } catch {
-    return { error: 'env_detection_failed' };
-  }
+  } catch { return { error: 'env_detection_failed' }; }
+}
+
+function _getDeviceString(env) {
+  const device = env.isIOS ? `iOS${env.iosVersion || ''}` 
+    : env.isAndroid ? `Android Chrome${env.chromeVersion || ''}${env.isWebView ? ' WebView' : ''}`
+    : 'Desktop';
+  const pwa = env.isPWA ? ' PWA' : ' Browser';
+  return `${device}${pwa}`;
+}
+
+function _getConnectionString(env) {
+  if (!env.connection) return '';
+  return `${env.connection.type || '?'}/${env.connection.downlink || '?'}Mbps`;
 }
 
 /**
- * Envía un error de subida al servidor como SystemAlert para que el admin lo vea.
- * Fire-and-forget, nunca rompe.
+ * Envía un evento al servidor como UploadDiagnostic. Fire-and-forget.
  */
-async function _reportToServer(entry) {
+async function _reportEvent(eventType, data = {}) {
   try {
-    const env = entry.env || getEnvInfo();
-    const device = env.isIOS ? `iOS${env.iosVersion || ''}` 
-      : env.isAndroid ? `Android Chrome${env.chromeVersion || ''}${env.isWebView ? ' WebView' : ''}`
-      : 'Desktop';
-    const pwa = env.isPWA ? ' PWA' : ' Browser';
-    const conn = env.connection ? ` ${env.connection.type}/${env.connection.downlink}Mbps` : '';
-    const mem = env.memoryMB ? ` ${env.memoryMB}MB` : '';
-
-    // Obtener email del usuario si es posible
-    let userEmail = 'desconocido';
-    try { const me = await base44.auth.me(); userEmail = me?.email || 'anon'; } catch {}
-
-    const titulo = `📸 Error subida: ${entry.error || entry.reason || 'desconocido'}`;
-    const descripcion = [
-      `👤 Usuario: ${userEmail}`,
-      `📱 Dispositivo: ${device}${pwa}${conn}${mem}`,
-      `📄 Archivo: ${entry.name || '?'} (${entry.size ? Math.round(entry.size/1024) + 'KB' : '?'}, ${entry.type || 'sin tipo'})`,
-      `⚠️ Error: ${entry.error || entry.reason || 'sin detalle'}`,
-      `🔧 Contexto: ${entry.context || entry.event || '?'}`,
-      `🕐 Hora: ${entry.ts}`,
-      `🌐 UA: ${env.ua || '?'}`,
-    ].join('\n');
-
-    await base44.entities.SystemAlert.create({
-      titulo: titulo.substring(0, 200),
-      descripcion,
-      categoria: 'error',
-      severidad: 'medium',
-      estado: 'activo',
-      primera_ocurrencia: entry.ts,
-      ultima_ocurrencia: entry.ts,
-      ocurrencias: 1,
-      solucion_sugerida: 'Revisar logs del usuario y tipo de dispositivo',
-      evidencia: { 
-        file_name: entry.name, 
-        file_size: entry.size, 
-        file_type: entry.type, 
-        error: entry.error || entry.reason,
-        context: entry.context,
-        device, 
-        user_agent: env.ua,
-        connection: env.connection,
-        memory_mb: env.memoryMB,
-        is_pwa: env.isPWA,
-        user_email: userEmail,
-      },
+    const env = data.env || getEnvInfo();
+    const userEmail = await _getUserEmail();
+    await base44.entities.UploadDiagnostic.create({
+      user_email: userEmail,
+      event_type: eventType,
+      context: data.context || '',
+      file_name: data.name || '',
+      file_size: typeof data.size === 'number' ? data.size : null,
+      file_type: data.type || '',
+      result_url: data.url || '',
+      error_message: data.error || data.reason || '',
+      diagnostic_code: data.diagnosticCode || '',
+      device: _getDeviceString(env),
+      connection: _getConnectionString(env),
+      memory_mb: env.memoryMB || null,
+      is_pwa: env.isPWA || false,
+      user_agent: env.ua || '',
+      extra_data: data.extra || null,
+      session_id: SESSION_ID,
     });
   } catch { /* nunca romper la app por un log */ }
+}
+
+function _appendLog(entry) {
+  try {
+    const raw = localStorage.getItem(LOG_KEY);
+    const logs = raw ? JSON.parse(raw) : [];
+    logs.push(entry);
+    if (logs.length > MAX_LOGS) logs.splice(0, logs.length - MAX_LOGS);
+    localStorage.setItem(LOG_KEY, JSON.stringify(logs));
+  } catch { /* localStorage lleno o bloqueado — ignorar */ }
 }
 
 export function logUploadStart(file, context = '') {
   try {
     const entry = {
-      ts: new Date().toISOString(),
-      event: 'upload_start',
-      context,
-      name: file?.name || 'unknown',
-      size: file?.size ?? 'unknown',
-      type: file?.type || 'empty',
+      ts: new Date().toISOString(), event: 'upload_start', context,
+      name: file?.name || 'unknown', size: file?.size ?? 'unknown', type: file?.type || 'empty',
       env: getEnvInfo(),
     };
     _appendLog(entry);
     console.info('[Upload] Inicio:', context, entry.name, entry.size, 'bytes', entry.type);
+    _reportEvent('upload_start', { ...entry });
   } catch { /* nunca romper */ }
 }
 
 export function logUploadSuccess(file, url, context = '') {
   try {
     const entry = {
-      ts: new Date().toISOString(),
-      event: 'upload_success',
-      context,
-      name: file?.name || 'unknown',
-      size: file?.size ?? 'unknown',
-      url: url ? url.substring(0, 60) : null,
+      ts: new Date().toISOString(), event: 'upload_success', context,
+      name: file?.name || 'unknown', size: file?.size ?? 'unknown', url: url ? url.substring(0, 80) : null,
     };
     _appendLog(entry);
     console.info('[Upload] Éxito:', context, entry.name);
+    _reportEvent('upload_success', { ...entry, env: getEnvInfo() });
   } catch { /* nunca romper */ }
 }
 
-/**
- * Log cuando el usuario PULSA el botón de subida (antes de que el input file se abra).
- * Útil para detectar si el problema es que el input nunca dispara onChange.
- */
 export function logUploadButtonClick(buttonId, context = '') {
   try {
     const entry = {
-      ts: new Date().toISOString(),
-      event: 'button_click',
-      context,
-      buttonId,
-      env: getEnvInfo(),
+      ts: new Date().toISOString(), event: 'button_click', context, buttonId, env: getEnvInfo(),
     };
     _appendLog(entry);
     console.info('[Upload] Botón pulsado:', buttonId, context);
+    _reportEvent('button_click', { ...entry, extra: { buttonId } });
   } catch { /* nunca romper */ }
 }
 
-/**
- * Log cuando el input file dispara onChange (con o sin archivos).
- * Si files está vacío = el usuario canceló o el navegador no capturó nada.
- */
 export function logInputChange(inputId, files, context = '') {
   try {
     const fileList = files ? Array.from(files) : [];
     const entry = {
-      ts: new Date().toISOString(),
-      event: 'input_change',
-      context,
-      inputId,
+      ts: new Date().toISOString(), event: 'input_change', context, inputId,
       fileCount: fileList.length,
       files: fileList.map(f => ({ name: f.name, size: f.size, type: f.type || 'sin-tipo' })),
       env: getEnvInfo(),
     };
     _appendLog(entry);
     console.info('[Upload] Input change:', inputId, fileList.length, 'archivos', context);
-    // Si hay 0 archivos y el usuario tocó el botón, reportar como anomalía
-    if (fileList.length === 0) {
-      _reportToServer({ ...entry, error: 'Input change sin archivos (cancelado o fallo del navegador)', reason: 'empty_input_change' });
-    }
+    const firstFile = fileList[0];
+    _reportEvent('input_change', {
+      ...entry,
+      name: firstFile?.name || '',
+      size: firstFile?.size || 0,
+      type: firstFile?.type || '',
+      error: fileList.length === 0 ? 'Input sin archivos (cancelado o fallo)' : '',
+      extra: { inputId, fileCount: fileList.length },
+    });
   } catch { /* nunca romper */ }
 }
 
-/**
- * Genera un código diagnóstico legible para que el usuario pueda comunicarlo.
- * Formato: DV-XXXX (4 chars hex basado en timestamp + random)
- */
 export function generateDiagnosticCode() {
   try {
     const ts = Date.now().toString(36).slice(-3);
@@ -201,47 +168,58 @@ export function generateDiagnosticCode() {
 export function logUploadError(file, error, context = '') {
   try {
     const entry = {
-      ts: new Date().toISOString(),
-      event: 'upload_error',
-      context,
-      name: file?.name || 'unknown',
-      size: file?.size ?? 'unknown',
-      type: file?.type || 'empty',
-      error: error?.message || String(error),
-      env: getEnvInfo(),
+      ts: new Date().toISOString(), event: 'upload_error', context,
+      name: file?.name || 'unknown', size: file?.size ?? 'unknown', type: file?.type || 'empty',
+      error: error?.message || String(error), env: getEnvInfo(),
     };
     _appendLog(entry);
     console.warn('[Upload] Error:', context, entry.error, entry.name, entry.size, 'bytes');
-    _reportToServer(entry);
+    _reportEvent('upload_error', { ...entry, diagnosticCode: generateDiagnosticCode() });
   } catch { /* nunca romper */ }
 }
 
 export function logFileValidationReject(file, reason) {
   try {
     const entry = {
-      ts: new Date().toISOString(),
-      event: 'validation_reject',
-      reason,
-      name: file?.name || 'unknown',
-      size: file?.size ?? 'unknown',
-      type: file?.type || 'empty',
+      ts: new Date().toISOString(), event: 'validation_reject', reason,
+      name: file?.name || 'unknown', size: file?.size ?? 'unknown', type: file?.type || 'empty',
       env: getEnvInfo(),
     };
     _appendLog(entry);
     console.warn('[Upload] Validación rechazada:', reason, entry.name, entry.size, 'bytes');
-    _reportToServer(entry);
+    _reportEvent('validation_reject', { ...entry, error: reason });
   } catch { /* nunca romper */ }
 }
 
-function _appendLog(entry) {
+/**
+ * Envía TODO el historial local al servidor como un reporte diagnóstico.
+ * Útil cuando el usuario pulsa "Enviar diagnóstico" manualmente.
+ */
+export async function sendDiagnosticReport() {
   try {
-    const raw = localStorage.getItem(LOG_KEY);
-    const logs = raw ? JSON.parse(raw) : [];
-    logs.push(entry);
-    // Mantener solo los últimos MAX_LOGS
-    if (logs.length > MAX_LOGS) logs.splice(0, logs.length - MAX_LOGS);
-    localStorage.setItem(LOG_KEY, JSON.stringify(logs));
-  } catch { /* localStorage lleno o bloqueado — ignorar */ }
+    const logs = getUploadLogs();
+    const env = getEnvInfo();
+    const userEmail = await _getUserEmail();
+    const code = generateDiagnosticCode();
+    
+    await base44.entities.UploadDiagnostic.create({
+      user_email: userEmail,
+      event_type: 'diagnostic_report',
+      context: `Reporte manual - ${logs.length} eventos`,
+      diagnostic_code: code,
+      device: _getDeviceString(env),
+      connection: _getConnectionString(env),
+      memory_mb: env.memoryMB || null,
+      is_pwa: env.isPWA || false,
+      user_agent: env.ua || '',
+      extra_data: { logs, session_id: SESSION_ID },
+      session_id: SESSION_ID,
+    });
+    
+    return { success: true, code, eventCount: logs.length };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export function getUploadLogs() {
