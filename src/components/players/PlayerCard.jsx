@@ -62,10 +62,20 @@ const getSuggestedCategory = (edad, deporteActual) => {
   return deporteActual;
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [] }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [], evaluations = [], attendanceRecords = [] }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showMinorAccess, setShowMinorAccess] = useState(false);
   const [parentUser, setParentUser] = useState(null);
+
+  // Evaluaciones del jugador actual
+  const playerEvaluations = evaluations.filter(e => e.jugador_id === player.id).sort((a, b) => new Date(b.fecha_evaluacion) - new Date(a.fecha_evaluacion));
+  const lastEvaluation = playerEvaluations[0];
+  const avgRating = lastEvaluation ? ((lastEvaluation.tecnica + lastEvaluation.tactica + lastEvaluation.fisica + lastEvaluation.actitud + lastEvaluation.trabajo_equipo) / 5).toFixed(1) : null;
+
+  // Asistencia
+  const playerAttendance = attendanceRecords.filter(a => a.asistencias?.some(att => att.jugador_id === player.id));
+  const lastAttendance = playerAttendance[playerAttendance.length - 1];
+  const attendanceStatus = lastAttendance?.asistencias?.find(att => att.jugador_id === player.id)?.estado;
 
   const playerCategory = player.categoria_principal || player.deporte;
   const playerSchedules = schedules
@@ -376,6 +386,55 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 <span className="truncate">
                   {playerSchedules.map(s => `${s.dia_semana} ${s.hora_inicio}-${s.hora_fin}`).join(' · ')}
                 </span>
+              </div>
+            )}
+
+            {/* ═══════ EVALUATION ═══════ */}
+            {lastEvaluation && (
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-3">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="text-xs font-bold text-blue-900">📊 Evaluación</p>
+                  <span className="text-sm font-bold text-blue-700">{avgRating}/5</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1">
+                  {[
+                    { label: 'Tec', val: lastEvaluation.tecnica },
+                    { label: 'Tác', val: lastEvaluation.tactica },
+                    { label: 'Fís', val: lastEvaluation.fisica },
+                    { label: 'Act', val: lastEvaluation.actitud },
+                    { label: 'Eq', val: lastEvaluation.trabajo_equipo }
+                  ].map(item => (
+                    <div key={item.label} className="text-center bg-white rounded-lg py-1.5 border border-blue-100">
+                      <p className="text-[10px] font-bold text-blue-600">{item.val}</p>
+                      <p className="text-[8px] text-blue-500">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+                {lastEvaluation.observaciones && (
+                  <p className="text-[10px] text-blue-700 mt-2 italic">"{lastEvaluation.observaciones.substring(0, 60)}..."</p>
+                )}
+              </div>
+            )}
+
+            {/* ═══════ ATTENDANCE ═══════ */}
+            {lastAttendance && (
+              <div className={`rounded-xl p-3 border ${attendanceStatus === 'presente' ? 'bg-green-50 border-green-200' : attendanceStatus === 'justificado' ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
+                <p className="text-xs font-bold mb-1">
+                  {attendanceStatus === 'presente' ? '✅ Presente' : attendanceStatus === 'justificado' ? '📋 Justificado' : '❌ Ausente'}
+                </p>
+                <p className="text-[10px] text-slate-600">
+                  Última sesión: {format(new Date(lastAttendance.fecha), "d MMM", { locale: es })}
+                </p>
+              </div>
+            )}
+
+            {/* ═══════ MEDICAL INFO ═══════ */}
+            {hasMedicalInfo && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                <p className="text-xs font-bold text-red-900 mb-1">❤️ Ficha Médica</p>
+                {player.ficha_medica?.alergias && <p className="text-[10px] text-red-700"><strong>Alergias:</strong> {player.ficha_medica.alergias}</p>}
+                {player.ficha_medica?.grupo_sanguineo && <p className="text-[10px] text-red-700"><strong>Grupo:</strong> {player.ficha_medica.grupo_sanguineo}</p>}
+                {player.ficha_medica?.condiciones_medicas && <p className="text-[10px] text-red-700"><strong>Condiciones:</strong> {player.ficha_medica.condiciones_medicas}</p>}
               </div>
             )}
 
