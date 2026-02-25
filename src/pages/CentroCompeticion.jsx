@@ -505,8 +505,11 @@ export default function CentroCompeticion() {
               <div className="flex items-center gap-3">
                 <span className="font-semibold">Herramientas de Administración</span>
                 <Button variant="outline" size="sm" onClick={() => setShowUrlManager(true)} className="gap-1.5 text-xs border-blue-300 text-blue-700 hover:bg-blue-50">
-                  <Link2 className="w-3.5 h-3.5" /> Gestionar URLs RFFM
-                </Button>
+                   <Link2 className="w-3.5 h-3.5" /> URLs RFFM
+                 </Button>
+                 <Button variant="outline" size="sm" onClick={() => setShowMonitor(!showMonitor)} className="gap-1.5 text-xs border-purple-300 text-purple-700 hover:bg-purple-50">
+                   <Database className="w-3.5 h-3.5" /> {showMonitor ? 'Ocultar Monitor' : 'Monitor RFFM'}
+                 </Button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full md:w-auto">
                 <Button
