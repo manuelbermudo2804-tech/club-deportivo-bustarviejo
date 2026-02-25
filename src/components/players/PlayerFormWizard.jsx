@@ -224,20 +224,19 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   // Cada handler registra: (1) que se disparó onChange, (2) cuántos archivos llegaron, (3) resultado
   const handlePhotoUpload = async (e) => {
     try {
-      clearCameraFlag(); // La cámara volvió OK
+      clearCameraFlag();
       logInputChange(e.target?.id || 'photo', e.target?.files, 'handlePhotoUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
       if (!file) return;
       const url = await uploadFile_photo(file);
       if (url) {
-        setCurrentPlayer(p => {
-          const updated = { ...p, foto_url: url };
-          // Guardar borrador inmediatamente para que no se pierda
-          saveFormDraft(updated, step);
-          return updated;
-        });
-        toast.success('✅ Foto subida correctamente');
+        // Guardar en localStorage ANTES de tocar React state (anti-crash)
+        try {
+          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
+          if (draft.playerData) { draft.playerData.foto_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
+        } catch {}
+        setCurrentPlayer(p => ({ ...p, foto_url: url }));
       }
     } catch (err) { logUploadError(null, err, 'handlePhotoUpload_catch'); }
   };
@@ -250,12 +249,11 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!file) return;
       const url = await uploadFile_dni(file);
       if (url) {
-        setCurrentPlayer(p => {
-          const updated = { ...p, dni_jugador_url: url };
-          saveFormDraft(updated, step);
-          return updated;
-        });
-        toast.success('✅ Documento subido correctamente');
+        try {
+          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
+          if (draft.playerData) { draft.playerData.dni_jugador_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
+        } catch {}
+        setCurrentPlayer(p => ({ ...p, dni_jugador_url: url }));
       }
     } catch (err) { logUploadError(null, err, 'handleDNIUpload_catch'); }
   };
