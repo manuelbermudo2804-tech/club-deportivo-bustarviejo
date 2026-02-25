@@ -22,6 +22,7 @@ import SecondParentSection from "./SecondParentSection";
 import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
 import { useImageUpload } from "../utils/useImageUpload";
 import { logUploadError, logUploadButtonClick, logInputChange, generateDiagnosticCode } from "../utils/uploadLogger";
+import SendDiagnosticButton from "../upload/SendDiagnosticButton";
 
 // --- Helpers (same as original PlayerForm) ---
 const calculateAge = (birthDate) => {
@@ -430,6 +431,10 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
               {renderStep()}
             </motion.div>
           </AnimatePresence>
+
+          <div className="flex items-center justify-between mt-4">
+            <SendDiagnosticButton className="text-xs" />
+          </div>
 
           <WizardNavButtons
             currentStep={step}

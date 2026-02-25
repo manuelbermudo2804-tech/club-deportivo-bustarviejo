@@ -581,6 +581,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
     { title: "👁️ Preview Flujo Alta", url: createPageUrl("OnboardingPreview"), icon: UserIcon },
+    { title: "📸 Diagnóstico Subidas", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
     ];
 
   const coachNavigationItems = [
