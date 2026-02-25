@@ -212,7 +212,28 @@ function QuickActionCard({ icon: Icon, title, subtitle, href, color, badge, dela
 }
 
 function NextCallupBanner({ callup }) {
-  if (!callup) return null;
+  if (!callup) {
+    return (
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
+        <Link to={createPageUrl("CalendarAndSchedules")}>
+          <Card className="border-none shadow-lg bg-gradient-to-r from-slate-100 to-green-50 overflow-hidden">
+            <CardContent className="p-4 relative">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-slate-200 flex items-center justify-center">
+                  <span className="text-2xl">📅</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-slate-700 text-sm">No estás convocado aún</h3>
+                  <p className="text-slate-500 text-xs">Toca para ver los partidos del club →</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      </motion.div>
+    );
+  }
 
   const fecha = new Date(callup.fecha_partido);
   const hoy = new Date();
@@ -238,6 +259,7 @@ function NextCallupBanner({ callup }) {
                   <Badge className="bg-white text-red-600 font-bold text-xs border-none">
                     <Zap className="w-3 h-3 mr-1" />{diasTexto}
                   </Badge>
+                  <span className="text-white/70 text-[10px] font-semibold">¡Estás convocado!</span>
                 </div>
                 <h3 className="font-black text-white text-lg truncate">{callup.titulo}</h3>
                 <p className="text-white/80 text-sm">
