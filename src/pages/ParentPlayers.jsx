@@ -1205,6 +1205,8 @@ Email: cdbustarviejo@gmail.com
                       payments={payments}
                       seasonConfig={seasonConfig}
                       callups={callups}
+                      evaluations={evaluations}
+                      attendanceRecords={attendanceRecords}
                     />
                   ))}
                 </AnimatePresence>
@@ -1236,6 +1238,8 @@ Email: cdbustarviejo@gmail.com
                       payments={payments}
                       seasonConfig={seasonConfig}
                       callups={callups}
+                      evaluations={evaluations}
+                      attendanceRecords={attendanceRecords}
                     />
                   ))}
                 </AnimatePresence>
@@ -1267,6 +1271,8 @@ Email: cdbustarviejo@gmail.com
                       payments={payments}
                       seasonConfig={seasonConfig}
                       callups={callups}
+                      evaluations={evaluations}
+                      attendanceRecords={attendanceRecords}
                     />
                   ))}
                 </AnimatePresence>
@@ -1298,6 +1304,8 @@ Email: cdbustarviejo@gmail.com
                       payments={payments}
                       seasonConfig={seasonConfig}
                       callups={callups}
+                      evaluations={evaluations}
+                      attendanceRecords={attendanceRecords}
                     />
                   ))}
                 </AnimatePresence>
