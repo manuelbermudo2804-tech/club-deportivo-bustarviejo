@@ -5,6 +5,7 @@ import { Camera, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
 import CameraPermissionCheck from "../../upload/CameraPermissionCheck";
+import { markCameraOpening } from "./useFormPersistence";
 
 export default function StepPlayerData({
   currentPlayer,

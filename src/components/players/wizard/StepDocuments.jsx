@@ -7,6 +7,7 @@ import { Upload, Loader2, Download, FileText, Lock } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
 import CameraPermissionCheck from "../../upload/CameraPermissionCheck";
+import { markCameraOpening } from "./useFormPersistence";
 
 export default function StepDocuments({
   currentPlayer,
