@@ -224,16 +224,18 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   // Cada handler registra: (1) que se disparó onChange, (2) cuántos archivos llegaron, (3) resultado
   const handlePhotoUpload = async (e) => {
     try {
+      clearCameraFlag(); // La cámara volvió OK
       logInputChange(e.target?.id || 'photo', e.target?.files, 'handlePhotoUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
-      if (!file) return; // cancelación silenciosa
+      if (!file) return;
       const url = await uploadFile_photo(file);
       if (url) setCurrentPlayer(p => ({ ...p, foto_url: url }));
     } catch (err) { logUploadError(null, err, 'handlePhotoUpload_catch'); }
   };
   const handleDNIUpload = async (e) => {
     try {
+      clearCameraFlag();
       logInputChange(e.target?.id || 'dni', e.target?.files, 'handleDNIUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
@@ -244,6 +246,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   };
   const handleLibroFamiliaUpload = async (e) => {
     try {
+      clearCameraFlag();
       logInputChange(e.target?.id || 'libro', e.target?.files, 'handleLibroFamiliaUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
@@ -254,6 +257,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   };
   const handleDNITutorUpload = async (e) => {
     try {
+      clearCameraFlag();
       logInputChange(e.target?.id || 'tutordni', e.target?.files, 'handleDNITutorUpload');
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
