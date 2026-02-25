@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -24,6 +24,7 @@ import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm"
 import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
 import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
 import { useActiveSeason } from "../components/season/SeasonProvider";
+import FeeAdjustmentDialog from "../components/payments/FeeAdjustmentDialog";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -102,6 +103,7 @@ export default function Payments() {
   const [selectedPlayerForPlan, setSelectedPlayerForPlan] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
   const [displayLimit, setDisplayLimit] = useState(20);
+  const [feeAdjustPlayer, setFeeAdjustPlayer] = useState(null);
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
@@ -1322,7 +1324,19 @@ export default function Payments() {
                                   <p className="text-xs text-slate-600 truncate">{player.deporte || "Sin categoría"}</p>
                                 </div>
                               </div>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 items-center">
+                                {isAdmin && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setFeeAdjustPlayer(player)}
+                                    className="h-7 px-2 text-[10px] lg:text-xs border-orange-300 text-orange-700 hover:bg-orange-50"
+                                    title="Ajustar cuota del jugador"
+                                  >
+                                    <Settings2 className="w-3 h-3 mr-1" />
+                                    Ajustar Cuota
+                                  </Button>
+                                )}
                                 {totalPaymentsDue > 0 && (
                                   <Badge className="bg-red-500 text-white text-xs">
                                     {totalPaymentsDue} Pendiente{totalPaymentsDue > 1 ? 's' : ''}
