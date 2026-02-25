@@ -236,9 +236,12 @@ function isLowMemoryDevice() {
   } catch { return false; }
 }
 
+// Memoria de sesión: recordar qué estrategia funcionó para no repetir cascada
+let _winningStrategyName = null;
+
 /**
  * CASCADA PRINCIPAL — prueba todas las estrategias hasta que una funcione.
- * Orden adaptativo según el dispositivo.
+ * Recuerda la estrategia ganadora para subidas posteriores en la misma sesión.
  * Nunca devuelve error si al menos una estrategia funciona.
  */
 async function cascadeUpload(file, isPDF = false) {
@@ -249,26 +252,50 @@ async function cascadeUpload(file, isPDF = false) {
   }
 
   const lowMem = isLowMemoryDevice();
+
+  // Mapa de estrategias por nombre
+  const strategyMap = {
+    'processImage': { name: 'processImage', fn: () => strategy_processImage(file) },
+    'Frontend 800px': { name: 'Frontend 800px', fn: () => strategy_frontendCompress(file) },
+    'Directa': { name: 'Directa', fn: () => strategy_directUpload(file) },
+    'Miniatura 400px': { name: 'Miniatura 400px', fn: () => strategy_tinyCompress(file) },
+    'Base64': { name: 'Base64', fn: () => strategy_base64Upload(file) },
+  };
+
+  // Si ya tenemos una estrategia ganadora, intentarla primero
+  if (_winningStrategyName && strategyMap[_winningStrategyName]) {
+    try {
+      const fast = strategyMap[_winningStrategyName];
+      console.info(`[Upload] ⚡ Intentando estrategia recordada: ${fast.name}`);
+      const result = await fast.fn();
+      if (result.url) {
+        console.info(`[Upload] ✅ Éxito rápido con estrategia recordada: ${fast.name}`);
+        return result;
+      }
+      console.warn(`[Upload] ⚠️ Estrategia recordada falló, volviendo a cascada completa`);
+      _winningStrategyName = null; // Reset — ya no es fiable
+    } catch {
+      _winningStrategyName = null;
+    }
+  }
+
   const errors = [];
 
   // Definir orden de estrategias según el dispositivo
   const strategies = lowMem
     ? [
-        // Dispositivo con poca RAM: empezar por compresión frontend (no usa backend pesado)
-        { name: 'Frontend 800px', fn: () => strategy_frontendCompress(file) },
-        { name: 'Miniatura 400px', fn: () => strategy_tinyCompress(file) },
-        { name: 'Directa', fn: () => strategy_directUpload(file) },
-        { name: 'Base64', fn: () => strategy_base64Upload(file) },
-        // processImage al final — en estos dispositivos puede crashear
-        { name: 'processImage', fn: () => strategy_processImage(file) },
+        strategyMap['Frontend 800px'],
+        strategyMap['Miniatura 400px'],
+        strategyMap['Directa'],
+        strategyMap['Base64'],
+        strategyMap['processImage'],
       ]
     : [
-        // Dispositivo normal: processImage primero (mejor calidad)
-        { name: 'processImage', fn: () => strategy_processImage(file) },
-        { name: 'Frontend 800px', fn: () => strategy_frontendCompress(file) },
-        { name: 'Directa', fn: () => strategy_directUpload(file) },
-        { name: 'Miniatura 400px', fn: () => strategy_tinyCompress(file) },
-        { name: 'Base64', fn: () => strategy_base64Upload(file) },
+        strategyMap['processImage'],
+        strategyMap['Frontend 800px'],
+        strategyMap['Directa'],
+        strategyMap['Miniatura 400px'],
+        strategyMap['Base64'],
       ];
 
   for (const strategy of strategies) {
@@ -276,6 +303,7 @@ async function cascadeUpload(file, isPDF = false) {
       const result = await strategy.fn();
       if (result.url) {
         console.info(`[Upload] ✅ Éxito con estrategia: ${strategy.name} (${result.strategy})`);
+        _winningStrategyName = strategy.name; // Recordar para la próxima subida
         return result;
       }
       errors.push(`${strategy.name}: ${result.error}`);
