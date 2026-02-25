@@ -230,7 +230,15 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (e.target) e.target.value = '';
       if (!file) return;
       const url = await uploadFile_photo(file);
-      if (url) setCurrentPlayer(p => ({ ...p, foto_url: url }));
+      if (url) {
+        setCurrentPlayer(p => {
+          const updated = { ...p, foto_url: url };
+          // Guardar borrador inmediatamente para que no se pierda
+          saveFormDraft(updated, step);
+          return updated;
+        });
+        toast.success('✅ Foto subida correctamente');
+      }
     } catch (err) { logUploadError(null, err, 'handlePhotoUpload_catch'); }
   };
   const handleDNIUpload = async (e) => {
@@ -241,7 +249,14 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (e.target) e.target.value = '';
       if (!file) return;
       const url = await uploadFile_dni(file);
-      if (url) setCurrentPlayer(p => ({ ...p, dni_jugador_url: url }));
+      if (url) {
+        setCurrentPlayer(p => {
+          const updated = { ...p, dni_jugador_url: url };
+          saveFormDraft(updated, step);
+          return updated;
+        });
+        toast.success('✅ Documento subido correctamente');
+      }
     } catch (err) { logUploadError(null, err, 'handleDNIUpload_catch'); }
   };
   const handleLibroFamiliaUpload = async (e) => {
@@ -252,7 +267,14 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (e.target) e.target.value = '';
       if (!file) return;
       const url = await uploadFile_libro(file);
-      if (url) setCurrentPlayer(p => ({ ...p, libro_familia_url: url }));
+      if (url) {
+        setCurrentPlayer(p => {
+          const updated = { ...p, libro_familia_url: url };
+          saveFormDraft(updated, step);
+          return updated;
+        });
+        toast.success('✅ Libro de familia subido correctamente');
+      }
     } catch (err) { logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
   };
   const handleDNITutorUpload = async (e) => {
@@ -263,7 +285,14 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (e.target) e.target.value = '';
       if (!file) return;
       const url = await uploadFile_tutordni(file);
-      if (url) setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
+      if (url) {
+        setCurrentPlayer(p => {
+          const updated = { ...p, dni_tutor_legal_url: url };
+          saveFormDraft(updated, step);
+          return updated;
+        });
+        toast.success('✅ Documento del tutor subido correctamente');
+      }
     } catch (err) { logUploadError(null, err, 'handleDNITutorUpload_catch'); }
   };
 
