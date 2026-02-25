@@ -26,24 +26,47 @@ export default function StepDocuments({
   dniUploadFailed = false,
   libroUploadFailed = false
 }) {
-  return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-        <FileText className="w-5 h-5 text-blue-600" /> Documentación del Jugador
-      </h3>
+  const docLabel = currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI";
 
-      {/* CHECK PERMISOS CÁMARA/ARCHIVOS */}
+  const DocumentUploadCard = ({ label, uploaded, uploading, onUpload, inputId, error, children }) => (
+    <div className={`rounded-2xl overflow-hidden ${error ? 'ring-2 ring-red-500' : uploaded ? 'ring-1 ring-green-300' : 'ring-1 ring-slate-200'}`}>
+      <div className={`px-4 py-2.5 flex items-center justify-between ${error ? 'bg-red-50' : uploaded ? 'bg-green-50' : 'bg-slate-50'}`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center ${error ? 'bg-red-100' : uploaded ? 'bg-green-100' : 'bg-slate-200'}`}>
+            {uploaded ? <span className="text-green-600 text-xs font-bold">✓</span> : <FileText className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-500'}`} />}
+          </div>
+          <span className={`text-sm font-medium ${error ? 'text-red-800' : uploaded ? 'text-green-800' : 'text-slate-700'}`}>{label}</span>
+        </div>
+        {uploaded && <PrivateFileViewer fileUri={uploaded} label="Ver" />}
+      </div>
+      <div className="p-3 bg-white">
+        {error && <p className="text-xs text-red-600 mb-2">⚠️ {error}</p>}
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onUpload} className="hidden" id={inputId} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+        <Button
+          type="button"
+          variant={uploaded ? "outline" : "default"}
+          onClick={() => { markCameraOpening(inputId); logUploadButtonClick(inputId, label); document.getElementById(inputId).click(); }}
+          disabled={uploading}
+          className={`w-full rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+          style={{ minHeight: '44px' }}
+        >
+          {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+          {uploaded ? "Cambiar documento" : "Subir documento"}
+        </Button>
+        {children}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
       <CameraPermissionCheck />
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-        <p className="text-xs text-blue-800">💡 <strong>¿No ves el documento después de subirlo?</strong> En móviles con poca memoria puede no mostrarse la vista previa, pero el archivo se ha guardado correctamente. Puedes continuar sin problema.</p>
-      </div>
-
       {/* Tipo de documento */}
-      <div className="space-y-2">
-        <Label>Tipo de Documento del Jugador</Label>
+      <div className="space-y-1.5">
+        <Label className="text-sm font-medium text-slate-700">Tipo de Documento</Label>
         <Select value={currentPlayer.tipo_documento || "DNI"} onValueChange={(v) => setCurrentPlayer({ ...currentPlayer, tipo_documento: v })}>
-          <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="min-h-[44px] rounded-xl border-slate-200"><SelectValue /></SelectTrigger>
           <SelectContent position="popper" sideOffset={4} className="z-[9999]">
             <SelectItem value="DNI" className="py-3 text-base cursor-pointer">🪪 DNI</SelectItem>
             <SelectItem value="Pasaporte" className="py-3 text-base cursor-pointer">🛂 Pasaporte</SelectItem>
@@ -51,10 +74,10 @@ export default function StepDocuments({
         </Select>
       </div>
 
-      {/* DNI/Pasaporte número */}
-      <div className="space-y-2">
-        <Label className={fieldErrors.dni_jugador ? "text-red-600 font-bold" : ""}>
-          {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"} del Jugador {requiresDNI ? "*" : "(opcional si menor de 14)"}
+      {/* Número de documento */}
+      <div className="space-y-1.5">
+        <Label className={`text-sm font-medium ${fieldErrors.dni_jugador ? "text-red-600" : "text-slate-700"}`}>
+          Número de {docLabel} {requiresDNI ? "*" : "(opcional)"}
         </Label>
         <Input
           id="wiz-dni"
@@ -64,125 +87,64 @@ export default function StepDocuments({
             if (fieldErrors.dni_jugador) setFieldErrors(prev => ({ ...prev, dni_jugador: null }));
           }}
           placeholder={currentPlayer.tipo_documento === "Pasaporte" ? "ABC123456" : "12345678A"}
-          className={fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : ""}
+          className={`rounded-xl h-12 text-base ${fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
         />
-        {fieldErrors.dni_jugador && <p className="text-xs text-red-600">{fieldErrors.dni_jugador}</p>}
+        {fieldErrors.dni_jugador && <p className="text-xs text-red-600 mt-1">{fieldErrors.dni_jugador}</p>}
       </div>
 
-      {/* Subir DNI escaneado - CARA DELANTERA */}
-      <div className="space-y-2">
-        <Label className={fieldErrors.dni_jugador_url ? "text-red-600 font-bold" : ""}>
-          {currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI"} Jugador — Cara delantera {requiresDNI ? "*" : ""}
-        </Label>
-        <div className="flex items-center gap-2">
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onDNIUpload} className="hidden" id="wiz-dni-upload" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-          <Button
-            type="button"
-            variant={fieldErrors.dni_jugador_url ? "destructive" : "outline"}
-            onClick={() => { markCameraOpening('wiz-dni-upload'); logUploadButtonClick('wiz-dni-upload', 'dni_jugador'); document.getElementById('wiz-dni-upload').click(); }}
-            disabled={uploadingDNI}
-            className="flex-1 min-h-[44px]"
-          >
-            {uploadingDNI ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-            {currentPlayer.dni_jugador_url ? "✓ Cambiar cara delantera" : "Subir cara delantera"}
-          </Button>
-          {currentPlayer.dni_jugador_url && (
-            <PrivateFileViewer fileUri={currentPlayer.dni_jugador_url} label="Ver" />
-          )}
-        </div>
-        {currentPlayer.dni_jugador_url && !fieldErrors.dni_jugador_url && (
-          <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
-            <p className="text-green-800 text-sm font-bold">✅ Cara delantera subida</p>
-          </div>
-        )}
-        {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
-        
+      {/* Cara delantera */}
+      <DocumentUploadCard
+        label={`${docLabel} — Cara delantera ${requiresDNI ? "*" : ""}`}
+        uploaded={currentPlayer.dni_jugador_url}
+        uploading={uploadingDNI}
+        onUpload={onDNIUpload}
+        inputId="wiz-dni-upload"
+        error={fieldErrors.dni_jugador_url}
+      >
         {!currentPlayer.dni_jugador_url && dniUploadFailed && (
-          <PasteFromClipboard 
-            label="cara delantera" 
-            disabled={uploadingDNI}
-            onUploadComplete={(url) => {
+          <div className="mt-2">
+            <PasteFromClipboard label="cara delantera" disabled={uploadingDNI} onUploadComplete={(url) => {
               setCurrentPlayer(prev => ({ ...prev, dni_jugador_url: url }));
               if (fieldErrors.dni_jugador_url) setFieldErrors(prev => ({ ...prev, dni_jugador_url: null }));
-            }} 
-          />
-        )}
-      </div>
-
-      {/* DNI Jugador - CARA TRASERA */}
-      {currentPlayer.tipo_documento === "DNI" && (
-        <div className="space-y-2">
-          <Label>
-            DNI Jugador — Cara trasera {requiresDNI ? "*" : "(recomendado)"}
-          </Label>
-          <div className="flex items-center gap-2">
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onDNITraseroUpload} className="hidden" id="wiz-dni-trasero-upload" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => { markCameraOpening('wiz-dni-trasero-upload'); logUploadButtonClick('wiz-dni-trasero-upload', 'dni_jugador_trasero'); document.getElementById('wiz-dni-trasero-upload').click(); }}
-              disabled={uploadingDNITrasero}
-              className="flex-1 min-h-[44px]"
-            >
-              {uploadingDNITrasero ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-              {currentPlayer.dni_jugador_trasero_url ? "✓ Cambiar cara trasera" : "Subir cara trasera"}
-            </Button>
-            {currentPlayer.dni_jugador_trasero_url && (
-              <PrivateFileViewer fileUri={currentPlayer.dni_jugador_trasero_url} label="Ver" />
-            )}
+            }} />
           </div>
-          {currentPlayer.dni_jugador_trasero_url && (
-            <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
-              <p className="text-green-800 text-sm font-bold">✅ Cara trasera subida</p>
-            </div>
-          )}
-        </div>
+        )}
+      </DocumentUploadCard>
+
+      {/* Cara trasera (solo DNI) */}
+      {currentPlayer.tipo_documento === "DNI" && (
+        <DocumentUploadCard
+          label={`DNI — Cara trasera ${requiresDNI ? "*" : "(recomendado)"}`}
+          uploaded={currentPlayer.dni_jugador_trasero_url}
+          uploading={uploadingDNITrasero}
+          onUpload={onDNITraseroUpload}
+          inputId="wiz-dni-trasero-upload"
+        />
       )}
 
       {/* Libro de Familia (menores sin DNI) */}
       {!requiresDNI && !isAdultPlayerSelfRegistration && (
-        <div className="space-y-2">
-          <Label className={fieldErrors.libro_familia_url ? "text-red-600 font-bold" : ""}>
-            Libro de Familia (si no tiene DNI) *
-          </Label>
-          <div className="flex items-center gap-2">
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onLibroFamiliaUpload} className="hidden" id="wiz-libro-upload" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-            <Button
-              type="button"
-              variant={fieldErrors.libro_familia_url ? "destructive" : "outline"}
-              onClick={() => { markCameraOpening('wiz-libro-upload'); logUploadButtonClick('wiz-libro-upload', 'libro_familia'); document.getElementById('wiz-libro-upload').click(); }}
-              disabled={uploadingLibroFamilia}
-              className="flex-1 min-h-[44px]"
-            >
-              {uploadingLibroFamilia ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-              {currentPlayer.libro_familia_url ? "✓ Cambiar Libro" : "Subir Libro de Familia"}
-            </Button>
-            {currentPlayer.libro_familia_url && (
-              <PrivateFileViewer fileUri={currentPlayer.libro_familia_url} label="Ver Libro" />
-            )}
-          </div>
-          <p className="text-xs text-blue-700">📌 Solo necesitas subir la <strong>página donde aparece el jugador</strong>. No hace falta el libro entero.</p>
-          {currentPlayer.libro_familia_url && !fieldErrors.libro_familia_url && (
-            <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-1.5">
-              <p className="text-green-800 text-sm font-bold">✅ Libro de familia subido correctamente</p>
-              <p className="text-green-700 text-xs">Si no ves la vista previa, no te preocupes — el archivo está guardado.</p>
-            </div>
-          )}
-          {fieldErrors.libro_familia_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.libro_familia_url}</p>}
-          
-          {/* Alternativa portapapeles para Libro de Familia — solo si falló */}
+        <DocumentUploadCard
+          label="Libro de Familia *"
+          uploaded={currentPlayer.libro_familia_url}
+          uploading={uploadingLibroFamilia}
+          onUpload={onLibroFamiliaUpload}
+          inputId="wiz-libro-upload"
+          error={fieldErrors.libro_familia_url}
+        >
+          <p className="text-xs text-slate-500 mt-2">📌 Solo la página donde aparece el jugador</p>
           {!currentPlayer.libro_familia_url && libroUploadFailed && (
-            <PasteFromClipboard 
-              label="libro de familia" 
-              disabled={uploadingLibroFamilia}
-              onUploadComplete={(url) => {
+            <div className="mt-2">
+              <PasteFromClipboard label="libro de familia" disabled={uploadingLibroFamilia} onUploadComplete={(url) => {
                 setCurrentPlayer(prev => ({ ...prev, libro_familia_url: url }));
                 if (fieldErrors.libro_familia_url) setFieldErrors(prev => ({ ...prev, libro_familia_url: null }));
-              }} 
-            />
+              }} />
+            </div>
           )}
-        </div>
+        </DocumentUploadCard>
       )}
+
+      <p className="text-xs text-slate-400 text-center">💡 Si no ves la vista previa del documento, no te preocupes — está guardado</p>
     </div>
   );
 }

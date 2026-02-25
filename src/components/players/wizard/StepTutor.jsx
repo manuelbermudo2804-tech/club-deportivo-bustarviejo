@@ -66,10 +66,16 @@ export default function StepTutor({
   }
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-bold text-green-900 flex items-center gap-2">
-        <Users className="w-5 h-5 text-green-600" /> Datos del Padre/Madre/Tutor Legal *
-      </h3>
+    <div className="space-y-5">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-sm">
+          <Users className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Datos del Tutor Legal</h3>
+          <p className="text-xs text-slate-500">Padre, madre o tutor legal del jugador</p>
+        </div>
+      </div>
 
       {/* Copiar de otro hijo */}
       {existingFamilyPlayers.length > 0 && (
@@ -104,8 +110,8 @@ export default function StepTutor({
       )}
 
       {/* Nombre tutor */}
-      <div className="space-y-2">
-        <Label className={fieldErrors.nombre_tutor_legal ? "text-red-600 font-bold" : ""}>Nombre y Apellidos *</Label>
+      <div className="space-y-1.5">
+        <Label className={`text-sm font-medium ${fieldErrors.nombre_tutor_legal ? "text-red-600" : "text-slate-700"}`}>Nombre y Apellidos *</Label>
         <Input
           value={currentPlayer.nombre_tutor_legal || ""}
           onChange={(e) => {
@@ -113,25 +119,25 @@ export default function StepTutor({
             if (fieldErrors.nombre_tutor_legal) setFieldErrors(prev => ({ ...prev, nombre_tutor_legal: null }));
           }}
           placeholder="Ej: María García López"
-          className={fieldErrors.nombre_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
+          className={`rounded-xl h-12 text-base ${fieldErrors.nombre_tutor_legal ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
         />
-        {fieldErrors.nombre_tutor_legal && <p className="text-xs text-red-600">{fieldErrors.nombre_tutor_legal}</p>}
+        {fieldErrors.nombre_tutor_legal && <p className="text-xs text-red-600 mt-1">{fieldErrors.nombre_tutor_legal}</p>}
       </div>
 
       {/* Tipo documento tutor + DNI */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Tipo de Documento</Label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-sm font-medium text-slate-700">Tipo de Documento</Label>
           <Select value={currentPlayer.tipo_documento_tutor || "DNI"} onValueChange={(v) => setCurrentPlayer({ ...currentPlayer, tipo_documento_tutor: v })}>
-            <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="min-h-[44px] rounded-xl border-slate-200"><SelectValue /></SelectTrigger>
             <SelectContent position="popper" sideOffset={4} className="z-[9999]">
               <SelectItem value="DNI" className="py-3 text-base cursor-pointer">🪪 DNI</SelectItem>
               <SelectItem value="Pasaporte" className="py-3 text-base cursor-pointer">🛂 Pasaporte</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label className={fieldErrors.dni_tutor_legal ? "text-red-600 font-bold" : ""}>
+        <div className="space-y-1.5">
+          <Label className={`text-sm font-medium ${fieldErrors.dni_tutor_legal ? "text-red-600" : "text-slate-700"}`}>
             {currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte" : "DNI"} *
           </Label>
           <Input
@@ -141,9 +147,9 @@ export default function StepTutor({
               if (fieldErrors.dni_tutor_legal) setFieldErrors(prev => ({ ...prev, dni_tutor_legal: null }));
             }}
             placeholder={currentPlayer.tipo_documento_tutor === "Pasaporte" ? "ABC123456" : "12345678A"}
-            className={fieldErrors.dni_tutor_legal ? "border-2 border-red-500 bg-red-50" : ""}
+            className={`rounded-xl h-12 text-base ${fieldErrors.dni_tutor_legal ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
           />
-          {fieldErrors.dni_tutor_legal && <p className="text-xs text-red-600">{fieldErrors.dni_tutor_legal}</p>}
+          {fieldErrors.dni_tutor_legal && <p className="text-xs text-red-600 mt-1">{fieldErrors.dni_tutor_legal}</p>}
         </div>
       </div>
 
@@ -205,9 +211,9 @@ export default function StepTutor({
       )}
 
       {/* Email y teléfono */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className={fieldErrors.email_padre ? "text-red-600 font-bold" : ""}>Correo Electrónico *</Label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className={`text-sm font-medium ${fieldErrors.email_padre ? "text-red-600" : "text-slate-700"}`}>Correo Electrónico *</Label>
           <ValidatedInput
             validationType="email"
             type="email"
@@ -221,8 +227,8 @@ export default function StepTutor({
           />
           {fieldErrors.email_padre && <p className="text-xs text-red-600">{fieldErrors.email_padre}</p>}
         </div>
-        <div className="space-y-2">
-          <Label className={fieldErrors.telefono ? "text-red-600 font-bold" : ""}>Teléfono *</Label>
+        <div className="space-y-1.5">
+          <Label className={`text-sm font-medium ${fieldErrors.telefono ? "text-red-600" : "text-slate-700"}`}>Teléfono *</Label>
           <ValidatedInput
             validationType="telefono"
             type="tel"
@@ -239,9 +245,9 @@ export default function StepTutor({
       </div>
 
       {/* Dirección */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className={fieldErrors.direccion ? "text-red-600 font-bold" : ""}>Dirección Completa *</Label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className={`text-sm font-medium ${fieldErrors.direccion ? "text-red-600" : "text-slate-700"}`}>Dirección Completa *</Label>
           <Input
             value={currentPlayer.direccion}
             onChange={(e) => {
@@ -249,12 +255,12 @@ export default function StepTutor({
               if (fieldErrors.direccion) setFieldErrors(prev => ({ ...prev, direccion: null }));
             }}
             placeholder="Calle, número, piso..."
-            className={fieldErrors.direccion ? "border-2 border-red-500 bg-red-50" : ""}
+            className={`rounded-xl h-12 text-base ${fieldErrors.direccion ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
           />
-          {fieldErrors.direccion && <p className="text-xs text-red-600">{fieldErrors.direccion}</p>}
+          {fieldErrors.direccion && <p className="text-xs text-red-600 mt-1">{fieldErrors.direccion}</p>}
         </div>
-        <div className="space-y-2">
-          <Label className={fieldErrors.municipio ? "text-red-600 font-bold" : ""}>Municipio *</Label>
+        <div className="space-y-1.5">
+          <Label className={`text-sm font-medium ${fieldErrors.municipio ? "text-red-600" : "text-slate-700"}`}>Municipio *</Label>
           <Input
             value={currentPlayer.municipio || ""}
             onChange={(e) => {
@@ -262,9 +268,9 @@ export default function StepTutor({
               if (fieldErrors.municipio) setFieldErrors(prev => ({ ...prev, municipio: null }));
             }}
             placeholder="Escribe tu municipio"
-            className={fieldErrors.municipio ? "border-2 border-red-500 bg-red-50" : ""}
+            className={`rounded-xl h-12 text-base ${fieldErrors.municipio ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
           />
-          {fieldErrors.municipio && <p className="text-xs text-red-600">{fieldErrors.municipio}</p>}
+          {fieldErrors.municipio && <p className="text-xs text-red-600 mt-1">{fieldErrors.municipio}</p>}
         </div>
       </div>
     </div>

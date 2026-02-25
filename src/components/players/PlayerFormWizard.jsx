@@ -22,7 +22,7 @@ import SecondParentSection from "./SecondParentSection";
 import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
 import { useImageUpload } from "../utils/useImageUpload";
 import { logUploadError, logUploadButtonClick, logInputChange, generateDiagnosticCode } from "../utils/uploadLogger";
-import SendDiagnosticButton from "../upload/SendDiagnosticButton";
+// SendDiagnosticButton removed from wizard UI - only used in admin diagnostics page
 import { saveFormDraft, loadFormDraft, clearFormDraft, markCameraOpening, checkCameraReload, clearCameraFlag } from "./wizard/useFormPersistence";
 
 // --- Helpers (same as original PlayerForm) ---
@@ -549,10 +549,6 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
               {renderStep()}
             </motion.div>
           </AnimatePresence>
-
-          <div className="flex items-center justify-between mt-4">
-            <SendDiagnosticButton className="text-xs" />
-          </div>
 
           <WizardNavButtons
             currentStep={step}

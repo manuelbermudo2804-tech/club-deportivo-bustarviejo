@@ -21,77 +21,90 @@ export default function StepPlayerData({
   photoUploadFailed = false
 }) {
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-        👤 Datos del Jugador
-      </h3>
-
+    <div className="space-y-5">
       {/* CHECK PERMISOS CÁMARA */}
       <CameraPermissionCheck />
 
       {/* FOTO TIPO CARNET */}
-      <div className={`space-y-4 border-2 rounded-lg p-4 ${fieldErrors.foto_url ? 'border-red-500 bg-red-50' : 'border-orange-300 bg-orange-50'}`}>
-        <div className="flex items-center gap-2">
-          <Camera className={`w-5 h-5 ${fieldErrors.foto_url ? 'text-red-600' : 'text-orange-600'}`} />
-          <span className={`font-bold ${fieldErrors.foto_url ? 'text-red-900' : 'text-orange-900'}`}>
-            Foto Tipo Carnet * {fieldErrors.foto_url && <span className="text-red-500 text-xs ml-1">⚠️</span>}
-          </span>
+      <div className={`rounded-2xl overflow-hidden ${fieldErrors.foto_url ? 'ring-2 ring-red-500' : 'ring-1 ring-slate-200'}`}>
+        <div className={`px-4 py-3 ${fieldErrors.foto_url ? 'bg-red-50' : 'bg-gradient-to-r from-orange-50 to-amber-50'}`}>
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${fieldErrors.foto_url ? 'bg-red-100' : 'bg-orange-100'}`}>
+              <Camera className={`w-4 h-4 ${fieldErrors.foto_url ? 'text-red-600' : 'text-orange-600'}`} />
+            </div>
+            <div>
+              <p className={`font-semibold text-sm ${fieldErrors.foto_url ? 'text-red-900' : 'text-slate-900'}`}>Foto Tipo Carnet *</p>
+              <p className="text-xs text-slate-500">De frente, fondo claro</p>
+            </div>
+          </div>
         </div>
-        {fieldErrors.foto_url && <p className="text-xs text-red-600 font-medium bg-red-100 p-2 rounded">⚠️ {fieldErrors.foto_url}</p>}
+        
+        <div className="p-4 bg-white">
+          {fieldErrors.foto_url && (
+            <div className="mb-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <p className="text-xs text-red-700 font-medium">⚠️ {fieldErrors.foto_url}</p>
+            </div>
+          )}
 
-        <div className="flex flex-col items-center space-y-3">
-          <div className="relative">
-            {currentPlayer.foto_url ? (
-              <>
-                <img src={currentPlayer.foto_url} alt="Foto carnet" className="w-28 h-36 object-cover border-4 border-green-400 shadow-lg rounded-lg" />
-                <div className="mt-2 bg-green-100 border border-green-300 rounded-lg px-3 py-1.5 text-center">
-                  <p className="text-green-800 text-sm font-bold">✅ Foto subida correctamente</p>
-                  <p className="text-green-700 text-xs">Si no ves la imagen, no te preocupes — está guardada. Continúa con el formulario.</p>
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              {currentPlayer.foto_url ? (
+                <div className="relative">
+                  <img src={currentPlayer.foto_url} alt="Foto carnet" className="w-24 h-32 object-cover rounded-xl border-2 border-green-400 shadow-md" />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow">
+                    <span className="text-white text-xs">✓</span>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="w-28 h-36 bg-slate-200 flex items-center justify-center text-slate-500 border-4 border-dashed border-orange-300 rounded-lg">
-                <Camera className="w-8 h-8" />
-              </div>
-            )}
+              ) : (
+                <div className="w-24 h-32 bg-slate-100 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-300 rounded-xl">
+                  <Camera className="w-6 h-6 mb-1" />
+                  <span className="text-[10px]">Sin foto</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 space-y-2">
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+
+              <Button type="button" variant="default" className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl" style={{ minHeight: '44px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-camera'); logUploadButtonClick('wiz-photo-camera', 'foto_camara'); document.getElementById('wiz-photo-camera').click(); }}>
+                {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+                {currentPlayer.foto_url ? "Cambiar Foto" : "📸 Hacer Foto"}
+              </Button>
+              <Button type="button" variant="outline" className="w-full font-medium rounded-xl text-slate-600" style={{ minHeight: '40px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-gallery'); logUploadButtonClick('wiz-photo-gallery', 'foto_galeria'); document.getElementById('wiz-photo-gallery').click(); }}>
+                {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                Subir desde galería
+              </Button>
+
+              {currentPlayer.foto_url && (
+                <p className="text-xs text-green-700 font-medium text-center">✅ Foto guardada</p>
+              )}
+            </div>
           </div>
 
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-
-          <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Button type="button" variant="default" className="flex-1 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-base font-semibold" style={{ minHeight: '48px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-camera'); logUploadButtonClick('wiz-photo-camera', 'foto_camara'); document.getElementById('wiz-photo-camera').click(); }}>
-              {uploadingPhoto ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Camera className="w-5 h-5 mr-2" />}
-              📸 Hacer Foto
-            </Button>
-            <Button type="button" variant="outline" className="flex-1 text-base font-semibold" style={{ minHeight: '48px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-gallery'); logUploadButtonClick('wiz-photo-gallery', 'foto_galeria'); document.getElementById('wiz-photo-gallery').click(); }}>
-              {uploadingPhoto ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Upload className="w-5 h-5 mr-2" />}
-              Subir desde galería
-            </Button>
-          </div>
-          <p className="text-xs text-orange-700 text-center">Foto tipo carnet de frente, fondo claro</p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-1">
-            <p className="text-xs text-blue-800">💡 <strong>¿Problemas?</strong> Si la app se cierra al hacer la foto, prueba con <strong>"Subir desde galería"</strong>.</p>
-          </div>
+          {!currentPlayer.foto_url && (
+            <p className="text-xs text-slate-500 mt-3 text-center">💡 Si la app se cierra al hacer la foto, prueba "Subir desde galería"</p>
+          )}
           
-          {/* Alternativa de último recurso: solo aparece si falló la subida normal */}
           {!currentPlayer.foto_url && photoUploadFailed && (
-            <PasteFromClipboard 
-              label="foto" 
-              disabled={uploadingPhoto}
-              onUploadComplete={(url) => {
-                setCurrentPlayer(prev => ({ ...prev, foto_url: url }));
-                if (fieldErrors.foto_url) setFieldErrors(prev => ({ ...prev, foto_url: null }));
-              }} 
-            />
+            <div className="mt-3">
+              <PasteFromClipboard 
+                label="foto" 
+                disabled={uploadingPhoto}
+                onUploadComplete={(url) => {
+                  setCurrentPlayer(prev => ({ ...prev, foto_url: url }));
+                  if (fieldErrors.foto_url) setFieldErrors(prev => ({ ...prev, foto_url: null }));
+                }} 
+              />
+            </div>
           )}
         </div>
       </div>
 
       {/* Nombre */}
-      <div className="space-y-2">
-        <Label htmlFor="wiz-nombre" className={fieldErrors.nombre ? "text-red-600 font-bold" : ""}>
-          Nombre y Apellidos del Jugador * {fieldErrors.nombre && <span className="text-red-500 text-xs">⚠️</span>}
+      <div className="space-y-1.5">
+        <Label htmlFor="wiz-nombre" className={`text-sm font-medium ${fieldErrors.nombre ? "text-red-600" : "text-slate-700"}`}>
+          Nombre y Apellidos *
         </Label>
         <Input
           id="wiz-nombre"
@@ -103,15 +116,15 @@ export default function StepPlayerData({
             if (fieldErrors.nombre) setFieldErrors(prev => ({ ...prev, nombre: null }));
           }}
           placeholder="Ej: Juan García López"
-          className={fieldErrors.nombre ? "border-2 border-red-500 bg-red-50" : ""}
+          className={`rounded-xl h-12 text-base ${fieldErrors.nombre ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
         />
-        {fieldErrors.nombre && <p className="text-xs text-red-600">{fieldErrors.nombre}</p>}
+        {fieldErrors.nombre && <p className="text-xs text-red-600 mt-1">{fieldErrors.nombre}</p>}
       </div>
 
       {/* Fecha de nacimiento */}
-      <div className="space-y-2">
-        <Label htmlFor="wiz-fecha" className={fieldErrors.fecha_nacimiento ? "text-red-600 font-bold" : ""}>
-          Fecha de Nacimiento * {fieldErrors.fecha_nacimiento && <span className="text-red-500 text-xs">⚠️</span>}
+      <div className="space-y-1.5">
+        <Label htmlFor="wiz-fecha" className={`text-sm font-medium ${fieldErrors.fecha_nacimiento ? "text-red-600" : "text-slate-700"}`}>
+          Fecha de Nacimiento *
         </Label>
         <Input
           id="wiz-fecha"
@@ -121,13 +134,15 @@ export default function StepPlayerData({
             setCurrentPlayer({ ...currentPlayer, fecha_nacimiento: e.target.value });
             if (fieldErrors.fecha_nacimiento) setFieldErrors(prev => ({ ...prev, fecha_nacimiento: null }));
           }}
-          className={fieldErrors.fecha_nacimiento ? "border-2 border-red-500 bg-red-50" : ""}
+          className={`rounded-xl h-12 text-base ${fieldErrors.fecha_nacimiento ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
         />
-        {fieldErrors.fecha_nacimiento && <p className="text-xs text-red-600">{fieldErrors.fecha_nacimiento}</p>}
+        {fieldErrors.fecha_nacimiento && <p className="text-xs text-red-600 mt-1">{fieldErrors.fecha_nacimiento}</p>}
         {playerAge !== null && (
-          <p className="text-xs text-slate-600">
-            Edad: <strong>{playerAge} años</strong> {isMayorDeEdad ? "(Mayor de edad)" : requiresDNI ? "(Requiere DNI)" : "(Menor de 14)"}
-          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isMayorDeEdad ? 'bg-purple-100 text-purple-800' : requiresDNI ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+              {playerAge} años {isMayorDeEdad ? "· Mayor de edad" : requiresDNI ? "· Requiere DNI" : "· Menor de 14"}
+            </span>
+          </div>
         )}
       </div>
     </div>
