@@ -393,6 +393,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       finalData.acceso_menor_texto_version = "v1.0";
       finalData.acceso_menor_user_agent = navigator.userAgent;
     }
+    clearFormDraft();
     onSubmit(finalData);
   };
 
