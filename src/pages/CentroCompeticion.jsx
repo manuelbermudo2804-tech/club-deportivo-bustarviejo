@@ -191,6 +191,7 @@ export default function CentroCompeticion() {
   };
 
   const [showUrlManager, setShowUrlManager] = React.useState(false);
+  const [showMonitor, setShowMonitor] = React.useState(false);
   const [importingHistory, setImportingHistory] = React.useState(false);
 
   const importFullHistory = async () => {
