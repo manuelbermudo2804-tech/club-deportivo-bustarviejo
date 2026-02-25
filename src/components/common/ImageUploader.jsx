@@ -4,6 +4,7 @@ import { Image as ImageIcon, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { validateImage } from "../utils/imageCompressor";
 import { toast } from "sonner";
+import { logUploadStart, logUploadError, logUploadSuccess } from "../utils/uploadLogger";
 
 export default function ImageUploader({ images = [], onChange, max = 4 }) {
   const [loading, setLoading] = useState(false);
@@ -14,19 +15,20 @@ export default function ImageUploader({ images = [], onChange, max = 4 }) {
     const out = [];
     for (const f of list) {
       try {
-        // Solo valida tamaño (máx 5MB), NO procesa la imagen en frontend
+        logUploadStart(f, 'ImageUploader');
         await validateImage(f);
-
-        // Subir al backend para resize+compresión (multipart/form-data automático)
         const response = await base44.functions.invoke('processImage', { image: f });
         const data = response.data;
         if (data?.error) {
+          logUploadError(f, new Error(data.error || data.userMessage), 'ImageUploader_backend');
           toast.error(data.userMessage || data.error, { duration: 8000 });
           continue;
         }
+        logUploadSuccess(f, data.file_url, 'ImageUploader');
         out.push(data.file_url);
       } catch (err) {
         console.error('[ImageUploader] Error subiendo imagen:', err);
+        logUploadError(f, err, 'ImageUploader_catch');
         if (err?.userMessage) {
           toast.error(err.userMessage, { duration: 10000 });
         } else {
