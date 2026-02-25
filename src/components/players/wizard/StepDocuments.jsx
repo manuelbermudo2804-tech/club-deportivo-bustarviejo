@@ -20,7 +20,9 @@ export default function StepDocuments({
   uploadingDNI,
   uploadingLibroFamilia,
   onDNIUpload,
-  onLibroFamiliaUpload
+  onLibroFamiliaUpload,
+  dniUploadFailed = false,
+  libroUploadFailed = false
 }) {
   return (
     <div className="space-y-6">
@@ -94,8 +96,8 @@ export default function StepDocuments({
         )}
         {fieldErrors.dni_jugador_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.dni_jugador_url}</p>}
         
-        {/* Alternativa portapapeles para DNI */}
-        {!currentPlayer.dni_jugador_url && (
+        {/* Alternativa portapapeles para DNI — solo si falló la subida normal */}
+        {!currentPlayer.dni_jugador_url && dniUploadFailed && (
           <PasteFromClipboard 
             label="documento" 
             disabled={uploadingDNI}
@@ -138,8 +140,8 @@ export default function StepDocuments({
           )}
           {fieldErrors.libro_familia_url && <p className="text-xs text-red-600 bg-red-100 p-2 rounded">⚠️ {fieldErrors.libro_familia_url}</p>}
           
-          {/* Alternativa portapapeles para Libro de Familia */}
-          {!currentPlayer.libro_familia_url && (
+          {/* Alternativa portapapeles para Libro de Familia — solo si falló */}
+          {!currentPlayer.libro_familia_url && libroUploadFailed && (
             <PasteFromClipboard 
               label="libro de familia" 
               disabled={uploadingLibroFamilia}
