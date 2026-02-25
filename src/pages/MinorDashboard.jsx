@@ -383,39 +383,47 @@ export default function MinorDashboard() {
     );
   }
 
+  const SectionHeader = ({ icon: SIcon, title, delay = 0, color = "text-slate-500" }) => (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay }}
+      className="flex items-center gap-2 px-1 pt-3 pb-1"
+    >
+      <SIcon className={`w-4 h-4 ${color}`} />
+      <h2 className="font-bold text-slate-600 text-xs uppercase tracking-widest">{title}</h2>
+      <div className="flex-1 h-px bg-slate-200 ml-2" />
+    </motion.div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-      <div className="max-w-lg mx-auto p-4 space-y-4 pb-24">
+      <div className="max-w-lg mx-auto p-4 space-y-3 pb-24">
+        {/* ─── HERO ─── */}
         <HeroSection player={linkedPlayer} user={user} />
         {linkedPlayer && <MinorAgeTransitionBanner player={linkedPlayer} />}
-
-        {/* Cumpleaños */}
         {linkedPlayer && <MinorBirthdayBanner player={linkedPlayer} />}
 
-        {/* Frase motivacional diaria */}
-        <MinorMotivationalQuote />
-
-        {/* === SECCIÓN 1: Lo urgente === */}
+        {/* ─── PRÓXIMO PARTIDO / ENTRENAMIENTO ─── */}
+        <SectionHeader icon={Zap} title="Lo próximo" color="text-orange-500" delay={0.15} />
         <NextCallupBanner callup={nextCallup} />
-
-        {/* Próximo entrenamiento */}
         {playerCategory && <MinorNextTraining playerCategory={playerCategory} />}
 
-        {/* Racha de entrenamientos */}
-        {linkedPlayer?.id && attendances.length > 0 && (
-          <MinorStreakWidget attendances={attendances} playerId={linkedPlayer.id} />
-        )}
+        {/* ─── MI PROGRESO ─── */}
+        <SectionHeader icon={Trophy} title="Mi progreso" color="text-yellow-500" delay={0.2} />
+        
+        {/* Row compacta: Racha + Goles en horizontal */}
+        <div className="grid grid-cols-2 gap-3">
+          {linkedPlayer?.id && attendances.length > 0 && (
+            <MinorStreakWidget attendances={attendances} playerId={linkedPlayer.id} compact />
+          )}
+          {linkedPlayer?.nombre && playerCategory && (
+            <MinorGoalsCard playerName={linkedPlayer.nombre} playerCategory={playerCategory} compact />
+          )}
+        </div>
 
-        {/* Goles marcados */}
-        {linkedPlayer?.nombre && playerCategory && (
-          <MinorGoalsCard playerName={linkedPlayer.nombre} playerCategory={playerCategory} />
-        )}
-
-        {/* === SECCIÓN 2: Mi progreso === */}
-        {/* Mini evaluación */}
         {linkedPlayer?.id && <MinorEvalWidget playerId={linkedPlayer.id} />}
 
-        {/* Mis metas personales */}
         {linkedPlayer?.id && (
           <MinorGoalsWidget
             playerId={linkedPlayer.id}
@@ -425,7 +433,6 @@ export default function MinorDashboard() {
           />
         )}
 
-        {/* Logros / Insignias */}
         {linkedPlayer?.id && (
           <MinorBadgesWidget
             attendances={attendances}
@@ -437,54 +444,41 @@ export default function MinorDashboard() {
           />
         )}
 
-        {/* === SECCIÓN 3: Acceso rápido === */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex items-center gap-2 px-1"
-        >
-          <Zap className="w-4 h-4 text-orange-500" />
-          <h2 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Acceso rápido</h2>
-        </motion.div>
+        {/* ─── ACCESO RÁPIDO (grid 2 cols más compacto) ─── */}
+        <SectionHeader icon={ChevronRight} title="Acceso rápido" color="text-blue-500" delay={0.3} />
 
-        <div className="grid gap-3">
-          <QuickActionCard emoji="📋" title="Convocatorias" subtitle="Confirma tu asistencia a partidos" href={createPageUrl("ParentCallups")} color="from-green-600 to-emerald-700" badge={pendingCallups} delay={0.1} />
-          <QuickActionCard emoji="📅" title="Calendario" subtitle="Horarios de entrenamiento y partidos" href={createPageUrl("CalendarAndSchedules")} color="from-blue-600 to-cyan-700" delay={0.15} />
-          <QuickActionCard emoji="🏆" title="Competición" subtitle="Clasificaciones y resultados" href={createPageUrl("CentroCompeticion")} color="from-yellow-500 to-orange-600" delay={0.2} />
-          <QuickActionCard emoji="📢" title="Anuncios" subtitle="Noticias y comunicados del club" href={createPageUrl("Announcements")} color="from-pink-500 to-rose-600" badge={unreadAnnouncements} delay={0.25} />
-          <QuickActionCard emoji="🎉" title="Eventos" subtitle="Fiestas, torneos y actividades" href={createPageUrl("ParentEventRSVP")} color="from-purple-500 to-violet-600" delay={0.3} />
-          <QuickActionCard emoji="📊" title="Mis Valoraciones" subtitle="Notas de tu entrenador sobre cómo juegas" href={createPageUrl("PlayerEvaluations")} color="from-indigo-500 to-blue-600" delay={0.35} />
-          <QuickActionCard emoji="🖼️" title="Galería" subtitle="Fotos de partidos y eventos" href={createPageUrl("Gallery")} color="from-teal-500 to-cyan-600" delay={0.4} />
-          <QuickActionCard emoji="✉️" title="Mi Buzón" subtitle="Cuéntanos lo que quieras, tu voz importa" href={createPageUrl("JuniorMailbox")} color="from-pink-500 to-purple-600" badge={unreadMailbox} delay={0.45} />
-          <QuickActionCard emoji="📋" title="Encuestas" subtitle="Tu opinión nos importa" href={createPageUrl("Surveys")} color="from-orange-500 to-amber-600" delay={0.5} />
+        <div className="grid grid-cols-2 gap-2">
+          <QuickActionCard emoji="📋" title="Convocatorias" subtitle="Partidos" href={createPageUrl("ParentCallups")} color="from-green-600 to-emerald-700" badge={pendingCallups} delay={0.1} />
+          <QuickActionCard emoji="📅" title="Calendario" subtitle="Horarios" href={createPageUrl("CalendarAndSchedules")} color="from-blue-600 to-cyan-700" delay={0.12} />
+          <QuickActionCard emoji="🏆" title="Competición" subtitle="Clasificación" href={createPageUrl("CentroCompeticion")} color="from-yellow-500 to-orange-600" delay={0.14} />
+          <QuickActionCard emoji="📢" title="Anuncios" subtitle="Noticias" href={createPageUrl("Announcements")} color="from-pink-500 to-rose-600" badge={unreadAnnouncements} delay={0.16} />
+          <QuickActionCard emoji="🎉" title="Eventos" subtitle="Actividades" href={createPageUrl("ParentEventRSVP")} color="from-purple-500 to-violet-600" delay={0.18} />
+          <QuickActionCard emoji="📊" title="Valoraciones" subtitle="Mi nivel" href={createPageUrl("PlayerEvaluations")} color="from-indigo-500 to-blue-600" delay={0.2} />
+          <QuickActionCard emoji="🖼️" title="Galería" subtitle="Fotos" href={createPageUrl("Gallery")} color="from-teal-500 to-cyan-600" delay={0.22} />
+          <QuickActionCard emoji="✉️" title="Mi Buzón" subtitle="Tu voz" href={createPageUrl("JuniorMailbox")} color="from-pink-500 to-purple-600" badge={unreadMailbox} delay={0.24} />
+          <QuickActionCard emoji="📋" title="Encuestas" subtitle="Opina" href={createPageUrl("Surveys")} color="from-orange-500 to-amber-600" delay={0.26} />
         </div>
 
-        {/* === SECCIÓN 4: Mi asistencia detallada === */}
+        {/* ─── MI ASISTENCIA ─── */}
         {linkedPlayer?.id && attendances.length > 0 && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center gap-2 px-1 pt-2"
-            >
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <h2 className="font-bold text-slate-700 text-sm uppercase tracking-wider">Mi Asistencia</h2>
-            </motion.div>
+            <SectionHeader icon={CheckCircle2} title="Mi asistencia" color="text-green-500" delay={0.4} />
             <MinorAttendanceCard attendances={attendances} playerId={linkedPlayer.id} />
           </>
         )}
 
-        {/* Footer motivacional */}
+        {/* ─── MOTIVACIÓN ─── */}
+        <MinorMotivationalQuote />
+
+        {/* Footer */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="text-center py-6"
+          className="text-center py-4"
         >
-          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-12 h-12 mx-auto rounded-xl opacity-30 object-cover mb-2" />
-          <p className="text-xs text-slate-400">CD Bustarviejo · Acceso Juvenil</p>
+          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-10 h-10 mx-auto rounded-xl opacity-20 object-cover mb-1" />
+          <p className="text-[10px] text-slate-300">CD Bustarviejo · Acceso Juvenil</p>
         </motion.div>
       </div>
     </div>
