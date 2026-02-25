@@ -127,6 +127,11 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const [uploadingLibroFamilia, uploadFile_libro] = useImageUpload();
   const [uploadingDNITutor, uploadFile_tutordni] = useImageUpload();
 
+  // Flags: se activan cuando una subida normal falla → muestra alternativa "pegar"
+  const [photoUploadFailed, setPhotoUploadFailed] = useState(false);
+  const [dniUploadFailed, setDniUploadFailed] = useState(false);
+  const [libroUploadFailed, setLibroUploadFailed] = useState(false);
+
   const categories = useCategoriesFromConfig();
 
   const existingFamilyPlayers = allPlayers.filter(p =>
@@ -226,14 +231,16 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!file) return;
       const url = await uploadFile_photo(file);
       if (url) {
-        // Guardar en localStorage ANTES de tocar React state (anti-crash)
+        setPhotoUploadFailed(false);
         try {
           const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
           if (draft.playerData) { draft.playerData.foto_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
         } catch {}
         setCurrentPlayer(p => ({ ...p, foto_url: url }));
+      } else {
+        setPhotoUploadFailed(true);
       }
-    } catch (err) { logUploadError(null, err, 'handlePhotoUpload_catch'); }
+    } catch (err) { setPhotoUploadFailed(true); logUploadError(null, err, 'handlePhotoUpload_catch'); }
   };
   const handleDNIUpload = async (e) => {
     try {
@@ -244,13 +251,16 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!file) return;
       const url = await uploadFile_dni(file);
       if (url) {
+        setDniUploadFailed(false);
         try {
           const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
           if (draft.playerData) { draft.playerData.dni_jugador_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
         } catch {}
         setCurrentPlayer(p => ({ ...p, dni_jugador_url: url }));
+      } else {
+        setDniUploadFailed(true);
       }
-    } catch (err) { logUploadError(null, err, 'handleDNIUpload_catch'); }
+    } catch (err) { setDniUploadFailed(true); logUploadError(null, err, 'handleDNIUpload_catch'); }
   };
   const handleLibroFamiliaUpload = async (e) => {
     try {
@@ -261,13 +271,16 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!file) return;
       const url = await uploadFile_libro(file);
       if (url) {
+        setLibroUploadFailed(false);
         try {
           const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
           if (draft.playerData) { draft.playerData.libro_familia_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
         } catch {}
         setCurrentPlayer(p => ({ ...p, libro_familia_url: url }));
+      } else {
+        setLibroUploadFailed(true);
       }
-    } catch (err) { logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
+    } catch (err) { setLibroUploadFailed(true); logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
   };
   const handleDNITutorUpload = async (e) => {
     try {
