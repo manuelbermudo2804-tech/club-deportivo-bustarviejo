@@ -75,17 +75,12 @@ export default function ParentPlayers() {
   const { activeSeason: currentSeason, seasonConfig } = useActiveSeason();
 
   const { data: categoryConfigs = [] } = useQuery({
-    queryKey: ['categoryConfigs', seasonConfig?.temporada],
+    queryKey: ['categoryConfigs'],
     queryFn: async () => {
-      if (!seasonConfig?.temporada) return [];
-      const configs = await base44.entities.CategoryConfig.filter({ 
-        temporada: seasonConfig.temporada,
-        activa: true 
-      });
+      const configs = await base44.entities.CategoryConfig.filter({ activa: true });
       console.log('📊 [ParentPlayers] CategoryConfigs cargadas:', configs.length, configs.map(c => c.nombre));
       return configs;
     },
-    enabled: !!seasonConfig?.temporada,
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
