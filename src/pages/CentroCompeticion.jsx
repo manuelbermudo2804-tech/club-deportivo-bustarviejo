@@ -537,6 +537,15 @@ export default function CentroCompeticion() {
             </div>
             <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
 
+            {/* Monitor RFFM integrado */}
+            {showMonitor && (
+              <Card className="border-2 border-purple-300 bg-purple-50/30">
+                <CardContent className="p-4">
+                  <RffmMonitorPanel />
+                </CardContent>
+              </Card>
+            )}
+
             {/* URL Guardada - solo la correspondiente a la pestaña activa */}
             <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-300 space-y-2">
               <p className="text-sm font-bold text-blue-900">🔗 URL Guardada para {category} — {adminTab === 'clasificacion' ? 'Clasificación' : adminTab === 'resultados' ? 'Resultados' : 'Goleadores'}</p>
