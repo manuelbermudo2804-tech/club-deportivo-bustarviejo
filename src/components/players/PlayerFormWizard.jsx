@@ -175,12 +175,16 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     setCurrentPlayer(prev => ({ ...prev, es_mayor_edad: isMayorDeEdad, tiene_descuento_hermano: siblingDiscount.hasDiscount, descuento_aplicado: siblingDiscount.amount }));
   }, [isMayorDeEdad, siblingDiscount]);
 
+  // Track if user has manually changed the category
+  const [userChangedCategory, setUserChangedCategory] = useState(false);
+
   useEffect(() => {
-    if (!player && currentPlayer.fecha_nacimiento && currentPlayer.deporte !== "Fútbol Femenino") {
+    // Only auto-suggest if: new player, not femenino, and user hasn't manually chosen
+    if (!player && currentPlayer.fecha_nacimiento && currentPlayer.deporte !== "Fútbol Femenino" && !userChangedCategory) {
       const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
       if (suggested) setCurrentPlayer(prev => ({ ...prev, deporte: suggested }));
     }
-  }, [currentPlayer.fecha_nacimiento, player]);
+  }, [currentPlayer.fecha_nacimiento, player, userChangedCategory]);
 
   // Auto-guardar borrador en cada cambio de paso o datos relevantes
   useEffect(() => {
