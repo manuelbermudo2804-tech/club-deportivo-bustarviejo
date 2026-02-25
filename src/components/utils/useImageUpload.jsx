@@ -14,7 +14,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { isDegradedMode, getDeviceCapabilities } from "./deviceCapabilities";
-import { logUploadStart, logUploadError, logUploadSuccess, logFileValidationReject } from "./uploadLogger";
+import { logUploadStart, logUploadError, logUploadSuccess, logFileValidationReject, generateDiagnosticCode } from "./uploadLogger";
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
