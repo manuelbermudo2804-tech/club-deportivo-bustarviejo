@@ -133,10 +133,12 @@ export function useImageUpload() {
       if (error) {
         logUploadError(file, new Error(error), 'backend');
         const isMobile = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
+        const sizeTxt = file?.size ? `${Math.round(file.size/1024)}KB` : '?';
+        const typeTxt = file?.type || 'sin tipo';
         const errorMsg = isMobile 
-          ? `${error}\n\n💡 Si persiste el problema, prueba desde un ordenador.`
-          : error;
-        toast.error(errorMsg, { duration: 8000 });
+          ? `${error}\n\n📋 Info: ${file?.name || '?'} (${sizeTxt}, ${typeTxt})\n💡 Si persiste, prueba desde un ordenador o envía la foto por WhatsApp a ti mismo y súbela desde allí.`
+          : `${error}\n\n📋 ${file?.name || '?'} (${sizeTxt}, ${typeTxt})`;
+        toast.error(errorMsg, { duration: 12000 });
         return null;
       }
 
