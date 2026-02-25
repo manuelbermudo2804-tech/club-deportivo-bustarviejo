@@ -1050,7 +1050,7 @@ export default function Layout({ children, currentPageName }) {
   // AHORA SÍ - todos los returns condicionales DESPUÉS de TODOS los hooks
   if (isLoading && !isPublicPage) {
     return (
-      <div className="flex items-center justify-center" style={{ minHeight: '100vh', minHeight: '-webkit-fill-available', minHeight: '100dvh', background: 'linear-gradient(to bottom right, #ea580c, #c2410c, #15803d)' }}>
+      <div className="flex items-center justify-center" style={{ minHeight: '100dvh', background: 'linear-gradient(to bottom right, #ea580c, #c2410c, #15803d)' }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto"></div>
           <p className="text-white mt-4 text-sm">Cargando...</p>
@@ -1529,7 +1529,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         )}
 
-        <main className={`lg:ml-72 pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-20 lg:pb-4'}`} style={{ minHeight: '100vh', minHeight: '-webkit-fill-available' }}>
+        <main className={`lg:ml-72 pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-20 lg:pb-4'}`} style={{ minHeight: '-webkit-fill-available' }}>
 
           {/* Widget de cumpleaños hoy */}
 
