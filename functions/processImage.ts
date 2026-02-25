@@ -123,9 +123,20 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('[processImage] Error:', error);
+    const errMsg = error?.message || String(error);
+    const isMemory = /memory|heap|allocation|oom/i.test(errMsg);
+    const isTimeout = /timeout|timed out|deadline/i.test(errMsg);
+    const isNetwork = /network|fetch|connection/i.test(errMsg);
+    
+    let userMessage = 'Error al procesar la imagen en el servidor. Inténtalo de nuevo.';
+    if (isMemory) userMessage = 'La imagen es demasiado grande para procesarla. Baja la resolución de la cámara o envíala por WhatsApp a ti mismo para reducirla.';
+    if (isTimeout) userMessage = 'La subida tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.';
+    if (isNetwork) userMessage = 'Error de conexión al procesar la imagen. Comprueba tu WiFi/datos.';
+    
     return Response.json({
-      error: error.message || 'Error procesando imagen',
-      userMessage: 'Error al procesar la imagen en el servidor. Inténtalo de nuevo.'
+      error: errMsg,
+      errorType: isMemory ? 'memory' : isTimeout ? 'timeout' : isNetwork ? 'network' : 'unknown',
+      userMessage,
     }, { status: 500 });
   }
 });
