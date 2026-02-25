@@ -174,36 +174,37 @@ function HeroSection({ player, user }) {
   );
 }
 
-function QuickActionCard({ icon: Icon, title, subtitle, href, color, badge, delay = 0, emoji }) {
+function QuickActionCard({ title, subtitle, href, color, badge, delay = 0, emoji }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      whileTap={{ scale: 0.97 }}
+      whileTap={{ scale: 0.96 }}
     >
       <Link to={href}>
-        <Card className={`border-none shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer bg-gradient-to-br ${color}`}>
-          <CardContent className="p-4 flex items-center gap-4 relative">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform">
-              {emoji}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-white text-base truncate">{title}</h3>
-              <p className="text-white/70 text-xs truncate">{subtitle}</p>
-            </div>
+        <Card className={`border-none shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer bg-gradient-to-br ${color} h-full`}>
+          <CardContent className="p-3 relative">
             {badge > 0 && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute top-2 right-2"
+                className="absolute top-1.5 right-1.5 z-10"
               >
-                <Badge className="bg-red-500 text-white border-none text-xs font-bold animate-pulse shadow-lg">
+                <Badge className="bg-red-500 text-white border-none text-[10px] font-bold animate-pulse shadow-lg px-1.5 py-0.5">
                   {badge}
                 </Badge>
               </motion.div>
             )}
-            <ChevronRight className="w-5 h-5 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                {emoji}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-white text-sm truncate leading-tight">{title}</h3>
+                <p className="text-white/60 text-[10px] truncate">{subtitle}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </Link>
