@@ -112,19 +112,90 @@ async function _reportToServer(entry) {
   } catch { /* nunca romper la app por un log */ }
 }
 
-export function logUploadStart(file) {
+export function logUploadStart(file, context = '') {
   try {
     const entry = {
       ts: new Date().toISOString(),
       event: 'upload_start',
+      context,
       name: file?.name || 'unknown',
       size: file?.size ?? 'unknown',
       type: file?.type || 'empty',
       env: getEnvInfo(),
     };
     _appendLog(entry);
-    console.info('[Upload] Inicio:', entry.name, entry.size, 'bytes', entry.type);
+    console.info('[Upload] Inicio:', context, entry.name, entry.size, 'bytes', entry.type);
   } catch { /* nunca romper */ }
+}
+
+export function logUploadSuccess(file, url, context = '') {
+  try {
+    const entry = {
+      ts: new Date().toISOString(),
+      event: 'upload_success',
+      context,
+      name: file?.name || 'unknown',
+      size: file?.size ?? 'unknown',
+      url: url ? url.substring(0, 60) : null,
+    };
+    _appendLog(entry);
+    console.info('[Upload] Éxito:', context, entry.name);
+  } catch { /* nunca romper */ }
+}
+
+/**
+ * Log cuando el usuario PULSA el botón de subida (antes de que el input file se abra).
+ * Útil para detectar si el problema es que el input nunca dispara onChange.
+ */
+export function logUploadButtonClick(buttonId, context = '') {
+  try {
+    const entry = {
+      ts: new Date().toISOString(),
+      event: 'button_click',
+      context,
+      buttonId,
+      env: getEnvInfo(),
+    };
+    _appendLog(entry);
+    console.info('[Upload] Botón pulsado:', buttonId, context);
+  } catch { /* nunca romper */ }
+}
+
+/**
+ * Log cuando el input file dispara onChange (con o sin archivos).
+ * Si files está vacío = el usuario canceló o el navegador no capturó nada.
+ */
+export function logInputChange(inputId, files, context = '') {
+  try {
+    const fileList = files ? Array.from(files) : [];
+    const entry = {
+      ts: new Date().toISOString(),
+      event: 'input_change',
+      context,
+      inputId,
+      fileCount: fileList.length,
+      files: fileList.map(f => ({ name: f.name, size: f.size, type: f.type || 'sin-tipo' })),
+      env: getEnvInfo(),
+    };
+    _appendLog(entry);
+    console.info('[Upload] Input change:', inputId, fileList.length, 'archivos', context);
+    // Si hay 0 archivos y el usuario tocó el botón, reportar como anomalía
+    if (fileList.length === 0) {
+      _reportToServer({ ...entry, error: 'Input change sin archivos (cancelado o fallo del navegador)', reason: 'empty_input_change' });
+    }
+  } catch { /* nunca romper */ }
+}
+
+/**
+ * Genera un código diagnóstico legible para que el usuario pueda comunicarlo.
+ * Formato: DV-XXXX (4 chars hex basado en timestamp + random)
+ */
+export function generateDiagnosticCode() {
+  try {
+    const ts = Date.now().toString(36).slice(-3);
+    const rnd = Math.random().toString(36).slice(-3);
+    return `DV-${(ts + rnd).toUpperCase().slice(0, 6)}`;
+  } catch { return 'DV-????'; }
 }
 
 export function logUploadSuccess(file, url) {
