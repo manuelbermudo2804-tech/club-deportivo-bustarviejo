@@ -147,8 +147,26 @@ export default function ParentPlayers() {
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
     initialData: [],
-    staleTime: 60000, // 1 minuto
+    staleTime: 60000,
     gcTime: 300000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: evaluations = [] } = useQuery({
+    queryKey: ['playerEvaluations'],
+    queryFn: () => base44.entities.PlayerEvaluation.list('-fecha_evaluacion'),
+    initialData: [],
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: attendanceRecords = [] } = useQuery({
+    queryKey: ['attendanceRecords'],
+    queryFn: () => base44.entities.Attendance.list('-fecha'),
+    initialData: [],
+    staleTime: 300000,
+    gcTime: 600000,
     refetchOnWindowFocus: false,
   });
 
