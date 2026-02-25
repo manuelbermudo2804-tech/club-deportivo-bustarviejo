@@ -69,16 +69,9 @@ const useCategoriesFromConfig = () => {
     (async () => {
       try {
         const configs = await base44.entities.CategoryConfig.filter({ activa: true });
-        const activeSeasons = await base44.entities.SeasonConfig.filter({ activa: true });
-        const currentSeason = activeSeasons[0]?.temporada;
-        // Intentar filtrar por temporada activa; si no hay resultados, usar todas las activas
-        let seasonCategories = configs.filter(c => c.temporada === currentSeason);
-        if (seasonCategories.length === 0) {
-          seasonCategories = configs;
-        }
-        // Deduplicar por nombre (puede haber misma categoría en varias temporadas)
-        const unique = [...new Map(seasonCategories.map(c => [c.nombre, c])).values()];
-        if (unique.length > 0) {
+        if (configs.length > 0) {
+          // Deduplicar por nombre (puede haber misma categoría en varias temporadas)
+          const unique = [...new Map(configs.map(c => [c.nombre, c])).values()];
           setCategories(unique.map(c => ({ value: c.nombre, label: c.nombre })));
         }
       } catch {}
