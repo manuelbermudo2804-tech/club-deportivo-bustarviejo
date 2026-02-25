@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, Loader2, Download, FileText, Lock } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
+import { logUploadButtonClick } from "../../utils/uploadLogger";
 
 export default function StepDocuments({
   currentPlayer,

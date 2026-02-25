@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Camera, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { logUploadButtonClick } from "../../utils/uploadLogger";
 
 export default function StepPlayerData({
   currentPlayer,
