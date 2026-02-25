@@ -23,6 +23,7 @@ import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
 import { useImageUpload } from "../utils/useImageUpload";
 import { logUploadError, logUploadButtonClick, logInputChange, generateDiagnosticCode } from "../utils/uploadLogger";
 import SendDiagnosticButton from "../upload/SendDiagnosticButton";
+import { saveFormDraft, loadFormDraft, clearFormDraft, markCameraOpening, checkCameraReload, clearCameraFlag } from "./wizard/useFormPersistence";
 
 // --- Helpers (same as original PlayerForm) ---
 const calculateAge = (birthDate) => {
