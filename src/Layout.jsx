@@ -527,7 +527,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
-    { title: "📡 Monitor RFFM", url: createPageUrl("RffmMonitor"), icon: BarChart3 },
+
 
     // 📅 CALENDARIO Y EVENTOS
     { title: "─ CALENDARIO Y EVENTOS ─", section: true },

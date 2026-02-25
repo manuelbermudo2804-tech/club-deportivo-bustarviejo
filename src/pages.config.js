@@ -163,9 +163,9 @@ import Tienda from './pages/Tienda';
 import TrainingSchedules from './pages/TrainingSchedules';
 import TreasurerDashboard from './pages/TreasurerDashboard';
 import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
+import UploadDiagnostics from './pages/UploadDiagnostics';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
-import UploadDiagnostics from './pages/UploadDiagnostics';
 import __Layout from './Layout.jsx';
 
 
@@ -286,9 +286,9 @@ export const PAGES = {
     "TrainingSchedules": TrainingSchedules,
     "TreasurerDashboard": TreasurerDashboard,
     "TreasurerFinancialPanel": TreasurerFinancialPanel,
+    "UploadDiagnostics": UploadDiagnostics,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
-    "UploadDiagnostics": UploadDiagnostics,
 }
 
 export const pagesConfig = {
