@@ -37,6 +37,7 @@ const OnboardingController = React.lazy(() => import("./components/layout/Onboar
 const InstallInstructionsModal = React.lazy(() => import("./components/layout/InstallInstructionsModal"));
 const DesktopSidebar = React.lazy(() => import("./components/layout/DesktopSidebar"));
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+const MobileMenu = React.lazy(() => import("./components/layout/MobileMenu"));
 const NotificationManager = React.lazy(() => import("./components/notifications/NotificationManager"));
 const AutomaticNotificationEngine = React.lazy(() => import("./components/notifications/AutomaticNotificationEngine"));
 const EmailNotificationTrigger = React.lazy(() => import("./components/notifications/EmailNotificationTrigger"));
