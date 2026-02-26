@@ -257,16 +257,21 @@ async function syncCategory(config, cookies, base44, temporada) {
   // SCORERS
   if (config.rfef_scorers_url) {
     try {
-      const p = extractParams(config.rfef_scorers_url);
-      const html = await fetchPage(buildScorersUrl(p), cookies);
+      // Use the saved URL directly instead of rebuilding (avoids param mismatches)
+      const html = await fetchPage(config.rfef_scorers_url, cookies);
       const scorers = parseScorers(html);
+      console.log(`[SCORERS] ${cat}: parsed ${scorers.length} scorers from page`);
       if (scorers.length) {
         const old = await base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada });
         for (const o of old) await base44.asServiceRole.entities.Goleador.delete(o.id);
-        await base44.asServiceRole.entities.Goleador.bulkCreate(scorers.map((s, i) => ({
+        // bulkCreate in batches of 50 to avoid size limits
+        const records = scorers.map((s, i) => ({
           temporada, categoria: cat, jugador_nombre: s.jugador, equipo: s.equipo,
           goles: s.goles, posicion: i + 1, fecha_actualizacion: new Date().toISOString(),
-        })));
+        }));
+        for (let i = 0; i < records.length; i += 50) {
+          await base44.asServiceRole.entities.Goleador.bulkCreate(records.slice(i, i + 50));
+        }
         result.scorers = { players: scorers.length };
       }
     } catch (e) { result.errors.push({ type: 'scorers', error: e.message }); }
