@@ -230,7 +230,6 @@ body { font-family: 'Inter', system-ui, sans-serif; background: #f0f2f5; color: 
   transition: all 0.2s; background: #f0f2f5; color: #555;
 }
 .tab:hover { background: #e0e4ea; }
-.tab.activo { background: #0b3d91; color: white; box-shadow: 0 4px 12px rgba(11,61,145,0.3); }
 
 .contenido { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
 /* Tabs via CSS-only radio buttons */
