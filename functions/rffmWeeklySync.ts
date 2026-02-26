@@ -125,6 +125,19 @@ function parseScorers(html) {
 
 function getSeason() { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 8 ? `${y}/${y+1}` : `${y-1}/${y}`; }
 
+// ---- Helpers ----
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function batchDelete(entity, items) {
+  // Delete in batches of 10 with small pauses to avoid rate limits
+  for (let i = 0; i < items.length; i += 10) {
+    const batch = items.slice(i, i + 10);
+    await Promise.all(batch.map(o => entity.delete(o.id)));
+    if (i + 10 < items.length) await sleep(300);
+  }
+}
+
 // ---- Main ----
 
 async function syncCategory(config, cookies, base44, temporada) {
@@ -144,13 +157,19 @@ async function syncCategory(config, cookies, base44, temporada) {
       }
       if (standings.length) {
         const old = await base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada });
-        for (const o of old) await base44.asServiceRole.entities.Clasificacion.delete(o.id);
+        if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
+        await sleep(200);
         const jornada = standings[0]?.pj || 0;
-        await base44.asServiceRole.entities.Clasificacion.bulkCreate(standings.map(s => ({
+        // bulkCreate in batches of 25
+        const records = standings.map(s => ({
           temporada, categoria: cat, jornada, posicion: s.posicion, nombre_equipo: s.equipo,
           puntos: s.puntos, partidos_jugados: s.pj, ganados: s.pg, empatados: s.pe, perdidos: s.pp,
           goles_favor: s.gf, goles_contra: s.gc, fecha_actualizacion: new Date().toISOString(),
-        })));
+        }));
+        for (let i = 0; i < records.length; i += 25) {
+          await base44.asServiceRole.entities.Clasificacion.bulkCreate(records.slice(i, i + 25));
+          if (i + 25 < records.length) await sleep(200);
+        }
         result.standings = { teams: standings.length, jornada };
       }
     } catch (e) { result.errors.push({ type: 'standings', error: e.message }); }
