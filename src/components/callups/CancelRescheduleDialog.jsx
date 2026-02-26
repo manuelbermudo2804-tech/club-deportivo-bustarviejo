@@ -19,6 +19,15 @@ export default function CancelRescheduleDialog({ open, onOpenChange, callup, mod
   const [nuevaFecha, setNuevaFecha] = useState(callup?.fecha_partido || "");
   const [nuevaHora, setNuevaHora] = useState(callup?.hora_partido || "");
 
+  // Reset state when dialog opens with a new callup
+  React.useEffect(() => {
+    if (open && callup) {
+      setMotivo("");
+      setNuevaFecha(callup.fecha_partido || "");
+      setNuevaHora(callup.hora_partido || "");
+    }
+  }, [open, callup?.id]);
+
   const isCancelMode = mode === "cancel";
 
   const handleSubmit = () => {
