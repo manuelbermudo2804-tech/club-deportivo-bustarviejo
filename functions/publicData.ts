@@ -233,8 +233,16 @@ body { font-family: 'Inter', system-ui, sans-serif; background: #f0f2f5; color: 
 .tab.activo { background: #0b3d91; color: white; box-shadow: 0 4px 12px rgba(11,61,145,0.3); }
 
 .contenido { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
+/* Tabs via CSS-only radio buttons */
+input[name="tab"] { display: none; }
 .seccion { display: none; }
-.seccion.visible { display: block; }
+#radio-proximos:checked ~ .contenido #sec-proximos { display: block; }
+#radio-clasificacion:checked ~ .contenido #sec-clasificacion { display: block; }
+#radio-goleadores:checked ~ .contenido #sec-goleadores { display: block; }
+
+#radio-proximos:checked ~ .tabs label[for="radio-proximos"] { background: #0b3d91; color: white; box-shadow: 0 4px 12px rgba(11,61,145,0.3); }
+#radio-clasificacion:checked ~ .tabs label[for="radio-clasificacion"] { background: #0b3d91; color: white; box-shadow: 0 4px 12px rgba(11,61,145,0.3); }
+#radio-goleadores:checked ~ .tabs label[for="radio-goleadores"] { background: #0b3d91; color: white; box-shadow: 0 4px 12px rgba(11,61,145,0.3); }
 
 .bloque {
   background: white; border-radius: 16px; padding: 24px;
