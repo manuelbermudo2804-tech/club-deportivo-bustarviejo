@@ -332,11 +332,11 @@ tr:hover { background: #f5f8ff; }
 </div>
 
 <script>
-function mostrar(seccion) {
+function mostrar(seccion, btn) {
   document.querySelectorAll('.seccion').forEach(function(s) { s.classList.remove('visible'); });
   document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('activo'); });
   document.getElementById('sec-' + seccion).classList.add('visible');
-  event.target.classList.add('activo');
+  btn.classList.add('activo');
 }
 </script>
 
