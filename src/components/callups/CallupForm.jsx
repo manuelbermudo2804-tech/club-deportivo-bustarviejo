@@ -213,6 +213,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const buildSubmitData = () => {
     const jugadoresConvocados = selectedPlayers.map(playerId => {
       const player = players.find(p => p.id === playerId);
+      if (!player) return null;
       const existing = callup?.jugadores_convocados?.find(j => j.jugador_id === playerId);
       return {
         jugador_id: player.id,
@@ -224,7 +225,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
         fecha_confirmacion: existing?.fecha_confirmacion || null,
         comentario: existing?.comentario || ""
       };
-    });
+    }).filter(Boolean);
     return { ...currentCallup, jugadores_convocados: jugadoresConvocados };
   };
 
