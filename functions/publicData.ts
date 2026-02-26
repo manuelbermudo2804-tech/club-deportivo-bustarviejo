@@ -299,9 +299,9 @@ tr:hover { background: #f5f8ff; }
 </div>
 
 <div class="tabs">
-  <button class="tab activo" onclick="mostrar('proximos')">📅 Próximos</button>
-  <button class="tab" onclick="mostrar('clasificacion')">🏆 Clasificación</button>
-  <button class="tab" onclick="mostrar('goleadores')">⚽ Goleadores</button>
+  <button class="tab activo" onclick="mostrar('proximos', this)">📅 Próximos</button>
+  <button class="tab" onclick="mostrar('clasificacion', this)">🏆 Clasificación</button>
+  <button class="tab" onclick="mostrar('goleadores', this)">⚽ Goleadores</button>
 </div>
 
 <div class="contenido">
