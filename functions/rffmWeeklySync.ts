@@ -325,8 +325,10 @@ Deno.serve(async (req) => {
     const temporada = getSeason();
     const results = [];
 
-    for (const config of configs) {
+    for (let ci = 0; ci < configs.length; ci++) {
+      const config = configs[ci];
       if (!config.rfef_url && !config.rfef_results_url && !config.rfef_scorers_url) continue;
+      if (ci > 0) await sleep(1000); // Pause between categories to avoid rate limits
       const r = await syncCategory(config, cookies, base44, temporada);
       results.push(r);
     }
