@@ -328,46 +328,56 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             )}
 
             {/* ═══════ QUICK STATUS ROW (clickable for parents) ═══════ */}
-            <div className="flex items-center gap-2 flex-wrap text-[11px]">
-              {isParent ? (
+            {isParent ? (
+              <div className="grid grid-cols-3 gap-2">
                 <Link
                   to={createPageUrl('ParentPayments')}
                   onClick={(e) => e.stopPropagation()}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border transition-colors ${allPaid ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : pendingCount > 0 ? 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+                  className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 rounded-xl border-2 text-center transition-all active:scale-95 ${allPaid ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100' : pendingCount > 0 ? 'bg-red-50 border-red-300 text-red-700 hover:bg-red-100' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}
                 >
-                  {allPaid ? '✅' : pendingCount > 0 ? '❌' : '➖'} Pagos {allPaid ? 'al día' : playerPayments.length === 0 ? '' : `${paidCount}/${expectedPayments}`} →
+                  <span className="text-base">{allPaid ? '✅' : pendingCount > 0 ? '❌' : '➖'}</span>
+                  <span className="text-[11px] font-semibold leading-tight">Pagos</span>
+                  <span className="text-[10px] opacity-75">{allPaid ? 'Al día' : playerPayments.length === 0 ? 'Sin datos' : `${paidCount}/${expectedPayments}`}</span>
                 </Link>
-              ) : (
-                <span className={`inline-flex items-center gap-1 ${allPaid ? 'text-green-600' : pendingCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                  {allPaid ? '✅' : pendingCount > 0 ? '❌' : '➖'} Pagos {allPaid ? 'al día' : playerPayments.length === 0 ? '' : `${paidCount}/${expectedPayments}`}
-                </span>
-              )}
-              {isParent ? (
                 <Link
                   to={createPageUrl('FederationSignatures')}
                   onClick={(e) => e.stopPropagation()}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border transition-colors ${firmasStatus === 'complete' ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : firmasStatus === 'pending' ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+                  className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 rounded-xl border-2 text-center transition-all active:scale-95 ${firmasStatus === 'complete' ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100' : firmasStatus === 'pending' ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}
                 >
-                  {firmasStatus === 'complete' ? '✅' : firmasStatus === 'pending' ? '⏳' : '➖'} Firmas →
+                  <span className="text-base">{firmasStatus === 'complete' ? '✅' : firmasStatus === 'pending' ? '⏳' : '➖'}</span>
+                  <span className="text-[11px] font-semibold leading-tight">Firmas</span>
+                  <span className="text-[10px] opacity-75">{firmasStatus === 'complete' ? 'Completas' : firmasStatus === 'pending' ? 'Pendientes' : 'Sin enlace'}</span>
                 </Link>
-              ) : (
+                {onEdit ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onEdit(player); }}
+                    className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 rounded-xl border-2 text-center transition-all active:scale-95 ${checklistItems.foto && checklistItems.dni ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100' : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'}`}
+                  >
+                    <span className="text-base">{checklistItems.foto && checklistItems.dni ? '✅' : '⏳'}</span>
+                    <span className="text-[11px] font-semibold leading-tight">Docs</span>
+                    <span className="text-[10px] opacity-75">{checklistItems.foto && checklistItems.dni ? 'Completos' : 'Faltan'}</span>
+                  </button>
+                ) : (
+                  <div className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 rounded-xl border-2 text-center ${checklistItems.foto && checklistItems.dni ? 'bg-green-50 border-green-300 text-green-700' : 'bg-amber-50 border-amber-300 text-amber-700'}`}>
+                    <span className="text-base">{checklistItems.foto && checklistItems.dni ? '✅' : '⏳'}</span>
+                    <span className="text-[11px] font-semibold leading-tight">Docs</span>
+                    <span className="text-[10px] opacity-75">{checklistItems.foto && checklistItems.dni ? 'Completos' : 'Faltan'}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 flex-wrap text-[11px]">
+                <span className={`inline-flex items-center gap-1 ${allPaid ? 'text-green-600' : pendingCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                  {allPaid ? '✅' : pendingCount > 0 ? '❌' : '➖'} Pagos {allPaid ? 'al día' : playerPayments.length === 0 ? '' : `${paidCount}/${expectedPayments}`}
+                </span>
                 <span className={`inline-flex items-center gap-1 ${firmasStatus === 'complete' ? 'text-green-600' : firmasStatus === 'pending' ? 'text-amber-600' : 'text-slate-400'}`}>
                   {firmasStatus === 'complete' ? '✅' : firmasStatus === 'pending' ? '⏳' : '➖'} Firmas
                 </span>
-              )}
-              {isParent && onEdit ? (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onEdit(player); }}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border transition-colors ${checklistItems.foto && checklistItems.dni ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'}`}
-                >
-                  {checklistItems.foto && checklistItems.dni ? '✅' : '⏳'} Docs {!(checklistItems.foto && checklistItems.dni) ? '→' : ''}
-                </button>
-              ) : (
                 <span className={`inline-flex items-center gap-1 ${checklistItems.foto && checklistItems.dni ? 'text-green-600' : 'text-amber-600'}`}>
                   {checklistItems.foto && checklistItems.dni ? '✅' : '⏳'} Docs
                 </span>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* ═══════ PAYMENT BAR ═══════ */}
             <PaymentBar />
