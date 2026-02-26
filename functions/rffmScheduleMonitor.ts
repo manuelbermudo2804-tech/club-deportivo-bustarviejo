@@ -315,10 +315,10 @@ Deno.serve(async (req) => {
           const emailBody = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(to right, #ea580c, #c2410c); padding: 20px; border-radius: 12px 12px 0 0;">
-                <h2 style="color: white; margin: 0;">⚠️ Cambio de horario - ${config.categoria}</h2>
+                <h2 style="color: white; margin: 0;">⚠️ Cambio de horario de partido - ${config.categoria}</h2>
               </div>
               <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-                <p>Se ha detectado un <strong>cambio</strong> en el partido de <strong>${config.categoria}</strong>:</p>
+                <p>La <strong>Federación (RFFM)</strong> ha modificado el horario del partido de <strong>${config.categoria}</strong>:</p>
                 <p style="font-size: 18px; font-weight: bold;">CD Bustarviejo vs ${rival}</p>
                 <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin: 16px 0;">
                   <p style="margin: 0; font-weight: bold;">Cambios detectados:</p>
@@ -326,14 +326,14 @@ Deno.serve(async (req) => {
                 </div>
                 <p><strong>Jornada:</strong> ${jornada}</p>
                 <p><strong>Condición:</strong> ${isLocal ? '🏠 Local' : '✈️ Visitante'}</p>
-                <p style="color: #64748b; font-size: 12px; margin-top: 20px;">La convocatoria ha sido actualizada automáticamente en la app.</p>
+                <p style="color: #64748b; font-size: 12px; margin-top: 20px;">Información actualizada automáticamente desde la web de la Federación. La convocatoria del entrenador puede llegar por separado.</p>
               </div>
             </div>`;
           for (const email of emailsToNotify) {
             try {
               await base44.asServiceRole.integrations.Core.SendEmail({
                 to: email,
-                subject: `⚠️ Cambio de horario - ${config.categoria} vs ${rival}`,
+                subject: `⚠️ Cambio de horario de partido - ${config.categoria} vs ${rival}`,
                 body: emailBody,
                 from_name: 'CD Bustarviejo',
               });
