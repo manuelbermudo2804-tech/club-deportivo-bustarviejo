@@ -1016,17 +1016,21 @@ export default function Layout({ children, currentPageName }) {
     // Activar motores en diferido para evitar ráfaga de llamadas
     useEffect(() => {
       if (!isLoading && user) {
-        const id = setTimeout(() => setEnginesReady(true), 1200);
+        const id = setTimeout(() => setEnginesReady(true), 2000);
         return () => clearTimeout(id);
       }
     }, [isLoading, user]);
 
-    // Escalonar carga de motores para reducir llamadas concurrentes
+    // Escalonar carga de motores en 5 oleadas para reducir presión en RAM
+    const [enginesStage4Ready, setEnginesStage4Ready] = useState(false);
+    const [enginesStage5Ready, setEnginesStage5Ready] = useState(false);
     useEffect(() => {
       if (!enginesReady) return;
-      const t2 = setTimeout(() => setEnginesStage2Ready(true), 1200);
-      const t3 = setTimeout(() => setEnginesStage3Ready(true), 2500);
-      return () => { clearTimeout(t2); clearTimeout(t3); };
+      const t2 = setTimeout(() => setEnginesStage2Ready(true), 2000);
+      const t3 = setTimeout(() => setEnginesStage3Ready(true), 5000);
+      const t4 = setTimeout(() => setEnginesStage4Ready(true), 8000);
+      const t5 = setTimeout(() => setEnginesStage5Ready(true), 13000);
+      return () => { clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
     }, [enginesReady]);
 
     // Invitar en el primer arranque desde el icono (PWA)
