@@ -342,22 +342,7 @@ tr:hover { background: #f5f8ff; }
   Actualizado: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })} · C.D. Bustarviejo
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var tabs = document.querySelectorAll('.tab');
-  for (var i = 0; i < tabs.length; i++) {
-    tabs[i].addEventListener('click', function() {
-      var seccion = this.getAttribute('data-sec');
-      var secciones = document.querySelectorAll('.seccion');
-      for (var j = 0; j < secciones.length; j++) { secciones[j].classList.remove('visible'); }
-      var allTabs = document.querySelectorAll('.tab');
-      for (var k = 0; k < allTabs.length; k++) { allTabs[k].classList.remove('activo'); }
-      document.getElementById('sec-' + seccion).classList.add('visible');
-      this.classList.add('activo');
-    });
-  }
-});
-</script>
+
 
 </body>
 </html>`;
