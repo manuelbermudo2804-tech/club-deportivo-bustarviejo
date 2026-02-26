@@ -500,7 +500,7 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-  const adminNavigationItems = [
+  const adminNavigationItems = useMemo(() => [
     // 🏠 INICIO
     { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
@@ -582,9 +582,9 @@ export default function Layout({ children, currentPageName }) {
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
     { title: "👁️ Preview Flujo Alta", url: createPageUrl("OnboardingPreview"), icon: UserIcon },
     { title: "📸 Diagnóstico Subidas", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
-    ];
+    ], [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview]);
 
-  const coachNavigationItems = [
+  const coachNavigationItems = useMemo(() => [
                 // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
                 ...(programaSociosActivo && isMemberPaid ? [{ 
                   title: "🎫 MI CARNET DE SOCIO", 
@@ -655,11 +655,9 @@ export default function Layout({ children, currentPageName }) {
       // ⚙️ CONFIGURACIÓN
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
-    ];
+    ], [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas]);
 
-
-
-  const coordinatorNavigationItems = [
+  const coordinatorNavigationItems = useMemo(() => [
                 // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
                 ...(programaSociosActivo && isMemberPaid ? [{ 
                   title: "🎫 MI CARNET DE SOCIO", 
@@ -731,9 +729,9 @@ export default function Layout({ children, currentPageName }) {
       // ⚙️ CONFIGURACIÓN
       { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
       ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
-    ];
+    ], [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, user?.es_entrenador]);
 
-  const parentNavigationItems = [
+  const parentNavigationItems = useMemo(() => [
                 // 🎫 CARNET DE SOCIO (primera posición si es socio pagado - con o sin hijos)
                 ...(programaSociosActivo && isMemberPaid ? [{ 
                   title: "🎫 MI CARNET DE SOCIO", 
@@ -785,9 +783,9 @@ export default function Layout({ children, currentPageName }) {
 
               // ⚙️ CONFIGURACIÓN
               { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-              ];
+              ], [programaSociosActivo, isMemberPaid, isJunta, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount]);
 
-  const playerNavigationItems = [
+  const playerNavigationItems = useMemo(() => [
           // 🎫 CARNET DE SOCIO (primera posición si es socio pagado)
           ...(programaSociosActivo && isMemberPaid ? [{ 
             title: "🎫 MI CARNET DE SOCIO", 
@@ -832,9 +830,9 @@ export default function Layout({ children, currentPageName }) {
 
               // ⚙️ CONFIGURACIÓN
               { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-  ];
+  ], [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, loteriaVisible, marketNewCount]);
 
-  const treasurerNavigationItems = [
+  const treasurerNavigationItems = useMemo(() => [
     // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
     ...(programaSociosActivo && isMemberPaid ? [{ 
       title: "🎫 MI CARNET DE SOCIO", 
@@ -873,9 +871,9 @@ export default function Layout({ children, currentPageName }) {
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-  ];
+  ], [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, unreadAnnouncementsCount, marketNewCount]);
 
-  const minorNavigationItems = [
+  const minorNavigationItems = useMemo(() => [
     { title: "🏠 Inicio", url: createPageUrl("MinorDashboard"), icon: Home },
     { title: "📋 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
@@ -886,7 +884,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "✉️ Mi Buzón", url: createPageUrl("JuniorMailbox"), icon: MessageCircle },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-  ];
+  ], [pendingCallupsCount]);
 
   let navigationItems;
     if (isAdmin) {
