@@ -112,24 +112,8 @@ export default function Layout({ children, currentPageName }) {
   const clothingStoreUrl = activeSeasonConfig?.tienda_ropa_url || null;
   const merchStoreUrl = activeSeasonConfig?.tienda_merch_url || null;
 
-  const fetchSeasonConfig = async () => {
-    try {
-      const configs = await base44.entities.SeasonConfig.filter({ activa: true });
-      const activeConfig = configs[0];
-      if (activeConfig) {
-        console.log('🔄 [LAYOUT] Configuración de temporada actualizada');
-      }
-    } catch (error) {
-      console.error("Error refreshing season config:", error);
-    }
-  };
-
-  // Polling de configuración: Al montar, al cambiar visibilidad y cada 5 minutos (en lugar de 60s)
-  useEffect(() => {
-    fetchSeasonConfig(); // Carga inicial
-    const intervalId = setInterval(fetchSeasonConfig, 300000); // Cada 5 minutos (en lugar de 60s)
-    return () => clearInterval(intervalId);
-  }, []);
+  // fetchSeasonConfig ya se carga dentro de useFetchUser - solo refrescar al volver a la app
+  const fetchSeasonConfig = () => { executeFetch(); };
   
   // SISTEMA UNIFICADO DE NOTIFICACIONES (real-time)
   // Pausa las notificaciones en tiempo real si estamos en rate limit
@@ -312,7 +296,6 @@ export default function Layout({ children, currentPageName }) {
         if (document.visibilityState === 'visible') {
           console.log('👁️ [LAYOUT] App visible - actualizando datos...');
           checkForNewVersion();
-          fetchSeasonConfig(); // Recargar configuración al volver
           // Forzar actualización del Service Worker si hay uno esperando
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistration().then(reg => {
@@ -1239,9 +1222,18 @@ export default function Layout({ children, currentPageName }) {
                                           <PlanPaymentReminders user={user} />
                                           <AutomaticRenewalReminders />
                                           <AutomaticRenewalClosure />
+                                        </Suspense>
+                                      )}
+
+                {enginesStage4Ready && (
+                                        <Suspense fallback={null}>
                                           <RenewalNotificationEngine />
                                           <PostRenewalPaymentReminder />
-                                          {/* ChatSoundNotifier eliminado - se reimplementará */}
+                                        </Suspense>
+                                      )}
+
+                {enginesStage5Ready && (
+                                        <Suspense fallback={null}>
                                           <CallupSoundNotifier user={user} />
                                           <AnnouncementSoundNotifier user={user} />
                                           <PaymentSoundNotifier user={user} />
@@ -1322,160 +1314,21 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-[100]" style={{ backgroundColor: 'rgba(15, 23, 42, 0.97)' }}>
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-600 to-orange-700">
-                <div className="text-white">
-                  <h2 className="font-bold text-lg">Menú</h2>
-                  <p className="text-xs text-orange-100">CD Bustarviejo</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setShowDeleteAccount(true);
-                    }}
-                    className="p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-colors"
-                    title="Eliminar cuenta"
-                  >
-                    <UserX className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="p-2 text-white hover:bg-white/20 rounded-xl transition-colors"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                {/* Botón Feedback móvil - para TODOS */}
-                {isAdmin ? (
-                  <Link
-                    to={createPageUrl("FeedbackManagement")}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg mb-4"
-                  >
-                    <MessageCircle className="w-6 h-6 flex-shrink-0" />
-                    <span className="font-bold text-base flex-1">💬 Ver Feedback Usuarios</span>
-                  </Link>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setShowFeedback(true);
-                    }}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg mb-4"
-                  >
-                    <MessageCircle className="w-6 h-6 flex-shrink-0" />
-                    <span className="font-bold text-base flex-1">💬 Suggerencias y Bugs</span>
-                  </button>
-                )}
-
-                {/* Botón Instalar App al principio del menú móvil - solo si no está instalada */}
-                {!isAppInstalled && (
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setInstallContext('manual');
-                      setShowInstallInstructions(true);
-                    }}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg mb-4"
-                  >
-                    <Smartphone className="w-6 h-6 flex-shrink-0" />
-                    <span className="font-bold text-base flex-1">📲 Ver cómo instalar la App</span>
-                  </button>
-                )}
-
-                {navigationItems.map((item) => {
-                  if (item.section) {
-                    return (
-                      <div key={item.title} className="px-2 py-3 text-xs font-semibold text-white/50 uppercase tracking-wider">
-                        {item.title}
-                      </div>
-                    );
-                  }
-                  return item.externalUrl ? (
-                    <a
-                      key={item.title}
-                      href={item.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                        item.highlight
-                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg ring-2 ring-green-400 animate-pulse'
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                    >
-                      <item.icon className="w-6 h-6 flex-shrink-0" />
-                      <span className="font-semibold text-base flex-1">{item.title}</span>
-                    </a>
-                  ) : (
-                    <Link
-                      key={item.title}
-                      to={item.url}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                        item.highlight
-                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg ring-2 ring-green-400 animate-pulse'
-                          : location.pathname === item.url
-                          ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg'
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                    >
-                      <item.icon className="w-6 h-6 flex-shrink-0" />
-                      <span className="font-semibold text-base flex-1">{item.title}</span>
-                      {item.badge && (
-                        <Badge className={`${item.urgentBadge ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-              <div className="p-4 bg-slate-900 border-t border-white/10 space-y-2">
-                                                  {!isAppInstalled && (
-                                                    <button
-                                                      onClick={() => {
-                                                        setMobileMenuOpen(false);
-                                                        setInstallContext('manual');
-                                                        setShowInstallInstructions(true);
-                                                      }}
-                                                                                          className="w-full flex items-center gap-4 p-4 rounded-2xl bg-green-500/20 text-white hover:bg-green-500/30 transition-all"
-                                                                                        >
-                                                                                          <Smartphone className="w-6 h-6" />
-                                                                                          <span className="font-semibold text-lg">📲 Ver cómo instalar</span>
-                                                                                        </button>
-                                                                                      )}
-
-                                                    <button
-                                                    onClick={() => { localStorage.setItem('app_build_version', BUILD_VERSION); window.location.reload(); }}
-                                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all mb-2 ${hasNewVersion ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg animate-pulse' : 'bg-blue-500/20 text-white hover:bg-blue-500/30'}`}
-                                                    >
-                                                    <RotateCw className="w-6 h-6" />
-                                                    <span className="font-semibold text-lg">{hasNewVersion ? '🆕 Nueva versión disponible' : 'Actualizar Datos'}</span>
-                                                    </button>
-
-                                                    <button
-                                                                                     onClick={() => { setMobileMenuOpen(false); setShowDeleteAccount(true); }}
-                                                                                     className="w-full flex items-center gap-4 p-4 rounded-2xl bg-yellow-500/20 text-white hover:bg-yellow-500/30 transition-all"
-                                                                                     >
-                                                    <UserX className="w-6 h-6" />
-                                                    <span className="font-semibold text-lg">Eliminar Cuenta</span>
-                                                    </button>
-
-                                                    <button
-                                                    onClick={handleLogout}
-                                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/30 transition-all"
-                                                    >
-                                                    <LogOut className="w-6 h-6" />
-                                                    <span className="font-semibold text-lg">Cerrar Sesión</span>
-                                                    </button>
-                                                    </div>
-            </div>
-          </div>
+          <Suspense fallback={null}>
+            <MobileMenu
+              isAdmin={isAdmin}
+              isAppInstalled={isAppInstalled}
+              navigationItems={navigationItems}
+              location={location}
+              hasNewVersion={hasNewVersion}
+              onClose={() => setMobileMenuOpen(false)}
+              onShowDeleteAccount={() => { setMobileMenuOpen(false); setShowDeleteAccount(true); }}
+              onShowFeedback={() => { setMobileMenuOpen(false); setShowFeedback(true); }}
+              onShowInstall={() => { setMobileMenuOpen(false); setInstallContext('manual'); setShowInstallInstructions(true); }}
+              onLogout={handleLogout}
+              BUILD_VERSION={BUILD_VERSION}
+            />
+          </Suspense>
         )}
 
         <DesktopSidebar
