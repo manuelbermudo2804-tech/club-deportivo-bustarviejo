@@ -57,7 +57,12 @@ async function rffmLogin() {
 
 async function fetchPage(url, cookies) {
   const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Cookie': cookies } });
-  return await resp.text();
+  // RFFM pages use ISO-8859-1 (Latin-1) encoding - decode correctly to preserve ñ, á, é, etc.
+  const buf = await resp.arrayBuffer();
+  const ct = resp.headers.get('content-type') || '';
+  const charsetMatch = ct.match(/charset=([^\s;]+)/i);
+  const charset = charsetMatch ? charsetMatch[1] : 'iso-8859-1';
+  return new TextDecoder(charset).decode(buf);
 }
 
 function extractParams(url) {

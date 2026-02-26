@@ -67,19 +67,26 @@ export default function NextMatchRffm({ config, category, standings, onMatchLoad
             const [d, mo, y] = m.fecha.split("/");
             return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`;
           })() : null;
-          // Delete old record for this category, then create new
+          // Delete ALL old records for this category first, then create one new
           const old = await base44.entities.ProximoPartido.filter({ categoria: category });
+          // Delete all in sequence to avoid race conditions
           for (const o of old) { try { await base44.entities.ProximoPartido.delete(o.id); } catch {} }
-          await base44.entities.ProximoPartido.create({
-            categoria: category,
-            jornada: res.data.jornada || startJornada,
-            local: m.local,
-            visitante: m.visitante,
-            fecha: m.fecha,
-            hora: m.hora,
-            campo: m.campo,
-            fecha_iso: fechaIso,
-          });
+          // Small delay to ensure deletes are processed before create
+          await new Promise(r => setTimeout(r, 200));
+          // Check again to prevent duplicates from concurrent renders
+          const check = await base44.entities.ProximoPartido.filter({ categoria: category });
+          if (check.length === 0) {
+            await base44.entities.ProximoPartido.create({
+              categoria: category,
+              jornada: res.data.jornada || startJornada,
+              local: m.local,
+              visitante: m.visitante,
+              fecha: m.fecha,
+              hora: m.hora,
+              campo: m.campo,
+              fecha_iso: fechaIso,
+            });
+          }
         } catch (e) { console.error("Error saving ProximoPartido:", e); }
       }
       return res.data;
