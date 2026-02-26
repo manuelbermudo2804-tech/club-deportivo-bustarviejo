@@ -336,7 +336,6 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
     const callup = cancelRescheduleCallup;
 
     const updateData = {
-      ...callup,
       estado_convocatoria: isCancelling ? "cancelada" : "reprogramada",
       motivo_cambio: motivo,
     };
