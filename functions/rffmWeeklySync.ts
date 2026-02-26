@@ -138,6 +138,25 @@ async function batchDelete(entity, items) {
   }
 }
 
+/**
+ * Retry wrapper: fetches + parses data, and retries up to maxRetries times
+ * if the result count is suspiciously low (below minExpected).
+ * Waits progressively longer between retries.
+ */
+async function fetchWithRetry(fetchFn, { minExpected = 5, maxRetries = 2, label = '' } = {}) {
+  let lastResult = [];
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    if (attempt > 0) {
+      console.log(`[RETRY] ${label}: attempt ${attempt + 1}/${maxRetries + 1} (got ${lastResult.length}, expected >= ${minExpected})`);
+      await sleep(2000 + attempt * 1500); // 3.5s, 5s
+    }
+    lastResult = await fetchFn();
+    if (lastResult.length >= minExpected) return lastResult;
+  }
+  console.log(`[RETRY] ${label}: returning ${lastResult.length} after ${maxRetries + 1} attempts (min was ${minExpected})`);
+  return lastResult;
+}
+
 // ---- Main ----
 
 async function syncCategory(config, cookies, base44, temporada) {
