@@ -283,12 +283,13 @@ Deno.serve(async (req) => {
         // Send chat message to the team
         const grupo_id = config.categoria;
 
-        const mensaje = `⚠️ *CAMBIO DE HORARIO* ⚠️\n\n` +
+        const mensaje = `⚠️ *CAMBIO DE HORARIO DE PARTIDO* ⚠️\n\n` +
           `Partido: CD Bustarviejo vs ${rival}\n` +
+          `Categoría: ${config.categoria}\n` +
           `Jornada: ${jornada}\n\n` +
           `Cambios detectados:\n${changeParts.join('\n')}\n\n` +
           `${isLocal ? '🏠 Local' : '✈️ Visitante'}\n\n` +
-          `ℹ️ La convocatoria ha sido actualizada automáticamente.`;
+          `ℹ️ Información actualizada automáticamente desde la Federación (RFFM).`;
 
         await base44.asServiceRole.entities.ChatMessage.create({
           remitente_email: 'sistema@cdbustarviejo.es',
