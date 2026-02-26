@@ -471,13 +471,43 @@ export default function AdminAccessCodes() {
       {(securityAlerts.length > 0 || unauthorizedScreenVisits.length > 0) && (
         <Card className="mb-6 border-2 border-red-400 bg-red-50">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-red-800 text-lg">
-              <ShieldAlert className="w-5 h-5" />
-              Alertas de Seguridad
-            </CardTitle>
-            <p className="text-sm text-red-700">
-              Actividad sospechosa detectada. Estos usuarios pueden estar intentando acceder sin invitación.
-            </p>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-red-800 text-lg">
+                  <ShieldAlert className="w-5 h-5" />
+                  Alertas de Seguridad
+                </CardTitle>
+                <p className="text-sm text-red-700 mt-1">
+                  Actividad sospechosa detectada. Estos usuarios pueden estar intentando acceder sin invitación.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-100 whitespace-nowrap"
+                disabled={clearingAlerts}
+                onClick={async () => {
+                  if (!confirm(`¿Borrar todas las alertas de seguridad? Se eliminarán ${accessAttempts.length} registros de intentos.`)) return;
+                  setClearingAlerts(true);
+                  try {
+                    // Delete all access attempts in batches
+                    for (let i = 0; i < accessAttempts.length; i += 10) {
+                      const batch = accessAttempts.slice(i, i + 10);
+                      await Promise.all(batch.map(a => base44.entities.AccessCodeAttempt.delete(a.id)));
+                    }
+                    queryClient.invalidateQueries({ queryKey: ['accessAttempts'] });
+                    toast.success('Alertas de seguridad borradas');
+                  } catch (e) {
+                    toast.error('Error al borrar alertas');
+                  } finally {
+                    setClearingAlerts(false);
+                  }
+                }}
+              >
+                {clearingAlerts ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Trash2 className="w-3 h-3 mr-1" />}
+                Limpiar alertas
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="pt-2 space-y-3">
             {/* Usuarios que visitaron la pantalla sin tener código */}
