@@ -305,10 +305,14 @@ tr:hover { background: #f5f8ff; }
   <p>Centro de Competición — Temporada 2024/2025</p>
 </div>
 
+<input type="radio" name="tab" id="radio-proximos" checked>
+<input type="radio" name="tab" id="radio-clasificacion">
+<input type="radio" name="tab" id="radio-goleadores">
+
 <div class="tabs">
-  <button class="tab activo" data-sec="proximos">📅 Próximos</button>
-  <button class="tab" data-sec="clasificacion">🏆 Clasificación</button>
-  <button class="tab" data-sec="goleadores">⚽ Goleadores</button>
+  <label class="tab" for="radio-proximos">📅 Próximos</label>
+  <label class="tab" for="radio-clasificacion">🏆 Clasificación</label>
+  <label class="tab" for="radio-goleadores">⚽ Goleadores</label>
 </div>
 
 <div class="contenido">
