@@ -327,17 +327,46 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               />
             )}
 
-            {/* ═══════ QUICK STATUS ROW ═══════ */}
-            <div className="flex items-center gap-3 flex-wrap text-[11px]">
-              <span className={`inline-flex items-center gap-1 ${allPaid ? 'text-green-600' : pendingCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                {allPaid ? '✅' : pendingCount > 0 ? '❌' : '➖'} Pagos {allPaid ? 'al día' : playerPayments.length === 0 ? '' : `${paidCount}/${expectedPayments}`}
-              </span>
-              <span className={`inline-flex items-center gap-1 ${firmasStatus === 'complete' ? 'text-green-600' : firmasStatus === 'pending' ? 'text-amber-600' : 'text-slate-400'}`}>
-                {firmasStatus === 'complete' ? '✅' : firmasStatus === 'pending' ? '⏳' : '➖'} Firmas
-              </span>
-              <span className={`inline-flex items-center gap-1 ${checklistItems.foto && checklistItems.dni ? 'text-green-600' : 'text-amber-600'}`}>
-                {checklistItems.foto && checklistItems.dni ? '✅' : '⏳'} Docs
-              </span>
+            {/* ═══════ QUICK STATUS ROW (clickable for parents) ═══════ */}
+            <div className="flex items-center gap-2 flex-wrap text-[11px]">
+              {isParent ? (
+                <Link
+                  to={createPageUrl('ParentPayments')}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border transition-colors ${allPaid ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : pendingCount > 0 ? 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+                >
+                  {allPaid ? '✅' : pendingCount > 0 ? '❌' : '➖'} Pagos {allPaid ? 'al día' : playerPayments.length === 0 ? '' : `${paidCount}/${expectedPayments}`} →
+                </Link>
+              ) : (
+                <span className={`inline-flex items-center gap-1 ${allPaid ? 'text-green-600' : pendingCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                  {allPaid ? '✅' : pendingCount > 0 ? '❌' : '➖'} Pagos {allPaid ? 'al día' : playerPayments.length === 0 ? '' : `${paidCount}/${expectedPayments}`}
+                </span>
+              )}
+              {isParent ? (
+                <Link
+                  to={createPageUrl('FederationSignatures')}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border transition-colors ${firmasStatus === 'complete' ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : firmasStatus === 'pending' ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+                >
+                  {firmasStatus === 'complete' ? '✅' : firmasStatus === 'pending' ? '⏳' : '➖'} Firmas →
+                </Link>
+              ) : (
+                <span className={`inline-flex items-center gap-1 ${firmasStatus === 'complete' ? 'text-green-600' : firmasStatus === 'pending' ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {firmasStatus === 'complete' ? '✅' : firmasStatus === 'pending' ? '⏳' : '➖'} Firmas
+                </span>
+              )}
+              {isParent && onEdit ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(player); }}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border transition-colors ${checklistItems.foto && checklistItems.dni ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'}`}
+                >
+                  {checklistItems.foto && checklistItems.dni ? '✅' : '⏳'} Docs {!(checklistItems.foto && checklistItems.dni) ? '→' : ''}
+                </button>
+              ) : (
+                <span className={`inline-flex items-center gap-1 ${checklistItems.foto && checklistItems.dni ? 'text-green-600' : 'text-amber-600'}`}>
+                  {checklistItems.foto && checklistItems.dni ? '✅' : '⏳'} Docs
+                </span>
+              )}
             </div>
 
             {/* ═══════ PAYMENT BAR ═══════ */}
