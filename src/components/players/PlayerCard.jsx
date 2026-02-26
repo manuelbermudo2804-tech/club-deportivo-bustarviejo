@@ -374,25 +374,52 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
 
             {/* ═══════ NEXT MATCH ═══════ */}
             {nextCallup && (
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🏆</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-indigo-900 truncate">{nextCallup.titulo || `vs ${nextCallup.rival}`}</p>
-                    <div className="flex items-center gap-2 text-[11px] text-indigo-600 mt-0.5">
-                      <span>{format(new Date(nextCallup.fecha_partido), "EEE d MMM", { locale: es })}</span>
-                      <span>·</span>
-                      <span>{nextCallup.hora_partido}</span>
-                      {nextCallup.ubicacion && (
-                        <>
-                          <span>·</span>
-                          <span className="truncate">{nextCallup.ubicacion}</span>
-                        </>
-                      )}
+              isParent ? (
+                <Link
+                  to={createPageUrl('ParentCallups')}
+                  onClick={(e) => e.stopPropagation()}
+                  className="block bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-3 hover:from-indigo-100 hover:to-purple-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🏆</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-indigo-900 truncate">{nextCallup.titulo || `vs ${nextCallup.rival}`}</p>
+                      <div className="flex items-center gap-2 text-[11px] text-indigo-600 mt-0.5">
+                        <span>{format(new Date(nextCallup.fecha_partido), "EEE d MMM", { locale: es })}</span>
+                        <span>·</span>
+                        <span>{nextCallup.hora_partido}</span>
+                        {nextCallup.ubicacion && (
+                          <>
+                            <span>·</span>
+                            <span className="truncate">{nextCallup.ubicacion}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-indigo-400 text-xs">→</span>
+                  </div>
+                </Link>
+              ) : (
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🏆</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-indigo-900 truncate">{nextCallup.titulo || `vs ${nextCallup.rival}`}</p>
+                      <div className="flex items-center gap-2 text-[11px] text-indigo-600 mt-0.5">
+                        <span>{format(new Date(nextCallup.fecha_partido), "EEE d MMM", { locale: es })}</span>
+                        <span>·</span>
+                        <span>{nextCallup.hora_partido}</span>
+                        {nextCallup.ubicacion && (
+                          <>
+                            <span>·</span>
+                            <span className="truncate">{nextCallup.ubicacion}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )
             )}
 
             {/* ═══════ SCHEDULE ═══════ */}
