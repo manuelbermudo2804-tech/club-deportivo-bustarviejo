@@ -41,6 +41,11 @@ export function getDeviceCapabilities() {
     // --- iOS <14: WKWebView tenía bugs con File API ---
     const isOldIOS = isIOS && iosVersion < 14;
 
+    // --- RAM detection ---
+    const deviceMemoryGB = navigator?.deviceMemory || null; // Chrome/Edge only, null on iOS/Firefox
+    const isLowRAM = deviceMemoryGB ? deviceMemoryGB < 3 : (isOldAndroid || isOldIOS);
+    const isVeryLowRAM = deviceMemoryGB ? deviceMemoryGB <= 2 : isOldAndroid;
+
     // Modo degradado: sin preview local, subida directa, sin guardar File en estado
     const degraded = isOldAndroid || isWebView || isOldIOS;
 
@@ -49,10 +54,11 @@ export function getDeviceCapabilities() {
       chromeVersion, isOldAndroid, isPWA,
       supportsCreateObjectURL, supportsFileReader,
       isOldIOS, degraded,
+      deviceMemoryGB, isLowRAM, isVeryLowRAM,
     };
   } catch {
     // Si falla la detección, modo degradado por seguridad
-    _cached = { degraded: true, error: true, supportsCreateObjectURL: false, supportsFileReader: true };
+    _cached = { degraded: true, error: true, supportsCreateObjectURL: false, supportsFileReader: true, isLowRAM: true, isVeryLowRAM: false };
   }
 
   return _cached;
@@ -63,4 +69,18 @@ export function getDeviceCapabilities() {
  */
 export function isDegradedMode() {
   return getDeviceCapabilities().degraded === true;
+}
+
+/**
+ * ¿Dispositivo con poca RAM (<3GB)?
+ */
+export function isLowMemoryDevice() {
+  return getDeviceCapabilities().isLowRAM === true;
+}
+
+/**
+ * ¿Dispositivo con muy poca RAM (<=2GB)?
+ */
+export function isVeryLowMemoryDevice() {
+  return getDeviceCapabilities().isVeryLowRAM === true;
 }
