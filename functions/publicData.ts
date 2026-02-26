@@ -316,7 +316,7 @@ tr:hover { background: #f5f8ff; }
 </div>
 
 <div class="contenido">
-  <div id="sec-proximos" class="seccion visible">
+  <div id="sec-proximos" class="seccion">
     <div class="bloque">
       <h2>📅 Próximos Partidos</h2>
       ${proximosHTML}
