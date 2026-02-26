@@ -500,33 +500,45 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, jornada: best.jornada, match: best.match });
       }
 
-      // Fetch classification/standings
+      // Fetch classification/standings (with automatic retry if too few teams)
       case 'standings': {
-        // First try without jornada
-        let html = await fetchPage(buildClassificationUrl(p), cookies);
-        let standings = parseStandings(html);
-        
-        // If empty, the page needs a CodJornada param - detect from jornada page
-        if (standings.length === 0) {
-          // Get total jornadas from jornada 1 page
-          const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
-          const totalJ = detectTotalJornadas(j1Html);
-          
-          // Try from the latest jornada backwards to find one with standings
-          for (let tryJ = totalJ; tryJ >= 1 && standings.length === 0; tryJ--) {
-            html = await fetchPage(buildClassificationUrl(p, tryJ), cookies);
-            standings = parseStandings(html);
+        let standings = [];
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt > 0) {
+            console.log(`[STANDINGS RETRY] attempt ${attempt + 1}/3 (got ${standings.length})`);
+            await new Promise(r => setTimeout(r, 2000 + attempt * 1500));
           }
+          // First try without jornada
+          let html = await fetchPage(buildClassificationUrl(p), cookies);
+          standings = parseStandings(html);
+          
+          // If empty, the page needs a CodJornada param - detect from jornada page
+          if (standings.length === 0) {
+            const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
+            const totalJ = detectTotalJornadas(j1Html);
+            for (let tryJ = totalJ; tryJ >= 1 && standings.length === 0; tryJ--) {
+              html = await fetchPage(buildClassificationUrl(p, tryJ), cookies);
+              standings = parseStandings(html);
+            }
+          }
+          if (standings.length >= 5) break; // Got enough data
         }
-        
-        return Response.json({ success: true, standings });
+        return Response.json({ success: true, standings, retried: standings.length < 5 });
       }
 
-      // Fetch scorers
+      // Fetch scorers (with automatic retry if too few results)
       case 'scorers': {
-        const html = await fetchPage(buildScorersUrl(p), cookies);
-        const scorers = parseScorers(html);
-        return Response.json({ success: true, scorers, total: scorers.length });
+        let scorers = [];
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt > 0) {
+            console.log(`[SCORERS RETRY] attempt ${attempt + 1}/3 (got ${scorers.length})`);
+            await new Promise(r => setTimeout(r, 2000 + attempt * 1500));
+          }
+          const html = await fetchPage(buildScorersUrl(p), cookies);
+          scorers = parseScorers(html);
+          if (scorers.length >= 5) break; // Got enough data
+        }
+        return Response.json({ success: true, scorers, total: scorers.length, retried: scorers.length < 5 });
       }
 
       // Debug standings page structure
