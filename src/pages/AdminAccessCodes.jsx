@@ -275,6 +275,7 @@ export default function AdminAccessCodes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [resendingId, setResendingId] = useState(null);
   const [bulkResending, setBulkResending] = useState(false);
+  const [clearingAlerts, setClearingAlerts] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: accessCodes = [], isLoading } = useQuery({
