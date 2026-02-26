@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.ProximoPartido.list('-fecha_iso', 50),
       base44.asServiceRole.entities.Resultado.filter({ estado: 'finalizado' }, '-jornada', 30),
       base44.asServiceRole.entities.Clasificacion.list('-puntos', 200),
-      base44.asServiceRole.entities.Goleador.list('-goles', 200),
+      base44.asServiceRole.entities.Goleador.list('-goles', 500),
     ]);
 
     // Agrupar clasificaciones por categoría
