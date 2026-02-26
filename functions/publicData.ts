@@ -133,7 +133,8 @@ Deno.serve(async (req) => {
 });
 
 function generarHTML(data) {
-  const ESCUDO = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg';
+  const ESCUDO = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png';
+  const WEB_URL = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/';
 
   // Generar tablas de clasificación
   let clasifHTML = '';
@@ -179,7 +180,6 @@ function generarHTML(data) {
   // Generar próximos partidos
   let proximosHTML = '';
   if (data.proximos_partidos && data.proximos_partidos.length > 0) {
-    // Ordenar por fecha
     const partidos = [...data.proximos_partidos].sort((a, b) => (a.fecha_iso || '').localeCompare(b.fecha_iso || ''));
     for (const p of partidos) {
       const esLocal = p.local.toLowerCase().includes('bustarviejo');
@@ -207,113 +207,276 @@ function generarHTML(data) {
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; line-height: 1.6; }
+body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f5f5f5; color: #1a1a1a; line-height: 1.6; }
 
-.header {
-  background: linear-gradient(135deg, #0b3d91 0%, #1a237e 100%);
-  color: white; padding: 20px; text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+/* ═══ NAVBAR — estilo web CD Bustarviejo ═══ */
+.navbar {
+  background: #fff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
-.header img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.3); }
-.header h1 { font-size: 26px; margin: 8px 0 2px; font-weight: 800; }
-.header p { font-size: 13px; opacity: 0.8; }
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #1a1a1a;
+}
+.navbar-brand img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+.navbar-brand span {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.navbar-links a {
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.navbar-links a:hover {
+  background: #f5f5f5;
+}
+.navbar-links .btn-hazte-socio {
+  background: #f97316;
+  color: white;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 10px 22px;
+}
+.navbar-links .btn-hazte-socio:hover {
+  background: #ea580c;
+}
 
-.tabs {
-  display: flex; justify-content: center; gap: 8px;
-  background: white; padding: 12px 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-  position: sticky; top: 0; z-index: 10;
+/* ═══ HERO BANNER ═══ */
+.hero-banner {
+  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+  color: white;
+  text-align: center;
+  padding: 50px 20px 40px;
+}
+.hero-banner h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+.hero-banner p {
+  font-size: 16px;
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+/* ═══ TABS ═══ */
+.tabs-bar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  background: white;
+  padding: 16px 20px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.04);
   flex-wrap: wrap;
 }
-.tab {
-  padding: 10px 20px; border-radius: 25px; border: none;
-  font-size: 14px; font-weight: 600; cursor: pointer;
-  transition: all 0.2s; background: #f0f2f5; color: #555;
+.tab-label {
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f5f5f5;
+  color: #555;
+  border: 2px solid transparent;
 }
-.tab:hover { background: #e0e4ea; }
+.tab-label:hover {
+  background: #eee;
+}
 
-.contenido { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
-/* Tabs via CSS-only radio buttons */
+/* Tab radio logic */
 input[name="tab"] { display: none; }
 .seccion { display: none; }
 #radio-proximos:checked ~ .contenido #sec-proximos { display: block; }
 #radio-clasificacion:checked ~ .contenido #sec-clasificacion { display: block; }
 #radio-goleadores:checked ~ .contenido #sec-goleadores { display: block; }
 
-#radio-proximos:checked ~ .tabs label[for="radio-proximos"] { background: #0b3d91; color: white; box-shadow: 0 4px 12px rgba(11,61,145,0.3); }
-#radio-clasificacion:checked ~ .tabs label[for="radio-clasificacion"] { background: #0b3d91; color: white; box-shadow: 0 4px 12px rgba(11,61,145,0.3); }
-#radio-goleadores:checked ~ .tabs label[for="radio-goleadores"] { background: #0b3d91; color: white; box-shadow: 0 4px 12px rgba(11,61,145,0.3); }
+#radio-proximos:checked ~ .tabs-bar label[for="radio-proximos"],
+#radio-clasificacion:checked ~ .tabs-bar label[for="radio-clasificacion"],
+#radio-goleadores:checked ~ .tabs-bar label[for="radio-goleadores"] {
+  background: #f97316;
+  color: white;
+  border-color: #f97316;
+  box-shadow: 0 4px 14px rgba(249,115,22,0.3);
+}
+
+/* ═══ CONTENIDO ═══ */
+.contenido {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 28px 16px 60px;
+}
 
 .bloque {
-  background: white; border-radius: 16px; padding: 24px;
-  margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
 }
 .bloque h2 {
-  font-size: 22px; color: #0b3d91; margin-bottom: 20px;
-  padding-bottom: 10px; border-bottom: 3px solid #0b3d91;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid #f97316;
+  letter-spacing: -0.02em;
 }
 h3 {
-  font-size: 16px; color: #333; margin: 20px 0 10px;
-  padding: 8px 14px; background: #f0f4ff; border-radius: 8px;
-  border-left: 4px solid #0b3d91;
+  font-size: 15px;
+  color: #1a1a1a;
+  font-weight: 700;
+  margin: 24px 0 12px;
+  padding: 10px 16px;
+  background: #fff7ed;
+  border-radius: 10px;
+  border-left: 4px solid #f97316;
 }
 
-.tabla-scroll { overflow-x: auto; margin-bottom: 20px; }
+/* ═══ TABLAS ═══ */
+.tabla-scroll { overflow-x: auto; margin-bottom: 20px; border-radius: 12px; border: 1px solid #eee; }
 table { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 13px; }
-th { background: #0b3d91; color: white; padding: 10px 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-td { padding: 9px 8px; border-bottom: 1px solid #eef1f5; text-align: center; }
+th {
+  background: #1a1a1a;
+  color: white;
+  padding: 12px 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+td { padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: center; }
 .td-equipo { text-align: left !important; white-space: nowrap; }
-tr:hover { background: #f5f8ff; }
-.club-propio { background: #dbeafe !important; font-weight: 700; }
-.club-propio td { color: #0b3d91; }
+tr:hover { background: #fafafa; }
+.club-propio { background: #fff7ed !important; }
+.club-propio td { color: #c2410c; font-weight: 700; }
 
+/* ═══ PARTIDO CARDS ═══ */
 .partido-card {
-  background: #f8faff; border: 1px solid #e0e8f5;
-  border-radius: 12px; padding: 16px; margin-bottom: 12px;
-  transition: transform 0.2s;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
 }
-.partido-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-.partido-cat { font-size: 12px; color: #0b3d91; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
-.partido-equipos { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.partido-vs { color: #999; font-size: 13px; font-weight: 400; }
-.equipo-nuestro { color: #0b3d91; font-weight: 800; }
-.partido-info { font-size: 13px; color: #666; margin-top: 8px; }
+.partido-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  border-color: #f97316;
+}
+.partido-cat {
+  font-size: 12px;
+  color: #f97316;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.partido-equipos {
+  font-size: 17px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.partido-vs { color: #aaa; font-size: 13px; font-weight: 400; }
+.equipo-nuestro { color: #c2410c; font-weight: 800; }
+.partido-info { font-size: 13px; color: #777; margin-top: 8px; }
 
-.sin-datos { text-align: center; color: #999; padding: 30px; font-size: 15px; }
+.sin-datos { text-align: center; color: #aaa; padding: 40px 20px; font-size: 15px; }
 
+/* ═══ FOOTER ═══ */
 .footer {
-  text-align: center; padding: 20px; font-size: 12px; color: #999;
-  border-top: 1px solid #e5e5e5; margin-top: 30px;
+  text-align: center;
+  padding: 24px 20px;
+  font-size: 12px;
+  color: #999;
+  border-top: 1px solid #eee;
+  background: white;
 }
+.footer a { color: #f97316; text-decoration: none; font-weight: 600; }
+.footer a:hover { text-decoration: underline; }
 
-@media (max-width: 640px) {
-  .header h1 { font-size: 20px; }
-  .header img { width: 55px; height: 55px; }
-  .tab { padding: 8px 14px; font-size: 12px; }
-  .bloque { padding: 16px; }
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  .navbar { padding: 0 12px; height: 60px; }
+  .navbar-brand img { width: 36px; height: 36px; }
+  .navbar-brand span { font-size: 15px; }
+  .navbar-links a:not(.btn-hazte-socio) { display: none; }
+  .navbar-links .btn-hazte-socio { padding: 8px 16px; font-size: 13px; }
+  .hero-banner { padding: 32px 16px 28px; }
+  .hero-banner h1 { font-size: 24px; }
+  .hero-banner p { font-size: 14px; }
+  .tab-label { padding: 8px 16px; font-size: 13px; }
+  .bloque { padding: 18px; border-radius: 16px; }
   .bloque h2 { font-size: 18px; }
   h3 { font-size: 14px; }
   table { font-size: 12px; }
-  .partido-equipos { font-size: 14px; }
+  .partido-equipos { font-size: 15px; }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <img src="${ESCUDO}" alt="Escudo CD Bustarviejo">
-  <h1>C.D. Bustarviejo</h1>
-  <p>Centro de Competición — Temporada 2024/2025</p>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a class="navbar-brand" href="${WEB_URL}">
+    <img src="${ESCUDO}" alt="CD Bustarviejo">
+    <span>C.D. Bustarviejo</span>
+  </a>
+  <div class="navbar-links">
+    <a href="${WEB_URL}">Inicio</a>
+    <a href="${WEB_URL}equipos.html">Equipos</a>
+    <a href="${WEB_URL}patrocinadores.html">Patrocinadores</a>
+    <a class="btn-hazte-socio" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank">HAZTE SOCIO</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-banner">
+  <h1>Competición</h1>
+  <p>Resultados, clasificaciones y goleadores — Temporada 2024/2025</p>
 </div>
 
 <input type="radio" name="tab" id="radio-proximos" checked>
 <input type="radio" name="tab" id="radio-clasificacion">
 <input type="radio" name="tab" id="radio-goleadores">
 
-<div class="tabs">
-  <label class="tab" for="radio-proximos">📅 Próximos</label>
-  <label class="tab" for="radio-clasificacion">🏆 Clasificación</label>
-  <label class="tab" for="radio-goleadores">⚽ Goleadores</label>
+<div class="tabs-bar">
+  <label class="tab-label" for="radio-proximos">📅 Próximos Partidos</label>
+  <label class="tab-label" for="radio-clasificacion">🏆 Clasificación</label>
+  <label class="tab-label" for="radio-goleadores">⚽ Goleadores</label>
 </div>
 
 <div class="contenido">
@@ -340,10 +503,8 @@ tr:hover { background: #f5f8ff; }
 </div>
 
 <div class="footer">
-  Actualizado: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })} · C.D. Bustarviejo
+  Actualizado: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })} · <a href="${WEB_URL}">C.D. Bustarviejo</a>
 </div>
-
-
 
 </body>
 </html>`;
