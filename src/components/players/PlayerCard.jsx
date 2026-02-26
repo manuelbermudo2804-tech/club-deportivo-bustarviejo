@@ -326,31 +326,16 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             )}
 
             {/* ═══════ QUICK STATUS ROW ═══════ */}
-            <div className="grid grid-cols-3 gap-2">
-              {/* Pagos */}
-              <div className={`rounded-xl p-2 text-center border ${allPaid ? 'bg-green-50 border-green-200' : pendingCount > 0 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
-                <span className="text-base">💳</span>
-                <p className={`text-[11px] font-bold ${allPaid ? 'text-green-700' : pendingCount > 0 ? 'text-red-700' : 'text-slate-500'}`}>
-                  {allPaid ? 'Al día' : playerPayments.length === 0 ? '—' : `${paidCount}/${expectedPayments}`}
-                </p>
-                <p className="text-[9px] text-slate-400">Pagos</p>
-              </div>
-              {/* Firmas */}
-              <div className={`rounded-xl p-2 text-center border ${firmasStatus === 'complete' ? 'bg-green-50 border-green-200' : firmasStatus === 'pending' ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
-                <span className="text-base">✍️</span>
-                <p className={`text-[11px] font-bold ${firmasStatus === 'complete' ? 'text-green-700' : firmasStatus === 'pending' ? 'text-amber-700' : 'text-slate-500'}`}>
-                  {firmasStatus === 'complete' ? 'OK' : firmasStatus === 'pending' ? 'Pend.' : '—'}
-                </p>
-                <p className="text-[9px] text-slate-400">Firmas</p>
-              </div>
-              {/* Docs */}
-              <div className={`rounded-xl p-2 text-center border ${checklistItems.foto && checklistItems.dni ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
-                <span className="text-base">📄</span>
-                <p className={`text-[11px] font-bold ${checklistItems.foto && checklistItems.dni ? 'text-green-700' : 'text-amber-700'}`}>
-                  {checklistItems.foto && checklistItems.dni ? 'OK' : 'Faltan'}
-                </p>
-                <p className="text-[9px] text-slate-400">Docs</p>
-              </div>
+            <div className="flex items-center gap-3 flex-wrap text-[11px]">
+              <span className={`inline-flex items-center gap-1 ${allPaid ? 'text-green-600' : pendingCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                {allPaid ? '✅' : pendingCount > 0 ? '❌' : '➖'} Pagos {allPaid ? 'al día' : playerPayments.length === 0 ? '' : `${paidCount}/${expectedPayments}`}
+              </span>
+              <span className={`inline-flex items-center gap-1 ${firmasStatus === 'complete' ? 'text-green-600' : firmasStatus === 'pending' ? 'text-amber-600' : 'text-slate-400'}`}>
+                {firmasStatus === 'complete' ? '✅' : firmasStatus === 'pending' ? '⏳' : '➖'} Firmas
+              </span>
+              <span className={`inline-flex items-center gap-1 ${checklistItems.foto && checklistItems.dni ? 'text-green-600' : 'text-amber-600'}`}>
+                {checklistItems.foto && checklistItems.dni ? '✅' : '⏳'} Docs
+              </span>
             </div>
 
             {/* ═══════ PAYMENT BAR ═══════ */}
