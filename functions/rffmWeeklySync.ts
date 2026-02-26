@@ -163,17 +163,20 @@ async function syncCategory(config, cookies, base44, temporada) {
   const cat = config.categoria;
   const result = { cat, standings: null, results: null, scorers: null, errors: [] };
 
-  // STANDINGS
+  // STANDINGS (with retry if too few teams)
   if (config.rfef_url) {
     try {
       const p = extractParams(config.rfef_url);
-      let html = await fetchPage(buildClassUrl(p), cookies);
-      let standings = parseStandings(html);
-      if (!standings.length) {
-        const j1 = await fetchPage(buildJornadaUrl(p, 1), cookies);
-        const tot = detectTotal(j1);
-        for (let j = tot; j >= 1 && !standings.length; j--) { html = await fetchPage(buildClassUrl(p, j), cookies); standings = parseStandings(html); }
-      }
+      const standings = await fetchWithRetry(async () => {
+        let html = await fetchPage(buildClassUrl(p), cookies);
+        let st = parseStandings(html);
+        if (!st.length) {
+          const j1 = await fetchPage(buildJornadaUrl(p, 1), cookies);
+          const tot = detectTotal(j1);
+          for (let j = tot; j >= 1 && !st.length; j--) { html = await fetchPage(buildClassUrl(p, j), cookies); st = parseStandings(html); }
+        }
+        return st;
+      }, { minExpected: 5, maxRetries: 2, label: `Standings ${cat}` });
       if (standings.length) {
         const old = await base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada });
         if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
@@ -302,12 +305,14 @@ async function syncCategory(config, cookies, base44, temporada) {
     } catch (e) { result.errors.push({ type: 'results', error: e.message }); }
   }
 
-  // SCORERS
+  // SCORERS (with retry if too few scorers)
   if (config.rfef_scorers_url) {
     try {
-      const html = await fetchPage(config.rfef_scorers_url, cookies);
-      const scorers = parseScorers(html);
-      console.log(`[SCORERS] ${cat}: parsed ${scorers.length} scorers from page`);
+      const scorers = await fetchWithRetry(async () => {
+        const html = await fetchPage(config.rfef_scorers_url, cookies);
+        return parseScorers(html);
+      }, { minExpected: 5, maxRetries: 2, label: `Scorers ${cat}` });
+      console.log(`[SCORERS] ${cat}: parsed ${scorers.length} scorers (after retry logic)`);
       if (scorers.length) {
         const old = await base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada });
         if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
