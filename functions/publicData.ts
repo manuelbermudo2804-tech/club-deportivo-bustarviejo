@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // API PÚBLICA - No requiere autenticación
 // Devuelve datos deportivos para mostrar en la web del club
+// v2 - Rediseño visual con estilo web cdbustarviejo
 
 Deno.serve(async (req) => {
   // CORS headers para permitir llamadas desde cualquier web
