@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Eye, Heart, AlertCircle, UserX, Smartphone, User, FileCheck, Clock, Calendar, MapPin, FileSignature, CheckCircle2, CreditCard, Camera, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import PlayerDetailDialog from "./PlayerDetailDialog";
 import PlayerDocumentDownload from "./PlayerDocumentDownload";
 import MinorAccessDialog from "../minor/MinorAccessDialog";
