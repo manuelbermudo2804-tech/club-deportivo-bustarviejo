@@ -52,9 +52,10 @@ Deno.serve(async (req) => {
       clasificacionesPorCategoria[cat].sort((a, b) => a.posicion - b.posicion);
     }
 
-    // Agrupar goleadores por categoría
+    // Agrupar goleadores por categoría - SOLO jugadores de Bustarviejo
     const goleadoresPorCategoria = {};
     for (const g of goleadores) {
+      if (!g.equipo || !g.equipo.toLowerCase().includes('bustarviejo')) continue;
       if (!goleadoresPorCategoria[g.categoria]) {
         goleadoresPorCategoria[g.categoria] = [];
       }
