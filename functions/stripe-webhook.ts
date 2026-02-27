@@ -454,7 +454,7 @@ Deno.serve(async (req) => {
           }
         }
 
-        // NUEVO: Cuota de socio (pago desde la app o Payment Link con metadata)
+        // NUEVO: Cuota de socio (pago desde la app, web o Payment Link con metadata)
         if (metadata.tipo === 'cuota_socio') {
           const temporada = metadata.temporada || '';
           // Log Stripe (socios) - antes de actualizar BD
@@ -480,10 +480,12 @@ Deno.serve(async (req) => {
 
           let member = null;
 
+          // 1. Si viene con membership_id → ya existía, solo marcar Pagado
           if (membershipId) {
             try {
               await base44.asServiceRole.entities.ClubMember.update(membershipId, {
                 estado_pago: 'Pagado',
+                metodo_pago: 'Tarjeta',
                 activo: true,
               });
               const members = await base44.asServiceRole.entities.ClubMember.filter({ id: membershipId });
@@ -493,21 +495,58 @@ Deno.serve(async (req) => {
               console.error('[stripe-webhook] Error actualizando ClubMember:', e?.message || e);
             }
           } else if (email) {
+            // 2. Buscar por email+temporada
             try {
               const candidates = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
               const candidate = candidates?.[0];
               if (candidate) {
                 await base44.asServiceRole.entities.ClubMember.update(candidate.id, {
                   estado_pago: 'Pagado',
+                  metodo_pago: 'Tarjeta',
                   activo: true,
                 });
                 member = candidate;
                 console.log('[stripe-webhook] ClubMember detectado por email+temporada, marcado Pagado', { id: candidate.id });
-              } else {
-                console.warn('[stripe-webhook] No se encontró ClubMember para email/temporada, revise Payment Link metadata');
               }
             } catch (e) {
-              console.error('[stripe-webhook] Error marcando ClubMember por email:', e?.message || e);
+              console.error('[stripe-webhook] Error buscando ClubMember por email:', e?.message || e);
+            }
+
+            // 3. AUTO-CREACIÓN: Si no existe ningún ClubMember → crear automáticamente
+            //    Esto cubre socios que pagan desde la web externa vía Stripe sin registro previo
+            if (!member && metadata.nombre_completo) {
+              try {
+                // Generar número de socio único
+                const allMembers = await base44.asServiceRole.entities.ClubMember.list();
+                const currentYear = new Date().getFullYear();
+                const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
+                const nextNumber = membersThisYear.length + 1;
+                const numeroSocio = `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
+
+                const newMember = await base44.asServiceRole.entities.ClubMember.create({
+                  numero_socio: numeroSocio,
+                  tipo_inscripcion: metadata.tipo_inscripcion || 'Nueva Inscripción',
+                  nombre_completo: metadata.nombre_completo,
+                  dni: metadata.dni || '',
+                  telefono: metadata.telefono || '',
+                  email: email,
+                  direccion: metadata.direccion || '',
+                  municipio: metadata.municipio || '',
+                  es_segundo_progenitor: metadata.es_segundo_progenitor === 'true',
+                  es_socio_externo: true,
+                  cuota_socio: Number(session.amount_total || 0) / 100,
+                  estado_pago: 'Pagado',
+                  metodo_pago: 'Tarjeta',
+                  temporada: temporada,
+                  activo: true,
+                  referido_por: metadata.referido_por || '',
+                  notas: 'Socio creado automáticamente desde pago Stripe (web)'
+                });
+                member = newMember;
+                console.log('[stripe-webhook] ClubMember AUTO-CREADO desde Stripe', { id: newMember.id, numero: numeroSocio, nombre: metadata.nombre_completo });
+              } catch (createErr) {
+                console.error('[stripe-webhook] Error auto-creando ClubMember:', createErr?.message || createErr);
+              }
             }
           }
 
@@ -517,19 +556,30 @@ Deno.serve(async (req) => {
             if (to) {
               await base44.asServiceRole.integrations.Core.SendEmail({
                 to,
-                subject: '✅ Cuota de socio confirmada',
-                body: `Hemos recibido tu cuota de socio para la temporada ${temporada}.\nEstado: Pagado.\nGracias por apoyar al club.\n\nCD Bustarviejo`
+                subject: '✅ ¡Bienvenido/a al CD Bustarviejo!',
+                body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
+                    <h2 style="color: white; margin: 0;">🎉 ¡Ya eres socio del CD Bustarviejo!</h2>
+                  </div>
+                  <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                    <p>Hola <strong>${member?.nombre_completo || metadata.nombre_completo || ''}</strong>,</p>
+                    <p>Hemos recibido tu cuota de socio para la temporada <strong>${temporada}</strong>.</p>
+                    ${member?.numero_socio ? `<p>Tu número de socio es: <strong>${member.numero_socio}</strong></p>` : ''}
+                    <p>Estado: <strong style="color: #16a34a;">✅ Pagado</strong></p>
+                    <p>¡Gracias por apoyar al club! 💪</p>
+                    <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
+                  </div>
+                </div>`
               });
             }
             await base44.asServiceRole.integrations.Core.SendEmail({
               to: 'cdbustarviejo@gmail.com',
-              subject: '✅ Nuevo socio pagado (Stripe)',
-              body: `Socio pagado: ${member?.nombre_completo || ''} - ${to || ''} - Temporada: ${temporada}`
+              subject: `✅ Nuevo socio pagado (Stripe) - ${member?.nombre_completo || metadata.nombre_completo || email}`,
+              body: `Socio pagado: ${member?.nombre_completo || metadata.nombre_completo || ''}\nEmail: ${email}\nNúmero: ${member?.numero_socio || 'pendiente'}\nTemporada: ${temporada}\n${member?.id ? 'Auto-creado desde web' : 'Existente actualizado'}`
             });
           } catch (emailErr) {
             console.error('[stripe-webhook] Error enviando email Socio:', emailErr?.message || emailErr);
           }
-
 
           }
         }
