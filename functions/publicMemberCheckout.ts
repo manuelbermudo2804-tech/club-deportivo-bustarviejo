@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     // Verificar si ya existe un socio con ese email para esta temporada
     let existingMembers = [];
     try {
-      existingMembers = await base44.entities.ClubMember.filter({ email, temporada });
+      existingMembers = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
     } catch {}
 
     let membership = existingMembers?.[0] || null;
