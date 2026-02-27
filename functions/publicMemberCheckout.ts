@@ -1,8 +1,9 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClient } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.21.0';
 
 // Endpoint PÚBLICO (no requiere auth) para que la landing page externa
 // pueda crear un socio + sesión de Stripe Checkout con metadata completa.
+// Usa service role directamente porque no hay usuario autenticado.
 Deno.serve(async (req) => {
   // CORS para llamadas desde la landing (GitHub Pages u otro dominio)
   if (req.method === 'OPTIONS') {
@@ -48,7 +49,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Stripe no configurado' }, { status: 500, headers: corsHeaders });
     }
 
-    const base44 = createClientFromRequest(req);
+    // Inicializar Base44 con service role (endpoint público, sin auth de usuario)
+    const appId = Deno.env.get('BASE44_APP_ID');
+    const base44 = createClient({ appId });
     const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
 
     // Determinar temporada actual
