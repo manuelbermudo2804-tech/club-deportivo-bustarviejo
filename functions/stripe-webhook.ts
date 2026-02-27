@@ -602,6 +602,70 @@ Deno.serve(async (req) => {
           const subscription = await stripe.subscriptions.retrieve(subId);
           const subMeta = subscription.metadata || {};
 
+          // Renovación anual automática de socio (suscripción yearly)
+          if (subMeta.tipo === 'cuota_socio') {
+            const amount = (invoice.amount_paid || 0) / 100;
+            const today = new Date().toISOString().slice(0, 10);
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const temporada = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+            const email = subMeta.user_email || subMeta.email || invoice.customer_email;
+
+            console.log('[stripe-webhook] Renovación anual de socio', { email, temporada, amount });
+
+            try {
+              // Verificar si ya existe para esta temporada
+              let existing = [];
+              try { existing = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada }); } catch {}
+
+              if (existing.length === 0 && email) {
+                // Buscar datos del socio en temporadas anteriores
+                const allMembers = await base44.asServiceRole.entities.ClubMember.list();
+                const prev = allMembers.find(m => m.email === email && m.temporada !== temporada);
+                const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${year}`));
+                const nextNumber = membersThisYear.length + 1;
+                const numeroSocio = `CDB-${year}-${String(nextNumber).padStart(4, '0')}`;
+
+                await base44.asServiceRole.entities.ClubMember.create({
+                  numero_socio: numeroSocio,
+                  tipo_inscripcion: 'Renovación',
+                  nombre_completo: prev?.nombre_completo || subMeta.nombre_completo || '',
+                  dni: prev?.dni || subMeta.dni || '',
+                  telefono: prev?.telefono || subMeta.telefono || '',
+                  email,
+                  direccion: prev?.direccion || subMeta.direccion || '',
+                  municipio: prev?.municipio || subMeta.municipio || '',
+                  es_socio_externo: prev?.es_socio_externo || true,
+                  cuota_socio: amount,
+                  estado_pago: 'Pagado',
+                  metodo_pago: 'Tarjeta',
+                  temporada,
+                  activo: true,
+                  notas: 'Renovación automática por suscripción Stripe',
+                });
+                console.log('[stripe-webhook] Socio renovado automáticamente', { email, temporada });
+              } else if (existing[0] && existing[0].estado_pago !== 'Pagado') {
+                await base44.asServiceRole.entities.ClubMember.update(existing[0].id, {
+                  estado_pago: 'Pagado',
+                  metodo_pago: 'Tarjeta',
+                  activo: true,
+                });
+              }
+
+              // Notificar
+              if (email) {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to: email,
+                  subject: `✅ Cuota de socio renovada - Temporada ${temporada}`,
+                  body: `Hemos cobrado tu cuota de socio de ${amount}€ para la temporada ${temporada}.\n\nGracias por seguir apoyando al club. 💪\n\nCD Bustarviejo`
+                });
+              }
+            } catch (socioErr) {
+              console.error('[stripe-webhook] Error renovación anual socio:', socioErr?.message);
+            }
+          }
+
           if (subMeta.tipo === 'plan_mensual_cuota') {
             const amount = (invoice.amount_paid || 0) / 100;
             const today = new Date().toISOString().slice(0, 10);
