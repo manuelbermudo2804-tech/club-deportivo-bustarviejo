@@ -170,9 +170,17 @@ export default function UpcomingMatchesSection() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Deduplicate matches by categoria + local + visitante + fecha to avoid showing duplicates
+  const seen = new Set();
   const futureMatches = matches
     .map(m => ({ ...m, dateInfo: formatMatchDate(m.fecha || m.fecha_iso) }))
     .filter(m => m.dateInfo && m.dateInfo.raw >= today)
+    .filter(m => {
+      const key = `${(m.categoria || '').toLowerCase()}|${(m.local || '').toLowerCase()}|${(m.visitante || '').toLowerCase()}|${m.dateInfo.iso}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .sort((a, b) => a.dateInfo.raw - b.dateInfo.raw);
 
   if (futureMatches.length === 0) {

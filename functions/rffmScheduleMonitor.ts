@@ -204,11 +204,18 @@ Deno.serve(async (req) => {
         const isLocal = match.local?.toUpperCase().includes('BUSTARVIEJO');
         const rival = isLocal ? match.visitante : match.local;
 
-        // Find matching convocatoria for this category
+        // Find matching convocatoria for this category AND jornada to prevent duplicates
+        // Check both open callups and ALL recent callups for this jornada
         const callup = openCallups.find(c => c.categoria === config.categoria);
 
+        // Also check if a convocatoria already exists for this specific jornada+category (even if closed/past)
+        const existingForJornada = allCallups.find(c => 
+          c.categoria === config.categoria && 
+          c.titulo?.includes(`Jornada ${jornada}`)
+        );
+
         // --- FASE 4: Auto-create draft if no convocatoria exists ---
-        if (!callup) {
+        if (!callup && !existingForJornada) {
           if (!matchDate) continue; // Can't create without a date
 
           // Get active players for this category
