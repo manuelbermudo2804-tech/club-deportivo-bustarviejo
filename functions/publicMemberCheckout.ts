@@ -75,13 +75,13 @@ Deno.serve(async (req) => {
     // Crear o reutilizar el ClubMember
     if (!membership) {
       // Generar número de socio único
-      const allMembers = await base44.asServiceRole.entities.ClubMember.list();
+      const allMembers = await base44.entities.ClubMember.list();
       const currentYear = now.getFullYear();
       const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
       const nextNumber = membersThisYear.length + 1;
       const numeroSocio = `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
 
-      membership = await base44.asServiceRole.entities.ClubMember.create({
+      membership = await base44.entities.ClubMember.create({
         numero_socio: numeroSocio,
         tipo_inscripcion: 'Nueva Inscripción',
         nombre_completo,
