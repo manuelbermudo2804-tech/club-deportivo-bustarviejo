@@ -199,7 +199,7 @@ ${refBanner}
 <p>&#128274; <b>RGPD:</b> Al enviar consientes el tratamiento de datos por CD Bustarviejo. Email: <a href="mailto:cdbustarviejo@gmail.com">cdbustarviejo@gmail.com</a></p>
 </div>
 
-<button type="button" class="gobtn" id="BTN" onclick="go()">&#127881; Registrarme y Pagar con Tarjeta</button>
+<button type="button" class="gobtn" id="BTN">&#127881; Registrarme y Pagar con Tarjeta</button>
 
 </div>
 
