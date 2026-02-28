@@ -43,7 +43,8 @@ export function useFetchUser(location) {
                          lowerPath.includes('validateadmininvitation') ||
                          lowerPath.includes('pwaentry') ||
                          lowerPath.includes('joinreferral') ||
-                         lowerPath.includes('joinfemenino');
+                         lowerPath.includes('joinfemenino') ||
+                         lowerPath.includes('publicaltasocio');
     isPublicPageRef.current = isPublicPage;
 
     try {
