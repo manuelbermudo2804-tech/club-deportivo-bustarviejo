@@ -659,15 +659,17 @@ export default function ClubMembership() {
     );
   }
 
-  if (isCheckingAuth || (isPublicAccess && !seasonConfig)) {
+  if (isCheckingAuth) {
     return (
-      <>
-        <InvitationPWAGuide />
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-        </div>
-      </>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+      </div>
     );
+  }
+
+  // Visitante anónimo (desde web externa) → mostrar vista pública con estética del club
+  if (isPublicAccess) {
+    return <PublicMembershipView />;
   }
 
   return (
