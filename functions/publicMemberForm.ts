@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hazte Socio - C.D. Bustarviejo</title>
+<title>Hazte Socio - CD Bustarviejo</title>
 <link rel="icon" href="${ESCUDO}">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
