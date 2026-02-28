@@ -29,6 +29,7 @@ export default function ClubMembersManagement() {
   const [seasonFilter, setSeasonFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [memberTypeFilter, setMemberTypeFilter] = useState("all"); // externos/padres
+  const [originFilter, setOriginFilter] = useState("all"); // origen pago
   const [showReminderDialog, setShowReminderDialog] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [viewingMember, setViewingMember] = useState(null);
