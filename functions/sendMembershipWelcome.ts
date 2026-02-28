@@ -60,77 +60,57 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Email service not configured' }, { status: 500 });
     }
 
-    const welcomeHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; background: #fff; }
-            .header { background: linear-gradient(135deg, #ea580c 0%, #22c55e 100%); color: white; padding: 40px 20px; text-align: center; }
-            .header h1 { margin: 0; font-size: 28px; }
-            .header p { margin: 10px 0 0 0; font-size: 14px; opacity: 0.9; }
-            .content { padding: 40px 20px; }
-            .section { margin-bottom: 30px; }
-            .section h2 { color: #ea580c; font-size: 20px; margin-top: 0; }
-            .benefits { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 15px 0; }
-            .benefits ul { margin: 10px 0; padding-left: 20px; }
-            .benefits li { margin: 8px 0; }
-            .cta-button { display: inline-block; background: linear-gradient(135deg, #ea580c 0%, #22c55e 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 15px 0; }
-            .footer { background: #f8f8f8; padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; }
-            .contact { background: #fff3e0; padding: 15px; border-radius: 8px; margin: 15px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🎉 ¡Bienvenido a la Familia CD Bustarviejo!</h1>
-              <p>Tu membresía está activada</p>
-            </div>
+    // Obtener datos completos del socio para el email premium
+    let memberData = {};
+    try {
+      const members = await base44.asServiceRole.entities.ClubMember.filter({ id: finalMemberId });
+      if (members?.[0]) memberData = members[0];
+    } catch {}
 
-            <div class="content">
-              <div class="section">
-                <p>Estimado/a <strong>${nombre_socio || 'miembro'}</strong>,</p>
-                <p style="font-size: 16px; line-height: 1.8;">
-                  Queremos expresarte nuestro <strong>más sincero agradecimiento</strong> por haber confiado en CD Bustarviejo y convertirte en socio del club. <br><br>
-                  Tu apoyo es fundamental para que podamos seguir creciendo como comunidad deportiva y brindando las mejores oportunidades a nuestros jugadores.
-                </p>
-              </div>
+    const LOGO_URL = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg';
 
-              <div class="section">
-                <h2>✨ Tu Membresía Está Activa</h2>
-                <p>A partir de hoy, formas parte de una comunidad comprometida con el deporte y los valores del club. Accede a todos los beneficios de ser socio:</p>
-                
-                <div class="benefits">
-                  <ul>
-                    <li>✅ <strong>Apoyo directo al club</strong> y a nuestros deportistas</li>
-                    <li>✅ <strong>Participación en actividades</strong> especiales</li>
-                    <li>✅ <strong>Comunicación directa</strong> con la junta directiva</li>
-                    <li>✅ <strong>Sentido de pertenencia</strong> a nuestra comunidad deportiva</li>
-                  </ul>
-                </div>
-              </div>
+    const nombre = memberData.nombre_completo || finalNombre || 'socio/a';
+    const numeroSocio = memberData.numero_socio || '';
+    const temporada = memberData.temporada || '';
+    const dni = memberData.dni || '';
 
-              <div class="contact">
-                <p><strong>¿Preguntas o sugerencias?</strong></p>
-                <p>No dudes en contactarnos:<br>
-                📧 <a href="mailto:cdbustarviejo@outlook.es">cdbustarviejo@outlook.es</a><br>
-                🏢 CD Bustarviejo - Club Deportivo de Bustarviejo
-                </p>
-              </div>
-
-
-            </div>
-
-            <div class="footer">
-              <p style="margin: 0;">© 2026 CD Bustarviejo - Todos los derechos reservados</p>
-              <p style="margin: 5px 0 0 0;">Este es un correo automático del sistema de membresías. No responder a este correo.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+    const welcomeHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f1f5f9}
+.ctn{max-width:600px;margin:0 auto;background:#fff;border-radius:0 0 16px 16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+.hdr{background:linear-gradient(135deg,#ea580c,#22c55e);padding:30px 24px;text-align:center}
+.hdr img{width:70px;height:70px;border-radius:14px;border:3px solid rgba(255,255,255,0.4);object-fit:cover;margin-bottom:12px}
+.hdr h1{color:#fff;margin:0;font-size:24px;font-weight:800}
+.hdr p{color:rgba(255,255,255,0.9);margin:6px 0 0;font-size:13px}
+.body{padding:28px 24px}
+.body p{margin:12px 0;font-size:15px;line-height:1.7;color:#334155}
+.body strong{color:#0f172a}
+.carnet{background:linear-gradient(135deg,#1e293b,#334155);border-radius:16px;padding:22px;margin:20px 0;border:2px solid #ea580c;box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+.carnet-row{display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:14px;margin-bottom:14px}
+.carnet-logo{width:56px;height:56px;border-radius:10px;border:2px solid #ea580c;object-fit:cover}
+.carnet-title{color:#fff;font-size:16px;font-weight:700;flex:1;text-align:center}
+.carnet-title span{display:block;font-size:12px;color:#22c55e;font-weight:600;margin-top:2px}
+.carnet-data p{margin:7px 0;font-size:13px;color:#e2e8f0}.carnet-data strong{color:#fb923c}
+.carnet-badge{text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15)}
+.badge{display:inline-block;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;padding:6px 18px;border-radius:8px;font-weight:700;font-size:13px}
+.info-box{border-radius:12px;padding:16px;margin:18px 0}
+.info-green{background:#f0fdf4;border-left:4px solid #22c55e}
+.info-blue{background:#eff6ff;border-left:4px solid #3b82f6}
+.info-box p{margin:4px 0;font-size:13px}
+.ftr{background:#1e293b;padding:20px 24px;text-align:center}
+.ftr p{margin:4px 0;font-size:12px;color:#94a3b8}
+.ftr a{color:#fb923c;text-decoration:none}
+</style></head><body><div class="ctn">
+<div class="hdr"><img src="${LOGO_URL}" alt="CD Bustarviejo"/><h1>🎉 ¡BIENVENIDO AL CLUB!</h1><p>CD Bustarviejo</p></div>
+<div class="body">
+<p>Estimado/a <strong>${nombre}</strong>,</p>
+<p>¡Gracias por tu apoyo al CD Bustarviejo! Hemos confirmado tu pago y nos complace darte la bienvenida como <strong style="color:#ea580c">socio oficial</strong> para la temporada <strong>${temporada}</strong>.</p>
+<div class="carnet"><div class="carnet-row"><img src="${LOGO_URL}" alt="Logo" class="carnet-logo"/><div class="carnet-title">CARNET DE SOCIO<span>CD BUSTARVIEJO</span></div></div><div class="carnet-data"><p><strong>NOMBRE:</strong> ${nombre}</p>${numeroSocio ? `<p><strong>Nº SOCIO:</strong> ${numeroSocio}</p>` : ''}<p><strong>TEMPORADA:</strong> ${temporada}</p>${dni ? `<p><strong>DNI:</strong> ${dni}</p>` : ''}</div><div class="carnet-badge"><span class="badge">✅ SOCIO VERIFICADO</span></div></div>
+<div class="info-box info-green"><p><strong>💚 ¡Gracias por formar parte de nuestra familia!</strong></p><p>Tu contribución es fundamental para el desarrollo de más de 200 jóvenes deportistas de Bustarviejo.</p></div>
+<div class="info-box info-blue"><p><strong>📲 Guarda este email</strong> como comprobante de tu membresía.</p></div>
+<p>Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong><br/><span style="font-size:12px;color:#64748b">Tu club de siempre 💚</span></p>
+</div>
+<div class="ftr"><p>📧 <a href="mailto:cdbustarviejo@gmail.com">cdbustarviejo@gmail.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p><p style="margin-top:10px">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p></div>
+</div></body></html>`;
 
     console.log('[sendMembershipWelcome] 📧 Enviando email de bienvenida a:', email);
 
