@@ -1387,9 +1387,9 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         activeFiltersCount={activeFiltersCount}
       />
 
-      {/* Filtro Externos/Padres + Envío masivo */}
+      {/* Filtro Externos/Padres + Origen + Envío masivo */}
       <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Select value={memberTypeFilter} onValueChange={setMemberTypeFilter}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Tipo de socio" />
@@ -1398,6 +1398,20 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
               <SelectItem value="all">👥 Todos los socios</SelectItem>
               <SelectItem value="externos">🌍 Solo Externos ({currentSeasonExternos})</SelectItem>
               <SelectItem value="padres">👨‍👩‍👧 Solo Padres</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={originFilter} onValueChange={setOriginFilter}>
+            <SelectTrigger className="w-56">
+              <SelectValue placeholder="Origen del pago" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">🏷️ Todos los orígenes</SelectItem>
+              <SelectItem value="stripe_suscripcion">🔄 Suscripción Stripe</SelectItem>
+              <SelectItem value="stripe_unico">💳 Pago Único Stripe</SelectItem>
+              <SelectItem value="transferencia">🏦 Transferencia</SelectItem>
+              <SelectItem value="socio_padre_auto">👨‍👩‍👧 Padre Automático</SelectItem>
+              <SelectItem value="web">🌐 Desde Web (Externo)</SelectItem>
+              <SelectItem value="sin_origen">❓ Sin origen registrado</SelectItem>
             </SelectContent>
           </Select>
           {memberTypeFilter === "externos" && (
