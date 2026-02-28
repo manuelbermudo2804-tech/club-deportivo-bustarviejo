@@ -374,7 +374,89 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Otros tipos se añadirán si hace falta
+        // ============ PAYMENT LINK SIN METADATA ============
+        // Socios que pagan desde Payment Links directos de Stripe (sin metadata.tipo)
+        // El pre-registro se hizo via publicMemberRegister con el email
+        if (!metadata.tipo || metadata.tipo === '') {
+          const payerEmail = session.customer_details?.email || session.customer_email || '';
+          const amountPaid = Number(session.amount_total || 0) / 100;
+
+          // Solo procesar si parece una cuota de socio (25€)
+          if (payerEmail && amountPaid >= 24 && amountPaid <= 26) {
+            console.log('[stripe-webhook] Payment Link detectado (sin metadata), buscando socio por email:', payerEmail);
+
+            try {
+              // Determinar temporada
+              const now = new Date();
+              const yr = now.getFullYear();
+              const mo = now.getMonth() + 1;
+              const tempActual = mo >= 7 ? `${yr}-${yr + 1}` : `${yr - 1}-${yr}`;
+
+              const candidates = await base44.asServiceRole.entities.ClubMember.filter({ email: payerEmail, temporada: tempActual });
+              const pendingMember = candidates?.find(m => m.estado_pago !== 'Pagado');
+
+              if (pendingMember) {
+                await base44.asServiceRole.entities.ClubMember.update(pendingMember.id, {
+                  estado_pago: 'Pagado',
+                  metodo_pago: 'Tarjeta',
+                  activo: true,
+                });
+                console.log('[stripe-webhook] Socio marcado Pagado via Payment Link:', pendingMember.id, payerEmail);
+
+                // Log Stripe
+                try {
+                  await base44.asServiceRole.entities.StripePaymentLog.create({
+                    section: 'socios_payment_link',
+                    amount: amountPaid,
+                    currency: session.currency || 'eur',
+                    status: 'succeeded',
+                    session_id: session.id,
+                    payment_intent_id: session.payment_intent || null,
+                    email: payerEmail,
+                    related_entity: 'ClubMember',
+                    related_id: pendingMember.id,
+                    metadata: { source: 'payment_link', email: payerEmail },
+                    created_at: new Date().toISOString()
+                  });
+                } catch (logErr) {
+                  console.error('[stripe-webhook] Error log Payment Link:', logErr?.message);
+                }
+
+                // Emails
+                try {
+                  await base44.asServiceRole.integrations.Core.SendEmail({
+                    to: payerEmail,
+                    subject: '✅ ¡Bienvenido/a al CD Bustarviejo!',
+                    body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                      <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
+                        <h2 style="color: white; margin: 0;">🎉 ¡Ya eres socio del CD Bustarviejo!</h2>
+                      </div>
+                      <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                        <p>Hola <strong>${pendingMember.nombre_completo}</strong>,</p>
+                        <p>Hemos recibido tu cuota de socio para la temporada <strong>${tempActual}</strong>.</p>
+                        <p>Tu número de socio: <strong>${pendingMember.numero_socio}</strong></p>
+                        <p>Estado: <strong style="color: #16a34a;">✅ Pagado</strong></p>
+                        <p>¡Gracias por apoyar al club! 💪</p>
+                        <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
+                      </div>
+                    </div>`
+                  });
+                  await base44.asServiceRole.integrations.Core.SendEmail({
+                    to: 'cdbustarviejo@gmail.com',
+                    subject: `✅ Nuevo socio pagado (Payment Link) - ${pendingMember.nombre_completo}`,
+                    body: `Socio pagado via Payment Link:\nNombre: ${pendingMember.nombre_completo}\nEmail: ${payerEmail}\nNúmero: ${pendingMember.numero_socio}\nTemporada: ${tempActual}`
+                  });
+                } catch (emailErr) {
+                  console.error('[stripe-webhook] Error email Payment Link:', emailErr?.message);
+                }
+              } else {
+                console.log('[stripe-webhook] Payment Link: no se encontró socio pendiente para', payerEmail, tempActual);
+              }
+            } catch (plErr) {
+              console.error('[stripe-webhook] Error procesando Payment Link:', plErr?.message);
+            }
+          }
+        }
 
         // NUEVO: Lotería de Navidad
         if (metadata.tipo === 'loteria') {
