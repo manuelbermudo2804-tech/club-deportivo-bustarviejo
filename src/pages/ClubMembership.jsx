@@ -19,6 +19,7 @@ import MembershipWizard from "../components/membership/MembershipWizard";
 import StepTipoInscripcion from "../components/membership/StepTipoInscripcion";
 import StepDatosPersonales from "../components/membership/StepDatosPersonales";
 import StepPago from "../components/membership/StepPago";
+import PublicMembershipView from "../components/membership/PublicMembershipView";
 
 const CUOTA_SOCIO = 25;
 
