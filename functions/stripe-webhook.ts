@@ -386,11 +386,22 @@ Deno.serve(async (req) => {
             console.log('[stripe-webhook] Payment Link detectado (sin metadata), buscando socio por email:', payerEmail);
 
             try {
-              // Determinar temporada
-              const now = new Date();
-              const yr = now.getFullYear();
-              const mo = now.getMonth() + 1;
-              const tempActual = mo >= 7 ? `${yr}-${yr + 1}` : `${yr - 1}-${yr}`;
+              // Determinar temporada desde SeasonConfig (igual que publicMemberRegister)
+              let tempActual;
+              try {
+                const seasonConfigs = await base44.asServiceRole.entities.SeasonConfig.list();
+                const activeConfig = seasonConfigs.find(c => c.activa === true);
+                tempActual = activeConfig?.temporada;
+              } catch (e) {
+                console.error('[stripe-webhook] Error obteniendo SeasonConfig:', e.message);
+              }
+              if (!tempActual) {
+                const now = new Date();
+                const yr = now.getFullYear();
+                const mo = now.getMonth() + 1;
+                tempActual = mo >= 7 ? `${yr}-${yr + 1}` : `${yr - 1}-${yr}`;
+              }
+              console.log('[stripe-webhook] Payment Link: temporada activa =', tempActual);
 
               const candidates = await base44.asServiceRole.entities.ClubMember.filter({ email: payerEmail, temporada: tempActual });
               const pendingMember = candidates?.find(m => m.estado_pago !== 'Pagado');
