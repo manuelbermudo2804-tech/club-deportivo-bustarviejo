@@ -1081,6 +1081,82 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ========== CUSTOMER.SUBSCRIPTION.UPDATED / DELETED ==========
+    // Cancelación o cambio de estado de suscripción
+    if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+      const subscription = event.data?.object || {};
+      const subMeta = subscription.metadata || {};
+      const subStatus = subscription.status; // active, past_due, canceled, unpaid, incomplete
+
+      if (subMeta.tipo === 'cuota_socio') {
+        const email = subMeta.user_email || subMeta.email || '';
+        console.log('[stripe-webhook] Suscripción socio actualizada', { id: subscription.id, status: subStatus, email });
+
+        try {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = now.getMonth() + 1;
+          const temporada = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+
+          const members = await base44.asServiceRole.entities.ClubMember.filter({ 
+            stripe_subscription_id: subscription.id 
+          });
+          // Si no encontramos por subscription_id, buscar por email+temporada
+          let member = members?.[0];
+          if (!member && email) {
+            const byEmail = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
+            member = byEmail?.[0];
+          }
+
+          if (member) {
+            const updateData = {
+              stripe_subscription_status: subStatus,
+            };
+
+            if (subStatus === 'canceled') {
+              updateData.renovacion_automatica = false;
+              console.log('[stripe-webhook] Suscripción cancelada para socio', member.id);
+
+              // Notificar al socio
+              if (email) {
+                try {
+                  await base44.asServiceRole.integrations.Core.SendEmail({
+                    to: email,
+                    subject: '🔔 Tu suscripción de socio ha sido cancelada',
+                    body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                      <div style="background: #f59e0b; padding: 20px; border-radius: 12px 12px 0 0;">
+                        <h2 style="color: white; margin: 0;">🔔 Suscripción cancelada</h2>
+                      </div>
+                      <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                        <p>Tu suscripción anual de socio del CD Bustarviejo ha sido cancelada.</p>
+                        <p>Tu membresía seguirá activa hasta el <strong>${member.fecha_vencimiento ? new Date(member.fecha_vencimiento).toLocaleDateString('es-ES') : '30 de junio'}</strong>.</p>
+                        <p>Si quieres renovar en el futuro, podrás hacerlo desde nuestra web.</p>
+                        <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
+                      </div>
+                    </div>`
+                  });
+                } catch {}
+              }
+            } else if (subStatus === 'past_due') {
+              updateData.aviso_cobro_fallido_enviado = false;
+            }
+
+            // Actualizar próximo cobro si la suscripción sigue activa
+            if (subscription.current_period_end && subStatus !== 'canceled') {
+              updateData.fecha_proximo_cobro = new Date(subscription.current_period_end * 1000).toISOString();
+            }
+            if (subStatus === 'canceled') {
+              updateData.fecha_proximo_cobro = null;
+            }
+
+            await base44.asServiceRole.entities.ClubMember.update(member.id, updateData);
+          }
+        } catch (subErr) {
+          console.error('[stripe-webhook] Error procesando actualización suscripción socio:', subErr?.message);
+        }
+      }
+    }
+
     // ========== PAYMENT_INTENT.PAYMENT_FAILED ==========
     // Fallo en pago directo (checkout de cuotas, Plan Mensual inicial, lotería, socios, etc.)
     if (event.type === 'payment_intent.payment_failed') {

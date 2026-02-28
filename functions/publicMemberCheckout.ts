@@ -138,6 +138,7 @@ Deno.serve(async (req) => {
       direccion: direccion || '',
       municipio: municipio || '',
       temporada,
+      tipo_inscripcion: tipo_inscripcion || 'Nueva Inscripcion',
       referido_por: referido_por || '',
       es_segundo_progenitor: String(es_segundo_progenitor || false),
       origen: 'web_externa',
