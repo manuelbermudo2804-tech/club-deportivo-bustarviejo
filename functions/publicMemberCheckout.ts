@@ -48,15 +48,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Stripe no configurado' }, { status: 500, headers: corsHeaders });
     }
 
-    // Intentar crear cliente autenticado; si falla (llamada pública sin token), usar service role
-    let base44;
-    try {
-      base44 = createClientFromRequest(req);
-      await base44.auth.me(); // Verificar que hay sesión válida
-    } catch {
-      // Llamada pública sin autenticación - usar service role directamente
-      base44 = createClientFromRequest(req);
-    }
+    const base44 = createClientFromRequest(req);
     const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
 
     // Determinar temporada actual
