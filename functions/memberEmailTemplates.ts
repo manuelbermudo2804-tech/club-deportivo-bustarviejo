@@ -19,7 +19,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f1f5
 .carnet-logo{width:56px;height:56px;border-radius:10px;border:2px solid #ea580c;object-fit:cover}
 .carnet-title{color:#fff;font-size:16px;font-weight:700;flex:1;text-align:center}
 .carnet-title span{display:block;font-size:12px;color:#22c55e;font-weight:600;margin-top:2px}
-.carnet-data p{margin:7px 0;font-size:14px;color:#f1f5f9;letter-spacing:0.3px}.carnet-data strong{color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:0.7;display:block;margin-bottom:2px}
+.carnet-data p{margin:8px 0;font-size:16px;color:#ffffff;font-weight:700;letter-spacing:0.3px}.carnet-data strong{color:#fb923c;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;display:block;margin-bottom:3px}
 .carnet-badge{text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15)}
 .badge{display:inline-block;background:linear-gradient(135deg,#ea580c,#f97316);color:#fff;padding:6px 18px;border-radius:8px;font-weight:700;font-size:13px}
 .badge-green{background:linear-gradient(135deg,#16a34a,#22c55e)}
