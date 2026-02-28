@@ -55,10 +55,10 @@ function carnetBlock(nombre, numeroSocio, temporada, dni, badgeText, badgeClass)
 <div class="carnet-title">CARNET DE SOCIO<span>CD BUSTARVIEJO</span></div>
 </div>
 <div class="carnet-data">
-<p><strong>NOMBRE:</strong> ${nombre || '—'}</p>
-${numeroSocio ? `<p><strong>Nº SOCIO:</strong> ${numeroSocio}</p>` : ''}
-<p><strong>TEMPORADA:</strong> ${temporada || '—'}</p>
-${dni ? `<p><strong>DNI:</strong> ${dni}</p>` : ''}
+<p><strong>NOMBRE</strong>${nombre || '—'}</p>
+${numeroSocio ? `<p><strong>Nº SOCIO</strong>${numeroSocio}</p>` : ''}
+<p><strong>TEMPORADA</strong>${temporada || '—'}</p>
+${dni ? `<p><strong>DNI</strong>${dni}</p>` : ''}
 </div>
 <div class="carnet-badge"><span class="badge ${badgeClass || 'badge-green'}">${badgeText || '✅ SOCIO VERIFICADO'}</span></div>
 </div>`;
