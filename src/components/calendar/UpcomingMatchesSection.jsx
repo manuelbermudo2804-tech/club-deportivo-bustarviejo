@@ -277,7 +277,7 @@ export default function UpcomingMatchesSection() {
       )}
 
       {/* Match groups */}
-      <div className="space-y-5">
+      {futureMatches.length > 0 && <div className="space-y-5">
         {displayGroups.map((group) => {
           return (
             <div key={group.date.iso}>
@@ -304,10 +304,10 @@ export default function UpcomingMatchesSection() {
             </div>
           );
         })}
-      </div>
+      </div>}
 
       {/* Expand button */}
-      {hasMore && (
+      {hasMore && futureMatches.length > 0 && (
         <Button
           variant="outline"
           size="sm"
