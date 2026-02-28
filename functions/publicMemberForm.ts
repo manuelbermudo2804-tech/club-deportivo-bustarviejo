@@ -268,7 +268,7 @@ body{font-family:'Montserrat',Arial,sans-serif;background:#fff;color:#222;line-h
         </div>
 
         <div class="pn">
-          <p>&#128274; <strong>Proteccion de Datos (RGPD):</strong> Al enviar este formulario, consientes el tratamiento de tus datos personales por el CD Bustarviejo para la gestion de tu membresia. Tus datos seran tratados de forma confidencial. Puedes ejercer tus derechos enviando un email a <a href="mailto:cdbustarviejo@gmail.com">cdbustarviejo@gmail.com</a>.</p>
+          <p>&#128274; <strong>Proteccion de Datos (RGPD):</strong> Al enviar este formulario, consientes el tratamiento de tus datos personales por el CD Bustarviejo para la gestion de tu membresia. Tus datos seran tratados de forma confidencial. Puedes ejercer tus derechos enviando un email a <a href="mailto:cdbustarviejo@outlook.es">cdbustarviejo@outlook.es</a>.</p>
         </div>
 
         <button type="button" class="subbtn" id="SB" onclick="doSubmit()">&#127881; Registrarme y Pagar con Tarjeta</button>

@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
               <div class="contact">
                 <p><strong>¿Preguntas o sugerencias?</strong></p>
                 <p>No dudes en contactarnos:<br>
-                📧 <a href="mailto:cdbustarviejo@gmail.com">cdbustarviejo@gmail.com</a><br>
+                📧 <a href="mailto:cdbustarviejo@outlook.es">cdbustarviejo@outlook.es</a><br>
                 🏢 CD Bustarviejo - Club Deportivo de Bustarviejo
                 </p>
               </div>
