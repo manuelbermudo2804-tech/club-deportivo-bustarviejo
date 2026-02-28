@@ -23,7 +23,16 @@ export function useFetchUser(location) {
   const [extraChargeVisible, setExtraChargeVisible] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const fetchUserOnceRef = useRef(false);
-  const isPublicPageRef = useRef(false);
+  // Detectar inmediatamente si es página pública (antes de cualquier async)
+  const lowerPathInit = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
+  const isPublicPageRef = useRef(
+    lowerPathInit.includes('clubmembership') || 
+    lowerPathInit.includes('validateadmininvitation') ||
+    lowerPathInit.includes('pwaentry') ||
+    lowerPathInit.includes('joinreferral') ||
+    lowerPathInit.includes('joinfemenino') ||
+    lowerPathInit.includes('publicaltasocio')
+  );
 
   const getPeriodType = () => {
     const now = new Date();
