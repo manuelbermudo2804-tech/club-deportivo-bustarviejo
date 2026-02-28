@@ -571,19 +571,63 @@ Deno.serve(async (req) => {
           const membershipId = metadata.membership_id;
           const email = session.customer_details?.email || session.customer_email || metadata.user_email;
 
+          // Determinar origen_pago y si es suscripción
+          const isSuscripcion = session.mode === 'subscription';
+          const origenPago = metadata.origen_pago || (isSuscripcion ? 'stripe_suscripcion' : 'stripe_unico');
+
+          // Calcular fecha_vencimiento (30 junio del año de fin de temporada)
+          let fechaVencimiento = null;
+          try {
+            if (temporada && temporada.includes('-')) {
+              const endYear = temporada.split('-')[1];
+              fechaVencimiento = `${endYear}-06-30`;
+            }
+          } catch {}
+
+          // Datos de suscripción si aplica
+          let stripeSubId = null;
+          let stripeCustomerId = session.customer || null;
+          let fechaProximoCobro = null;
+          if (isSuscripcion && session.subscription) {
+            stripeSubId = session.subscription;
+            try {
+              const sub = await stripe.subscriptions.retrieve(session.subscription);
+              if (sub.current_period_end) {
+                fechaProximoCobro = new Date(sub.current_period_end * 1000).toISOString();
+              }
+            } catch (subErr) {
+              console.error('[stripe-webhook] Error obteniendo datos suscripción socio:', subErr?.message);
+            }
+          }
+
+          // Campos comunes para actualizar/crear
+          const memberUpdateData = {
+            estado_pago: 'Pagado',
+            metodo_pago: 'Tarjeta',
+            activo: true,
+            origen_pago: origenPago,
+            renovacion_automatica: isSuscripcion,
+            fecha_alta: today,
+            fecha_pago: today,
+            fecha_vencimiento: fechaVencimiento,
+            fecha_ultimo_cobro: new Date().toISOString(),
+            stripe_customer_id: stripeCustomerId || undefined,
+            stripe_subscription_id: stripeSubId || undefined,
+            stripe_subscription_status: isSuscripcion ? 'active' : undefined,
+            fecha_proximo_cobro: fechaProximoCobro || undefined,
+          };
+          // Remove undefined keys
+          Object.keys(memberUpdateData).forEach(k => memberUpdateData[k] === undefined && delete memberUpdateData[k]);
+
           let member = null;
 
           // 1. Si viene con membership_id → ya existía, solo marcar Pagado
           if (membershipId) {
             try {
-              await base44.asServiceRole.entities.ClubMember.update(membershipId, {
-                estado_pago: 'Pagado',
-                metodo_pago: 'Tarjeta',
-                activo: true,
-              });
+              await base44.asServiceRole.entities.ClubMember.update(membershipId, memberUpdateData);
               const members = await base44.asServiceRole.entities.ClubMember.filter({ id: membershipId });
               member = members?.[0] || null;
-              console.log('[stripe-webhook] ClubMember marcado Pagado', { membership_id: membershipId });
+              console.log('[stripe-webhook] ClubMember marcado Pagado', { membership_id: membershipId, origen_pago: origenPago });
             } catch (e) {
               console.error('[stripe-webhook] Error actualizando ClubMember:', e?.message || e);
             }
@@ -593,11 +637,7 @@ Deno.serve(async (req) => {
               const candidates = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
               const candidate = candidates?.[0];
               if (candidate) {
-                await base44.asServiceRole.entities.ClubMember.update(candidate.id, {
-                  estado_pago: 'Pagado',
-                  metodo_pago: 'Tarjeta',
-                  activo: true,
-                });
+                await base44.asServiceRole.entities.ClubMember.update(candidate.id, memberUpdateData);
                 member = candidate;
                 console.log('[stripe-webhook] ClubMember detectado por email+temporada, marcado Pagado', { id: candidate.id });
               }
@@ -606,10 +646,8 @@ Deno.serve(async (req) => {
             }
 
             // 3. AUTO-CREACIÓN: Si no existe ningún ClubMember → crear automáticamente
-            //    Esto cubre socios que pagan desde la web externa vía Stripe sin registro previo
             if (!member && metadata.nombre_completo) {
               try {
-                // Generar número de socio único
                 const allMembers = await base44.asServiceRole.entities.ClubMember.list();
                 const currentYear = new Date().getFullYear();
                 const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
@@ -628,15 +666,13 @@ Deno.serve(async (req) => {
                   es_segundo_progenitor: metadata.es_segundo_progenitor === 'true',
                   es_socio_externo: true,
                   cuota_socio: Number(session.amount_total || 0) / 100,
-                  estado_pago: 'Pagado',
-                  metodo_pago: 'Tarjeta',
                   temporada: temporada,
-                  activo: true,
                   referido_por: metadata.referido_por || '',
-                  notas: 'Socio creado automáticamente desde pago Stripe (web)'
+                  notas: 'Socio creado automáticamente desde pago Stripe (web)',
+                  ...memberUpdateData,
                 });
                 member = newMember;
-                console.log('[stripe-webhook] ClubMember AUTO-CREADO desde Stripe', { id: newMember.id, numero: numeroSocio, nombre: metadata.nombre_completo });
+                console.log('[stripe-webhook] ClubMember AUTO-CREADO desde Stripe', { id: newMember.id, numero: numeroSocio, origen_pago: origenPago });
               } catch (createErr) {
                 console.error('[stripe-webhook] Error auto-creando ClubMember:', createErr?.message || createErr);
               }
