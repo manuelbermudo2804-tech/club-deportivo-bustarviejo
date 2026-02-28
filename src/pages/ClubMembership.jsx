@@ -19,7 +19,7 @@ import MembershipWizard from "../components/membership/MembershipWizard";
 import StepTipoInscripcion from "../components/membership/StepTipoInscripcion";
 import StepDatosPersonales from "../components/membership/StepDatosPersonales";
 import StepPago from "../components/membership/StepPago";
-import PublicMembershipView from "../components/membership/PublicMembershipView";
+
 
 const CUOTA_SOCIO = 25;
 
@@ -678,9 +678,14 @@ export default function ClubMembership() {
     );
   }
 
-  // Visitante anónimo (desde web externa) → mostrar vista pública con estética del club
+  // Visitante anónimo → redirigir al login
   if (isPublicAccess) {
-    return <PublicMembershipView />;
+    base44.auth.redirectToLogin(window.location.href);
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+      </div>
+    );
   }
 
   return (
