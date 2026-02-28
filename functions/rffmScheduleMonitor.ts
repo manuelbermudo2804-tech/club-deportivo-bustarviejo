@@ -152,6 +152,72 @@ function detectTotalJornadas(html) {
   return maxJornada || 30;
 }
 
+// ---- Update recent results on ProximoPartido ----
+
+async function updateRecentResults(activeConfigs, cookies, base44) {
+  // Get all ProximoPartido that are not yet marked as played
+  const allProximos = await base44.asServiceRole.entities.ProximoPartido.list('-updated_date', 200);
+  const unplayed = allProximos.filter(p => !p.jugado);
+  if (!unplayed.length) return;
+
+  // For efficiency, only check categories that have unplayed matches with dates <= today
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  
+  const candidatesByCat = {};
+  for (const p of unplayed) {
+    let matchDate = null;
+    if (p.fecha_iso) {
+      matchDate = new Date(p.fecha_iso);
+    } else if (p.fecha) {
+      const parts = p.fecha.split('/');
+      if (parts.length === 3) matchDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    }
+    // Only check matches that should have been played (date <= today)
+    if (matchDate && matchDate <= today) {
+      if (!candidatesByCat[p.categoria]) candidatesByCat[p.categoria] = [];
+      candidatesByCat[p.categoria].push(p);
+    }
+  }
+
+  if (!Object.keys(candidatesByCat).length) return;
+
+  // For each category with candidates, fetch the relevant jornada from RFFM
+  for (const config of activeConfigs) {
+    const candidates = candidatesByCat[config.categoria];
+    if (!candidates?.length) continue;
+
+    const url = config.rfef_results_url || config.rfef_url;
+    if (!url) continue;
+    const p = extractParams(url);
+
+    for (const candidate of candidates) {
+      if (!candidate.jornada) continue;
+      try {
+        const html = await fetchPage(buildJornadaUrl(p, candidate.jornada), cookies);
+        const matches = parseJornadaMatches(html);
+        
+        // Find the Bustarviejo match in this jornada
+        const bustMatch = matches.find(m =>
+          m.jugado &&
+          (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO'))
+        );
+        
+        if (bustMatch) {
+          await base44.asServiceRole.entities.ProximoPartido.update(candidate.id, {
+            jugado: true,
+            goles_local: bustMatch.goles_local,
+            goles_visitante: bustMatch.goles_visitante,
+          });
+          console.log(`[rffmScheduleMonitor] Resultado actualizado: ${candidate.categoria} J${candidate.jornada} → ${bustMatch.goles_local}-${bustMatch.goles_visitante}`);
+        }
+      } catch (e) {
+        console.error(`[rffmScheduleMonitor] Error checking result ${candidate.categoria} J${candidate.jornada}:`, e.message);
+      }
+    }
+  }
+}
+
 // ---- End RFFM helpers ----
 
 Deno.serve(async (req) => {
@@ -180,6 +246,13 @@ Deno.serve(async (req) => {
     const changes = [];
     const created = [];
     const errors = [];
+
+    // 2b. Update ProximoPartido with results for recently played matches
+    try {
+      await updateRecentResults(activeConfigs, cookies, base44);
+    } catch (resErr) {
+      errors.push({ categoria: 'global', error: 'updateRecentResults: ' + resErr.message });
+    }
 
     // 3. Check ALL categories with RFFM URLs (not just those with callups)
     for (const config of activeConfigs) {
