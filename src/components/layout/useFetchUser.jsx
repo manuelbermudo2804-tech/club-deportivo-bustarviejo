@@ -44,9 +44,6 @@ export function useFetchUser(location) {
   };
 
   const executeFetch = async () => {
-    if (fetchUserOnceRef.current) return;
-    fetchUserOnceRef.current = true;
-
     const lowerPath = location.pathname.toLowerCase();
     const isPublicPage = lowerPath.includes('clubmembership') || 
                          lowerPath.includes('validateadmininvitation') ||
@@ -55,6 +52,12 @@ export function useFetchUser(location) {
                          lowerPath.includes('joinfemenino') ||
                          lowerPath.includes('publicaltasocio');
     isPublicPageRef.current = isPublicPage;
+
+    // Para páginas públicas, siempre permitir re-check de auth
+    // Para páginas normales, solo ejecutar una vez
+    if (fetchUserOnceRef.current && !isPublicPage) return;
+    if (fetchUserOnceRef.current && isPublicPage && authChecked) return;
+    fetchUserOnceRef.current = true;
 
     try {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
