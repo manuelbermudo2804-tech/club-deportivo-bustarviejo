@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClient, createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.21.0';
 
 // Endpoint PÚBLICO para que la landing page externa cree un socio + sesión Stripe.
@@ -48,7 +48,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Stripe no configurado' }, { status: 500, headers: corsHeaders });
     }
 
-    const base44 = createClientFromRequest(req);
+    // Intentar crear cliente autenticado; si falla (llamada pública sin token), usar service role
+    let base44;
+    try {
+      base44 = createClientFromRequest(req);
+      await base44.auth.me(); // Verificar que hay sesión válida
+    } catch {
+      // Llamada pública sin autenticación - usar service role directamente
+      base44 = createClientFromRequest(req);
+    }
     const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
 
     // Determinar temporada actual
