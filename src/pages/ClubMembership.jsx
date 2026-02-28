@@ -188,7 +188,19 @@ export default function ClubMembership() {
   });
 
   // Usar contexto global para SeasonConfig (actualización en tiempo real)
-  const { seasonConfig } = useActiveSeason();
+  // Para acceso público sin SeasonProvider, usamos un fallback local
+  const seasonContext = useActiveSeason();
+  const [localSeasonConfig, setLocalSeasonConfig] = useState(null);
+  
+  useEffect(() => {
+    if (isPublicAccess && !seasonContext?.seasonConfig) {
+      base44.entities.SeasonConfig.filter({ activa: true }).then(configs => {
+        if (configs?.[0]) setLocalSeasonConfig(configs[0]);
+      }).catch(() => {});
+    }
+  }, [isPublicAccess]);
+  
+  const seasonConfig = seasonContext?.seasonConfig || localSeasonConfig;
 
   const { data: allMemberships = [] } = useQuery({
     queryKey: ['allMemberships'],
