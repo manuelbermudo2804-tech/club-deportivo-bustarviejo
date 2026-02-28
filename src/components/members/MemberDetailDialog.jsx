@@ -177,10 +177,22 @@ export default function MemberDetailDialog({ member, open, onClose, onEdit, refe
                         </Badge>
                       </div>
                     )}
+                    {member.fecha_ultimo_cobro && (
+                      <div>
+                        <p className="text-xs text-slate-500">Último cobro</p>
+                        <p className="font-medium">{new Date(member.fecha_ultimo_cobro).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    )}
                     {member.fecha_proximo_cobro && (
                       <div>
                         <p className="text-xs text-slate-500">Próximo cobro</p>
-                        <p className="font-medium">{new Date(member.fecha_proximo_cobro).toLocaleDateString('es-ES')}</p>
+                        <p className="font-medium">{new Date(member.fecha_proximo_cobro).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      </div>
+                    )}
+                    {member.stripe_customer_id && (
+                      <div>
+                        <p className="text-xs text-slate-500">Customer Stripe</p>
+                        <p className="font-medium text-xs text-slate-500 truncate">{member.stripe_customer_id}</p>
                       </div>
                     )}
                   </div>
