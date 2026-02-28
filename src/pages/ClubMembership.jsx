@@ -37,7 +37,7 @@ export default function ClubMembership() {
     direccion: "",
     municipio: "",
     fecha_nacimiento: "",
-    metodo_pago: "Transferencia",
+    metodo_pago: "Tarjeta",
     justificante_url: "",
     es_segundo_progenitor: false,
     referido_por: ""
@@ -49,9 +49,7 @@ export default function ClubMembership() {
   const [renewalMember, setRenewalMember] = useState(null);
   const [loadingRenewal, setLoadingRenewal] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [isPublicAccess, setIsPublicAccess] = useState(false); // Nuevo: si es acceso público sin login
-  const [stripeFlow, setStripeFlow] = useState(false);
-  const [openingStripe, setOpeningStripe] = useState(false);
+  const [isPublicAccess, setIsPublicAccess] = useState(false);
   const [isIframe, setIsIframe] = useState(false);
 
   const queryClient = useQueryClient();
