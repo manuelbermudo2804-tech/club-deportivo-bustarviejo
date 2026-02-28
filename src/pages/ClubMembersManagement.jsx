@@ -907,8 +907,13 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     pagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").length,
     enRevision: currentSeasonMembers.filter(m => m.estado_pago === "En revisión").length,
     pendientes: currentSeasonMembers.filter(m => m.estado_pago === "Pendiente").length,
+    fallidos: currentSeasonMembers.filter(m => m.estado_pago === "Fallido").length,
     nuevos: currentSeasonMembers.filter(m => m.tipo_inscripcion === "Nueva Inscripción").length,
     renovaciones: currentSeasonMembers.filter(m => m.tipo_inscripcion === "Renovación").length,
+    suscripciones: currentSeasonMembers.filter(m => m.renovacion_automatica === true).length,
+    stripeUnico: currentSeasonMembers.filter(m => m.origen_pago === 'stripe_unico').length,
+    transferencias: currentSeasonMembers.filter(m => m.origen_pago === 'transferencia').length,
+    sociosPadre: currentSeasonMembers.filter(m => m.es_socio_padre === true).length,
   };
 
   // Detectar nuevos socios recientes (últimos 7 días) para alertas
@@ -930,6 +935,8 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         return <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" /> Pagado</Badge>;
       case "En revisión":
         return <Badge className="bg-yellow-600"><Clock className="w-3 h-3 mr-1" /> En revisión</Badge>;
+      case "Fallido":
+        return <Badge className="bg-red-600 animate-pulse"><AlertCircle className="w-3 h-3 mr-1" /> Fallido</Badge>;
       default:
         return <Badge className="bg-red-600"><AlertCircle className="w-3 h-3 mr-1" /> Pendiente</Badge>;
     }
@@ -1296,47 +1303,61 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
       )}
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="pt-4 text-center">
-            <Users className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+            <Users className="w-5 h-5 text-blue-600 mx-auto mb-1" />
             <p className="text-2xl font-bold text-blue-700">{stats.total}</p>
-            <p className="text-xs text-blue-600">Total Socios</p>
+            <p className="text-xs text-blue-600">Total</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardContent className="pt-4 text-center">
-            <CheckCircle2 className="w-6 h-6 text-green-600 mx-auto mb-1" />
+            <CheckCircle2 className="w-5 h-5 text-green-600 mx-auto mb-1" />
             <p className="text-2xl font-bold text-green-700">{stats.pagados}</p>
             <p className="text-xs text-green-600">Pagados</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
           <CardContent className="pt-4 text-center">
-            <Clock className="w-6 h-6 text-yellow-600 mx-auto mb-1" />
+            <Clock className="w-5 h-5 text-yellow-600 mx-auto mb-1" />
             <p className="text-2xl font-bold text-yellow-700">{stats.enRevision}</p>
-            <p className="text-xs text-yellow-600">En Revisión</p>
+            <p className="text-xs text-yellow-600">Revisión</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
           <CardContent className="pt-4 text-center">
-            <AlertCircle className="w-6 h-6 text-red-600 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-red-700">{stats.pendientes}</p>
-            <p className="text-xs text-red-600">Pendientes</p>
+            <AlertCircle className="w-5 h-5 text-red-600 mx-auto mb-1" />
+            <p className="text-2xl font-bold text-red-700">{stats.pendientes + stats.fallidos}</p>
+            <p className="text-xs text-red-600">Pend/Fallido</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardContent className="pt-4 text-center">
-            <UserPlus className="w-6 h-6 text-purple-600 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-purple-700">{stats.nuevos}</p>
-            <p className="text-xs text-purple-600">Nuevos</p>
+            <RefreshCw className="w-5 h-5 text-purple-600 mx-auto mb-1" />
+            <p className="text-2xl font-bold text-purple-700">{stats.suscripciones}</p>
+            <p className="text-xs text-purple-600">Suscripc.</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-sky-50 to-sky-100 border-sky-200">
+          <CardContent className="pt-4 text-center">
+            <CreditCard className="w-5 h-5 text-sky-600 mx-auto mb-1" />
+            <p className="text-2xl font-bold text-sky-700">{stats.stripeUnico}</p>
+            <p className="text-xs text-sky-600">Stripe 1x</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
           <CardContent className="pt-4 text-center">
-            <Heart className="w-6 h-6 text-orange-600 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-orange-700">{stats.renovaciones}</p>
-            <p className="text-xs text-orange-600">Renovaciones</p>
+            <Heart className="w-5 h-5 text-orange-600 mx-auto mb-1" />
+            <p className="text-2xl font-bold text-orange-700">{stats.transferencias}</p>
+            <p className="text-xs text-orange-600">Transfer.</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+          <CardContent className="pt-4 text-center">
+            <UserPlus className="w-5 h-5 text-amber-600 mx-auto mb-1" />
+            <p className="text-2xl font-bold text-amber-700">{stats.sociosPadre}</p>
+            <p className="text-xs text-amber-600">Padres auto</p>
           </CardContent>
         </Card>
       </div>
@@ -1411,6 +1432,26 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-semibold text-slate-900">{member.nombre_completo}</h3>
                       <Badge variant="outline" className="text-xs">{member.numero_socio || "Sin nº"}</Badge>
+                      {member.renovacion_automatica && (
+                        <Badge className="bg-purple-100 text-purple-700 text-xs border border-purple-200">
+                          🔄 Suscripción
+                        </Badge>
+                      )}
+                      {member.origen_pago === 'stripe_unico' && (
+                        <Badge className="bg-blue-100 text-blue-700 text-xs border border-blue-200">
+                          💳 Pago Único
+                        </Badge>
+                      )}
+                      {member.origen_pago === 'transferencia' && (
+                        <Badge className="bg-orange-100 text-orange-700 text-xs border border-orange-200">
+                          🏦 Transfer.
+                        </Badge>
+                      )}
+                      {member.estado_pago === 'Fallido' && (
+                        <Badge className="bg-red-100 text-red-700 text-xs border border-red-200 animate-pulse">
+                          ⚠️ Cobro fallido
+                        </Badge>
+                      )}
                       {member.referido_por && (
                         <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
                           <Gift className="w-3 h-3 mr-1" /> Referido
@@ -1422,9 +1463,17 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                       {member.es_socio_externo && (
                         <Badge variant="outline" className="text-xs bg-cyan-50">Externo</Badge>
                       )}
+                      {member.es_socio_padre && (
+                        <Badge variant="outline" className="text-xs bg-amber-50">Padre auto</Badge>
+                      )}
                       <Badge variant="outline" className="text-xs">
                         {member.tipo_inscripcion === "Nueva Inscripción" ? "🆕" : "🔄"} {member.temporada}
                       </Badge>
+                      {member.fecha_vencimiento && (
+                        <span className="text-xs text-slate-400">
+                          Vence: {new Date(member.fecha_vencimiento).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm text-slate-600 space-y-0.5">
                       <p>📧 {member.email} | 📱 {member.telefono}</p>

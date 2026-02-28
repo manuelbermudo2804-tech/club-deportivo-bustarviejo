@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   User, Mail, Phone, MapPin, CreditCard, Calendar, 
   CheckCircle2, Clock, AlertCircle, FileText, Users, 
-  Gift, Edit, X, ExternalLink, Image
+  Gift, Edit, X, ExternalLink, Image, RefreshCw
 } from "lucide-react";
 
 export default function MemberDetailDialog({ member, open, onClose, onEdit, referrals = [] }) {
@@ -118,6 +118,77 @@ export default function MemberDetailDialog({ member, open, onClose, onEdit, refe
                   </p>
                 </div>
               </div>
+
+              {/* Sección de suscripción y renovación */}
+              {(member.origen_pago || member.fecha_vencimiento || member.renovacion_automatica) && (
+                <div className="mt-3 p-3 rounded-lg border bg-gradient-to-r from-slate-50 to-blue-50 space-y-2">
+                  <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 text-blue-600" /> Renovación y Suscripción
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                    {member.origen_pago && (
+                      <div>
+                        <p className="text-xs text-slate-500">Origen pago</p>
+                        <Badge variant="outline" className={
+                          member.origen_pago === 'stripe_suscripcion' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                          member.origen_pago === 'stripe_unico' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                          member.origen_pago === 'transferencia' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                          'bg-slate-50 text-slate-700'
+                        }>
+                          {member.origen_pago === 'stripe_suscripcion' ? '🔄 Suscripción Stripe' :
+                           member.origen_pago === 'stripe_unico' ? '💳 Pago Único Stripe' :
+                           member.origen_pago === 'transferencia' ? '🏦 Transferencia' :
+                           member.origen_pago === 'socio_padre_auto' ? '👨‍👩‍👧 Auto (Padre)' :
+                           member.origen_pago}
+                        </Badge>
+                      </div>
+                    )}
+                    {member.fecha_alta && (
+                      <div>
+                        <p className="text-xs text-slate-500">Fecha alta</p>
+                        <p className="font-medium">{new Date(member.fecha_alta).toLocaleDateString('es-ES')}</p>
+                      </div>
+                    )}
+                    {member.fecha_vencimiento && (
+                      <div>
+                        <p className="text-xs text-slate-500">Vencimiento</p>
+                        <p className="font-medium">{new Date(member.fecha_vencimiento).toLocaleDateString('es-ES')}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs text-slate-500">Renovación auto.</p>
+                      <Badge className={member.renovacion_automatica ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}>
+                        {member.renovacion_automatica ? '✅ Activa' : '❌ No'}
+                      </Badge>
+                    </div>
+                    {member.stripe_subscription_status && (
+                      <div>
+                        <p className="text-xs text-slate-500">Estado suscripción</p>
+                        <Badge className={
+                          member.stripe_subscription_status === 'active' ? 'bg-green-100 text-green-700' :
+                          member.stripe_subscription_status === 'past_due' ? 'bg-yellow-100 text-yellow-700' :
+                          member.stripe_subscription_status === 'canceled' ? 'bg-red-100 text-red-700' :
+                          'bg-slate-100 text-slate-600'
+                        }>
+                          {member.stripe_subscription_status === 'active' ? '🟢 Activa' :
+                           member.stripe_subscription_status === 'past_due' ? '🟡 Cobro pendiente' :
+                           member.stripe_subscription_status === 'canceled' ? '🔴 Cancelada' :
+                           member.stripe_subscription_status}
+                        </Badge>
+                      </div>
+                    )}
+                    {member.fecha_proximo_cobro && (
+                      <div>
+                        <p className="text-xs text-slate-500">Próximo cobro</p>
+                        <p className="font-medium">{new Date(member.fecha_proximo_cobro).toLocaleDateString('es-ES')}</p>
+                      </div>
+                    )}
+                  </div>
+                  {member.stripe_subscription_id && (
+                    <p className="text-xs text-slate-400 mt-1">ID Suscripción: {member.stripe_subscription_id}</p>
+                  )}
+                </div>
+              )}
 
               {/* Justificante */}
               {(member.justificante_url || member.justificante_base64) && (
