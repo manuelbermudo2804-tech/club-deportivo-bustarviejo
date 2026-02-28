@@ -30,11 +30,22 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
 
-    // Determinar temporada
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const temporada = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+    // Obtener temporada activa desde SeasonConfig
+    let temporada;
+    try {
+      const seasonConfigs = await base44.asServiceRole.entities.SeasonConfig.list();
+      const activeConfig = seasonConfigs.find(c => c.activa === true);
+      temporada = activeConfig?.temporada;
+    } catch (e) {
+      console.error('[publicMemberRegister] Error obteniendo SeasonConfig:', e.message);
+    }
+    if (!temporada) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      temporada = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+    }
+    console.log('[publicMemberRegister] Temporada:', temporada);
 
     // Verificar si ya existe
     let existing = [];
