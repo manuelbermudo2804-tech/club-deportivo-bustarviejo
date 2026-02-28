@@ -447,9 +447,9 @@ body {
   </div>
 </div>
 
-<div class="footer">
-  C.D. Bustarviejo · <a href="${WEB_URL}">${WEB_URL}</a>
-</div>
+<footer class="footer">
+  <p>© Club Deportivo Bustarviejo · <a href="${WEB_URL}">Volver a la web</a></p>
+</footer>
 
 <script>
 const CHECKOUT_URL = '${checkoutUrl}';
