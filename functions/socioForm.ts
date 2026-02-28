@@ -164,8 +164,8 @@ ${refBanner}
 <div class="fgroup">
 <label>Tipo de Inscripcion *</label>
 <div id="GRP_TIPO">
-<div class="optbox act" data-v="nueva" onclick="pick(this,'GRP_TIPO')"><div><h4>&#127381; Nueva Inscripcion</h4><p>Primera vez como socio</p></div></div>
-<div class="optbox" data-v="renovacion" onclick="pick(this,'GRP_TIPO')"><div><h4>&#128260; Renovacion</h4><p>Ya fui socio en temporadas anteriores</p></div></div>
+<div class="optbox act" data-v="nueva"><div><h4>&#127381; Nueva Inscripcion</h4><p>Primera vez como socio</p></div></div>
+<div class="optbox" data-v="renovacion"><div><h4>&#128260; Renovacion</h4><p>Ya fui socio en temporadas anteriores</p></div></div>
 </div>
 </div>
 
