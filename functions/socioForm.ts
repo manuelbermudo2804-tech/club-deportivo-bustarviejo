@@ -149,7 +149,7 @@ nav{display:none}
 <div class="share-s">
 <h3>&#129309; &#191;Conoces a alguien mas?</h3>
 <p>&#161;Comparte este enlace!</p>
-<button class="obtn" onclick="window.open('https://api.whatsapp.com/send?text='+encodeURIComponent('Hazte socio del CD Bustarviejo por solo 25 euros!\\n\\n'+location.href.split('?')[0]),'_blank')">&#128172; Compartir por WhatsApp</button>
+<button class="obtn" id="SHARE">&#128172; Compartir por WhatsApp</button>
 </div>
 
 <div class="fcard">
