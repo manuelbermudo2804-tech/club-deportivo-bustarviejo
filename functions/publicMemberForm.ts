@@ -65,6 +65,13 @@ body {
   line-height: 1.6;
   min-height: 100vh;
 }
+body::before {
+  content: '';
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992c6be619d2da592897991/96c551202_fondo.jpg') center/cover no-repeat;
+  opacity: 0.18;
+  z-index: -1;
+}
 
 /* ═══ NAVBAR — estilo web CD Bustarviejo ═══ */
 .navbar {
