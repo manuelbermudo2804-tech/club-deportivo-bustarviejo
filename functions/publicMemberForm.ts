@@ -485,8 +485,9 @@ function showError(msg) {
 }
 function shareWhatsApp() {
   const shareUrl = CURRENT_PAGE_URL + (REF_CODE ? '?ref=' + REF_CODE : '');
-  const msg = '⚽ ¡Hazte socio del CD Bustarviejo por solo 25€/año! Apoya al deporte base de nuestro pueblo 💚\\n\\n👉 ' + shareUrl;
-  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  const msg = '\u2615 \u00a1Hazte socio del CD Bustarviejo por solo 25\u20ac/a\u00f1o! Apoya al deporte base de nuestro pueblo \ud83d\udc9a' + String.fromCharCode(10) + String.fromCharCode(10) + '\ud83d\udc49 ' + shareUrl;
+  const waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(msg);
+  window.open(waUrl, '_blank');
 }
 
 document.getElementById('memberForm').addEventListener('submit', async function(e) {
