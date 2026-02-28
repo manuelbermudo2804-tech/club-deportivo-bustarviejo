@@ -1031,8 +1031,8 @@ export default function Layout({ children, currentPageName }) {
 
   // Flags para manejar páginas públicas sin returns antes de hooks
   const isPublicPage = isPublicPageRef.current;
-  const isPublicAnon = isPublicPage && authChecked && !user;
-  const isPublicLoading = isPublicPage && !authChecked;
+  const isPublicAnon = isPublicPage && !isLoading && !user;
+  const isPublicLoading = isPublicPage && isLoading;
 
   // AHORA SÍ - todos los returns condicionales DESPUÉS de TODOS los hooks
   if (isLoading && !isPublicPageRef.current) {
