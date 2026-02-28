@@ -922,6 +922,89 @@ Deno.serve(async (req) => {
           const subscription = await stripe.subscriptions.retrieve(subId);
           const subMeta = subscription.metadata || {};
 
+          // Fallo en cobro de suscripción de socio
+          if (subMeta.tipo === 'cuota_socio') {
+            const amount = (invoice.amount_due || 0) / 100;
+            const email = subMeta.user_email || subMeta.email || invoice.customer_email;
+            console.log('[stripe-webhook] Fallo cobro suscripción socio', { email, amount });
+
+            try {
+              await base44.asServiceRole.entities.StripePaymentLog.create({
+                section: 'socios_fallo',
+                amount,
+                currency: invoice.currency || 'eur',
+                status: 'failed',
+                session_id: invoice.id,
+                payment_intent_id: invoice.payment_intent || null,
+                email,
+                related_entity: 'ClubMember',
+                related_id: null,
+                metadata: subMeta,
+                created_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error('[stripe-webhook] Error log fallo socio:', logErr?.message);
+            }
+
+            // Actualizar estado de suscripción del socio
+            try {
+              const now = new Date();
+              const year = now.getFullYear();
+              const month = now.getMonth() + 1;
+              const temporada = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+              const members = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
+              if (members?.[0]) {
+                await base44.asServiceRole.entities.ClubMember.update(members[0].id, {
+                  stripe_subscription_status: 'past_due',
+                  estado_pago: 'Fallido',
+                  aviso_cobro_fallido_enviado: false,
+                });
+              }
+            } catch (upErr) {
+              console.error('[stripe-webhook] Error actualizando socio fallido:', upErr?.message);
+            }
+
+            // Notificar al socio
+            if (email) {
+              try {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to: email,
+                  subject: `⚠️ Fallo en el cobro de tu cuota de socio`,
+                  body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: #dc2626; padding: 20px; border-radius: 12px 12px 0 0;">
+                      <h2 style="color: white; margin: 0;">⚠️ Problema con tu cuota de socio</h2>
+                    </div>
+                    <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                      <p>No hemos podido cobrar <strong>${amount}€</strong> de tu cuota de socio del CD Bustarviejo.</p>
+                      <p>Por favor, verifica que tu tarjeta tiene fondos suficientes. Stripe reintentará el cobro automáticamente.</p>
+                      <p>Si el problema persiste, contacta con el club.</p>
+                      <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
+                    </div>
+                  </div>`
+                });
+                // Marcar aviso enviado
+                try {
+                  const now2 = new Date();
+                  const yr = now2.getFullYear();
+                  const mo = now2.getMonth() + 1;
+                  const temp = mo >= 7 ? `${yr}-${yr + 1}` : `${yr - 1}-${yr}`;
+                  const ms = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada: temp });
+                  if (ms?.[0]) await base44.asServiceRole.entities.ClubMember.update(ms[0].id, { aviso_cobro_fallido_enviado: true });
+                } catch {}
+              } catch (emailErr) {
+                console.error('[stripe-webhook] Error email fallo socio:', emailErr?.message);
+              }
+            }
+            // Notificar admin
+            try {
+              await base44.asServiceRole.integrations.Core.SendEmail({
+                to: 'cdbustarviejo@outlook.es',
+                subject: `⚠️ Fallo cobro cuota socio - ${email}`,
+                body: `Fallo al cobrar ${amount}€ de cuota de socio de ${email}.\nSuscripción: ${subId}\nStripe reintentará automáticamente.`
+              });
+            } catch {}
+          }
+
           if (subMeta.tipo === 'plan_mensual_cuota') {
             // Registrar log de fallo
             try {
