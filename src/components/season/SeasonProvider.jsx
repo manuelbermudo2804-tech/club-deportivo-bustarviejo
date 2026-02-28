@@ -11,12 +11,15 @@ function computeSeasonByDate() {
   return `${y - 1}/${y}`;
 }
 
-const SeasonContext = createContext({
+const defaultValue = {
   activeSeason: computeSeasonByDate(),
   seasonConfig: null,
   setActiveSeason: () => {},
   refreshSeason: () => {},
-});
+  loading: false,
+};
+
+const SeasonContext = createContext(defaultValue);
 
 export function SeasonProvider({ children, externalConfig }) {
   const [seasonConfig, setSeasonConfig] = useState(externalConfig || null);
