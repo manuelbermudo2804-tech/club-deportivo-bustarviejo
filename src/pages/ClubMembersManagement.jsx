@@ -1456,7 +1456,8 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-semibold text-slate-900">{member.nombre_completo}</h3>
                       <Badge variant="outline" className="text-xs">{member.numero_socio || "Sin nº"}</Badge>
-                      {member.renovacion_automatica && (
+                      {/* ORIGEN: Cómo llegó este socio */}
+                      {member.origen_pago === 'stripe_suscripcion' && (
                         <Badge className="bg-purple-100 text-purple-700 text-xs border border-purple-200">
                           🔄 Suscripción
                         </Badge>
@@ -1471,6 +1472,27 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                           🏦 Transfer.
                         </Badge>
                       )}
+                      {member.origen_pago === 'socio_padre_auto' && (
+                        <Badge className="bg-amber-100 text-amber-700 text-xs border border-amber-200">
+                          👨‍👩‍👧 Padre Auto
+                        </Badge>
+                      )}
+                      {!member.origen_pago && member.estado_pago === 'Pagado' && (
+                        <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500">
+                          ❓ Sin origen
+                        </Badge>
+                      )}
+                      {/* CANAL: Desde dónde se registró */}
+                      {member.es_socio_externo && (
+                        <Badge variant="outline" className="text-xs bg-cyan-50 text-cyan-700 border-cyan-200">
+                          🌐 Web
+                        </Badge>
+                      )}
+                      {!member.es_socio_externo && !member.es_socio_padre && member.origen_pago && (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                          📱 App
+                        </Badge>
+                      )}
                       {member.estado_pago === 'Fallido' && (
                         <Badge className="bg-red-100 text-red-700 text-xs border border-red-200 animate-pulse">
                           ⚠️ Cobro fallido
@@ -1483,9 +1505,6 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                       )}
                       {member.es_segundo_progenitor && (
                         <Badge variant="outline" className="text-xs bg-purple-50">2º Prog.</Badge>
-                      )}
-                      {member.es_socio_externo && (
-                        <Badge variant="outline" className="text-xs bg-cyan-50">Externo</Badge>
                       )}
                       {member.es_socio_padre && (
                         <Badge variant="outline" className="text-xs bg-amber-50">Padre auto</Badge>
