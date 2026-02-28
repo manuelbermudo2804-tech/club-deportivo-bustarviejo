@@ -678,15 +678,7 @@ export default function ClubMembership() {
     );
   }
 
-  // Visitante anónimo → redirigir al login
-  if (isPublicAccess) {
-    base44.auth.redirectToLogin(window.location.href);
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-      </div>
-    );
-  }
+
 
   return (
     <>
