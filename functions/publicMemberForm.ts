@@ -9,7 +9,9 @@ Deno.serve(async (req) => {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Cache-Control': 'public, max-age=300',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
   };
 
   if (req.method === 'OPTIONS') {
