@@ -5,95 +5,79 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 const LOGO_URL = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg';
 
 function baseLayout(headerBg, headerTitle, headerEmoji, contentHtml) {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f1f5f9}
-.ctn{max-width:600px;margin:0 auto;background:#fff;border-radius:0 0 16px 16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
-.hdr{background:${headerBg};padding:30px 24px;text-align:center}
-.hdr img{width:70px;height:70px;border-radius:14px;border:3px solid rgba(255,255,255,0.4);object-fit:cover;margin-bottom:12px}
-.hdr h1{color:#fff;margin:0;font-size:24px;font-weight:800}
-.hdr p{color:rgba(255,255,255,0.9);margin:6px 0 0;font-size:13px}
-.body{padding:28px 24px}
-.body p{margin:12px 0;font-size:15px;line-height:1.7;color:#334155}
-.body strong{color:#0f172a}
-.carnet{background:linear-gradient(135deg,#1e293b,#334155);border-radius:16px;padding:22px;margin:20px 0;border:2px solid #ea580c;box-shadow:0 8px 24px rgba(0,0,0,0.2)}
-.carnet-row{display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:14px;margin-bottom:14px}
-.carnet-logo{width:56px;height:56px;border-radius:10px;border:2px solid #ea580c;object-fit:cover}
-.carnet-title{color:#fff;font-size:16px;font-weight:700;flex:1;text-align:center}
-.carnet-title span{display:block;font-size:12px;color:#22c55e;font-weight:600;margin-top:2px}
-.carnet-data p{margin:8px 0;font-size:16px;color:#ffffff;font-weight:700;letter-spacing:0.3px}.carnet-data strong{color:#fb923c;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;display:block;margin-bottom:3px}
-.carnet-badge{text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15)}
-.badge{display:inline-block;background:linear-gradient(135deg,#ea580c,#f97316);color:#fff;padding:6px 18px;border-radius:8px;font-weight:700;font-size:13px}
-.badge-green{background:linear-gradient(135deg,#16a34a,#22c55e)}
-.badge-red{background:linear-gradient(135deg,#dc2626,#ef4444)}
-.badge-amber{background:linear-gradient(135deg,#d97706,#f59e0b)}
-.info-box{border-radius:12px;padding:16px;margin:18px 0}
-.info-green{background:#f0fdf4;border-left:4px solid #22c55e}
-.info-orange{background:#fff7ed;border-left:4px solid #ea580c}
-.info-red{background:#fef2f2;border-left:4px solid #dc2626}
-.info-blue{background:#eff6ff;border-left:4px solid #3b82f6}
-.info-box p{margin:4px 0;font-size:13px}
-.ftr{background:#1e293b;padding:20px 24px;text-align:center}
-.ftr p{margin:4px 0;font-size:12px;color:#94a3b8}
-.ftr a{color:#fb923c;text-decoration:none}
-</style></head><body><div class="ctn">
-<div class="hdr"><img src="${LOGO_URL}" alt="CD Bustarviejo"/><h1>${headerEmoji} ${headerTitle}</h1><p>CD Bustarviejo</p></div>
-<div class="body">${contentHtml}</div>
-<div class="ftr"><p>📧 <a href="mailto:cdbustarviejo@gmail.com">cdbustarviejo@gmail.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p><p style="margin-top:10px">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p></div>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f1f5f9">
+<div style="max-width:600px;margin:0 auto;background:#ffffff">
+<div style="background:${headerBg};padding:30px 24px;text-align:center">
+<img src="${LOGO_URL}" alt="CD Bustarviejo" width="70" height="70" style="border-radius:14px;border:3px solid rgba(255,255,255,0.4);display:block;margin:0 auto 12px"/>
+<h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800">${headerEmoji} ${headerTitle}</h1>
+<p style="color:rgba(255,255,255,0.9);margin:6px 0 0;font-size:13px">CD Bustarviejo</p>
+</div>
+<div style="padding:28px 24px">${contentHtml}</div>
+<div style="background:#333333;padding:20px 24px;text-align:center">
+<p style="margin:4px 0;font-size:12px;color:#cccccc">📧 <a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none">cdbustarviejo@gmail.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" style="color:#fb923c;text-decoration:none">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p>
+<p style="margin:10px 0 4px;font-size:12px;color:#cccccc">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p>
+</div>
 </div></body></html>`;
 }
 
 function carnetBlock(nombre, numeroSocio, temporada, dni, badgeText, badgeClass) {
-  const field = (label, value) => `<tr><td style="padding:4px 0;font-size:10px;color:#fb923c;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;line-height:1.2">${label}</td></tr><tr><td style="padding:0 0 10px 0;font-size:16px;color:#ffffff;font-weight:700;letter-spacing:0.3px;line-height:1.3">${value}</td></tr>`;
-  return `<div style="background:linear-gradient(135deg,#1e293b,#334155);border-radius:16px;padding:22px;margin:20px 0;border:2px solid #ea580c;box-shadow:0 8px 24px rgba(0,0,0,0.2)"><table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:14px;margin-bottom:14px"><tr><td width="60" style="padding-right:14px"><img src="${LOGO_URL}" alt="Logo" width="56" height="56" style="border-radius:10px;border:2px solid #ea580c;display:block;object-fit:cover"/></td><td style="text-align:center;vertical-align:middle"><div style="color:#fff;font-size:16px;font-weight:700">CARNET DE SOCIO</div><div style="font-size:12px;color:#22c55e;font-weight:600;margin-top:2px">CD BUSTARVIEJO</div></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" border="0">${field('NOMBRE', nombre||'—')}${numeroSocio ? field('Nº SOCIO', numeroSocio) : ''}${field('TEMPORADA', temporada||'—')}${dni ? field('DNI', dni) : ''}</table><div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15)"><span style="display:inline-block;background:linear-gradient(135deg,${badgeClass==='badge-red'?'#dc2626,#ef4444':badgeClass==='badge-amber'?'#d97706,#f59e0b':'#16a34a,#22c55e'});color:#fff;padding:6px 18px;border-radius:8px;font-weight:700;font-size:13px">${badgeText||'✅ SOCIO VERIFICADO'}</span></div></div>`;
+  const badgeBg = badgeClass === 'badge-red' ? '#dc2626' : badgeClass === 'badge-amber' ? '#d97706' : '#16a34a';
+  const row = (label, value, bg) => `<tr><td style="background:${bg};padding:10px 16px;border-bottom:1px solid #e0e0e0;font-size:11px;color:#888888;font-weight:600;text-transform:uppercase;width:120px">${label}</td><td style="background:${bg};padding:10px 16px;border-bottom:1px solid #e0e0e0;font-size:15px;color:#1a1a1a;font-weight:700">${value}</td></tr>`;
+  let rows = row('NOMBRE', nombre || '—', '#f8f8f8');
+  if (numeroSocio) rows += row('Nº SOCIO', numeroSocio, '#ffffff');
+  rows += row('TEMPORADA', temporada || '—', numeroSocio ? '#f8f8f8' : '#ffffff');
+  if (dni) rows += row('DNI', dni, numeroSocio ? '#ffffff' : '#f8f8f8');
+  return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;border:2px solid #ea580c;border-collapse:separate;overflow:hidden"><tr><td colspan="2" style="background:#ea580c;padding:12px 16px;color:#ffffff;font-size:16px;font-weight:700;text-align:center">CARNET DE SOCIO — CD BUSTARVIEJO</td></tr>${rows}<tr><td colspan="2" style="background:${badgeBg};padding:10px 16px;color:#ffffff;font-size:13px;font-weight:700;text-align:center">${badgeText || '✅ SOCIO VERIFICADO'}</td></tr></table>`;
 }
 
 function emailBienvenida({ nombre, numeroSocio, temporada, dni }) {
-  return baseLayout('linear-gradient(135deg, #ea580c, #22c55e)', '¡BIENVENIDO AL CLUB!', '🎉',
-    `<p>Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
-<p>¡Gracias por tu apoyo al CD Bustarviejo! Hemos confirmado tu pago y nos complace darte la bienvenida como <strong style="color:#ea580c">socio oficial</strong> para la temporada <strong>${temporada||''}</strong>.</p>
+  return baseLayout('#ea580c', '¡BIENVENIDO AL CLUB!', '🎉',
+    `<p style="margin:12px 0;font-size:15px;color:#333333">Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
+<p style="margin:12px 0;font-size:15px;color:#333333">¡Gracias por tu apoyo al CD Bustarviejo! Hemos confirmado tu pago y nos complace darte la bienvenida como <strong style="color:#ea580c">socio oficial</strong> para la temporada <strong>${temporada||''}</strong>.</p>
 ${carnetBlock(nombre, numeroSocio, temporada, dni, '✅ SOCIO VERIFICADO', 'badge-green')}
-<div class="info-box info-green"><p><strong>💚 ¡Gracias por formar parte de nuestra familia!</strong></p><p>Tu contribución es fundamental para el desarrollo de más de 200 jóvenes deportistas de Bustarviejo.</p></div>
-<div class="info-box info-blue"><p><strong>📲 Guarda este email</strong> como comprobante de tu membresía.</p></div>
-<p>Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong><br/><span style="font-size:12px;color:#64748b">Tu club de siempre 💚</span></p>`);
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#f0fdf4;border-left:4px solid #22c55e"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>💚 ¡Gracias por formar parte de nuestra familia!</strong></p><p style="margin:4px 0;font-size:13px;color:#333333">Tu contribución es fundamental para el desarrollo de más de 200 jóvenes deportistas de Bustarviejo.</p></div>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#eff6ff;border-left:4px solid #3b82f6"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>📲 Guarda este email</strong> como comprobante de tu membresía.</p></div>
+<p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong><br/><span style="font-size:12px;color:#64748b">Tu club de siempre 💚</span></p>`);
 }
 
 function emailRenovacion({ nombre, numeroSocio, temporada, amount, fechaVencimiento }) {
   const fv = fechaVencimiento || (temporada?.includes('-') ? `30 de junio de ${temporada.split('-')[1]}` : '');
-  return baseLayout('linear-gradient(135deg, #16a34a, #22c55e)', 'Cuota renovada con éxito', '✅',
-    `<p>Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
-<p>Tu suscripción anual se ha renovado correctamente. Hemos cobrado <strong>${amount||25}€</strong> de tu cuota de socio.</p>
+  return baseLayout('#16a34a', 'Cuota renovada con éxito', '✅',
+    `<p style="margin:12px 0;font-size:15px;color:#333333">Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
+<p style="margin:12px 0;font-size:15px;color:#333333">Tu suscripción anual se ha renovado correctamente. Hemos cobrado <strong>${amount||25}€</strong> de tu cuota de socio.</p>
 ${carnetBlock(nombre, numeroSocio, temporada, null, '🔄 RENOVADO', 'badge-green')}
-<div class="info-box info-green"><p><strong>✅ Tu membresía está activa</strong> hasta el <strong>${fv}</strong>.</p><p>No necesitas hacer nada más. La renovación se hizo automáticamente.</p></div>
-<p>¡Gracias por seguir apoyando al club! 💪</p>
-<p>Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#f0fdf4;border-left:4px solid #22c55e"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>✅ Tu membresía está activa</strong> hasta el <strong>${fv}</strong>.</p><p style="margin:4px 0;font-size:13px;color:#333333">No necesitas hacer nada más. La renovación se hizo automáticamente.</p></div>
+<p style="margin:12px 0;font-size:15px;color:#333333">¡Gracias por seguir apoyando al club! 💪</p>
+<p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
 }
 
 function emailFalloCobro({ nombre, amount, reason }) {
-  return baseLayout('linear-gradient(135deg, #dc2626, #b91c1c)', 'Problema con tu cuota de socio', '⚠️',
-    `<p>Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
-<p>No hemos podido cobrar <strong>${amount||25}€</strong> de tu cuota de socio del CD Bustarviejo.</p>
-<div class="info-box info-red"><p><strong>⚠️ Motivo:</strong> ${reason||'La tarjeta fue rechazada o no tiene fondos suficientes.'}</p><p>Stripe reintentará el cobro automáticamente en los próximos días.</p></div>
-<div class="info-box info-orange"><p><strong>¿Qué puedes hacer?</strong></p><p>1. Verifica que tu tarjeta tiene fondos suficientes</p><p>2. Si el problema persiste, contacta con el club</p></div>
-<p>Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
+  return baseLayout('#dc2626', 'Problema con tu cuota de socio', '⚠️',
+    `<p style="margin:12px 0;font-size:15px;color:#333333">Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
+<p style="margin:12px 0;font-size:15px;color:#333333">No hemos podido cobrar <strong>${amount||25}€</strong> de tu cuota de socio del CD Bustarviejo.</p>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#fef2f2;border-left:4px solid #dc2626"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>⚠️ Motivo:</strong> ${reason||'La tarjeta fue rechazada o no tiene fondos suficientes.'}</p><p style="margin:4px 0;font-size:13px;color:#333333">Stripe reintentará el cobro automáticamente en los próximos días.</p></div>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#fff7ed;border-left:4px solid #ea580c"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>¿Qué puedes hacer?</strong></p><p style="margin:4px 0;font-size:13px;color:#333333">1. Verifica que tu tarjeta tiene fondos suficientes</p><p style="margin:4px 0;font-size:13px;color:#333333">2. Si el problema persiste, contacta con el club</p></div>
+<p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
 }
 
 function emailSuscripcionCancelada({ nombre, fechaVencimiento }) {
-  return baseLayout('linear-gradient(135deg, #d97706, #f59e0b)', 'Suscripción cancelada', '🔔',
-    `<p>Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
-<p>Tu suscripción anual de socio del CD Bustarviejo ha sido <strong>cancelada</strong>.</p>
-<div class="info-box info-orange"><p><strong>📅 Tu membresía seguirá activa</strong> hasta el <strong>${fechaVencimiento||'30 de junio'}</strong>.</p><p>Después de esa fecha, no se realizarán más cobros automáticos.</p></div>
-<div class="info-box info-blue"><p><strong>¿Quieres volver?</strong> Si en el futuro deseas renovar tu membresía, podrás hacerlo desde nuestra web o app.</p></div>
-<p>Gracias por el tiempo que nos has acompañado. ¡Siempre serás bienvenido/a! 💚</p>
-<p>Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
+  return baseLayout('#d97706', 'Suscripción cancelada', '🔔',
+    `<p style="margin:12px 0;font-size:15px;color:#333333">Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
+<p style="margin:12px 0;font-size:15px;color:#333333">Tu suscripción anual de socio del CD Bustarviejo ha sido <strong>cancelada</strong>.</p>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#fff7ed;border-left:4px solid #ea580c"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>📅 Tu membresía seguirá activa</strong> hasta el <strong>${fechaVencimiento||'30 de junio'}</strong>.</p><p style="margin:4px 0;font-size:13px;color:#333333">Después de esa fecha, no se realizarán más cobros automáticos.</p></div>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#eff6ff;border-left:4px solid #3b82f6"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>¿Quieres volver?</strong> Si en el futuro deseas renovar tu membresía, podrás hacerlo desde nuestra web o app.</p></div>
+<p style="margin:12px 0;font-size:15px;color:#333333">Gracias por el tiempo que nos has acompañado. ¡Siempre serás bienvenido/a! 💚</p>
+<p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
 }
 
 function emailFalloPagoDirecto({ nombre, amount, tipoDesc, reason }) {
-  return baseLayout('linear-gradient(135deg, #dc2626, #b91c1c)', 'Fallo en el pago', '⚠️',
-    `<p>Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
-<p>No hemos podido procesar tu <strong>${tipoDesc||'pago'}</strong> de <strong>${amount||0}€</strong>.</p>
-<div class="info-box info-red"><p><strong>⚠️ Motivo:</strong> ${reason||'Error desconocido'}</p></div>
-<div class="info-box info-orange"><p><strong>¿Qué puedes hacer?</strong></p><p>1. Inténtalo de nuevo desde la app o la web</p><p>2. Usa otro método de pago</p><p>3. Si el problema persiste, contacta con el club</p></div>
-<p>Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
+  return baseLayout('#dc2626', 'Fallo en el pago', '⚠️',
+    `<p style="margin:12px 0;font-size:15px;color:#333333">Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
+<p style="margin:12px 0;font-size:15px;color:#333333">No hemos podido procesar tu <strong>${tipoDesc||'pago'}</strong> de <strong>${amount||0}€</strong>.</p>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#fef2f2;border-left:4px solid #dc2626"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>⚠️ Motivo:</strong> ${reason||'Error desconocido'}</p></div>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#fff7ed;border-left:4px solid #ea580c"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>¿Qué puedes hacer?</strong></p><p style="margin:4px 0;font-size:13px;color:#333333">1. Inténtalo de nuevo desde la app o la web</p><p style="margin:4px 0;font-size:13px;color:#333333">2. Usa otro método de pago</p><p style="margin:4px 0;font-size:13px;color:#333333">3. Si el problema persiste, contacta con el club</p></div>
+<p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
 }
 
 // Webhook: valida firma y ejecuta lógica mínima de negocio
