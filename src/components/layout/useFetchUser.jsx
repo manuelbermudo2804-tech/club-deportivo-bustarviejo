@@ -59,21 +59,25 @@ export function useFetchUser(location) {
           if (!isAuthenticated) {
             setUser(null);
             setAuthChecked(true);
+            setIsLoading(false);
             return;
           }
           try {
             const currentUser = await base44.auth.me();
             setUser(currentUser);
             setAuthChecked(true);
+            setIsLoading(false);
           } catch (userError) {
             setUser(null);
             setAuthChecked(true);
+            setIsLoading(false);
             return;
           }
           return;
         } catch (authError) {
           setUser(null);
           setAuthChecked(true);
+          setIsLoading(false);
           return;
         }
       }
