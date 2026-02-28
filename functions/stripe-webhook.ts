@@ -362,7 +362,7 @@ Deno.serve(async (req) => {
             // Notificar al admin
             try {
               await base44.asServiceRole.integrations.Core.SendEmail({
-                to: 'cdbustarviejo@gmail.com',
+                to: 'cdbustarviejo@outlook.es',
                 subject: `✅ Cobro extra pagado (Stripe) - ${payerEmail}`,
                 body: `Cobro extra "${metadata.titulo || ''}" pagado por ${payerEmail}.\nImporte: ${(Number(session.amount_total || 0) / 100).toFixed(2)}€`
               });
@@ -453,7 +453,7 @@ Deno.serve(async (req) => {
                     </div>`
                   });
                   await base44.asServiceRole.integrations.Core.SendEmail({
-                    to: 'cdbustarviejo@gmail.com',
+                    to: 'cdbustarviejo@outlook.es',
                     subject: `✅ Nuevo socio pagado (Payment Link) - ${pendingMember.nombre_completo}`,
                     body: `Socio pagado via Payment Link:\nNombre: ${pendingMember.nombre_completo}\nEmail: ${payerEmail}\nNúmero: ${pendingMember.numero_socio}\nTemporada: ${tempActual}`
                   });
@@ -666,7 +666,7 @@ Deno.serve(async (req) => {
               });
             }
             await base44.asServiceRole.integrations.Core.SendEmail({
-              to: 'cdbustarviejo@gmail.com',
+              to: 'cdbustarviejo@outlook.es',
               subject: `✅ Nuevo socio pagado (Stripe) - ${member?.nombre_completo || metadata.nombre_completo || email}`,
               body: `Socio pagado: ${member?.nombre_completo || metadata.nombre_completo || ''}\nEmail: ${email}\nNúmero: ${member?.numero_socio || 'pendiente'}\nTemporada: ${temporada}\n${member?.id ? 'Auto-creado desde web' : 'Existente actualizado'}`
             });
@@ -889,7 +889,7 @@ Deno.serve(async (req) => {
                 });
               }
               await base44.asServiceRole.integrations.Core.SendEmail({
-                to: 'cdbustarviejo@gmail.com',
+                to: 'cdbustarviejo@outlook.es',
                 subject: `⚠️ Fallo cobro Plan Mensual - ${subMeta.jugador_nombre}`,
                 body: `Fallo al cobrar ${amount}€ de ${subMeta.jugador_nombre} (${email}).\nSuscripción: ${subId}\nStripe reintentará automáticamente.`
               });
@@ -953,7 +953,7 @@ Deno.serve(async (req) => {
         }
 
         await base44.asServiceRole.integrations.Core.SendEmail({
-          to: 'cdbustarviejo@gmail.com',
+          to: 'cdbustarviejo@outlook.es',
           subject: `⚠️ Fallo en pago (${tipoDesc}) - ${email || 'desconocido'}`,
           body: `Fallo al cobrar ${amount}€.\nTipo: ${tipoDesc}\nJugador: ${jugadorNombre}\nEmail: ${email}\nMotivo: ${failMessage}\nPaymentIntent: ${pi.id}`
         });
