@@ -403,19 +403,19 @@ body {
           <!-- Pago -->
           <div class="payment-box">
             <h3>💳 Pago: 25€ /temporada</h3>
-            <p style="font-size:13px;color:#6ee7b7;margin-bottom:16px;">Elige cómo prefieres pagar. El pago se realiza de forma segura a través de Stripe.</p>
+            <p style="font-size:0.85rem;color:#555;margin-bottom:16px;">Elige c\u00f3mo prefieres pagar. El pago se realiza de forma segura a trav\u00e9s de Stripe.</p>
 
-            <label class="payment-type-option selected" onclick="selectPayment(this)">
-              <input type="radio" name="tipo_pago" value="unico" checked>
-              <div style="flex:1;"><div class="pto-title">💳 Pago Único</div><div class="pto-desc">Un solo pago por tarjeta para esta temporada</div></div>
-              <div class="pto-price">25€</div>
-            </label>
+            <div class="payment-type-option selected" onclick="selectPayment(this, 'unico')">
+              <div style="flex:1;"><div class="pto-title">\ud83d\udcb3 Pago \u00danico</div><div class="pto-desc">Un solo pago por tarjeta para esta temporada</div></div>
+              <div class="pto-price">25\u20ac</div>
+            </div>
 
-            <label class="payment-type-option" onclick="selectPayment(this)">
-              <input type="radio" name="tipo_pago" value="suscripcion">
-              <div style="flex:1;"><div class="pto-title">🔄 Suscripción Anual <span class="pto-badge">RECOMENDADO</span></div><div class="pto-desc">Se renueva automáticamente cada año. Puedes cancelar cuando quieras.</div></div>
-              <div class="pto-price">25€<span style="font-size:12px;font-weight:400;">/año</span></div>
-            </label>
+            <div class="payment-type-option" onclick="selectPayment(this, 'suscripcion')">
+              <div style="flex:1;"><div class="pto-title">\ud83d\udd04 Suscripci\u00f3n Anual <span class="pto-badge">RECOMENDADO</span></div><div class="pto-desc">Se renueva autom\u00e1ticamente cada a\u00f1o. Puedes cancelar cuando quieras.</div></div>
+              <div class="pto-price">25\u20ac<span style="font-size:12px;font-weight:400;">/a\u00f1o</span></div>
+            </div>
+
+            <input type="hidden" name="tipo_pago" id="tipoPagoInput" value="unico">
 
             <div class="stripe-badge">🔒 Pago seguro con Stripe</div>
           </div>
