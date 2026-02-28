@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Users, CheckCircle2, Clock, AlertCircle, Mail, 
+  Users, CheckCircle2, Clock, AlertCircle, Mail, CreditCard,
   TrendingUp, UserPlus, Heart, Eye, Loader2, Edit, Trash2,
   MessageCircle, RefreshCw, UserCheck, Send, Bell, Upload, FileSpreadsheet, BarChart3, Gift
 } from "lucide-react";
