@@ -74,29 +74,29 @@ Deno.serve(async (req) => {
     const temporada = memberData.temporada || '';
     const dni = memberData.dni || '';
 
-    const field = (label, value) => `<tr><td style="padding:4px 0;font-size:10px;color:#fb923c;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;line-height:1.2">${label}</td></tr><tr><td style="padding:0 0 10px 0;font-size:16px;color:#ffffff;font-weight:700;letter-spacing:0.3px;line-height:1.3">${value}</td></tr>`;
+    const row = (label, value, bg) => `<tr><td style="background:${bg};padding:10px 16px;border-bottom:1px solid #e0e0e0;font-size:11px;color:#888888;font-weight:600;text-transform:uppercase;width:120px">${label}</td><td style="background:${bg};padding:10px 16px;border-bottom:1px solid #e0e0e0;font-size:15px;color:#1a1a1a;font-weight:700">${value}</td></tr>`;
+    let carnetRows = row('NOMBRE', nombre, '#f8f8f8');
+    if (numeroSocio) carnetRows += row('Nº SOCIO', numeroSocio, '#ffffff');
+    carnetRows += row('TEMPORADA', temporada, numeroSocio ? '#f8f8f8' : '#ffffff');
+    if (dni) carnetRows += row('DNI', dni, numeroSocio ? '#ffffff' : '#f8f8f8');
 
     const welcomeHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f1f5f9">
-<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:0 0 16px 16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1)">
-<div style="background:linear-gradient(135deg,#ea580c,#22c55e);padding:30px 24px;text-align:center">
-<img src="${LOGO_URL}" alt="CD Bustarviejo" width="70" height="70" style="border-radius:14px;border:3px solid rgba(255,255,255,0.4);object-fit:cover;display:block;margin:0 auto 12px"/>
-<h1 style="color:#fff;margin:0;font-size:24px;font-weight:800">🎉 ¡BIENVENIDO AL CLUB!</h1>
+<div style="max-width:600px;margin:0 auto;background:#ffffff">
+<div style="background:#ea580c;padding:30px 24px;text-align:center">
+<img src="${LOGO_URL}" alt="CD Bustarviejo" width="70" height="70" style="border-radius:14px;border:3px solid rgba(255,255,255,0.4);display:block;margin:0 auto 12px"/>
+<h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800">🎉 ¡BIENVENIDO AL CLUB!</h1>
 <p style="color:rgba(255,255,255,0.9);margin:6px 0 0;font-size:13px">CD Bustarviejo</p>
 </div>
 <div style="padding:28px 24px">
-<p style="margin:12px 0;font-size:15px;line-height:1.7;color:#334155">Estimado/a <strong style="color:#0f172a">${nombre}</strong>,</p>
-<p style="margin:12px 0;font-size:15px;line-height:1.7;color:#334155">¡Gracias por tu apoyo al CD Bustarviejo! Hemos confirmado tu pago y nos complace darte la bienvenida como <strong style="color:#ea580c">socio oficial</strong> para la temporada <strong style="color:#0f172a">${temporada}</strong>.</p>
-<div style="background:linear-gradient(135deg,#1e293b,#334155);border-radius:16px;padding:22px;margin:20px 0;border:2px solid #ea580c;box-shadow:0 8px 24px rgba(0,0,0,0.2)">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:14px;margin-bottom:14px"><tr><td width="60" style="padding-right:14px"><img src="${LOGO_URL}" alt="Logo" width="56" height="56" style="border-radius:10px;border:2px solid #ea580c;display:block;object-fit:cover"/></td><td style="text-align:center;vertical-align:middle"><div style="color:#fff;font-size:16px;font-weight:700">CARNET DE SOCIO</div><div style="font-size:12px;color:#22c55e;font-weight:600;margin-top:2px">CD BUSTARVIEJO</div></td></tr></table>
-<table width="100%" cellpadding="0" cellspacing="0" border="0">${field('NOMBRE', nombre)}${numeroSocio ? field('Nº SOCIO', numeroSocio) : ''}${field('TEMPORADA', temporada)}${dni ? field('DNI', dni) : ''}</table>
-<div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.15)"><span style="display:inline-block;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;padding:6px 18px;border-radius:8px;font-weight:700;font-size:13px">✅ SOCIO VERIFICADO</span></div>
+<p style="margin:12px 0;font-size:15px;color:#333333">Estimado/a <strong>${nombre}</strong>,</p>
+<p style="margin:12px 0;font-size:15px;color:#333333">¡Gracias por tu apoyo al CD Bustarviejo! Hemos confirmado tu pago y nos complace darte la bienvenida como <strong style="color:#ea580c">socio oficial</strong> para la temporada <strong>${temporada}</strong>.</p>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;border:2px solid #ea580c;border-collapse:separate;overflow:hidden"><tr><td colspan="2" style="background:#ea580c;padding:12px 16px;color:#ffffff;font-size:16px;font-weight:700;text-align:center">CARNET DE SOCIO — CD BUSTARVIEJO</td></tr>${carnetRows}<tr><td colspan="2" style="background:#16a34a;padding:10px 16px;color:#ffffff;font-size:13px;font-weight:700;text-align:center">✅ SOCIO VERIFICADO</td></tr></table>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#f0fdf4;border-left:4px solid #22c55e"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>💚 ¡Gracias por formar parte de nuestra familia!</strong></p><p style="margin:4px 0;font-size:13px;color:#333333">Tu contribución es fundamental para el desarrollo de más de 200 jóvenes deportistas de Bustarviejo.</p></div>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#eff6ff;border-left:4px solid #3b82f6"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>📲 Guarda este email</strong> como comprobante de tu membresía.</p></div>
+<p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong><br/><span style="font-size:12px;color:#64748b">Tu club de siempre 💚</span></p>
 </div>
-<div style="border-radius:12px;padding:16px;margin:18px 0;background:#f0fdf4;border-left:4px solid #22c55e"><p style="margin:4px 0;font-size:13px"><strong>💚 ¡Gracias por formar parte de nuestra familia!</strong></p><p style="margin:4px 0;font-size:13px">Tu contribución es fundamental para el desarrollo de más de 200 jóvenes deportistas de Bustarviejo.</p></div>
-<div style="border-radius:12px;padding:16px;margin:18px 0;background:#eff6ff;border-left:4px solid #3b82f6"><p style="margin:4px 0;font-size:13px"><strong>📲 Guarda este email</strong> como comprobante de tu membresía.</p></div>
-<p style="margin:12px 0;font-size:15px;line-height:1.7;color:#334155">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong><br/><span style="font-size:12px;color:#64748b">Tu club de siempre 💚</span></p>
-</div>
-<div style="background:#1e293b;padding:20px 24px;text-align:center"><p style="margin:4px 0;font-size:12px;color:#94a3b8">📧 <a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none">cdbustarviejo@gmail.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" style="color:#fb923c;text-decoration:none">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p><p style="margin:10px 0 4px;font-size:12px;color:#94a3b8">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p></div>
+<div style="background:#333333;padding:20px 24px;text-align:center"><p style="margin:4px 0;font-size:12px;color:#cccccc">📧 <a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none">cdbustarviejo@gmail.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" style="color:#fb923c;text-decoration:none">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p><p style="margin:10px 0 4px;font-size:12px;color:#cccccc">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p></div>
 </div></body></html>`;
 
     console.log('[sendMembershipWelcome] 📧 Enviando email de bienvenida a:', email);
