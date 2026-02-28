@@ -226,91 +226,124 @@ ${refBanner}
 <footer><p>&#169; CD Bustarviejo &#183; <a href="${WEB_URL}">Volver a la web</a></p></footer>
 
 <script>
-// BUILD sf-${TS} - FUNCION NUEVA socioForm
+// BUILD sf-${TS}
 var CK='${checkoutUrl}';
 var RC='${refCode}';
 var PG=location.href.split('?')[0];
 
 // Retorno Stripe
-try{var q=new URLSearchParams(location.search);if(q.get('paid')==='ok'){document.getElementById('FORM').style.display='none';document.getElementById('OK2').style.display='block'}if(q.get('canceled')==='socio'){err('El pago fue cancelado. Puedes intentar de nuevo.')}}catch(x){}
+try{var q=new URLSearchParams(location.search);if(q.get('paid')==='ok'){document.getElementById('FORM').style.display='none';document.getElementById('OK2').style.display='block'}if(q.get('canceled')==='socio'){showErr('El pago fue cancelado. Puedes intentar de nuevo.')}}catch(x){}
 
-function pick(el,gid){
-var g=document.getElementById(gid);
-if(!g)return;
-var ch=g.children;
-for(var i=0;i<ch.length;i++){ch[i].classList.remove('act')}
-el.classList.add('act');
+function showErr(m){var e=document.getElementById('ER');e.textContent=m;e.style.display='block';e.scrollIntoView({behavior:'smooth',block:'center'})}
+function hideErr(){var e=document.getElementById('ER');e.style.display='none'}
+
+function pickOption(el,groupId){
+  var group=document.getElementById(groupId);
+  if(!group)return;
+  var items=group.querySelectorAll('.optbox');
+  for(var i=0;i<items.length;i++){items[i].classList.remove('act')}
+  el.classList.add('act');
 }
 
-function val(gid){
-var g=document.getElementById(gid);
-if(!g)return '';
-var s=g.querySelector('.act');
-return s?s.getAttribute('data-v'):'';
+function getSelected(groupId){
+  var group=document.getElementById(groupId);
+  if(!group)return '';
+  var sel=group.querySelector('.optbox.act');
+  return sel ? sel.getAttribute('data-v') : '';
 }
 
-function err(m){var e=document.getElementById('ER');e.textContent=m;e.style.display='block';e.scrollIntoView({behavior:'smooth',block:'center'})}
-function clrErr(){var e=document.getElementById('ER');e.style.display='none'}
+// Attach click events via JS (onclick attributes get stripped by proxy)
+document.addEventListener('DOMContentLoaded', function(){
+  // Option boxes - tipo inscripcion
+  var tipoItems = document.querySelectorAll('#GRP_TIPO .optbox');
+  for(var i=0;i<tipoItems.length;i++){
+    tipoItems[i].addEventListener('click', function(e){
+      var target = e.currentTarget;
+      pickOption(target, 'GRP_TIPO');
+    });
+  }
 
-function go(){
-clrErr();
-var b=document.getElementById('BTN');
-b.disabled=true;b.textContent='Procesando...';
+  // Option boxes - tipo pago
+  var pagoItems = document.querySelectorAll('#GRP_PAGO .optbox');
+  for(var i=0;i<pagoItems.length;i++){
+    pagoItems[i].addEventListener('click', function(e){
+      var target = e.currentTarget;
+      pickOption(target, 'GRP_PAGO');
+    });
+  }
 
-var f1=(document.getElementById('F1').value||'').trim();
-var f2=(document.getElementById('F2').value||'').trim();
-var f3=(document.getElementById('F3').value||'').trim();
-var f4=(document.getElementById('F4').value||'').trim();
-var f5=(document.getElementById('F5').value||'').trim();
-var f6=(document.getElementById('F6').value||'').trim();
-var f7=document.getElementById('F7').value||'';
+  // WhatsApp share button
+  var shareBtn = document.getElementById('SHARE');
+  if(shareBtn){
+    shareBtn.addEventListener('click', function(){
+      window.open('https://api.whatsapp.com/send?text='+encodeURIComponent('Hazte socio del CD Bustarviejo por solo 25 euros!\\n\\n'+location.href.split('?')[0]),'_blank');
+    });
+  }
 
-if(!f1||!f2||!f3||!f4||!f5||!f6){
-err('Por favor, completa todos los campos obligatorios.');
-b.disabled=false;b.textContent='Registrarme y Pagar con Tarjeta';
-return;
-}
+  // Submit button
+  var submitBtn = document.getElementById('BTN');
+  if(submitBtn){
+    submitBtn.addEventListener('click', function(){
+      hideErr();
+      submitBtn.disabled=true;
+      submitBtn.textContent='Procesando...';
 
-var ti=val('GRP_TIPO');
-var tp=val('GRP_PAGO');
+      var f1=(document.getElementById('F1').value||'').trim();
+      var f2=(document.getElementById('F2').value||'').trim();
+      var f3=(document.getElementById('F3').value||'').trim();
+      var f4=(document.getElementById('F4').value||'').trim();
+      var f5=(document.getElementById('F5').value||'').trim();
+      var f6=(document.getElementById('F6').value||'').trim();
+      var f7=document.getElementById('F7').value||'';
 
-var body=JSON.stringify({
-nombre_completo:f1,dni:f2,telefono:f3,email:f4,direccion:f5,municipio:f6,
-fecha_nacimiento:f7,
-tipo_pago:tp||'unico',
-tipo_inscripcion:ti==='renovacion'?'Renovacion':'Nueva Inscripcion',
-referido_por:RC,
-es_segundo_progenitor:false,
-success_url:PG+'?paid=ok',
-cancel_url:PG+'?canceled=socio'
+      if(!f1||!f2||!f3||!f4||!f5||!f6){
+        showErr('Por favor, completa todos los campos obligatorios.');
+        submitBtn.disabled=false;submitBtn.textContent='Registrarme y Pagar con Tarjeta';
+        return;
+      }
+
+      var ti=getSelected('GRP_TIPO');
+      var tp=getSelected('GRP_PAGO');
+
+      var body=JSON.stringify({
+        nombre_completo:f1,dni:f2,telefono:f3,email:f4,direccion:f5,municipio:f6,
+        fecha_nacimiento:f7,
+        tipo_pago:tp||'unico',
+        tipo_inscripcion:ti==='renovacion'?'Renovacion':'Nueva Inscripcion',
+        referido_por:RC,
+        es_segundo_progenitor:false,
+        success_url:PG+'?paid=ok',
+        cancel_url:PG+'?canceled=socio'
+      });
+
+      var xhr=new XMLHttpRequest();
+      xhr.open('POST',CK,true);
+      xhr.setRequestHeader('Content-Type','application/json');
+      xhr.onload=function(){
+        try{
+          var r=JSON.parse(xhr.responseText);
+          if(xhr.status>=200&&xhr.status<300&&r.url){
+            document.getElementById('FORM').style.display='none';
+            document.getElementById('OK1').style.display='block';
+            document.getElementById('SURL').href=r.url;
+            location.href=r.url;
+          }else{
+            showErr(r.error||'Error al procesar.');
+            submitBtn.disabled=false;submitBtn.textContent='Registrarme y Pagar con Tarjeta';
+          }
+        }catch(pe){
+          showErr('Error en la respuesta.');
+          submitBtn.disabled=false;submitBtn.textContent='Registrarme y Pagar con Tarjeta';
+        }
+      };
+      xhr.onerror=function(){
+        showErr('Error de conexion.');
+        submitBtn.disabled=false;submitBtn.textContent='Registrarme y Pagar con Tarjeta';
+      };
+      xhr.send(body);
+    });
+  }
 });
-
-var x=new XMLHttpRequest();
-x.open('POST',CK,true);
-x.setRequestHeader('Content-Type','application/json');
-x.onload=function(){
-try{
-var r=JSON.parse(x.responseText);
-if(x.status>=200&&x.status<300&&r.url){
-document.getElementById('FORM').style.display='none';
-document.getElementById('OK1').style.display='block';
-document.getElementById('SURL').href=r.url;
-location.href=r.url;
-}else{
-err(r.error||'Error al procesar.');
-b.disabled=false;b.textContent='Registrarme y Pagar con Tarjeta';
-}
-}catch(pe){
-err('Error en la respuesta.');
-b.disabled=false;b.textContent='Registrarme y Pagar con Tarjeta';
-}
-};
-x.onerror=function(){
-err('Error de conexion.');
-b.disabled=false;b.textContent='Registrarme y Pagar con Tarjeta';
-};
-x.send(body);
-}
 </script>
 </body>
 </html>`;
