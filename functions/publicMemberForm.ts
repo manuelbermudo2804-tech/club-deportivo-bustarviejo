@@ -493,46 +493,53 @@ function shareWhatsApp() {
 document.getElementById('memberForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   document.getElementById('errorMsg').style.display = 'none';
-  const btn = document.getElementById('submitBtn');
+  var btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  btn.textContent = '⏳ Procesando...';
+  btn.textContent = 'Procesando...';
 
-  const fd = new FormData(this);
-  const body = {
-    nombre_completo: fd.get('nombre_completo'),
-    dni: fd.get('dni'),
-    telefono: fd.get('telefono'),
-    email: fd.get('email'),
-    direccion: fd.get('direccion'),
-    municipio: fd.get('municipio'),
-    fecha_nacimiento: fd.get('fecha_nacimiento') || '',
-    tipo_pago: fd.get('tipo_pago'),
-    referido_por: REF_CODE,
-    es_segundo_progenitor: false,
-    success_url: CURRENT_PAGE_URL.split('?')[0] + '?paid=ok',
-    cancel_url: CURRENT_PAGE_URL.split('?')[0] + '?canceled=socio',
-  };
+  var nombre = document.getElementById('nombre_completo').value.trim();
+  var dniVal = document.getElementById('dni').value.trim();
+  var tel = document.getElementById('telefono').value.trim();
+  var emailVal = document.getElementById('email').value.trim();
+  var dir = document.getElementById('direccion').value.trim();
+  var mun = document.getElementById('municipio').value.trim();
+  var fNac = document.getElementById('fecha_nacimiento').value || '';
+  var tipoPago = document.getElementById('tipoPagoInput').value;
 
-  // Validate
-  if (!body.nombre_completo || !body.dni || !body.telefono || !body.email || !body.direccion || !body.municipio) {
+  if (!nombre || !dniVal || !tel || !emailVal || !dir || !mun) {
     showError('Por favor, completa todos los campos obligatorios.');
     btn.disabled = false;
-    btn.textContent = '🎉 Registrarme y Pagar con Tarjeta';
+    btn.textContent = 'Registrarme y Pagar con Tarjeta';
     return;
   }
 
+  var payload = {
+    nombre_completo: nombre,
+    dni: dniVal,
+    telefono: tel,
+    email: emailVal,
+    direccion: dir,
+    municipio: mun,
+    fecha_nacimiento: fNac,
+    tipo_pago: tipoPago,
+    referido_por: REF_CODE,
+    es_segundo_progenitor: false,
+    success_url: CURRENT_PAGE_URL.split('?')[0] + '?paid=ok',
+    cancel_url: CURRENT_PAGE_URL.split('?')[0] + '?canceled=socio'
+  };
+
   try {
-    const res = await fetch(CHECKOUT_URL, {
+    var res = await fetch(CHECKOUT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload)
     });
-    const data = await res.json();
+    var data = await res.json();
 
     if (!res.ok || data.error) {
       showError(data.error || 'Error al procesar el registro.');
       btn.disabled = false;
-      btn.textContent = '🎉 Registrarme y Pagar con Tarjeta';
+      btn.textContent = 'Registrarme y Pagar con Tarjeta';
       return;
     }
 
@@ -540,12 +547,16 @@ document.getElementById('memberForm').addEventListener('submit', async function(
       document.getElementById('formContent').style.display = 'none';
       document.getElementById('successMsg').style.display = 'block';
       document.getElementById('stripeLink').href = data.url;
-      setTimeout(() => { window.location.href = data.url; }, 1500);
+      window.location.href = data.url;
+    } else {
+      showError('No se pudo obtener el enlace de pago. Int\u00e9ntalo de nuevo.');
+      btn.disabled = false;
+      btn.textContent = 'Registrarme y Pagar con Tarjeta';
     }
   } catch (err) {
-    showError('Error de conexión. Inténtalo de nuevo.');
+    showError('Error de conexi\u00f3n: ' + (err.message || 'Int\u00e9ntalo de nuevo.'));
     btn.disabled = false;
-    btn.textContent = '🎉 Registrarme y Pagar con Tarjeta';
+    btn.textContent = 'Registrarme y Pagar con Tarjeta';
   }
 });
 </script>
