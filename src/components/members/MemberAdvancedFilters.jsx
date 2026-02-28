@@ -49,6 +49,7 @@ export default function MemberAdvancedFilters({
             <SelectItem value="Pagado">✅ Pagado</SelectItem>
             <SelectItem value="En revisión">⏳ En revisión</SelectItem>
             <SelectItem value="Pendiente">❌ Pendiente</SelectItem>
+            <SelectItem value="Fallido">⚠️ Fallido</SelectItem>
           </SelectContent>
         </Select>
 
