@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, Clock, MapPin, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import RecentResultCard from "./RecentResultCard";
 
 function formatMatchDate(dateStr) {
   if (!dateStr) return null;
@@ -167,23 +168,51 @@ export default function UpcomingMatchesSection() {
     );
   }
 
+  const now = new Date();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Deduplicate matches by categoria + local + visitante + fecha to avoid showing duplicates
+  // Normalize for deduplication: trim + lowercase
+  const normalize = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+  // Deduplicate matches by categoria + local + visitante + fecha
   const seen = new Set();
-  const futureMatches = matches
+  const allWithDates = matches
     .map(m => ({ ...m, dateInfo: formatMatchDate(m.fecha || m.fecha_iso) }))
-    .filter(m => m.dateInfo && m.dateInfo.raw >= today)
+    .filter(m => m.dateInfo)
     .filter(m => {
-      const key = `${(m.categoria || '').toLowerCase()}|${(m.local || '').toLowerCase()}|${(m.visitante || '').toLowerCase()}|${m.dateInfo.iso}`;
+      const key = `${normalize(m.categoria)}|${normalize(m.local)}|${normalize(m.visitante)}|${m.dateInfo.iso}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
+    });
+
+  // Split into: played (with result), finished today (hour passed), and future
+  const recentResults = allWithDates
+    .filter(m => m.jugado && m.goles_local != null && m.goles_visitante != null)
+    .sort((a, b) => b.dateInfo.raw - a.dateInfo.raw)
+    .slice(0, 4); // Last 4 results
+
+  const futureMatches = allWithDates
+    .filter(m => {
+      // Already played with result → skip (shown in results)
+      if (m.jugado) return false;
+      // Future date → show
+      if (m.dateInfo.raw > today) return true;
+      // Today: if has hora and hora+2h passed, hide it
+      if (m.dateInfo.raw.getTime() === today.getTime() && m.hora) {
+        const [h, min] = m.hora.split(':').map(Number);
+        const matchEnd = new Date(now);
+        matchEnd.setHours(h + 2, min || 0, 0, 0);
+        if (now > matchEnd) return false;
+      }
+      // Today without hora or still ongoing → show
+      if (m.dateInfo.raw >= today) return true;
+      return false;
     })
     .sort((a, b) => a.dateInfo.raw - b.dateInfo.raw);
 
-  if (futureMatches.length === 0) {
+  if (futureMatches.length === 0 && recentResults.length === 0) {
     return (
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 text-center">
         <div className="w-16 h-16 mx-auto rounded-full bg-slate-700 flex items-center justify-center mb-3">
@@ -212,18 +241,40 @@ export default function UpcomingMatchesSection() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/30">
-            <Trophy className="w-4.5 h-4.5 text-white" />
+      {/* Recent Results */}
+      {recentResults.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
+              <Trophy className="w-4.5 h-4.5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-900 text-lg leading-tight">Últimos Resultados</h3>
+              <p className="text-[11px] text-slate-500">{recentResults.length} partido{recentResults.length !== 1 ? 's' : ''} jugado{recentResults.length !== 1 ? 's' : ''}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-black text-slate-900 text-lg leading-tight">Próximos Partidos</h3>
-            <p className="text-[11px] text-slate-500">{futureMatches.length} partido{futureMatches.length !== 1 ? 's' : ''} programado{futureMatches.length !== 1 ? 's' : ''}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {recentResults.map((match, idx) => (
+              <RecentResultCard key={match.id || idx} match={match} />
+            ))}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Header */}
+      {futureMatches.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+              <Trophy className="w-4.5 h-4.5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-900 text-lg leading-tight">Próximos Partidos</h3>
+              <p className="text-[11px] text-slate-500">{futureMatches.length} partido{futureMatches.length !== 1 ? 's' : ''} programado{futureMatches.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Match groups */}
       <div className="space-y-5">
