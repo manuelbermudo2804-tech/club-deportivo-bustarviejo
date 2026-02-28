@@ -461,7 +461,7 @@ body {
 <script>
 const CHECKOUT_URL = '${checkoutUrl}';
 const REF_CODE = '${refCode}';
-const CURRENT_PAGE_URL = window.location.href;
+const CURRENT_PAGE_URL = window.location.href.split('?')[0];
 
 // Check if returning from Stripe
 (function() {
@@ -491,7 +491,8 @@ function showError(msg) {
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function shareWhatsApp() {
-  const msg = '⚽ ¡Hazte socio del CD Bustarviejo por solo 25€/año! Apoya al deporte base de nuestro pueblo 💚\\n\\n👉 ' + CURRENT_PAGE_URL;
+  const shareUrl = CURRENT_PAGE_URL + (REF_CODE ? '?ref=' + REF_CODE : '');
+  const msg = '⚽ ¡Hazte socio del CD Bustarviejo por solo 25€/año! Apoya al deporte base de nuestro pueblo 💚\\n\\n👉 ' + shareUrl;
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
