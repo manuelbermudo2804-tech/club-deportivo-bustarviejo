@@ -896,7 +896,8 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     statusFilter !== "all",
     seasonFilter !== "all" && seasonFilter !== seasonConfig?.temporada,
     typeFilter !== "all",
-    memberTypeFilter !== "all"
+    memberTypeFilter !== "all",
+    originFilter !== "all"
   ].filter(Boolean).length;
 
   // Stats de externos
