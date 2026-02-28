@@ -187,15 +187,9 @@ export default function ClubMembership() {
     retry: 1,
   });
 
-  // SeasonConfig: contexto global para logueados, fetch directo para público
+  // SeasonConfig: contexto global (tiene default seguro si no hay Provider)
+  const { seasonConfig: contextSeasonConfig } = useActiveSeason();
   const [localSeasonConfig, setLocalSeasonConfig] = useState(null);
-  let contextSeasonConfig = null;
-  try {
-    const ctx = useActiveSeason();
-    contextSeasonConfig = ctx?.seasonConfig || null;
-  } catch {
-    // No SeasonProvider available (public access)
-  }
   
   useEffect(() => {
     if (!contextSeasonConfig) {
