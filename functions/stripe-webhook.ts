@@ -740,16 +740,42 @@ Deno.serve(async (req) => {
             const month = now.getMonth() + 1;
             const temporada = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
             const email = subMeta.user_email || subMeta.email || invoice.customer_email;
+            const fechaVencimiento = temporada.includes('-') ? `${temporada.split('-')[1]}-06-30` : null;
+
+            // Obtener fecha próximo cobro de la suscripción
+            let fechaProximoCobro = null;
+            try {
+              if (subscription.current_period_end) {
+                fechaProximoCobro = new Date(subscription.current_period_end * 1000).toISOString();
+              }
+            } catch {}
 
             console.log('[stripe-webhook] Renovación anual de socio', { email, temporada, amount });
 
             try {
-              // Verificar si ya existe para esta temporada
               let existing = [];
               try { existing = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada }); } catch {}
 
+              const renewalData = {
+                estado_pago: 'Pagado',
+                metodo_pago: 'Tarjeta',
+                activo: true,
+                origen_pago: 'stripe_suscripcion',
+                renovacion_automatica: true,
+                fecha_alta: today,
+                fecha_pago: today,
+                fecha_vencimiento: fechaVencimiento,
+                fecha_ultimo_cobro: new Date().toISOString(),
+                fecha_proximo_cobro: fechaProximoCobro,
+                stripe_subscription_id: subId,
+                stripe_customer_id: invoice.customer || null,
+                stripe_subscription_status: 'active',
+                aviso_cobro_ok_enviado: false,
+                recordatorio_renovacion_enviado: false,
+                recordatorio_renovacion_count: 0,
+              };
+
               if (existing.length === 0 && email) {
-                // Buscar datos del socio en temporadas anteriores
                 const allMembers = await base44.asServiceRole.entities.ClubMember.list();
                 const prev = allMembers.find(m => m.email === email && m.temporada !== temporada);
                 const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${year}`));
@@ -767,28 +793,47 @@ Deno.serve(async (req) => {
                   municipio: prev?.municipio || subMeta.municipio || '',
                   es_socio_externo: prev?.es_socio_externo || true,
                   cuota_socio: amount,
-                  estado_pago: 'Pagado',
-                  metodo_pago: 'Tarjeta',
                   temporada,
-                  activo: true,
+                  referido_por: prev?.referido_por || '',
                   notas: 'Renovación automática por suscripción Stripe',
+                  ...renewalData,
                 });
                 console.log('[stripe-webhook] Socio renovado automáticamente', { email, temporada });
               } else if (existing[0] && existing[0].estado_pago !== 'Pagado') {
+                await base44.asServiceRole.entities.ClubMember.update(existing[0].id, renewalData);
+              } else if (existing[0]) {
+                // Ya estaba pagado, solo actualizar fechas de cobro
                 await base44.asServiceRole.entities.ClubMember.update(existing[0].id, {
-                  estado_pago: 'Pagado',
-                  metodo_pago: 'Tarjeta',
-                  activo: true,
+                  fecha_ultimo_cobro: new Date().toISOString(),
+                  fecha_proximo_cobro: fechaProximoCobro,
+                  stripe_subscription_status: 'active',
                 });
               }
 
-              // Notificar
+              // Notificar al socio que su renovación se procesó correctamente
               if (email) {
                 await base44.asServiceRole.integrations.Core.SendEmail({
                   to: email,
-                  subject: `✅ Cuota de socio renovada - Temporada ${temporada}`,
-                  body: `Hemos cobrado tu cuota de socio de ${amount}€ para la temporada ${temporada}.\n\nGracias por seguir apoyando al club. 💪\n\nCD Bustarviejo`
+                  subject: `✅ Cuota de socio renovada automáticamente - Temporada ${temporada}`,
+                  body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
+                      <h2 style="color: white; margin: 0;">✅ Tu cuota de socio se ha renovado</h2>
+                    </div>
+                    <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                      <p>Hemos cobrado <strong>${amount}€</strong> de tu suscripción anual para la temporada <strong>${temporada}</strong>.</p>
+                      <p>Tu membresía está activa hasta el <strong>30 de junio de ${temporada.split('-')[1] || ''}</strong>.</p>
+                      <p>No necesitas hacer nada más. ¡Gracias por seguir apoyando al club! 💪</p>
+                      <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
+                    </div>
+                  </div>`
                 });
+                // Marcar aviso enviado
+                try {
+                  const members = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
+                  if (members?.[0]) {
+                    await base44.asServiceRole.entities.ClubMember.update(members[0].id, { aviso_cobro_ok_enviado: true });
+                  }
+                } catch {}
               }
             } catch (socioErr) {
               console.error('[stripe-webhook] Error renovación anual socio:', socioErr?.message);
