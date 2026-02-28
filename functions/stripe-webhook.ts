@@ -545,20 +545,13 @@ Deno.serve(async (req) => {
                 try {
                   await base44.asServiceRole.integrations.Core.SendEmail({
                     to: payerEmail,
-                    subject: '✅ ¡Bienvenido/a al CD Bustarviejo!',
-                    body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                      <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
-                        <h2 style="color: white; margin: 0;">🎉 ¡Ya eres socio del CD Bustarviejo!</h2>
-                      </div>
-                      <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-                        <p>Hola <strong>${pendingMember.nombre_completo}</strong>,</p>
-                        <p>Hemos recibido tu cuota de socio para la temporada <strong>${tempActual}</strong>.</p>
-                        <p>Tu número de socio: <strong>${pendingMember.numero_socio}</strong></p>
-                        <p>Estado: <strong style="color: #16a34a;">✅ Pagado</strong></p>
-                        <p>¡Gracias por apoyar al club! 💪</p>
-                        <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
-                      </div>
-                    </div>`
+                    subject: '🎉 ¡Bienvenido/a al CD Bustarviejo!',
+                    body: emailBienvenida({
+                      nombre: pendingMember.nombre_completo,
+                      numeroSocio: pendingMember.numero_socio,
+                      temporada: tempActual,
+                      dni: pendingMember.dni || ''
+                    })
                   });
                   await base44.asServiceRole.integrations.Core.SendEmail({
                     to: 'cdbustarviejo@outlook.es',
@@ -793,20 +786,13 @@ Deno.serve(async (req) => {
             if (to) {
               await base44.asServiceRole.integrations.Core.SendEmail({
                 to,
-                subject: '✅ ¡Bienvenido/a al CD Bustarviejo!',
-                body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
-                    <h2 style="color: white; margin: 0;">🎉 ¡Ya eres socio del CD Bustarviejo!</h2>
-                  </div>
-                  <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-                    <p>Hola <strong>${member?.nombre_completo || metadata.nombre_completo || ''}</strong>,</p>
-                    <p>Hemos recibido tu cuota de socio para la temporada <strong>${temporada}</strong>.</p>
-                    ${member?.numero_socio ? `<p>Tu número de socio es: <strong>${member.numero_socio}</strong></p>` : ''}
-                    <p>Estado: <strong style="color: #16a34a;">✅ Pagado</strong></p>
-                    <p>¡Gracias por apoyar al club! 💪</p>
-                    <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
-                  </div>
-                </div>`
+                subject: '🎉 ¡Bienvenido/a al CD Bustarviejo!',
+                body: emailBienvenida({
+                  nombre: member?.nombre_completo || metadata.nombre_completo || '',
+                  numeroSocio: member?.numero_socio || '',
+                  temporada,
+                  dni: member?.dni || metadata.dni || ''
+                })
               });
             }
             await base44.asServiceRole.integrations.Core.SendEmail({
@@ -920,20 +906,16 @@ Deno.serve(async (req) => {
 
               // Notificar al socio que su renovación se procesó correctamente
               if (email) {
+                const prevMember = existing?.[0];
                 await base44.asServiceRole.integrations.Core.SendEmail({
                   to: email,
                   subject: `✅ Cuota de socio renovada automáticamente - Temporada ${temporada}`,
-                  body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
-                      <h2 style="color: white; margin: 0;">✅ Tu cuota de socio se ha renovado</h2>
-                    </div>
-                    <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-                      <p>Hemos cobrado <strong>${amount}€</strong> de tu suscripción anual para la temporada <strong>${temporada}</strong>.</p>
-                      <p>Tu membresía está activa hasta el <strong>30 de junio de ${temporada.split('-')[1] || ''}</strong>.</p>
-                      <p>No necesitas hacer nada más. ¡Gracias por seguir apoyando al club! 💪</p>
-                      <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
-                    </div>
-                  </div>`
+                  body: emailRenovacion({
+                    nombre: prevMember?.nombre_completo || subMeta.nombre_completo || '',
+                    numeroSocio: prevMember?.numero_socio || '',
+                    temporada,
+                    amount
+                  })
                 });
                 // Marcar aviso enviado
                 try {
@@ -1078,17 +1060,7 @@ Deno.serve(async (req) => {
                 await base44.asServiceRole.integrations.Core.SendEmail({
                   to: email,
                   subject: `⚠️ Fallo en el cobro de tu cuota de socio`,
-                  body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <div style="background: #dc2626; padding: 20px; border-radius: 12px 12px 0 0;">
-                      <h2 style="color: white; margin: 0;">⚠️ Problema con tu cuota de socio</h2>
-                    </div>
-                    <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-                      <p>No hemos podido cobrar <strong>${amount}€</strong> de tu cuota de socio del CD Bustarviejo.</p>
-                      <p>Por favor, verifica que tu tarjeta tiene fondos suficientes. Stripe reintentará el cobro automáticamente.</p>
-                      <p>Si el problema persiste, contacta con el club.</p>
-                      <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
-                    </div>
-                  </div>`
+                  body: emailFalloCobro({ nombre: subMeta.nombre_completo || '', amount })
                 });
                 // Marcar aviso enviado
                 try {
@@ -1217,17 +1189,10 @@ Deno.serve(async (req) => {
                   await base44.asServiceRole.integrations.Core.SendEmail({
                     to: email,
                     subject: '🔔 Tu suscripción de socio ha sido cancelada',
-                    body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                      <div style="background: #f59e0b; padding: 20px; border-radius: 12px 12px 0 0;">
-                        <h2 style="color: white; margin: 0;">🔔 Suscripción cancelada</h2>
-                      </div>
-                      <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-                        <p>Tu suscripción anual de socio del CD Bustarviejo ha sido cancelada.</p>
-                        <p>Tu membresía seguirá activa hasta el <strong>${member.fecha_vencimiento ? new Date(member.fecha_vencimiento).toLocaleDateString('es-ES') : '30 de junio'}</strong>.</p>
-                        <p>Si quieres renovar en el futuro, podrás hacerlo desde nuestra web.</p>
-                        <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
-                      </div>
-                    </div>`
+                    body: emailSuscripcionCancelada({
+                      nombre: member.nombre_completo || '',
+                      fechaVencimiento: member.fecha_vencimiento ? new Date(member.fecha_vencimiento).toLocaleDateString('es-ES') : '30 de junio'
+                    })
                   });
                 } catch {}
               }
@@ -1296,7 +1261,12 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.integrations.Core.SendEmail({
             to: email,
             subject: `⚠️ Fallo en ${tipoDesc}${jugadorNombre ? ` - ${jugadorNombre}` : ''}`,
-            body: `No hemos podido procesar tu ${tipoDesc} de ${amount}€${jugadorNombre ? ` para ${jugadorNombre}` : ''}.\n\nMotivo: ${failMessage}\n\nPor favor, inténtalo de nuevo o usa otro método de pago.\n\nCD Bustarviejo`
+            body: emailFalloPagoDirecto({
+              nombre: jugadorNombre || '',
+              amount,
+              tipoDesc,
+              reason: failMessage
+            })
           });
         }
 
