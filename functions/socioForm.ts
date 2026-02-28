@@ -189,8 +189,8 @@ ${refBanner}
 <h3>&#128179; Cuota: 25&#8364; / temporada</h3>
 <p style="font-size:.82rem;color:#555;margin-bottom:14px">Pago seguro con Stripe.</p>
 <div id="GRP_PAGO">
-<div class="optbox act" data-v="unico" onclick="pick(this,'GRP_PAGO')"><div style="flex:1"><h4>&#128179; Pago Unico</h4><p>Un solo pago por tarjeta</p></div><div class="price">25&#8364;</div></div>
-<div class="optbox" data-v="suscripcion" onclick="pick(this,'GRP_PAGO')"><div style="flex:1"><h4>&#128260; Suscripcion Anual <span class="badge">RECOMENDADO</span></h4><p>Se renueva cada ano. Cancela cuando quieras.</p></div><div class="price">25&#8364;<span style="font-size:11px;font-weight:400">/ano</span></div></div>
+<div class="optbox act" data-v="unico"><div style="flex:1"><h4>&#128179; Pago Unico</h4><p>Un solo pago por tarjeta</p></div><div class="price">25&#8364;</div></div>
+<div class="optbox" data-v="suscripcion"><div style="flex:1"><h4>&#128260; Suscripcion Anual <span class="badge">RECOMENDADO</span></h4><p>Se renueva cada ano. Cancela cuando quieras.</p></div><div class="price">25&#8364;<span style="font-size:11px;font-weight:400">/ano</span></div></div>
 </div>
 <div class="stripe-s">&#128274; Pago seguro con Stripe</div>
 </div>
