@@ -473,10 +473,10 @@ function selectRadioOption(el) {
   el.classList.add('selected');
   el.querySelector('input').checked = true;
 }
-function selectPayment(el) {
-  document.querySelectorAll('.payment-type-option').forEach(o => o.classList.remove('selected'));
+function selectPayment(el, value) {
+  document.querySelectorAll('.payment-type-option').forEach(function(o) { o.classList.remove('selected'); });
   el.classList.add('selected');
-  el.querySelector('input').checked = true;
+  document.getElementById('tipoPagoInput').value = value;
 }
 function showError(msg) {
   const el = document.getElementById('errorMsg');
