@@ -407,10 +407,24 @@ Deno.serve(async (req) => {
               const pendingMember = candidates?.find(m => m.estado_pago !== 'Pagado');
 
               if (pendingMember) {
+                // Calcular fecha_vencimiento
+                let plFechaVenc = null;
+                try {
+                  if (tempActual && tempActual.includes('-')) {
+                    plFechaVenc = `${tempActual.split('-')[1]}-06-30`;
+                  }
+                } catch {}
+
                 await base44.asServiceRole.entities.ClubMember.update(pendingMember.id, {
                   estado_pago: 'Pagado',
                   metodo_pago: 'Tarjeta',
                   activo: true,
+                  origen_pago: 'stripe_unico',
+                  renovacion_automatica: false,
+                  fecha_alta: today,
+                  fecha_pago: today,
+                  fecha_vencimiento: plFechaVenc,
+                  fecha_ultimo_cobro: new Date().toISOString(),
                 });
                 console.log('[stripe-webhook] Socio marcado Pagado via Payment Link:', pendingMember.id, payerEmail);
 
