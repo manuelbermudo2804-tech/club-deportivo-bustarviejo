@@ -1035,7 +1035,7 @@ export default function Layout({ children, currentPageName }) {
   const isPublicLoading = isPublicPage && !authChecked;
 
   // AHORA SÍ - todos los returns condicionales DESPUÉS de TODOS los hooks
-  if (isLoading && !isPublicPage) {
+  if (isLoading && !isPublicPageRef.current) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: '100dvh', background: 'linear-gradient(to bottom right, #ea580c, #c2410c, #15803d)' }}>
         <div className="text-center">
