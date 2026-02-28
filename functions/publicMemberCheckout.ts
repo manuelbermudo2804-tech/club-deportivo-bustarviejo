@@ -141,6 +141,7 @@ Deno.serve(async (req) => {
       referido_por: referido_por || '',
       es_segundo_progenitor: String(es_segundo_progenitor || false),
       origen: 'web_externa',
+      origen_pago: isSuscripcion ? 'stripe_suscripcion' : 'stripe_unico',
     };
 
     const defaultSuccessUrl = success_url || ('https://manuelbermudo2804-tech.github.io/-club-landing-page-Bustarviejo/?paid=ok&membership_id=' + membership.id);
