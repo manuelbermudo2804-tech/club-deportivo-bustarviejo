@@ -287,26 +287,33 @@ body {
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-  <a class="navbar-brand" href="${WEB_URL}">
-    <img src="${ESCUDO}" alt="CD Bustarviejo">
-    <span>C.D. Bustarviejo</span>
-  </a>
-  <div class="navbar-links">
-    <a href="${WEB_URL}">Inicio</a>
-    <a href="${WEB_URL}equipos.html">Equipos</a>
-    <a href="${WEB_URL}patrocinadores.html">Patrocinadores</a>
-    <a class="btn-activo" href="#">HAZTE SOCIO</a>
+<!-- HEADER FIJO -->
+<header class="header">
+  <div class="header-contenido">
+    <div class="logo">
+      <a href="${WEB_URL}">
+        <img src="${ESCUDO}" alt="CD Bustarviejo">
+        <span>Club Deportivo Bustarviejo</span>
+      </a>
+    </div>
+    <button class="menu-toggle" onclick="document.querySelector('.menu').classList.toggle('activo')">☰</button>
+    <nav class="menu">
+      <a href="${WEB_URL}">INICIO</a>
+      <a href="${WEB_URL}equipos.html">EQUIPOS</a>
+      <a href="${WEB_URL}patrocinadores.html">PATROCINADORES</a>
+      <a class="btn-menu" href="#">HAZTE SOCIO</a>
+    </nav>
   </div>
-</nav>
+</header>
 
-<!-- HEADER -->
-<div class="page-header">
-  <img src="${ESCUDO}" alt="Escudo CD Bustarviejo">
-  <h1>🎉 ¡Hazte Socio del CD Bustarviejo!</h1>
-  <p>Forma parte de nuestra gran familia deportiva</p>
-</div>
+<!-- HERO -->
+<section class="hero">
+  <div class="contenido">
+    <img class="escudo-grande" src="${ESCUDO}" alt="Escudo CD Bustarviejo">
+    <h1>¡Hazte Socio!</h1>
+    <p class="subtitulo">Deporte, valores y comunidad</p>
+  </div>
+</section>
 
 <div class="container">
 
