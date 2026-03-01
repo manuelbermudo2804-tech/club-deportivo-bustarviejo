@@ -58,6 +58,9 @@ export default function Players() {
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list('-created_date'),
     initialData: [],
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   // Contar jugadores que requieren revisión de categoría
@@ -71,8 +74,11 @@ export default function Players() {
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list(),
+    queryFn: () => base44.entities.Payment.filter({ is_deleted: { $ne: true } }, '-created_date', 500),
     initialData: [],
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: customPlans = [] } = useQuery({
@@ -83,14 +89,20 @@ export default function Players() {
 
   const { data: evaluations } = useQuery({
     queryKey: ['evaluations'],
-    queryFn: () => base44.entities.PlayerEvaluation.list(),
+    queryFn: () => base44.entities.PlayerEvaluation.list('-fecha_evaluacion', 200),
     initialData: [],
+    staleTime: 120000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: attendances } = useQuery({
     queryKey: ['attendances'],
-    queryFn: () => base44.entities.Attendance.list(),
+    queryFn: () => base44.entities.Attendance.list('-fecha', 200),
     initialData: [],
+    staleTime: 120000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   // Obtener temporada activa

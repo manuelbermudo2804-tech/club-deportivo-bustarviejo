@@ -74,103 +74,83 @@ export default function AlertCenter({
   userEmail = null,
   userSports = []
 }) {
-  // Usuario para queries específicas (NO para contadores - vienen por props)
-  const { data: meUser } = useQuery({ queryKey: ['me-alertCenter'], queryFn: () => base44.auth.me() });
+  // Queries pesadas ELIMINADAS — los contadores llegan por props desde useUnifiedNotifications
+  // Solo mantenemos state local para dismissed alerts y queries ligeras con staleTime alto
+  const meUser = null; // Ya no hacemos query propia
   
-  // Real-time subscriptions eliminadas para evitar duplicar cargas (nos apoyamos en useUnifiedNotifications + bus global)
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  useEffect(() => {
-    setRefreshTrigger((n) => n); // no-op; mantenemos el estado para compatibilidad
-  }, [userEmail]);
   const [dismissedAlerts, setDismissedAlerts] = useState(() => {
-  try {
-    return new Set(JSON.parse(localStorage.getItem('dismissedAlerts') || '[]'));
-  } catch {
-    return new Set();
-  }
-});
-useEffect(() => {
-  try {
-    localStorage.setItem('dismissedAlerts', JSON.stringify(Array.from(dismissedAlerts)));
-  } catch {}
-}, [dismissedAlerts]);
-
-const { data: pendingJuniorMessages = 0 } = useQuery({
-  queryKey: ['alert-junior-mailbox'],
-  queryFn: async () => {
-    const msgs = await base44.entities.JuniorMailbox.filter({ estado: "pendiente" });
-    return msgs.length;
-  },
-  enabled: isAdmin,
-  staleTime: 60000,
-  refetchInterval: 60000,
-});
-
-const { data: newWebContacts = 0 } = useQuery({
-  queryKey: ['alert-web-contacts'],
-  queryFn: async () => {
-    const contacts = await base44.entities.ContactForm.filter({ estado: "nuevo" });
-    return contacts.length;
-  },
-  enabled: isAdmin,
-  staleTime: 30000,
-  refetchInterval: 30000,
-});
-
-const { data: adminEscalationsCount = 0 } = useQuery({
-  queryKey: ['alert-admin-escalations'],
-  queryFn: async () => {
     try {
-      const unresolved = await base44.entities.AdminConversation.filter({ resuelta: false }, '-ultimo_mensaje_fecha', 1);
-      return unresolved.length || 0;
-    } catch { return 0; }
-  },
-  enabled: isAdmin,
-});
-
-const { data: myAdminChatsCount = 0 } = useQuery({
-  queryKey: ['alert-parent-adminchats', userEmail],
-  queryFn: async () => {
+      return new Set(JSON.parse(localStorage.getItem('dismissedAlerts') || '[]'));
+    } catch {
+      return new Set();
+    }
+  });
+  useEffect(() => {
     try {
-      const email = userEmail || meUser?.email;
-      if (!email) return 0;
-      const convs = await base44.entities.AdminConversation.filter({ padre_email: email, resuelta: false }, '-ultimo_mensaje_fecha', 1);
-      return convs.length || 0;
-    } catch { return 0; }
-  },
-  enabled: !!(isParent || userEmail || meUser?.email),
-});
+      localStorage.setItem('dismissedAlerts', JSON.stringify(Array.from(dismissedAlerts)));
+    } catch {}
+  }, [dismissedAlerts]);
+
+  const { data: pendingJuniorMessages = 0 } = useQuery({
+    queryKey: ['alert-junior-mailbox'],
+    queryFn: async () => {
+      const msgs = await base44.entities.JuniorMailbox.filter({ estado: "pendiente" });
+      return msgs.length;
+    },
+    enabled: isAdmin,
+    staleTime: 120000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: newWebContacts = 0 } = useQuery({
+    queryKey: ['alert-web-contacts'],
+    queryFn: async () => {
+      const contacts = await base44.entities.ContactForm.filter({ estado: "nuevo" });
+      return contacts.length;
+    },
+    enabled: isAdmin,
+    staleTime: 120000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
+  });
+
+  const adminEscalationsCount = unresolvedAdminChats || 0;
+
+  const myAdminChatsCount = hasActiveAdminChat ? 1 : 0;
 
 const alerts = [];
 
-  const isJuntaUser = meUser?.es_junta === true;
+  // Anuncios: usamos los datos del rawData de useUnifiedNotifications propagados via bus global
+  // En vez de hacer nuestra propia query, leemos del estado global
+  const [unreadAnnouncementsFromBus, setUnreadAnnouncementsFromBus] = useState([]);
+  useEffect(() => {
+    // Leer estado inicial
+    try {
+      const raw = window.__BASE44_UNIFIED_NOTIFICATIONS_RAW;
+      if (raw?.announcements) setUnreadAnnouncementsFromBus(raw.announcements);
+    } catch {}
+    // Escuchar actualizaciones
+    const handler = () => {
+      try {
+        const raw = window.__BASE44_UNIFIED_NOTIFICATIONS_RAW;
+        if (raw?.announcements) setUnreadAnnouncementsFromBus(raw.announcements);
+      } catch {}
+    };
+    window.addEventListener('b44_unified_notifications_updated', handler);
+    return () => window.removeEventListener('b44_unified_notifications_updated', handler);
+  }, []);
 
-  // Fetch announcements
-  const { data: announcements = [] } = useQuery({
-    queryKey: ['announcements'],
-    queryFn: () => base44.entities.Announcement.list('-fecha_publicacion', 60),
-    enabled: !!userEmail,
-    refetchInterval: 60000,
-    staleTime: 60000,
-  });
-
-  // Verificar anuncios no leídos
   const now = new Date();
-  const unreadAnnouncements = announcements.filter(announcement => {
+  const unreadAnnouncements = (unreadAnnouncementsFromBus || []).filter(announcement => {
     if (!announcement.publicado) return false;
-    
-    // Verificar caducidad
     if (announcement.tipo_caducidad === "horas" && announcement.fecha_caducidad_calculada) {
       if (now > new Date(announcement.fecha_caducidad_calculada)) return false;
     } else if (announcement.fecha_expiracion) {
       if (now > new Date(announcement.fecha_expiracion)) return false;
     }
-    
-    // Verificar si ya lo leyó
     const alreadyRead = announcement.leido_por?.some(l => l.email === userEmail);
     if (alreadyRead) return false;
-    
-    // Verificar destinatarios
     if (announcement.destinatarios_tipo === "Todos") return true;
     return userSports.includes(announcement.destinatarios_tipo);
   });
@@ -207,20 +187,20 @@ const alerts = [];
     });
   }
 
-  // Fetch surveys para admin (respuestas nuevas)
+  // Encuestas: query con staleTime alto y sin refetchInterval agresivo
   const { data: surveys = [] } = useQuery({
     queryKey: ['surveysAlerts'],
     queryFn: () => base44.entities.Survey.list('-created_date'),
     enabled: isAdmin,
-    refetchInterval: 30000,
+    staleTime: 120000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
-  // Alertas de respuestas nuevas en encuestas (solo admin)
   if (isAdmin) {
     const surveysWithNewResponses = surveys.filter(s => (s.respuestas_nuevas || 0) > 0);
     if (surveysWithNewResponses.length > 0) {
       const totalNewResponses = surveysWithNewResponses.reduce((sum, s) => sum + (s.respuestas_nuevas || 0), 0);
-      // Nota: las alertas de chat se gestionan fuera de AlertCenter
       alerts.push({
         id: "survey-new-responses",
         icon: FileText,
@@ -350,12 +330,14 @@ const alerts = [];
   // ALERTAS DE MENSAJES ELIMINADAS - Ahora se usan en ChatAlertBanner
   // NO mostrar mensajes de chat aquí para evitar duplicación
 
-  // Fetch eventos para alertas de eventos nuevos
+  // Eventos: query con staleTime alto, sin polling agresivo
   const { data: events = [] } = useQuery({
     queryKey: ['eventsAlerts'],
-    queryFn: () => base44.entities.Event.list('-created_date'),
+    queryFn: () => base44.entities.Event.filter({ publicado: true }, '-created_date', 30),
     enabled: !!userEmail,
-    refetchInterval: 60000, // Refresh every minute
+    staleTime: 120000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   // Eventos nuevos publicados en últimas 48h QUE REQUIEREN CONFIRMACIÓN (no automáticos de gestión)

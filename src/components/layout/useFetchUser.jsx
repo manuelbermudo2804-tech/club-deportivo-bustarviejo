@@ -270,10 +270,11 @@ export function useFetchUser(location) {
 
           const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
           const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
-          const myPayments = await base44.entities.ExtraChargePayment.filter({
-            usuario_email: currentUser.email,
-            $or: [{ estado: 'Pagado' }, { estado: 'En revisión' }]
-          });
+          const [ecpPagado, ecpRevision] = await Promise.all([
+            base44.entities.ExtraChargePayment.filter({ usuario_email: currentUser.email, estado: 'Pagado' }).catch(() => []),
+            base44.entities.ExtraChargePayment.filter({ usuario_email: currentUser.email, estado: 'En revisión' }).catch(() => []),
+          ]);
+          const myPayments = [...ecpPagado, ...ecpRevision];
           let visibleCharge = null;
           for (const c of candidates) {
             try {
