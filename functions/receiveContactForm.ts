@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            from: 'CD Bustarviejo <onboarding@resend.dev>',
+            from: 'CD Bustarviejo <noreply@cdbustarviejo.com>',
             to: ['cdbustarviejo@gmail.com'],
             subject: `📋 Nuevo contacto web: ${nombre}`,
             html: emailHtml
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              from: 'CD Bustarviejo <onboarding@resend.dev>',
+              from: 'CD Bustarviejo <noreply@cdbustarviejo.com>',
               to: [email],
               subject: '¡Gracias por contactar con CD Bustarviejo! ⚽',
               html: confirmHtml
