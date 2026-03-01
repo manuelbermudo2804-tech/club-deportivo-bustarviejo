@@ -49,8 +49,10 @@ Deno.serve(async (req) => {
         // Get admin users to notify
         const users = await base44.asServiceRole.entities.User.list();
         const admins = users.filter(u => u.role === 'admin');
+        const coordinators = users.filter(u => u.es_coordinador === true && u.role !== 'admin');
+        const notifyUsers = [...admins.slice(0, 3), ...coordinators.slice(0, 3)];
         
-        for (const admin of admins.slice(0, 3)) {
+        for (const admin of notifyUsers) {
           await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {

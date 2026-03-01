@@ -66,12 +66,22 @@ Deno.serve(async (req) => {
               <p style="margin-top: 16px; color: #64748b; font-size: 13px;">Puedes gestionar este contacto desde la app en Contactos Web.</p>
             </div>
           </div>`;
+        // Obtener emails de coordinadores para notificarles también
+        let recipients = ['cdbustarviejo@gmail.com'];
+        try {
+          const allUsers = await base44.asServiceRole.entities.User.list();
+          const coordinators = allUsers.filter(u => u.es_coordinador === true);
+          coordinators.forEach(c => {
+            if (c.email && !recipients.includes(c.email)) recipients.push(c.email);
+          });
+        } catch {}
+
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             from: 'CD Bustarviejo <noreply@cdbustarviejo.com>',
-            to: ['cdbustarviejo@gmail.com'],
+            to: recipients,
             subject: `📋 Nuevo contacto web: ${nombre}`,
             html: emailHtml
           })
