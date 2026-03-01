@@ -248,7 +248,15 @@ export function useUnifiedNotifications(user, options = {}) {
       } else if (user?.role === 'admin') {
         pls = await run(() => base44.entities.Player.filter({ categoria_requiere_revision: true }, '-updated_date', 120));
       } else {
-        pls = await run(() => base44.entities.Player.filter({ $or: [ { email_padre: user?.email }, { email_tutor_2: user?.email }, { email_jugador: user?.email } ] }, '-updated_date', 100));
+        // 3 consultas paralelas para evitar fallos de $or en navegadores antiguos
+        const [plsByPadre, plsByTutor2, plsByJugador] = await Promise.all([
+          run(() => base44.entities.Player.filter({ email_padre: user?.email }, '-updated_date', 100)).catch(() => []),
+          run(() => base44.entities.Player.filter({ email_tutor_2: user?.email }, '-updated_date', 100)).catch(() => []),
+          run(() => base44.entities.Player.filter({ email_jugador: user?.email }, '-updated_date', 100)).catch(() => []),
+        ]);
+        const plsMap = new Map();
+        [...plsByPadre, ...plsByTutor2, ...plsByJugador].forEach(p => plsMap.set(p.id, p));
+        pls = Array.from(plsMap.values());
       }
       setRawData(prev => ({ ...prev, players: pls }));
     };

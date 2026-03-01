@@ -234,14 +234,15 @@ export function useFetchUser(location) {
           const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
           let myPlayers = [];
           try {
-            myPlayers = await base44.entities.Player.filter({
-              $or: [
-                { email_padre: currentUser.email },
-                { email_tutor_2: currentUser.email },
-                { email_jugador: currentUser.email }
-              ],
-              activo: true
-            });
+            // 3 consultas paralelas para evitar fallos de $or en navegadores antiguos
+            const [byPadre, byTutor2, byJugador] = await Promise.all([
+              base44.entities.Player.filter({ email_padre: currentUser.email, activo: true }).catch(() => []),
+              base44.entities.Player.filter({ email_tutor_2: currentUser.email, activo: true }).catch(() => []),
+              base44.entities.Player.filter({ email_jugador: currentUser.email, activo: true }).catch(() => []),
+            ]);
+            const map = new Map();
+            [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
+            myPlayers = Array.from(map.values());
           } catch {}
 
           const isCoachVal = currentUser.es_entrenador === true;
@@ -325,12 +326,14 @@ export function useFetchUser(location) {
           return;
         }
       } else {
-        const myPlayers = await base44.entities.Player.filter({ 
-          $or: [
-            { email_padre: currentUser.email },
-            { email_tutor_2: currentUser.email }
-          ]
-        });
+        // 2 consultas paralelas para evitar fallos de $or en navegadores antiguos
+        const [byPadre2, byTutor2b] = await Promise.all([
+          base44.entities.Player.filter({ email_padre: currentUser.email }).catch(() => []),
+          base44.entities.Player.filter({ email_tutor_2: currentUser.email }).catch(() => []),
+        ]);
+        const playerMap2 = new Map();
+        [...byPadre2, ...byTutor2b].forEach(p => playerMap2.set(p.id, p));
+        const myPlayers = Array.from(playerMap2.values());
         setHasPlayers(myPlayers.length > 0);
         setIsLoading(false);
 
