@@ -79,6 +79,7 @@ import CoachProfile from './pages/CoachProfile';
 import CoachProfiles from './pages/CoachProfiles';
 import CoachStandingsAnalysis from './pages/CoachStandingsAnalysis';
 import CompetitionChecklist from './pages/CompetitionChecklist';
+import ContactRequests from './pages/ContactRequests';
 import CoordinatorChat from './pages/CoordinatorChat';
 import CoordinatorChatsHub from './pages/CoordinatorChatsHub';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
@@ -141,8 +142,8 @@ import PaymentsDashboard from './pages/PaymentsDashboard';
 import PlayerDashboard from './pages/PlayerDashboard';
 import PlayerEvaluations from './pages/PlayerEvaluations';
 import PlayerProfile from './pages/PlayerProfile';
-import PlayerRenewal from './pages/PlayerRenewal';
 import Players from './pages/Players';
+import PlayerRenewal from './pages/PlayerRenewal';
 import PlayerStatsPreview from './pages/PlayerStatsPreview';
 import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
@@ -202,6 +203,7 @@ export const PAGES = {
     "CoachProfiles": CoachProfiles,
     "CoachStandingsAnalysis": CoachStandingsAnalysis,
     "CompetitionChecklist": CompetitionChecklist,
+    "ContactRequests": ContactRequests,
     "CoordinatorChat": CoordinatorChat,
     "CoordinatorChatsHub": CoordinatorChatsHub,
     "CoordinatorDashboard": CoordinatorDashboard,
@@ -264,8 +266,8 @@ export const PAGES = {
     "PlayerDashboard": PlayerDashboard,
     "PlayerEvaluations": PlayerEvaluations,
     "PlayerProfile": PlayerProfile,
-    "PlayerRenewal": PlayerRenewal,
     "Players": Players,
+    "PlayerRenewal": PlayerRenewal,
     "PlayerStatsPreview": PlayerStatsPreview,
     "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
