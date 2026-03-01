@@ -90,14 +90,18 @@ export default function ParentPlayers() {
     queryKey: ['myPlayers', user?.email, seasonConfig?.permitir_renovaciones],
     queryFn: async () => {
       if (!user?.email) return [];
-      const myPlayers = await base44.entities.Player.filter({
-        $or: [
-          { email_padre: user.email },
-          { email_tutor_2: user.email }
-        ]
-      });
+      // Hacer 3 consultas paralelas para evitar problemas con $or en algunos dispositivos
+      const [byPadre, byTutor2, byJugador] = await Promise.all([
+        base44.entities.Player.filter({ email_padre: user.email }).catch(() => []),
+        base44.entities.Player.filter({ email_tutor_2: user.email }).catch(() => []),
+        base44.entities.Player.filter({ email_jugador: user.email }).catch(() => []),
+      ]);
+      // Deduplicar por id
+      const map = new Map();
+      [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
+      const myPlayers = Array.from(map.values());
       
-      console.log('🔍 [ParentPlayers] Mis jugadores encontrados:', myPlayers.length, myPlayers.map(p => p.nombre));
+      console.log('🔍 [ParentPlayers] Mis jugadores encontrados:', myPlayers.length, '(padre:', byPadre.length, 'tutor2:', byTutor2.length, 'jugador:', byJugador.length, ')');
       
       // Si permitir_renovaciones está activo, mostrar activos + pendientes (NO los que dijeron no_renueva)
       // Si no, solo mostrar los ACTIVOS
@@ -129,41 +133,43 @@ export default function ParentPlayers() {
 
 
 
+  const playerIds = players.map(p => p.id);
   const { data: payments } = useQuery({
-    queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list('-created_date'),
-    initialData: [],
-    staleTime: 60000, // 1 minuto
-    gcTime: 300000,
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: callups } = useQuery({
-    queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
+    queryKey: ['myPayments', playerIds.join(',')],
+    queryFn: async () => {
+      if (!playerIds.length) return [];
+      return base44.entities.Payment.filter({ jugador_id: { $in: playerIds }, is_deleted: { $ne: true } }, '-created_date');
+    },
+    enabled: playerIds.length > 0,
     initialData: [],
     staleTime: 60000,
     gcTime: 300000,
     refetchOnWindowFocus: false,
   });
 
-  const { data: evaluations = [] } = useQuery({
-    queryKey: ['playerEvaluations'],
-    queryFn: () => base44.entities.PlayerEvaluation.list('-fecha_evaluacion'),
+  const playerCategories = [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+  const { data: callups } = useQuery({
+    queryKey: ['myCallups', playerCategories.join(',')],
+    queryFn: async () => {
+      if (!playerCategories.length) return [];
+      const results = await Promise.all(
+        playerCategories.map(cat => base44.entities.Convocatoria.filter({ categoria: cat }, '-fecha_partido', 10).catch(() => []))
+      );
+      // Deduplicar por id
+      const map = new Map();
+      results.flat().forEach(c => map.set(c.id, c));
+      return Array.from(map.values());
+    },
+    enabled: playerCategories.length > 0,
     initialData: [],
-    staleTime: 300000,
-    gcTime: 600000,
+    staleTime: 60000,
+    gcTime: 300000,
     refetchOnWindowFocus: false,
   });
 
-  const { data: attendanceRecords = [] } = useQuery({
-    queryKey: ['attendanceRecords'],
-    queryFn: () => base44.entities.Attendance.list('-fecha'),
-    initialData: [],
-    staleTime: 300000,
-    gcTime: 600000,
-    refetchOnWindowFocus: false,
-  });
+  // Evaluaciones y asistencias se cargan bajo demanda en PlayerCard - no descargar todo el club
+  const evaluations = [];
+  const attendanceRecords = [];
 
   const createPlayerMutation = useMutation({
     mutationFn: async ({ playerData, paymentsData }) => {
