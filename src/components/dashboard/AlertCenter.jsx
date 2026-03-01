@@ -106,6 +106,17 @@ const { data: pendingJuniorMessages = 0 } = useQuery({
   refetchInterval: 60000,
 });
 
+const { data: newWebContacts = 0 } = useQuery({
+  queryKey: ['alert-web-contacts'],
+  queryFn: async () => {
+    const contacts = await base44.entities.ContactForm.filter({ estado: "nuevo" });
+    return contacts.length;
+  },
+  enabled: isAdmin,
+  staleTime: 30000,
+  refetchInterval: 30000,
+});
+
 const { data: adminEscalationsCount = 0 } = useQuery({
   queryKey: ['alert-admin-escalations'],
   queryFn: async () => {
@@ -546,6 +557,18 @@ const alerts = [];
         url: createPageUrl("JuniorMailboxAdmin"),
         color: "bg-violet-600",
         priority: 3
+      });
+    }
+
+    if (newWebContacts > 0) {
+      alerts.push({
+        id: "web-contacts",
+        icon: Mail,
+        title: "📋 Nuevos Contactos Web",
+        description: `${newWebContacts} formulario${newWebContacts > 1 ? 's' : ''} de contacto sin gestionar`,
+        url: createPageUrl("WebContacts"),
+        color: "bg-emerald-600",
+        priority: 4
       });
     }
   }
