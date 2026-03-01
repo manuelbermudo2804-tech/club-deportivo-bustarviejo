@@ -204,12 +204,29 @@ async function updateRecentResults(activeConfigs, cookies, base44) {
         );
         
         if (bustMatch) {
-          await base44.asServiceRole.entities.ProximoPartido.update(candidate.id, {
-            jugado: true,
-            goles_local: bustMatch.goles_local,
-            goles_visitante: bustMatch.goles_visitante,
-          });
-          console.log(`[rffmScheduleMonitor] Resultado actualizado: ${candidate.categoria} J${candidate.jornada} → ${bustMatch.goles_local}-${bustMatch.goles_visitante}`);
+          // Safety: skip 0-0 results for matches played today — RFFM often shows 0-0 temporarily
+          // before the real score is uploaded. Only trust 0-0 if the match was at least yesterday.
+          const isZeroZero = bustMatch.goles_local === 0 && bustMatch.goles_visitante === 0;
+          const now = new Date();
+          let matchDateObj = null;
+          if (candidate.fecha_iso) {
+            matchDateObj = new Date(candidate.fecha_iso + 'T23:59:59');
+          } else if (candidate.fecha) {
+            const parts = candidate.fecha.split('/');
+            if (parts.length === 3) matchDateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]), 23, 59, 59);
+          }
+          const isToday = matchDateObj && (now.toDateString() === matchDateObj.toDateString());
+          
+          if (isZeroZero && isToday) {
+            console.log(`[rffmScheduleMonitor] Ignorando resultado 0-0 de hoy (posible resultado pendiente): ${candidate.categoria} J${candidate.jornada}`);
+          } else {
+            await base44.asServiceRole.entities.ProximoPartido.update(candidate.id, {
+              jugado: true,
+              goles_local: bustMatch.goles_local,
+              goles_visitante: bustMatch.goles_visitante,
+            });
+            console.log(`[rffmScheduleMonitor] Resultado actualizado: ${candidate.categoria} J${candidate.jornada} → ${bustMatch.goles_local}-${bustMatch.goles_visitante}`);
+          }
         }
       } catch (e) {
         console.error(`[rffmScheduleMonitor] Error checking result ${candidate.categoria} J${candidate.jornada}:`, e.message);
