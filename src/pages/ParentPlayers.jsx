@@ -668,12 +668,14 @@ Email: cdbustarviejo@gmail.com
       // REFETCH FORZADO para obtener jugadores más actuales (evitar cache)
       console.log('🔄 [ParentPlayers] Refrescando lista de jugadores antes de calcular descuentos...');
       const currentUserForSubmit = await base44.auth.me();
-      const todosJugadoresBD = await base44.entities.Player.filter({
-        '$or': [
-          { email_padre: currentUserForSubmit.email },
-          { email_tutor_2: currentUserForSubmit.email }
-        ]
-      });
+      // Consultas paralelas sin $or para compatibilidad con todos los dispositivos
+      const [_byP, _byT] = await Promise.all([
+        base44.entities.Player.filter({ email_padre: currentUserForSubmit.email }).catch(() => []),
+        base44.entities.Player.filter({ email_tutor_2: currentUserForSubmit.email }).catch(() => []),
+      ]);
+      const _map = new Map();
+      [..._byP, ..._byT].forEach(p => _map.set(p.id, p));
+      const todosJugadoresBD = Array.from(_map.values());
       
       // Calcular descuento por hermano ANTES de mostrar el flujo
       // INCLUIR TODOS LOS JUGADORES DE LA FAMILIA (activos o no, porque pueden estar en proceso de renovación)
