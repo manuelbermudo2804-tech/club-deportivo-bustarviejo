@@ -540,7 +540,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
     { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
     { title: "⚽👧 Fútbol Femenino", url: createPageUrl("FemeninoInterests"), icon: Users },
-    { title: "📩 Contactos Web", url: createPageUrl("ContactRequests"), icon: Mail },
+    { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
 
     // 🖼️ CONTENIDO
     { title: "─ CONTENIDO ─", section: true },
