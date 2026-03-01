@@ -41,12 +41,11 @@ Deno.serve(async (req) => {
       estado: 'nuevo',
     });
 
-    // Enviar email de notificación al admin
+    // Enviar email de notificación al admin via Resend
     try {
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: 'cdbustarviejo@gmail.com',
-        subject: `📋 Nuevo contacto web: ${nombre}`,
-        body: `
+      const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+      if (RESEND_API_KEY) {
+        const emailHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(to right, #ea580c, #16a34a); padding: 20px; border-radius: 12px 12px 0 0;">
               <h2 style="color: white; margin: 0;">📋 Nuevo Contacto desde la Web</h2>
@@ -66,9 +65,18 @@ Deno.serve(async (req) => {
               </table>
               <p style="margin-top: 16px; color: #64748b; font-size: 13px;">Puedes gestionar este contacto desde la app en Contactos Web.</p>
             </div>
-          </div>
-        `,
-      });
+          </div>`;
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'CD Bustarviejo <onboarding@resend.dev>',
+            to: ['cdbustarviejo@gmail.com'],
+            subject: `📋 Nuevo contacto web: ${nombre}`,
+            html: emailHtml
+          })
+        });
+      }
     } catch (emailError) {
       console.error('Error sending notification email:', emailError);
     }
