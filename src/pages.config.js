@@ -165,6 +165,7 @@ import TreasurerFinancialPanel from './pages/TreasurerFinancialPanel';
 import UploadDiagnostics from './pages/UploadDiagnostics';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
+import ContactRequests from './pages/ContactRequests';
 import __Layout from './Layout.jsx';
 
 
@@ -287,6 +288,7 @@ export const PAGES = {
     "UploadDiagnostics": UploadDiagnostics,
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
+    "ContactRequests": ContactRequests,
 }
 
 export const pagesConfig = {
