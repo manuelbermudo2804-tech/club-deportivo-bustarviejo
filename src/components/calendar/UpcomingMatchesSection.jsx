@@ -241,27 +241,7 @@ export default function UpcomingMatchesSection() {
 
   return (
     <div className="space-y-4">
-      {/* Recent Results */}
-      {recentResults.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
-              <Trophy className="w-4.5 h-4.5 text-white" />
-            </div>
-            <div>
-              <h3 className="font-black text-slate-900 text-lg leading-tight">Últimos Resultados</h3>
-              <p className="text-[11px] text-slate-500">{recentResults.length} partido{recentResults.length !== 1 ? 's' : ''} jugado{recentResults.length !== 1 ? 's' : ''}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {recentResults.map((match, idx) => (
-              <RecentResultCard key={match.id || idx} match={match} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
+      {/* Próximos Partidos - PRIMERO */}
       {futureMatches.length > 0 && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
