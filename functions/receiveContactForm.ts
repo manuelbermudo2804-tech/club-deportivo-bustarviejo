@@ -81,6 +81,53 @@ Deno.serve(async (req) => {
       console.error('Error sending notification email:', emailError);
     }
 
+    // Enviar email de confirmación al contacto
+    if (email) {
+      try {
+        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+        if (RESEND_API_KEY) {
+          const confirmHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(to right, #ea580c, #16a34a); padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+                <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="CD Bustarviejo" style="width: 80px; height: 80px; border-radius: 12px; margin-bottom: 8px;">
+                <h2 style="color: white; margin: 0;">¡Gracias por contactar con nosotros!</h2>
+              </div>
+              <div style="background: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                <p style="color: #1e293b; font-size: 16px;">Hola <strong>${nombre}</strong>,</p>
+                <p style="color: #475569;">Hemos recibido tu solicitud de información correctamente. Un miembro de nuestro club se pondrá en contacto contigo lo antes posible.</p>
+                <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                  <p style="margin: 0 0 8px; color: #64748b; font-size: 13px; font-weight: bold;">Resumen de tu solicitud:</p>
+                  ${deporte ? `<p style="margin: 4px 0; color: #334155;">⚽ Deporte: <strong>${deporte}</strong></p>` : ''}
+                  ${categoria ? `<p style="margin: 4px 0; color: #334155;">📋 Categoría: <strong>${categoria}</strong></p>` : ''}
+                  ${disponibilidad ? `<p style="margin: 4px 0; color: #334155;">🕐 Disponibilidad: <strong>${disponibilidad}</strong></p>` : ''}
+                </div>
+                <p style="color: #475569;">Mientras tanto, puedes seguirnos en nuestras redes sociales:</p>
+                <p style="text-align: center; font-size: 20px;">
+                  <a href="https://www.cdbustarviejo.com" style="text-decoration: none;">🌍</a>&nbsp;&nbsp;
+                  <a href="https://www.instagram.com/cdbustarviejo/" style="text-decoration: none;">📸</a>&nbsp;&nbsp;
+                  <a href="https://www.facebook.com/cdbustarviejo/" style="text-decoration: none;">👍</a>&nbsp;&nbsp;
+                  <a href="https://x.com/CDBustarviejo" style="text-decoration: none;">🐦</a>
+                </p>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;">
+                <p style="color: #94a3b8; font-size: 12px; text-align: center;">Club Deportivo Bustarviejo · Desde 1989</p>
+              </div>
+            </div>`;
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from: 'CD Bustarviejo <onboarding@resend.dev>',
+              to: [email],
+              subject: '¡Gracias por contactar con CD Bustarviejo! ⚽',
+              html: confirmHtml
+            })
+          });
+        }
+      } catch (confirmError) {
+        console.error('Error sending confirmation email:', confirmError);
+      }
+    }
+
     return Response.json({ success: true, id: record.id }, {
       headers: { 'Access-Control-Allow-Origin': '*' },
     });
