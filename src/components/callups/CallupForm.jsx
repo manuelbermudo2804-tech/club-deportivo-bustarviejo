@@ -167,6 +167,11 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     }
   }, [currentCallup.local_visitante, currentCallup.rival, manualLocationEdit]);
 
+  // Calcular jugadores morosos (pagos vencidos)
+  const paymentBlockEnabled = seasonConfig?.bloqueo_convocatorias_impago === true;
+  const diasGracia = seasonConfig?.dias_gracia_convocatoria ?? 14;
+  const overduePlayerIds = paymentBlockEnabled ? getOverduePlayerIds(players, payments, diasGracia) : new Set();
+
   // Filtrar jugadores no disponibles (lesionados/sancionados)
   const availablePlayers = players.filter(p => !p.lesionado && !p.sancionado);
   const unavailablePlayers = players.filter(p => p.lesionado || p.sancionado);
