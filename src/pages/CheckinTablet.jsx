@@ -23,7 +23,13 @@ export default function CheckinTablet() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(u => {
+      setUser(u);
+      // Si es tablet y no tiene categoría seleccionada, ir al picker
+      if (u?.role === 'tablet' && !categoriaParam) {
+        setShowCategoryPicker(true);
+      }
+    }).catch(() => {});
   }, []);
 
   // Cargar categorías con check-in activo
