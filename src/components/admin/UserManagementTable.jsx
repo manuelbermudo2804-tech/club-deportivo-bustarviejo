@@ -33,6 +33,7 @@ export default function UserManagementTable({
   onChatBlock,
   onPairParents,
   onSetCargoJunta,
+  onChangeRole,
   onRestrictAccess,
   onDeleteUser,
   onSendInstallReminder,
@@ -324,6 +325,11 @@ export default function UserManagementTable({
                         <DropdownMenuItem onClick={() => setExpandedUser(user.id)}>
                           👁️ Ver detalles
                         </DropdownMenuItem>
+                        {onChangeRole && (
+                          <DropdownMenuItem onClick={() => onChangeRole(user)}>
+                            🛡️ Cambiar rol ({user.role || 'user'})
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => onChatBlock(user)}>
                           💬 Gestionar chat
                         </DropdownMenuItem>
