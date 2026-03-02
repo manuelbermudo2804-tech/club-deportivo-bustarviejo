@@ -270,10 +270,38 @@ export default function CalendarAndSchedules() {
       color: 'blue',
     }));
 
-    return [...eventItems, ...callupItems].sort((a, b) => 
+    // Add ProximoPartido entries that don't already have a matching callup
+    const callupDates = new Set(callupItems.map(c => `${c.category}|${c.date}`));
+    const norm = (s) => (s || '').trim().toLowerCase();
+    const matchItems = (proximosPartidos || [])
+      .filter(m => m.fecha_iso && inSeason(m.fecha_iso))
+      .filter(m => {
+        // Skip if there's already a callup for this category+date
+        return !callupDates.has(`${m.categoria}|${m.fecha_iso}`);
+      })
+      .map(m => {
+        const isLocal = norm(m.local).includes('bustarviejo');
+        const rival = isLocal ? m.visitante : m.local;
+        return {
+          id: `proximo-${m.id}`,
+          type: 'match',
+          date: m.fecha_iso,
+          title: `⚽ J${m.jornada || '?'} vs ${rival}`,
+          category: m.categoria,
+          categoria: m.categoria,
+          rival,
+          ubicacion: m.campo,
+          hora_partido: m.hora,
+          jornada: m.jornada,
+          local_visitante: isLocal ? 'Local' : 'Visitante',
+          color: 'green',
+        };
+      });
+
+    return [...eventItems, ...callupItems, ...matchItems].sort((a, b) => 
       a.date.localeCompare(b.date)
     );
-  }, [events, visibleCallups, isAdmin]);
+  }, [events, visibleCallups, proximosPartidos, isAdmin]);
 
   const filteredItems = allCalendarItems.filter(item => {
     const matchesType = typeFilter === "all" || 
