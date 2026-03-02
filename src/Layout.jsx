@@ -999,10 +999,10 @@ export default function Layout({ children, currentPageName }) {
       setOnboardingView('none');
     }, [user]);
 
-    // Activar motores en diferido para evitar ráfaga de llamadas
+    // Activar motores en diferido para evitar ráfaga de llamadas (aumentado a 5s)
     useEffect(() => {
       if (!isLoading && user) {
-        const id = setTimeout(() => setEnginesReady(true), 2000);
+        const id = setTimeout(() => setEnginesReady(true), 5000);
         return () => clearTimeout(id);
       }
     }, [isLoading, user]);
@@ -1013,12 +1013,13 @@ export default function Layout({ children, currentPageName }) {
     const stageMultiplier = isLowEndDevice ? 1.8 : 1;
     const [enginesStage4Ready, setEnginesStage4Ready] = useState(false);
     const [enginesStage5Ready, setEnginesStage5Ready] = useState(false);
+    // Escalonar engines con delays más conservadores para no sobrecargar al inicio
     useEffect(() => {
       if (!enginesReady) return;
-      const t2 = setTimeout(() => setEnginesStage2Ready(true), 2000 * stageMultiplier);
-      const t3 = setTimeout(() => setEnginesStage3Ready(true), 5000 * stageMultiplier);
-      const t4 = setTimeout(() => setEnginesStage4Ready(true), 8000 * stageMultiplier);
-      const t5 = setTimeout(() => setEnginesStage5Ready(true), 13000 * stageMultiplier);
+      const t2 = setTimeout(() => setEnginesStage2Ready(true), 4000 * stageMultiplier);
+      const t3 = setTimeout(() => setEnginesStage3Ready(true), 8000 * stageMultiplier);
+      const t4 = setTimeout(() => setEnginesStage4Ready(true), 14000 * stageMultiplier);
+      const t5 = setTimeout(() => setEnginesStage5Ready(true), 20000 * stageMultiplier);
       return () => { clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
     }, [enginesReady]);
 
