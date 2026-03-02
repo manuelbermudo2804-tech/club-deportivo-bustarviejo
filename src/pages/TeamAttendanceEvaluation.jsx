@@ -13,6 +13,7 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import PlayerAttendanceRow from "../components/attendance/PlayerAttendanceRow";
 import AttendanceLiveStats from "../components/attendance/AttendanceLiveStats";
 import AttendanceConfig from "../components/attendance/AttendanceConfig";
+import CheckinGrid from "../components/attendance/CheckinGrid";
 
 // Lazy load: el gráfico pesa mucho (recharts) y no se necesita al inicio
 const AttendanceStatsChart = lazy(() => import("../components/attendance/AttendanceStatsChart"));
@@ -30,6 +31,7 @@ export default function TeamAttendanceEvaluation() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [showChart, setShowChart] = useState(false);
+  const [checkinMode, setCheckinMode] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -56,6 +58,43 @@ export default function TeamAttendanceEvaluation() {
     initialData: [],
     staleTime: 5 * 60 * 1000, // 5 min cache
   });
+
+  // Cargar configuración de categorías para check-in automático
+  const { data: categoryConfigs } = useQuery({
+    queryKey: ['categoryConfigs'],
+    queryFn: () => base44.entities.CategoryConfig.filter({ activa: true }),
+    initialData: [],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Cargar horarios de entrenamiento para saber hora inicio
+  const { data: trainingSchedules } = useQuery({
+    queryKey: ['trainingSchedules'],
+    queryFn: () => base44.entities.TrainingSchedule.filter({ activo: true }),
+    initialData: [],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Obtener config de la categoría seleccionada
+  const currentCategoryConfig = useMemo(() => 
+    categoryConfigs.find(c => c.nombre === selectedCategory),
+    [categoryConfigs, selectedCategory]
+  );
+
+  // Detectar si check-in está activo para esta categoría
+  useEffect(() => {
+    setCheckinMode(!!currentCategoryConfig?.checkin_automatico);
+  }, [currentCategoryConfig]);
+
+  // Obtener hora de inicio del entrenamiento de hoy
+  const todayTrainingTime = useMemo(() => {
+    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const today = dayNames[new Date(selectedDate).getDay()];
+    const schedule = trainingSchedules.find(s => 
+      s.categoria === selectedCategory && s.dia_semana === today
+    );
+    return schedule?.hora_inicio || null;
+  }, [trainingSchedules, selectedCategory, selectedDate]);
 
   // Solo cargar asistencias de la categoría seleccionada, con filter en servidor
   const { data: attendances } = useQuery({
@@ -299,11 +338,32 @@ export default function TeamAttendanceEvaluation() {
     setHasUnsavedChanges(true);
   }, []);
 
+  // Handler para check-in desde la cuadrícula
+  const handleCheckin = useCallback((playerId, estado, horaCheckin) => {
+    setSessionData(prev => {
+      if (!estado) {
+        // Toggle off: quitar check-in
+        const { [playerId]: _, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [playerId]: { 
+          ...(prev[playerId] || {}), 
+          asistencia: estado, 
+          hora_checkin: horaCheckin 
+        }
+      };
+    });
+    setHasUnsavedChanges(true);
+  }, []);
+
   const handleSave = useCallback(() => {
     const asistencias = categoryPlayers.map(p => ({
       jugador_id: p.id,
       jugador_nombre: p.nombre,
       estado: sessionData[p.id]?.asistencia || "ausente",
+      hora_checkin: sessionData[p.id]?.hora_checkin || null,
       actitud: sessionData[p.id]?.actitud || null,
       observaciones: sessionData[p.id]?.observaciones || ""
     }));
@@ -312,6 +372,7 @@ export default function TeamAttendanceEvaluation() {
       categoria: selectedCategory,
       entrenador_email: user.email,
       entrenador_nombre: user.full_name,
+      modo_checkin: checkinMode,
       asistencias,
       observaciones_generales: generalNotes
     });
@@ -429,11 +490,35 @@ export default function TeamAttendanceEvaluation() {
         isSendingReports={sendReportsMutation.isPending}
       />
 
-      {/* Lista de jugadores */}
+      {/* Lista de jugadores - modo check-in o modo manual */}
       {categoryPlayers.length === 0 ? (
         <div className="text-center py-8 bg-white rounded-xl shadow-sm">
           <p className="text-slate-500 text-sm">No hay jugadores en este equipo</p>
         </div>
+      ) : checkinMode ? (
+        <>
+          <CheckinGrid
+            players={categoryPlayers}
+            sessionData={sessionData}
+            trainingStartTime={todayTrainingTime}
+            minutesTardanza={currentCategoryConfig?.checkin_minutos_tardanza || 10}
+            onCheckin={handleCheckin}
+          />
+          {/* Después del check-in, evaluación manual */}
+          <div className="mt-4 space-y-2">
+            <p className="text-sm font-semibold text-slate-700">📝 Evaluación post-entrenamiento (opcional):</p>
+            {categoryPlayers.filter(p => sessionData[p.id]?.asistencia === 'presente' || sessionData[p.id]?.asistencia === 'tardanza').map((player) => (
+              <PlayerAttendanceRow
+                key={player.id}
+                player={player}
+                data={sessionData[player.id]}
+                history={playerHistory[player.id]}
+                onChange={handleChange}
+                onReport={handleOpenIndividualReport}
+              />
+            ))}
+          </div>
+        </>
       ) : (
         <div className="space-y-2">
           {categoryPlayers.map((player) => (
