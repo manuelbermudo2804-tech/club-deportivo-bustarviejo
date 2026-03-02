@@ -54,7 +54,7 @@ function PlayerTile({ player, status, horaCheckin, onTap }) {
       {horaCheckin && (
         <span className="text-[10px] text-slate-500 mt-0.5">{horaCheckin}</span>
       )}
-    </button>
+    </div>
   );
 }
 
