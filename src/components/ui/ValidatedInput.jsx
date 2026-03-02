@@ -11,6 +11,7 @@ export default function ValidatedInput({
   onValidationChange,
   className = "",
   required = false,
+  id,
   ...props
 }) {
   const [error, setError] = useState(null);
@@ -42,7 +43,6 @@ export default function ValidatedInput({
   const handleChange = (e) => {
     let newValue = e.target.value;
     
-    // Aplicar formateador si existe
     if (validationType && formatters[validationType]) {
       newValue = formatters[validationType](newValue);
     }
@@ -57,6 +57,7 @@ export default function ValidatedInput({
   return (
     <div className="relative">
       <Input
+        id={id}
         type={type}
         value={value}
         onChange={handleChange}
