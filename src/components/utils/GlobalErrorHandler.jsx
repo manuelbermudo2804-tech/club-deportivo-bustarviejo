@@ -98,7 +98,7 @@ export default function GlobalErrorHandler() {
       try {
         const msg = (e && e.message) || '';
         if (!msg) return; // errores de recursos (imágenes, fuentes) — no tienen mensaje
-        if (/ChunkLoad|Loading chunk|Failed to fetch dynamically/i.test(msg)) return; // se manejan aparte con reload
+        if (/ChunkLoad|Loading chunk|Failed to fetch dynamically|ResizeObserver/i.test(msg)) return; // se manejan aparte
         logToStorage('global_js_error', msg);
         // Solo mostrar banner para errores que no sean de recursos externos
         const isScriptError = !e.filename || /\.(js|jsx|ts|tsx)/.test(e.filename) || e.filename === '';
@@ -112,7 +112,7 @@ export default function GlobalErrorHandler() {
         const reason = e && e.reason;
         const msg = (reason && (reason.message || String(reason))) || 'Promise rejected';
         // Ignorar errores conocidos y manejados por otros sistemas
-        if (/ChunkLoad|Loading chunk|rate.?limit|429|Network request failed/i.test(msg)) return;
+        if (/ChunkLoad|Loading chunk|rate.?limit|429|Network request failed|ResizeObserver|Non-Error promise rejection/i.test(msg)) return;
         logToStorage('unhandled_rejection', msg);
         // Solo mostrar banner si parece error de subida o fatal de app
         if (/upload|processImage|UploadFile|TypeError|ReferenceError|unexpected|null.*property/i.test(msg)) {

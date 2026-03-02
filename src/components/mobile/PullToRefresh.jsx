@@ -37,8 +37,11 @@ export default function PullToRefresh({ children }) {
     if (pullDistance >= THRESHOLD) {
       setRefreshing(true);
       setPullDistance(THRESHOLD);
-      await queryClient.invalidateQueries();
-      await new Promise(r => setTimeout(r, 500));
+      // Solo invalidar queries de la página actual, no todas (evita ráfaga masiva en móviles lentos)
+      try {
+        await queryClient.invalidateQueries({ refetchType: 'active' });
+      } catch {}
+      await new Promise(r => setTimeout(r, 400));
       setRefreshing(false);
     }
     setPullDistance(0);

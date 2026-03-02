@@ -156,9 +156,12 @@ export function ChatUnreadProvider({ user, children }) {
     };
     const subscribe = (entity) => {
       try {
+        if (!base44.entities[entity]?.subscribe) return;
         const unsub = base44.entities[entity].subscribe(() => { debouncedFetch(); });
-        unsubs.push(unsub);
-      } catch {}
+        if (typeof unsub === 'function') unsubs.push(unsub);
+      } catch (e) {
+        console.warn(`[ChatUnreadProvider] subscribe ${entity} failed:`, e?.message);
+      }
     };
     ["ChatMessage","CoordinatorMessage","StaffMessage","PrivateMessage"].forEach(subscribe);
     return () => {

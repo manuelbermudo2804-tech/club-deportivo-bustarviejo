@@ -7,23 +7,31 @@ class RequestThrottler {
   constructor(maxConcurrent = 1, delayMs = 200) {
     this.maxConcurrent = maxConcurrent;
     this.delayMs = delayMs;
-    this.queue = [];
     this.active = 0;
+    this._queue = [];
   }
 
-  async execute(fn) {
-    // Si estamos en el límite, esperar
-    while (this.active >= this.maxConcurrent) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+  execute(fn) {
+    return new Promise((resolve, reject) => {
+      this._queue.push({ fn, resolve, reject });
+      this._drain();
+    });
+  }
 
+  async _drain() {
+    if (this.active >= this.maxConcurrent || this._queue.length === 0) return;
     this.active++;
+    const { fn, resolve, reject } = this._queue.shift();
     try {
       const result = await fn();
-      await new Promise(resolve => setTimeout(resolve, this.delayMs));
-      return result;
+      resolve(result);
+    } catch (e) {
+      reject(e);
     } finally {
+      // Small delay between requests to avoid bursts
+      await new Promise(r => setTimeout(r, this.delayMs));
       this.active--;
+      this._drain();
     }
   }
 }
