@@ -708,6 +708,8 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
             isSubmitting={createCallupMutation.isPending || updateCallupMutation.isPending}
             userSuggestionsEnabled={suggestionsEnabled}
             onToggleSuggestions={handleToggleSuggestions}
+            payments={allPayments}
+            seasonConfig={activeSeasonConfig}
           />
           </div>
         )}
