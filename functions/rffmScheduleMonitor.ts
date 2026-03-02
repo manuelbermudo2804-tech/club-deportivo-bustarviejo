@@ -123,16 +123,19 @@ function parseJornadaMatches(html) {
   return matches;
 }
 
-async function findNextMatch(url, cookies) {
+async function findNextMatch(url, cookies, lastKnownJornada) {
   const p = extractParams(url);
-  // Only scan 15 jornadas max, starting from a reasonable point
-  // First detect total, then scan backwards from last played +1
-  const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
-  const total = detectTotalJornadas(j1Html);
+  // Start from last known jornada (from ProximoPartido) to avoid scanning played jornadas
+  const startFrom = Math.max(1, (lastKnownJornada || 1) - 1); // -1 as safety margin
   
-  // Quick scan: check last few jornadas to find where we are
-  for (let j = 1; j <= Math.min(total, 30); j++) {
-    const html = j === 1 ? j1Html : await fetchPage(buildJornadaUrl(p, j), cookies);
+  // First fetch to detect total jornadas
+  const firstHtml = await fetchPage(buildJornadaUrl(p, startFrom), cookies);
+  const total = detectTotalJornadas(firstHtml);
+  
+  // Scan from startFrom onwards (max 8 jornadas ahead should be enough)
+  const maxScan = Math.min(total, startFrom + 8);
+  for (let j = startFrom; j <= maxScan; j++) {
+    const html = j === startFrom ? firstHtml : await fetchPage(buildJornadaUrl(p, j), cookies);
     const matches = parseJornadaMatches(html);
     const bust = matches.find(m =>
       !m.jugado &&
