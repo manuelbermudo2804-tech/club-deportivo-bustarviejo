@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 // 9 categorías BASE que NUNCA pueden ser eliminadas
@@ -328,6 +329,7 @@ export default function CategoryConfigAdmin() {
                 <tr>
                   <th className="px-4 py-2 text-left font-bold text-slate-900">Categoría</th>
                   <th className="px-4 py-2 text-center font-bold text-slate-900">Liga</th>
+                  <th className="px-4 py-2 text-center font-bold text-slate-900">📲 Check-in</th>
                   <th className="px-4 py-2 text-right font-bold text-slate-900">Inscripción</th>
                   <th className="px-4 py-2 text-right font-bold text-slate-900">2ª Cuota</th>
                   <th className="px-4 py-2 text-right font-bold text-slate-900">3ª Cuota</th>
@@ -349,6 +351,12 @@ export default function CategoryConfigAdmin() {
                       >
                         {cat.compite_en_liga ? '⚽ Sí' : 'No'}
                       </button>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <Switch
+                        checked={!!cat.checkin_automatico}
+                        onCheckedChange={(v) => updateCategoryMutation.mutate({ id: cat.id, data: { checkin_automatico: v } })}
+                      />
                     </td>
                     <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
                     <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
@@ -385,6 +393,9 @@ export default function CategoryConfigAdmin() {
           <p className="text-xs text-green-700 mt-3">
             🔒 Las 9 categorías BASE nunca pueden ser eliminadas. Solo puedes editar sus precios. 
             Al resetear la temporada, estos precios se copian automáticamente a la nueva temporada.
+          </p>
+          <p className="text-xs text-blue-700 mt-1">
+            📲 <strong>Check-in:</strong> Activa el switch para que los jugadores se registren tocando su foto en la tablet. El entrenador verá la asistencia pre-rellenada.
           </p>
         </CardContent>
       </Card>
