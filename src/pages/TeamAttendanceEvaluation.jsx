@@ -676,6 +676,12 @@ Email: cdbustarviejo@gmail.com
               Marcar todos presentes
             </Button>
           )}
+          {liveStats.presente > 0 && (
+            <Button size="sm" variant="outline" onClick={handleDefaultEvaluation} className="h-7 text-xs border-yellow-300 text-yellow-700 hover:bg-yellow-50">
+              <Star className="w-3 h-3 mr-1" />
+              Evaluar todos 3/5
+            </Button>
+          )}
         </div>
       )}
 
