@@ -28,13 +28,13 @@ export default function Home() {
   const queriesEnabled = !!user && !realtimePaused;
 
   const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
+    queryKey: ['activeSeasonConfig'],
     queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
+      const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+      return configs[0] || null;
     },
-    staleTime: 300000, // 5 minutos
-    gcTime: 600000, // 10 minutos
+    staleTime: 600000, // 10 minutos - reutiliza cache con Layout/SeasonProvider
+    gcTime: 900000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
