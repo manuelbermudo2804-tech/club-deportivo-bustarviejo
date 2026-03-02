@@ -20,8 +20,8 @@ import {
 } from "lucide-react";
 import ReferralConfigCard from "../components/referrals/ReferralConfigCard";
 import CategoryCleanupTool from "../components/financial/CategoryCleanupTool";
+import FeatureControlSection from "../components/season/FeatureControlSection";
 import { Euro } from "lucide-react";
-
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
