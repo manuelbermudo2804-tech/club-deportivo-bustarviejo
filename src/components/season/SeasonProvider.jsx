@@ -44,8 +44,11 @@ export function SeasonProvider({ children, externalConfig }) {
     }
   };
 
+  // Solo cargar de BD si no hay externalConfig (evita llamada duplicada con useFetchUser)
   useEffect(() => {
-    loadActiveConfig();
+    if (externalConfig === undefined || externalConfig === null) {
+      loadActiveConfig();
+    }
   }, []);
 
   const activeSeason = useMemo(() => {
