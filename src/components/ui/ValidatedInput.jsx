@@ -3,15 +3,15 @@ import { Input } from "./input";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { validators, formatters } from "../utils/validators";
 
-export default function ValidatedInput({ 
-  type = "text", 
-  validationType, 
-  value, 
-  onChange, 
+export default function ValidatedInput({
+  type = "text",
+  validationType,
+  value,
+  onChange,
   onValidationChange,
   className = "",
   required = false,
-  ...props 
+  ...props
 }) {
   const [error, setError] = useState(null);
   const [isValid, setIsValid] = useState(false);
