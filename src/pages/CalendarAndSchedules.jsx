@@ -567,6 +567,11 @@ export default function CalendarAndSchedules() {
                                 ⚽ Partido
                               </div>
                             ))}
+                            {callupsForDay.length === 0 && matchesForDay.slice(0, 1).map((m, idx) => (
+                              <div key={`match-${idx}`} className="text-[10px] lg:text-xs px-1.5 py-1 rounded bg-green-600 text-white font-semibold truncate">
+                                ⚽ Partido
+                              </div>
+                            ))}
                             {eventsForDay.filter(e => e.importante).slice(0, 1).map((e, idx) => (
                               <div key={`important-${idx}`} className="text-[10px] lg:text-xs px-1.5 py-1 rounded bg-red-600 text-white font-semibold truncate">
                                 ⭐ {e.titulo.substring(0, 10)}
