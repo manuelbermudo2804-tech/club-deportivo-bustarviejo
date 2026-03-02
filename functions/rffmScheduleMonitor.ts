@@ -277,14 +277,22 @@ Deno.serve(async (req) => {
     // 2c. Get all ProximoPartido for sync
     const allProximos = await base44.asServiceRole.entities.ProximoPartido.list('-updated_date', 200);
 
-    // 3. Check ALL categories with RFFM URLs (not just those with callups)
-    for (const config of activeConfigs) {
+    // Build map of last known jornada per category (to skip already-scanned jornadas)
+    const lastJornadaByCategory = {};
+    for (const p of allProximos) {
+      const current = lastJornadaByCategory[p.categoria] || 0;
+      if (p.jornada && p.jornada > current) lastJornadaByCategory[p.categoria] = p.jornada;
+    }
+
+    // 3. Process categories in parallel (batches of 3 to avoid overloading RFFM)
+    const processCategory = async (config) => {
       try {
         const url = config.rfef_results_url || config.rfef_url;
+        const lastKnown = lastJornadaByCategory[config.categoria] || 1;
         
-        const result = await findNextMatch(url, cookies);
+        const result = await findNextMatch(url, cookies, lastKnown);
         const match = result?.match;
-        if (!match) continue;
+        if (!match) return null;
 
         const jornada = result?.jornada;
 
