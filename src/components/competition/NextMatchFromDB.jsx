@@ -17,12 +17,14 @@ function formatDate(dateStr) {
 export default function NextMatchFromDB({ category, standings }) {
   const { data: matches } = useQuery({
     queryKey: ['proximo-partido-db', category],
-    queryFn: () => base44.entities.ProximoPartido.filter({ categoria: category }, '-updated_date', 1),
+    queryFn: () => base44.entities.ProximoPartido.filter({ categoria: category, jugado: false }, 'fecha_iso', 10),
     staleTime: 5 * 60_000,
     gcTime: 30 * 60_000,
   });
 
-  const match = matches?.[0];
+  // Pick the earliest future match
+  const today = new Date().toISOString().split('T')[0];
+  const match = (matches || []).find(m => m.fecha_iso >= today);
   if (!match) return null;
 
   const isLocal = match.local?.toUpperCase().includes("BUSTARVIEJO");
