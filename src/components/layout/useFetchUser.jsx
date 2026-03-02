@@ -104,6 +104,17 @@ export function useFetchUser(location) {
       }
 
       setUser(currentUser);
+
+      // Rol tablet → redirigir directo al check-in sin más lógica
+      if (currentUser.role === 'tablet') {
+        setIsLoading(false);
+        const currentPath = window.location.pathname.toLowerCase();
+        if (!currentPath.includes('checkintablet')) {
+          window.location.href = createPageUrl('CheckinTablet');
+        }
+        return;
+      }
+
       setIsAdmin(currentUser.role === "admin");
       setIsCoach(currentUser.es_entrenador === true);
       setIsCoordinator(currentUser.es_coordinador === true);

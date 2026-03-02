@@ -1044,6 +1044,11 @@ export default function Layout({ children, currentPageName }) {
   const isPublicAnon = isPublicPage && !isLoading && !user;
   const isPublicLoading = isPublicPage && isLoading;
 
+  // Rol tablet → mostrar solo la página sin layout
+  if (user?.role === 'tablet') {
+    return <div className="min-h-screen">{children}</div>;
+  }
+
   // AHORA SÍ - todos los returns condicionales DESPUÉS de TODOS los hooks
   if (isLoading && !isPublicPageRef.current) {
     return (
