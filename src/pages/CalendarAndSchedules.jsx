@@ -540,7 +540,8 @@ export default function CalendarAndSchedules() {
                   const isToday = isSameDay(day, new Date());
                   const eventsForDay = dayItems.filter(i => i.type === 'event');
                   const callupsForDay = dayItems.filter(i => i.type === 'callup');
-                  const totalItems = eventsForDay.length + callupsForDay.length;
+                  const matchesForDay = dayItems.filter(i => i.type === 'match');
+                  const totalItems = eventsForDay.length + callupsForDay.length + matchesForDay.length;
 
                   return (
                     <div
