@@ -380,17 +380,18 @@ Deno.serve(async (req) => {
           });
 
           created.push({ categoria: config.categoria, rival, jornada, fecha: matchDate });
-          continue;
+          return null;
         }
 
         // --- Existing callup: check for changes ---
+        if (!callup) return null; // existingForJornada exists but no open callup to update
         const dateChanged = matchDate && callup.fecha_partido !== matchDate;
         const timeChanged = match.hora && callup.hora_partido !== match.hora;
         const venueChanged = match.campo && callup.ubicacion && 
           !callup.ubicacion.toUpperCase().includes(match.campo.toUpperCase()) &&
           !match.campo.toUpperCase().includes(callup.ubicacion.toUpperCase());
 
-        if (!dateChanged && !timeChanged && !venueChanged) continue;
+        if (!dateChanged && !timeChanged && !venueChanged) return null;
 
         // Something changed! Build update data
         const updateData = {};
