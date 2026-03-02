@@ -562,6 +562,17 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               onToggleEnabled={handleToggleSuggestions}
             />
 
+            {/* Jugadores con pagos vencidos */}
+            {paymentBlockEnabled && overduePlayerIds.size > 0 && (
+              <Alert className="bg-red-50 border-red-300">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-800 text-sm">
+                  <strong>💸 {overduePlayerIds.size} jugador(es) con pagos vencidos</strong> (más de {diasGracia} días de gracia).
+                  Aparecen marcados y no están seleccionados por defecto. Puedes incluirlos manualmente si lo consideras necesario.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Jugadores No Disponibles */}
             {unavailablePlayers.length > 0 && (
               <Alert className="bg-amber-50 border-amber-300">
