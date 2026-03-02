@@ -43,12 +43,26 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`[autoCloseCallups] Deleted ${deleted.length} drafts, closed ${closed.length} published callups`);
+    // Also clean up old ProximoPartido records (played matches older than 7 days)
+    const allProximos = await base44.asServiceRole.entities.ProximoPartido.list('-updated_date', 200);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+    let proximosCleaned = 0;
+    for (const p of allProximos) {
+      if (p.jugado && p.fecha_iso && p.fecha_iso < sevenDaysAgoStr) {
+        await base44.asServiceRole.entities.ProximoPartido.delete(p.id);
+        proximosCleaned++;
+      }
+    }
+
+    console.log(`[autoCloseCallups] Deleted ${deleted.length} drafts, closed ${closed.length} published callups, cleaned ${proximosCleaned} old ProximoPartido`);
 
     return Response.json({
       success: true,
       deleted: deleted.length,
       closed: closed.length,
+      proximosCleaned,
       details: { deleted, closed },
       timestamp: new Date().toISOString(),
     });
