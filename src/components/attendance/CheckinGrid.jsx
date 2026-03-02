@@ -19,11 +19,19 @@ function PlayerTile({ player, status, horaCheckin, onTap }) {
     ? '😅' 
     : null;
 
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isChecked) {
+      onTap(player);
+    }
+  };
+
   return (
-    <button
-      onClick={() => !isChecked && onTap(player)}
-      disabled={isChecked}
-      className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all duration-150 ${bgColor} min-h-[140px] select-none ${isChecked ? 'cursor-default' : 'cursor-pointer'}`}
+    <div
+      role="button"
+      onClick={handleClick}
+      className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all duration-150 ${bgColor} min-h-[140px] select-none ${isChecked ? 'cursor-default opacity-80' : 'cursor-pointer'}`}
     >
       {emoji && (
         <div className="absolute top-1 right-1 text-2xl">{emoji}</div>

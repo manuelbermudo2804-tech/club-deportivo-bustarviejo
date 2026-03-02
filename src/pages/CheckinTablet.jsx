@@ -114,22 +114,28 @@ export default function CheckinTablet() {
       });
   }, [allSchedules, categoryConfigs, now]);
 
-  // Determine active session: the one whose window is open (15 min before start until next one opens or end+15)
+  // Determine active session: pick the session whose window is open NOW
+  // Priority: prefer the session that hasn't started yet (upcoming), then the one in progress
   const currentSession = useMemo(() => {
     const currentMin = nowMinutes();
-    // Find the session that should be active NOW
-    for (let i = todaySessions.length - 1; i >= 0; i--) {
-      const s = todaySessions[i];
-      if (currentMin >= s._openMinutes) {
-        // Check if it hasn't ended too long ago (end + 15 min grace)
-        if (currentMin <= s._endMinutes + 15) {
-          return s;
-        }
-        // If it ended but no next session, still show idle
-        return null;
-      }
+    
+    // Find all sessions whose window is currently open
+    const activeSessions = todaySessions.filter(s => 
+      currentMin >= s._openMinutes && currentMin <= s._endMinutes + 15
+    );
+    
+    if (activeSessions.length === 0) return null;
+    
+    // If multiple sessions overlap, prefer the one that hasn't ended yet
+    // Among those, prefer the one starting soonest (or most recently started)
+    const notEnded = activeSessions.filter(s => currentMin <= s._endMinutes);
+    if (notEnded.length > 0) {
+      // Pick the one with the latest start time (the "newest" session)
+      return notEnded[notEnded.length - 1];
     }
-    return null;
+    
+    // All ended but within grace period - pick the latest one
+    return activeSessions[activeSessions.length - 1];
   }, [todaySessions, now]);
 
   // Next upcoming session (for idle screen)
