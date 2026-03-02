@@ -65,6 +65,7 @@ import ChatAnalyticsDashboard from './pages/ChatAnalyticsDashboard';
 import ChatNotificationAuditPage from './pages/ChatNotificationAuditPage';
 import ChatTestConsole from './pages/ChatTestConsole';
 import Chatbot from './pages/Chatbot';
+import CheckinTablet from './pages/CheckinTablet';
 import ClubMembersManagement from './pages/ClubMembersManagement';
 import ClubMembership from './pages/ClubMembership';
 import ClubStats from './pages/ClubStats';
@@ -141,8 +142,8 @@ import Payments from './pages/Payments';
 import PaymentsDashboard from './pages/PaymentsDashboard';
 import PlayerDashboard from './pages/PlayerDashboard';
 import PlayerEvaluations from './pages/PlayerEvaluations';
-import PlayerProfile from './pages/PlayerProfile';
 import Players from './pages/Players';
+import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import PlayerStatsPreview from './pages/PlayerStatsPreview';
 import PwaEntry from './pages/PwaEntry';
@@ -167,7 +168,6 @@ import UploadDiagnostics from './pages/UploadDiagnostics';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
 import WebContacts from './pages/WebContacts';
-import CheckinTablet from './pages/CheckinTablet';
 import __Layout from './Layout.jsx';
 
 
@@ -190,6 +190,7 @@ export const PAGES = {
     "ChatNotificationAuditPage": ChatNotificationAuditPage,
     "ChatTestConsole": ChatTestConsole,
     "Chatbot": Chatbot,
+    "CheckinTablet": CheckinTablet,
     "ClubMembersManagement": ClubMembersManagement,
     "ClubMembership": ClubMembership,
     "ClubStats": ClubStats,
@@ -266,8 +267,8 @@ export const PAGES = {
     "PaymentsDashboard": PaymentsDashboard,
     "PlayerDashboard": PlayerDashboard,
     "PlayerEvaluations": PlayerEvaluations,
-    "PlayerProfile": PlayerProfile,
     "Players": Players,
+    "PlayerProfile": PlayerProfile,
     "PlayerRenewal": PlayerRenewal,
     "PlayerStatsPreview": PlayerStatsPreview,
     "PwaEntry": PwaEntry,
@@ -292,7 +293,6 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
     "WebContacts": WebContacts,
-    "CheckinTablet": CheckinTablet,
 }
 
 export const pagesConfig = {
