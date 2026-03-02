@@ -166,7 +166,7 @@ export function ChatUnreadProvider({ user, children }) {
     ["ChatMessage","CoordinatorMessage","StaffMessage","PrivateMessage"].forEach(subscribe);
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
-      unsubs.forEach(fn => { try { fn(); } catch {} });
+      unsubs.forEach(fn => { try { if (typeof fn === 'function') fn(); } catch {} });
     };
   }, [user?.email, fetchCounts]);
 

@@ -397,14 +397,15 @@ export function useUnifiedNotifications(user, options = {}) {
     // ===== ENTRENADORES/COORDINADORES - matchObservations ELIMINADO =====
 
     return () => {
-      unsubscribers.forEach(unsub => unsub());
+      unsubscribers.forEach(unsub => { try { unsub(); } catch {} });
       if (!options?.forceInstance && typeof window !== 'undefined' && isPrimaryInstance) {
         window.__BASE44_UNIFIED_NOTIFICATIONS_ACTIVE = false;
-        }
-        };
-        }, [user, shouldBeActive, forceRefreshKey]);
+      }
+    };
+  }, [user, shouldBeActive, forceRefreshKey]);
 
   // Limpieza automática de notificaciones huérfanas/antiguas (no vistas)
+  // Limitada a max 5 por ciclo para no saturar móviles lentos
   useEffect(() => {
     if (!user) return;
     const cleanup = async () => {
@@ -414,16 +415,15 @@ export function useUnifiedNotifications(user, options = {}) {
           if (!n || n.vista) return false;
           const created = n.created_date ? new Date(n.created_date).getTime() : 0;
           const ageHours = created ? (now - created) / 36e5 : 0;
-          // Regla: notifs de eventos >48h o cualquier notif >30 días
           if ((n.tipo && /event/i.test(n.tipo) && ageHours > 48)) return true;
           if (ageHours > 24 * 30) return true;
           return false;
-        });
+        }).slice(0, 5); // Max 5 por ciclo
         for (const notif of stale) {
           await run(() => base44.entities.AppNotification.update(notif.id, {
             vista: true,
             fecha_vista: new Date().toISOString()
-          }));
+          })).catch(() => {});
         }
       } catch {}
     };
