@@ -1711,10 +1711,11 @@ const handleChatBlock = (user) => {
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">👨‍👩‍👧 Padre/Tutor (acceso completo)</SelectItem>
-                  <SelectItem value="jugador">⚽ Jugador (acceso limitado)</SelectItem>
-                  <SelectItem value="admin">🎓 Administrador (gestión total)</SelectItem>
-                </SelectContent>
+                   <SelectItem value="user">👨‍👩‍👧 Padre/Tutor (acceso completo)</SelectItem>
+                   <SelectItem value="jugador">⚽ Jugador (acceso limitado)</SelectItem>
+                   <SelectItem value="admin">🎓 Administrador (gestión total)</SelectItem>
+                   <SelectItem value="tablet">📲 Tablet Check-in (solo check-in)</SelectItem>
+                 </SelectContent>
               </Select>
             </div>
 
@@ -1758,27 +1759,35 @@ const handleChatBlock = (user) => {
                 {selectedRole === "admin" && "🎓 Administrador - Acceso Total"}
                 {selectedRole === "jugador" && "⚽ Jugador - Acceso Limitado"}
                 {selectedRole === "user" && "👨‍👩‍👧 Padre/Tutor - Acceso Completo"}
+                {selectedRole === "tablet" && "📲 Tablet Check-in - Solo pantalla de asistencia"}
               </p>
               <ul className="text-xs space-y-1">
                 {selectedRole === "admin" && (
-                  <>
-                    <li>✅ Gestión de jugadores, pagos, pedidos, usuarios</li>
-                    <li>✅ Control total de la aplicación</li>
-                  </>
-                )}
-                {selectedRole === "jugador" && (
-                  <>
-                    <li>✅ Ver su perfil, horarios, calendario, anuncios, galería</li>
-                    <li>✅ Chat con equipo y entrenadores</li>
-                    <li>❌ NO puede: gestionar pagos, pedidos ni otros jugadores</li>
-                  </>
-                )}
-                {selectedRole === "user" && (
-                  <>
-                    <li>✅ Gestión de sus jugadores</li>
-                    <li>✅ Pagos, pedidos, chat, calendario, etc.</li>
-                  </>
-                )}
+                   <>
+                     <li>✅ Gestión de jugadores, pagos, pedidos, usuarios</li>
+                     <li>✅ Control total de la aplicación</li>
+                   </>
+                 )}
+                 {selectedRole === "jugador" && (
+                   <>
+                     <li>✅ Ver su perfil, horarios, calendario, anuncios, galería</li>
+                     <li>✅ Chat con equipo y entrenadores</li>
+                     <li>❌ NO puede: gestionar pagos, pedidos ni otros jugadores</li>
+                   </>
+                 )}
+                 {selectedRole === "user" && (
+                   <>
+                     <li>✅ Gestión de sus jugadores</li>
+                     <li>✅ Pagos, pedidos, chat, calendario, etc.</li>
+                   </>
+                 )}
+                 {selectedRole === "tablet" && (
+                   <>
+                     <li>✅ Solo ve la pantalla de check-in de asistencia</li>
+                     <li>✅ Sin menú, sin sidebar, sin acceso a nada más</li>
+                     <li>💡 Ideal para dejar una tablet en el campo</li>
+                   </>
+                 )}
               </ul>
             </div>
           </div>
