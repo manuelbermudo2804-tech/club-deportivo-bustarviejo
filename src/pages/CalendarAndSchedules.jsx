@@ -94,6 +94,12 @@ export default function CalendarAndSchedules() {
     initialData: [],
   });
 
+  const { data: proximosPartidos = [] } = useQuery({
+    queryKey: ['proximos-partidos-calendar'],
+    queryFn: () => base44.entities.ProximoPartido.filter({ jugado: false }, 'fecha_iso', 50),
+    staleTime: 5 * 60_000,
+  });
+
   const { data: players } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.list(),
