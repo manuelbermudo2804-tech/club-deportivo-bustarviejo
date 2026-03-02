@@ -201,10 +201,14 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   };
 
   const handleSelectAll = () => {
-    if (selectedPlayers.length === availablePlayers.length) {
+    // Si hay bloqueo activo, "Seleccionar todos" excluye morosos
+    const selectablePlayers = paymentBlockEnabled
+      ? availablePlayers.filter(p => !overduePlayerIds.has(p.id))
+      : availablePlayers;
+    if (selectedPlayers.length === selectablePlayers.length) {
       setSelectedPlayers([]);
     } else {
-      setSelectedPlayers(availablePlayers.map(p => p.id));
+      setSelectedPlayers(selectablePlayers.map(p => p.id));
     }
   };
 
