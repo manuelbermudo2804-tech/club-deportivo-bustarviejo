@@ -38,9 +38,12 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   });
 
   const [currentCallup, setCurrentCallup] = useState(callup || getInitialState());
-  const [selectedPlayers, setSelectedPlayers] = useState(
-    callup?.jugadores_convocados?.map(j => j.jugador_id) || []
-  );
+  // Para convocatorias nuevas, excluir morosos por defecto (solo si bloqueo activo)
+  const getInitialSelectedPlayers = () => {
+    if (callup?.jugadores_convocados) return callup.jugadores_convocados.map(j => j.jugador_id);
+    return [];
+  };
+  const [selectedPlayers, setSelectedPlayers] = useState(getInitialSelectedPlayers);
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(userSuggestionsEnabled);
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(!!callup?.titulo);
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
