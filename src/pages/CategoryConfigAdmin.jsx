@@ -416,6 +416,7 @@ export default function CategoryConfigAdmin() {
                   <tr>
                     <th className="px-4 py-2 text-left font-bold text-slate-900">Categoría</th>
                     <th className="px-4 py-2 text-center font-bold text-slate-900">Liga</th>
+                    <th className="px-4 py-2 text-center font-bold text-slate-900">📲 Check-in</th>
                     <th className="px-4 py-2 text-right font-bold text-slate-900">Inscripción</th>
                     <th className="px-4 py-2 text-right font-bold text-slate-900">2ª Cuota</th>
                     <th className="px-4 py-2 text-right font-bold text-slate-900">3ª Cuota</th>
@@ -437,6 +438,12 @@ export default function CategoryConfigAdmin() {
                         >
                           {cat.compite_en_liga ? '⚽ Sí' : 'No'}
                         </button>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Switch
+                          checked={!!cat.checkin_automatico}
+                          onCheckedChange={(v) => updateCategoryMutation.mutate({ id: cat.id, data: { checkin_automatico: v } })}
+                        />
                       </td>
                       <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
                       <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
