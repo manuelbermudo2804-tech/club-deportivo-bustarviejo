@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
+// CheckinGrid v2 - tablet kiosk mode
 
 function PlayerTile({ player, status, horaCheckin, onTap }) {
   const initials = (player.nombre || "").split(" ").map(n => n[0]).join("").substring(0, 2);
