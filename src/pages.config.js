@@ -167,6 +167,7 @@ import UploadDiagnostics from './pages/UploadDiagnostics';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
 import WebContacts from './pages/WebContacts';
+import CheckinTablet from './pages/CheckinTablet';
 import __Layout from './Layout.jsx';
 
 
@@ -291,6 +292,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
     "WebContacts": WebContacts,
+    "CheckinTablet": CheckinTablet,
 }
 
 export const pagesConfig = {
