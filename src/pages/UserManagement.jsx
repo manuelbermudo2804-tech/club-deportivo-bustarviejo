@@ -950,6 +950,7 @@ const handleChatBlock = (user) => {
               onChatBlock={handleChatBlock}
               onPairParents={openPairDialog}
               onSetCargoJunta={handleSetCargoJunta}
+              onChangeRole={handleChangeRole}
               onRestrictAccess={(user) => {
                 setSelectedUser(user);
                 setShowRestrictDialog(true);
