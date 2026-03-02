@@ -618,23 +618,30 @@ export default function CalendarAndSchedules() {
                           </div>
                         ) : (
                           <Card 
-                            key={`callup-${item.id}`} 
-                            className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
+                            key={`${item.type}-${item.id}`} 
+                            className={`cursor-pointer hover:shadow-lg transition-shadow ${
+                              item.type === 'match' 
+                                ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
+                                : 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200'
+                            }`}
                             onClick={() => handleCardClick(item.date)}
                           >
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-2">
-                                <Badge className="bg-blue-600 text-white">Partido</Badge>
+                                <Badge className={item.type === 'match' ? "bg-green-600 text-white" : "bg-blue-600 text-white"}>
+                                  {item.type === 'match' ? 'Partido (Fed.)' : 'Partido'}
+                                </Badge>
                                 <span className="text-xs text-slate-600">
                                   {format(new Date(item.date), "d MMM yyyy", { locale: es })}
                                 </span>
                               </div>
-                              <h3 className="font-bold text-slate-900 mb-2">{item.titulo}</h3>
+                              <h3 className="font-bold text-slate-900 mb-2">{item.titulo || item.title}</h3>
                               <div className="space-y-1 text-sm text-slate-700">
                                 <p>⚽ {item.categoria}</p>
                                 {item.rival && <p>🆚 {item.rival}</p>}
                                 {item.ubicacion && <p>📍 {item.ubicacion}</p>}
                                 {item.hora_partido && <p>🕐 {item.hora_partido}</p>}
+                                {item.local_visitante && <p>{item.local_visitante === 'Local' ? '🏠 Local' : '✈️ Visitante'}</p>}
                               </div>
                             </CardContent>
                           </Card>
