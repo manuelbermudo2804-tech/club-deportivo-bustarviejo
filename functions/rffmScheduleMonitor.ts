@@ -491,7 +491,14 @@ Deno.serve(async (req) => {
 
       } catch (err) {
         errors.push({ categoria: config.categoria, error: err.message });
+        return null;
       }
+    };
+
+    // Run in parallel batches of 3
+    for (let i = 0; i < activeConfigs.length; i += 3) {
+      const batch = activeConfigs.slice(i, i + 3);
+      await Promise.all(batch.map(c => processCategory(c)));
     }
 
     return Response.json({
