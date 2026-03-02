@@ -678,6 +678,9 @@ export default function Layout({ children, currentPageName }) {
             { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
             { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
 
+      // 📋 GESTIÓN
+      { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
+
       // 👤 PERFIL
       { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
 
