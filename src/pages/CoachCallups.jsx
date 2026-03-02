@@ -125,6 +125,21 @@ export default function CoachCallups() {
     initialData: [],
   });
 
+  const { data: allPayments = [] } = useQuery({
+    queryKey: ['payments-callup'],
+    queryFn: () => base44.entities.Payment.list(),
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: seasonConfigs = [] } = useQuery({
+    queryKey: ['seasonConfigs-callup'],
+    queryFn: () => base44.entities.SeasonConfig.filter({ activa: true }),
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const activeSeasonConfig = seasonConfigs[0] || null;
+
   // Filter players by selected category (or editing callup's category)
   const players = allPlayers.filter(p => {
     const targetCategory = editingCallup?.categoria || selectedCategory;
