@@ -609,30 +609,38 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   <p className="text-slate-500 text-center py-4">No hay jugadores disponibles en esta categoría</p>
                 ) : (
                   <div className="space-y-2">
-                    {availablePlayers.map((player) => (
-                      <div
-                        key={player.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                          selectedPlayers.includes(player.id)
-                            ? "bg-green-50 border-2 border-green-300"
-                            : "bg-white hover:bg-slate-50"
-                        }`}
-                      >
-                        <Checkbox
-                          checked={selectedPlayers.includes(player.id)}
-                          onCheckedChange={() => handlePlayerToggle(player)}
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-slate-900">{player.nombre}</p>
-                            {player.posicion && player.posicion !== "Sin asignar" && (
-                              <Badge variant="outline" className="text-xs">{player.posicion}</Badge>
-                            )}
+                    {availablePlayers.map((player) => {
+                      const isOverdue = overduePlayerIds.has(player.id);
+                      return (
+                        <div
+                          key={player.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                            selectedPlayers.includes(player.id)
+                              ? "bg-green-50 border-2 border-green-300"
+                              : isOverdue
+                                ? "bg-red-50 border-2 border-red-200"
+                                : "bg-white hover:bg-slate-50"
+                          }`}
+                        >
+                          <Checkbox
+                            checked={selectedPlayers.includes(player.id)}
+                            onCheckedChange={() => handlePlayerToggle(player)}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className={`font-medium ${isOverdue ? "text-red-800" : "text-slate-900"}`}>{player.nombre}</p>
+                              {player.posicion && player.posicion !== "Sin asignar" && (
+                                <Badge variant="outline" className="text-xs">{player.posicion}</Badge>
+                              )}
+                              {isOverdue && (
+                                <Badge className="bg-red-100 text-red-700 border-red-300 text-xs">💸 Pago vencido</Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500">{player.email_padre || player.email}</p>
                           </div>
-                          <p className="text-xs text-slate-500">{player.email_padre || player.email}</p>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
