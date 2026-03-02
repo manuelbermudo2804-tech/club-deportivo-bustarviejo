@@ -153,11 +153,73 @@ function MatchCard({ match, isFirst }) {
 export default function UpcomingMatchesSection() {
   const [expanded, setExpanded] = useState(false);
 
-  const { data: matches = [], isLoading } = useQuery({
+  // Fuente 1: Partidos scrapeados de la federación (ProximoPartido)
+  const { data: proximosPartidos = [], isLoading: loadingProximos } = useQuery({
     queryKey: ["proximos-partidos-all"],
     queryFn: () => base44.entities.ProximoPartido.list("-updated_date", 100),
     staleTime: 5 * 60_000,
   });
+
+  // Fuente 2: Convocatorias publicadas (los entrenadores las crean manualmente)
+  const { data: convocatorias = [], isLoading: loadingConvocatorias } = useQuery({
+    queryKey: ["convocatorias-for-matches"],
+    queryFn: () => base44.entities.Convocatoria.filter({ publicada: true }, "-fecha_partido", 50),
+    staleTime: 5 * 60_000,
+  });
+
+  const isLoading = loadingProximos || loadingConvocatorias;
+
+  // Convertir convocatorias a formato compatible con ProximoPartido
+  const convocatoriasAsMatches = (convocatorias || [])
+    .filter(c => c.fecha_partido && !c.cerrada)
+    .map(c => {
+      const isLocal = c.tipo_partido === "Local";
+      const clubName = "CD BUSTARVIEJO";
+      return {
+        id: `conv-${c.id}`,
+        _source: "convocatoria",
+        categoria: c.categoria,
+        jornada: c.jornada,
+        local: isLocal ? clubName : (c.rival || "Rival"),
+        visitante: isLocal ? (c.rival || "Rival") : clubName,
+        fecha: null, // no tiene formato dd/mm/yyyy
+        fecha_iso: c.fecha_partido,
+        hora: c.hora_partido,
+        campo: c.ubicacion,
+        jugado: false,
+        goles_local: null,
+        goles_visitante: null,
+      };
+    });
+
+  // Fusionar ambas fuentes, priorizando ProximoPartido sobre Convocatorias para evitar duplicados
+  const matches = (() => {
+    const all = [...proximosPartidos];
+    const norm = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    
+    // Crear set de partidos ya conocidos por ProximoPartido (categoria+rival+fecha)
+    const existingKeys = new Set();
+    proximosPartidos.forEach(m => {
+      const dateInfo = formatMatchDate(m.fecha || m.fecha_iso);
+      if (dateInfo) {
+        existingKeys.add(`${norm(m.categoria)}|${dateInfo.iso}`);
+        // También clave con rival para dedup más preciso
+        existingKeys.add(`${norm(m.categoria)}|${norm(m.local)}|${norm(m.visitante)}|${dateInfo.iso}`);
+      }
+    });
+
+    // Solo añadir convocatorias que NO existan ya en ProximoPartido
+    convocatoriasAsMatches.forEach(cm => {
+      const dateKey = `${norm(cm.categoria)}|${cm.fecha_iso}`;
+      const fullKey = `${norm(cm.categoria)}|${norm(cm.local)}|${norm(cm.visitante)}|${cm.fecha_iso}`;
+      if (!existingKeys.has(dateKey) && !existingKeys.has(fullKey)) {
+        all.push(cm);
+        existingKeys.add(dateKey);
+      }
+    });
+
+    return all;
+  })();
 
   if (isLoading) {
     return (
