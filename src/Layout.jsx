@@ -353,18 +353,19 @@ export default function Layout({ children, currentPageName }) {
     }, []);
 
     // Rate limit guard - pausa consultas si recibimos 429
+    // También detecta errores de red/WebSocket comunes en navegadores antiguos
     useEffect(() => {
       const onRateLimit = (e) => {
         try {
           const msg = (e?.reason?.message || e?.message || '').toString();
-          if (/rate limit/i.test(msg)) {
+          if (/rate limit|429|too many requests/i.test(msg)) {
             if (rateLimitTimerRef.current) clearTimeout(rateLimitTimerRef.current);
             window.__BASE44_PAUSE_REALTIME__ = true;
             setRateLimited(true);
             rateLimitTimerRef.current = setTimeout(() => {
               window.__BASE44_PAUSE_REALTIME__ = false;
               setRateLimited(false);
-            }, 20000);
+            }, 25000);
           }
         } catch {}
       };
@@ -1007,14 +1008,17 @@ export default function Layout({ children, currentPageName }) {
     }, [isLoading, user]);
 
     // Escalonar carga de motores en 5 oleadas para reducir presión en RAM
+    // En dispositivos con poca RAM (<2GB) o navegadores antiguos, retrasar más
+    const isLowEndDevice = typeof navigator !== 'undefined' && (navigator.deviceMemory ? navigator.deviceMemory < 2 : false);
+    const stageMultiplier = isLowEndDevice ? 1.8 : 1;
     const [enginesStage4Ready, setEnginesStage4Ready] = useState(false);
     const [enginesStage5Ready, setEnginesStage5Ready] = useState(false);
     useEffect(() => {
       if (!enginesReady) return;
-      const t2 = setTimeout(() => setEnginesStage2Ready(true), 2000);
-      const t3 = setTimeout(() => setEnginesStage3Ready(true), 5000);
-      const t4 = setTimeout(() => setEnginesStage4Ready(true), 8000);
-      const t5 = setTimeout(() => setEnginesStage5Ready(true), 13000);
+      const t2 = setTimeout(() => setEnginesStage2Ready(true), 2000 * stageMultiplier);
+      const t3 = setTimeout(() => setEnginesStage3Ready(true), 5000 * stageMultiplier);
+      const t4 = setTimeout(() => setEnginesStage4Ready(true), 8000 * stageMultiplier);
+      const t5 = setTimeout(() => setEnginesStage5Ready(true), 13000 * stageMultiplier);
       return () => { clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
     }, [enginesReady]);
 
