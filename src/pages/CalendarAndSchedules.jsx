@@ -306,7 +306,8 @@ export default function CalendarAndSchedules() {
   const filteredItems = allCalendarItems.filter(item => {
     const matchesType = typeFilter === "all" || 
       (item.type === 'event' && item.tipo === typeFilter) ||
-      (item.type === 'callup' && typeFilter === "Partido");
+      (item.type === 'callup' && typeFilter === "Partido") ||
+      (item.type === 'match' && typeFilter === "Partido");
     const matchesSport = sportFilter === "all" || 
       item.category === sportFilter || 
       (item.type === 'event' && item.deporte === "Todos");
