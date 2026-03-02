@@ -161,6 +161,18 @@ export function useUnifiedNotifications(user, options = {}) {
 
     const unsubscribers = [];
 
+    // Safe subscribe helper - guards against missing .subscribe, non-function returns, or old browsers
+    const safeSubscribe = (entityName, handler) => {
+      try {
+        const entity = base44.entities[entityName];
+        if (!entity?.subscribe) return;
+        const unsub = entity.subscribe(handler);
+        if (typeof unsub === 'function') unsubscribers.push(unsub);
+      } catch (e) {
+        console.warn(`[useUnifiedNotifications] subscribe ${entityName} failed:`, e?.message);
+      }
+    };
+
     // ===== CHATS - DESACTIVADO (se reimplementará con nuevo sistema) =====
 
     // App Notifications (para fallback de badges, incluido Staff)
@@ -170,7 +182,7 @@ export function useUnifiedNotifications(user, options = {}) {
     };
     setTimeout(() => run(loadAppNotifs), 5500);
     let lastAppNotifUpdate = 0;
-    const unsubAppNotif = base44.entities.AppNotification.subscribe((event) => {
+    safeSubscribe('AppNotification', (event) => {
       const now = Date.now();
       if (now - lastAppNotifUpdate < 1000) return;
       lastAppNotifUpdate = now;
@@ -184,7 +196,6 @@ export function useUnifiedNotifications(user, options = {}) {
         return { ...prev, appNotifications: updated };
       });
     });
-    unsubscribers.push(unsubAppNotif);
 
     // Private Conversations - DESACTIVADO (se reimplementará con nuevo sistema)
 
@@ -199,7 +210,7 @@ export function useUnifiedNotifications(user, options = {}) {
       setTimeout(() => run(loadConvocatorias), 7500);
     }
     let lastCallupsUpdate = 0;
-    const unsubConvocatorias = base44.entities.Convocatoria.subscribe((event) => {
+    safeSubscribe('Convocatoria', (event) => {
         const now = Date.now();
         if (now - lastCallupsUpdate < 1000) return;
         lastCallupsUpdate = now;
@@ -211,7 +222,6 @@ export function useUnifiedNotifications(user, options = {}) {
           return { ...prev, convocatorias: updated };
         });
     });
-    unsubscribers.push(unsubConvocatorias);
 
     // ===== PAGOS ===== (solo para admin/tesorero, para reducir carga)
     if (user.role === 'admin' || user.es_tesorero) {
@@ -225,7 +235,7 @@ export function useUnifiedNotifications(user, options = {}) {
         setTimeout(() => run(loadPayments), 8500);
       }
       let lastPaymentsUpdate = 0;
-      const unsubPayments = base44.entities.Payment.subscribe((event) => {
+      safeSubscribe('Payment', (event) => {
           const now = Date.now();
           if (now - lastPaymentsUpdate < 1000) return;
           lastPaymentsUpdate = now;
@@ -237,7 +247,6 @@ export function useUnifiedNotifications(user, options = {}) {
             return { ...prev, payments: updated };
           });
       });
-      unsubscribers.push(unsubPayments);
     }
 
     // ===== JUGADORES =====
@@ -267,7 +276,7 @@ export function useUnifiedNotifications(user, options = {}) {
     }
     if (user.role !== 'admin' && !user.es_entrenador && !user.es_coordinador && !user.es_tesorero) {
       let lastPlayersUpdate = 0;
-      const unsubPlayers = base44.entities.Player.subscribe((event) => {
+      safeSubscribe('Player', (event) => {
           const now = Date.now();
           if (now - lastPlayersUpdate < 1500) return;
           lastPlayersUpdate = now;
@@ -279,7 +288,6 @@ export function useUnifiedNotifications(user, options = {}) {
             return { ...prev, players: updated };
           });
       });
-      unsubscribers.push(unsubPlayers);
     }
 
     // ===== ANUNCIOS =====
@@ -293,7 +301,7 @@ export function useUnifiedNotifications(user, options = {}) {
       setTimeout(() => run(loadAnnouncements), 10500);
     }
     let lastAnnouncementsUpdate = 0;
-    const unsubAnnouncements = base44.entities.Announcement.subscribe((event) => {
+    safeSubscribe('Announcement', (event) => {
         const now = Date.now();
         if (now - lastAnnouncementsUpdate < 1000) return;
         lastAnnouncementsUpdate = now;
@@ -305,7 +313,6 @@ export function useUnifiedNotifications(user, options = {}) {
           return { ...prev, announcements: updated };
         });
     });
-    unsubscribers.push(unsubAnnouncements);
 
     // ===== ADMIN ONLY =====
     if (user.role === 'admin') {
@@ -335,56 +342,56 @@ export function useUnifiedNotifications(user, options = {}) {
         setTimeout(() => run(loadInvitations), 11500);
       }
       
-      const unsubInv = base44.entities.InvitationRequest.subscribe(() => {
-                    globalThrottler.execute(() => {
-                      base44.entities.InvitationRequest.filter({ estado: "Pendiente" }).then(inv => {
-                        setRawData(prev => ({ ...prev, invitations: inv }));
-                      });
-                    });
-                  });
-      const unsubSecInv = base44.entities.SecondParentInvitation.subscribe(() => {
-                    globalThrottler.execute(() => {
-                      base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }).then(sec => {
-                        setRawData(prev => ({ ...prev, secondParentInvitations: sec }));
-                      });
-                    });
-                  });
-      const unsubClothing = base44.entities.ClothingOrder.subscribe((event) => {
-                    globalThrottler.execute(() => {
-                      setRawData(prev => {
-                        let updated = [...prev.clothingOrders];
-                        if (event.type === 'create') updated = [event.data, ...updated];
-                        else if (event.type === 'update') updated = updated.map(o => o.id === event.id ? event.data : o);
-                        else if (event.type === 'delete') updated = updated.filter(o => o.id !== event.id);
-                        return { ...prev, clothingOrders: updated };
-                      });
-                    });
-                  });
-      const unsubLottery = base44.entities.LotteryOrder.subscribe(() => {
-                    globalThrottler.execute(() => {
-                      base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }).then(orders => {
-                        setRawData(prev => ({ ...prev, lotteryOrders: orders }));
-                      });
-                    });
-                  });
-      const unsubMembers = base44.entities.ClubMember.subscribe(() => {
-                    globalThrottler.execute(() => {
-                      base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }).then(members => {
-                        setRawData(prev => ({ ...prev, clubMembers: members }));
-                      });
-                    });
-                  });
-      const unsubDeletionReq = base44.entities.AccountDeletionRequest.subscribe(() => {
-                    globalThrottler.execute(async () => {
-                      const [sol, rev] = await Promise.all([
-                        base44.entities.AccountDeletionRequest.filter({ status: "solicitada" }),
-                        base44.entities.AccountDeletionRequest.filter({ status: "en_revision" })
-                      ]);
-                      setRawData(prev => ({ ...prev, accountDeletionRequests: [...(sol || []), ...(rev || [])] }));
-                    });
-                  });
-
-                  unsubscribers.push(unsubInv, unsubSecInv, unsubClothing, unsubLottery, unsubMembers, unsubDeletionReq);
+      safeSubscribe('InvitationRequest', () => {
+        globalThrottler.execute(() => {
+          base44.entities.InvitationRequest.filter({ estado: "Pendiente" }).then(inv => {
+            setRawData(prev => ({ ...prev, invitations: inv }));
+          }).catch(() => {});
+        });
+      });
+      safeSubscribe('SecondParentInvitation', () => {
+        globalThrottler.execute(() => {
+          base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }).then(sec => {
+            setRawData(prev => ({ ...prev, secondParentInvitations: sec }));
+          }).catch(() => {});
+        });
+      });
+      safeSubscribe('ClothingOrder', (event) => {
+        globalThrottler.execute(() => {
+          setRawData(prev => {
+            let updated = [...prev.clothingOrders];
+            if (event.type === 'create') updated = [event.data, ...updated];
+            else if (event.type === 'update') updated = updated.map(o => o.id === event.id ? event.data : o);
+            else if (event.type === 'delete') updated = updated.filter(o => o.id !== event.id);
+            return { ...prev, clothingOrders: updated };
+          });
+        });
+      });
+      safeSubscribe('LotteryOrder', () => {
+        globalThrottler.execute(() => {
+          base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }).then(orders => {
+            setRawData(prev => ({ ...prev, lotteryOrders: orders }));
+          }).catch(() => {});
+        });
+      });
+      safeSubscribe('ClubMember', () => {
+        globalThrottler.execute(() => {
+          base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }).then(members => {
+            setRawData(prev => ({ ...prev, clubMembers: members }));
+          }).catch(() => {});
+        });
+      });
+      safeSubscribe('AccountDeletionRequest', () => {
+        globalThrottler.execute(async () => {
+          try {
+            const [sol, rev] = await Promise.all([
+              base44.entities.AccountDeletionRequest.filter({ status: "solicitada" }),
+              base44.entities.AccountDeletionRequest.filter({ status: "en_revision" })
+            ]);
+            setRawData(prev => ({ ...prev, accountDeletionRequests: [...(sol || []), ...(rev || [])] }));
+          } catch {}
+        });
+      });
     }
 
     // ===== ENTRENADORES/COORDINADORES - matchObservations ELIMINADO =====
