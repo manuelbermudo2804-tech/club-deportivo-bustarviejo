@@ -271,6 +271,9 @@ Deno.serve(async (req) => {
       errors.push({ categoria: 'global', error: 'updateRecentResults: ' + resErr.message });
     }
 
+    // 2c. Get all ProximoPartido for sync
+    const allProximos = await base44.asServiceRole.entities.ProximoPartido.list('-updated_date', 200);
+
     // 3. Check ALL categories with RFFM URLs (not just those with callups)
     for (const config of activeConfigs) {
       try {
@@ -293,6 +296,35 @@ Deno.serve(async (req) => {
 
         const isLocal = match.local?.toUpperCase().includes('BUSTARVIEJO');
         const rival = isLocal ? match.visitante : match.local;
+
+        // --- SYNC ProximoPartido: create or update ---
+        const existingProximo = allProximos.find(p => 
+          p.categoria === config.categoria && p.jornada === jornada
+        );
+        const proximoData = {
+          categoria: config.categoria,
+          jornada,
+          local: match.local || '',
+          visitante: match.visitante || '',
+          fecha: match.fecha || '',
+          hora: match.hora || '',
+          campo: match.campo || '',
+          fecha_iso: matchDate || '',
+          jugado: false,
+        };
+        if (existingProximo) {
+          // Update if date/time/venue changed
+          const changed = existingProximo.fecha !== proximoData.fecha ||
+            existingProximo.hora !== proximoData.hora ||
+            existingProximo.campo !== proximoData.campo;
+          if (changed && !existingProximo.jugado) {
+            await base44.asServiceRole.entities.ProximoPartido.update(existingProximo.id, proximoData);
+            console.log(`[rffmScheduleMonitor] ProximoPartido updated: ${config.categoria} J${jornada}`);
+          }
+        } else {
+          await base44.asServiceRole.entities.ProximoPartido.create(proximoData);
+          console.log(`[rffmScheduleMonitor] ProximoPartido created: ${config.categoria} J${jornada}`);
+        }
 
         // Find matching convocatoria for this category AND jornada to prevent duplicates
         // Check both open callups and ALL recent callups for this jornada
