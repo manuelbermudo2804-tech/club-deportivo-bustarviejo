@@ -73,12 +73,14 @@ export default function CoordinatorDashboard() {
 
   // Cargar config de temporada para lotería
   const { data: seasonConfig } = useQuery({
-    queryKey: ['seasonConfig'],
+    queryKey: ['activeSeasonConfig'],
     queryFn: async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
+      const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+      return configs[0] || null;
     },
-    staleTime: 300000,
+    staleTime: 600000,
+    gcTime: 900000,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
