@@ -1,6 +1,7 @@
 import React from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Save, ArrowLeft, RefreshCw } from "lucide-react";
+import { Save, ArrowLeft, RefreshCw, RotateCw, LogOut } from "lucide-react";
 
 export default function TabletAdminPanel({ onSave, onGoIdle, onForceRefresh, saving }) {
   return (
@@ -15,6 +16,12 @@ export default function TabletAdminPanel({ onSave, onGoIdle, onForceRefresh, sav
         </Button>
         <Button variant="outline" className="w-full" onClick={onGoIdle}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Volver al reposo
+        </Button>
+        <Button variant="outline" className="w-full" onClick={() => window.location.reload()}>
+          <RotateCw className="w-4 h-4 mr-2" /> Recargar página
+        </Button>
+        <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50" onClick={() => base44.auth.logout()}>
+          <LogOut className="w-4 h-4 mr-2" /> Cerrar sesión
         </Button>
         <p className="text-xs text-slate-400 text-center pt-2">Toca fuera para cerrar</p>
       </div>
