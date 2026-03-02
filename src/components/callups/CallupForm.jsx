@@ -13,8 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import PlayerSuggestionEngine from "./PlayerSuggestionEngine";
+import { getOverduePlayerIds } from "./usePaymentBlockCheck";
 
-export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting, userSuggestionsEnabled = true, onToggleSuggestions }) {
+export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting, userSuggestionsEnabled = true, onToggleSuggestions, payments = [], seasonConfig }) {
   const getInitialState = () => ({
     titulo: "",
     categoria: category,
