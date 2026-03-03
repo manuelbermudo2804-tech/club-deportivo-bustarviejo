@@ -808,47 +808,18 @@ export default function SeasonManagement() {
           return items.length;
         } catch (e) { console.log(`⚠️ ${entityName} skip:`, e.message); return 0; }
       };
-      // AutomaticReminder (recordatorios automáticos)
-      await safeDeleteAll('AutomaticReminder');
-      // CustomPaymentPlan (planes especiales de pago)
-      await safeDeleteAll('CustomPaymentPlan');
-      // ExtraCharge y ExtraChargePayment (cobros extra)
-      await safeDeleteAll('ExtraChargePayment');
-      await safeDeleteAll('ExtraCharge');
-      // BatchPayment (pagos por lotes)
-      await safeDeleteAll('BatchPayment');
-      // Voluntariado
-      await safeDeleteAll('VolunteerSignup');
-      await safeDeleteAll('VolunteerOpportunity');
-      // Mercadillo
-      await safeDeleteAll('MarketReservation');
-      await safeDeleteAll('MarketListing');
-      // Tareas de Junta
-      await safeDeleteAll('BoardTask');
-      // Feedback
-      await safeDeleteAll('Feedback');
-      // Competición
-      await safeDeleteAll('Clasificacion');
-      await safeDeleteAll('Resultado');
-      await safeDeleteAll('Goleador');
-      await safeDeleteAll('MatchObservation');
-      await safeDeleteAll('CompetitionAsset');
-      // Pizarra táctica y ejercicios
-      await safeDeleteAll('TacticaPizarra');
-      await safeDeleteAll('Exercise');
-      // Logs de chat
-      await safeDeleteAll('CommunicationLog');
-      await safeDeleteAll('CoordinatorChatLog');
-      await safeDeleteAll('CoachChatLog');
-      await safeDeleteAll('ChatbotLog');
-      // ReferralReward y ReferralHistory
-      await safeDeleteAll('ReferralReward');
-      await safeDeleteAll('ReferralHistory');
-      // FemeninoInterest
-      await safeDeleteAll('FemeninoInterest');
-      // StripePaymentLog
-      await safeDeleteAll('StripePaymentLog');
-      // PushNotification / PushSubscription se mantienen (son de dispositivo, no de temporada)
+      // Borrado masivo de entidades de temporada
+      const entitiesToDelete = [
+        'AutomaticReminder', 'CustomPaymentPlan', 'ExtraChargePayment', 'ExtraCharge',
+        'BatchPayment', 'VolunteerSignup', 'VolunteerOpportunity', 'MarketReservation',
+        'MarketListing', 'BoardTask', 'Feedback', 'Clasificacion', 'Resultado', 'Goleador',
+        'MatchObservation', 'CompetitionAsset', 'TacticaPizarra', 'Exercise',
+        'CommunicationLog', 'CoordinatorChatLog', 'CoachChatLog', 'ChatbotLog',
+        'ReferralReward', 'ReferralHistory', 'FemeninoInterest', 'StripePaymentLog',
+        'ProximoPartido', 'JuniorMailbox', 'MatchReport', 'BirthdayLog',
+        'ChatAcceptance', 'AccessCodeAttempt', 'SystemAlert', 'AnalyticsEvent', 'SponsorImpression'
+      ];
+      for (const entityName of entitiesToDelete) { await safeDeleteAll(entityName); }
 
       // 13. Eliminar encuestas y respuestas
       if (resetConfig.deleteSurveys) {
