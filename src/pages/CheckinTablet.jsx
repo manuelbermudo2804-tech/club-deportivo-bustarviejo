@@ -8,7 +8,8 @@ import TabletIdleScreen from "../components/attendance/TabletIdleScreen";
 import TabletAdminPanel from "../components/attendance/TabletAdminPanel";
 
 const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const MINUTES_BEFORE_OPEN = 15;
+const MINUTES_BEFORE_OPEN = 5;
+const MINUTES_AFTER_START = 15; // ventana cierra 15 min después de hora inicio
 
 function parseTime(str) {
   if (!str) return null;
