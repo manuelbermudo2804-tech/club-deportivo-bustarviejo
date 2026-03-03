@@ -110,7 +110,8 @@ export default function CheckinTablet() {
           _startMinutes: parseTime(s.hora_inicio),
           _endMinutes: parseTime(s.hora_fin),
           _openMinutes: parseTime(s.hora_inicio) - MINUTES_BEFORE_OPEN,
-          _passed: nowMinutes() > parseTime(s.hora_fin),
+          _closeMinutes: parseTime(s.hora_inicio) + MINUTES_AFTER_START, // ventana cierra 15 min después del inicio
+          _passed: nowMinutes() > parseTime(s.hora_inicio) + MINUTES_AFTER_START,
         };
       });
   }, [allSchedules, categoryConfigs, now]);
