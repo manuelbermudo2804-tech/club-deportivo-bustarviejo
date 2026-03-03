@@ -121,22 +121,14 @@ export default function CheckinTablet() {
   const currentSession = useMemo(() => {
     const currentMin = nowMinutes();
     
-    // Find all sessions whose window is currently open
+    // Ventana: 5 min antes del inicio → 15 min después del inicio (20 min total)
     const activeSessions = todaySessions.filter(s => 
-      currentMin >= s._openMinutes && currentMin <= s._endMinutes + 15
+      currentMin >= s._openMinutes && currentMin <= s._closeMinutes
     );
     
     if (activeSessions.length === 0) return null;
     
-    // If multiple sessions overlap, prefer the one that hasn't ended yet
-    // Among those, prefer the one starting soonest (or most recently started)
-    const notEnded = activeSessions.filter(s => currentMin <= s._endMinutes);
-    if (notEnded.length > 0) {
-      // Pick the one with the latest start time (the "newest" session)
-      return notEnded[notEnded.length - 1];
-    }
-    
-    // All ended but within grace period - pick the latest one
+    // Si hay varias, elegir la más reciente
     return activeSessions[activeSessions.length - 1];
   }, [todaySessions, now]);
 
