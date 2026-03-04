@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Users, AlertCircle, ChevronDown, ChevronUp, Clock, Loader2, Sparkles, Info, CheckCircle2, Send, KeyRound } from "lucide-react";
 import { toast } from "sonner";
+import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
 
 export default function SecondParentSection({ 
   currentPlayer, 
@@ -263,10 +264,9 @@ export default function SecondParentSection({
               
               <div className="space-y-2">
                 <Label htmlFor="email_tutor_2">Correo Electrónico</Label>
-                <Input 
+                <EmailInputWithTypoCheck 
                   id="email_tutor_2" 
                   name="tutor2-email"
-                  type="email" 
                   autoComplete="email"
                   value={currentPlayer.email_tutor_2 || ""} 
                   onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
