@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, Loader2, Download, Users, X, CheckCircle2, Lock } from "lucide-react";
+import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
 import { markCameraOpening } from "./useFormPersistence";
