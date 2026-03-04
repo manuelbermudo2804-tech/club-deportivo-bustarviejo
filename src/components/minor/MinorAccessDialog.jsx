@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShieldCheck, ShieldX, Mail, Clock, FolderSearch, CheckCircle2, Loader2, KeyRound } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
 
 const CONSENTIMIENTO_VERSION = "v1.0";
 
@@ -192,8 +193,7 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
                 <Mail className="w-4 h-4 inline mr-1" />
                 Email de tu hijo/a
               </label>
-              <Input
-                type="email"
+              <EmailInputWithTypoCheck
                 placeholder="email.de.tu.hijo@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Camera, AlertCircle, ShieldCheck, ShieldX, Smartphone } from "lucide-react";
+import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
 
 function useScrollToBottom(ref) {
   const [reached, setReached] = useState(false);
@@ -227,8 +228,7 @@ export default function StepAuthorizations({
                 <Label className={fieldErrors.acceso_menor_email ? "text-red-600 font-bold" : ""}>
                   Email de tu hijo/a *
                 </Label>
-                <Input
-                  type="email"
+                <EmailInputWithTypoCheck
                   placeholder="email.de.tu.hijo@gmail.com"
                   value={currentPlayer.acceso_menor_email || ""}
                   onChange={(e) => {
