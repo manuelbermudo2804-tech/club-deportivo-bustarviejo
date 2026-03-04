@@ -60,34 +60,68 @@ function NewGoalForm({ playerId, playerName, userEmail, userName, onCreated, onC
       exit={{ opacity: 0, height: 0 }}
       className="overflow-hidden"
     >
-      <div className="bg-white border-2 border-dashed border-orange-300 rounded-2xl p-4 space-y-3">
-        <p className="text-xs text-slate-500 font-medium">📝 Escribe tu meta y elige una categoría:</p>
-        <Input
-          value={titulo}
-          onChange={(e) => setTitulo(e.target.value)}
-          placeholder="Ej: Mejorar el disparo con la izquierda"
-          className="border-slate-200 rounded-xl text-sm"
-          maxLength={100}
-          autoFocus
-        />
-        <div className="flex flex-wrap gap-2">
-          {CATEGORIAS.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => setCategoria(cat.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                categoria === cat.value
-                  ? `bg-gradient-to-r ${cat.color} text-white shadow-md scale-105`
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              {cat.emoji} {cat.value}
-            </button>
-          ))}
+      <div className="bg-white border-2 border-dashed border-orange-300 rounded-2xl p-4 space-y-4">
+        {/* PASO 1 */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center">1</span>
+            <p className="text-sm text-slate-700 font-bold">Escribe tu meta</p>
+          </div>
+          <Input
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            placeholder="Ej: Mejorar el disparo con la izquierda"
+            className="border-slate-200 rounded-xl text-sm"
+            maxLength={100}
+            autoFocus
+          />
         </div>
-        {!categoria && titulo.trim() && (
-          <p className="text-[11px] text-amber-600 font-medium">👆 Elige una categoría para poder guardar</p>
-        )}
+
+        {/* PASO 2 */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${categoria ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'}`}>2</span>
+            <p className="text-sm text-slate-700 font-bold">
+              {categoria ? '✅ Categoría seleccionada' : '👇 Toca una categoría'}
+            </p>
+          </div>
+          {!categoria && (
+            <div className={`rounded-xl p-2 ${titulo.trim() ? 'bg-amber-50 border-2 border-amber-300 animate-pulse' : 'bg-slate-50 border border-slate-200'}`}>
+              <p className="text-xs text-amber-700 font-bold text-center mb-2">
+                {titulo.trim() ? '⚠️ ¡Toca una para poder guardar!' : 'Elige de qué tipo es tu meta:'}
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {CATEGORIAS.map((cat) => (
+                  <button
+                    key={cat.value}
+                    onClick={() => setCategoria(cat.value)}
+                    className="px-3 py-2 rounded-full text-xs font-bold bg-white border-2 border-slate-200 text-slate-700 hover:border-orange-400 hover:bg-orange-50 active:scale-95 transition-all shadow-sm"
+                  >
+                    {cat.emoji} {cat.value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {categoria && (
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIAS.map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => setCategoria(cat.value)}
+                  className={`px-3 py-2 rounded-full text-xs font-bold transition-all ${
+                    categoria === cat.value
+                      ? `bg-gradient-to-r ${cat.color} text-white shadow-md scale-105 ring-2 ring-offset-1 ring-green-400`
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  {cat.emoji} {cat.value}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={onCancel} className="flex-1 rounded-xl" disabled={createMutation.isPending}>
             Cancelar
