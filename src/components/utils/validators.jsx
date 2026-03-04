@@ -61,8 +61,41 @@ export const validators = {
     if (!emailRegex.test(value)) {
       return { valid: false, error: "Email no válido. Ejemplo: usuario@ejemplo.com" };
     }
+
+    // Detectar typos en dominios comunes
+    const typoCheck = validators.emailDomainTypo(value);
+    if (typoCheck.suggestion) {
+      return { valid: false, error: typoCheck.error, suggestion: typoCheck.suggestion };
+    }
     
     return { valid: true };
+  },
+
+  // Detecta typos en dominios de email comunes
+  emailDomainTypo: (value) => {
+    if (!value) return { suggestion: null };
+    const domain = value.split("@")[1]?.toLowerCase();
+    if (!domain) return { suggestion: null };
+
+    const KNOWN_DOMAINS = {
+      "gmail.com": ["gamil.com","gmal.com","gmial.com","gmaill.com","gmail.con","gmail.es","gnail.com","gmali.com","gmai.com","gmail.co","gmil.com","gimail.com","gemail.com","gmail.om","gmaol.com","gmailcom","gmeil.com","gmqil.com"],
+      "hotmail.com": ["hotmal.com","hotmai.com","hotmial.com","hotamil.com","hotmaill.com","hotmail.con","hotmil.com","hotmeil.com","homail.com","hotmaol.com","hotmali.com","hotmail.es","hotmailcom","htmail.com","hotmall.com"],
+      "hotmail.es": ["hotmal.es","hotmai.es","hotmial.es","hotamil.es","homail.es","hotmil.es"],
+      "yahoo.com": ["yaho.com","yahooo.com","yhoo.com","yaoo.com","yahoo.con","yahho.com","yhaoo.com","yahocom"],
+      "yahoo.es": ["yaho.es","yahooo.es","yhoo.es","yaoo.es"],
+      "outlook.com": ["outlok.com","outllook.com","outlookk.com","outook.com","outlook.con","outloock.com","outlookcom"],
+      "outlook.es": ["outlok.es","outllook.es","outook.es"],
+      "icloud.com": ["iclud.com","iclould.com","icoud.com","icloud.con","icloudcom"],
+      "live.com": ["live.con","lve.com","livee.com"],
+    };
+
+    for (const [correct, typos] of Object.entries(KNOWN_DOMAINS)) {
+      if (typos.includes(domain)) {
+        const corrected = value.split("@")[0] + "@" + correct;
+        return { suggestion: corrected, error: `¿Quisiste decir ${corrected}? (has escrito "@${domain}")` };
+      }
+    }
+    return { suggestion: null };
   },
 
   // Valida IBAN español
