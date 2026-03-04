@@ -144,6 +144,12 @@ export function MinorAgeTransitionBanner({ player }) {
   if (edadActual === null || edadProximaTemporada === null) return null;
   if (edadActual >= 18 || edadProximaTemporada < 18) return null;
 
+  // Calculate birthday
+  const birthDate = new Date(player.fecha_nacimiento);
+  const thisYear = new Date().getFullYear();
+  const birthday18 = new Date(birthDate);
+  birthday18.setFullYear(birthDate.getFullYear() + 18);
+
   return (
     <Card className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg overflow-hidden">
       <CardContent className="p-4">
@@ -159,9 +165,17 @@ export function MinorAgeTransitionBanner({ player }) {
               <Badge className="bg-amber-600 text-white text-[10px]">INFO</Badge>
             </div>
             <p className="text-xs text-amber-800 leading-relaxed">
-              La próxima temporada podrás inscribirte <strong>por tu cuenta</strong> como jugador mayor de edad. 
-              Recibirás una invitación a tu email para gestionar tu propia ficha, pagos y más.
+              Cumples 18 el <strong>{birthday18.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>. 
+              Cuando empiece la próxima temporada, tu acceso juvenil se desactivará y 
+              recibirás una <strong>nueva invitación</strong> a tu email para gestionar tu propia cuenta como jugador adulto.
             </p>
+            <div className="mt-2 bg-amber-100 rounded-lg p-2.5 border border-amber-200 space-y-1.5">
+              <p className="text-[11px] text-amber-800 font-bold">📋 ¿Qué pasará?</p>
+              <p className="text-[11px] text-amber-700">1. Al empezar la nueva temporada, tu acceso actual se desactiva</p>
+              <p className="text-[11px] text-amber-700">2. Recibirás un email con un <strong>nuevo código de acceso</strong></p>
+              <p className="text-[11px] text-amber-700">3. Abre la app e introduce el código → tendrás tu cuenta adulta</p>
+              <p className="text-[11px] text-amber-700">4. Podrás gestionar tus pagos, firmas y convocatorias tú mismo/a</p>
+            </div>
             <div className="mt-2 flex items-center gap-2">
               <UserCircle className="w-4 h-4 text-amber-600" />
               <span className="text-[11px] text-amber-700 font-medium">
