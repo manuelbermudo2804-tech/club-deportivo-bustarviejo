@@ -14,13 +14,19 @@ const CATEGORIAS = [
   "Fútbol Aficionado", "Fútbol Femenino", "Baloncesto (Mixto)"
 ];
 
-const suggestCategory = (birthDate) => {
-  if (!birthDate) return "Fútbol Aficionado";
+const suggestAge = (birthDate) => {
+  if (!birthDate) return null;
   const today = new Date();
   const birth = new Date(birthDate);
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+};
+
+const suggestCategory = (birthDate) => {
+  const age = suggestAge(birthDate);
+  if (age === null) return "Fútbol Aficionado";
   if (age <= 7) return "Fútbol Pre-Benjamín (Mixto)";
   if (age <= 9) return "Fútbol Benjamín (Mixto)";
   if (age <= 11) return "Fútbol Alevín (Mixto)";
@@ -50,6 +56,46 @@ export default function PlayerRenewalBanner({ player, seasonConfig }) {
   if (player.temporada_renovacion !== seasonConfig?.temporada) return null;
 
   const suggestedCat = suggestCategory(player.fecha_nacimiento);
+
+  // Block parent from renewing if player turns 18 for next season
+  const playerAge = suggestAge(player.fecha_nacimiento);
+  const isPlayerTurning18 = playerAge !== null && playerAge >= 17 && suggestedCat === "Fútbol Aficionado";
+
+  // Check if this is a parent trying to renew (not the player themselves)
+  // If the player has no email_jugador with authorized access, and they're turning 18, block it
+  const isParentView = !player.acceso_jugador_autorizado;
+  const shouldBlockRenewal = isPlayerTurning18 && isParentView && !player.es_mayor_edad;
+
+  if (shouldBlockRenewal) {
+    return (
+      <Card className="border-2 border-amber-400 bg-gradient-to-r from-amber-50 to-orange-50 shadow-xl animate-fade-in">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 bg-amber-200 rounded-full flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-amber-700" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="font-bold text-amber-900 text-lg">🎂 {player.nombre?.split(" ")[0]} cumple 18 años</p>
+                <Badge className="bg-amber-600 text-white text-xs">MAYOR DE EDAD</Badge>
+              </div>
+              <p className="text-sm text-amber-800">
+                Como <strong>{player.nombre?.split(" ")[0]}</strong> es mayor de edad para la próxima temporada, 
+                debe inscribirse <strong>por su cuenta</strong>. Tú ya no puedes renovar su plaza.
+              </p>
+              <div className="mt-3 bg-amber-100 rounded-lg p-3 border border-amber-300">
+                <p className="text-xs text-amber-800">
+                  <strong>¿Qué ocurrirá?</strong> El admin del club procesará las transiciones de mayores de edad 
+                  y {player.nombre?.split(" ")[0]} recibirá una invitación a su email para gestionar su propia cuenta 
+                  (pagos, convocatorias, firmas…).
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const renewMutation = useMutation({
     mutationFn: async ({ paymentsData }) => {
