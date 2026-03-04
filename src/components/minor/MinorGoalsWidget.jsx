@@ -347,30 +347,41 @@ export default function MinorGoalsWidget({ playerId, playerName, userEmail, user
         </div>
       )}
 
-      {/* Metas completadas */}
+      {/* Metas completadas - resumen colapsable */}
       {completedGoals.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-green-600 uppercase tracking-wider px-1 flex items-center gap-1">
-            🏆 Completadas ({completedGoals.length})
-          </p>
-          {completedGoals.slice(0, 3).map((goal) => {
-            const catInfo = getCatInfo(goal.categoria);
-            return (
-              <motion.div key={goal.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} layout>
+          <button
+            onClick={() => setShowCompleted(!showCompleted)}
+            className="w-full flex items-center justify-between px-3 py-2 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 transition-colors"
+          >
+            <span className="text-xs font-bold text-green-600 flex items-center gap-1">
+              🏆 {completedGoals.length} meta{completedGoals.length !== 1 ? 's' : ''} completada{completedGoals.length !== 1 ? 's' : ''}
+            </span>
+            <span className="text-xs text-green-500">{showCompleted ? 'Ocultar ▲' : 'Ver ▼'}</span>
+          </button>
+          <AnimatePresence>
+            {showCompleted && completedGoals.slice(0, 5).map((goal) => (
+              <motion.div
+                key={goal.id}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
                 <Card className="border-none shadow-sm bg-green-50/50">
                   <CardContent className="p-0">
                     <div className="flex items-center">
                       <button
                         onClick={() => toggleMutation.mutate({ id: goal.id, completada: false })}
-                        className="w-14 h-14 flex items-center justify-center bg-green-100 flex-shrink-0"
+                        className="w-12 h-12 flex items-center justify-center bg-green-100 flex-shrink-0"
                         title="Desmarcar"
                       >
-                        <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
-                          <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                        <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                          <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                         </div>
                       </button>
-                      <div className="flex-1 px-3 py-2.5">
-                        <p className="text-sm font-medium text-green-700 line-through truncate">{goal.titulo}</p>
+                      <div className="flex-1 px-3 py-2">
+                        <p className="text-xs font-medium text-green-700 line-through truncate">{goal.titulo}</p>
                         <span className="text-[10px] text-green-500">
                           ✅ {goal.fecha_completada ? new Date(goal.fecha_completada).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : 'Completada'}
                         </span>
@@ -379,13 +390,8 @@ export default function MinorGoalsWidget({ playerId, playerName, userEmail, user
                   </CardContent>
                 </Card>
               </motion.div>
-            );
-          })}
-          {completedGoals.length > 3 && (
-            <p className="text-[11px] text-slate-400 text-center">
-              +{completedGoals.length - 3} más completadas
-            </p>
-          )}
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
