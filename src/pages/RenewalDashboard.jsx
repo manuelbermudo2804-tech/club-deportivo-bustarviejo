@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
+import AdultTransitionPanel from "../components/renewals/AdultTransitionPanel";
 
 export default function RenewalDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -532,6 +533,9 @@ CD Bustarviejo`
               </CardContent>
             </Card>
           </div>
+
+          {/* Panel de transición mayores de edad */}
+          <AdultTransitionPanel />
 
           <Card className="border-2 border-blue-300">
             <CardHeader className="bg-blue-50">
