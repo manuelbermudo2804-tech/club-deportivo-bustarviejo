@@ -196,6 +196,7 @@ function SuccessBanner({ titulo, categoria, onDone }) {
 export default function MinorGoalsWidget({ playerId, playerName, userEmail, userName }) {
   const [showForm, setShowForm] = useState(false);
   const [justCreated, setJustCreated] = useState(null); // { titulo, categoria }
+  const [showCompleted, setShowCompleted] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: goals = [], isLoading } = useQuery({
