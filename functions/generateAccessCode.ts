@@ -482,7 +482,7 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
 </html>`;
 }
 
-async function generateSingleCode(base44, user, { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado }) {
+async function generateSingleCode(base44, user, { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado, categorias_asignadas }) {
   const normalizedEmail = email.toLowerCase().trim();
 
   // Check existing pending code
@@ -532,6 +532,8 @@ async function generateSingleCode(base44, user, { email, tipo, nombre_destino, j
   if (tipo === 'juvenil') rolAsignado = 'jugador_menor';
   if (tipo === 'jugador_adulto') rolAsignado = 'jugador_adulto';
   if (tipo === 'segundo_progenitor') rolAsignado = 'familia';
+  if (tipo === 'entrenador') rolAsignado = 'entrenador';
+  if (tipo === 'coordinador') rolAsignado = 'coordinador';
 
   const accessCode = await base44.asServiceRole.entities.AccessCode.create({
     codigo,
@@ -541,6 +543,7 @@ async function generateSingleCode(base44, user, { email, tipo, nombre_destino, j
     nombre_destino: nombre_destino || '',
     jugador_id: jugador_id || '',
     jugador_nombre: jugador_nombre || '',
+    categorias_asignadas: categorias_asignadas || [],
     invitado_por_email: user.email,
     invitado_por_nombre: user.full_name || user.email,
     fecha_envio: now.toISOString(),
