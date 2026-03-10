@@ -443,7 +443,10 @@ async function syncCategory(config, cookies, base44, temporada) {
       }, { minExpected: 5, maxRetries: 2, label: `Scorers ${cat}` });
       console.log(`[SCORERS] ${cat}: parsed ${scorers.length} scorers (after retry logic)`);
       if (scorers.length) {
-        const old = await base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada });
+        const old = await retryOnRateLimit(
+          () => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }),
+          `Scorers old ${cat}`
+        );
         if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
         await sleep(3000);
         const records = scorers.map((s, i) => ({
