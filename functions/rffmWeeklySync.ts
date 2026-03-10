@@ -301,18 +301,14 @@ async function syncCategory(config, cookies, base44, temporada) {
       if (standings.length) {
         const old = await base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada });
         if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
-        await sleep(500);
+        await sleep(2000);
         const jornada = standings[0]?.pj || 0;
-        // bulkCreate in batches of 25
         const records = standings.map(s => ({
           temporada, categoria: cat, jornada, posicion: s.posicion, nombre_equipo: s.equipo,
           puntos: s.puntos, partidos_jugados: s.pj, ganados: s.pg, empatados: s.pe, perdidos: s.pp,
           goles_favor: s.gf, goles_contra: s.gc, fecha_actualizacion: new Date().toISOString(),
         }));
-        for (let i = 0; i < records.length; i += 25) {
-          await base44.asServiceRole.entities.Clasificacion.bulkCreate(records.slice(i, i + 25));
-          if (i + 25 < records.length) await sleep(500);
-        }
+        await batchCreate(base44.asServiceRole.entities.Clasificacion, records, `Standings ${cat}`);
         result.standings = { teams: standings.length, jornada };
       }
     } catch (e) { result.errors.push({ type: 'standings', error: e.message }); }
