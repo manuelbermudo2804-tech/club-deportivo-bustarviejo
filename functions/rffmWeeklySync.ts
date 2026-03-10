@@ -433,16 +433,12 @@ async function syncCategory(config, cookies, base44, temporada) {
       if (scorers.length) {
         const old = await base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada });
         if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
-        await sleep(800);
-        // bulkCreate in batches of 25 with pauses
+        await sleep(3000);
         const records = scorers.map((s, i) => ({
           temporada, categoria: cat, jugador_nombre: s.jugador, equipo: s.equipo,
           goles: s.goles, posicion: i + 1, fecha_actualizacion: new Date().toISOString(),
         }));
-        for (let i = 0; i < records.length; i += 25) {
-          await base44.asServiceRole.entities.Goleador.bulkCreate(records.slice(i, i + 25));
-          if (i + 25 < records.length) await sleep(500);
-        }
+        await batchCreate(base44.asServiceRole.entities.Goleador, records, `Scorers ${cat}`);
         result.scorers = { players: scorers.length };
       }
     } catch (e) { result.errors.push({ type: 'scorers', error: e.message }); }
