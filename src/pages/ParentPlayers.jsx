@@ -250,7 +250,7 @@ export default function ParentPlayers() {
 
       // ===== OPERACIONES SECUNDARIAS =====
 
-      // AUTO-CREAR SOCIO
+      // AUTO-CREAR SOCIO (padre automático)
       try {
         const existingMember = await base44.entities.ClubMember.filter({
           email: dataWithParentEmail.email_padre,
@@ -258,18 +258,55 @@ export default function ParentPlayers() {
         });
 
         if (existingMember.length === 0) {
+          // Generar número de socio
+          const currentYear = new Date().getFullYear();
+          let allMembersForNum = [];
+          try { allMembersForNum = await base44.entities.ClubMember.list(); } catch {}
+          const membersThisYear = allMembersForNum.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
+          const nextNumber = membersThisYear.length + 1;
+          const numeroSocio = `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
+          const tempActual = seasonConfig?.temporada || `${currentYear}/${currentYear + 1}`;
+          // Calcular fecha_vencimiento
+          let fechaVencimiento = null;
+          try {
+            const parts = tempActual.split(/[\/-]/);
+            if (parts.length >= 2) fechaVencimiento = `${parts[1]}-06-30`;
+          } catch {}
+
           await base44.entities.ClubMember.create({
+            numero_socio: numeroSocio,
             email: dataWithParentEmail.email_padre,
             nombre_completo: dataWithParentEmail.nombre_tutor_legal || currentUser?.full_name || "",
+            dni: dataWithParentEmail.dni_tutor_legal || "",
             telefono: dataWithParentEmail.telefono || "",
             direccion: dataWithParentEmail.direccion || "",
-            temporada: seasonConfig?.temporada || new Date().getFullYear() + "/" + (new Date().getFullYear() + 1),
+            municipio: dataWithParentEmail.municipio || "",
+            temporada: tempActual,
+            tipo_inscripcion: "Nueva Inscripción",
             estado_pago: "Pagado",
-            fecha_pago: new Date().toISOString(),
+            fecha_pago: new Date().toISOString().split('T')[0],
+            fecha_alta: new Date().toISOString().split('T')[0],
+            fecha_vencimiento: fechaVencimiento,
             metodo_pago: "Incluido en inscripción jugador",
+            origen_pago: "socio_padre_auto",
+            es_socio_padre: true,
+            activo: true,
+            cuota_socio: seasonConfig?.precio_socio || 25,
+            jugadores_hijos: [{ jugador_id: newPlayer.id, jugador_nombre: newPlayer.nombre }],
             notas: `Cuota de socio incluida automáticamente en inscripción de ${newPlayer.nombre}`,
             referido_por: null
           });
+          console.log('[ParentPlayers] ✅ Socio-padre creado automáticamente:', numeroSocio);
+        } else {
+          // Ya existe → actualizar jugadores_hijos si falta este jugador
+          const member = existingMember[0];
+          const hijos = Array.isArray(member.jugadores_hijos) ? [...member.jugadores_hijos] : [];
+          const yaRegistrado = hijos.some(h => h.jugador_id === newPlayer.id);
+          if (!yaRegistrado) {
+            hijos.push({ jugador_id: newPlayer.id, jugador_nombre: newPlayer.nombre });
+            await base44.entities.ClubMember.update(member.id, { jugadores_hijos: hijos });
+            console.log('[ParentPlayers] ✅ Jugador añadido a socio-padre existente:', member.id);
+          }
         }
       } catch (memberError) {
         console.error('[ParentPlayers] Error creando socio automático:', memberError);
