@@ -878,14 +878,16 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
       (memberTypeFilter === "padres" && isPadre);
 
     // Filtro por origen de pago
+    const emailToCheckOrigin = m.email?.toLowerCase()?.trim();
+    const isPadreByEmail = emailToCheckOrigin && parentEmails.has(emailToCheckOrigin);
     const matchesOrigin = originFilter === "all" ||
       (originFilter === "stripe_suscripcion" && m.origen_pago === 'stripe_suscripcion') ||
       (originFilter === "stripe_unico" && m.origen_pago === 'stripe_unico') ||
       (originFilter === "transferencia" && m.origen_pago === 'transferencia') ||
-      (originFilter === "socio_padre_auto" && m.origen_pago === 'socio_padre_auto') ||
+      (originFilter === "socio_padre_auto" && (m.origen_pago === 'socio_padre_auto' || (m.es_socio_padre === true) || (!m.origen_pago && isPadreByEmail && m.estado_pago === 'Pagado'))) ||
       (originFilter === "app" && m.origen_pago === 'stripe_unico' && !m.es_socio_externo) ||
       (originFilter === "web" && m.es_socio_externo === true) ||
-      (originFilter === "sin_origen" && !m.origen_pago);
+      (originFilter === "sin_origen" && !m.origen_pago && !isPadreByEmail);
     
     return matchesSearch && matchesStatus && matchesSeason && matchesType && matchesMemberType && matchesOrigin;
   });
