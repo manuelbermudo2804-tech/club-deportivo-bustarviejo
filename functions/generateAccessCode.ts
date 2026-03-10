@@ -580,7 +580,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado, action } = body;
+    const { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado, action, categorias_asignadas } = body;
 
     const isAdmin = user.role === 'admin';
     const allowedParentTypes = ['segundo_progenitor', 'juvenil'];
@@ -709,7 +709,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Email y tipo son obligatorios' }, { status: 400 });
     }
 
-    const result = await generateSingleCode(base44, user, { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado });
+    const result = await generateSingleCode(base44, user, { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado, categorias_asignadas });
     return Response.json(result);
 
   } catch (error) {
