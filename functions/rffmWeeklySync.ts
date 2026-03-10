@@ -299,7 +299,10 @@ async function syncCategory(config, cookies, base44, temporada) {
         return st;
       }, { minExpected: 5, maxRetries: 2, label: `Standings ${cat}` });
       if (standings.length) {
-        const old = await base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada });
+        const old = await retryOnRateLimit(
+          () => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada }),
+          `Standings old ${cat}`
+        );
         if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
         await sleep(2000);
         const jornada = standings[0]?.pj || 0;
