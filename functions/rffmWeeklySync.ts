@@ -219,11 +219,11 @@ function getSeason() { const n = new Date(); const y = n.getFullYear(); return n
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function batchDelete(entity, items) {
-  // Delete in batches of 10 with small pauses to avoid rate limits
-  for (let i = 0; i < items.length; i += 10) {
-    const batch = items.slice(i, i + 10);
+  // Delete in batches of 5 with pauses to avoid rate limits
+  for (let i = 0; i < items.length; i += 5) {
+    const batch = items.slice(i, i + 5);
     await Promise.all(batch.map(o => entity.delete(o.id)));
-    if (i + 10 < items.length) await sleep(300);
+    if (i + 5 < items.length) await sleep(500);
   }
 }
 
