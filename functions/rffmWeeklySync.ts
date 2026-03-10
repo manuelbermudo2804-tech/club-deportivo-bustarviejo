@@ -362,7 +362,10 @@ async function syncCategory(config, cookies, base44, temporada) {
               const emoji = tipo === 'Victoria' ? '✅' : tipo === 'Empate' ? '🤝' : '❌';
 
               // Check if observation already exists for this jornada+category
-              const existingObs = await base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ });
+              const existingObs = await retryOnRateLimit(
+                () => base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ }),
+                `MatchObs filter ${cat}`
+              );
               if (!existingObs.length) {
                 await base44.asServiceRole.entities.MatchObservation.create({
                   categoria: cat,
