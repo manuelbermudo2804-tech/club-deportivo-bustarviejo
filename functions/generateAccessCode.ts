@@ -39,14 +39,18 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
     padre_nuevo: '⚽ Bienvenido/a a la Familia del CD Bustarviejo',
     segundo_progenitor: '👨‍👩‍👧 Acceso para Segundo Progenitor',
     juvenil: '🏆 ¡Tu Acceso Juvenil al CD Bustarviejo!',
-    jugador_adulto: '⚽ ¡Bienvenido Jugador!'
+    jugador_adulto: '⚽ ¡Bienvenido Jugador!',
+    entrenador: '🏃‍♂️ ¡Bienvenido Entrenador!',
+    coordinador: '📋 ¡Bienvenido Coordinador!'
   };
 
   const tipoEmoji = {
     padre_nuevo: '👋',
     segundo_progenitor: '👨‍👩‍👧',
     juvenil: '🎮',
-    jugador_adulto: '⚽'
+    jugador_adulto: '⚽',
+    entrenador: '🏃‍♂️',
+    coordinador: '📋'
   };
 
   const tipoDescriptions = {
@@ -54,7 +58,9 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
       Desde aquí podrás gestionar todo lo relacionado con la actividad deportiva de tus hijos en el club de forma fácil y rápida.`,
     segundo_progenitor: `El otro progenitor/tutor te ha dado acceso a la <strong>aplicación del CD Bustarviejo</strong> para que tú también puedas seguir de cerca las actividades deportivas de vuestros hijos${jugadorNombre ? ` (<strong>${jugadorNombre}</strong>)` : ''}.`,
     juvenil: `¡Hola! Tu padre/madre/tutor te ha autorizado para que tengas <strong>tu propio acceso</strong> a la app del CD Bustarviejo${jugadorNombre ? ` como jugador/a de <strong>${jugadorNombre}</strong>` : ''}. ¡Ya puedes ver tus convocatorias y mucho más!`,
-    jugador_adulto: `¡Bienvenido/a! Has sido invitado/a a acceder a la <strong>aplicación oficial del CD Bustarviejo</strong> como jugador/a${jugadorNombre ? ` (<strong>${jugadorNombre}</strong>)` : ''}. Desde aquí podrás gestionar tus convocatorias, pagos y comunicarte con el equipo.`
+    jugador_adulto: `¡Bienvenido/a! Has sido invitado/a a acceder a la <strong>aplicación oficial del CD Bustarviejo</strong> como jugador/a${jugadorNombre ? ` (<strong>${jugadorNombre}</strong>)` : ''}. Desde aquí podrás gestionar tus convocatorias, pagos y comunicarte con el equipo.`,
+    entrenador: `¡Bienvenido/a al equipo técnico del <strong>CD Bustarviejo</strong>! Has sido invitado/a como <strong>Entrenador</strong>. Desde la app podrás gestionar convocatorias, asistencia, evaluaciones y comunicarte con las familias de tus jugadores.`,
+    coordinador: `¡Bienvenido/a al equipo técnico del <strong>CD Bustarviejo</strong>! Has sido invitado/a como <strong>Coordinador</strong>. Desde la app podrás supervisar categorías, gestionar plantillas, asistencia y comunicarte con familias y entrenadores.`
   };
 
   const featuresByType = {
@@ -97,6 +103,26 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
       { icon: '🖊️', text: '<strong>Firmas:</strong> Firma documentos de federación desde el móvil' },
       { icon: '📢', text: '<strong>Anuncios:</strong> Información del club siempre actualizada' },
       { icon: '🖼️', text: '<strong>Galería:</strong> Fotos de entrenamientos y partidos' },
+    ],
+    entrenador: [
+      { icon: '📋', text: '<strong>Convocatorias:</strong> Crea convocatorias y gestiona confirmaciones' },
+      { icon: '✅', text: '<strong>Asistencia:</strong> Pasa lista y evalúa a tus jugadores' },
+      { icon: '💬', text: '<strong>Chat:</strong> Comunícate con las familias de tu equipo' },
+      { icon: '📆', text: '<strong>Calendario:</strong> Horarios de entrenamiento y partidos' },
+      { icon: '🏆', text: '<strong>Competición:</strong> Clasificaciones, resultados y goleadores' },
+      { icon: '📚', text: '<strong>Ejercicios:</strong> Biblioteca de ejercicios y planificación' },
+      { icon: '🎯', text: '<strong>Pizarra:</strong> Diseña tácticas y estrategias' },
+      { icon: '📊', text: '<strong>Reportes:</strong> Evaluaciones y estadísticas de tus jugadores' },
+    ],
+    coordinador: [
+      { icon: '📋', text: '<strong>Gestión:</strong> Supervisa todas las categorías asignadas' },
+      { icon: '💬', text: '<strong>Chat:</strong> Comunícate con familias y entrenadores' },
+      { icon: '✅', text: '<strong>Asistencia:</strong> Controla asistencia y evaluaciones' },
+      { icon: '📆', text: '<strong>Calendario:</strong> Horarios y planificación deportiva' },
+      { icon: '🏆', text: '<strong>Competición:</strong> Seguimiento de resultados y clasificaciones' },
+      { icon: '📊', text: '<strong>Reportes:</strong> Informes de rendimiento por categoría' },
+      { icon: '📢', text: '<strong>Anuncios:</strong> Información del club siempre actualizada' },
+      { icon: '🖊️', text: '<strong>Firmas:</strong> Gestiona firmas de federación si se te asigna' },
     ]
   };
 
@@ -106,7 +132,9 @@ function buildEmailHTML(code, tipo, nombreDestino, appUrl, mensajePersonalizado,
     padre_nuevo: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este mismo email</strong> (el que has recibido esta invitación). Si usas otro email, el código no funcionará.',
     segundo_progenitor: '⚠️ <strong>Importante:</strong> Debes registrarte con <strong>este mismo email</strong>. Ambos progenitores tendréis acceso independiente a la misma información de vuestros hijos.',
     juvenil: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este email</strong>. Tu padre/tutor ha autorizado este acceso y puede revocarlo en cualquier momento. Recuerda ser respetuoso/a en el uso de la app.',
-    jugador_adulto: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este mismo email</strong> para que tu perfil de jugador quede vinculado correctamente.'
+    jugador_adulto: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este mismo email</strong> para que tu perfil de jugador quede vinculado correctamente.',
+    entrenador: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este mismo email</strong>. Al entrar tendrás acceso directo al panel de entrenador con tus categorías ya asignadas.',
+    coordinador: '⚠️ <strong>Importante:</strong> Regístrate con <strong>este mismo email</strong>. Al entrar tendrás acceso directo al panel de coordinador con tus categorías ya asignadas.'
   };
 
   const featuresHTML = features.map(f => `
