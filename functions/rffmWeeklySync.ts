@@ -413,7 +413,7 @@ async function syncCategory(config, cookies, base44, temporada) {
         }));
         for (let i = 0; i < records.length; i += 25) {
           await base44.asServiceRole.entities.Goleador.bulkCreate(records.slice(i, i + 25));
-          if (i + 25 < records.length) await sleep(200);
+          if (i + 25 < records.length) await sleep(500);
         }
         result.scorers = { players: scorers.length };
       }
