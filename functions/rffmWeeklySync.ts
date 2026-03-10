@@ -269,7 +269,7 @@ async function syncCategory(config, cookies, base44, temporada) {
       if (standings.length) {
         const old = await base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada });
         if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
-        await sleep(200);
+        await sleep(500);
         const jornada = standings[0]?.pj || 0;
         // bulkCreate in batches of 25
         const records = standings.map(s => ({
