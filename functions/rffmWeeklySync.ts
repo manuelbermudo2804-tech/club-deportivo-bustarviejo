@@ -145,7 +145,6 @@ function parseScorers(html) {
         }
       }
       if (goles === null || goles <= 0) return;
-      if (rows.length < 3) console.log(`[SCORERS-ROW] texts=${JSON.stringify(texts)}, goles=${goles}, golesHeaderIdx=${golesHeaderIdx}`);
 
       // Find player name: first non-empty non-number cell
       let jugador = '';
