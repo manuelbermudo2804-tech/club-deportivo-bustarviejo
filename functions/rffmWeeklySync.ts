@@ -122,9 +122,12 @@ function parseScorers(html) {
     const looksLike = headers.some(h => /gole(s|adores)/i.test(h)) || (headers.includes('jugador') && headers.some(h => h.includes('gol')));
     if (!looksLike) return;
 
+    console.log(`[SCORERS-TABLE] Headers: ${JSON.stringify(headers)}`);
+
     // Find the goals column index from headers
     let golesHeaderIdx = headers.findIndex(h => /^goles?$/.test(h));
     if (golesHeaderIdx < 0) golesHeaderIdx = headers.findIndex(h => h.includes('gol'));
+    console.log(`[SCORERS-TABLE] golesHeaderIdx=${golesHeaderIdx}`);
 
     $(table).find('tbody tr, tr').each((__, tr) => {
       const tds = $(tr).find('td');
