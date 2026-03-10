@@ -2,14 +2,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { load } from 'npm:cheerio@1.0.0';
 
 /**
- * RFFM Weekly Sync — dispatcher + per-category worker.
+ * RFFM Weekly Sync
+ * Accepts optional { categoria } param to sync only one category.
+ * If no param, syncs ALL categories sequentially.
  * 
- * MODE 1 (dispatcher): Called without params or { categoria: undefined }.
- *   → Logs in to RFFM once, then invokes itself N times (one per category)
- *     passing the cookies + single category. Collects results, sends summary email.
- *
- * MODE 2 (worker): Called with { _workerMode: true, categoria, cookies, temporada }.
- *   → Syncs ONE category only (standings + results + scorers). Fast, no timeout.
+ * Optimized for speed: reduced sleeps, larger batches, fewer retries,
+ * limited jornada scan depth (max 5 backwards) to avoid timeout.
  */
 
 // ---- RFFM helpers ----
@@ -63,7 +61,6 @@ function extractParams(url) {
 
 function buildJornadaUrl(p, j) { return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}&cod_agrupacion=1&Sch_Tipo_Juego=`; }
 function buildClassUrl(p, j) { let u = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}&codtemporada=${p.CodTemporada}`; if (j) u += `&codjornada=${j}`; return u; }
-function buildScorersUrl(p) { return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=0&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`; }
 
 function parseMatches(html) {
   const $ = load(html); const matches = []; const tables = $('table').toArray(); let campo = null;
@@ -125,9 +122,8 @@ function parseScorers(html) {
         const tds = $(tr).find('td');
         if (tds.length < 3) return;
         const texts = tds.map((___, td) => $(td).text().trim()).get();
-        const nums = texts.map(t => Number((t.match(/\d+/)?.[0]) || NaN));
         const goalsIdx = texts.findIndex(t => /^\d+$/.test(t));
-        const goles = goalsIdx >= 0 ? Number(texts[goalsIdx]) : (nums.find(n => !Number.isNaN(n)) ?? null);
+        const goles = goalsIdx >= 0 ? Number(texts[goalsIdx]) : null;
         if (goles !== null && goles > 0) {
           const jugador = texts[0] || '';
           const equipo = texts.find((t, i) => i > 0 && !/^\d+$/.test(t)) || '';
@@ -183,17 +179,16 @@ function parseScorers(html) {
 
 function getSeason() { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 8 ? `${y}/${y+1}` : `${y-1}/${y}`; }
 
-// ---- Helpers ----
+// ---- Helpers (OPTIMIZED: faster sleeps, bigger batches) ----
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-async function retryOnRateLimit(fn, label = '', maxRetries = 3) {
+async function retryOnRateLimit(fn, label = '', maxRetries = 2) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try { return await fn(); } catch (e) {
-      const is429 = /rate limit|429/i.test(e.message || '');
-      if (is429 && attempt < maxRetries) {
-        const wait = 3000 + attempt * 3000;
-        console.log(`[RATE-LIMIT] ${label}: waiting ${wait/1000}s before retry ${attempt+1}/${maxRetries}`);
+      if (/rate limit|429/i.test(e.message || '') && attempt < maxRetries) {
+        const wait = 2000 + attempt * 3000;
+        console.log(`[RATE-LIMIT] ${label}: waiting ${wait/1000}s (retry ${attempt+1}/${maxRetries})`);
         await sleep(wait);
       } else { throw e; }
     }
@@ -201,72 +196,58 @@ async function retryOnRateLimit(fn, label = '', maxRetries = 3) {
 }
 
 async function batchDelete(entity, items) {
-  for (let i = 0; i < items.length; i += 5) {
-    const batch = items.slice(i, i + 5);
-    await retryOnRateLimit(() => Promise.all(batch.map(o => entity.delete(o.id))), `delete batch ${i}`);
-    if (i + 5 < items.length) await sleep(800);
+  for (let i = 0; i < items.length; i += 8) {
+    const batch = items.slice(i, i + 8);
+    await retryOnRateLimit(() => Promise.all(batch.map(o => entity.delete(o.id))), `del ${i}`);
+    if (i + 8 < items.length) await sleep(300);
   }
 }
 
 async function batchCreate(entity, records, label = '') {
-  for (let i = 0; i < records.length; i += 15) {
-    const batch = records.slice(i, i + 15);
-    await retryOnRateLimit(() => entity.bulkCreate(batch), `${label} create batch ${i}`);
-    if (i + 15 < records.length) await sleep(800);
+  for (let i = 0; i < records.length; i += 20) {
+    const batch = records.slice(i, i + 20);
+    await retryOnRateLimit(() => entity.bulkCreate(batch), `${label} ${i}`);
+    if (i + 20 < records.length) await sleep(300);
   }
 }
 
-async function fetchWithRetry(fetchFn, { minExpected = 5, maxRetries = 1, label = '' } = {}) {
-  let lastResult = [];
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    if (attempt > 0) {
-      console.log(`[RETRY] ${label}: attempt ${attempt + 1}/${maxRetries + 1} (got ${lastResult.length}, expected >= ${minExpected})`);
-      await sleep(1500);
-    }
-    lastResult = await fetchFn();
-    if (lastResult.length >= minExpected) return lastResult;
-  }
-  return lastResult;
-}
+// ---- Sync one category ----
 
-// ==========================================
-// WORKER: sync a single category
-// ==========================================
 async function syncCategory(config, cookies, base44, temporada) {
   const cat = config.categoria;
+  const t0 = Date.now();
   const result = { cat, standings: null, results: null, scorers: null, errors: [] };
 
   // --- STANDINGS ---
   if (config.rfef_url) {
     try {
       const p = extractParams(config.rfef_url);
-      const standings = await fetchWithRetry(async () => {
-        let html = await fetchPage(buildClassUrl(p), cookies);
-        let st = parseStandings(html);
-        if (!st.length) {
-          const j1 = await fetchPage(buildJornadaUrl(p, 1), cookies);
-          const tot = detectTotal(j1);
-          for (let j = tot; j >= 1 && !st.length; j--) { html = await fetchPage(buildClassUrl(p, j), cookies); st = parseStandings(html); }
+      let html = await fetchPage(buildClassUrl(p), cookies);
+      let standings = parseStandings(html);
+      if (!standings.length) {
+        const j1 = await fetchPage(buildJornadaUrl(p, 1), cookies);
+        const tot = detectTotal(j1);
+        for (let j = tot; j >= Math.max(1, tot - 3) && !standings.length; j--) {
+          html = await fetchPage(buildClassUrl(p, j), cookies);
+          standings = parseStandings(html);
         }
-        return st;
-      }, { minExpected: 5, maxRetries: 1, label: `Standings ${cat}` });
+      }
       if (standings.length) {
-        const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada }), `Standings old ${cat}`);
+        const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada }));
         if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
-        await sleep(500);
         const jornada = standings[0]?.pj || 0;
         const records = standings.map(s => ({
           temporada, categoria: cat, jornada, posicion: s.posicion, nombre_equipo: s.equipo,
           puntos: s.puntos, partidos_jugados: s.pj, ganados: s.pg, empatados: s.pe, perdidos: s.pp,
           goles_favor: s.gf, goles_contra: s.gc, fecha_actualizacion: new Date().toISOString(),
         }));
-        await batchCreate(base44.asServiceRole.entities.Clasificacion, records, `Standings ${cat}`);
+        await batchCreate(base44.asServiceRole.entities.Clasificacion, records, `St ${cat}`);
         result.standings = { teams: standings.length, jornada };
       }
     } catch (e) { result.errors.push({ type: 'standings', error: e.message }); }
   }
 
-  // --- RESULTS (latest jornada only, scan backwards max 5 pages) ---
+  // --- RESULTS (latest jornada, scan backwards max 5) ---
   if (config.rfef_results_url || config.rfef_url) {
     try {
       const url = config.rfef_results_url || config.rfef_url;
@@ -280,7 +261,7 @@ async function syncCategory(config, cookies, base44, temporada) {
         if (matches.some(m => m.jugado)) { latestJ = j; latestM = matches; break; }
       }
       if (latestJ && latestM) {
-        const existing = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ }), `Results filter ${cat}`);
+        const existing = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ }));
         if (!existing.length) {
           const records = latestM.filter(m => m.jugado).map(m => ({
             temporada, categoria: cat, jornada: latestJ, local: m.local, visitante: m.visitante,
@@ -288,11 +269,11 @@ async function syncCategory(config, cookies, base44, temporada) {
             estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
           }));
           if (records.length) {
-            await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.bulkCreate(records), `Results create ${cat}`);
+            await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.bulkCreate(records));
             result.results = { jornada: latestJ, matches: records.length };
           }
 
-          // Auto-generate MatchObservation for Bustarviejo matches
+          // Auto-generate MatchObservation for Bustarviejo
           try {
             const bustMatch = latestM.find(m => m.jugado && (/bustarviejo/i.test(m.local) || /bustarviejo/i.test(m.visitante)));
             if (bustMatch) {
@@ -302,8 +283,7 @@ async function syncCategory(config, cookies, base44, temporada) {
               const gc = isLocal ? bustMatch.goles_visitante : bustMatch.goles_local;
               const tipo = gf > gc ? 'Victoria' : gf === gc ? 'Empate' : 'Derrota';
               const emoji = tipo === 'Victoria' ? '✅' : tipo === 'Empate' ? '🤝' : '❌';
-
-              const existingObs = await retryOnRateLimit(() => base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ }), `MatchObs filter ${cat}`);
+              const existingObs = await retryOnRateLimit(() => base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ }));
               if (!existingObs.length) {
                 await base44.asServiceRole.entities.MatchObservation.create({
                   categoria: cat, rival,
@@ -316,27 +296,25 @@ async function syncCategory(config, cookies, base44, temporada) {
                   email_enviado: false, entrenador_email: '', entrenador_nombre: '',
                 });
                 result.autoObservation = { rival, resultado: `${gf}-${gc}`, tipo };
-
                 // Email coach
                 try {
-                  const users = await retryOnRateLimit(() => base44.asServiceRole.entities.User.list(), `Users coach ${cat}`);
+                  const users = await retryOnRateLimit(() => base44.asServiceRole.entities.User.list());
                   const coaches = users.filter(u => u.es_entrenador && (u.categorias_entrenador || []).some(c => c === cat));
                   for (const coach of coaches) {
                     if (!coach.email) continue;
                     await base44.asServiceRole.integrations.Core.SendEmail({
                       to: coach.email,
                       subject: `${emoji} Ficha de partido: ${gf}-${gc} vs ${rival} (${cat})`,
-                      body: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#c2410c);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">⚽ Ficha de partido generada</h2><p style="color:#fed7aa;margin:4px 0 0">${cat} — Jornada ${latestJ}</p></div><div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><div style="background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;margin-bottom:16px"><p style="font-size:28px;margin:0">${emoji}</p><p style="font-size:24px;font-weight:bold;margin:4px 0">CD Bustarviejo ${gf} - ${gc} ${rival}</p><p style="color:#64748b;margin:4px 0">${tipo} · ${isLocal?'Local':'Visitante'}${bustMatch.campo?' · '+bustMatch.campo:''}</p></div><p style="color:#334155">Hola ${coach.full_name||'Entrenador'},</p><p style="color:#334155">Ya hemos registrado automáticamente la ficha del partido de <strong>${cat}</strong> contra <strong>${rival}</strong>.</p><p style="color:#334155">Si quieres, puedes <strong>añadir tus observaciones</strong> desde la app.</p></div></div>`,
+                      body: `<div style="font-family:Arial;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#c2410c);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">⚽ Ficha de partido</h2><p style="color:#fed7aa;margin:4px 0">${cat} — J${latestJ}</p></div><div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p style="font-size:24px;font-weight:bold;text-align:center">${emoji} CD Bustarviejo ${gf} - ${gc} ${rival}</p><p>Hola ${coach.full_name||'Entrenador'}, ya está la ficha del partido. Puedes añadir tus observaciones desde la app.</p></div></div>`,
                       from_name: 'CD Bustarviejo',
                     });
                     const obs = await base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ });
                     if (obs[0]) await base44.asServiceRole.entities.MatchObservation.update(obs[0].id, { entrenador_email: coach.email, entrenador_nombre: coach.full_name || '', email_enviado: true });
                   }
-                } catch (coachErr) { console.error('Error sending coach email:', coachErr.message); }
+                } catch (ce) { console.error(`Coach email error (${cat}):`, ce.message); }
               }
             }
-          } catch (obsErr) { console.error('Error auto-generating observation:', obsErr.message); }
-
+          } catch (oe) { console.error(`Observation error (${cat}):`, oe.message); }
         } else { result.results = { jornada: latestJ, skipped: true }; }
       }
     } catch (e) { result.errors.push({ type: 'results', error: e.message }); }
@@ -345,31 +323,28 @@ async function syncCategory(config, cookies, base44, temporada) {
   // --- SCORERS ---
   if (config.rfef_scorers_url) {
     try {
-      const scorers = await fetchWithRetry(async () => {
-        const html = await fetchPage(config.rfef_scorers_url, cookies);
-        return parseScorers(html);
-      }, { minExpected: 5, maxRetries: 1, label: `Scorers ${cat}` });
-      console.log(`[SCORERS] ${cat}: parsed ${scorers.length} scorers`);
+      const html = await fetchPage(config.rfef_scorers_url, cookies);
+      const scorers = parseScorers(html);
+      console.log(`[SCORERS] ${cat}: ${scorers.length} scorers`);
       if (scorers.length) {
-        const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }), `Scorers old ${cat}`);
+        const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }));
         if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
-        await sleep(500);
         const records = scorers.map((s, i) => ({
           temporada, categoria: cat, jugador_nombre: s.jugador, equipo: s.equipo,
           goles: s.goles, posicion: i + 1, fecha_actualizacion: new Date().toISOString(),
         }));
-        await batchCreate(base44.asServiceRole.entities.Goleador, records, `Scorers ${cat}`);
+        await batchCreate(base44.asServiceRole.entities.Goleador, records, `Sc ${cat}`);
         result.scorers = { players: scorers.length };
       }
     } catch (e) { result.errors.push({ type: 'scorers', error: e.message }); }
   }
 
+  console.log(`[SYNC] ${cat}: ${((Date.now()-t0)/1000).toFixed(1)}s — st:${result.standings?'ok':'skip'} res:${result.results?'ok':'skip'} sc:${result.scorers?'ok':'skip'} err:${result.errors.length}`);
   return result;
 }
 
-// ==========================================
-// MAIN HANDLER
-// ==========================================
+// ---- Main handler ----
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -377,22 +352,13 @@ Deno.serve(async (req) => {
     if (user?.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
-
-    // ----- WORKER MODE: sync single category -----
-    if (body?._workerMode) {
-      console.log(`[WORKER] Syncing category: ${body.categoria}`);
-      const config = body.config;
-      const r = await syncCategory(config, body.cookies, base44, body.temporada);
-      console.log(`[WORKER] Done: ${body.categoria} — standings: ${r.standings ? 'ok' : 'skip'}, results: ${r.results ? 'ok' : 'skip'}, scorers: ${r.scorers ? 'ok' : 'skip'}, errors: ${r.errors.length}`);
-      return Response.json(r);
-    }
-
-    // ----- DISPATCHER MODE: orchestrate all categories -----
     const targetCat = body?.categoria;
-    console.log(`[DISPATCHER] Starting RFFM sync${targetCat ? ` for ${targetCat}` : ' (all categories)'}...`);
+
+    console.log(`[RFFM] Starting sync${targetCat ? ` for ${targetCat}` : ' (all)'}...`);
+    const t0 = Date.now();
 
     const cookies = await rffmLogin();
-    console.log('[DISPATCHER] RFFM login successful');
+    console.log(`[RFFM] Login OK (${((Date.now()-t0)/1000).toFixed(1)}s)`);
 
     const allConfigs = await base44.asServiceRole.entities.StandingsConfig.list();
     const configs = targetCat
@@ -401,30 +367,12 @@ Deno.serve(async (req) => {
     const temporada = getSeason();
     const results = [];
 
-    console.log(`[DISPATCHER] ${configs.length} categories to sync`);
+    console.log(`[RFFM] ${configs.length} categories to sync`);
 
-    // Process categories SEQUENTIALLY via self-invocation
-    // Each category gets its own function call = its own timeout budget
     for (let ci = 0; ci < configs.length; ci++) {
-      const config = configs[ci];
-      console.log(`[DISPATCHER] (${ci+1}/${configs.length}) Invoking worker for: ${config.categoria}`);
-      try {
-        const workerResp = await base44.functions.invoke('rffmWeeklySync', {
-          _workerMode: true,
-          categoria: config.categoria,
-          config: { categoria: config.categoria, rfef_url: config.rfef_url, rfef_results_url: config.rfef_results_url, rfef_scorers_url: config.rfef_scorers_url },
-          cookies,
-          temporada,
-        });
-        const r = workerResp.data || workerResp;
-        results.push(r);
-        console.log(`[DISPATCHER] ${config.categoria}: OK`);
-      } catch (workerErr) {
-        console.error(`[DISPATCHER] ${config.categoria}: FAILED — ${workerErr.message}`);
-        results.push({ cat: config.categoria, standings: null, results: null, scorers: null, errors: [{ type: 'worker', error: workerErr.message }] });
-      }
-      // Small pause between worker invocations to be gentle
-      if (ci + 1 < configs.length) await sleep(1000);
+      if (ci > 0) await sleep(1500); // brief pause between categories
+      const r = await syncCategory(configs[ci], cookies, base44, temporada);
+      results.push(r);
     }
 
     // Build summary
@@ -434,9 +382,9 @@ Deno.serve(async (req) => {
 
     for (const r of results) {
       const parts = [];
-      if (r.standings) parts.push(`Clasificación (J${r.standings.jornada}, ${r.standings.teams} equipos)`);
-      if (r.results && !r.results.skipped) parts.push(`Jornada ${r.results.jornada}: ${r.results.matches} resultados`);
-      if (r.results?.skipped) parts.push(`Jornada ${r.results.jornada}: ya importada`);
+      if (r.standings) parts.push(`Clasificación (J${r.standings.jornada}, ${r.standings.teams} eq)`);
+      if (r.results && !r.results.skipped) parts.push(`J${r.results.jornada}: ${r.results.matches} resultados`);
+      if (r.results?.skipped) parts.push(`J${r.results.jornada}: ya importada`);
       if (r.scorers) parts.push(`${r.scorers.players} goleadores`);
       if (r.errors?.length) { parts.push(`⚠️ ${r.errors.length} error(es)`); totalErrors += r.errors.length; }
       if (parts.length) summaryLines.push(`• ${r.cat}: ${parts.join(' | ')}`);
@@ -457,36 +405,33 @@ Deno.serve(async (req) => {
       }
     }
 
+    const elapsed = ((Date.now()-t0)/1000).toFixed(1);
     const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-    let resumen = `📊 *Resumen semanal RFFM — ${fecha}*\n\n`;
-    resumen += `✅ Sincronizadas ${results.length} categorías\n`;
+    let resumen = `📊 *Resumen RFFM — ${fecha}*\n✅ ${results.length} categorías en ${elapsed}s\n`;
     if (summaryLines.length) resumen += summaryLines.join('\n') + '\n';
-    if (totalErrors) resumen += `\n⚠️ Errores totales: ${totalErrors}\n`;
-    if (bustResults.length) resumen += `\n🏆 *Bustarviejo esta semana:*\n${bustResults.join('\n')}\n`;
+    if (totalErrors) resumen += `\n⚠️ Errores: ${totalErrors}\n`;
+    if (bustResults.length) resumen += `\n🏆 *Bustarviejo:*\n${bustResults.join('\n')}\n`;
 
-    // Send summary email to admin
+    // Send summary email
     try {
-      const admins = await retryOnRateLimit(() => base44.asServiceRole.entities.User.filter({ role: 'admin' }), 'Admin list');
-      const emailBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#15803d);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">📊 Resumen semanal RFFM</h2><p style="color:#fed7aa;margin:4px 0 0">${fecha}</p></div><div style="background:#fff;padding:20px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p><strong>${results.length} categorías sincronizadas</strong></p><ul style="padding-left:20px">${summaryLines.map(l => `<li>${l.replace('• ', '')}</li>`).join('')}</ul>${totalErrors ? `<div style="background:#fef2f2;border:1px solid #ef4444;border-radius:8px;padding:12px;margin:12px 0"><strong>⚠️ ${totalErrors} error(es)</strong><ul style="margin:8px 0 0;padding-left:16px;font-size:13px;color:#991b1b">${results.filter(r => r.errors?.length > 0).map(r => r.errors.map(e => `<li>${r.cat} → ${e.type}: ${e.error}</li>`).join('')).join('')}</ul></div>` : ''}${bustResults.length ? `<h3>🏆 Bustarviejo esta semana</h3><ul>${bustResults.map(r2 => `<li>${r2}</li>`).join('')}</ul>` : ''}</div></div>`;
+      const admins = await retryOnRateLimit(() => base44.asServiceRole.entities.User.filter({ role: 'admin' }));
+      const emailBody = `<div style="font-family:Arial;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#15803d);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">📊 Resumen RFFM</h2><p style="color:#fed7aa;margin:4px 0">${fecha} · ${elapsed}s</p></div><div style="background:#fff;padding:20px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p><strong>${results.length} categorías sincronizadas</strong></p><ul style="padding-left:20px">${summaryLines.map(l => `<li>${l.replace('• ', '')}</li>`).join('')}</ul>${totalErrors ? `<div style="background:#fef2f2;border:1px solid #ef4444;border-radius:8px;padding:12px;margin:12px 0"><strong>⚠️ ${totalErrors} error(es)</strong><ul style="margin:8px 0 0;padding-left:16px;font-size:13px;color:#991b1b">${results.filter(r => r.errors?.length).map(r => r.errors.map(e => `<li>${r.cat} → ${e.type}: ${e.error}</li>`).join('')).join('')}</ul></div>` : ''}${bustResults.length ? `<h3>🏆 Bustarviejo</h3><ul>${bustResults.map(r2 => `<li>${r2}</li>`).join('')}</ul>` : ''}</div></div>`;
       for (const admin of admins) {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: admin.email, subject: `📊 Resumen RFFM semanal — ${fecha}`,
-          body: emailBody, from_name: 'CD Bustarviejo',
-        });
+        await base44.asServiceRole.integrations.Core.SendEmail({ to: admin.email, subject: `📊 Resumen RFFM — ${fecha}`, body: emailBody, from_name: 'CD Bustarviejo' });
       }
-    } catch (emailErr) { console.error('Error sending summary email:', emailErr.message); }
+    } catch (emailErr) { console.error('Summary email error:', emailErr.message); }
 
-    console.log(`[DISPATCHER] Complete: ${results.length} categories, ${totalErrors} errors`);
-    return Response.json({ success: true, temporada, synced: results, summary: resumen, timestamp: new Date().toISOString() });
+    console.log(`[RFFM] Complete: ${results.length} cats, ${totalErrors} errors, ${elapsed}s`);
+    return Response.json({ success: true, temporada, synced: results, summary: resumen, timestamp: new Date().toISOString(), elapsed: `${elapsed}s` });
   } catch (error) {
-    console.error('[DISPATCHER] Fatal error:', error.message);
+    console.error('[RFFM] Fatal:', error.message);
     try {
       const base44Err = createClientFromRequest(req);
       const admins = await base44Err.asServiceRole.entities.User.filter({ role: 'admin' });
       for (const admin of admins) {
         await base44Err.asServiceRole.integrations.Core.SendEmail({
-          to: admin.email, subject: '🚨 Error en sincronización RFFM semanal',
-          body: `<div style="font-family:Arial;max-width:600px"><div style="background:#dc2626;padding:16px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">🚨 Fallo en rffmWeeklySync</h2></div><div style="background:#fff;padding:20px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p>La sincronización semanal ha fallado:</p><pre style="background:#f1f5f9;padding:12px;border-radius:8px;overflow-x:auto">${error.message}</pre><p style="color:#64748b;font-size:12px">Fecha: ${new Date().toISOString()}</p></div></div>`,
+          to: admin.email, subject: '🚨 Error RFFM sync',
+          body: `<div style="font-family:Arial;max-width:600px"><div style="background:#dc2626;padding:16px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">🚨 Fallo rffmWeeklySync</h2></div><div style="background:#fff;padding:20px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><pre style="background:#f1f5f9;padding:12px;border-radius:8px">${error.message}</pre></div></div>`,
           from_name: 'CD Bustarviejo',
         });
       }
