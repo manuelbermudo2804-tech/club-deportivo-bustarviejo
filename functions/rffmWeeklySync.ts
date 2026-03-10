@@ -113,30 +113,51 @@ function parseStandings(html) {
 function parseScorers(html) {
   const $ = load(html);
   let rows = [];
+  let approach = 'none';
 
+  // APPROACH 1: Standard HTML table - but ONLY use if headers clearly identify columns
   $('table').each((_, table) => {
+    if (rows.length > 0) return; // already found
     const headers = $(table).find('th').map((__, th) => $(th).text().toLowerCase().trim()).get();
     const looksLike = headers.some(h => /gole(s|adores)/i.test(h)) || (headers.includes('jugador') && headers.some(h => h.includes('gol')));
-    if (looksLike) {
-      $(table).find('tbody tr, tr').each((__, tr) => {
-        const tds = $(tr).find('td');
-        if (tds.length < 3) return;
-        const texts = tds.map((___, td) => $(td).text().trim()).get();
-        // Goals is the LAST pure-number column (position/rank comes first, goals last)
-        let goalsIdx = -1;
+    if (!looksLike) return;
+
+    // Find the goals column index from headers
+    let golesHeaderIdx = headers.findIndex(h => /^goles?$/.test(h));
+    if (golesHeaderIdx < 0) golesHeaderIdx = headers.findIndex(h => h.includes('gol'));
+
+    $(table).find('tbody tr, tr').each((__, tr) => {
+      const tds = $(tr).find('td');
+      if (tds.length < 3) return;
+      const texts = tds.map((___, td) => $(td).text().trim()).get();
+
+      // Use the header-identified column if available, otherwise fall back to LAST number
+      let goles = null;
+      if (golesHeaderIdx >= 0 && golesHeaderIdx < texts.length && /^\d+$/.test(texts[golesHeaderIdx])) {
+        goles = Number(texts[golesHeaderIdx]);
+      } else {
+        // Fallback: last pure-number column (position/rank comes first, goals last)
         for (let gi = texts.length - 1; gi >= 0; gi--) {
-          if (/^\d+$/.test(texts[gi])) { goalsIdx = gi; break; }
+          if (/^\d+$/.test(texts[gi])) { goles = Number(texts[gi]); break; }
         }
-        const goles = goalsIdx >= 0 ? Number(texts[goalsIdx]) : null;
-        if (goles !== null && goles > 0) {
-          const jugador = texts[0] || '';
-          const equipo = texts.find((t, i) => i > 0 && i !== goalsIdx && !/^\d+$/.test(t)) || '';
-          if (jugador && equipo) rows.push({ jugador, equipo, goles });
-        }
-      });
-    }
+      }
+      if (goles === null || goles <= 0) return;
+
+      // Find player name: first non-empty non-number cell
+      let jugador = '';
+      let equipo = '';
+      for (let ci = 0; ci < texts.length; ci++) {
+        if (/^\d+$/.test(texts[ci])) continue; // skip numbers (position, goals, etc)
+        if (!texts[ci]) continue;
+        if (!jugador) { jugador = texts[ci]; continue; }
+        if (!equipo) { equipo = texts[ci]; break; }
+      }
+      if (jugador && equipo) rows.push({ jugador, equipo, goles });
+    });
+    if (rows.length > 0) approach = 'table';
   });
 
+  // APPROACH 2: RFFM multi-line text format (most reliable for RFFM logged-in pages)
   if (rows.length < 3) {
     const bodyText = $('body').text();
     const lines = bodyText.split(/\n|\r/).map(l => l.trim()).filter(Boolean);
@@ -161,15 +182,22 @@ function parseScorers(html) {
       }
       if (nombre && equipo && goles > 0) parsedFromText.push({ jugador: nombre.trim(), equipo: equipo.trim(), goles });
     }
-    if (parsedFromText.length > rows.length) rows = parsedFromText;
+    if (parsedFromText.length > rows.length) { rows = parsedFromText; approach = 'text'; }
   }
 
+  // APPROACH 3: Fallback regex for "NOMBRE - EQUIPO  GOLES" format
   if (rows.length === 0) {
     const lines = $('body').text().split(/\n|\r/).map(l => l.trim()).filter(Boolean);
     for (const line of lines) {
       const m = line.match(/^([A-ZÁÉÍÓÚÜÑ][A-ZÁÉÍÓÚÜÑ\s\.'-]{3,})\s+-\s+([A-ZÁÉÍÓÚÜÑ0-9\s\.'-]{2,})\s+(\d{1,3})$/i);
       if (m) rows.push({ jugador: m[1].trim(), equipo: m[2].trim(), goles: Number(m[3]) });
     }
+    if (rows.length > 0) approach = 'regex';
+  }
+
+  console.log(`[SCORERS-PARSER] approach=${approach}, raw=${rows.length}`);
+  if (rows.length > 0 && rows.length <= 3) {
+    console.log(`[SCORERS-PARSER] Sample:`, JSON.stringify(rows.slice(0, 3)));
   }
 
   const seen = new Set();
