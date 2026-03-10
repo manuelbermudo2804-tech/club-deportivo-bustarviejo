@@ -525,7 +525,11 @@ Deno.serve(async (req) => {
 
     // Send summary email to admin
     try {
-      const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+      await sleep(3000); // Wait before sending emails to avoid rate limits
+      const admins = await retryOnRateLimit(
+        () => base44.asServiceRole.entities.User.filter({ role: 'admin' }),
+        'Admin list for email'
+      );
       const emailBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
