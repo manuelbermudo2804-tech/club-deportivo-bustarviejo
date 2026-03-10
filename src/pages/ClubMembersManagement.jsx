@@ -925,7 +925,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     suscripciones: currentSeasonMembers.filter(m => m.renovacion_automatica === true).length,
     stripeUnico: currentSeasonMembers.filter(m => m.origen_pago === 'stripe_unico').length,
     transferencias: currentSeasonMembers.filter(m => m.origen_pago === 'transferencia').length,
-    sociosPadre: currentSeasonMembers.filter(m => m.es_socio_padre === true).length,
+    sociosPadre: currentSeasonMembers.filter(m => m.es_socio_padre === true || m.origen_pago === 'socio_padre_auto' || (!m.origen_pago && m.estado_pago === 'Pagado' && parentEmails.has(m.email?.toLowerCase()?.trim()))).length,
   };
 
   // Detectar nuevos socios recientes (últimos 7 días) para alertas
