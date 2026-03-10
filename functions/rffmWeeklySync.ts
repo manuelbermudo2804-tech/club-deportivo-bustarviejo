@@ -328,7 +328,10 @@ async function syncCategory(config, cookies, base44, temporada) {
         if (matches.some(m => m.jugado)) { latestJ = j; latestM = matches; break; }
       }
       if (latestJ && latestM) {
-        const existing = await base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ });
+        const existing = await retryOnRateLimit(
+          () => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ }),
+          `Results filter ${cat}`
+        );
         if (!existing.length) {
           const records = latestM.filter(m => m.jugado).map(m => ({
             temporada, categoria: cat, jornada: latestJ, local: m.local, visitante: m.visitante,
@@ -336,7 +339,13 @@ async function syncCategory(config, cookies, base44, temporada) {
             estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
             ...(m.acta_url ? { acta_url: m.acta_url } : {}),
           }));
-          if (records.length) { await base44.asServiceRole.entities.Resultado.bulkCreate(records); result.results = { jornada: latestJ, matches: records.length }; }
+          if (records.length) {
+            await retryOnRateLimit(
+              () => base44.asServiceRole.entities.Resultado.bulkCreate(records),
+              `Results create ${cat}`
+            );
+            result.results = { jornada: latestJ, matches: records.length };
+          }
 
           // AUTO-GENERATE MatchObservation for Bustarviejo matches
           try {
