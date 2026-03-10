@@ -465,7 +465,7 @@ Deno.serve(async (req) => {
     for (let ci = 0; ci < configs.length; ci++) {
       const config = configs[ci];
       if (!config.rfef_url && !config.rfef_results_url && !config.rfef_scorers_url) continue;
-      if (ci > 0) await sleep(3000); // Pause between categories to avoid rate limits
+      if (ci > 0) await sleep(6000); // Pause between categories to avoid rate limits
       const r = await syncCategory(config, cookies, base44, temporada);
       results.push(r);
     }
