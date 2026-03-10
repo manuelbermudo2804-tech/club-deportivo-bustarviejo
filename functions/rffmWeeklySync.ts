@@ -389,7 +389,11 @@ async function syncCategory(config, cookies, base44, temporada) {
 
                 // Find coach for this category and send email
                 try {
-                  const users = await base44.asServiceRole.entities.User.list();
+                  await sleep(2000);
+                  const users = await retryOnRateLimit(
+                    () => base44.asServiceRole.entities.User.list(),
+                    `Users for coach email ${cat}`
+                  );
                   const coaches = users.filter(u => u.es_entrenador && (u.categorias_entrenador || []).some(c => c === cat));
                   for (const coach of coaches) {
                     if (!coach.email) continue;
