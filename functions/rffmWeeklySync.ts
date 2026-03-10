@@ -218,12 +218,44 @@ function getSeason() { const n = new Date(); const y = n.getFullYear(); return n
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+async function retryOnRateLimit(fn, label = '', maxRetries = 3) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      const is429 = /rate limit|429/i.test(e.message || '');
+      if (is429 && attempt < maxRetries) {
+        const wait = 5000 + attempt * 5000; // 5s, 10s, 15s
+        console.log(`[RATE-LIMIT] ${label}: waiting ${wait/1000}s before retry ${attempt+1}/${maxRetries}`);
+        await sleep(wait);
+      } else {
+        throw e;
+      }
+    }
+  }
+}
+
 async function batchDelete(entity, items) {
-  // Delete in batches of 5 with pauses to avoid rate limits
-  for (let i = 0; i < items.length; i += 5) {
-    const batch = items.slice(i, i + 5);
-    await Promise.all(batch.map(o => entity.delete(o.id)));
-    if (i + 5 < items.length) await sleep(500);
+  // Delete in batches of 3 with generous pauses to avoid rate limits
+  for (let i = 0; i < items.length; i += 3) {
+    const batch = items.slice(i, i + 3);
+    await retryOnRateLimit(
+      () => Promise.all(batch.map(o => entity.delete(o.id))),
+      `delete batch ${i}`
+    );
+    if (i + 3 < items.length) await sleep(1500);
+  }
+}
+
+async function batchCreate(entity, records, label = '') {
+  // bulkCreate in batches of 10 with pauses and retry
+  for (let i = 0; i < records.length; i += 10) {
+    const batch = records.slice(i, i + 10);
+    await retryOnRateLimit(
+      () => entity.bulkCreate(batch),
+      `${label} create batch ${i}`
+    );
+    if (i + 10 < records.length) await sleep(1500);
   }
 }
 
