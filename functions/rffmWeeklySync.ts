@@ -134,12 +134,15 @@ function parseScorers(html) {
       if (tds.length < 3) return;
       const texts = tds.map((___, td) => $(td).text().trim()).get();
 
-      // Use the header-identified column if available, otherwise fall back to LAST number
+      // Use the header-identified column if available
+      // The goals column may contain text like "28 (3 de penalti)" - extract leading number
       let goles = null;
-      if (golesHeaderIdx >= 0 && golesHeaderIdx < texts.length && /^\d+$/.test(texts[golesHeaderIdx])) {
-        goles = Number(texts[golesHeaderIdx]);
-      } else {
-        // Fallback: last pure-number column (position/rank comes first, goals last)
+      if (golesHeaderIdx >= 0 && golesHeaderIdx < texts.length) {
+        const golesMatch = texts[golesHeaderIdx].match(/^(\d+)/);
+        if (golesMatch) goles = Number(golesMatch[1]);
+      }
+      if (goles === null) {
+        // Fallback: last pure-number column
         for (let gi = texts.length - 1; gi >= 0; gi--) {
           if (/^\d+$/.test(texts[gi])) { goles = Number(texts[gi]); break; }
         }
