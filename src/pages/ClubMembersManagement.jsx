@@ -1478,9 +1478,15 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                         </Badge>
                       )}
                       {!member.origen_pago && member.estado_pago === 'Pagado' && (
-                        <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500">
-                          ❓ Sin origen
-                        </Badge>
+                        parentEmails.has(member.email?.toLowerCase()?.trim()) ? (
+                          <Badge className="bg-amber-100 text-amber-700 text-xs border border-amber-200">
+                            👨‍👩‍👧 Padre (Inscripción)
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-slate-50 text-slate-500">
+                            ❓ Sin origen
+                          </Badge>
+                        )
                       )}
                       {/* CANAL: Desde dónde se registró */}
                       {member.es_socio_externo && (
