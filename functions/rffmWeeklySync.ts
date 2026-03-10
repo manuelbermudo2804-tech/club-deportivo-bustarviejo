@@ -122,11 +122,15 @@ function parseScorers(html) {
         const tds = $(tr).find('td');
         if (tds.length < 3) return;
         const texts = tds.map((___, td) => $(td).text().trim()).get();
-        const goalsIdx = texts.findIndex(t => /^\d+$/.test(t));
+        // Goals is the LAST pure-number column (position/rank comes first, goals last)
+        let goalsIdx = -1;
+        for (let gi = texts.length - 1; gi >= 0; gi--) {
+          if (/^\d+$/.test(texts[gi])) { goalsIdx = gi; break; }
+        }
         const goles = goalsIdx >= 0 ? Number(texts[goalsIdx]) : null;
         if (goles !== null && goles > 0) {
           const jugador = texts[0] || '';
-          const equipo = texts.find((t, i) => i > 0 && !/^\d+$/.test(t)) || '';
+          const equipo = texts.find((t, i) => i > 0 && i !== goalsIdx && !/^\d+$/.test(t)) || '';
           if (jugador && equipo) rows.push({ jugador, equipo, goles });
         }
       });
