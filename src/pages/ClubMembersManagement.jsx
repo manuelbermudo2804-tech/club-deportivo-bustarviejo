@@ -1411,7 +1411,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
               <SelectItem value="stripe_suscripcion">🔄 Suscripción Stripe</SelectItem>
               <SelectItem value="stripe_unico">💳 Pago Único Stripe</SelectItem>
               <SelectItem value="transferencia">🏦 Transferencia</SelectItem>
-              <SelectItem value="socio_padre_auto">👨‍👩‍👧 Padre Automático</SelectItem>
+              <SelectItem value="socio_padre_auto">👨‍👩‍👧 Padre (Inscripción jugador)</SelectItem>
               <SelectItem value="web">🌐 Desde Web (Externo)</SelectItem>
               <SelectItem value="sin_origen">❓ Sin origen registrado</SelectItem>
             </SelectContent>
