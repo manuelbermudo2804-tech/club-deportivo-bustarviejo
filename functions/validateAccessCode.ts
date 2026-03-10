@@ -158,6 +158,20 @@ Deno.serve(async (req) => {
       if (accessCode.jugador_id) {
         updateData.player_id = accessCode.jugador_id;
       }
+    } else if (accessCode.tipo === 'entrenador') {
+      updateData.tipo_panel = 'familia'; // panel base - el layout detecta es_entrenador
+      updateData.es_entrenador = true;
+      if (accessCode.categorias_asignadas?.length > 0) {
+        updateData.categorias_entrena = accessCode.categorias_asignadas;
+      }
+    } else if (accessCode.tipo === 'coordinador') {
+      updateData.tipo_panel = 'familia'; // panel base - el layout detecta es_coordinador
+      updateData.es_coordinador = true;
+      updateData.es_entrenador = true; // coordinadores también son entrenadores
+      if (accessCode.categorias_asignadas?.length > 0) {
+        updateData.categorias_coordina = accessCode.categorias_asignadas;
+        updateData.categorias_entrena = accessCode.categorias_asignadas;
+      }
     }
 
     await base44.asServiceRole.entities.User.update(user.id, updateData);
