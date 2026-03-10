@@ -25,13 +25,21 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
   const [loading, setLoading] = useState(false);
   const [searchPlayer, setSearchPlayer] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [selectedCategorias, setSelectedCategorias] = useState([]);
 
   const needsPlayer = tipo === 'segundo_progenitor' || tipo === 'juvenil';
+  const needsCategoria = tipo === 'entrenador' || tipo === 'coordinador';
 
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['playersForInvite'],
     queryFn: () => base44.entities.Player.filter({ activo: true }),
     enabled: open,
+  });
+
+  const { data: allCategories = [] } = useQuery({
+    queryKey: ['categoriesForInvite'],
+    queryFn: () => base44.entities.CategoryConfig.filter({ activa: true }),
+    enabled: open && needsCategoria,
   });
 
   const filteredPlayers = searchPlayer.trim().length >= 2
@@ -41,11 +49,21 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
       ).slice(0, 10)
     : [];
 
+  const toggleCategoria = (cat) => {
+    setSelectedCategorias(prev => 
+      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim()) return;
     if (needsPlayer && !selectedPlayer) {
       toast.error("Selecciona el jugador al que vincular esta invitación");
+      return;
+    }
+    if (needsCategoria && selectedCategorias.length === 0) {
+      toast.error("Selecciona al menos una categoría");
       return;
     }
     setLoading(true);
@@ -55,24 +73,29 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
         nombre_destino: nombre.trim(), 
         tipo, 
         mensaje_personalizado: mensaje.trim(),
-        ...(selectedPlayer ? { jugador_id: selectedPlayer.id, jugador_nombre: selectedPlayer.nombre } : {})
+        ...(selectedPlayer ? { jugador_id: selectedPlayer.id, jugador_nombre: selectedPlayer.nombre } : {}),
+        ...(needsCategoria ? { categorias_asignadas: selectedCategorias } : {})
       });
       setEmail("");
       setNombre("");
       setMensaje("");
       setSelectedPlayer(null);
       setSearchPlayer("");
+      setSelectedCategorias([]);
       onOpenChange(false);
     } finally {
       setLoading(false);
     }
   };
 
-  // Reset jugador al cambiar tipo
+  // Reset campos al cambiar tipo
   React.useEffect(() => {
     if (!needsPlayer) {
       setSelectedPlayer(null);
       setSearchPlayer("");
+    }
+    if (!needsCategoria) {
+      setSelectedCategorias([]);
     }
   }, [tipo]);
 
@@ -95,9 +118,55 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
                 <SelectItem value="segundo_progenitor">👥 Segundo Progenitor</SelectItem>
                 <SelectItem value="juvenil">⚽ Acceso Juvenil (+13)</SelectItem>
                 <SelectItem value="jugador_adulto">🏃 Jugador +18</SelectItem>
+                <SelectItem value="entrenador">🏃‍♂️ Entrenador</SelectItem>
+                <SelectItem value="coordinador">📋 Coordinador</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {/* Selector de categorías (para entrenador y coordinador) */}
+          {needsCategoria && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                📋 Categorías asignadas *
+              </Label>
+              <p className="text-xs text-slate-500">
+                Selecciona las categorías que {tipo === 'entrenador' ? 'entrenará' : 'coordinará'}
+              </p>
+              <div className="border rounded-lg max-h-48 overflow-y-auto divide-y">
+                {allCategories.map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => toggleCategoria(cat.nombre)}
+                    className={`w-full text-left px-3 py-2.5 transition-colors flex items-center gap-2 ${
+                      selectedCategorias.includes(cat.nombre) 
+                        ? 'bg-orange-50 border-l-4 border-l-orange-500' 
+                        : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded border-2 flex items-center justify-center text-xs ${
+                      selectedCategorias.includes(cat.nombre) 
+                        ? 'bg-orange-600 border-orange-600 text-white' 
+                        : 'border-slate-300'
+                    }`}>
+                      {selectedCategorias.includes(cat.nombre) && '✓'}
+                    </span>
+                    <span className="font-medium text-sm">{cat.nombre}</span>
+                  </button>
+                ))}
+              </div>
+              {selectedCategorias.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {selectedCategorias.map(c => (
+                    <Badge key={c} className="bg-orange-100 text-orange-800 text-xs">
+                      {c}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Selector de jugador vinculado (para segundo_progenitor y juvenil) */}
           {needsPlayer && (
@@ -178,7 +247,7 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
               placeholder="Bienvenido al club..."
             />
           </div>
-          <Button type="submit" disabled={loading || !email.trim() || (needsPlayer && !selectedPlayer)} className="w-full bg-orange-600 hover:bg-orange-700">
+          <Button type="submit" disabled={loading || !email.trim() || (needsPlayer && !selectedPlayer) || (needsCategoria && selectedCategorias.length === 0)} className="w-full bg-orange-600 hover:bg-orange-700">
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
             Generar Código y Enviar Email
           </Button>
@@ -204,6 +273,8 @@ function CodeCard({ code, onResend, onCancel, isResending }) {
     segundo_progenitor: { emoji: "👥", label: "2º Progenitor", borderColor: "border-l-blue-500" },
     juvenil: { emoji: "⚽", label: "Acceso Juvenil", borderColor: "border-l-green-500" },
     jugador_adulto: { emoji: "🏃", label: "Jugador +18", borderColor: "border-l-purple-500" },
+    entrenador: { emoji: "🏃‍♂️", label: "Entrenador", borderColor: "border-l-cyan-500" },
+    coordinador: { emoji: "📋", label: "Coordinador", borderColor: "border-l-indigo-500" },
   };
 
   const estado = estadoConfig[displayEstado] || estadoConfig.pendiente;
@@ -227,6 +298,7 @@ function CodeCard({ code, onResend, onCancel, isResending }) {
             <div className="space-y-1 text-xs text-slate-600">
               <p>📧 {code.email}</p>
               {code.jugador_nombre && <p>⚽ Jugador: {code.jugador_nombre}</p>}
+              {code.categorias_asignadas?.length > 0 && <p>📋 Categorías: {code.categorias_asignadas.join(', ')}</p>}
               <p>🔑 Código: <span className="font-mono font-bold text-orange-600">{code.codigo}</span></p>
               <p>📅 Enviado: {new Date(code.fecha_envio).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
               {code.fecha_expiracion && (
