@@ -405,7 +405,7 @@ async function syncCategory(config, cookies, base44, temporada) {
       if (scorers.length) {
         const old = await base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada });
         if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
-        await sleep(300);
+        await sleep(800);
         // bulkCreate in batches of 25 with pauses
         const records = scorers.map((s, i) => ({
           temporada, categoria: cat, jugador_nombre: s.jugador, equipo: s.equipo,
