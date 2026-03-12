@@ -228,6 +228,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   return (
     <>
       <PlayerDetailDialog player={player} open={showDetail} onOpenChange={setShowDetail} />
+      <InjuryReportDialog open={showInjuryDialog} onOpenChange={setShowInjuryDialog} player={player} />
       {parentUser && (
         <MinorAccessDialog open={showMinorAccess} onOpenChange={setShowMinorAccess} player={player} parentUser={parentUser} />
       )}
