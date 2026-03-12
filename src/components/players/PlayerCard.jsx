@@ -318,6 +318,38 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               </div>
             )}
 
+            {/* ═══════ INJURY BANNER / BUTTON ═══════ */}
+            {player.lesionado && (
+              <div
+                className="bg-red-50 border-2 border-red-300 rounded-xl p-3 cursor-pointer hover:bg-red-100 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setShowInjuryDialog(true); }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏥</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-red-900">LESIONADO — No convocable</p>
+                    <p className="text-[11px] text-red-700 truncate">{player.motivo_indisponibilidad || "Sin detalles"}</p>
+                    {player.fecha_disponibilidad && (
+                      <p className="text-[10px] text-red-600 mt-0.5">
+                        Vuelta estimada: {format(new Date(player.fecha_disponibilidad), "d MMM yyyy", { locale: es })}
+                      </p>
+                    )}
+                  </div>
+                  <span className="text-xs text-red-500">Gestionar →</span>
+                </div>
+              </div>
+            )}
+            {isParent && !player.lesionado && player.activo && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); setShowInjuryDialog(true); }}
+                className="w-full h-8 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:border-red-400"
+              >
+                🏥 Reportar lesión
+              </Button>
+            )}
+
             {/* ═══════ RENEWAL ═══════ */}
             {player.estado_renovacion === "pendiente" && isParent && seasonConfig?.permitir_renovaciones && (
               <PlayerCardRenewal
