@@ -167,6 +167,10 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
 
   // Status badge config
   const getStatusBadge = () => {
+    if (player.lesionado)
+      return { text: "🏥 Lesionado", cls: "bg-red-600 text-white" };
+    if (player.sancionado)
+      return { text: "🟨 Sancionado", cls: "bg-amber-600 text-white" };
     if (player.estado_renovacion === "pendiente" && seasonConfig?.permitir_renovaciones)
       return { text: "⚠️ RENOVAR", cls: "bg-red-500 text-white animate-pulse" };
     if (player.estado_renovacion === "no_renueva" && seasonConfig?.permitir_renovaciones)
