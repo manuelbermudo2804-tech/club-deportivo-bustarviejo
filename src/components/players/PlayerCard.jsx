@@ -9,6 +9,7 @@ import { createPageUrl } from "@/utils";
 import PlayerDetailDialog from "./PlayerDetailDialog";
 import PlayerDocumentDownload from "./PlayerDocumentDownload";
 import MinorAccessDialog from "../minor/MinorAccessDialog";
+import InjuryReportDialog from "./InjuryReportDialog";
 import { getActiveCustomPlan, getPendingPaymentsCount } from "../payments/paymentHelpers";
 import { base44 } from "@/api/base44Client";
 import PlayerCardRenewal from "./card/PlayerCardRenewal";
