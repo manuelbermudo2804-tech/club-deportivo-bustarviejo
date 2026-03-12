@@ -68,6 +68,7 @@ const getSuggestedCategory = (edad, deporteActual) => {
 export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [], evaluations = [], attendanceRecords = [] }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showMinorAccess, setShowMinorAccess] = useState(false);
+  const [showInjuryDialog, setShowInjuryDialog] = useState(false);
   const [parentUser, setParentUser] = useState(null);
 
   // Evaluaciones del jugador actual
