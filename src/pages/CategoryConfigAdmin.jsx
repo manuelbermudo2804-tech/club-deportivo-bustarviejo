@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartphone } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartphone, Dumbbell, Activity } from "lucide-react";
 import { toast } from "sonner";
 
 // 9 categorías BASE que NUNCA pueden ser eliminadas
