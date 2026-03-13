@@ -15,21 +15,19 @@ const calcularEdad = (fechaNac) => {
   return edad;
 };
 
-export default function MinorAccessBanner({ players, user }) {
+export default function MinorAccessBanner({ players, user, categoryConfigs = [] }) {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Filtrar jugadores elegibles: 13-17 años, sin acceso menor ya autorizado ni revocado
+  // Filtrar jugadores elegibles: 13-17 años, sin acceso menor ya autorizado ni revocado, 
+  // y SOLO categorías competitivas (no complementarias)
   const elegibles = (players || []).filter((p) => {
     const edad = calcularEdad(p.fecha_nacimiento);
-    return (
-      edad >= 13 &&
-      edad < 18 &&
-      !p.acceso_menor_autorizado &&
-      !p.acceso_menor_revocado &&
-      !p.es_mayor_edad &&
-      p.activo !== false
-    );
+    if (!(edad >= 13 && edad < 18 && !p.acceso_menor_autorizado && !p.acceso_menor_revocado && !p.es_mayor_edad && p.activo !== false)) return false;
+    // Excluir jugadores en actividades complementarias
+    const catConfig = categoryConfigs.find(c => c.nombre === (p.categoria_principal || p.deporte));
+    if (catConfig?.es_actividad_complementaria) return false;
+    return true;
   });
 
   if (elegibles.length === 0) return null;

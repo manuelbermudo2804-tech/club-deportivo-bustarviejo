@@ -1039,7 +1039,7 @@ Email: cdbustarviejo@gmail.com
       )}
 
       {/* Banner de acceso juvenil para jugadores de 13-17 años */}
-      <MinorAccessBanner players={players} user={user} />
+      <MinorAccessBanner players={players} user={user} categoryConfigs={categoryConfigs} />
 
       {showForm && (
         <FullscreenFormModal
