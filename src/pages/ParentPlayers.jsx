@@ -1247,6 +1247,7 @@ Email: cdbustarviejo@gmail.com
                       callups={callups}
                       evaluations={evaluations}
                       attendanceRecords={attendanceRecords}
+                      categoryConfigs={categoryConfigs}
                     />
                   ))}
                 </AnimatePresence>
@@ -1280,6 +1281,7 @@ Email: cdbustarviejo@gmail.com
                       callups={callups}
                       evaluations={evaluations}
                       attendanceRecords={attendanceRecords}
+                      categoryConfigs={categoryConfigs}
                     />
                   ))}
                 </AnimatePresence>
@@ -1313,6 +1315,7 @@ Email: cdbustarviejo@gmail.com
                       callups={callups}
                       evaluations={evaluations}
                       attendanceRecords={attendanceRecords}
+                      categoryConfigs={categoryConfigs}
                     />
                   ))}
                 </AnimatePresence>
@@ -1346,6 +1349,7 @@ Email: cdbustarviejo@gmail.com
                       callups={callups}
                       evaluations={evaluations}
                       attendanceRecords={attendanceRecords}
+                      categoryConfigs={categoryConfigs}
                     />
                   ))}
                 </AnimatePresence>
