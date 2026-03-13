@@ -118,6 +118,7 @@ import MemberCardDisplay from './pages/MemberCardDisplay';
 import MemberManagement from './pages/MemberManagement';
 import Mercadillo from './pages/Mercadillo';
 import MinorDashboard from './pages/MinorDashboard';
+import MinorPreview from './pages/MinorPreview';
 import NotificationPreferences from './pages/NotificationPreferences';
 import OnboardingPreview from './pages/OnboardingPreview';
 import PWASetup from './pages/PWASetup';
@@ -168,6 +169,7 @@ import UploadDiagnostics from './pages/UploadDiagnostics';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
 import WebContacts from './pages/WebContacts';
+import MatchMinutesTracker from './pages/MatchMinutesTracker';
 import __Layout from './Layout.jsx';
 
 
@@ -243,6 +245,7 @@ export const PAGES = {
     "MemberManagement": MemberManagement,
     "Mercadillo": Mercadillo,
     "MinorDashboard": MinorDashboard,
+    "MinorPreview": MinorPreview,
     "NotificationPreferences": NotificationPreferences,
     "OnboardingPreview": OnboardingPreview,
     "PWASetup": PWASetup,
@@ -293,6 +296,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
     "WebContacts": WebContacts,
+    "MatchMinutesTracker": MatchMinutesTracker,
 }
 
 export const pagesConfig = {
