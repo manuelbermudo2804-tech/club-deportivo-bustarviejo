@@ -567,46 +567,116 @@ export default function CategoryConfigAdmin() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
             <div>
-              <label className="text-sm font-medium">Nombre</label>
+              <Label className="text-sm font-medium">Nombre</Label>
               <Input
                 value={formData.nombre}
                 onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                placeholder="Ej: Fútbol Pre-Benjamín (Mixto)"
+                placeholder="Ej: Pádel, Voleibol Mixto, Prep. Física Cadete..."
                 disabled={editingId && BASE_CATEGORIES.includes(formData.nombre)}
               />
             </div>
 
+            {/* Deporte */}
             <div>
-              <label className="text-sm font-medium">Cuota Inscripción (€)</label>
-              <Input
-                type="number"
-                value={formData.cuota_inscripcion}
-                onChange={(e) => setFormData({ ...formData, cuota_inscripcion: Number(e.target.value) })}
-              />
+              <Label className="text-sm font-medium">Deporte</Label>
+              <Select value={formData.deporte} onValueChange={(v) => setFormData({ ...formData, deporte: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Fútbol">⚽ Fútbol</SelectItem>
+                  <SelectItem value="Baloncesto">🏀 Baloncesto</SelectItem>
+                  <SelectItem value="Pádel">🏓 Pádel</SelectItem>
+                  <SelectItem value="Voleibol">🏐 Voleibol</SelectItem>
+                  <SelectItem value="Preparación Física">🏋️ Preparación Física</SelectItem>
+                  <SelectItem value="Multideporte">🎯 Multideporte</SelectItem>
+                  <SelectItem value="Otro">📌 Otro</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium">2ª Cuota (€)</label>
-              <Input
-                type="number"
-                value={formData.cuota_segunda}
-                onChange={(e) => setFormData({ ...formData, cuota_segunda: Number(e.target.value) })}
-              />
+            {/* Tipo: Competitiva vs Complementaria */}
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-bold text-purple-900">¿Es actividad complementaria?</Label>
+                  <p className="text-xs text-purple-700">Complementaria = no compite, sin convocatorias ni clasificaciones</p>
+                </div>
+                <Switch
+                  checked={formData.es_actividad_complementaria}
+                  onCheckedChange={(v) => setFormData({ ...formData, es_actividad_complementaria: v })}
+                />
+              </div>
+              {formData.es_actividad_complementaria && (
+                <Alert className="bg-purple-100 border-purple-300">
+                  <Activity className="w-4 h-4 text-purple-600" />
+                  <AlertDescription className="text-purple-800 text-xs">
+                    Los inscritos en esta actividad tendrán: horarios, pagos y chat básico. Sin convocatorias, clasificación ni evaluaciones.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
 
-            <div>
-              <label className="text-sm font-medium">3ª Cuota (€)</label>
-              <Input
-                type="number"
-                value={formData.cuota_tercera}
-                onChange={(e) => setFormData({ ...formData, cuota_tercera: Number(e.target.value) })}
-              />
+            {/* Preparación Física incluida */}
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-bold text-orange-900">¿Incluye Prep. Física?</Label>
+                  <p className="text-xs text-orange-700">Se mostrará una nota aclaratoria en la inscripción</p>
+                </div>
+                <Switch
+                  checked={formData.incluye_preparacion_fisica}
+                  onCheckedChange={(v) => setFormData({ ...formData, incluye_preparacion_fisica: v })}
+                />
+              </div>
+              {formData.incluye_preparacion_fisica && (
+                <div>
+                  <Label className="text-xs font-medium text-orange-800">Suplemento incluido en la cuota (€)</Label>
+                  <Input
+                    type="number"
+                    value={formData.suplemento_prep_fisica}
+                    onChange={(e) => setFormData({ ...formData, suplemento_prep_fisica: Number(e.target.value) })}
+                    className="mt-1"
+                    placeholder="0 = ya incluido sin desglose"
+                  />
+                  <p className="text-xs text-orange-600 mt-1">Ej: 30€ → aparecerá "Incluye Prep. Física (30€ incluidos)"</p>
+                </div>
+              )}
+            </div>
+
+            {/* Cuotas */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-sm font-medium">Inscripción (€)</Label>
+                <Input
+                  type="number"
+                  value={formData.cuota_inscripcion}
+                  onChange={(e) => setFormData({ ...formData, cuota_inscripcion: Number(e.target.value) })}
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">2ª Cuota (€)</Label>
+                <Input
+                  type="number"
+                  value={formData.cuota_segunda}
+                  onChange={(e) => setFormData({ ...formData, cuota_segunda: Number(e.target.value) })}
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">3ª Cuota (€)</Label>
+                <Input
+                  type="number"
+                  value={formData.cuota_tercera}
+                  onChange={(e) => setFormData({ ...formData, cuota_tercera: Number(e.target.value) })}
+                />
+              </div>
             </div>
 
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-sm font-bold text-blue-900">Total: {formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera}€</p>
+              {formData.incluye_preparacion_fisica && formData.suplemento_prep_fisica > 0 && (
+                <p className="text-xs text-blue-700 mt-1">🏋️ Incluye {formData.suplemento_prep_fisica}€ de Preparación Física</p>
+              )}
             </div>
           </div>
 
