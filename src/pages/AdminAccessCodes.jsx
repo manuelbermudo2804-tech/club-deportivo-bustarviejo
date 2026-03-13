@@ -38,7 +38,16 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
 
   const { data: allCategories = [] } = useQuery({
     queryKey: ['categoriesForInvite'],
-    queryFn: () => base44.entities.CategoryConfig.filter({ activa: true }),
+    queryFn: async () => {
+      const cats = await base44.entities.CategoryConfig.filter({ activa: true });
+      // Deduplicar por nombre (puede haber configs de distintas temporadas)
+      const seen = new Set();
+      return cats.filter(c => {
+        if (seen.has(c.nombre)) return false;
+        seen.add(c.nombre);
+        return true;
+      });
+    },
     enabled: open && needsCategoria,
   });
 
