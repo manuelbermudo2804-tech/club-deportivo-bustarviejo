@@ -353,29 +353,49 @@ export default function CategoryConfigAdmin() {
                 <tbody>
                 {baseCategories.sort((a, b) => a.nombre.localeCompare(b.nombre)).map((cat) => (
                   <tr key={cat.id} className={`border-b hover:bg-green-50 transition ${!cat.activa ? 'opacity-50 bg-slate-50' : ''}`}>
-                    <td className="px-4 py-3 font-medium text-slate-900">
-                      {cat.nombre}
-                      {!cat.activa && <Badge className="ml-2 bg-slate-500 text-white text-xs">Oculta</Badge>}
+                    <td className="px-3 py-3 font-medium text-slate-900">
+                      <div>{cat.nombre}</div>
+                      {!cat.activa && <Badge className="bg-slate-500 text-white text-xs">Oculta</Badge>}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-2 py-3 text-center">
                       <button
-                        onClick={() => updateCategoryMutation.mutate({ id: cat.id, data: { compite_en_liga: !cat.compite_en_liga } })}
-                        className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.compite_en_liga ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                        onClick={() => updateCategoryMutation.mutate({ id: cat.id, data: { es_actividad_complementaria: !cat.es_actividad_complementaria, compite_en_liga: cat.es_actividad_complementaria ? cat.compite_en_liga : false } })}
+                        className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.es_actividad_complementaria ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
                       >
-                        {cat.compite_en_liga ? '⚽ Sí' : 'No'}
+                        {cat.es_actividad_complementaria ? '🏓 Compl.' : '⚽ Compet.'}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-2 py-3 text-center">
+                      {cat.es_actividad_complementaria ? (
+                        <span className="text-xs text-slate-400">—</span>
+                      ) : (
+                        <button
+                          onClick={() => updateCategoryMutation.mutate({ id: cat.id, data: { compite_en_liga: !cat.compite_en_liga } })}
+                          className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.compite_en_liga ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                        >
+                          {cat.compite_en_liga ? '⚽ Sí' : 'No'}
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-2 py-3 text-center">
+                      <button
+                        onClick={() => updateCategoryMutation.mutate({ id: cat.id, data: { incluye_preparacion_fisica: !cat.incluye_preparacion_fisica } })}
+                        className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.incluye_preparacion_fisica ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                      >
+                        {cat.incluye_preparacion_fisica ? `🏋️ ${cat.suplemento_prep_fisica || 0}€` : 'No'}
+                      </button>
+                    </td>
+                    <td className="px-2 py-3 text-center">
                       <Switch
                         checked={!!cat.checkin_automatico}
                         onCheckedChange={(v) => updateCategoryMutation.mutate({ id: cat.id, data: { checkin_automatico: v } })}
                       />
                     </td>
-                    <td className="px-4 py-3 text-right">{cat.cuota_inscripcion}€</td>
-                    <td className="px-4 py-3 text-right">{cat.cuota_segunda}€</td>
-                    <td className="px-4 py-3 text-right">{cat.cuota_tercera}€</td>
-                    <td className="px-4 py-3 text-right font-bold text-green-700">{cat.cuota_total}€</td>
-                    <td className="px-4 py-3 text-center space-x-2">
+                    <td className="px-2 py-3 text-right">{cat.cuota_inscripcion}€</td>
+                    <td className="px-2 py-3 text-right">{cat.cuota_segunda}€</td>
+                    <td className="px-2 py-3 text-right">{cat.cuota_tercera}€</td>
+                    <td className="px-2 py-3 text-right font-bold text-green-700">{cat.cuota_total}€</td>
+                    <td className="px-2 py-3 text-center space-x-1">
                       <Button
                         size="sm"
                         variant="outline"
