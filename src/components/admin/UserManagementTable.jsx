@@ -10,7 +10,7 @@ import {
   EyeOff,
   MoreVertical,
   Users,
-  Clock,
+
   HeartHandshake,
 } from "lucide-react";
 import {
@@ -50,16 +50,7 @@ export default function UserManagementTable({
     );
   };
 
-  const getLastActivity = (user) => {
-    if (!user.updated_date) return "—";
-    const date = new Date(user.updated_date);
-    const now = new Date();
-    const days = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    if (days === 0) return "Hoy";
-    if (days === 1) return "Ayer";
-    if (days < 30) return `Hace ${days}d`;
-    return date.toLocaleDateString("es-ES");
-  };
+
 
   // Reordenar usuarios agrupando parejas consecutivas
   const sortedUsers = (() => {
@@ -153,7 +144,7 @@ export default function UserManagementTable({
             <th className="px-4 py-3 text-center font-semibold text-slate-700 whitespace-nowrap">
               💬 Chat
             </th>
-            <th className="px-4 py-3 text-center font-semibold text-slate-700">Última activ.</th>
+
             <th className="px-4 py-3 text-center font-semibold text-slate-700">Acciones</th>
           </tr>
         </thead>
@@ -305,13 +296,7 @@ export default function UserManagementTable({
                     </div>
                   </td>
 
-                  {/* Última actividad */}
-                  <td className="px-4 py-3 text-center text-xs text-slate-600">
-                    <div className="flex items-center justify-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {getLastActivity(user)}
-                    </div>
-                  </td>
+
 
                   {/* Acciones */}
                   <td className="px-4 py-3 text-center">
