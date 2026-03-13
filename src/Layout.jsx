@@ -595,6 +595,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
       { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
       { title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3 },
+      { title: "⏱️ Minutos de Juego", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
 
       // 📅 CALENDARIO
       { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
