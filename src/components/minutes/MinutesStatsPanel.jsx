@@ -2,39 +2,46 @@ import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-export default function MinutesStatsPanel({ players, matchRecords }) {
+export default function MinutesStatsPanel({ players, matchStructure }) {
   const stats = useMemo(() => {
+    const totalMatches = matchStructure.length;
     return players.map(p => {
       let total = 0;
-      let matches = 0;
-      matchRecords.forEach(rec => {
-        const entry = rec.minutos_jugadores?.find(m => m.jugador_id === p.id);
+      let matchesPlayed = 0;
+      matchStructure.forEach(match => {
+        const entry = match.minutos_jugadores?.find(m => m.jugador_id === p.id);
         const mins = (entry?.minutos_1parte || 0) + (entry?.minutos_2parte || 0);
         total += mins;
-        if (mins > 0) matches++;
+        if (mins > 0) matchesPlayed++;
       });
-      const totalPossible = matchRecords.reduce((s, r) => s + (r.duracion_partido || 0), 0);
       return {
         id: p.id,
         nombre: p.nombre?.split(' ').slice(0, 2).join(' ') || '?',
         total,
-        partidos: matches,
-        media: matches > 0 ? Math.round(total / matches) : 0,
-        pct: totalPossible > 0 ? Math.round((total / totalPossible) * 100) : 0
+        partidos: matchesPlayed,
+        media: matchesPlayed > 0 ? Math.round(total / matchesPlayed) : 0,
+        totalMatches,
       };
     }).sort((a, b) => b.total - a.total);
-  }, [players, matchRecords]);
+  }, [players, matchStructure]);
 
-  if (matchRecords.length === 0 || stats.every(s => s.total === 0)) return null;
+  if (stats.every(s => s.total === 0)) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="p-6 text-center text-slate-500 text-sm">
+          Aún no hay minutos registrados. Rellena la tabla para ver estadísticas.
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16"];
+  const COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16", "#0ea5e9", "#f97316", "#6366f1", "#14b8a6"];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Chart */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Minutos Totales por Jugador</CardTitle>
+          <CardTitle className="text-sm">Minutos Totales</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
@@ -54,10 +61,9 @@ export default function MinutesStatsPanel({ players, matchRecords }) {
         </CardContent>
       </Card>
 
-      {/* Table */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Resumen Estadístico</CardTitle>
+          <CardTitle className="text-sm">Resumen</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -68,7 +74,6 @@ export default function MinutesStatsPanel({ players, matchRecords }) {
                   <th className="text-center py-2 px-1">Min</th>
                   <th className="text-center py-2 px-1">PJ</th>
                   <th className="text-center py-2 px-1">Media</th>
-                  <th className="text-center py-2 px-1">%</th>
                 </tr>
               </thead>
               <tbody>
@@ -76,13 +81,8 @@ export default function MinutesStatsPanel({ players, matchRecords }) {
                   <tr key={s.id} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
                     <td className="py-1.5 px-2 font-medium">{s.nombre}</td>
                     <td className="py-1.5 px-1 text-center font-bold text-amber-700">{s.total || '—'}</td>
-                    <td className="py-1.5 px-1 text-center">{s.partidos}</td>
+                    <td className="py-1.5 px-1 text-center">{s.partidos}/{s.totalMatches}</td>
                     <td className="py-1.5 px-1 text-center">{s.media || '—'}</td>
-                    <td className={`py-1.5 px-1 text-center font-bold ${
-                      s.pct >= 70 ? 'text-green-600' : s.pct >= 40 ? 'text-yellow-600' : s.pct > 0 ? 'text-red-600' : 'text-slate-300'
-                    }`}>
-                      {s.pct > 0 ? `${s.pct}%` : '—'}
-                    </td>
                   </tr>
                 ))}
               </tbody>

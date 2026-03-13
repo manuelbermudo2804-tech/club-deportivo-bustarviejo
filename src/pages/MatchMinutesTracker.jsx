@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Clock, BarChart3 } from "lucide-react";
-import { toast } from "sonner";
+import { Clock, BarChart3, Loader2 } from "lucide-react";
 
 import MinutesSpreadsheet from "../components/minutes/MinutesSpreadsheet";
-import AddMatchDialog from "../components/minutes/AddMatchDialog";
 import MinutesStatsPanel from "../components/minutes/MinutesStatsPanel";
+
+const CLUB_NAME = "C.D. BUSTARVIEJO";
 
 export default function MatchMinutesTracker() {
   const [user, setUser] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [showAddMatch, setShowAddMatch] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const queryClient = useQueryClient();
 
@@ -26,106 +26,175 @@ export default function MatchMinutesTracker() {
     });
   }, []);
 
-  const myCategories = user?.categorias_entrena || [];
-  // Admins can see all categories
   const isAdmin = user?.role === "admin";
 
   const { data: categoryConfigs = [] } = useQuery({
-    queryKey: ['categoryConfigsForMinutes'],
+    queryKey: ['categoryConfigsMinutes'],
     queryFn: () => base44.entities.CategoryConfig.filter({ activa: true }),
     staleTime: 300000,
   });
 
   const allCategories = useMemo(() => {
-    if (isAdmin) return categoryConfigs.map(c => c.nombre).filter(Boolean);
-    return myCategories;
-  }, [isAdmin, categoryConfigs, myCategories]);
+    if (isAdmin) return categoryConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre).filter(Boolean);
+    return user?.categorias_entrena || [];
+  }, [isAdmin, categoryConfigs, user]);
 
   useEffect(() => {
-    if (!selectedCategory && allCategories.length > 0) {
-      setSelectedCategory(allCategories[0]);
-    }
+    if (!selectedCategory && allCategories.length > 0) setSelectedCategory(allCategories[0]);
   }, [allCategories, selectedCategory]);
 
+  // Jugadores de la categoría
   const { data: players = [] } = useQuery({
-    queryKey: ['playersForMinutes', selectedCategory],
+    queryKey: ['playersMinutes', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return [];
       const list = await base44.entities.Player.filter({ activo: true });
-      return list.filter(p => 
-        (p.categoria_principal || p.deporte) === selectedCategory
-      ).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+      return list
+        .filter(p => (p.categoria_principal || p.deporte) === selectedCategory)
+        .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
     },
     enabled: !!selectedCategory,
     staleTime: 60000,
   });
 
-  const { data: matchRecords = [] } = useQuery({
+  // Rivales desde Clasificacion (todos los equipos menos el nuestro)
+  const { data: rivals = [] } = useQuery({
+    queryKey: ['rivalsMinutes', selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return [];
+      const clasif = await base44.entities.Clasificacion.filter({ categoria: selectedCategory });
+      return clasif
+        .filter(c => !c.nombre_equipo?.toUpperCase().includes("BUSTARVIEJO"))
+        .sort((a, b) => (a.posicion || 99) - (b.posicion || 99))
+        .map(c => c.nombre_equipo);
+    },
+    enabled: !!selectedCategory,
+    staleTime: 300000,
+  });
+
+  // Resultados de la federación (para saber jornada y L/V de cada rival)
+  const { data: resultados = [] } = useQuery({
+    queryKey: ['resultadosMinutes', selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return [];
+      const all = await base44.entities.Resultado.filter({ categoria: selectedCategory });
+      // Solo partidos donde juega Bustarviejo
+      return all.filter(r => 
+        r.local?.toUpperCase().includes("BUSTARVIEJO") ||
+        r.visitante?.toUpperCase().includes("BUSTARVIEJO")
+      ).sort((a, b) => (a.jornada || 0) - (b.jornada || 0));
+    },
+    enabled: !!selectedCategory,
+    staleTime: 60000,
+  });
+
+  // MatchMinutes existentes
+  const { data: matchMinutes = [], isLoading: loadingMinutes } = useQuery({
     queryKey: ['matchMinutes', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return [];
-      return base44.entities.MatchMinutes.filter(
-        { categoria: selectedCategory },
-        'fecha_partido'
-      );
+      return base44.entities.MatchMinutes.filter({ categoria: selectedCategory });
     },
     enabled: !!selectedCategory,
     staleTime: 30000,
   });
 
-  const createMatchMutation = useMutation({
-    mutationFn: async (data) => {
-      // Get active season
-      const seasons = await base44.entities.SeasonConfig.filter({ activa: true });
-      const temporada = seasons[0]?.temporada || '';
+  // Construir la estructura de partidos: cada rival × ida/vuelta
+  const matchStructure = useMemo(() => {
+    if (!rivals.length) return [];
+    const numRivals = rivals.length;
+    // Jornadas: la 1ª vuelta son jornadas 1..numRivals, la 2ª son numRivals+1..numRivals*2
+    // Pero podría no haber tantas jornadas todavía
 
+    return rivals.flatMap(rival => {
+      return ["ida", "vuelta"].map(vuelta => {
+        // Buscar el resultado real de este partido
+        const res = resultados.find(r => {
+          const isOurMatch = r.local?.toUpperCase().includes("BUSTARVIEJO") || r.visitante?.toUpperCase().includes("BUSTARVIEJO");
+          if (!isOurMatch) return false;
+          const rivalInMatch = r.local?.toUpperCase().includes("BUSTARVIEJO") ? r.visitante : r.local;
+          if (rivalInMatch !== rival) return false;
+          // Determinar si es ida o vuelta por jornada
+          const halfPoint = Math.ceil(numRivals); // numRivals jornadas = 1ª vuelta
+          if (vuelta === "ida") return (r.jornada || 0) <= halfPoint;
+          return (r.jornada || 0) > halfPoint;
+        });
+
+        const localVisitante = res 
+          ? (res.local?.toUpperCase().includes("BUSTARVIEJO") ? "Local" : "Visitante")
+          : null;
+
+        // Buscar MatchMinutes existente
+        const existing = matchMinutes.find(m => 
+          m.rival === rival && m.vuelta === vuelta
+        );
+
+        return {
+          rival,
+          vuelta,
+          jornada: res?.jornada || null,
+          localVisitante,
+          resultado: res ? `${res.goles_local || 0}-${res.goles_visitante || 0}` : null,
+          estado: res?.estado || null,
+          matchMinutesId: existing?.id || null,
+          minutos_jugadores: existing?.minutos_jugadores || [],
+          duracion_partido: existing?.duracion_partido || 0,
+        };
+      });
+    });
+  }, [rivals, resultados, matchMinutes]);
+
+  // Auto-crear registros MatchMinutes que no existen
+  const createMutation = useMutation({
+    mutationFn: async ({ rival, vuelta, jornada, localVisitante }) => {
+      const seasons = await base44.entities.SeasonConfig.filter({ activa: true });
       return base44.entities.MatchMinutes.create({
-        ...data,
         categoria: selectedCategory,
-        entrenador_email: user?.email,
-        temporada,
+        rival,
+        vuelta,
+        jornada: jornada || 0,
+        local_visitante: localVisitante || "Local",
+        duracion_partido: 0,
         minutos_jugadores: players.map(p => ({
           jugador_id: p.id,
           jugador_nombre: p.nombre,
           minutos_1parte: 0,
-          minutos_2parte: 0
-        }))
+          minutos_2parte: 0,
+        })),
+        entrenador_email: user?.email || "",
+        temporada: seasons[0]?.temporada || "",
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matchMinutes', selectedCategory] });
-      toast.success("Partido añadido");
-    }
+    },
   });
 
-  const updateMatchMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      return base44.entities.MatchMinutes.update(id, data);
-    },
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }) => base44.entities.MatchMinutes.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matchMinutes', selectedCategory] });
-    }
-  });
-
-  const deleteMatchMutation = useMutation({
-    mutationFn: async (id) => {
-      return base44.entities.MatchMinutes.delete(id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['matchMinutes', selectedCategory] });
-      toast.success("Partido eliminado");
-    }
   });
 
-  const handleSaveMatch = (recordId, data) => {
-    updateMatchMutation.mutate({ id: recordId, data });
-  };
+  // Cuando el entrenador hace click en una celda y no existe el registro, crearlo
+  const ensureRecord = useCallback(async (match) => {
+    if (match.matchMinutesId) return match.matchMinutesId;
+    const result = await createMutation.mutateAsync({
+      rival: match.rival,
+      vuelta: match.vuelta,
+      jornada: match.jornada,
+      localVisitante: match.localVisitante,
+    });
+    return result.id;
+  }, [createMutation, selectedCategory, players, user]);
 
-  const handleDeleteMatch = (recordId) => {
-    if (window.confirm("¿Eliminar este partido del control de minutos?")) {
-      deleteMatchMutation.mutate(recordId);
-    }
-  };
+  const handleSave = useCallback(async (match, updatedMinutos) => {
+    const id = await ensureRecord(match);
+    updateMutation.mutate({ id, data: { minutos_jugadores: updatedMinutos } });
+  }, [ensureRecord, updateMutation]);
+
+  const isLoading = loadingMinutes;
 
   return (
     <div className="p-4 lg:p-8 space-y-4">
@@ -137,40 +206,30 @@ export default function MatchMinutesTracker() {
               <Clock className="w-7 h-7" /> Control de Minutos
             </h1>
             <p className="text-slate-300 mt-1 text-sm">
-              Registra los minutos jugados por cada jugador en cada partido
+              Minutos jugados por cada jugador en cada partido de liga
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant={showStats ? "default" : "outline"}
-              onClick={() => setShowStats(!showStats)}
-              className={showStats ? "bg-amber-600 hover:bg-amber-700 text-white" : "border-white/30 text-white hover:bg-white/10"}
-              size="sm"
-            >
-              <BarChart3 className="w-4 h-4 mr-1" />
-              {showStats ? "Ocultar Stats" : "Ver Stats"}
-            </Button>
-            <Button
-              onClick={() => setShowAddMatch(true)}
-              className="bg-green-600 hover:bg-green-700 text-white shadow-lg"
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Añadir Partido
-            </Button>
-          </div>
+          <Button
+            variant={showStats ? "default" : "outline"}
+            onClick={() => setShowStats(!showStats)}
+            className={showStats ? "bg-amber-600 hover:bg-amber-700 text-white" : "border-white/30 text-white hover:bg-white/10"}
+            size="sm"
+          >
+            <BarChart3 className="w-4 h-4 mr-1" />
+            {showStats ? "Ocultar Stats" : "Ver Stats"}
+          </Button>
         </div>
       </div>
 
-      {/* Category selector */}
+      {/* Selector categoría */}
       {allCategories.length > 1 && (
         <Card>
           <CardContent className="p-3">
             <div className="flex items-center gap-3">
               <span className="text-sm font-semibold text-slate-600">Categoría:</span>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[250px]">
-                  <SelectValue placeholder="Selecciona categoría" />
+                <SelectTrigger className="w-[260px]">
+                  <SelectValue placeholder="Selecciona" />
                 </SelectTrigger>
                 <SelectContent>
                   {allCategories.map(cat => (
@@ -183,52 +242,44 @@ export default function MatchMinutesTracker() {
         </Card>
       )}
 
-      {/* Info banner */}
-      {matchRecords.length === 0 && (
-        <Card className="border-dashed border-2 border-blue-300 bg-blue-50">
-          <CardContent className="p-6 text-center">
-            <Clock className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-            <h3 className="font-bold text-blue-900 text-lg mb-1">Sin partidos registrados</h3>
-            <p className="text-sm text-blue-700 mb-4">
-              Añade partidos para empezar a registrar los minutos de cada jugador.
-              Haz clic en cada celda para introducir los minutos.
-            </p>
-            <Button onClick={() => setShowAddMatch(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-1" /> Añadir Primer Partido
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Spreadsheet */}
-      {matchRecords.length > 0 && (
-        <MinutesSpreadsheet
-          players={players}
-          matchRecords={matchRecords}
-          onSaveMatch={handleSaveMatch}
-          onDeleteMatch={handleDeleteMatch}
-        />
-      )}
-
-      {/* Stats */}
-      {showStats && matchRecords.length > 0 && (
-        <MinutesStatsPanel players={players} matchRecords={matchRecords} />
-      )}
-
-      {/* Help text */}
-      {matchRecords.length > 0 && (
-        <div className="text-xs text-slate-500 text-center space-y-1">
-          <p>Haz clic en cualquier celda para editar los minutos. Pulsa Enter para guardar, Escape para cancelar.</p>
-          <p>Los cambios se guardan automáticamente al salir de la celda.</p>
+      {allCategories.length === 1 && (
+        <div className="flex items-center gap-2">
+          <Badge className="bg-blue-100 text-blue-800 text-sm px-3 py-1">{selectedCategory}</Badge>
         </div>
       )}
 
-      {/* Add match dialog */}
-      <AddMatchDialog
-        open={showAddMatch}
-        onOpenChange={setShowAddMatch}
-        onAdd={(data) => createMatchMutation.mutate(data)}
-      />
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+        </div>
+      ) : rivals.length === 0 ? (
+        <Card className="border-dashed border-2 border-slate-300">
+          <CardContent className="p-8 text-center text-slate-500">
+            <Clock className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+            <h3 className="font-bold text-lg mb-1">Sin datos de competición</h3>
+            <p className="text-sm">No se han encontrado clasificaciones para esta categoría. Los rivales se cargan automáticamente desde los datos de la federación.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <MinutesSpreadsheet
+            players={players}
+            matchStructure={matchStructure}
+            onSave={handleSave}
+          />
+
+          {showStats && (
+            <MinutesStatsPanel
+              players={players}
+              matchStructure={matchStructure}
+            />
+          )}
+
+          <div className="text-xs text-slate-500 text-center">
+            Haz clic en cualquier celda para editar. Los rivales se cargan de la clasificación de la federación.
+          </div>
+        </>
+      )}
     </div>
   );
 }
