@@ -423,13 +423,12 @@ export default function CategoryConfigAdmin() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-green-700 mt-3">
-            🔒 Las 9 categorías BASE nunca pueden ser eliminadas. Solo puedes editar sus precios. 
-            Al resetear la temporada, estos precios se copian automáticamente a la nueva temporada.
-          </p>
-          <p className="text-xs text-blue-700 mt-1">
-            📲 <strong>Check-in:</strong> Activa el switch para que los jugadores se registren tocando su foto en la tablet. El entrenador verá la asistencia pre-rellenada.
-          </p>
+          <div className="mt-3 space-y-1 text-xs">
+            <p className="text-green-700">🔒 Las 9 categorías BASE nunca pueden ser eliminadas. Solo puedes editar sus precios.</p>
+            <p className="text-purple-700">🏓 <strong>Tipo:</strong> Marca como "Complementaria" las actividades que no compiten (pádel, voleibol, prep. física...).</p>
+            <p className="text-orange-700">🏋️ <strong>Prep. Física:</strong> Activa para categorías que incluyen preparación física obligatoria en su cuota.</p>
+            <p className="text-blue-700">📲 <strong>Check-in:</strong> Activa para que los jugadores se registren tocando su foto en la tablet.</p>
+          </div>
         </CardContent>
       </Card>
 
