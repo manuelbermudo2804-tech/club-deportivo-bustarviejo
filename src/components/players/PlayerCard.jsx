@@ -65,11 +65,15 @@ const getSuggestedCategory = (edad, deporteActual) => {
   return deporteActual;
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [], evaluations = [], attendanceRecords = [] }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [], evaluations = [], attendanceRecords = [], categoryConfigs = [] }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showMinorAccess, setShowMinorAccess] = useState(false);
   const [showInjuryDialog, setShowInjuryDialog] = useState(false);
   const [parentUser, setParentUser] = useState(null);
+
+  // Detectar si categoría es complementaria
+  const playerCatConfig = categoryConfigs.find(c => c.nombre === (player.categoria_principal || player.deporte));
+  const isComplementaria = playerCatConfig?.es_actividad_complementaria === true;
 
   // Evaluaciones del jugador actual
   const playerEvaluations = evaluations.filter(e => e.jugador_id === player.id).sort((a, b) => new Date(b.fecha_evaluacion) - new Date(a.fecha_evaluacion));
@@ -531,7 +535,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             )}
 
             {/* ═══════ JUVENILE ACCESS ═══════ */}
-            {isParent && edadActual >= 13 && edadActual < 18 && !player.acceso_menor_autorizado && !player.acceso_menor_revocado && !player.es_mayor_edad && (
+            {isParent && edadActual >= 13 && edadActual < 18 && !player.acceso_menor_autorizado && !player.acceso_menor_revocado && !player.es_mayor_edad && !isComplementaria && (
               <Button
                 size="sm"
                 onClick={async (e) => {
