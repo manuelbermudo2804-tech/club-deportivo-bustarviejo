@@ -210,7 +210,11 @@ export default function CategoryConfigAdmin() {
       nombre: category.nombre,
       cuota_inscripcion: category.cuota_inscripcion,
       cuota_segunda: category.cuota_segunda,
-      cuota_tercera: category.cuota_tercera
+      cuota_tercera: category.cuota_tercera,
+      es_actividad_complementaria: category.es_actividad_complementaria || false,
+      incluye_preparacion_fisica: category.incluye_preparacion_fisica || false,
+      suplemento_prep_fisica: category.suplemento_prep_fisica || 0,
+      deporte: category.deporte || "Fútbol"
     });
     setShowDialog(true);
   };
