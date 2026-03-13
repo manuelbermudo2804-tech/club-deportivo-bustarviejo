@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, CheckCircle2, Users, Star, Calendar, Megaphone, Image, FileText, BarChart3, FileSignature, UserCircle, Award, Settings, Clover, Heart, ShoppingBag, CreditCard, ClipboardCheck, Trophy, MessageCircle, Gift } from "lucide-react";
+import { Bell, CheckCircle2, Users, Star, Calendar, Megaphone, Image, FileText, BarChart3, FileSignature, UserCircle, Award, Settings, Clover, Heart, ShoppingBag, CreditCard, ClipboardCheck, Trophy, MessageCircle, Gift, Clock } from "lucide-react";
 // CreditCard already imported for player payments
 import { createPageUrl } from "@/utils";
 
@@ -13,6 +13,7 @@ export const ALL_COACH_BUTTONS = [
   { id: "clasificaciones", title: "📊 Competición (Técnicos)", icon: BarChart3, url: createPageUrl("CentroCompeticionTecnico"), gradient: "from-blue-600 to-cyan-700", priority: 4, section: "coach" },
   { id: "ejercicios", title: "📚 Biblioteca Ejercicios", icon: FileText, url: createPageUrl("ExerciseLibrary"), gradient: "from-cyan-600 to-cyan-700", priority: 5, section: "coach" },
   { id: "tactica", title: "🎯 Pizarra Táctica", icon: BarChart3, url: createPageUrl("TacticsBoard"), gradient: "from-slate-600 to-slate-700", priority: 6, section: "coach" },
+  { id: "minutos", title: "⏱️ Control Minutos", icon: Clock, url: createPageUrl("MatchMinutesTracker"), gradient: "from-amber-600 to-amber-700", priority: 7, section: "coach" },
   { id: "chat_familias", title: "💬 Chat con Familias", icon: MessageCircle, url: createPageUrl("CoachParentChat"), gradient: "from-blue-600 to-blue-700", priority: 8, section: "coach" },
   { id: "chat_staff", title: "💼 Chat Staff", icon: MessageCircle, url: createPageUrl("StaffChat"), gradient: "from-purple-600 to-purple-700", priority: 9, section: "coach" },
   { id: "reportes", title: "📊 Reportes", icon: Star, url: createPageUrl("CoachEvaluationReports"), gradient: "from-purple-600 to-purple-700", priority: 13, section: "coach" },
