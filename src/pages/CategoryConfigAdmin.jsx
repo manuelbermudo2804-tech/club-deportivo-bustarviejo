@@ -185,7 +185,7 @@ export default function CategoryConfigAdmin() {
       queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
       toast.success("✅ Categoría creada");
       setShowDialog(false);
-      setFormData({ nombre: "", cuota_inscripcion: 0, cuota_segunda: 0, cuota_tercera: 0 });
+      setFormData({ nombre: "", cuota_inscripcion: 0, cuota_segunda: 0, cuota_tercera: 0, es_actividad_complementaria: false, incluye_preparacion_fisica: false, suplemento_prep_fisica: 0, deporte: "Fútbol" });
     },
     onError: (error) => {
       toast.error("Error: " + error.message);
