@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Dumbbell, Info } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 export default function StepCategory({
   currentPlayer,
@@ -13,6 +14,24 @@ export default function StepCategory({
   suggestCategoryByAge,
   onUserChangeCategory
 }) {
+  const [categoryConfigs, setCategoryConfigs] = useState([]);
+
+  // Cargar configs de categorías para detectar prep. física y complementaria
+  useEffect(() => {
+    (async () => {
+      try {
+        const configs = await base44.entities.CategoryConfig.filter({ activa: true });
+        setCategoryConfigs(configs);
+      } catch {}
+    })();
+  }, []);
+
+  // Buscar config de la categoría seleccionada
+  const selectedConfig = categoryConfigs.find(c => c.nombre === currentPlayer.deporte);
+  const isComplementaria = selectedConfig?.es_actividad_complementaria === true;
+  const incluyePrepFisica = selectedConfig?.incluye_preparacion_fisica === true;
+  const suplemento = selectedConfig?.suplemento_prep_fisica || 0;
+
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -62,6 +81,33 @@ export default function StepCategory({
         </Select>
         <p className="text-xs text-slate-500">ℹ️ Categoría auto-seleccionada por edad - puedes cambiarla</p>
       </div>
+
+      {/* Banner: Actividad Complementaria */}
+      {isComplementaria && (
+        <Alert className="bg-purple-50 border-purple-200">
+          <Info className="h-4 w-4 text-purple-600" />
+          <AlertDescription className="text-purple-800 text-sm">
+            <strong>🏓 Actividad Complementaria</strong>
+            <br />
+            <span className="text-xs">Esta actividad no incluye competición federada, convocatorias ni clasificación. Incluye: entrenamientos, horarios y comunicación con el club.</span>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Banner: Preparación Física incluida */}
+      {incluyePrepFisica && (
+        <Alert className="bg-orange-50 border-orange-200">
+          <Dumbbell className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-800 text-sm">
+            <strong>🏋️ Incluye Preparación Física</strong>
+            {suplemento > 0 ? (
+              <span> ({suplemento}€ incluidos en la cuota)</span>
+            ) : null}
+            <br />
+            <span className="text-xs">La cuota de esta categoría ya incluye las sesiones de preparación física obligatoria.</span>
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }
