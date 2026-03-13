@@ -19,6 +19,8 @@ import MinorBadgesWidget from "@/components/minor/MinorBadgesWidget";
 import MinorNextTraining from "@/components/minor/MinorNextTraining";
 import MinorMotivationalQuote from "@/components/minor/MinorMotivationalQuote";
 import MinorBirthdayBanner from "@/components/minor/MinorBirthdayBanner";
+import MinorCommitmentLevel from "@/components/minor/MinorCommitmentLevel";
+import MinorChallenges from "@/components/minor/MinorChallenges";
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
@@ -424,18 +426,28 @@ export default function MinorDashboard() {
 
         {/* ─── MI PROGRESO ─── */}
         <SectionHeader icon={Trophy} title="Mi progreso" color="text-yellow-500" delay={0.2} />
+
+        {/* Complementary: Commitment Level + Challenges */}
+        {isComplementaria && linkedPlayer?.id && attendances.length > 0 && (
+          <MinorCommitmentLevel attendances={attendances} playerId={linkedPlayer.id} />
+        )}
         
-        {/* Row compacta: Racha + Goles en horizontal */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Row compacta: Racha + Goles en horizontal (solo competitivas muestran goles) */}
+        <div className={`grid ${isComplementaria ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
           {linkedPlayer?.id && attendances.length > 0 && (
             <MinorStreakWidget attendances={attendances} playerId={linkedPlayer.id} compact />
           )}
-          {linkedPlayer?.nombre && playerCategory && (
+          {!isComplementaria && linkedPlayer?.nombre && playerCategory && (
             <MinorGoalsCard playerName={linkedPlayer.nombre} playerCategory={playerCategory} compact />
           )}
         </div>
 
-        {linkedPlayer?.id && <MinorEvalWidget playerId={linkedPlayer.id} />}
+        {/* Complementary: Challenges */}
+        {isComplementaria && linkedPlayer?.id && attendances.length > 0 && (
+          <MinorChallenges attendances={attendances} playerId={linkedPlayer.id} />
+        )}
+
+        {!isComplementaria && linkedPlayer?.id && <MinorEvalWidget playerId={linkedPlayer.id} />}
 
         {linkedPlayer?.id && (
           <MinorGoalsWidget
@@ -454,6 +466,8 @@ export default function MinorDashboard() {
             convocatorias={callups.length}
             metas={playerGoals.length}
             metasCompletadas={playerGoals.filter(g => g.completada).length}
+            isComplementaria={isComplementaria}
+            numCategorias={linkedPlayer?.categorias?.length || 1}
           />
         )}
 
