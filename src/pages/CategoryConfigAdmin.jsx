@@ -504,7 +504,7 @@ export default function CategoryConfigAdmin() {
       <Button
         onClick={() => {
           setEditingId(null);
-          setFormData({ nombre: "", cuota_inscripcion: 0, cuota_segunda: 0, cuota_tercera: 0 });
+          setFormData({ nombre: "", cuota_inscripcion: 0, cuota_segunda: 0, cuota_tercera: 0, es_actividad_complementaria: false, incluye_preparacion_fisica: false, suplemento_prep_fisica: 0, deporte: "Fútbol" });
           setShowDialog(true);
         }}
         className="bg-blue-600 hover:bg-blue-700"
