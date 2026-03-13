@@ -338,14 +338,16 @@ export default function CategoryConfigAdmin() {
             <table className="w-full text-sm">
               <thead className="bg-green-50 border-b-2 border-green-300">
                 <tr>
-                  <th className="px-4 py-2 text-left font-bold text-slate-900">Categoría</th>
-                  <th className="px-4 py-2 text-center font-bold text-slate-900">Liga</th>
-                  <th className="px-4 py-2 text-center font-bold text-slate-900">📲 Check-in</th>
-                  <th className="px-4 py-2 text-right font-bold text-slate-900">Inscripción</th>
-                  <th className="px-4 py-2 text-right font-bold text-slate-900">2ª Cuota</th>
-                  <th className="px-4 py-2 text-right font-bold text-slate-900">3ª Cuota</th>
-                  <th className="px-4 py-2 text-right font-bold text-slate-900">Total</th>
-                  <th className="px-4 py-2 text-center font-bold text-slate-900">Acciones</th>
+                  <th className="px-3 py-2 text-left font-bold text-slate-900">Categoría</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900">Tipo</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900">Liga</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900">Prep.Fís.</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900">📲</th>
+                  <th className="px-2 py-2 text-right font-bold text-slate-900">Inscr.</th>
+                  <th className="px-2 py-2 text-right font-bold text-slate-900">2ª</th>
+                  <th className="px-2 py-2 text-right font-bold text-slate-900">3ª</th>
+                  <th className="px-2 py-2 text-right font-bold text-slate-900">Total</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900">Acciones</th>
                 </tr>
                 </thead>
                 <tbody>
