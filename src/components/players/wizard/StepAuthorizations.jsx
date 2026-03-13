@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Camera, AlertCircle, ShieldCheck, ShieldX, Smartphone } from "lucide-react";
 import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
+import { base44 } from "@/api/base44Client";
 
 function useScrollToBottom(ref) {
   const [reached, setReached] = useState(false);
@@ -36,6 +37,18 @@ export default function StepAuthorizations({
   const photoRef = useRef(null);
   const privacyScrolled = useScrollToBottom(privacyRef);
   const photoScrolled = useScrollToBottom(photoRef);
+
+  // Detectar si la categoría es complementaria (sin competición → sin acceso juvenil)
+  const [isComplementaria, setIsComplementaria] = useState(false);
+  useEffect(() => {
+    if (!currentPlayer.deporte) return;
+    (async () => {
+      try {
+        const configs = await base44.entities.CategoryConfig.filter({ activa: true, nombre: currentPlayer.deporte });
+        setIsComplementaria(configs[0]?.es_actividad_complementaria === true);
+      } catch { setIsComplementaria(false); }
+    })();
+  }, [currentPlayer.deporte]);
 
   return (
     <div className="space-y-6">
@@ -142,8 +155,8 @@ export default function StepAuthorizations({
         </>
       )}
 
-      {/* Acceso juvenil - solo menores 13-17 en creación */}
-      {!isEditing && !isAdultPlayerSelfRegistration && playerAge >= 13 && playerAge < 18 && (
+      {/* Acceso juvenil - solo menores 13-17 en creación Y categoría competitiva */}
+      {!isEditing && !isAdultPlayerSelfRegistration && playerAge >= 13 && playerAge < 18 && !isComplementaria && (
         <div className="space-y-4 border-2 border-teal-200 rounded-lg p-4 bg-teal-50">
           <div className="flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-teal-600" />
