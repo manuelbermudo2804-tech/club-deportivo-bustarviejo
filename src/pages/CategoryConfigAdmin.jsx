@@ -228,7 +228,8 @@ export default function CategoryConfigAdmin() {
     const dataToSave = {
       ...formData,
       cuota_total: formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera,
-      deporte: formData.nombre.includes("Baloncesto") ? "Baloncesto" : "Fútbol"
+      // Si es complementaria, nunca compite en liga
+      compite_en_liga: formData.es_actividad_complementaria ? false : undefined
     };
 
     if (editingId) {
