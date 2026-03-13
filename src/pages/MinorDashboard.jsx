@@ -419,7 +419,7 @@ export default function MinorDashboard() {
 
         {/* ─── PRÓXIMO PARTIDO / ENTRENAMIENTO ─── */}
         <SectionHeader icon={Zap} title="Lo próximo" color="text-orange-500" delay={0.15} />
-        <NextCallupBanner callup={nextCallup} />
+        {!isComplementaria && <NextCallupBanner callup={nextCallup} />}
         {playerCategory && <MinorNextTraining playerCategory={playerCategory} />}
 
         {/* ─── MI PROGRESO ─── */}
@@ -461,12 +461,12 @@ export default function MinorDashboard() {
         <SectionHeader icon={ChevronRight} title="Acceso rápido" color="text-blue-500" delay={0.3} />
 
         <div className="grid grid-cols-2 gap-2">
-          <QuickActionCard emoji="📋" title="Convocatorias" subtitle="Partidos" href={createPageUrl("ParentCallups")} color="from-green-600 to-emerald-700" badge={pendingCallups} delay={0.1} />
+          {!isComplementaria && <QuickActionCard emoji="📋" title="Convocatorias" subtitle="Partidos" href={createPageUrl("ParentCallups")} color="from-green-600 to-emerald-700" badge={pendingCallups} delay={0.1} />}
           <QuickActionCard emoji="📅" title="Calendario" subtitle="Horarios" href={createPageUrl("CalendarAndSchedules")} color="from-blue-600 to-cyan-700" delay={0.12} />
-          <QuickActionCard emoji="🏆" title="Competición" subtitle="Clasificación" href={createPageUrl("CentroCompeticion")} color="from-yellow-500 to-orange-600" delay={0.14} />
+          {!isComplementaria && <QuickActionCard emoji="🏆" title="Competición" subtitle="Clasificación" href={createPageUrl("CentroCompeticion")} color="from-yellow-500 to-orange-600" delay={0.14} />}
           <QuickActionCard emoji="📢" title="Anuncios" subtitle="Noticias" href={createPageUrl("Announcements")} color="from-pink-500 to-rose-600" badge={unreadAnnouncements} delay={0.16} />
           <QuickActionCard emoji="🎉" title="Eventos" subtitle="Actividades" href={createPageUrl("ParentEventRSVP")} color="from-purple-500 to-violet-600" delay={0.18} />
-          <QuickActionCard emoji="📊" title="Valoraciones" subtitle="Mi nivel" href={createPageUrl("PlayerEvaluations")} color="from-indigo-500 to-blue-600" delay={0.2} />
+          {!isComplementaria && <QuickActionCard emoji="📊" title="Valoraciones" subtitle="Mi nivel" href={createPageUrl("PlayerEvaluations")} color="from-indigo-500 to-blue-600" delay={0.2} />}
           <QuickActionCard emoji="🖼️" title="Galería" subtitle="Fotos" href={createPageUrl("Gallery")} color="from-teal-500 to-cyan-600" delay={0.22} />
           <QuickActionCard emoji="✉️" title="Mi Buzón" subtitle="Tu voz" href={createPageUrl("JuniorMailbox")} color="from-pink-500 to-purple-600" badge={unreadMailbox} delay={0.24} />
           <QuickActionCard emoji="📋" title="Encuestas" subtitle="Opina" href={createPageUrl("Surveys")} color="from-orange-500 to-amber-600" delay={0.26} />
