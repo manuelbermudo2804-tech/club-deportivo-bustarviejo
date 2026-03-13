@@ -144,6 +144,12 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
 
   const categories = useCategoriesFromConfig();
 
+  // Load categoryConfigs for complementary detection (used by StepAuthorizations)
+  const [categoryConfigsData, setCategoryConfigsData] = React.useState([]);
+  React.useEffect(() => {
+    base44.entities.CategoryConfig.filter({ activa: true }).then(setCategoryConfigsData).catch(() => {});
+  }, []);
+
   const existingFamilyPlayers = allPlayers.filter(p =>
     currentUser && (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email)
   );
@@ -524,7 +530,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       );
       case 5: return <StepMedical currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} />;
       case 6: return isEditing ? null : <StepNormativa currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} />;
-      case 7: return isEditing ? null : <StepAuthorizations currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} isEditing={isEditing} playerAge={playerAge} />;
+      case 7: return isEditing ? null : <StepAuthorizations currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} isEditing={isEditing} playerAge={playerAge} categoryConfigs={categoryConfigsData} />;
       case 8: return isEditing ? null : <StepSummary currentPlayer={currentPlayer} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} siblingDiscount={siblingDiscount} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} />;
       default: return null;
     }

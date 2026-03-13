@@ -298,6 +298,18 @@ export default function MinorDashboard() {
 
   const playerCategory = linkedPlayer?.categoria_principal || linkedPlayer?.deporte;
 
+  // Detectar si categoría es complementaria (para ocultar secciones de competición)
+  const { data: categoryConfig } = useQuery({
+    queryKey: ["minorCategoryConfig", playerCategory],
+    queryFn: async () => {
+      const configs = await base44.entities.CategoryConfig.filter({ activa: true, nombre: playerCategory });
+      return configs[0] || null;
+    },
+    enabled: !!playerCategory,
+    staleTime: 300000,
+  });
+  const isComplementaria = categoryConfig?.es_actividad_complementaria === true;
+
   const { data: callups = [] } = useQuery({
     queryKey: ["minorCallups", linkedPlayer?.id],
     queryFn: async () => {
