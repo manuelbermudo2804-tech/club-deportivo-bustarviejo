@@ -512,6 +512,7 @@ export default function Layout({ children, currentPageName }) {
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+    { title: "⏱️ Minutos de Juego", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
 
 
     // 📅 CALENDARIO Y EVENTOS
@@ -670,6 +671,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
       { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
       { title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3 },
+      { title: "⏱️ Minutos de Juego", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
       ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
       // 📊 REPORTES
