@@ -2,7 +2,8 @@ import React, { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
-const BADGE_DEFS = [
+// Badges for competitive categories
+const COMPETITIVE_BADGES = [
   { id: "first_training", emoji: "🏃", label: "Primer entreno", desc: "Asististe a tu primer entrenamiento", check: (s) => s.totalPresente >= 1 },
   { id: "streak_5", emoji: "🔥", label: "Racha x5", desc: "5 entrenamientos seguidos", check: (s) => s.streak >= 5 },
   { id: "streak_10", emoji: "🔥🔥", label: "Racha x10", desc: "10 entrenamientos seguidos", check: (s) => s.streak >= 10 },
@@ -17,7 +18,24 @@ const BADGE_DEFS = [
   { id: "goal_done", emoji: "✅", label: "Meta cumplida", desc: "Completaste una meta", check: (s) => s.metasCompletadas >= 1 },
 ];
 
-export default function MinorBadgesWidget({ attendances, playerId, goles, convocatorias, metas, metasCompletadas }) {
+// Badges for complementary activities (no competition)
+const COMPLEMENTARY_BADGES = [
+  { id: "first_training", emoji: "🏃", label: "Primer día", desc: "Asististe a tu primera sesión", check: (s) => s.totalPresente >= 1 },
+  { id: "attend_5", emoji: "🌱", label: "En marcha", desc: "5 sesiones completadas", check: (s) => s.totalPresente >= 5 },
+  { id: "attend_15", emoji: "💪", label: "Constante", desc: "15 sesiones completadas", check: (s) => s.totalPresente >= 15 },
+  { id: "attend_30", emoji: "🏅", label: "Veterano", desc: "30 sesiones completadas", check: (s) => s.totalPresente >= 30 },
+  { id: "streak_5", emoji: "🔥", label: "Racha x5", desc: "5 sesiones seguidas sin faltar", check: (s) => s.streak >= 5 },
+  { id: "streak_10", emoji: "⚡", label: "Imparable", desc: "10 sesiones seguidas", check: (s) => s.streak >= 10 },
+  { id: "attendance_75", emoji: "📊", label: "Buen ritmo", desc: "75% de asistencia", check: (s) => s.pctAsistencia >= 75 },
+  { id: "attendance_90", emoji: "⭐", label: "Ejemplar", desc: "90% de asistencia", check: (s) => s.pctAsistencia >= 90 },
+  { id: "attendance_100", emoji: "💎", label: "Perfecto", desc: "100% de asistencia", check: (s) => s.pctAsistencia >= 100 },
+  { id: "goal_set", emoji: "🎯", label: "Con objetivos", desc: "Te pusiste tu primera meta", check: (s) => s.metas >= 1 },
+  { id: "goal_done", emoji: "✅", label: "Meta cumplida", desc: "Completaste una meta", check: (s) => s.metasCompletadas >= 1 },
+  { id: "multi_sport", emoji: "🌈", label: "Polideportista", desc: "Inscrito en 2+ actividades", check: (s) => s.numCategorias >= 2 },
+];
+
+export default function MinorBadgesWidget({ attendances, playerId, goles, convocatorias, metas, metasCompletadas, isComplementaria = false, numCategorias = 1 }) {
+  const BADGE_DEFS = isComplementaria ? COMPLEMENTARY_BADGES : COMPETITIVE_BADGES;
   const stats = useMemo(() => {
     if (!attendances || !playerId) return { totalPresente: 0, streak: 0, pctAsistencia: 0 };
     
@@ -46,8 +64,9 @@ export default function MinorBadgesWidget({ attendances, playerId, goles, convoc
       convocatorias: convocatorias || 0,
       metas: metas || 0,
       metasCompletadas: metasCompletadas || 0,
+      numCategorias: numCategorias || 1,
     };
-  }, [attendances, playerId, goles, convocatorias, metas, metasCompletadas]);
+  }, [attendances, playerId, goles, convocatorias, metas, metasCompletadas, numCategorias, BADGE_DEFS]);
 
   const earned = BADGE_DEFS.filter(b => b.check(stats));
   const locked = BADGE_DEFS.filter(b => !b.check(stats));
