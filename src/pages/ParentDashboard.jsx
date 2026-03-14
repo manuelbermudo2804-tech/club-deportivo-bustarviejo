@@ -105,36 +105,40 @@ export default function ParentDashboard() {
     fetchUser();
   }, []);
 
-  // CARGAR SOLO DATOS ESENCIALES - El resto se carga bajo demanda en cada página
+  // CARGAR SOLO MIS JUGADORES - No todo el club
   const { data: allPlayers = [], isLoading: playersLoading } = useQuery({
-    queryKey: ['players', user?.email],
+    queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
-      console.log('🔍 [ParentDashboard] Cargando jugadores para:', user?.email);
-      const players = await base44.entities.Player.list();
-      console.log('✅ [ParentDashboard] Jugadores cargados:', players.length);
-      return players;
+      if (!user?.email) return [];
+      const [byPadre, byTutor2] = await Promise.all([
+        base44.entities.Player.filter({ email_padre: user.email }).catch(() => []),
+        base44.entities.Player.filter({ email_tutor_2: user.email }).catch(() => []),
+      ]);
+      const map = new Map();
+      [...byPadre, ...byTutor2].forEach(p => map.set(p.id, p));
+      return Array.from(map.values());
     },
-    staleTime: 300000, // 5 minutos
+    staleTime: 300000,
+    retry: 2,
     enabled: !!user,
   });
 
-  // Cargar SeasonConfig
+  // Cargar SeasonConfig - solo la activa
   const { data: seasonConfigs = [] } = useQuery({
-    queryKey: ['seasonConfigs', user?.email],
-    queryFn: () => base44.entities.SeasonConfig.list(),
+    queryKey: ['activeSeasonConfig'],
+    queryFn: () => base44.entities.SeasonConfig.filter({ activa: true }),
     staleTime: 600000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     enabled: !!user,
   });
 
-  // Filtrar MIS jugadores en memoria (rápido)
-  const players = allPlayers.filter(p => 
-    (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
-  );
+  // Ya vienen filtrados de la query — solo separar activos/inactivos
+  const players = allPlayers.filter(p => p.activo === true);
 
-  // Jugadores inactivos pendientes de renovar (para mostrar CTA)
-  const activeSeasonLocal = seasonConfigs?.find?.(s => s.activa) || null;
+  // Jugadores inactivos pendientes de renovar
+  const activeSeasonLocal = seasonConfigs?.[0] || null;
   const pendingInactivePlayers = allPlayers.filter(p => 
-    (p.email_padre === user?.email || p.email_tutor_2 === user?.email) &&
     p.activo === false &&
     p.estado_renovacion === 'pendiente' &&
     (!activeSeasonLocal || p.temporada_renovacion === activeSeasonLocal.temporada)
@@ -142,83 +146,57 @@ export default function ParentDashboard() {
   
   // Debug logs removed to reduce excessive re-renders
 
-  const { data: allPayments = [] } = useQuery({
-    queryKey: ['payments', user?.email],
-    queryFn: () => base44.entities.Payment.list('-created_date', 100),
-    staleTime: 60000, // 1 minuto
-    enabled: !!user && players.length > 0,
+  const playerIds = useMemo(() => players.map(p => p.id), [players]);
+
+  const { data: payments = [] } = useQuery({
+    queryKey: ['myPayments', playerIds.join(',')],
+    queryFn: async () => {
+      if (!playerIds.length) return [];
+      return base44.entities.Payment.filter({ jugador_id: { $in: playerIds }, is_deleted: { $ne: true } }, '-created_date');
+    },
+    staleTime: 60000,
+    retry: 2,
+    enabled: !!user && playerIds.length > 0,
   });
 
-  // Filtrar MIS pagos en memoria
-  const payments = allPayments.filter(p => 
-    players.some(player => player.id === p.jugador_id)
+  // Alias para compatibilidad
+  const allPayments = payments;
+
+  const playerCategories = useMemo(() => 
+    [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))],
+    [players]
   );
 
-  const { data: allCallups = [] } = useQuery({
-    queryKey: ['callups', user?.email],
-    queryFn: () => base44.entities.Convocatoria.list('-created_date', 50),
-    staleTime: 30000, // 30 segundos - para que al volver del ParentCallups se refresque rápido
-    enabled: !!user && players.length > 0,
-  });
-
-  const today = new Date().toISOString().split('T')[0];
-  const callups = allCallups.filter(c => c.publicada && c.fecha_partido >= today && !c.cerrada);
-
-  const { data: privateConversations = [] } = useQuery({
-    queryKey: ['privateConversationsParent', user?.email],
+  const { data: callups = [] } = useQuery({
+    queryKey: ['myCallups', playerCategories.join(',')],
     queryFn: async () => {
-      const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 30);
-      return allConvs.filter(c => c.participante_familia_email === user?.email);
+      if (!playerCategories.length) return [];
+      const today = new Date().toISOString().split('T')[0];
+      const results = await Promise.all(
+        playerCategories.map(cat => base44.entities.Convocatoria.filter({ categoria: cat, publicada: true }, '-fecha_partido', 10).catch(() => []))
+      );
+      const map = new Map();
+      results.flat().forEach(c => map.set(c.id, c));
+      return Array.from(map.values()).filter(c => c.fecha_partido >= today && !c.cerrada);
     },
-    staleTime: 300000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    enabled: !!user,
+    staleTime: 30000,
+    retry: 2,
+    enabled: !!user && playerCategories.length > 0,
   });
 
-  const { data: coordinatorConversations = [] } = useQuery({
-    queryKey: ['coordinatorConversations', user?.email],
-    queryFn: async () => {
-      const allConvs = await base44.entities.CoordinatorConversation.list();
-      return allConvs.filter(c => c.padre_email === user?.email);
-    },
-    staleTime: 300000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    enabled: !!user,
-  });
-
-  const { data: adminConversations = [] } = useQuery({
-    queryKey: ['adminConversationsParent', user?.email],
-    queryFn: async () => {
-      const allConvs = await base44.entities.AdminConversation.list();
-      return allConvs.filter(c => c.padre_email === user?.email && !c.resuelta);
-    },
-    staleTime: 300000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    enabled: !!user,
-  });
-
-  const { data: messages = [] } = useQuery({
-    queryKey: ['chatMessages', user?.email],
-    queryFn: async () => {
-      if (!players || players.length === 0) return [];
-      const sports = [...new Set(players.map(p => p.deporte))];
-      const allMsgs = await base44.entities.ChatMessage.list('-created_date', 50);
-      return allMsgs.filter(m => sports.includes(m.deporte) || m.grupo_id === "Coordinación Deportiva");
-    },
-    staleTime: 300000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    enabled: !!user && players.length > 0,
-  });
+  // Chat counts now come from ChatUnreadProvider via useUnifiedNotifications — no need to load conversations here
 
   const { data: customPaymentPlans = [] } = useQuery({
-    queryKey: ['customPaymentPlans', user?.email],
-    queryFn: () => base44.entities.CustomPaymentPlan.list(),
-    staleTime: 300000, // 5 minutos
-    enabled: !!user && players.length > 0,
+    queryKey: ['myCustomPaymentPlans', playerIds.join(',')],
+    queryFn: async () => {
+      if (!playerIds.length) return [];
+      const results = await Promise.all(
+        playerIds.map(id => base44.entities.CustomPaymentPlan.filter({ jugador_id: id }).catch(() => []))
+      );
+      return results.flat();
+    },
+    staleTime: 300000,
+    enabled: !!user && playerIds.length > 0,
   });
 
   // Cargar configuración de botones del usuario - con cache en localStorage
@@ -273,29 +251,29 @@ export default function ParentDashboard() {
     },
   });
 
-  // Surveys - solo si hay jugadores
+  // Surveys - solo activas y con filtro server-side
   const { data: allSurveys = [] } = useQuery({
-    queryKey: ['surveys', user?.email],
-    queryFn: () => base44.entities.Survey.list('-created_date', 10),
-    staleTime: 600000, // 10 minutos
+    queryKey: ['activeSurveys'],
+    queryFn: () => base44.entities.Survey.filter({ activa: true }, '-created_date', 10),
+    staleTime: 600000,
+    refetchOnWindowFocus: false,
     enabled: !!user && players.length > 0,
   });
 
   const { data: surveyResponses = [] } = useQuery({
-    queryKey: ['surveyResponses', user?.email],
-    queryFn: async () => {
-      const allResp = await base44.entities.SurveyResponse.list();
-      return allResp.filter(r => r.respondente_email === user?.email);
-    },
-    staleTime: 600000, // 10 minutos
+    queryKey: ['mySurveyResponses', user?.email],
+    queryFn: () => base44.entities.SurveyResponse.filter({ respondente_email: user?.email }),
+    staleTime: 600000,
+    refetchOnWindowFocus: false,
     enabled: !!user && allSurveys.length > 0,
   });
 
-  // Documents - solo si hay jugadores
+  // Documents - solo publicados con firma requerida
   const { data: allDocuments = [] } = useQuery({
-    queryKey: ['documents', user?.email],
-    queryFn: () => base44.entities.Document.list('-created_date', 20),
-    staleTime: 600000, // 10 minutos
+    queryKey: ['pendingDocuments'],
+    queryFn: () => base44.entities.Document.filter({ publicado: true, requiere_firma: true }, '-created_date', 20),
+    staleTime: 600000,
+    refetchOnWindowFocus: false,
     enabled: !!user && players.length > 0,
   });
 
