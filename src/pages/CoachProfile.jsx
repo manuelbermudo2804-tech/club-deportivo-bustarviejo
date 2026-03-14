@@ -181,7 +181,19 @@ export default function CoachProfile() {
               )}
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  // Create a fresh input each time to avoid stale event issues on mobile
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.style.display = 'none';
+                  input.onchange = (e) => {
+                    handlePhotoUpload(e);
+                    document.body.removeChild(input);
+                  };
+                  document.body.appendChild(input);
+                  input.click();
+                }}
                 disabled={uploading}
                 className="absolute bottom-1 right-1 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:bg-orange-50 transition-colors border-2 border-orange-200 group-hover:scale-110"
               >
@@ -191,14 +203,6 @@ export default function CoachProfile() {
                   <Camera className="w-4 h-4 text-orange-600" />
                 )}
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handlePhotoUpload}
-                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
-              />
             </div>
 
             <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
