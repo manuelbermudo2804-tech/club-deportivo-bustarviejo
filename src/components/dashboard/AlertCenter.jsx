@@ -683,8 +683,8 @@ const alerts = [];
   if (visibleAlerts.length === 0) {
     // Mostrar barra vacía SIEMPRE (para padres, entrenadores, etc.)
     return (
-      <Card className="border-orange-200 shadow-lg overflow-hidden">
-        <CardContent className="p-3 text-sm text-slate-600 text-center">✅ Todo al día</CardContent>
+      <Card className="border-green-200/60 shadow-sm overflow-hidden bg-green-50/30">
+        <CardContent className="p-3 text-sm text-green-700 text-center font-medium">✅ Todo al día</CardContent>
       </Card>
     );
   }
@@ -704,32 +704,32 @@ const alerts = [];
   }
 
   return (
-    <Card className="border-orange-200 shadow-lg overflow-hidden">
+    <Card className="border-orange-200/80 shadow-md overflow-hidden">
       <CardContent className="p-3">
         {rolTitle && (
-          <div className="mb-3 pb-3 border-b border-orange-200">
-            <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-              Mis tareas como {rolTitle}
+          <div className="mb-2.5 pb-2 border-b border-orange-100">
+            <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">
+              Tareas pendientes — {rolTitle}
             </p>
           </div>
         )}
-        <div className="space-y-2">
+        <div className="space-y-1">
           {visibleAlerts.map((alert) => (
             <Link
-                           key={alert._key}
-                           to={alert.url}
-                           onClick={() => handleAlertClick(alert)}
-                           onAuxClick={() => handleAlertClick(alert)}
-                           className="flex items-center gap-3 p-2 hover:bg-slate-50 transition-colors group rounded-lg"
-                         >
-              <div className={`w-9 h-9 rounded-full ${alert.color} flex items-center justify-center flex-shrink-0`}>
-                <alert.icon className="w-5 h-5 text-white" />
+              key={alert._key}
+              to={alert.url}
+              onClick={() => handleAlertClick(alert)}
+              onAuxClick={() => handleAlertClick(alert)}
+              className="flex items-center gap-3 p-2.5 hover:bg-orange-50/60 transition-colors duration-150 group rounded-xl"
+            >
+              <div className={`w-8 h-8 rounded-lg ${alert.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                <alert.icon className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-900 text-sm">{alert.title}</p>
-                <p className="text-xs text-slate-500">{alert.description}</p>
+                <p className="font-semibold text-slate-800 text-[13px] leading-tight">{alert.title}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{alert.description}</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors flex-shrink-0" />
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-orange-500 transition-colors flex-shrink-0" />
             </Link>
           ))}
         </div>

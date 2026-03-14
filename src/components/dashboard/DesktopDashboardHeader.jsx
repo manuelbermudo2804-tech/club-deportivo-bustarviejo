@@ -2,22 +2,22 @@ import React from "react";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
 
-function KPICard({ icon: Icon, label, value, color, sub }) {
+const KPICard = React.memo(function KPICard({ icon: Icon, label, value, color, sub }) {
   return (
-    <div className="bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-2xl p-5 flex items-center gap-4 hover:border-orange-500/50 transition-colors">
-      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg`}>
-        <Icon className="w-6 h-6 text-white" />
+    <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 flex items-center gap-4 hover:border-orange-500/40 transition-colors duration-200">
+      <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-md`}>
+        <Icon className="w-5 h-5 text-white" />
       </div>
-      <div>
-        <p className="text-2xl font-bold text-white">{value}</p>
-        <p className="text-xs text-slate-400">{label}</p>
-        {sub && <p className="text-[10px] text-orange-400 mt-0.5">{sub}</p>}
+      <div className="min-w-0">
+        <p className="text-2xl font-extrabold text-white tracking-tight">{value}</p>
+        <p className="text-[11px] text-slate-400 font-medium">{label}</p>
+        {sub && <p className="text-[10px] text-orange-400/90 mt-0.5 font-medium">{sub}</p>}
       </div>
     </div>
   );
-}
+});
 
-export default function DesktopDashboardHeader({ user, roleName, roleEmoji, kpis = [], subtitle }) {
+const DesktopDashboardHeader = React.memo(function DesktopDashboardHeader({ user, roleName, roleEmoji, kpis = [], subtitle }) {
   const now = new Date();
   const greeting = now.getHours() < 14 ? "Buenos días" : now.getHours() < 21 ? "Buenas tardes" : "Buenas noches";
   const dateStr = now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
@@ -27,7 +27,7 @@ export default function DesktopDashboardHeader({ user, roleName, roleEmoji, kpis
       {/* Header con saludo */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-orange-500/40 object-cover" />
+          <img src={CLUB_LOGO_URL} alt="CD Bustarviejo" className="w-14 h-14 rounded-2xl shadow-lg ring-2 ring-orange-500/30 object-cover" loading="eager" />
           <div>
             <h1 className="text-2xl font-bold text-white">
               {greeting}, {user?.full_name?.split(" ")[0] || "Usuario"} 👋
@@ -48,6 +48,7 @@ export default function DesktopDashboardHeader({ user, roleName, roleEmoji, kpis
       )}
     </div>
   );
-}
+});
 
+export default DesktopDashboardHeader;
 export { KPICard };

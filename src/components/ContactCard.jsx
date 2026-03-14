@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, MessageCircle, HelpCircle, CreditCard, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function ContactCard() {
+const ContactCard = React.memo(function ContactCard() {
   const emailSubjects = [
     { icon: HelpCircle, label: "Consulta General", subject: "Consulta General" },
     { icon: CreditCard, label: "Pagos y Cuotas", subject: "Consulta sobre Pagos" },
@@ -42,4 +42,6 @@ export default function ContactCard() {
       </CardContent>
     </Card>
   );
-}
+});
+
+export default ContactCard;
