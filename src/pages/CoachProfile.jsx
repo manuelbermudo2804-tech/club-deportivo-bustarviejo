@@ -55,11 +55,33 @@ export default function CoachProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Reset input para que se pueda subir la misma foto otra vez
+    e.target.value = "";
+
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // Añadir timestamp para evitar caché del navegador
+      const urlWithCache = file_url + (file_url.includes('?') ? '&' : '?') + 't=' + Date.now();
       setFormData(prev => ({ ...prev, foto_perfil_url: file_url }));
-      toast.success("Foto subida correctamente");
+
+      // Guardar automáticamente la foto sin esperar al botón Guardar
+      await base44.auth.updateMe({ foto_perfil_url: file_url });
+
+      // Sincronizar a CoachSettings también
+      try {
+        const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
+        const mySettings = allSettings.find(s => s.entrenador_email === user?.email);
+        if (mySettings) {
+          await base44.entities.CoachSettings.update(mySettings.id, { foto_perfil_url: file_url });
+        }
+      } catch (syncErr) {
+        console.log("Error sincronizando foto a CoachSettings:", syncErr);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
+      toast.success("Foto actualizada correctamente");
     } catch (error) {
       console.error("Error uploading photo:", error);
       toast.error("Error al subir la foto");

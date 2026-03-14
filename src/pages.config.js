@@ -112,6 +112,7 @@ import LotteryManagement from './pages/LotteryManagement';
 import ManualAcceso from './pages/ManualAcceso';
 import MarketListingDetail from './pages/MarketListingDetail';
 import MatchApp from './pages/MatchApp';
+import MatchMinutesTracker from './pages/MatchMinutesTracker';
 import MatchResults from './pages/MatchResults';
 import MedicalRecords from './pages/MedicalRecords';
 import MemberCardDisplay from './pages/MemberCardDisplay';
@@ -142,8 +143,8 @@ import PaymentReminders from './pages/PaymentReminders';
 import Payments from './pages/Payments';
 import PaymentsDashboard from './pages/PaymentsDashboard';
 import PlayerDashboard from './pages/PlayerDashboard';
-import PlayerEvaluations from './pages/PlayerEvaluations';
 import Players from './pages/Players';
+import PlayerEvaluations from './pages/PlayerEvaluations';
 import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import PlayerStatsPreview from './pages/PlayerStatsPreview';
@@ -169,7 +170,6 @@ import UploadDiagnostics from './pages/UploadDiagnostics';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
 import WebContacts from './pages/WebContacts';
-import MatchMinutesTracker from './pages/MatchMinutesTracker';
 import __Layout from './Layout.jsx';
 
 
@@ -239,6 +239,7 @@ export const PAGES = {
     "ManualAcceso": ManualAcceso,
     "MarketListingDetail": MarketListingDetail,
     "MatchApp": MatchApp,
+    "MatchMinutesTracker": MatchMinutesTracker,
     "MatchResults": MatchResults,
     "MedicalRecords": MedicalRecords,
     "MemberCardDisplay": MemberCardDisplay,
@@ -269,8 +270,8 @@ export const PAGES = {
     "Payments": Payments,
     "PaymentsDashboard": PaymentsDashboard,
     "PlayerDashboard": PlayerDashboard,
-    "PlayerEvaluations": PlayerEvaluations,
     "Players": Players,
+    "PlayerEvaluations": PlayerEvaluations,
     "PlayerProfile": PlayerProfile,
     "PlayerRenewal": PlayerRenewal,
     "PlayerStatsPreview": PlayerStatsPreview,
@@ -296,7 +297,6 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
     "WebContacts": WebContacts,
-    "MatchMinutesTracker": MatchMinutesTracker,
 }
 
 export const pagesConfig = {
