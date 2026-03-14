@@ -36,7 +36,7 @@ class RequestThrottler {
   }
 }
 
-export const globalThrottler = new RequestThrottler(1, 200);
+export const globalThrottler = new RequestThrottler(3, 100);
 
 /**
  * Debounce para funciones que se llaman múltiples veces rápido
@@ -52,7 +52,7 @@ export function debounce(fn, delay) {
 /**
  * Retry con exponential backoff
  */
-export async function retryWithBackoff(fn, maxRetries = 5) {
+export async function retryWithBackoff(fn, maxRetries = 3) {
   let lastError;
   for (let i = 0; i < maxRetries; i++) {
     try {
