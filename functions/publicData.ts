@@ -424,9 +424,16 @@ tr:hover { background: #fafafa; }
 /* ═══ RESPONSIVE ═══ */
 @media (max-width: 768px) {
   body { padding-top: 90px; font-size: 18px; }
-  .menu-toggle { display: block; }
-  .header-contenido { flex-direction: row; flex-wrap: wrap; }
+  .menu-toggle { display: block !important; }
+  .header-contenido {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .logo { order: 1; }
+  .menu-toggle { order: 2; }
   .menu {
+    order: 3;
     width: 100%;
     display: none !important;
     flex-direction: column;
@@ -435,14 +442,17 @@ tr:hover { background: #fafafa; }
     padding: 15px 0;
     margin-top: 10px;
     border-top: 1px solid #eaeaea;
+    gap: 0;
   }
   .menu.activo { display: flex !important; }
   .menu a {
-    font-size: 1rem;
-    padding: 12px 0;
+    font-size: 1.05rem;
+    padding: 14px 0;
     width: 100%;
     text-align: center;
+    border-bottom: 1px solid #f0f0f0;
   }
+  .menu a:last-child { border-bottom: none; }
   .menu .btn-menu { margin-top: 10px; }
   .cabecera-pagina { padding: 50px 16px; }
   .cabecera-pagina h1 { font-size: 2rem; }
