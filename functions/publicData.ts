@@ -236,15 +236,18 @@ body {
   font-size: 0.85rem;
   text-decoration: none;
 }
+.menu-check { display: none; }
 .menu-toggle {
   display: none;
   font-size: 2.2rem;
-  background: none;
-  border: none;
   cursor: pointer;
   margin-left: auto;
   min-width: 44px;
   min-height: 44px;
+  line-height: 44px;
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* ═══ HERO COMPETICIÓN ═══ */
