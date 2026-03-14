@@ -434,6 +434,7 @@ tr:hover { background: #fafafa; }
     justify-content: space-between;
   }
   .logo { order: 1; }
+  .menu-check { order: 2; }
   .menu-toggle { order: 2; }
   .menu {
     order: 3;
@@ -447,7 +448,8 @@ tr:hover { background: #fafafa; }
     border-top: 1px solid #eaeaea;
     gap: 0;
   }
-  .menu.activo { display: flex !important; }
+  /* Cuando el checkbox está marcado, mostrar el menú */
+  .menu-check:checked ~ .menu { display: flex !important; }
   .menu a {
     font-size: 1.05rem;
     padding: 14px 0;
