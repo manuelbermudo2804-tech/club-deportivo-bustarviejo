@@ -349,12 +349,7 @@ async function syncCategory(config, cookies, base44, temporada) {
                   const coaches = users.filter(u => u.es_entrenador && (u.categorias_entrenador || []).some(c => c === cat));
                   for (const coach of coaches) {
                     if (!coach.email) continue;
-                    await base44.asServiceRole.integrations.Core.SendEmail({
-                      to: coach.email,
-                      subject: `${emoji} Ficha de partido: ${gf}-${gc} vs ${rival} (${cat})`,
-                      body: `<div style="font-family:Arial;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#c2410c);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">⚽ Ficha de partido</h2><p style="color:#fed7aa;margin:4px 0">${cat} — J${latestJ}</p></div><div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p style="font-size:24px;font-weight:bold;text-align:center">${emoji} CD Bustarviejo ${gf} - ${gc} ${rival}</p><p>Hola ${coach.full_name||'Entrenador'}, ya está la ficha del partido. Puedes añadir tus observaciones desde la app.</p></div></div>`,
-                      from_name: 'CD Bustarviejo',
-                    });
+                    await sendViaResend(coach.email, `${emoji} Ficha de partido: ${gf}-${gc} vs ${rival} (${cat})`, `<div style="font-family:Arial;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#c2410c);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">⚽ Ficha de partido</h2><p style="color:#fed7aa;margin:4px 0">${cat} — J${latestJ}</p></div><div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p style="font-size:24px;font-weight:bold;text-align:center">${emoji} CD Bustarviejo ${gf} - ${gc} ${rival}</p><p>Hola ${coach.full_name||'Entrenador'}, ya está la ficha del partido. Puedes añadir tus observaciones desde la app.</p></div></div>`);
                     const obs = await base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ });
                     if (obs[0]) await base44.asServiceRole.entities.MatchObservation.update(obs[0].id, { entrenador_email: coach.email, entrenador_nombre: coach.full_name || '', email_enviado: true });
                   }
@@ -464,7 +459,7 @@ Deno.serve(async (req) => {
       const admins = await retryOnRateLimit(() => base44.asServiceRole.entities.User.filter({ role: 'admin' }));
       const emailBody = `<div style="font-family:Arial;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#15803d);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">📊 Resumen RFFM</h2><p style="color:#fed7aa;margin:4px 0">${fecha} · ${elapsed}s</p></div><div style="background:#fff;padding:20px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p><strong>${results.length} categorías sincronizadas</strong></p><ul style="padding-left:20px">${summaryLines.map(l => `<li>${l.replace('• ', '')}</li>`).join('')}</ul>${totalErrors ? `<div style="background:#fef2f2;border:1px solid #ef4444;border-radius:8px;padding:12px;margin:12px 0"><strong>⚠️ ${totalErrors} error(es)</strong><ul style="margin:8px 0 0;padding-left:16px;font-size:13px;color:#991b1b">${results.filter(r => r.errors?.length).map(r => r.errors.map(e => `<li>${r.cat} → ${e.type}: ${e.error}</li>`).join('')).join('')}</ul></div>` : ''}${bustResults.length ? `<h3>🏆 Bustarviejo</h3><ul>${bustResults.map(r2 => `<li>${r2}</li>`).join('')}</ul>` : ''}</div></div>`;
       for (const admin of admins) {
-        await base44.asServiceRole.integrations.Core.SendEmail({ to: admin.email, subject: `📊 Resumen RFFM — ${fecha}`, body: emailBody, from_name: 'CD Bustarviejo' });
+        await sendViaResend(admin.email, `📊 Resumen RFFM — ${fecha}`, emailBody);
       }
     } catch (emailErr) { console.error('Summary email error:', emailErr.message); }
 
@@ -476,11 +471,7 @@ Deno.serve(async (req) => {
       const base44Err = createClientFromRequest(req);
       const admins = await base44Err.asServiceRole.entities.User.filter({ role: 'admin' });
       for (const admin of admins) {
-        await base44Err.asServiceRole.integrations.Core.SendEmail({
-          to: admin.email, subject: '🚨 Error RFFM sync',
-          body: `<div style="font-family:Arial;max-width:600px"><div style="background:#dc2626;padding:16px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">🚨 Fallo rffmWeeklySync</h2></div><div style="background:#fff;padding:20px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><pre style="background:#f1f5f9;padding:12px;border-radius:8px">${error.message}</pre></div></div>`,
-          from_name: 'CD Bustarviejo',
-        });
+        await sendViaResend(admin.email, '🚨 Error RFFM sync', `<div style="font-family:Arial;max-width:600px"><div style="background:#dc2626;padding:16px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">🚨 Fallo rffmWeeklySync</h2></div><div style="background:#fff;padding:20px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><pre style="background:#f1f5f9;padding:12px;border-radius:8px">${error.message}</pre></div></div>`);
       }
     } catch {}
     return Response.json({ error: error.message }, { status: 500 });
