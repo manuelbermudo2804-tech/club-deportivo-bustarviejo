@@ -55,48 +55,99 @@ export default function CoachProfile() {
     fetchUser();
   }, []);
 
+  const [uploadStatus, setUploadStatus] = useState("");
+
+  const compressImage = (file, maxWidth = 800, quality = 0.8) => {
+    return new Promise((resolve) => {
+      // If file is small enough already (<500KB), skip compression
+      if (file.size < 500000) {
+        resolve(file);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let w = img.width;
+          let h = img.height;
+          if (w > maxWidth) {
+            h = Math.round((h * maxWidth) / w);
+            w = maxWidth;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const compressed = new File([blob], file.name || 'photo.jpg', { type: 'image/jpeg' });
+              console.log(`[CoachProfile] Comprimida: ${(file.size/1024).toFixed(0)}KB → ${(compressed.size/1024).toFixed(0)}KB`);
+              resolve(compressed);
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', quality);
+        };
+        img.onerror = () => resolve(file);
+        img.src = event.target.result;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Reset input so the same file can be re-selected
-    e.target.value = "";
     setUploading(true);
+    setUploadStatus("Comprimiendo imagen...");
     try {
-      console.log("[CoachProfile] Subiendo foto...", file.name, file.size);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      console.log("[CoachProfile] Archivo seleccionado:", file.name, (file.size/1024).toFixed(0) + "KB", file.type);
+      
+      // Compress image before uploading
+      const compressedFile = await compressImage(file);
+      
+      setUploadStatus("Subiendo foto...");
+      console.log("[CoachProfile] Subiendo:", (compressedFile.size/1024).toFixed(0) + "KB");
+      const result = await base44.integrations.Core.UploadFile({ file: compressedFile });
+      const file_url = result?.file_url;
+      
+      if (!file_url) {
+        console.error("[CoachProfile] UploadFile no devolvió file_url:", result);
+        toast.error("Error: la subida no devolvió URL");
+        return;
+      }
       console.log("[CoachProfile] Foto subida OK:", file_url);
 
-      // Save to user profile
+      setUploadStatus("Guardando en perfil...");
       await base44.auth.updateMe({ foto_perfil_url: file_url });
       console.log("[CoachProfile] updateMe OK");
 
       // Update local state with new URL + cache buster
+      const ts = Date.now();
       setFormData(prev => ({ ...prev, foto_perfil_url: file_url }));
-      setPhotoCacheBuster(Date.now());
+      setPhotoCacheBuster(ts);
 
-      // Sync to CoachSettings
-      try {
-        const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
+      // Sync to CoachSettings (no blocking)
+      base44.entities.CoachSettings.list('-updated_date', 50).then(allSettings => {
         const mySettings = allSettings.find(s => s.entrenador_email === user?.email);
-        if (mySettings) {
-          await base44.entities.CoachSettings.update(mySettings.id, { foto_perfil_url: file_url });
-        }
-      } catch (syncErr) {
-        console.log("Error sincronizando foto a CoachSettings:", syncErr);
-      }
+        if (mySettings) base44.entities.CoachSettings.update(mySettings.id, { foto_perfil_url: file_url });
+      }).catch(() => {});
 
-      // Refresh the user object in local state
+      // Refresh user
       const freshUser = await base44.auth.me();
       setUser(freshUser);
 
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
-      toast.success("Foto actualizada correctamente");
+      toast.success("✅ Foto actualizada correctamente");
     } catch (error) {
-      console.error("Error uploading photo:", error);
+      console.error("[CoachProfile] Error subiendo foto:", error);
       toast.error("Error al subir la foto: " + (error?.message || "desconocido"));
     } finally {
       setUploading(false);
+      setUploadStatus("");
     }
   };
 
