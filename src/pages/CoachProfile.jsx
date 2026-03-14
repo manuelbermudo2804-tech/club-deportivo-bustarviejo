@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, Camera, Save, Loader2, Eye, EyeOff, Clock, Info } from "lucide-react";
+import { User, Mail, Phone, Camera, Save, Loader2, Eye, Clock, Info, Shield, CheckCircle2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -17,7 +17,8 @@ export default function CoachProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+  const [editMode, setEditMode] = useState(false);
+
   const [formData, setFormData] = useState({
     foto_perfil_url: "",
     bio_entrenador: "",
@@ -54,21 +55,12 @@ export default function CoachProfile() {
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Reset input para que se pueda subir la misma foto otra vez
     e.target.value = "";
-
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      // Añadir timestamp para evitar caché del navegador
-      const urlWithCache = file_url + (file_url.includes('?') ? '&' : '?') + 't=' + Date.now();
       setFormData(prev => ({ ...prev, foto_perfil_url: file_url }));
-
-      // Guardar automáticamente la foto sin esperar al botón Guardar
       await base44.auth.updateMe({ foto_perfil_url: file_url });
-
-      // Sincronizar a CoachSettings también
       try {
         const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
         const mySettings = allSettings.find(s => s.entrenador_email === user?.email);
@@ -78,7 +70,6 @@ export default function CoachProfile() {
       } catch (syncErr) {
         console.log("Error sincronizando foto a CoachSettings:", syncErr);
       }
-
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
       toast.success("Foto actualizada correctamente");
@@ -91,47 +82,42 @@ export default function CoachProfile() {
   };
 
   const handleSave = async () => {
-  setSaving(true);
-  try {
-    await base44.auth.updateMe(formData);
-
-    // Sincronizar datos públicos a CoachSettings (accesible por familias)
+    setSaving(true);
     try {
-      const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
-      const mySettings = allSettings.find(s => s.entrenador_email === user.email);
-      const publicData = {
-        entrenador_nombre: user.full_name,
-        foto_perfil_url: formData.foto_perfil_url || "",
-        bio_entrenador: formData.bio_entrenador || "",
-        telefono_contacto: formData.telefono_contacto || "",
-        mostrar_email_publico: formData.mostrar_email_publico || false,
-        mostrar_telefono_publico: formData.mostrar_telefono_publico || false,
-      };
-      if (mySettings) {
-        await base44.entities.CoachSettings.update(mySettings.id, publicData);
+      await base44.auth.updateMe(formData);
+      try {
+        const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
+        const mySettings = allSettings.find(s => s.entrenador_email === user.email);
+        const publicData = {
+          entrenador_nombre: user.full_name,
+          foto_perfil_url: formData.foto_perfil_url || "",
+          bio_entrenador: formData.bio_entrenador || "",
+          telefono_contacto: formData.telefono_contacto || "",
+          mostrar_email_publico: formData.mostrar_email_publico || false,
+          mostrar_telefono_publico: formData.mostrar_telefono_publico || false,
+        };
+        if (mySettings) {
+          await base44.entities.CoachSettings.update(mySettings.id, publicData);
+        }
+      } catch (syncErr) {
+        console.log("Error sincronizando perfil público:", syncErr);
       }
-    } catch (syncErr) {
-      console.log("Error sincronizando perfil público:", syncErr);
+      toast.success("Perfil actualizado correctamente");
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
+      setEditMode(false);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast.error("Error al guardar el perfil");
+    } finally {
+      setSaving(false);
     }
-
-    toast.success("Perfil actualizado correctamente");
-    queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-    queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
-  } catch (error) {
-    console.error("Error saving profile:", error);
-    toast.error("Error al guardar el perfil");
-  } finally {
-    setSaving(false);
-  }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-orange-600 mx-auto mb-4" />
-          <p className="text-slate-600">Cargando perfil...</p>
-        </div>
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
       </div>
     );
   }
@@ -148,250 +134,324 @@ export default function CoachProfile() {
     );
   }
 
+  const categories = user.categorias_entrena || [];
+
   return (
-    <div className="p-4 lg:p-6 space-y-6 max-w-3xl mx-auto">
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Mi Perfil de Entrenador</h1>
-        <p className="text-slate-600 text-sm mt-1">
-          Gestiona tu información y controla qué datos ven las familias
-        </p>
-      </div>
-
-      {/* Preview Card */}
-      <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm text-orange-800 flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            Vista previa (así te ven las familias)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            {formData.foto_perfil_url ? (
-              <img
-                src={formData.foto_perfil_url}
-                alt={user.full_name}
-                className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-lg">
-                {user.full_name?.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1">
-              <h3 className="font-bold text-lg text-slate-900">{user.full_name}</h3>
-              <p className="text-sm text-slate-600">🏃 Entrenador</p>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {user.categorias_entrena?.map(cat => (
-                  <Badge key={cat} className="bg-blue-100 text-blue-700 text-xs">
-                    {cat}
-                  </Badge>
-                ))}
-              </div>
-              {formData.bio_entrenador && (
-                <p className="text-sm text-slate-600 mt-2 italic">"{formData.bio_entrenador}"</p>
-              )}
-              <div className="mt-2 space-y-1">
-                {formData.mostrar_email_publico && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <Mail className="w-4 h-4" />
-                    <span>{user.email}</span>
-                  </div>
-                )}
-                {formData.mostrar_telefono_publico && formData.telefono_contacto && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <Phone className="w-4 h-4" />
-                    <span>{formData.telefono_contacto}</span>
-                  </div>
-                )}
-                {!formData.mostrar_email_publico && !formData.mostrar_telefono_publico && (
-                  <p className="text-xs text-slate-400 italic">
-                    (Contacto no visible para familias)
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5 text-orange-600" />
-            Información del Perfil
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Foto de Perfil */}
-          <div className="space-y-2">
-            <Label>Foto de Perfil</Label>
-            <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-100">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/30 via-blue-600/20 to-transparent" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+        
+        <div className="relative max-w-3xl mx-auto px-4 pt-8 pb-24 lg:pt-12 lg:pb-28">
+          <div className="flex flex-col items-center text-center">
+            {/* Avatar */}
+            <div className="relative group mb-4">
               {formData.foto_perfil_url ? (
                 <img
                   src={formData.foto_perfil_url}
-                  alt="Foto de perfil"
-                  className="w-24 h-24 rounded-full object-cover border-4 border-orange-200"
+                  alt={user.full_name}
+                  className="w-28 h-28 lg:w-36 lg:h-36 rounded-full object-cover border-4 border-white/30 shadow-2xl ring-4 ring-orange-500/30"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center">
-                  <User className="w-10 h-10 text-slate-400" />
+                <div className="w-28 h-28 lg:w-36 lg:h-36 rounded-full bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center text-white text-4xl lg:text-5xl font-bold border-4 border-white/30 shadow-2xl ring-4 ring-orange-500/30">
+                  {user.full_name?.charAt(0).toUpperCase()}
                 </div>
               )}
-              <div>
-                <input
-                  type="file"
-                  id="photo-upload"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => document.getElementById('photo-upload').click()}
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Camera className="w-4 h-4 mr-2" />
-                  )}
-                  {uploading ? "Subiendo..." : "Cambiar foto"}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Bio */}
-          <div className="space-y-2">
-            <Label htmlFor="bio">Biografía / Descripción</Label>
-            <Textarea
-              id="bio"
-              value={formData.bio_entrenador}
-              onChange={(e) => setFormData(prev => ({ ...prev, bio_entrenador: e.target.value }))}
-              placeholder="Ej: Entrenador con 5 años de experiencia, especializado en categorías base..."
-              rows={3}
-            />
-            <p className="text-xs text-slate-500">
-              Esta descripción será visible para las familias de tus equipos.
-            </p>
-          </div>
-
-          {/* Teléfono */}
-          <div className="space-y-2">
-            <Label htmlFor="telefono">Teléfono de Contacto</Label>
-            <Input
-              id="telefono"
-              value={formData.telefono_contacto}
-              onChange={(e) => setFormData(prev => ({ ...prev, telefono_contacto: e.target.value }))}
-              placeholder="Ej: 612 345 678"
-            />
-          </div>
-
-          {/* Disponibilidad */}
-          <div className="space-y-2">
-            <Label htmlFor="disponibilidad" className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Disponibilidad
-            </Label>
-            <Textarea
-              id="disponibilidad"
-              value={formData.disponibilidad}
-              onChange={(e) => setFormData(prev => ({ ...prev, disponibilidad: e.target.value }))}
-              placeholder="Ej: Tardes de lunes a viernes, sábados por la mañana..."
-              rows={2}
-            />
-            <p className="text-xs text-slate-500">
-              Solo visible para coordinadores y administradores.
-            </p>
-          </div>
-
-          {/* Privacidad */}
-          <div className="bg-slate-50 rounded-lg p-4 space-y-4">
-            <h4 className="font-semibold text-slate-900 flex items-center gap-2">
-              <Info className="w-4 h-4 text-blue-600" />
-              Privacidad - Información visible para familias
-            </h4>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="show-email" className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-slate-500" />
-                  Mostrar mi email
-                </Label>
-                <p className="text-xs text-slate-500">
-                  {user.email}
-                </p>
-              </div>
-              <Switch
-                id="show-email"
-                checked={formData.mostrar_email_publico}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, mostrar_email_publico: checked }))}
+              <label
+                htmlFor="photo-upload-hero"
+                className="absolute bottom-1 right-1 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:bg-orange-50 transition-colors border-2 border-orange-200 group-hover:scale-110"
+              >
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
+                ) : (
+                  <Camera className="w-4 h-4 text-orange-600" />
+                )}
+              </label>
+              <input
+                type="file"
+                id="photo-upload-hero"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="show-phone" className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-slate-500" />
-                  Mostrar mi teléfono
-                </Label>
-                <p className="text-xs text-slate-500">
-                  {formData.telefono_contacto || "No configurado"}
-                </p>
-              </div>
-              <Switch
-                id="show-phone"
-                checked={formData.mostrar_telefono_publico}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, mostrar_telefono_publico: checked }))}
-                disabled={!formData.telefono_contacto}
-              />
-            </div>
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
+              {user.full_name}
+            </h1>
+            <p className="text-orange-300 font-medium mt-1">
+              {user.es_coordinador ? "📋 Coordinador" : "🏃 Entrenador"}
+            </p>
 
-            {!formData.mostrar_email_publico && !formData.mostrar_telefono_publico && (
-              <Alert className="bg-yellow-50 border-yellow-200">
-                <AlertDescription className="text-yellow-800 text-xs">
-                  Las familias no podrán contactarte directamente. Usarán el chat de la app.
-                </AlertDescription>
-              </Alert>
+            {categories.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2 mt-3">
+                {categories.map(cat => (
+                  <Badge key={cat} className="bg-white/15 text-white border border-white/20 backdrop-blur-sm text-xs px-3 py-1">
+                    ⚽ {cat}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {formData.bio_entrenador && !editMode && (
+              <p className="text-white/70 text-sm mt-3 max-w-md italic leading-relaxed">
+                "{formData.bio_entrenador}"
+              </p>
             )}
           </div>
+        </div>
+      </div>
 
-          {/* Categorías (solo lectura) */}
-          <div className="space-y-2">
-            <Label>Categorías que entreno</Label>
-            <div className="flex flex-wrap gap-2">
-              {user.categorias_entrena?.length > 0 ? (
-                user.categorias_entrena.map(cat => (
-                  <Badge key={cat} className="bg-blue-100 text-blue-700">
-                    {cat}
-                  </Badge>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">Sin categorías asignadas</p>
+      {/* Content - overlapping the hero */}
+      <div className="max-w-3xl mx-auto px-4 -mt-16 pb-8 space-y-4 relative z-10">
+
+        {/* Quick Info Cards */}
+        {!editMode && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-white rounded-2xl shadow-lg p-4 text-center border border-slate-100">
+              <div className="text-2xl mb-1">📧</div>
+              <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">Email</p>
+              <p className="text-xs font-medium text-slate-700 mt-0.5 truncate">{user.email}</p>
+              {formData.mostrar_email_publico && (
+                <Badge className="bg-green-100 text-green-700 text-[9px] mt-1">Público</Badge>
               )}
             </div>
-            <p className="text-xs text-slate-500">
-              Las categorías son asignadas por el administrador del club.
-            </p>
+            <div className="bg-white rounded-2xl shadow-lg p-4 text-center border border-slate-100">
+              <div className="text-2xl mb-1">📱</div>
+              <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">Teléfono</p>
+              <p className="text-xs font-medium text-slate-700 mt-0.5">{formData.telefono_contacto || "No configurado"}</p>
+              {formData.mostrar_telefono_publico && formData.telefono_contacto && (
+                <Badge className="bg-green-100 text-green-700 text-[9px] mt-1">Público</Badge>
+              )}
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg p-4 text-center border border-slate-100">
+              <div className="text-2xl mb-1">⚽</div>
+              <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">Equipos</p>
+              <p className="text-lg font-bold text-slate-900">{categories.length}</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg p-4 text-center border border-slate-100">
+              <div className="text-2xl mb-1">🔒</div>
+              <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">Privacidad</p>
+              <p className="text-xs font-medium text-slate-700 mt-0.5">
+                {formData.mostrar_email_publico || formData.mostrar_telefono_publico ? "Contacto visible" : "Solo chat"}
+              </p>
+            </div>
           </div>
+        )}
 
-          {/* Guardar */}
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full bg-orange-600 hover:bg-orange-700"
-          >
-            {saving ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            {saving ? "Guardando..." : "Guardar Cambios"}
-          </Button>
-        </CardContent>
-      </Card>
+        {/* Edit / View Toggle */}
+        {!editMode ? (
+          <Card className="border-none shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-0">
+              {/* Preview section */}
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-4 border-b border-orange-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm font-semibold text-orange-800">Así te ven las familias</span>
+                  </div>
+                  <Button
+                    onClick={() => setEditMode(true)}
+                    size="sm"
+                    className="bg-orange-600 hover:bg-orange-700 text-white shadow-md"
+                  >
+                    <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                    Editar perfil
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-5 space-y-4">
+                {/* Contact visible info */}
+                <div className="space-y-2">
+                  {formData.mostrar_email_publico && (
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 uppercase font-semibold">Email público</p>
+                        <p className="text-sm text-slate-800 font-medium">{user.email}</p>
+                      </div>
+                    </div>
+                  )}
+                  {formData.mostrar_telefono_publico && formData.telefono_contacto && (
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Phone className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 uppercase font-semibold">Teléfono público</p>
+                        <p className="text-sm text-slate-800 font-medium">{formData.telefono_contacto}</p>
+                      </div>
+                    </div>
+                  )}
+                  {!formData.mostrar_email_publico && !formData.mostrar_telefono_publico && (
+                    <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl border border-yellow-200">
+                      <Shield className="w-5 h-5 text-yellow-600" />
+                      <p className="text-xs text-yellow-800">
+                        Las familias solo pueden contactarte por el chat de la app.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Disponibilidad */}
+                {formData.disponibilidad && (
+                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock className="w-3.5 h-3.5 text-blue-600" />
+                      <span className="text-[10px] text-blue-600 uppercase font-semibold">Disponibilidad</span>
+                      <Badge className="bg-blue-200/50 text-blue-700 text-[9px]">Solo admins</Badge>
+                    </div>
+                    <p className="text-sm text-blue-900">{formData.disponibilidad}</p>
+                  </div>
+                )}
+
+                {/* Categories */}
+                {categories.length > 0 && (
+                  <div>
+                    <p className="text-[10px] text-slate-500 uppercase font-semibold mb-2">Categorías asignadas</p>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map(cat => (
+                        <div key={cat} className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl px-3 py-1.5">
+                          <span className="text-sm">⚽</span>
+                          <span className="text-xs font-semibold text-blue-800">{cat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          /* Edit Form */
+          <Card className="border-none shadow-xl rounded-2xl overflow-hidden">
+            <CardContent className="p-0">
+              <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-white">
+                  <Pencil className="w-4 h-4 text-orange-400" />
+                  <span className="font-bold text-sm">Editando perfil</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditMode(false)}
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                >
+                  Cancelar
+                </Button>
+              </div>
+
+              <div className="p-5 space-y-6">
+                {/* Bio */}
+                <div className="space-y-2">
+                  <Label htmlFor="bio" className="text-sm font-semibold flex items-center gap-2">
+                    <span className="text-base">✍️</span> Biografía
+                  </Label>
+                  <Textarea
+                    id="bio"
+                    value={formData.bio_entrenador}
+                    onChange={(e) => setFormData(prev => ({ ...prev, bio_entrenador: e.target.value }))}
+                    placeholder="Ej: Entrenador con 5 años de experiencia, especializado en categorías base..."
+                    rows={3}
+                    className="rounded-xl border-slate-200 focus:border-orange-400 focus:ring-orange-400/20"
+                  />
+                  <p className="text-[10px] text-slate-400">Visible para las familias de tus equipos</p>
+                </div>
+
+                {/* Teléfono */}
+                <div className="space-y-2">
+                  <Label htmlFor="telefono" className="text-sm font-semibold flex items-center gap-2">
+                    <span className="text-base">📱</span> Teléfono de Contacto
+                  </Label>
+                  <Input
+                    id="telefono"
+                    value={formData.telefono_contacto}
+                    onChange={(e) => setFormData(prev => ({ ...prev, telefono_contacto: e.target.value }))}
+                    placeholder="Ej: 612 345 678"
+                    className="rounded-xl border-slate-200 focus:border-orange-400 focus:ring-orange-400/20"
+                  />
+                </div>
+
+                {/* Disponibilidad */}
+                <div className="space-y-2">
+                  <Label htmlFor="disponibilidad" className="text-sm font-semibold flex items-center gap-2">
+                    <span className="text-base">🕐</span> Disponibilidad
+                  </Label>
+                  <Textarea
+                    id="disponibilidad"
+                    value={formData.disponibilidad}
+                    onChange={(e) => setFormData(prev => ({ ...prev, disponibilidad: e.target.value }))}
+                    placeholder="Ej: Tardes de lunes a viernes, sábados por la mañana..."
+                    rows={2}
+                    className="rounded-xl border-slate-200 focus:border-orange-400 focus:ring-orange-400/20"
+                  />
+                  <p className="text-[10px] text-slate-400">Solo visible para coordinadores y administradores</p>
+                </div>
+
+                {/* Privacidad */}
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-2xl p-4 space-y-4 border border-slate-200">
+                  <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-blue-600" />
+                    Privacidad
+                  </h4>
+
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-800">Mostrar email</p>
+                        <p className="text-[10px] text-slate-500">{user.email}</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={formData.mostrar_email_publico}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, mostrar_email_publico: checked }))}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Phone className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-800">Mostrar teléfono</p>
+                        <p className="text-[10px] text-slate-500">{formData.telefono_contacto || "No configurado"}</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={formData.mostrar_telefono_publico}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, mostrar_telefono_publico: checked }))}
+                      disabled={!formData.telefono_contacto}
+                    />
+                  </div>
+                </div>
+
+                {/* Save */}
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-xl py-6 shadow-lg shadow-orange-600/20 font-bold text-base"
+                >
+                  {saving ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                  )}
+                  {saving ? "Guardando..." : "Guardar Cambios"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
