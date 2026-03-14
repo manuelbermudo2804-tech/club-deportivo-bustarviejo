@@ -83,10 +83,10 @@ export default function Home() {
   }, []);
 
   const { data: players } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryKey: ['playersActive'],
+    queryFn: () => base44.entities.Player.filter({ activo: true }, '-updated_date', 500),
     initialData: [],
-    staleTime: 60000,
+    staleTime: 120000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -94,8 +94,8 @@ export default function Home() {
   });
 
   const { data: payments } = useQuery({
-    queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list(),
+    queryKey: ['paymentsNotDeleted'],
+    queryFn: () => base44.entities.Payment.filter({ is_deleted: { $ne: true } }, '-created_date', 500),
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
@@ -105,8 +105,8 @@ export default function Home() {
   });
 
   const { data: callups } = useQuery({
-    queryKey: ['callups'],
-    queryFn: () => base44.entities.Convocatoria.list(),
+    queryKey: ['callupsActive'],
+    queryFn: () => base44.entities.Convocatoria.filter({ publicada: true, cerrada: false }, '-fecha_partido', 50),
     initialData: [],
     staleTime: 60000,
     gcTime: 600000,
@@ -124,9 +124,16 @@ export default function Home() {
     }
   }, [queriesEnabled, isAdmin]);
 
+  // Survey responses: solo últimas 24h para el badge
   const { data: surveyResponses } = useQuery({
-    queryKey: ['surveyResponses'],
-    queryFn: () => base44.entities.SurveyResponse.list(),
+    queryKey: ['recentSurveyResponses'],
+    queryFn: () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      return base44.entities.SurveyResponse.filter({
+        created_date: { $gte: yesterday.toISOString() }
+      }, '-created_date', 100);
+    },
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
@@ -135,9 +142,13 @@ export default function Home() {
     enabled: lazyEnabled,
   });
 
+  // Events: solo futuros publicados
   const { data: events } = useQuery({
-    queryKey: ['eventsHome'],
-    queryFn: () => base44.entities.Event.list('-fecha'),
+    queryKey: ['eventsHomeFuture'],
+    queryFn: () => {
+      const today = new Date().toISOString().split('T')[0];
+      return base44.entities.Event.filter({ publicado: true }, '-fecha', 30);
+    },
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
@@ -146,9 +157,16 @@ export default function Home() {
     enabled: lazyEnabled,
   });
 
+  // Clothing orders: solo pendientes/en revisión
   const { data: clothingOrders } = useQuery({
-    queryKey: ['clothingOrdersHome'],
-    queryFn: () => base44.entities.ClothingOrder.list('-created_date'),
+    queryKey: ['clothingOrdersPending'],
+    queryFn: async () => {
+      const [pending, review] = await Promise.all([
+        base44.entities.ClothingOrder.filter({ estado: 'Pendiente' }, '-created_date', 50),
+        base44.entities.ClothingOrder.filter({ estado: 'En revisión' }, '-created_date', 50),
+      ]);
+      return [...pending, ...review];
+    },
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
@@ -157,9 +175,16 @@ export default function Home() {
     enabled: lazyEnabled,
   });
 
+  // Club members: solo pendientes
   const { data: clubMembers } = useQuery({
-    queryKey: ['clubMembersHome'],
-    queryFn: () => base44.entities.ClubMember.list('-created_date'),
+    queryKey: ['clubMembersPending'],
+    queryFn: async () => {
+      const [pending, review] = await Promise.all([
+        base44.entities.ClubMember.filter({ estado_pago: 'Pendiente' }),
+        base44.entities.ClubMember.filter({ estado_pago: 'En revisión' }),
+      ]);
+      return [...pending, ...review];
+    },
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
@@ -168,9 +193,10 @@ export default function Home() {
     enabled: lazyEnabled,
   });
 
+  // Lottery: solo no pagados
   const { data: lotteryOrders } = useQuery({
-    queryKey: ['lotteryOrdersHome'],
-    queryFn: () => base44.entities.LotteryOrder.list('-created_date'),
+    queryKey: ['lotteryOrdersPending'],
+    queryFn: () => base44.entities.LotteryOrder.filter({ pagado: false }, '-created_date', 50),
     initialData: [],
     staleTime: 300000,
     gcTime: 600000,
@@ -251,14 +277,16 @@ export default function Home() {
     return [...new Set(myPlayers.map(p => p.deporte))];
   }, [myPlayers]);
 
+  // Users: solo necesarios para check jugadores +18 — lazy load
   const { data: allUsers } = useQuery({
-    queryKey: ['allUsersForPlayerCheck'],
-    queryFn: () => base44.entities.User.list(),
+    queryKey: ['usersForPlayerCheck'],
+    queryFn: () => base44.entities.User.list('-created_date', 500),
     initialData: [],
-    staleTime: 300000,
-    gcTime: 600000,
+    staleTime: 600000,
+    gcTime: 900000,
     refetchOnWindowFocus: false,
-    enabled: queriesEnabled && isAdmin,
+    refetchOnMount: false,
+    enabled: lazyEnabled && isAdmin,
   });
 
   const stats = useMemo(() => {
@@ -428,8 +456,8 @@ export default function Home() {
     let pendingEventConfirmations = 0;
 
     if (isAdmin) {
-      // Pedidos de ropa en revisión
-      pendingClothingOrders = clothingOrders?.filter(o => o.estado === "En revisión" || o.estado === "Pendiente").length || 0;
+      // Pedidos de ropa — ya vienen filtrados
+      pendingClothingOrders = clothingOrders?.length || 0;
       
       // Pedidos de lotería pendientes (sin pagar) SOLO de temporada activa
       const activeSeasonName = seasonConfig?.temporada ? seasonConfig.temporada.replace(/-/g,'/') : null;
@@ -438,15 +466,11 @@ export default function Home() {
         return !o.pagado && (!activeSeasonName || orderSeason === activeSeasonName);
       }).length || 0;
       
-      // Solicitudes de socios pendientes (incluir "En revisión" Y "Pendiente")
-      pendingMemberRequests = clubMembers?.filter(m => 
-        m.estado_pago === "En revisión" || m.estado_pago === "Pendiente"
-      ).length || 0;
+      // Solicitudes de socios — ya vienen filtradas
+      pendingMemberRequests = clubMembers?.length || 0;
       
-      // Respuestas de encuestas en las últimas 24 horas
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      recentSurveyResponses = surveyResponses?.filter(r => new Date(r.created_date) > yesterday).length || 0;
+      // Respuestas de encuestas — ya vienen filtradas por últimas 24h
+      recentSurveyResponses = surveyResponses?.length || 0;
       
       // Eventos próximos con confirmaciones pendientes
       const today = new Date().toISOString().split('T')[0];

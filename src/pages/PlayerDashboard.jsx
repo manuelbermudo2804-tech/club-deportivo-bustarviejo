@@ -47,9 +47,9 @@ export default function PlayerDashboard() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        console.log('👤 [PlayerDashboard] Usuario cargado:', currentUser.email);
+
       } catch (error) {
-        console.error("❌ [PlayerDashboard] Error fetching user:", error);
+        console.error("[PlayerDashboard] Auth error:", error);
         base44.auth.redirectToLogin();
       }
     };
