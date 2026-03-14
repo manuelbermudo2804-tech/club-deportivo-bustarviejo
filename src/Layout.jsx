@@ -23,6 +23,7 @@ import PullToRefresh from "./components/mobile/PullToRefresh";
 import DeleteAccountDialog from "./components/DeleteAccountDialog";
 import FeedbackModal from "./components/feedback/FeedbackModal";
 import GlobalErrorHandler from "./components/utils/GlobalErrorHandler";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 import LanguageSelector from "./components/LanguageSelector";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
@@ -1413,9 +1414,11 @@ export default function Layout({ children, currentPageName }) {
             <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
           )}
           <PullToRefresh>
-            <div className="page-transition-wrapper">
-              {children}
-            </div>
+            <ErrorBoundary label="la página actual" onReset={() => window.location.reload()}>
+              <div className="page-transition-wrapper">
+                {children}
+              </div>
+            </ErrorBoundary>
           </PullToRefresh>
           <ActiveBanner position="bottom" user={user} />
 

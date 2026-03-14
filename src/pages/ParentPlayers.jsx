@@ -90,23 +90,16 @@ export default function ParentPlayers() {
     queryKey: ['myPlayers', user?.email, seasonConfig?.permitir_renovaciones],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Hacer 3 consultas paralelas para evitar problemas con $or en algunos dispositivos
       const [byPadre, byTutor2, byJugador] = await Promise.all([
         base44.entities.Player.filter({ email_padre: user.email }).catch(() => []),
         base44.entities.Player.filter({ email_tutor_2: user.email }).catch(() => []),
         base44.entities.Player.filter({ email_jugador: user.email }).catch(() => []),
       ]);
-      // Deduplicar por id
       const map = new Map();
       [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
       const myPlayers = Array.from(map.values());
       
-      console.log('🔍 [ParentPlayers] Mis jugadores encontrados:', myPlayers.length, '(padre:', byPadre.length, 'tutor2:', byTutor2.length, 'jugador:', byJugador.length, ')');
-      
-      // Si permitir_renovaciones está activo, mostrar activos + pendientes (NO los que dijeron no_renueva)
-      // Si no, solo mostrar los ACTIVOS
       if (seasonConfig?.permitir_renovaciones) {
-        // Mostrar: activos + pendientes de renovar (pero NO los que dijeron "no_renueva")
         return myPlayers.filter(p => 
           p.activo === true || 
           (p.estado_renovacion === "pendiente" && p.temporada_renovacion === seasonConfig?.temporada)
@@ -115,8 +108,10 @@ export default function ParentPlayers() {
       return myPlayers.filter(p => p.activo === true);
     },
     enabled: !!user?.email,
-    staleTime: 60000, // 1 minuto
+    staleTime: 60000,
     gcTime: 300000,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
     refetchOnWindowFocus: false,
   });
 
@@ -144,6 +139,8 @@ export default function ParentPlayers() {
     initialData: [],
     staleTime: 60000,
     gcTime: 300000,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
     refetchOnWindowFocus: false,
   });
 
@@ -155,7 +152,6 @@ export default function ParentPlayers() {
       const results = await Promise.all(
         playerCategories.map(cat => base44.entities.Convocatoria.filter({ categoria: cat }, '-fecha_partido', 10).catch(() => []))
       );
-      // Deduplicar por id
       const map = new Map();
       results.flat().forEach(c => map.set(c.id, c));
       return Array.from(map.values());
@@ -164,6 +160,8 @@ export default function ParentPlayers() {
     initialData: [],
     staleTime: 60000,
     gcTime: 300000,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
     refetchOnWindowFocus: false,
   });
 
