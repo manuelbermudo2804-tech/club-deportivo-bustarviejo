@@ -234,16 +234,17 @@ export default function UpcomingMatchesSection() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Normalize for deduplication: trim + lowercase
-  const normalize = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  // Normalize for deduplication
+  const normCatDedup = (s) => (s || '').trim().toLowerCase().replace(/\(mixto\)/g, '').replace(/\s+/g, ' ').trim();
 
-  // Deduplicate matches by categoria + local + visitante + fecha
+  // Deduplicate matches by categoria + fecha (1 match per category per day)
+  // Prioritize entries with more data (ProximoPartido over Convocatoria)
   const seen = new Set();
   const allWithDates = matches
     .map(m => ({ ...m, dateInfo: formatMatchDate(m.fecha || m.fecha_iso) }))
     .filter(m => m.dateInfo)
     .filter(m => {
-      const key = `${normalize(m.categoria)}|${normalize(m.local)}|${normalize(m.visitante)}|${m.dateInfo.iso}`;
+      const key = `${normCatDedup(m.categoria)}|${m.dateInfo.iso}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
