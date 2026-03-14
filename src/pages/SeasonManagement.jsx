@@ -816,7 +816,7 @@ export default function SeasonManagement() {
         'MatchObservation', 'CompetitionAsset', 'TacticaPizarra', 'Exercise',
         'CommunicationLog', 'CoordinatorChatLog', 'CoachChatLog', 'ChatbotLog',
         'ReferralReward', 'ReferralHistory', 'FemeninoInterest', 'StripePaymentLog',
-        'ProximoPartido', 'JuniorMailbox', 'MatchReport', 'BirthdayLog',
+        'ProximoPartido', 'JuniorMailbox', 'MatchReport', 'BirthdayLog', 'MatchMinutes',
         'ChatAcceptance', 'AccessCodeAttempt', 'SystemAlert', 'AnalyticsEvent', 'SponsorImpression'
       ];
       for (const entityName of entitiesToDelete) { await safeDeleteAll(entityName); }
