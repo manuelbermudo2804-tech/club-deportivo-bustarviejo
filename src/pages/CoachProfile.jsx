@@ -143,8 +143,13 @@ export default function CoachProfile() {
       queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
       toast.success("✅ Foto actualizada correctamente");
     } catch (error) {
-      console.error("[CoachProfile] Error subiendo foto:", error);
-      toast.error("Error al subir la foto: " + (error?.message || "desconocido"));
+      console.error("[CoachProfile] Error subiendo foto:", JSON.stringify(error), error?.message, error?.response?.data);
+      const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || "desconocido";
+      if (/credit|limit|quota|cuota/i.test(msg)) {
+        toast.error("❌ Sin créditos de integración. Ve a Settings > Billing en el dashboard de Base44 para recargar.", { duration: 10000 });
+      } else {
+        toast.error("Error al subir la foto: " + msg, { duration: 8000 });
+      }
     } finally {
       setUploading(false);
       setUploadStatus("");
