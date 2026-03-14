@@ -278,13 +278,7 @@ export default function Home() {
         p.reconciliado_banco !== true
       ) || [];
       
-      console.log('💳 [Home DEBUG] Pagos pendientes encontrados:', allPendingPayments.length, allPendingPayments.map(p => ({
-        jugador: p.jugador_nombre,
-        mes: p.mes,
-        temporada: p.temporada,
-        cantidad: p.cantidad
-      })));
-      
+          
       pendingPayments = allPendingPayments.length;
       reviewPayments = payments?.filter(p => 
         p.estado === "En revisión" && 
@@ -573,7 +567,7 @@ export default function Home() {
 
   // Mostrar loading mientras carga el usuario
   if (!user) {
-    console.log('⏳ [Home] Mostrando loading (sin usuario)');
+  
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
         <div className="px-4 lg:px-8 py-6">
@@ -588,7 +582,7 @@ export default function Home() {
     );
   }
 
-  console.log('🎨 [Home] Renderizando dashboard');
+
 
   const getCurrentSeason = () => {
     const now = new Date();
