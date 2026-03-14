@@ -567,17 +567,7 @@ tr:hover { background: #fafafa; }
   </div>
 </footer>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var toggle = document.querySelector('.menu-toggle');
-  var menu = document.querySelector('.menu');
-  if (toggle && menu) {
-    toggle.addEventListener('click', function() {
-      menu.classList.toggle('activo');
-    });
-  }
-});
-</script>
+<!-- menú hamburguesa funciona solo con CSS, sin JavaScript -->
 
 </body>
 </html>`;
