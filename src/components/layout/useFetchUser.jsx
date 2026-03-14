@@ -232,100 +232,107 @@ export function useFetchUser(location) {
       setIsPlayer(playerDetected);
       setIsLoading(false);
 
-      // Cargar configuración de temporada
+      // === CARGA EN PARALELO: Temporada + Jugadores (una sola vez) + Socios ===
+      // Antes se hacían hasta 12 queries de Player separadas; ahora se reutiliza 1 resultado.
+      let cachedMyPlayers = null;
+      const fetchMyPlayers = async () => {
+        if (cachedMyPlayers) return cachedMyPlayers;
+        const [byPadre, byTutor2, byJugador] = await Promise.all([
+          base44.entities.Player.filter({ email_padre: currentUser.email }).catch(() => []),
+          base44.entities.Player.filter({ email_tutor_2: currentUser.email }).catch(() => []),
+          base44.entities.Player.filter({ email_jugador: currentUser.email }).catch(() => []),
+        ]);
+        const map = new Map();
+        [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
+        cachedMyPlayers = Array.from(map.values());
+        return cachedMyPlayers;
+      };
+
       try {
-        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+        // Lanzar las 3 consultas base en paralelo
+        const [configs, membersList, allMyPlayers] = await Promise.all([
+          base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []),
+          base44.entities.ClubMember.filter({ email: currentUser.email, estado_pago: "Pagado" }).catch(() => []),
+          (currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero)
+            ? fetchMyPlayers()
+            : Promise.resolve([]),
+        ]);
+
         const activeConfig = configs[0];
         setActiveSeasonConfig(activeConfig);
         setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
         setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
+        setIsMemberPaid(membersList.length > 0);
 
-        // Cargar cobros extra
+        // Cargar cobros extra (usa allMyPlayers en vez de re-consultar)
         if (currentUser?.email) {
-          const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
-          let myPlayers = [];
           try {
-            // 3 consultas paralelas para evitar fallos de $or en navegadores antiguos
-            const [byPadre, byTutor2, byJugador] = await Promise.all([
-              base44.entities.Player.filter({ email_padre: currentUser.email, activo: true }).catch(() => []),
-              base44.entities.Player.filter({ email_tutor_2: currentUser.email, activo: true }).catch(() => []),
-              base44.entities.Player.filter({ email_jugador: currentUser.email, activo: true }).catch(() => []),
+            const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
+            const myPlayersActive = allMyPlayers.filter(p => p.activo !== false);
+
+            const isCoachVal = currentUser.es_entrenador === true;
+            const isCoordinatorVal = currentUser.es_coordinador === true;
+            const isTreasurerVal = currentUser.es_tesorero === true;
+            const isAdminUser = currentUser.role === 'admin';
+
+            const categoryNames = new Set([
+              ...myPlayersActive.map(p => p.categoria_principal).filter(Boolean),
+              ...myPlayersActive.flatMap(p => p.categorias || [])
             ]);
-            const map = new Map();
-            [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
-            myPlayers = Array.from(map.values());
-          } catch {}
+            const playerIdSet = new Set(myPlayersActive.map(p => p.id));
 
-          const isCoachVal = currentUser.es_entrenador === true;
-          const isCoordinatorVal = currentUser.es_coordinador === true;
-          const isTreasurerVal = currentUser.es_tesorero === true;
-          const isAdminUser = currentUser.role === 'admin';
+            const matchesUser = (charge) => {
+              const dests = charge.destinatarios || [];
+              if (dests.length === 0) return true;
+              if (dests.some(d => d.tipo === 'categoria' && categoryNames.has(d.valor))) return true;
+              if (dests.some(d => d.tipo === 'jugador' && playerIdSet.has(d.valor))) return true;
+              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:entrenadores') && isCoachVal) return true;
+              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:coordinadores') && isCoordinatorVal) return true;
+              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:tesoreria') && isTreasurerVal) return true;
+              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:admins') && isAdminUser) return true;
+              return false;
+            };
 
-          const categoryNames = new Set([
-            ...(myPlayers || []).map(p => p.categoria_principal).filter(Boolean),
-            ...((myPlayers || []).flatMap(p => p.categorias || []))
-          ]);
-          const playerIds = new Set((myPlayers || []).map(p => p.id));
-
-          const matchesUser = (charge) => {
-            const dests = charge.destinatarios || [];
-            if (dests.length === 0) return true;
-            if (dests.some(d => d.tipo === 'categoria' && categoryNames.has(d.valor))) return true;
-            if (dests.some(d => d.tipo === 'jugador' && playerIds.has(d.valor))) return true;
-            if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:entrenadores') && isCoachVal) return true;
-            if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:coordinadores') && isCoordinatorVal) return true;
-            if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:tesoreria') && isTreasurerVal) return true;
-            if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:admins') && isAdminUser) return true;
-            return false;
-          };
-
-          const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
-          const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
-          const [ecpPagado, ecpRevision] = await Promise.all([
-            base44.entities.ExtraChargePayment.filter({ usuario_email: currentUser.email, estado: 'Pagado' }).catch(() => []),
-            base44.entities.ExtraChargePayment.filter({ usuario_email: currentUser.email, estado: 'En revisión' }).catch(() => []),
-          ]);
-          const myPayments = [...ecpPagado, ...ecpRevision];
-          let visibleCharge = null;
-          for (const c of candidates) {
-            try {
-              const requiredSum = (c.items || [])
-                .filter(i => i.obligatorio)
-                .reduce((sum, i) => sum + Number(i.precio || 0) * 1, 0);
-              const paymentsForCharge = (myPayments || []).filter(p => p.extra_charge_id === c.id);
-              let hasPaidRequired = false;
-              if ((paymentsForCharge || []).length > 0) {
-                for (const p of paymentsForCharge) {
-                  const sel = p.seleccion || [];
-                  const mandatoryNames = new Set((c.items || []).filter(i => i.obligatorio).map(i => i.nombre));
-                  const paidMandatorySum = sel
-                    .filter(s => mandatoryNames.has(s.item_nombre))
-                    .reduce((sum, s) => sum + Number(s.cantidad || 0) * Number(s.precio_unitario || 0), 0);
-                  if ((requiredSum > 0 && paidMandatorySum >= requiredSum) || (requiredSum === 0 && Number(p.total || 0) > 0)) {
-                    hasPaidRequired = true;
-                    break;
+            const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
+            const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
+            
+            if (candidates.length > 0) {
+              const [ecpPagado, ecpRevision] = await Promise.all([
+                base44.entities.ExtraChargePayment.filter({ usuario_email: currentUser.email, estado: 'Pagado' }).catch(() => []),
+                base44.entities.ExtraChargePayment.filter({ usuario_email: currentUser.email, estado: 'En revisión' }).catch(() => []),
+              ]);
+              const myPayments = [...ecpPagado, ...ecpRevision];
+              let visibleCharge = null;
+              for (const c of candidates) {
+                try {
+                  const requiredSum = (c.items || [])
+                    .filter(i => i.obligatorio)
+                    .reduce((sum, i) => sum + Number(i.precio || 0) * 1, 0);
+                  const paymentsForCharge = myPayments.filter(p => p.extra_charge_id === c.id);
+                  let hasPaidRequired = false;
+                  for (const p of paymentsForCharge) {
+                    const sel = p.seleccion || [];
+                    const mandatoryNames = new Set((c.items || []).filter(i => i.obligatorio).map(i => i.nombre));
+                    const paidMandatorySum = sel
+                      .filter(s => mandatoryNames.has(s.item_nombre))
+                      .reduce((sum, s) => sum + Number(s.cantidad || 0) * Number(s.precio_unitario || 0), 0);
+                    if ((requiredSum > 0 && paidMandatorySum >= requiredSum) || (requiredSum === 0 && Number(p.total || 0) > 0)) {
+                      hasPaidRequired = true;
+                      break;
+                    }
                   }
+                  if (!hasPaidRequired) { visibleCharge = c; break; }
+                } catch (e) {
+                  visibleCharge = c; break;
                 }
               }
-              if (!hasPaidRequired) { visibleCharge = c; break; }
-            } catch (e) {
-              visibleCharge = c; break;
+              setExtraChargeVisible(visibleCharge);
             }
-          }
-          setExtraChargeVisible(visibleCharge);
+          } catch {}
         }
-
-        // Verificar si es socio pagado
-        try {
-          const members = await base44.entities.ClubMember.filter({ 
-            email: currentUser.email,
-            estado_pago: "Pagado"
-          });
-          setIsMemberPaid(members.length > 0);
-        } catch (e) {}
       } catch (error) {}
 
-      // Detección de hasPlayers
+      // Detección de hasPlayers (reutiliza allMyPlayers cacheados)
       if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
         setHasPlayers(currentUser.tiene_hijos_jugando === true);
         setIsLoading(false);
@@ -338,14 +345,7 @@ export function useFetchUser(location) {
           return;
         }
       } else {
-        // 2 consultas paralelas para evitar fallos de $or en navegadores antiguos
-        const [byPadre2, byTutor2b] = await Promise.all([
-          base44.entities.Player.filter({ email_padre: currentUser.email }).catch(() => []),
-          base44.entities.Player.filter({ email_tutor_2: currentUser.email }).catch(() => []),
-        ]);
-        const playerMap2 = new Map();
-        [...byPadre2, ...byTutor2b].forEach(p => playerMap2.set(p.id, p));
-        const myPlayers = Array.from(playerMap2.values());
+        const myPlayers = cachedMyPlayers || await fetchMyPlayers();
         setHasPlayers(myPlayers.length > 0);
         setIsLoading(false);
 
