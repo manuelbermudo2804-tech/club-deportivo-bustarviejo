@@ -5,39 +5,19 @@ import { base44 } from "@/api/base44Client";
 import { validateImage } from "../utils/imageCompressor";
 import { toast } from "sonner";
 import { logUploadStart, logUploadError, logUploadSuccess } from "../utils/uploadLogger";
+import { useImageUpload } from "../utils/useImageUpload";
 
 export default function ImageUploader({ images = [], onChange, max = 4 }) {
-  const [loading, setLoading] = useState(false);
+  const [uploading, uploadFile] = useImageUpload();
 
   const handleFiles = async (files) => {
     const list = Array.from(files).slice(0, max - images.length);
-    setLoading(true);
     const out = [];
     for (const f of list) {
-      try {
-        logUploadStart(f, 'ImageUploader');
-        await validateImage(f);
-        const response = await base44.functions.invoke('processImage', { image: f });
-        const data = response.data;
-        if (data?.error) {
-          logUploadError(f, new Error(data.error || data.userMessage), 'ImageUploader_backend');
-          toast.error(data.userMessage || data.error, { duration: 8000 });
-          continue;
-        }
-        logUploadSuccess(f, data.file_url, 'ImageUploader');
-        out.push(data.file_url);
-      } catch (err) {
-        console.error('[ImageUploader] Error subiendo imagen:', err);
-        logUploadError(f, err, 'ImageUploader_catch');
-        if (err?.userMessage) {
-          toast.error(err.userMessage, { duration: 10000 });
-        } else {
-          toast.error("Error al subir la imagen. Inténtalo con otra foto.");
-        }
-      }
+      const url = await uploadFile(f);
+      if (url) out.push(url);
     }
     if (out.length > 0) onChange([...(images || []), ...out]);
-    setLoading(false);
   };
 
   const remove = (url) => onChange((images || []).filter((u) => u !== url));
@@ -56,8 +36,8 @@ export default function ImageUploader({ images = [], onChange, max = 4 }) {
       </div>
       <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
         <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="hidden" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }} />
-        <Button type="button" variant="outline" disabled={loading || (images?.length || 0) >= max} style={{ minHeight: '44px', WebkitAppearance: 'none' }}>
-          <ImageIcon className="w-4 h-4 mr-1" /> {loading ? "Subiendo..." : "Subir imágenes"}
+        <Button type="button" variant="outline" disabled={uploading || (images?.length || 0) >= max} style={{ minHeight: '44px', WebkitAppearance: 'none' }}>
+          <ImageIcon className="w-4 h-4 mr-1" /> {uploading ? "Subiendo..." : "Subir imágenes"}
         </Button>
       </label>
     </div>

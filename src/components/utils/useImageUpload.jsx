@@ -281,7 +281,8 @@ async function cascadeUpload(file, isPDF = false) {
 
   const errors = [];
 
-  // Definir orden de estrategias según el dispositivo
+  // Siempre priorizar compresión frontend (1 crédito) sobre processImage (2 créditos)
+  // processImage solo como fallback si el frontend no puede comprimir
   const strategies = lowMem
     ? [
         strategyMap['Frontend 800px'],
@@ -291,9 +292,9 @@ async function cascadeUpload(file, isPDF = false) {
         strategyMap['processImage'],
       ]
     : [
-        strategyMap['processImage'],
         strategyMap['Frontend 800px'],
         strategyMap['Directa'],
+        strategyMap['processImage'],
         strategyMap['Miniatura 400px'],
         strategyMap['Base64'],
       ];
