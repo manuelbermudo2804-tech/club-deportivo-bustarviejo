@@ -120,25 +120,21 @@ export default function AIGenerator() {
         galeria: data.albumes.map((g) => `• ${g.titulo} (${g.fecha_evento})`).join("\n") || "• (sin álbumes)",
       };
 
-      const prompt = `Redacta un boletín mensual para el club con tono ${selected.tono || "cercano"} y estilo ${selected.estilo}. 
-Usa mes natural ${resumen.mes} ${resumen.anio}. 
-Parte de esta base (puedes reescribir para coherencia y fluidez):\n\nTÍTULO BASE:\n${selected.titulo_base || "Boletín mensual — {{mes}} {{anio}}"}\n\nCUERPO BASE:\n${selected.cuerpo_base}\n\nREEMPLAZA PLACEHOLDERS:\n- {{mes}} => ${resumen.mes}\n- {{anio}} => ${resumen.anio}\n- {{tareas}} =>\n${resumen.tareas}\n- {{eventos}} =>\n${resumen.eventos}\n- {{anuncios}} =>\n${resumen.anuncios}\n- {{galeria}} =>\n${resumen.galeria}\n\nDevuelve JSON con claves exactas: titulo, cuerpo.`;
+      // Generación local sin IA: rellenar placeholders de la plantilla
+      let tituloGen = (selected.titulo_base || "Boletín mensual — {{mes}} {{anio}}")
+        .replace(/\{\{mes\}\}/g, resumen.mes)
+        .replace(/\{\{anio\}\}/g, resumen.anio);
 
-      const resp = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            titulo: { type: "string" },
-            cuerpo: { type: "string" },
-          },
-          required: ["titulo", "cuerpo"],
-        },
-      });
+      let cuerpoGen = (selected.cuerpo_base || "")
+        .replace(/\{\{mes\}\}/g, resumen.mes)
+        .replace(/\{\{anio\}\}/g, resumen.anio)
+        .replace(/\{\{tareas\}\}/g, resumen.tareas)
+        .replace(/\{\{eventos\}\}/g, resumen.eventos)
+        .replace(/\{\{anuncios\}\}/g, resumen.anuncios)
+        .replace(/\{\{galeria\}\}/g, resumen.galeria);
 
-      const out = resp;
-      setTitulo(out.titulo || `Boletín — ${resumen.mes} ${resumen.anio}`);
-      setCuerpo(out.cuerpo || "");
+      setTitulo(tituloGen);
+      setCuerpo(cuerpoGen);
       setPublicarAnuncios(true);
       setPublicarChat(true);
     } finally {
@@ -233,7 +229,7 @@ Parte de esta base (puedes reescribir para coherencia y fluidez):\n\nTÍTULO BAS
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Generar boletín con IA</CardTitle>
+        <CardTitle>Generar boletín mensual</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-sm:grid-cols-1">
@@ -283,7 +279,7 @@ Parte de esta base (puedes reescribir para coherencia y fluidez):\n\nTÍTULO BAS
         <div className="flex gap-2">
           <Button onClick={handleGenerate} disabled={generating} className="gap-2">
             {generating ? <Loader2 className="h-4 w-4 animate-spin"/> : <Wand2 className="h-4 w-4"/>}
-            Generar con IA
+            Generar boletín
           </Button>
         </div>
 
