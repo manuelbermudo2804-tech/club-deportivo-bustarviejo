@@ -10,6 +10,7 @@ import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
 import { logUploadButtonClick } from "../../utils/uploadLogger";
 import { markCameraOpening } from "./useFormPersistence";
+import PasteFromClipboard from "../../upload/PasteFromClipboard";
 
 export default function StepTutor({
   currentPlayer,
@@ -25,7 +26,8 @@ export default function StepTutor({
   uploadingDNITutor,
   onDNITutorUpload,
   uploadingDNITutorTrasero,
-  onDNITutorTraseroUpload
+  onDNITutorTraseroUpload,
+  dniTutorUploadFailed = false
 }) {
   // Si es auto-registro +18, mostrar datos de contacto propios
   if (isAdultPlayerSelfRegistration) {
@@ -170,7 +172,7 @@ export default function StepTutor({
             </div>
             <div className="p-3 bg-white">
               {error && <p className="text-xs text-red-600 mb-2">⚠️ {error}</p>}
-              <input type="file" accept="image/*,application/pdf" onChange={onUpload} className="hidden" id={inputId} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onUpload} className="hidden" id={inputId} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
               <Button
                 type="button"
                 variant={uploaded ? "outline" : "default"}
