@@ -338,10 +338,10 @@ REQUISITOS:
           .replace(/\[CATEGORIA\]/g, recipient.jugadores[0]?.deporte || "");
 
         if (sendMethod === "email") {
-          await base44.integrations.Core.SendEmail({
+          await base44.functions.invoke('sendEmail', {
             to: recipient.email,
             subject: generatedSubject,
-            body: personalizedMessage
+            html: personalizedMessage
           });
         } else {
           // Enviar por chat interno
