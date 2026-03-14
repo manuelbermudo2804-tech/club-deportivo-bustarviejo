@@ -196,23 +196,23 @@ export default function UpcomingMatchesSection() {
   const matches = (() => {
     const all = [...proximosPartidos];
     const norm = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    // Normalizar categoría: quitar "(mixto)" y espacios extra para comparar
+    const normCat = (s) => norm(s).replace(/\(mixto\)/g, '').replace(/\s+/g, ' ').trim();
     
-    // Crear set de partidos ya conocidos por ProximoPartido (categoria+rival+fecha)
+    // Crear set de partidos ya conocidos por ProximoPartido (categoria+fecha)
     const existingKeys = new Set();
     proximosPartidos.forEach(m => {
       const dateInfo = formatMatchDate(m.fecha || m.fecha_iso);
       if (dateInfo) {
-        existingKeys.add(`${norm(m.categoria)}|${dateInfo.iso}`);
-        // También clave con rival para dedup más preciso
-        existingKeys.add(`${norm(m.categoria)}|${norm(m.local)}|${norm(m.visitante)}|${dateInfo.iso}`);
+        // Clave principal: categoría + fecha (1 partido por categoría por día es lo normal)
+        existingKeys.add(`${normCat(m.categoria)}|${dateInfo.iso}`);
       }
     });
 
     // Solo añadir convocatorias que NO existan ya en ProximoPartido
     convocatoriasAsMatches.forEach(cm => {
-      const dateKey = `${norm(cm.categoria)}|${cm.fecha_iso}`;
-      const fullKey = `${norm(cm.categoria)}|${norm(cm.local)}|${norm(cm.visitante)}|${cm.fecha_iso}`;
-      if (!existingKeys.has(dateKey) && !existingKeys.has(fullKey)) {
+      const dateKey = `${normCat(cm.categoria)}|${cm.fecha_iso}`;
+      if (!existingKeys.has(dateKey)) {
         all.push(cm);
         existingKeys.add(dateKey);
       }
