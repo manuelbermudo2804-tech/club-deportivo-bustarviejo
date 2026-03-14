@@ -783,12 +783,12 @@ export default function Home() {
         )}
 
         {/* Resumen de jugadores - solo móvil (en desktop ya está en KPIs) */}
-        <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
+        <div className="lg:hidden bg-slate-800/95 rounded-2xl p-4 shadow-md border border-slate-700/50">
           <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-2">
+            <div className="text-3xl font-extrabold text-orange-500 mb-1">
               {stats.activePlayers}
             </div>
-            <div className="text-slate-400 text-sm">Jugadores Activos</div>
+            <div className="text-slate-400 text-xs font-medium">Jugadores Activos</div>
           </div>
         </div>
       </div>

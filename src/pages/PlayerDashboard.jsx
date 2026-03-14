@@ -571,23 +571,23 @@ export default function PlayerDashboard() {
         </div>
 
         {/* Stats footer - solo móvil */}
-        <div className="lg:hidden bg-slate-800/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-slate-700/60">
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-center bg-slate-700/30 rounded-xl py-2">
-              <div className="text-lg font-bold text-green-400">{paymentStats.pagados}</div>
-              <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Pagos OK</div>
+        <div className="lg:hidden bg-slate-800/95 rounded-2xl p-3 shadow-md border border-slate-700/50">
+          <div className="grid grid-cols-4 gap-1.5">
+            <div className="text-center bg-slate-700/40 rounded-xl py-2.5">
+              <div className="text-lg font-extrabold text-green-400">{paymentStats.pagados}</div>
+              <div className="text-slate-500 text-[7px] font-semibold uppercase tracking-widest">Pagados</div>
             </div>
-            <div className="text-center bg-slate-700/30 rounded-xl py-2">
-              <div className="text-lg font-bold text-red-400">{paymentStats.pendientes + paymentStats.vencidos}</div>
-              <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Pendiente</div>
+            <div className="text-center bg-slate-700/40 rounded-xl py-2.5">
+              <div className={`text-lg font-extrabold ${(paymentStats.pendientes + paymentStats.vencidos) > 0 ? 'text-red-400' : 'text-slate-400'}`}>{paymentStats.pendientes + paymentStats.vencidos}</div>
+              <div className="text-slate-500 text-[7px] font-semibold uppercase tracking-widest">Pendiente</div>
             </div>
-            <div className="text-center bg-slate-700/30 rounded-xl py-2">
-              <div className="text-lg font-bold text-yellow-400">{pendingCallups.length}</div>
-              <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">Convoc.</div>
+            <div className="text-center bg-slate-700/40 rounded-xl py-2.5">
+              <div className={`text-lg font-extrabold ${pendingCallups.length > 0 ? 'text-yellow-400' : 'text-slate-400'}`}>{pendingCallups.length}</div>
+              <div className="text-slate-500 text-[7px] font-semibold uppercase tracking-widest">Convoc.</div>
             </div>
-            <div className="text-center bg-slate-700/30 rounded-xl py-2">
-              <div className="text-lg font-bold text-purple-400">{attendanceStreak}</div>
-              <div className="text-slate-500 text-[8px] font-medium uppercase tracking-wider">🔥 Racha</div>
+            <div className="text-center bg-slate-700/40 rounded-xl py-2.5">
+              <div className="text-lg font-extrabold text-purple-400">🔥{attendanceStreak}</div>
+              <div className="text-slate-500 text-[7px] font-semibold uppercase tracking-widest">Racha</div>
             </div>
           </div>
         </div>

@@ -565,19 +565,19 @@ export default function ParentDashboard() {
 
         {/* Stats footer - solo móvil */}
         {!playersLoading && (
-          <div className="lg:hidden bg-slate-800/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-slate-700/60">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="text-center bg-slate-700/30 rounded-xl py-2">
-                <div className="text-xl font-bold text-orange-400">{myPlayers.length}</div>
-                <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Jugadores</div>
+          <div className="lg:hidden bg-slate-800/95 rounded-2xl p-3 shadow-md border border-slate-700/50">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-center bg-slate-700/40 rounded-xl py-2.5">
+                <div className="text-xl font-extrabold text-orange-400">{myPlayers.length}</div>
+                <div className="text-slate-500 text-[8px] font-semibold uppercase tracking-widest">Jugadores</div>
               </div>
-              <div className="text-center bg-slate-700/30 rounded-xl py-2">
-                <div className="text-xl font-bold text-red-400">{pagosPendientesCount}</div>
-                <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Pagos</div>
+              <div className="text-center bg-slate-700/40 rounded-xl py-2.5">
+                <div className={`text-xl font-extrabold ${pagosPendientesCount > 0 ? 'text-red-400' : 'text-green-400'}`}>{pagosPendientesCount}</div>
+                <div className="text-slate-500 text-[8px] font-semibold uppercase tracking-widest">Pagos</div>
               </div>
-              <div className="text-center bg-slate-700/30 rounded-xl py-2">
-                <div className="text-xl font-bold text-yellow-400">{pendingCallups}</div>
-                <div className="text-slate-500 text-[9px] font-medium uppercase tracking-wider">Convocatorias</div>
+              <div className="text-center bg-slate-700/40 rounded-xl py-2.5">
+                <div className={`text-xl font-extrabold ${pendingCallups > 0 ? 'text-yellow-400' : 'text-slate-400'}`}>{pendingCallups}</div>
+                <div className="text-slate-500 text-[8px] font-semibold uppercase tracking-widest">Convocatorias</div>
               </div>
             </div>
           </div>
