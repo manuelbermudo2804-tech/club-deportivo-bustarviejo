@@ -283,9 +283,20 @@ const alerts = [];
     }
   }
 
-  // Alertas para coordinadores (ya incluidas desde chatItems)
-  // if (isCoordinator) { ... } - Ahora se gestiona desde useUnreadChats
-
+  // Alertas para coordinadores
+  if (isCoordinator && !isAdmin) {
+    if (newWebContacts > 0) {
+      alerts.push({
+        id: "web-contacts-coordinator",
+        icon: Mail,
+        title: "📋 Nuevos Contactos Web",
+        description: `${newWebContacts} formulario${newWebContacts > 1 ? 's' : ''} de contacto sin gestionar`,
+        url: createPageUrl("WebContacts"),
+        color: "bg-emerald-600",
+        priority: 4
+      });
+    }
+  }
 
   // Incidencias eliminadas - la entidad no existe
 
