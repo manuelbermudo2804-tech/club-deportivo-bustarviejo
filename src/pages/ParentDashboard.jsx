@@ -3,17 +3,14 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Calendar, Bell, MessageCircle, CreditCard, Image, Megaphone, Clock, ShoppingBag, FileText, Award, AlertCircle, Clover, Heart, FileSignature, Euro, Share2, Sparkles, BarChart3 } from "lucide-react";
+import { Users, Bell, CreditCard, Clock, Clover, Heart, Share2, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link as RouterLink } from "react-router-dom";
 import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import ContactCard from "../components/ContactCard";
-import { usePageTutorial } from "../components/tutorials/useTutorial";
-import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
 import BirthdayBanner from "../components/birthday/BirthdayBanner";
@@ -23,7 +20,6 @@ import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } 
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
-import PlayerProgressCard from "../components/players/PlayerProgressCard";
 
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
@@ -87,17 +83,10 @@ export default function ParentDashboard() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        console.log('🔍 [ParentDashboard] Iniciando carga de usuario...');
         const currentUser = await base44.auth.me();
-        console.log('✅ [ParentDashboard] Usuario cargado:', currentUser.email);
-        console.log('🔐 [SEGURIDAD] Usuario en ParentDashboard:', {
-          email: currentUser.email,
-          nombre: currentUser.full_name,
-          role: currentUser.role
-        });
         setUser(currentUser);
       } catch (error) {
-        console.error("❌ [ParentDashboard] Error fetching user:", error);
+        console.error("[ParentDashboard] Auth error:", error);
         // Si falla auth, forzar logout y redirección
         base44.auth.logout('https://app.cdbustarviejo.com');
       }
@@ -284,9 +273,7 @@ export default function ParentDashboard() {
 
   useEffect(() => {
     if (user && myPlayers.length > 0) {
-      const sports = [...new Set(myPlayers.map(p => p.deporte))];
-      console.log('⚽ [ParentDashboard] Sports detectados:', sports);
-      setMyPlayersSports(sports);
+      setMyPlayersSports([...new Set(myPlayers.map(p => p.deporte))]);
     }
   }, [user?.email, myPlayers.length]);
 
@@ -390,7 +377,7 @@ export default function ParentDashboard() {
 
   // Mostrar loading solo si no hay usuario todavía O si está cargando jugadores
   if (!user || playersLoading) {
-    console.log('⏳ [ParentDashboard] Mostrando loading...', { hasUser: !!user, playersLoading });
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
         <div className="px-4 lg:px-8 py-6">
