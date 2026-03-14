@@ -109,7 +109,7 @@ export default function AlertCenter({
       const contacts = await base44.entities.ContactForm.filter({ estado: "nuevo" });
       return contacts.length;
     },
-    enabled: isAdmin,
+    enabled: isAdmin || isCoordinator,
     staleTime: 120000,
     gcTime: 300000,
     refetchOnWindowFocus: false,
