@@ -271,13 +271,15 @@ export default function CalendarAndSchedules() {
     }));
 
     // Add ProximoPartido entries that don't already have a matching callup
-    const callupDates = new Set(callupItems.map(c => `${c.category}|${c.date}`));
+    // Normalizar categorías para comparación (quitar "(Mixto)" etc.)
+    const normCat = (s) => (s || '').trim().toLowerCase().replace(/\(mixto\)/g, '').replace(/\s+/g, ' ').trim();
+    const callupDates = new Set(callupItems.map(c => `${normCat(c.category)}|${c.date}`));
     const norm = (s) => (s || '').trim().toLowerCase();
     const matchItems = (proximosPartidos || [])
       .filter(m => m.fecha_iso && inSeason(m.fecha_iso))
       .filter(m => {
         // Skip if there's already a callup for this category+date
-        return !callupDates.has(`${m.categoria}|${m.fecha_iso}`);
+        return !callupDates.has(`${normCat(m.categoria)}|${m.fecha_iso}`);
       })
       .map(m => {
         const isLocal = norm(m.local).includes('bustarviejo');
