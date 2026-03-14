@@ -197,6 +197,12 @@ export default function StepTutor({
               inputId="wiz-dni-tutor-upload"
               error={fieldErrors.dni_tutor_legal_url}
             />
+            {!currentPlayer.dni_tutor_legal_url && dniTutorUploadFailed && (
+              <PasteFromClipboard label="DNI tutor" disabled={uploadingDNITutor} onUploadComplete={(url) => {
+                setCurrentPlayer(prev => ({ ...prev, dni_tutor_legal_url: url }));
+                if (fieldErrors.dni_tutor_legal_url) setFieldErrors(prev => ({ ...prev, dni_tutor_legal_url: null }));
+              }} />
+            )}
             {currentPlayer.tipo_documento_tutor === "DNI" && (
               <TutorDocCard
                 label="DNI — Cara trasera *"

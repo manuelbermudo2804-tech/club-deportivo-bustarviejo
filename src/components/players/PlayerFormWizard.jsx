@@ -141,6 +141,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const [photoUploadFailed, setPhotoUploadFailed] = useState(false);
   const [dniUploadFailed, setDniUploadFailed] = useState(false);
   const [libroUploadFailed, setLibroUploadFailed] = useState(false);
+  const [dniTutorUploadFailed, setDniTutorUploadFailed] = useState(false);
 
   const categories = useCategoriesFromConfig();
 
@@ -335,13 +336,16 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!file) return;
       const url = await uploadFile_tutordni(file);
       if (url) {
+        setDniTutorUploadFailed(false);
         try {
           const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
           if (draft.playerData) { draft.playerData.dni_tutor_legal_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
         } catch {}
         setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
+      } else {
+        setDniTutorUploadFailed(true);
       }
-    } catch (err) { logUploadError(null, err, 'handleDNITutorUpload_catch'); }
+    } catch (err) { setDniTutorUploadFailed(true); logUploadError(null, err, 'handleDNITutorUpload_catch'); }
   };
   const handleDNITutorTraseroUpload = async (e) => {
     try {
@@ -520,7 +524,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       case 0: return <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto} onPhotoUpload={handlePhotoUpload} photoUploadFailed={photoUploadFailed} />;
       case 1: return <StepCategory currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} categories={categories} playerAge={playerAge} suggestCategoryByAge={suggestCategoryByAge} onUserChangeCategory={() => setUserChangedCategory(true)} />;
       case 2: return <StepDocuments currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} requiresDNI={requiresDNI} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} uploadingDNI={uploadingDNI} uploadingDNITrasero={uploadingDNITrasero} uploadingLibroFamilia={uploadingLibroFamilia} onDNIUpload={handleDNIUpload} onDNITraseroUpload={handleDNITraseroUpload} onLibroFamiliaUpload={handleLibroFamiliaUpload} dniUploadFailed={dniUploadFailed} libroUploadFailed={libroUploadFailed} />;
-      case 3: return <StepTutor currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isParent={isParent} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} existingFamilyPlayers={existingFamilyPlayers} usePreviousTutorData={usePreviousTutorData} onLoadPreviousTutorData={handleLoadPreviousTutorData} onClearTutorData={handleClearTutorData} uploadingDNITutor={uploadingDNITutor} onDNITutorUpload={handleDNITutorUpload} uploadingDNITutorTrasero={uploadingDNITutorTrasero} onDNITutorTraseroUpload={handleDNITutorTraseroUpload} />;
+      case 3: return <StepTutor currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isParent={isParent} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} existingFamilyPlayers={existingFamilyPlayers} usePreviousTutorData={usePreviousTutorData} onLoadPreviousTutorData={handleLoadPreviousTutorData} onClearTutorData={handleClearTutorData} uploadingDNITutor={uploadingDNITutor} onDNITutorUpload={handleDNITutorUpload} uploadingDNITutorTrasero={uploadingDNITutorTrasero} onDNITutorTraseroUpload={handleDNITutorTraseroUpload} dniTutorUploadFailed={dniTutorUploadFailed} />;
       case 4: return (
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-slate-900">👥 Segundo Progenitor/Tutor (Opcional)</h3>
