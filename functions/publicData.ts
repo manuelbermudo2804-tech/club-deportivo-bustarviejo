@@ -463,7 +463,7 @@ tr:hover { background: #fafafa; }
       <img src="${ESCUDO}" alt="Escudo C.D. Bustarviejo">
       <span>C.D. Bustarviejo</span>
     </a>
-    <button class="menu-toggle" aria-label="Abrir menú">☰</button>
+    <button class="menu-toggle" aria-label="Abrir menú" onclick="document.querySelector('.menu').classList.toggle('activo')">☰</button>
     <nav class="menu">
       <a href="${WEB}">Inicio</a>
       <a href="${WEB}el-club.html">El Club</a>
