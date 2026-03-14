@@ -96,7 +96,6 @@ export default function MinutesSpreadsheet({ players, matchStructure, onSave }) 
         <div className="overflow-x-auto" ref={label === "1ª VUELTA" ? scrollRef : undefined}>
           <table className="w-full border-collapse min-w-max">
             <thead>
-              {/* Rival names */}
               <tr className="bg-slate-800 text-white">
                 <th className="sticky left-0 z-20 bg-slate-800 px-3 py-2 text-left text-xs font-bold min-w-[140px] border-r border-slate-700">
                   Jugador
@@ -121,7 +120,6 @@ export default function MinutesSpreadsheet({ players, matchStructure, onSave }) 
                 ))}
                 <th className="px-2 py-2 text-center text-xs font-bold bg-amber-700 min-w-[50px]">TOT</th>
               </tr>
-              {/* 1ª / 2ª */}
               <tr className="bg-slate-700 text-slate-300">
                 <th className="sticky left-0 z-20 bg-slate-700 px-3 py-1 text-[10px] border-r border-slate-600"></th>
                 {matches.map((_, idx) => (
@@ -202,8 +200,8 @@ export default function MinutesSpreadsheet({ players, matchStructure, onSave }) 
 
   return (
     <div className="space-y-6">
-      {renderHalf(idaMatches, "1ª VUELTA (Ida)", "bg-blue-600 text-white")}
-      {renderHalf(vueltaMatches, "2ª VUELTA (Vuelta)", "bg-green-600 text-white")}
+      {idaMatches.length > 0 && renderHalf(idaMatches, "1ª VUELTA (Ida)", "bg-blue-600 text-white")}
+      {vueltaMatches.length > 0 && renderHalf(vueltaMatches, "2ª VUELTA (Vuelta)", "bg-green-600 text-white")}
 
       {/* Gran total */}
       <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
