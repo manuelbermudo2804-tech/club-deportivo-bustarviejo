@@ -19,6 +19,7 @@ export default function CoachProfile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [photoCacheBuster, setPhotoCacheBuster] = useState(Date.now());
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -57,12 +58,23 @@ export default function CoachProfile() {
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset input so the same file can be re-selected
     e.target.value = "";
     setUploading(true);
     try {
+      console.log("[CoachProfile] Subiendo foto...", file.name, file.size);
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData(prev => ({ ...prev, foto_perfil_url: file_url }));
+      console.log("[CoachProfile] Foto subida OK:", file_url);
+
+      // Save to user profile
       await base44.auth.updateMe({ foto_perfil_url: file_url });
+      console.log("[CoachProfile] updateMe OK");
+
+      // Update local state with new URL + cache buster
+      setFormData(prev => ({ ...prev, foto_perfil_url: file_url }));
+      setPhotoCacheBuster(Date.now());
+
+      // Sync to CoachSettings
       try {
         const allSettings = await base44.entities.CoachSettings.list('-updated_date', 50);
         const mySettings = allSettings.find(s => s.entrenador_email === user?.email);
@@ -72,12 +84,17 @@ export default function CoachProfile() {
       } catch (syncErr) {
         console.log("Error sincronizando foto a CoachSettings:", syncErr);
       }
+
+      // Refresh the user object in local state
+      const freshUser = await base44.auth.me();
+      setUser(freshUser);
+
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['coachSettings'] });
       toast.success("Foto actualizada correctamente");
     } catch (error) {
       console.error("Error uploading photo:", error);
-      toast.error("Error al subir la foto");
+      toast.error("Error al subir la foto: " + (error?.message || "desconocido"));
     } finally {
       setUploading(false);
     }
@@ -152,7 +169,8 @@ export default function CoachProfile() {
             <div className="relative group mb-4">
               {formData.foto_perfil_url ? (
                 <img
-                  src={formData.foto_perfil_url}
+                  key={photoCacheBuster}
+                  src={formData.foto_perfil_url + (formData.foto_perfil_url.includes('?') ? '&' : '?') + 'v=' + photoCacheBuster}
                   alt={user.full_name}
                   className="w-28 h-28 lg:w-36 lg:h-36 rounded-full object-cover border-4 border-white/30 shadow-2xl ring-4 ring-orange-500/30"
                 />
