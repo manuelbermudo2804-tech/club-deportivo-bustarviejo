@@ -1349,27 +1349,29 @@ export default function Layout({ children, currentPageName }) {
           </Suspense>
         )}
 
-        <DesktopSidebar
-          user={user}
-          isAdmin={isAdmin}
-          isCoordinator={isCoordinator}
-          isTreasurer={isTreasurer}
-          isCoach={isCoach}
-          isPlayer={isPlayer}
-          isAppInstalled={isAppInstalled}
-          navigationItems={navigationItems}
-          currentSeason={currentSeason}
-          enginesReady={enginesReady}
-          currentLang={currentLang}
-          onLanguageChange={handleLanguageChange}
-          onLogout={handleLogout}
-          onShowInstall={() => { setInstallContext('manual'); setShowInstallInstructions(true); }}
-          onCheckUpdates={checkForUpdates}
-          onShowFeedback={() => setShowFeedback(true)}
-          onShowDeleteAccount={() => setShowDeleteAccount(true)}
-          playerName={playerName}
-          hasNewVersion={hasNewVersion}
-        />
+        <Suspense fallback={null}>
+          <DesktopSidebar
+            user={user}
+            isAdmin={isAdmin}
+            isCoordinator={isCoordinator}
+            isTreasurer={isTreasurer}
+            isCoach={isCoach}
+            isPlayer={isPlayer}
+            isAppInstalled={isAppInstalled}
+            navigationItems={navigationItems}
+            currentSeason={currentSeason}
+            enginesReady={enginesReady}
+            currentLang={currentLang}
+            onLanguageChange={handleLanguageChange}
+            onLogout={handleLogout}
+            onShowInstall={() => { setInstallContext('manual'); setShowInstallInstructions(true); }}
+            onCheckUpdates={checkForUpdates}
+            onShowFeedback={() => setShowFeedback(true)}
+            onShowDeleteAccount={() => setShowDeleteAccount(true)}
+            playerName={playerName}
+            hasNewVersion={hasNewVersion}
+          />
+        </Suspense>
 
         {/* Notificación de nueva versión disponible */}
         {showUpdateNotification && (
