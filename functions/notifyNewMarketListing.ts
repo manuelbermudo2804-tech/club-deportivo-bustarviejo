@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 Deno.serve(async (req) => {
   try {
@@ -89,12 +100,8 @@ Deno.serve(async (req) => {
     for (let i = 0; i < recipients.length; i += 5) {
       const batch = recipients.slice(i, i + 5);
       const promises = batch.map(u =>
-        base44.asServiceRole.integrations.Core.SendEmail({
-          to: u.email,
-          subject: emailSubject,
-          body: emailBody,
-          from_name: 'CD Bustarviejo - Mercadillo'
-        }).catch(e => console.error(`Email error for ${u.email}:`, e))
+        sendViaResend(u.email, emailSubject, emailBody)
+          .catch(e => console.error(`Email error for ${u.email}:`, e))
       );
       await Promise.all(promises);
     }

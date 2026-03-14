@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 Deno.serve(async (req) => {
   try {
@@ -52,11 +63,7 @@ Deno.serve(async (req) => {
 </td></tr>
 <tr><td style="background:#1e293b;padding:20px 24px;text-align:center;"><div style="color:#94a3b8;font-size:12px;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none;">cdbustarviejo@gmail.com</a></div></td></tr>
 </table></td></tr></table></body></html>`;
-          await base44.integrations.Core.SendEmail({
-            to: c.entrenador_email,
-            subject: `📊 Registra el resumen del partido - ${c.titulo}`,
-            body: summaryHtml
-          });
+          await sendViaResend(c.entrenador_email, `📊 Registra el resumen del partido - ${c.titulo}`, summaryHtml);
           await base44.asServiceRole.entities.AutomaticReminder.create({
             email_padre: c.entrenador_email,
             tipo_recordatorio: 'Manual',

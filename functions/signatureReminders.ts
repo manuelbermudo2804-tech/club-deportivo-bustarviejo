@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 Deno.serve(async (req) => {
   try {
@@ -64,10 +75,7 @@ Deno.serve(async (req) => {
           </div>
         `).join('');
 
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: email,
-          subject: `⏰ Recordatorio: Firmas de Federación pendientes`,
-          body: `
+        await sendViaResend(email, `⏰ Recordatorio: Firmas de Federación pendientes`, `
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
               <div style="background:linear-gradient(135deg,#f59e0b,#ea580c);padding:20px;text-align:center;border-radius:10px 10px 0 0;">
                 <h1 style="color:white;margin:0;">⏰ Recordatorio de Firmas</h1>
@@ -97,8 +105,7 @@ Deno.serve(async (req) => {
                 <p style="margin:0;font-size:12px;">CD Bustarviejo • Recordatorio automático</p>
               </div>
             </div>
-          `
-        });
+          `);
         sent++;
         console.log(`📧 Recordatorio enviado a ${email} (${jugadores.length} jugadores)`);
       } catch (err) {

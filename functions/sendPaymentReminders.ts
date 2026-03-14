@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 // Enviar recordatorios a usuarios morosos (pagos pendientes > 30 días)
 Deno.serve(async (req) => {
@@ -80,11 +91,7 @@ Deno.serve(async (req) => {
 </td></tr>
 </table></td></tr></table></body></html>`;
 
-      await base44.integrations.Core.SendEmail({
-        to: email,
-        subject: '🔴 Pagos atrasados - CD Bustarviejo',
-        body: emailHtml
-      });
+      await sendViaResend(email, '🔴 Pagos atrasados - CD Bustarviejo', emailHtml);
 
       emailsSent.push(email);
       console.log(`📧 Email sent to: ${email}`);

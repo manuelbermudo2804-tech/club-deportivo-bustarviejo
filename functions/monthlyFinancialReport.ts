@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 Deno.serve(async (req) => {
   try {
@@ -131,11 +142,7 @@ Deno.serve(async (req) => {
 
     // Enviar email a todos los tesoreros
     const emailPromises = treasurers.map(treasurer => 
-      base44.asServiceRole.integrations.Core.SendEmail({
-        to: treasurer.email,
-        subject: `📊 Informe Financiero Mensual - ${activeSeason.temporada}`,
-        body: reportHTML
-      })
+      sendViaResend(treasurer.email, `📊 Informe Financiero Mensual - ${activeSeason.temporada}`, reportHTML)
     );
 
     await Promise.all(emailPromises);

@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 Deno.serve(async (req) => {
   try {
@@ -443,11 +454,7 @@ Deno.serve(async (req) => {
         const plantilla = obtenerPlantillaEmail(dest.tipo, dest.nombre, dest.edad);
 
         // Enviar email
-        await base44.integrations.Core.SendEmail({
-          to: dest.email,
-          subject: plantilla.subject,
-          body: plantilla.html
-        });
+        await sendViaResend(dest.email, plantilla.subject, plantilla.html);
 
         // Crear log
         await base44.asServiceRole.entities.BirthdayLog.create({

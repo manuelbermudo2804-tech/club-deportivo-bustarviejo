@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 Deno.serve(async (req) => {
   try {
@@ -56,11 +67,7 @@ Deno.serve(async (req) => {
 </td></tr>
 <tr><td style="background:#1e293b;padding:20px 24px;text-align:center;"><div style="color:#94a3b8;font-size:12px;"><strong style="color:#f8fafc;">CD Bustarviejo</strong></div></td></tr>
 </table></td></tr></table></body></html>`;
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to,
-          subject: '🗑️ Solicitud de eliminación de cuenta - CD Bustarviejo',
-          body: deletionHtml
-        });
+        await sendViaResend(to, '🗑️ Solicitud de eliminación de cuenta - CD Bustarviejo', deletionHtml);
       } catch (_) { /* continuar */ }
     }
 

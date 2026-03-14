@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 Deno.serve(async (req) => {
   try {
@@ -49,11 +60,7 @@ Deno.serve(async (req) => {
           : `ha cumplido 13 años hace ${Math.abs(diffDays)} día${Math.abs(diffDays) === 1 ? '' : 's'}`;
 
       // Send email to parent
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        from_name: "CD Bustarviejo",
-        to: player.email_padre,
-        subject: `📱 ${player.nombre} ${cumpleTexto} - Acceso juvenil disponible`,
-        body: `<!DOCTYPE html>
+      await sendViaResend(player.email_padre, `📱 ${player.nombre} ${cumpleTexto} - Acceso juvenil disponible`, `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:24px;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;">
 <table role="presentation" width="100%" style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
@@ -106,8 +113,7 @@ Deno.serve(async (req) => {
 </td>
 </tr>
 </table>
-</body></html>`
-      });
+</body></html>`);
 
       // Mark as notified
       await base44.asServiceRole.entities.Player.update(player.id, {

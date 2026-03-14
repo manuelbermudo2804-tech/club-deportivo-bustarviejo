@@ -1,4 +1,15 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RESEND] API key not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 // Tarea programada: envía recordatorios de renovación a socios según su tipo de pago.
 // - Pago único / transferencia: recordatorio 30, 15, 7 días antes de fecha_vencimiento
@@ -65,10 +76,7 @@ Deno.serve(async (req) => {
         }
 
         if (shouldSend && member.email) {
-          await base44.asServiceRole.integrations.Core.SendEmail({
-            to: member.email,
-            subject: `🔔 Tu membresía del CD Bustarviejo vence en ${reminderType}`,
-            body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          await sendViaResend(member.email, `🔔 Tu membresía del CD Bustarviejo vence en ${reminderType}`, `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
                 <h2 style="color: white; margin: 0;">🔔 Recordatorio de renovación</h2>
               </div>
@@ -84,8 +92,7 @@ Deno.serve(async (req) => {
                 </p>
                 <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
               </div>
-            </div>`
-          });
+            </div>`);
 
           await base44.asServiceRole.entities.ClubMember.update(member.id, {
             recordatorio_renovacion_enviado: true,
@@ -134,10 +141,7 @@ Deno.serve(async (req) => {
 
             // Solo enviar si estamos cerca del vencimiento o pasado
             if (diffDays <= 30) {
-              await base44.asServiceRole.integrations.Core.SendEmail({
-                to: parent.email,
-                subject: '🔔 ¿Quieres seguir siendo socio del CD Bustarviejo?',
-                body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              await sendViaResend(parent.email, '🔔 ¿Quieres seguir siendo socio del CD Bustarviejo?', `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                   <div style="background: linear-gradient(to right, #ea580c, #15803d); padding: 20px; border-radius: 12px 12px 0 0;">
                     <h2 style="color: white; margin: 0;">¿Quieres seguir con nosotros?</h2>
                   </div>
@@ -153,8 +157,7 @@ Deno.serve(async (req) => {
                     </p>
                     <p style="color: #64748b; font-size: 12px; margin-top: 20px;">CD Bustarviejo</p>
                   </div>
-                </div>`
-              });
+                </div>`);
 
               await base44.asServiceRole.entities.ClubMember.update(parent.id, {
                 recordatorio_renovacion_enviado: true,
