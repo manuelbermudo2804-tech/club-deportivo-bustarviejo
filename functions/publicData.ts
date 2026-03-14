@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 // API PÚBLICA - No requiere autenticación
 // Devuelve datos deportivos para mostrar en la web del club
@@ -23,12 +23,22 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     // Leer todos los datos en paralelo usando service role (público)
-    const [proximosPartidos, resultados, clasificaciones, goleadores] = await Promise.all([
+    // Goleadores: traer por separado los de Bustarviejo (que pueden quedar fuera del top global)
+    // y el top general para completar
+    const [proximosPartidos, resultados, clasificaciones, goleadoresGlobal, goleadoresBustarviejo] = await Promise.all([
       base44.asServiceRole.entities.ProximoPartido.list('-fecha_iso', 50),
       base44.asServiceRole.entities.Resultado.filter({ estado: 'finalizado' }, '-jornada', 30),
       base44.asServiceRole.entities.Clasificacion.list('-puntos', 200),
-      base44.asServiceRole.entities.Goleador.list('-goles', 500),
+      base44.asServiceRole.entities.Goleador.list('-goles', 200),
+      // Traer TODOS los goleadores de Bustarviejo específicamente (no depender del ranking global)
+      base44.asServiceRole.entities.Goleador.filter({ equipo: { $regex: 'BUSTARVIEJO' } }, '-goles', 100).catch(() => []),
     ]);
+
+    // Combinar goleadores: merge global + específicos de Bustarviejo (sin duplicados)
+    const goleadoresMap = new Map();
+    for (const g of goleadoresGlobal) goleadoresMap.set(g.id, g);
+    for (const g of goleadoresBustarviejo) goleadoresMap.set(g.id, g);
+    const goleadores = Array.from(goleadoresMap.values());
 
     // Agrupar clasificaciones por categoría
     const clasificacionesPorCategoria = {};
