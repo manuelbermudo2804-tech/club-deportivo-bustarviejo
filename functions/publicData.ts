@@ -423,10 +423,10 @@ tr:hover { background: #fafafa; }
 @media (max-width: 768px) {
   body { padding-top: 90px; font-size: 18px; }
   .menu-toggle { display: block; }
-  .header-contenido { flex-wrap: wrap; }
+  .header-contenido { flex-direction: row; flex-wrap: wrap; }
   .menu {
     width: 100%;
-    display: none;
+    display: none !important;
     flex-direction: column;
     align-items: center;
     background: #fff;
@@ -434,6 +434,7 @@ tr:hover { background: #fafafa; }
     margin-top: 10px;
     border-top: 1px solid #eaeaea;
   }
+  .menu.activo { display: flex !important; }
   .menu a {
     font-size: 1rem;
     padding: 12px 0;
@@ -441,7 +442,6 @@ tr:hover { background: #fafafa; }
     text-align: center;
   }
   .menu .btn-menu { margin-top: 10px; }
-  .menu.activo { display: flex; }
   .cabecera-pagina { padding: 50px 16px; }
   .cabecera-pagina h1 { font-size: 2rem; }
   .cabecera-pagina p { font-size: 1rem; }
