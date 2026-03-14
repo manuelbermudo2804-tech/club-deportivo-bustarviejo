@@ -254,6 +254,11 @@ export default function CoachProfile() {
                   <Camera className="w-4 h-4 text-orange-600" />
                 )}
               </button>
+              {uploading && uploadStatus && (
+                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">
+                  {uploadStatus}
+                </div>
+              )}
             </div>
 
             <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
