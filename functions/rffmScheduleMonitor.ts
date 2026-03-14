@@ -1,5 +1,17 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { load } from 'npm:cheerio@1.0.0';
+
+// Helper: send email via Resend (no integration credits)
+async function sendViaResend(to, subject, html) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) { console.error('[RFFM] RESEND_API_KEY not set'); return; }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'noreply@cdbustarviejo.com', to: [to], subject, html })
+  });
+  if (!resp.ok) console.error(`[RFFM] Resend error ${resp.status}:`, await resp.text().catch(() => ''));
+}
 
 /**
  * RFFM Schedule Monitor — runs every 6 hours (v2 - with auto-callup creation)
