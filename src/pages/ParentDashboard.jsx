@@ -298,28 +298,8 @@ export default function ParentDashboard() {
     return myPlayersSports.includes(s.destinatarios);
   }) : [];
 
-  // Calcular mensajes privados no leídos
-  const unreadPrivateMessages = privateConversations.reduce((count, conv) => 
-    count + (conv.no_leidos_familia || 0), 0
-  );
-
-  // Calcular mensajes coordinador no leídos
-  const unreadCoordinatorMessages = coordinatorConversations.reduce((count, conv) => 
-    count + (conv.no_leidos_padre || 0), 0
-  );
-
-  // Calcular mensajes admin no leídos
-  const unreadAdminMessages = adminConversations.reduce((count, conv) => 
-    count + (conv.no_leidos_padre || 0), 0
-  );
-  const hasActiveAdminChat = adminConversations.length > 0;
-
-  // Calcular mensajes del chat entrenador-padres no leídos
-  const unreadCoachMessages = messages.filter(m => {
-    if (m.tipo !== "entrenador_a_grupo") return false;
-    const isRead = m.leido_por?.some(lp => lp.email === user?.email);
-    return !isRead;
-  }).length;
+  // Chat counts now come from unified notifications (Layout level)
+  const hasActiveAdminChat = notifications?.hasActiveAdminConversation || false;
 
   let pendingCallups = 0;
   if (myPlayers.length > 0 && callups.length > 0) {
@@ -333,7 +313,7 @@ export default function ParentDashboard() {
     });
   }
 
-  const activeSeason = seasonConfigs.find(s => s.activa) || null;
+  const activeSeason = seasonConfigs?.[0] || null;
   const loteriaVisible = activeSeason?.loteria_navidad_abierta === true;
 
   // Calcular firmas de federación pendientes
