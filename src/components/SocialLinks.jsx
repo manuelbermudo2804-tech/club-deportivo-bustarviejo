@@ -1,7 +1,7 @@
 import React from "react";
 import { Facebook, Instagram, Globe } from "lucide-react";
 
-const SocialLinks = React.memo(function SocialLinks() {
+export default function SocialLinks() {
   const links = [
     { name: "Web", url: "https://www.cdbustarviejo.com", icon: Globe, color: "text-orange-600 hover:text-orange-700" },
     { name: "Facebook", url: "https://www.facebook.com/cdbustarviejo", icon: Facebook, color: "text-blue-600 hover:text-blue-700" },
@@ -24,6 +24,4 @@ const SocialLinks = React.memo(function SocialLinks() {
       ))}
     </div>
   );
-});
-
-export default SocialLinks;
+}
