@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { useRef } from "react";
 import { User, Mail, Phone, Camera, Save, Loader2, Eye, Clock, Info, Shield, CheckCircle2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,6 +19,7 @@ export default function CoachProfile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     foto_perfil_url: "",
@@ -159,8 +161,10 @@ export default function CoachProfile() {
                   {user.full_name?.charAt(0).toUpperCase()}
                 </div>
               )}
-              <label
-                htmlFor="photo-upload-hero"
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
                 className="absolute bottom-1 right-1 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:bg-orange-50 transition-colors border-2 border-orange-200 group-hover:scale-110"
               >
                 {uploading ? (
@@ -168,13 +172,14 @@ export default function CoachProfile() {
                 ) : (
                   <Camera className="w-4 h-4 text-orange-600" />
                 )}
-              </label>
+              </button>
               <input
+                ref={fileInputRef}
                 type="file"
-                id="photo-upload-hero"
                 accept="image/*"
+                capture="environment"
                 onChange={handlePhotoUpload}
-                className="hidden"
+                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden', pointerEvents: 'none' }}
               />
             </div>
 
