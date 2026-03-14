@@ -243,6 +243,8 @@ body {
   border: none;
   cursor: pointer;
   margin-left: auto;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 /* ═══ HERO COMPETICIÓN ═══ */
