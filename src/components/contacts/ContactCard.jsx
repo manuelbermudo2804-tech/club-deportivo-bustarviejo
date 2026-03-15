@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, Mail, Calendar, User, Trophy, Clock, MessageCircle, ChevronDown, ChevronUp, Save } from "lucide-react";
+import { Phone, Mail, Trophy, Clock, MessageCircle, ChevronDown, ChevronUp, Save, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import moment from "moment";
