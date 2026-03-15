@@ -135,6 +135,24 @@ export default function ContactCard({ contact, onUpdate }) {
             {contact.fecha_contacto && (
               <p className="text-[11px] text-slate-400">Contactado el {moment(contact.fecha_contacto).format("DD/MM/YYYY HH:mm")}</p>
             )}
+
+            {/* Eliminar contacto */}
+            <div className="pt-2 border-t border-slate-200">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-xs text-red-600 hover:bg-red-50 hover:text-red-700 h-7 gap-1"
+                onClick={async () => {
+                  if (!window.confirm(`¿Eliminar el contacto de ${contact.nombre}? Esta acción no se puede deshacer.`)) return;
+                  await base44.entities.ContactForm.delete(contact.id);
+                  toast.success("Contacto eliminado");
+                  onUpdate();
+                }}
+              >
+                <Trash2 className="w-3 h-3" />
+                Eliminar contacto
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
