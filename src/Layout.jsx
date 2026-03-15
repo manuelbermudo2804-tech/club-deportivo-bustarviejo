@@ -989,12 +989,20 @@ export default function Layout({ children, currentPageName }) {
 
                     // Segundo progenitor: permitir guía de instalación, pero sin selector (se controla abajo)
 
-                    // 0) Verificación de código de acceso - TODOS los usuarios sin código validado
-                    // Incluye segundos progenitores, juveniles, padres nuevos, jugadores adultos
-                    // SEGURIDAD: Solo se puede saltar si el código fue validado explícitamente
+                    // 0) Verificación de código de acceso
+                    // Usuarios que ya tienen tipo_panel (onboarding anterior al sistema de códigos)
+                    // se consideran validados automáticamente — no bloquear a usuarios existentes
                     if (!user.codigo_acceso_validado) {
-                      setOnboardingView('access_code');
-                      return;
+                      // Si el usuario ya tiene tipo_panel asignado, es un usuario antiguo legítimo
+                      // Marcar como validado automáticamente para no volver a preguntar
+                      if (user.tipo_panel) {
+                        try {
+                          base44.auth.updateMe({ codigo_acceso_validado: true, fecha_validacion_codigo: new Date().toISOString() });
+                        } catch {}
+                      } else {
+                        setOnboardingView('access_code');
+                        return;
+                      }
                     }
 
       // La instalación ya NO es bloqueante - se muestra como banner sugerido dentro de la app
@@ -1036,11 +1044,10 @@ export default function Layout({ children, currentPageName }) {
         localStorage.setItem('pwaInstalled', 'true');
         setIsAppInstalled(true);
       }
-      // Solo mostrar invitación de primer arranque si NO tiene jugadores ya registrados
-      if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true && !hasPlayers && !isLoading) {
+      if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true) {
         setShowFirstLaunchInvite(true);
       }
-    }, [user, hasPlayers, isLoading]);
+    }, [user]);
 
   // Flags para manejar páginas públicas sin returns antes de hooks
   const isPublicPage = isPublicPageRef.current;
