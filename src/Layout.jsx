@@ -1036,10 +1036,11 @@ export default function Layout({ children, currentPageName }) {
         localStorage.setItem('pwaInstalled', 'true');
         setIsAppInstalled(true);
       }
-      if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true) {
+      // Solo mostrar invitación de primer arranque si NO tiene jugadores ya registrados
+      if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true && !hasPlayers && !isLoading) {
         setShowFirstLaunchInvite(true);
       }
-    }, [user]);
+    }, [user, hasPlayers, isLoading]);
 
   // Flags para manejar páginas públicas sin returns antes de hooks
   const isPublicPage = isPublicPageRef.current;
