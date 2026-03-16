@@ -671,6 +671,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "📚 Biblioteca Ejercicios", url: createPageUrl("ExerciseLibrary"), icon: FileText },
       { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
       { title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3 },
+      { title: "⏱️ Control Minutos", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
       ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
       // 📊 REPORTES
