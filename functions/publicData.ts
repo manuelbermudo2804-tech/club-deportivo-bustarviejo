@@ -559,7 +559,7 @@ tr:hover { background: #fafafa; }
     <div class="footer-col">
       <p class="footer-titulo">Contacto</p>
       <p class="footer-texto">
-        📧 <a href="mailto:cdbustarviejo@outlook.es">cdbustarviejo@outlook.es</a><br>
+        📧 <a href="mailto:info@cdbustarviejo.com">info@cdbustarviejo.com</a><br>
         📍 Bustarviejo (Madrid)
       </p>
     </div>
