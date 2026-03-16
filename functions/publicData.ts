@@ -551,6 +551,7 @@ tr:hover { background: #fafafa; }
         <li><a href="${WEB}el-club.html">El Club</a></li>
         <li><a href="${WEB}equipos.html">Equipos</a></li>
         <li><a href="${WEB}patrocinadores.html">Patrocinadores</a></li>
+        <li><a href="${WEB}galeria.html">Galería</a></li>
         <li><a href="${WEB}aviso-legal.html">Aviso Legal</a></li>
         <li><a href="${WEB}privacidad.html">Política de Privacidad</a></li>
       </ul>
