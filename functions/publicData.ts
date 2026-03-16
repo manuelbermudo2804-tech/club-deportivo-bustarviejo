@@ -489,6 +489,7 @@ tr:hover { background: #fafafa; }
       <a href="${WEB}patrocinadores.html">Patrocinadores</a>
       <a href="${WEB}tienda.html">Tienda</a>
       <a href="${WEB}comunicados.html">Comunicados</a>
+      <a href="${WEB}galeria.html">Galería</a>
       <a class="btn-menu" style="background:#333;color:#fff !important;">Competición</a>
       <a href="${WEB}area-interna.html">Área interna</a>
       <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank">Hazte socio</a>
