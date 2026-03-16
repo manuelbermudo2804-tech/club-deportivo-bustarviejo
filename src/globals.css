@@ -836,11 +836,3 @@ button, a, input, select, textarea {
     transform: translateY(0);
   }
 }
-
-/* Softer background gradient that bridges dark dashboards to light pages */
-.bg-page-bridge {
-  background: linear-gradient(180deg, 
-    hsl(222, 47%, 8%) 0%, 
-    hsl(220, 20%, 96%) 120px
-  );
-}
