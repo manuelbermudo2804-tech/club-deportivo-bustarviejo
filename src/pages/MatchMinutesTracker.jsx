@@ -27,6 +27,7 @@ export default function MatchMinutesTracker() {
   }, []);
 
   const isAdmin = user?.role === "admin";
+  const isCoordinator = user?.es_coordinador === true;
 
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigsMinutes'],
@@ -35,9 +36,9 @@ export default function MatchMinutesTracker() {
   });
 
   const allCategories = useMemo(() => {
-    if (isAdmin) return categoryConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre).filter(Boolean);
+    if (isAdmin || isCoordinator) return categoryConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre).filter(Boolean);
     return user?.categorias_entrena || [];
-  }, [isAdmin, categoryConfigs, user]);
+  }, [isAdmin, isCoordinator, categoryConfigs, user]);
 
   useEffect(() => {
     if (!selectedCategory && allCategories.length > 0) setSelectedCategory(allCategories[0]);
