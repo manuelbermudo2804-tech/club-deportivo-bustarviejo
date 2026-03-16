@@ -36,8 +36,13 @@ export default function MatchMinutesTracker() {
   });
 
   const allCategories = useMemo(() => {
-    if (isAdmin || isCoordinator) return categoryConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre).filter(Boolean);
-    return user?.categorias_entrena || [];
+    let cats;
+    if (isAdmin || isCoordinator) {
+      cats = categoryConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre).filter(Boolean);
+    } else {
+      cats = user?.categorias_entrena || [];
+    }
+    return [...new Set(cats)];
   }, [isAdmin, isCoordinator, categoryConfigs, user]);
 
   useEffect(() => {
@@ -64,10 +69,11 @@ export default function MatchMinutesTracker() {
     queryFn: async () => {
       if (!selectedCategory) return [];
       const clasif = await base44.entities.Clasificacion.filter({ categoria: selectedCategory });
-      return clasif
+      const names = clasif
         .filter(c => !c.nombre_equipo?.toUpperCase().includes("BUSTARVIEJO"))
         .sort((a, b) => (a.posicion || 99) - (b.posicion || 99))
         .map(c => c.nombre_equipo);
+      return [...new Set(names)];
     },
     enabled: !!selectedCategory,
     staleTime: 300000,
