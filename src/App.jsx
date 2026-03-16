@@ -10,6 +10,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import MinorPreview from '@/pages/MinorPreview';
+import PosterGenerator from '@/pages/PosterGenerator';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
         />
       ))}
       <Route path="/MinorPreview" element={<LayoutWrapper currentPageName="MinorPreview"><MinorPreview /></LayoutWrapper>} />
+      <Route path="/PosterGenerator" element={<LayoutWrapper currentPageName="PosterGenerator"><PosterGenerator /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
