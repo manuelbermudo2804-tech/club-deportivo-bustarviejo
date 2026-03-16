@@ -124,103 +124,59 @@ function parseStandings(html) {
 
 function parseScorers(html) {
   const $ = load(html);
-  let rows = [];
-  let approach = 'none';
+  const scorers = [];
 
-  // APPROACH 1: Standard HTML table - but ONLY use if headers clearly identify columns
+  // PRIMARY: Find the RFFM table with "Jugador" header (standard authenticated RFFM page)
+  // Structure: Jugador | Equipo | Grupo | Partidos Jugados | Goles | Goles partido
   $('table').each((_, table) => {
-    if (rows.length > 0) return; // already found
-    const headers = $(table).find('th').map((__, th) => $(th).text().toLowerCase().trim()).get();
-    const looksLike = headers.some(h => /gole(s|adores)/i.test(h)) || (headers.includes('jugador') && headers.some(h => h.includes('gol')));
-    if (!looksLike) return;
+    if (scorers.length > 0) return; // already found a good table
+    
+    // Check if first row contains "Jugador" header (th or td)
+    const firstRow = $(table).find('tr').first();
+    const headerCells = firstRow.find('td, th').map((__, c) => $(c).text().trim().toLowerCase()).get();
+    const hasJugadorHeader = headerCells.some(h => h.includes('jugador'));
+    const hasGolesHeader = headerCells.some(h => h.includes('gol'));
+    if (!hasJugadorHeader || !hasGolesHeader) return;
 
-    // Find the goals column index from headers
-    let golesHeaderIdx = headers.findIndex(h => /^goles?$/.test(h));
-    if (golesHeaderIdx < 0) golesHeaderIdx = headers.findIndex(h => h.includes('gol'));
+    // Find column indices from headers
+    const jugadorIdx = headerCells.findIndex(h => h.includes('jugador'));
+    const equipoIdx = headerCells.findIndex(h => h.includes('equipo'));
+    const golesIdx = headerCells.findIndex(h => /^goles$/.test(h));
+    // If no exact "goles" found, try partial match but exclude "goles partido"
+    const golesColIdx = golesIdx >= 0 ? golesIdx : headerCells.findIndex(h => h.includes('gol') && !h.includes('partido'));
+    
+    console.log(`[SCORERS-PARSER] Found table: jugadorIdx=${jugadorIdx}, equipoIdx=${equipoIdx}, golesIdx=${golesColIdx}, headers=${headerCells.length}`);
 
-    $(table).find('tbody tr, tr').each((__, tr) => {
-      const tds = $(tr).find('td');
-      if (tds.length < 3) return;
-      const texts = tds.map((___, td) => $(td).text().trim()).get();
-
-      // Use the header-identified column if available
-      // The goals column may contain text like "28 (3 de penalti)" - extract leading number
-      let goles = null;
-      if (golesHeaderIdx >= 0 && golesHeaderIdx < texts.length) {
-        const golesMatch = texts[golesHeaderIdx].match(/^(\d+)/);
-        if (golesMatch) goles = Number(golesMatch[1]);
+    let isHeader = true;
+    $(table).find('tr').each((__, row) => {
+      if (isHeader) { isHeader = false; return; } // Skip header row
+      
+      const cells = $(row).find('td');
+      if (cells.length < 5) return;
+      
+      const texts = cells.map((___, td) => $(td).text().trim()).get();
+      
+      // Use identified column indices, with fallback to fixed positions
+      const jugador = texts[jugadorIdx >= 0 ? jugadorIdx : 0] || '';
+      const equipo = texts[equipoIdx >= 0 ? equipoIdx : 1] || '';
+      const golesText = texts[golesColIdx >= 0 ? golesColIdx : 4] || '0';
+      const goles = parseInt(golesText) || 0;
+      
+      if (jugador && equipo && goles > 0) {
+        scorers.push({ jugador, equipo, goles });
       }
-      if (goles === null) {
-        // Fallback: last pure-number column
-        for (let gi = texts.length - 1; gi >= 0; gi--) {
-          if (/^\d+$/.test(texts[gi])) { goles = Number(texts[gi]); break; }
-        }
-      }
-      if (goles === null || goles <= 0) return;
-
-      // Find player name: first non-empty non-number cell
-      let jugador = '';
-      let equipo = '';
-      for (let ci = 0; ci < texts.length; ci++) {
-        if (/^\d+$/.test(texts[ci])) continue; // skip numbers (position, goals, etc)
-        if (!texts[ci]) continue;
-        if (!jugador) { jugador = texts[ci]; continue; }
-        if (!equipo) { equipo = texts[ci]; break; }
-      }
-      if (jugador && equipo) rows.push({ jugador, equipo, goles });
     });
-    if (rows.length > 0) approach = 'table';
   });
 
-  // APPROACH 2: RFFM multi-line text format (most reliable for RFFM logged-in pages)
-  if (rows.length < 3) {
-    const bodyText = $('body').text();
-    const lines = bodyText.split(/\n|\r/).map(l => l.trim()).filter(Boolean);
-    const isGoalsLine = (l) => /^\d{1,3}$/.test(l);
-    const isPenaltyLine = (l) => /^\(\d+P\)$/i.test(l);
-    const isNameLine = (l) => l.includes(',') && !isGoalsLine(l) && !isPenaltyLine(l) && l.length > 3 && l.length < 80;
-    const isPositionLine = (l) => /^\d{1,3}º?\.?$/.test(l);
-    const nameIndices = [];
-    for (let i = 0; i < lines.length; i++) { if (isNameLine(lines[i])) nameIndices.push(i); }
-    const parsedFromText = [];
-    for (let k = 0; k < nameIndices.length; k++) {
-      const ni = nameIndices[k];
-      const nextNi = k + 1 < nameIndices.length ? nameIndices[k + 1] : Math.min(ni + 8, lines.length);
-      const nombre = lines[ni];
-      let equipo = ""; let goles = 0;
-      const blockLines = lines.slice(ni + 1, nextNi);
-      let teamFound = false;
-      for (const bl of blockLines) {
-        if (isPositionLine(bl) || isPenaltyLine(bl)) continue;
-        if (!teamFound && !isGoalsLine(bl)) { equipo = bl; teamFound = true; continue; }
-        if (isGoalsLine(bl)) { goles = parseInt(bl, 10); break; }
-      }
-      if (nombre && equipo && goles > 0) parsedFromText.push({ jugador: nombre.trim(), equipo: equipo.trim(), goles });
-    }
-    if (parsedFromText.length > rows.length) { rows = parsedFromText; approach = 'text'; }
-  }
+  console.log(`[SCORERS-PARSER] parsed=${scorers.length}`);
 
-  // APPROACH 3: Fallback regex for "NOMBRE - EQUIPO  GOLES" format
-  if (rows.length === 0) {
-    const lines = $('body').text().split(/\n|\r/).map(l => l.trim()).filter(Boolean);
-    for (const line of lines) {
-      const m = line.match(/^([A-ZÁÉÍÓÚÜÑ][A-ZÁÉÍÓÚÜÑ\s\.'-]{3,})\s+-\s+([A-ZÁÉÍÓÚÜÑ0-9\s\.'-]{2,})\s+(\d{1,3})$/i);
-      if (m) rows.push({ jugador: m[1].trim(), equipo: m[2].trim(), goles: Number(m[3]) });
-    }
-    if (rows.length > 0) approach = 'regex';
-  }
-
-  console.log(`[SCORERS-PARSER] approach=${approach}, raw=${rows.length}`);
-  if (rows.length > 0 && rows.length <= 3) {
-    console.log(`[SCORERS-PARSER] Sample:`, JSON.stringify(rows.slice(0, 3)));
-  }
-
+  // Deduplicate
   const seen = new Set();
-  return rows.filter(r => {
+  return scorers.filter(r => {
     const key = `${r.jugador}__${r.equipo}`;
     if (seen.has(key)) return false;
     seen.add(key);
-    return r.jugador && r.equipo && Number.isFinite(r.goles);
+    return true;
   });
 }
 
