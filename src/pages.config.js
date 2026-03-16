@@ -170,6 +170,7 @@ import UploadDiagnostics from './pages/UploadDiagnostics';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
 import WebContacts from './pages/WebContacts';
+import PosterGenerator from './pages/PosterGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -297,6 +298,7 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
     "WebContacts": WebContacts,
+    "PosterGenerator": PosterGenerator,
 }
 
 export const pagesConfig = {
