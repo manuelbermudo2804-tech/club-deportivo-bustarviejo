@@ -24,7 +24,7 @@ export default function PosterGenerator() {
         height: 1123,
       });
       const link = document.createElement("a");
-      link.download = "cartel_cd_bustarviejo_2026.png";
+      link.download = "cartel_cd_bustarviejo.png";
       link.href = canvas.toDataURL("image/png", 1.0);
       link.click();
     } catch (e) {
@@ -84,12 +84,12 @@ export default function PosterGenerator() {
               }}
             />
 
-            {/* Dark overlay for readability */}
+            {/* Dark overlay */}
             <div
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 35%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.70) 85%, rgba(0,0,0,0.85) 100%)",
+                background: "linear-gradient(180deg, rgba(0,0,0,0.50) 0%, rgba(0,0,0,0.20) 30%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%)",
               }}
             />
 
@@ -114,7 +114,7 @@ export default function PosterGenerator() {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                padding: "36px 40px 32px",
+                padding: "44px 40px 36px",
               }}
             >
               {/* Logo */}
@@ -123,198 +123,124 @@ export default function PosterGenerator() {
                 alt="CD Bustarviejo"
                 crossOrigin="anonymous"
                 style={{
-                  width: 160,
-                  height: 160,
+                  width: 170,
+                  height: 170,
                   objectFit: "contain",
                   borderRadius: 16,
-                  marginBottom: 16,
-                  filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.5))",
+                  marginBottom: 24,
+                  filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.6))",
                 }}
               />
 
               {/* Decorative line */}
-              <div style={{ width: 120, height: 3, background: "#ea580c", borderRadius: 2, marginBottom: 20 }} />
+              <div style={{ width: 100, height: 3, background: "#ea580c", borderRadius: 2, marginBottom: 28 }} />
 
               {/* Main headline */}
-              <div style={{ textAlign: "center", marginBottom: 8 }}>
+              <div style={{ textAlign: "center", marginBottom: 16 }}>
                 <div
                   style={{
-                    fontSize: 17,
-                    fontWeight: 700,
-                    color: "#f97316",
-                    letterSpacing: 6,
-                    textTransform: "uppercase",
-                    marginBottom: 6,
-                    textShadow: "0 2px 8px rgba(0,0,0,0.7)",
-                  }}
-                >
-                  Temporada 2025/2026
-                </div>
-                <div
-                  style={{
-                    fontSize: 52,
+                    fontSize: 58,
                     fontWeight: 900,
                     color: "white",
                     lineHeight: 1.05,
-                    textShadow: "0 3px 20px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)",
+                    textShadow: "0 3px 24px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)",
                     letterSpacing: -1,
                   }}
                 >
-                  ¡ÚNETE A<br/>NUESTRA<br/>FAMILIA!
+                  ¡ÚNETE A<br />NUESTRA<br />FAMILIA!
                 </div>
               </div>
 
               {/* Subtitle */}
               <div
                 style={{
-                  fontSize: 16,
+                  fontSize: 18,
                   color: "#fcd9b6",
                   textAlign: "center",
                   lineHeight: 1.5,
-                  maxWidth: 520,
-                  marginBottom: 20,
-                  textShadow: "0 2px 8px rgba(0,0,0,0.8)",
+                  maxWidth: 540,
+                  marginBottom: 32,
+                  textShadow: "0 2px 10px rgba(0,0,0,0.8)",
                 }}
               >
-                Más de 35 años formando deportistas y personas en Bustarviejo
+                Más de 35 años formando deportistas<br />y personas en Bustarviejo
               </div>
 
-              {/* Feature cards */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  marginBottom: 22,
-                  width: "100%",
-                  justifyContent: "center",
-                }}
-              >
-                {[
-                  { emoji: "⚽", title: "Fútbol", sub: "Todas las categorías" },
-                  { emoji: "🏀", title: "Baloncesto", sub: "Formación mixta" },
-                  { emoji: "👧", title: "Femenino", sub: "¡Nueva sección!" },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "rgba(255,255,255,0.12)",
-                      backdropFilter: "blur(10px)",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      borderRadius: 14,
-                      padding: "14px 18px",
-                      textAlign: "center",
-                      flex: "0 0 200px",
-                    }}
-                  >
-                    <div style={{ fontSize: 30, marginBottom: 4 }}>{item.emoji}</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: "white" }}>{item.title}</div>
-                    <div style={{ fontSize: 12, color: "#fcd9b6" }}>{item.sub}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Ages banner */}
+              {/* CTA banner */}
               <div
                 style={{
                   background: "linear-gradient(135deg, #ea580c, #c2410c)",
-                  borderRadius: 14,
-                  padding: "14px 32px",
+                  borderRadius: 16,
+                  padding: "18px 40px",
                   textAlign: "center",
-                  marginBottom: 18,
-                  boxShadow: "0 4px 20px rgba(234,88,12,0.5)",
-                  width: "85%",
+                  marginBottom: 10,
+                  boxShadow: "0 6px 28px rgba(234,88,12,0.5)",
+                  width: "80%",
                 }}
               >
-                <div style={{ fontSize: 20, fontWeight: 900, color: "white", letterSpacing: 1 }}>
-                  DESDE LOS 4 AÑOS HASTA ADULTOS
+                <div style={{ fontSize: 24, fontWeight: 900, color: "white", letterSpacing: 1 }}>
+                  INSCRIBE A TUS HIJOS
                 </div>
-                <div style={{ fontSize: 13, color: "#fef3c7", marginTop: 2 }}>
-                  Pre-Benjamín · Benjamín · Alevín · Infantil · Cadete · Juvenil · Aficionado
+                <div style={{ fontSize: 14, color: "#fef3c7", marginTop: 4 }}>
+                  o hazte socio del club
                 </div>
-              </div>
-
-              {/* Highlights */}
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 8,
-                  justifyContent: "center",
-                  marginBottom: 20,
-                  maxWidth: 620,
-                }}
-              >
-                {["Entrenadores titulados", "Valores y compañerismo", "Instalaciones municipales", "Precios accesibles", "App del club", "Seguro deportivo"].map((txt, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "rgba(255,255,255,0.15)",
-                      border: "1px solid rgba(255,255,255,0.25)",
-                      borderRadius: 20,
-                      padding: "6px 16px",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "white",
-                    }}
-                  >
-                    ✓ {txt}
-                  </div>
-                ))}
               </div>
 
               {/* Spacer */}
               <div style={{ flex: 1 }} />
 
-              {/* Bottom section: QR + contact */}
+              {/* Bottom section: QR prominente */}
               <div
                 style={{
                   width: "100%",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "space-between",
                   gap: 20,
-                  background: "rgba(0,0,0,0.50)",
-                  backdropFilter: "blur(10px)",
-                  borderRadius: 18,
-                  padding: "20px 28px",
+                  background: "rgba(0,0,0,0.55)",
+                  backdropFilter: "blur(12px)",
+                  borderRadius: 20,
+                  padding: "28px 32px 24px",
                   border: "1px solid rgba(255,255,255,0.15)",
                 }}
               >
-                {/* Left: Contact */}
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "white", marginBottom: 8 }}>
-                    ¡INSCRÍBETE YA!
+                {/* QR heading */}
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "white", marginBottom: 4 }}>
+                    ESCANEA Y ÚNETE
                   </div>
-                  <div style={{ fontSize: 13, color: "#e2e8f0", lineHeight: 1.7 }}>
-                    📧 cdbustarviejo@gmail.com<br/>
-                    📍 Bustarviejo, Madrid<br/>
-                    🌐 Escanea el QR →
+                  <div style={{ fontSize: 14, color: "#cbd5e1" }}>
+                    Inscripción de jugadores y socios
                   </div>
                 </div>
 
-                {/* Right: QR */}
+                {/* QR code - bigger */}
                 <div
                   style={{
                     background: "white",
-                    borderRadius: 14,
-                    padding: 10,
-                    flexShrink: 0,
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+                    borderRadius: 18,
+                    padding: 14,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                   }}
                 >
                   <img
                     src={QR_URL}
                     alt="QR"
                     crossOrigin="anonymous"
-                    style={{ width: 110, height: 110, display: "block" }}
+                    style={{ width: 170, height: 170, display: "block" }}
                   />
+                </div>
+
+                {/* Subtle web reference */}
+                <div style={{ fontSize: 13, color: "#94a3b8", letterSpacing: 1 }}>
+                  cdbustarviejo.com
                 </div>
               </div>
 
-              {/* Bottom orange bar */}
+              {/* Bottom text */}
               <div
                 style={{
-                  marginTop: 16,
+                  marginTop: 18,
                   width: "100%",
                   textAlign: "center",
                   fontSize: 11,
