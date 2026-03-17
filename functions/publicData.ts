@@ -20,13 +20,19 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const [proximosPartidos, resultados, clasificaciones, goleadoresGlobal, goleadoresBustarviejo] = await Promise.all([
+    const [proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo] = await Promise.all([
       base44.asServiceRole.entities.ProximoPartido.list('-fecha_iso', 50),
-      base44.asServiceRole.entities.Resultado.filter({ estado: 'finalizado' }, '-jornada', 30),
+      base44.asServiceRole.entities.Resultado.filter({ local: { $regex: 'BUSTARVIEJO' }, estado: 'finalizado' }, '-jornada', 100).catch(() => []),
+      base44.asServiceRole.entities.Resultado.filter({ visitante: { $regex: 'BUSTARVIEJO' }, estado: 'finalizado' }, '-jornada', 100).catch(() => []),
       base44.asServiceRole.entities.Clasificacion.list('-puntos', 200),
       base44.asServiceRole.entities.Goleador.list('-goles', 200),
       base44.asServiceRole.entities.Goleador.filter({ equipo: { $regex: 'BUSTARVIEJO' } }, '-goles', 100).catch(() => []),
     ]);
+
+    // Merge resultados y deduplicar por id
+    const resultadosMap = new Map();
+    for (const r of [...resultadosLocal, ...resultadosVisitante]) resultadosMap.set(r.id, r);
+    const resultados = Array.from(resultadosMap.values());
 
     const goleadoresMap = new Map();
     for (const g of goleadoresGlobal) goleadoresMap.set(g.id, g);
