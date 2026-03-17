@@ -15,23 +15,52 @@ export default function PosterGenerator() {
     if (!posterRef.current) return;
     setDownloading(true);
     try {
+      // Wait for all images to be fully loaded
+      const images = posterRef.current.querySelectorAll("img");
+      await Promise.all(
+        Array.from(images).map(
+          (img) =>
+            new Promise((resolve) => {
+              if (img.complete) return resolve();
+              img.onload = resolve;
+              img.onerror = resolve;
+            })
+        )
+      );
+
       const canvas = await html2canvas(posterRef.current, {
         scale: 3,
         useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
+        allowTaint: false,
+        backgroundColor: "#1a0f05",
         width: 794,
         height: 1123,
+        logging: false,
+        imageTimeout: 15000,
+        proxy: undefined,
       });
-      const link = document.createElement("a");
-      link.download = "cartel_cd_bustarviejo.png";
-      link.href = canvas.toDataURL("image/png", 1.0);
-      link.click();
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          console.error("No se pudo generar el blob");
+          setDownloading(false);
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = "cartel_cd_bustarviejo.png";
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setDownloading(false);
+      }, "image/png", 1.0);
+      return; // setDownloading handled in toBlob callback
     } catch (e) {
       console.error("Error generando imagen:", e);
-    } finally {
-      setDownloading(false);
     }
+    setDownloading(false);
   };
 
   return (
