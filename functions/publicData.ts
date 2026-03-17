@@ -70,7 +70,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const proximos = proximosPartidos.map(p => ({
+    // Deduplicar próximos partidos (por categoría + jornada + local + visitante)
+    const proximosDedup = new Map();
+    for (const p of proximosPartidos) {
+      const key = `${p.categoria}_${p.jornada}_${p.local}_${p.visitante}`;
+      if (!proximosDedup.has(key)) proximosDedup.set(key, p);
+    }
+    const proximos = Array.from(proximosDedup.values()).map(p => ({
       categoria: p.categoria, jornada: p.jornada, local: p.local,
       visitante: p.visitante, fecha: p.fecha, hora: p.hora,
       campo: p.campo, fecha_iso: p.fecha_iso,
