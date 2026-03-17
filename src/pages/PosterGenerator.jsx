@@ -36,7 +36,6 @@ export default function PosterGenerator() {
 
   return (
     <div className="p-4 lg:p-8 space-y-6">
-      {/* Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">🖨️ Cartel de Captación</h1>
@@ -56,10 +55,9 @@ export default function PosterGenerator() {
         </Button>
       </div>
 
-      {/* Preview wrapper - scrollable on mobile */}
       <div className="flex justify-center overflow-x-auto pb-4">
         <div className="flex-shrink-0">
-          {/* ====== THE POSTER (A4 ratio: 794×1123px at 1x) ====== */}
+          {/* ====== POSTER A4: 794×1123 ====== */}
           <div
             ref={posterRef}
             style={{
@@ -70,38 +68,30 @@ export default function PosterGenerator() {
               fontFamily: "'Segoe UI', Arial, Helvetica, sans-serif",
             }}
           >
-            {/* Background image */}
+            {/* Background */}
             <img
               src={BG_URL}
               alt=""
               crossOrigin="anonymous"
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             />
 
-            {/* Dark overlay */}
+            {/* Sepia/warm overlay to match the reference */}
             <div
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(180deg, rgba(0,0,0,0.50) 0%, rgba(0,0,0,0.20) 30%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%)",
+                background: "linear-gradient(180deg, rgba(60,30,10,0.55) 0%, rgba(40,20,5,0.40) 35%, rgba(30,15,5,0.35) 55%, rgba(20,10,0,0.65) 80%, rgba(10,5,0,0.88) 100%)",
+                mixBlendMode: "multiply",
               }}
             />
-
-            {/* Top orange accent bar */}
+            {/* Warm tint */}
             <div
               style={{
                 position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 6,
-                background: "linear-gradient(90deg, #ea580c 0%, #f97316 50%, #ea580c 100%)",
+                inset: 0,
+                background: "rgba(120, 60, 20, 0.18)",
+                mixBlendMode: "overlay",
               }}
             />
 
@@ -114,155 +104,191 @@ export default function PosterGenerator() {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                padding: "44px 40px 36px",
+                padding: "40px 50px 30px",
               }}
             >
-              {/* Logo */}
+              {/* ========== TOP: Logo grande ========== */}
               <img
                 src={LOGO_URL}
                 alt="CD Bustarviejo"
                 crossOrigin="anonymous"
                 style={{
-                  width: 170,
-                  height: 170,
+                  width: 200,
+                  height: 200,
                   objectFit: "contain",
                   borderRadius: 16,
-                  marginBottom: 24,
-                  filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.6))",
+                  filter: "drop-shadow(0 6px 30px rgba(0,0,0,0.7))",
+                  marginBottom: 28,
                 }}
               />
 
-              {/* Decorative line */}
-              <div style={{ width: 100, height: 3, background: "#ea580c", borderRadius: 2, marginBottom: 28 }} />
-
-              {/* Main headline */}
-              <div style={{ textAlign: "center", marginBottom: 16 }}>
-                <div
-                  style={{
-                    fontSize: 58,
-                    fontWeight: 900,
-                    color: "white",
-                    lineHeight: 1.05,
-                    textShadow: "0 3px 24px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.9)",
-                    letterSpacing: -1,
-                  }}
-                >
-                  ¡ÚNETE A<br />NUESTRA<br />FAMILIA!
-                </div>
+              {/* ========== Club name ========== */}
+              <div
+                style={{
+                  fontSize: 46,
+                  fontWeight: 900,
+                  color: "white",
+                  textAlign: "center",
+                  lineHeight: 1.1,
+                  letterSpacing: 2,
+                  textShadow: "0 3px 20px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.9)",
+                  marginBottom: 10,
+                }}
+              >
+                CLUB DEPORTIVO<br />BUSTARVIEJO
               </div>
 
               {/* Subtitle */}
               <div
                 style={{
                   fontSize: 18,
-                  color: "#fcd9b6",
+                  color: "#e8cdb5",
                   textAlign: "center",
-                  lineHeight: 1.5,
-                  maxWidth: 540,
+                  letterSpacing: 3,
+                  fontWeight: 500,
+                  textShadow: "0 2px 8px rgba(0,0,0,0.7)",
                   marginBottom: 32,
-                  textShadow: "0 2px 10px rgba(0,0,0,0.8)",
                 }}
               >
-                Más de 35 años formando deportistas<br />y personas en Bustarviejo
+                Deporte &nbsp;·&nbsp; Valores &nbsp;·&nbsp; Comunidad
               </div>
 
-              {/* CTA banner */}
+              {/* ========== TODO EL CLUB, AQUÍ ========== */}
               <div
                 style={{
-                  background: "linear-gradient(135deg, #ea580c, #c2410c)",
-                  borderRadius: 16,
-                  padding: "18px 40px",
+                  fontSize: 34,
+                  fontWeight: 900,
+                  color: "white",
                   textAlign: "center",
-                  marginBottom: 10,
-                  boxShadow: "0 6px 28px rgba(234,88,12,0.5)",
-                  width: "80%",
+                  letterSpacing: 2,
+                  textShadow: "0 3px 16px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.9)",
+                  marginBottom: 24,
                 }}
               >
-                <div style={{ fontSize: 24, fontWeight: 900, color: "white", letterSpacing: 1 }}>
-                  INSCRIBE A TUS HIJOS
+                TODO EL CLUB, AQUÍ
+              </div>
+
+              {/* ========== QR CARD ========== */}
+              <div
+                style={{
+                  background: "linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,240,230,0.95))",
+                  borderRadius: 24,
+                  padding: "24px 28px 22px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  boxShadow: "0 12px 50px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3)",
+                  border: "3px solid rgba(180,120,60,0.3)",
+                  marginBottom: 6,
+                }}
+              >
+                {/* QR with club logo overlay */}
+                <div style={{ position: "relative", marginBottom: 16 }}>
+                  <img
+                    src={QR_URL}
+                    alt="QR"
+                    crossOrigin="anonymous"
+                    style={{
+                      width: 260,
+                      height: 260,
+                      display: "block",
+                    }}
+                  />
+                  {/* Small logo in center of QR */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      background: "white",
+                      borderRadius: 10,
+                      padding: 4,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    <img
+                      src={LOGO_URL}
+                      alt=""
+                      crossOrigin="anonymous"
+                      style={{ width: 48, height: 48, objectFit: "contain", borderRadius: 6 }}
+                    />
+                  </div>
                 </div>
-                <div style={{ fontSize: 14, color: "#fef3c7", marginTop: 4 }}>
-                  o hazte socio del club
+
+                {/* Texts under QR */}
+                <div
+                  style={{
+                    textAlign: "center",
+                    color: "#3a2010",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <div style={{ fontSize: 17, fontWeight: 700 }}>Hazte socio</div>
+                  <div style={{ fontSize: 17, fontWeight: 700 }}>Formulario jugador@s</div>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: "#5a3a20" }}>
+                    Tienda &nbsp;·&nbsp; Información
+                  </div>
+                </div>
+
+                {/* Tagline */}
+                <div
+                  style={{
+                    marginTop: 10,
+                    fontSize: 13,
+                    fontStyle: "italic",
+                    color: "#7a5a3a",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Un club abierto a toda la comunidad
                 </div>
               </div>
 
               {/* Spacer */}
               <div style={{ flex: 1 }} />
 
-              {/* Bottom section: QR prominente */}
+              {/* ========== Bottom slogan ========== */}
               <div
                 style={{
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 20,
-                  background: "rgba(0,0,0,0.55)",
-                  backdropFilter: "blur(12px)",
-                  borderRadius: 20,
-                  padding: "28px 32px 24px",
-                  border: "1px solid rgba(255,255,255,0.15)",
+                  textAlign: "center",
+                  marginBottom: 6,
                 }}
               >
-                {/* QR heading */}
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "white", marginBottom: 4 }}>
-                    ESCANEA Y ÚNETE
-                  </div>
-                  <div style={{ fontSize: 14, color: "#cbd5e1" }}>
-                    Inscripción de jugadores y socios
-                  </div>
-                </div>
-
-                {/* QR code - bigger */}
                 <div
                   style={{
-                    background: "white",
-                    borderRadius: 18,
-                    padding: 14,
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                    fontSize: 22,
+                    fontWeight: 900,
+                    color: "white",
+                    letterSpacing: 3,
+                    textShadow: "0 2px 12px rgba(0,0,0,0.8)",
+                    marginBottom: 8,
                   }}
                 >
-                  <img
-                    src={QR_URL}
-                    alt="QR"
-                    crossOrigin="anonymous"
-                    style={{ width: 170, height: 170, display: "block" }}
-                  />
+                  TU CLUB. TU PUEBLO. TU DEPORTE.
                 </div>
-
-                {/* Subtle web reference */}
-                <div style={{ fontSize: 13, color: "#94a3b8", letterSpacing: 1 }}>
-                  cdbustarviejo.com
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: "#c8a882",
+                    letterSpacing: 2,
+                    fontWeight: 500,
+                  }}
+                >
+                  www.cdbustarviejo.com
                 </div>
-              </div>
-
-              {/* Bottom text */}
-              <div
-                style={{
-                  marginTop: 18,
-                  width: "100%",
-                  textAlign: "center",
-                  fontSize: 11,
-                  color: "#f97316",
-                  fontWeight: 700,
-                  letterSpacing: 3,
-                  textTransform: "uppercase",
-                }}
-              >
-                Club Deportivo Bustarviejo · Desde 1989
               </div>
             </div>
 
-            {/* Bottom orange accent bar */}
+            {/* Bottom accent bar */}
             <div
               style={{
                 position: "absolute",
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 6,
-                background: "linear-gradient(90deg, #ea580c 0%, #f97316 50%, #ea580c 100%)",
+                height: 5,
+                background: "linear-gradient(90deg, #8b4513 0%, #d2691e 50%, #8b4513 100%)",
               }}
             />
           </div>
