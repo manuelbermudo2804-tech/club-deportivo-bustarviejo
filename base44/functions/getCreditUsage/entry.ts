@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       if (p.stripe_subscription_id) stripeCredits++;
     }
     for (const m of recentMembers) {
-      if (p.stripe_subscription_id || m.stripe_customer_id) stripeCredits++;
+      if (m.stripe_subscription_id || m.stripe_customer_id) stripeCredits++;
     }
 
     // 3. Lottery orders
