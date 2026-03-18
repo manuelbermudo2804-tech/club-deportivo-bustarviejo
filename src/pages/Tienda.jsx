@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ShoppingBag, ExternalLink, Star, Gift } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
+import EquipacionSection from "../components/store/EquipacionSection";
+import MerchSection from "../components/store/MerchSection";
 
 export default function Tienda() {
   const [config, setConfig] = useState(null);
@@ -36,73 +36,8 @@ export default function Tienda() {
         <p className="text-slate-500 text-sm mt-1">Equipación oficial y merchandising del CD Bustarviejo</p>
       </div>
 
-      <div className="grid gap-4">
-        {/* Equipación */}
-        <Card className="overflow-hidden border-2 border-orange-100 hover:border-orange-300 transition-colors">
-          <CardContent className="p-0">
-            <div className="flex flex-col sm:flex-row items-center gap-4 p-6">
-              <div className="w-20 h-20 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-                <Star className="w-10 h-10 text-orange-600" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-xl font-bold text-slate-900">🛍️ Equipación Oficial</h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  Chaquetas, packs de entrenamiento, chubasqueros, mochilas y más.
-                </p>
-              </div>
-              {clothingUrl ? (
-                <a href={clothingUrl} target="_blank" rel="noopener noreferrer">
-                  <Button className="bg-orange-600 hover:bg-orange-700 gap-2 whitespace-nowrap">
-                    <ExternalLink className="w-4 h-4" />
-                    Ir a la tienda
-                  </Button>
-                </a>
-              ) : (
-                <Button disabled className="gap-2 whitespace-nowrap">
-                  Próximamente
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Merchandising */}
-        <Card className="overflow-hidden border-2 border-green-100 hover:border-green-300 transition-colors">
-          <CardContent className="p-0">
-            <div className="flex flex-col sm:flex-row items-center gap-4 p-6">
-              <div className="w-20 h-20 rounded-2xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                <Gift className="w-10 h-10 text-green-600" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-xl font-bold text-slate-900">🛒 Merchandising</h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  Artículos exclusivos del club: bufandas, gorras, tazas y más.
-                </p>
-              </div>
-              {merchUrl ? (
-                <a href={merchUrl} target="_blank" rel="noopener noreferrer">
-                  <Button className="bg-green-600 hover:bg-green-700 gap-2 whitespace-nowrap">
-                    <ExternalLink className="w-4 h-4" />
-                    Ir a la tienda
-                  </Button>
-                </a>
-              ) : (
-                <Button disabled className="gap-2 whitespace-nowrap">
-                  Próximamente
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {!clothingUrl && !merchUrl && (
-        <div className="text-center py-8 text-slate-500">
-          <p className="text-5xl mb-3">🏪</p>
-          <p className="font-medium">Las tiendas aún no están configuradas.</p>
-          <p className="text-sm mt-1">Estarán disponibles próximamente.</p>
-        </div>
-      )}
+      <EquipacionSection clothingUrl={clothingUrl} />
+      <MerchSection merchUrl={merchUrl} />
     </div>
   );
 }
