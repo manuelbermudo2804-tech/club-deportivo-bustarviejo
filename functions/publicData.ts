@@ -124,7 +124,11 @@ Deno.serve(async (req) => {
       Object.keys(data.clasificaciones || {}).length > 0 ||
       Object.keys(data.goleadores || {}).length > 0;
 
-    const htmlPage = hayDatos ? generarHTML(data) : generarHTMLOffseason();
+    // Permitir preview de la pantalla offseason con ?preview=offseason
+    let forceOffseason = false;
+    try { forceOffseason = new URL(req.url).searchParams.get('preview') === 'offseason'; } catch {}
+
+    const htmlPage = (!hayDatos || forceOffseason) ? generarHTMLOffseason() : generarHTML(data);
     return new Response(htmlPage, {
       headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
     });
