@@ -36,7 +36,7 @@ export default function EquipacionSection({ clothingUrl }) {
               <div>
                 <p className="font-bold text-sm">Pack de entrenamiento obligatorio</p>
                 <p className="text-slate-300 text-sm mt-1">
-                  Todos los jugadores del club necesitan el <strong className="text-orange-400">pack de entrenamiento oficial</strong> (camiseta + pantalón + sudadera) para participar en entrenamientos y partidos. Nos ayuda a ir todos iguales y dar la mejor imagen del club.
+                  Todos los jugadores del club necesitan el <strong className="text-orange-400">pack obligatorio oficial</strong> para participar en entrenamientos y partidos. Consulta el contenido del pack en la tienda. Nos ayuda a ir todos iguales y dar la mejor imagen del club.
                 </p>
               </div>
             </div>

@@ -15,7 +15,7 @@ export default function MerchSection({ merchUrl }) {
             </div>
             <div>
               <h2 className="text-xl font-bold">🛒 Merchandising del Club</h2>
-              <p className="text-green-100 text-sm">Gorras, tazas, camisetas casuales, sudaderas y artículos exclusivos del club</p>
+              <p className="text-green-100 text-sm">Gorras, tazas, llaveros y cientos de artículos exclusivos del club</p>
             </div>
           </div>
         </div>
