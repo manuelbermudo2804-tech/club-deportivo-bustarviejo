@@ -854,7 +854,6 @@ body {
   </div>
 
   <div class="offseason-badges">
-    <div class="badge">⚽ +200 jugadores</div>
     <div class="badge">🏟️ Desde 1989</div>
     <div class="badge">💚 Bustarviejo</div>
   </div>
