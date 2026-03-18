@@ -2,7 +2,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 // API PÚBLICA - No requiere autenticación
 // Devuelve datos deportivos para mostrar en la web del club
-// v3 - Diseño exacto de la web cdbustarviejo
+// v4 - Con caché en memoria para evitar rate limiting
+
+// Caché en memoria: datos + timestamp
+let cachedData = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
 Deno.serve(async (req) => {
   const corsHeaders = {
@@ -18,16 +23,29 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const base44 = createClientFromRequest(req);
+    const now = Date.now();
+    let proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo;
 
-    const [proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo] = await Promise.all([
-      base44.asServiceRole.entities.ProximoPartido.list('-fecha_iso', 50),
-      base44.asServiceRole.entities.Resultado.filter({ local: { $regex: 'BUSTARVIEJO' }, estado: 'finalizado' }, '-jornada', 100).catch(() => []),
-      base44.asServiceRole.entities.Resultado.filter({ visitante: { $regex: 'BUSTARVIEJO' }, estado: 'finalizado' }, '-jornada', 100).catch(() => []),
-      base44.asServiceRole.entities.Clasificacion.list('-puntos', 200),
-      base44.asServiceRole.entities.Goleador.list('-goles', 200),
-      base44.asServiceRole.entities.Goleador.filter({ equipo: { $regex: 'BUSTARVIEJO' } }, '-goles', 100).catch(() => []),
-    ]);
+    // Si la caché es válida, usar datos cacheados
+    if (cachedData && (now - cacheTimestamp) < CACHE_TTL_MS) {
+      ({ proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo } = cachedData);
+    } else {
+      // Cargar datos frescos de la BD
+      const base44 = createClientFromRequest(req);
+
+      [proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo] = await Promise.all([
+        base44.asServiceRole.entities.ProximoPartido.list('-fecha_iso', 50),
+        base44.asServiceRole.entities.Resultado.filter({ local: { $regex: 'BUSTARVIEJO' }, estado: 'finalizado' }, '-jornada', 100).catch(() => []),
+        base44.asServiceRole.entities.Resultado.filter({ visitante: { $regex: 'BUSTARVIEJO' }, estado: 'finalizado' }, '-jornada', 100).catch(() => []),
+        base44.asServiceRole.entities.Clasificacion.list('-puntos', 200),
+        base44.asServiceRole.entities.Goleador.list('-goles', 200),
+        base44.asServiceRole.entities.Goleador.filter({ equipo: { $regex: 'BUSTARVIEJO' } }, '-goles', 100).catch(() => []),
+      ]);
+
+      // Guardar en caché
+      cachedData = { proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo };
+      cacheTimestamp = now;
+    }
 
     // Merge resultados y deduplicar por id
     const resultadosMap = new Map();
