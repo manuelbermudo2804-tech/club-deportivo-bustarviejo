@@ -51,6 +51,23 @@ export default function Players() {
     fetchUser();
   }, []);
 
+  // Detectar parámetros de Alta Asistida y abrir formulario pre-rellenado
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('assisted') === 'true') {
+      const preData = {};
+      if (params.get('email')) preData.email_padre = params.get('email');
+      if (params.get('telefono')) preData.telefono = params.get('telefono');
+      if (params.get('nombre_jugador')) preData.nombre = params.get('nombre_jugador');
+      if (params.get('nombre_contacto')) preData.nombre_tutor_legal = params.get('nombre_contacto');
+      preData._assisted_id = params.get('assisted_id') || '';
+      setEditingPlayer(preData);
+      setShowForm(true);
+      // Limpiar URL para evitar reabrir el formulario al navegar
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // El tesorero también debe ver todos los jugadores
   const isTreasurer = user?.es_tesorero === true;
 
