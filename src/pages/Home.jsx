@@ -17,7 +17,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
-import FrontendBirthdayChecker from "../components/engines/FrontendBirthdayChecker";
+import DailyTasksPanel from "../components/admin/DailyTasksPanel";
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -686,8 +686,8 @@ export default function Home() {
           />
         )}
 
-        {/* Cumpleaños: botón manual (reemplaza automatización) */}
-        {isAdmin && <FrontendBirthdayChecker />}
+        {/* Panel de Tareas Diarias - Lo primero que ve el admin */}
+        {isAdmin && <DailyTasksPanel />}
 
         {/* Alerta de Jugadores Duplicados - Solo Admin */}
         {isAdmin && <DuplicatePlayersAlert />}
