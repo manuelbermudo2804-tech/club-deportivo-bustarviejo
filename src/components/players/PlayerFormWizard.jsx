@@ -143,6 +143,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const [libroUploadFailed, setLibroUploadFailed] = useState(false);
   const [dniTutorUploadFailed, setDniTutorUploadFailed] = useState(false);
 
+  // Contador de fallos de subida — al llegar a 2 aparece el banner de ayuda
+  const [uploadFailCount, setUploadFailCount] = useState(0);
+
   const categories = useCategoriesFromConfig();
 
   // Load categoryConfigs for complementary detection (used by StepAuthorizations)
@@ -267,8 +270,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         setCurrentPlayer(p => ({ ...p, foto_url: url }));
       } else {
         setPhotoUploadFailed(true);
+        setUploadFailCount(c => c + 1);
       }
-    } catch (err) { setPhotoUploadFailed(true); logUploadError(null, err, 'handlePhotoUpload_catch'); }
+    } catch (err) { setPhotoUploadFailed(true); setUploadFailCount(c => c + 1); logUploadError(null, err, 'handlePhotoUpload_catch'); }
   };
   const handleDNIUpload = async (e) => {
     try {
@@ -287,8 +291,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         setCurrentPlayer(p => ({ ...p, dni_jugador_url: url }));
       } else {
         setDniUploadFailed(true);
+        setUploadFailCount(c => c + 1);
       }
-    } catch (err) { setDniUploadFailed(true); logUploadError(null, err, 'handleDNIUpload_catch'); }
+    } catch (err) { setDniUploadFailed(true); setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleDNIUpload_catch'); }
   };
   const handleLibroFamiliaUpload = async (e) => {
     try {
@@ -307,8 +312,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         setCurrentPlayer(p => ({ ...p, libro_familia_url: url }));
       } else {
         setLibroUploadFailed(true);
+        setUploadFailCount(c => c + 1);
       }
-    } catch (err) { setLibroUploadFailed(true); logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
+    } catch (err) { setLibroUploadFailed(true); setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
   };
   const handleDNITraseroUpload = async (e) => {
     try {
@@ -344,8 +350,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
       } else {
         setDniTutorUploadFailed(true);
+        setUploadFailCount(c => c + 1);
       }
-    } catch (err) { setDniTutorUploadFailed(true); logUploadError(null, err, 'handleDNITutorUpload_catch'); }
+    } catch (err) { setDniTutorUploadFailed(true); setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleDNITutorUpload_catch'); }
   };
   const handleDNITutorTraseroUpload = async (e) => {
     try {
