@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import BulkInviteDialog from "@/components/admin/BulkInviteDialog";
-import AssistedRegistrationPanel from "@/components/admin/AssistedRegistrationPanel";
+import AssistedRegistrationPanel from "@/components/admin/AssistedRegistrationPanel.jsx";
 
 function InviteDialog({ open, onOpenChange, onInvite }) {
   const [email, setEmail] = useState("");
