@@ -17,6 +17,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import FrontendBirthdayChecker from "../components/engines/FrontendBirthdayChecker";
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -684,6 +685,9 @@ export default function Home() {
             userSports={myPlayersSports}
           />
         )}
+
+        {/* Cumpleaños: botón manual (reemplaza automatización) */}
+        {isAdmin && <FrontendBirthdayChecker />}
 
         {/* Alerta de Jugadores Duplicados - Solo Admin */}
         {isAdmin && <DuplicatePlayersAlert />}
