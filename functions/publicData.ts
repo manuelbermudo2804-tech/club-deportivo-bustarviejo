@@ -718,39 +718,23 @@ body {
   line-height: 1.6;
 }
 
-/* CUENTA ATRÁS */
-.countdown {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
+/* FECHA DE VUELTA */
+.countdown-placeholder {
   position: relative;
   z-index: 1;
   margin-bottom: 48px;
 }
-.cd-box {
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(245,124,0,0.3);
-  border-radius: 16px;
-  padding: 20px 24px;
-  min-width: 90px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+.comeback-date {
+  font-size: 1.3rem;
+  color: #fff;
+  background: rgba(245,124,0,0.2);
+  border: 2px solid rgba(245,124,0,0.4);
+  border-radius: 50px;
+  padding: 16px 32px;
+  display: inline-block;
 }
-.cd-number {
-  font-size: 2.8rem;
-  font-weight: 900;
+.comeback-date strong {
   color: #f57c00;
-  line-height: 1;
-  display: block;
-}
-.cd-label {
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.5);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-top: 6px;
-  display: block;
 }
 
 /* BADGES */
@@ -846,11 +830,8 @@ body {
   <h1 class="offseason-titulo">¡Volvemos <span>pronto</span>! 💪</h1>
   <p class="offseason-sub">La competición ha terminado por esta temporada. Estamos preparando la nueva temporada <strong>${nextSeason}</strong> con más fuerza que nunca.</p>
   
-  <div class="countdown" id="countdown">
-    <div class="cd-box"><span class="cd-number" id="cd-days">--</span><span class="cd-label">Días</span></div>
-    <div class="cd-box"><span class="cd-number" id="cd-hours">--</span><span class="cd-label">Horas</span></div>
-    <div class="cd-box"><span class="cd-number" id="cd-mins">--</span><span class="cd-label">Minutos</span></div>
-    <div class="cd-box"><span class="cd-number" id="cd-secs">--</span><span class="cd-label">Segundos</span></div>
+  <div class="countdown-placeholder">
+    <p class="comeback-date">📅 Volvemos en <strong>Septiembre ${year}</strong></p>
   </div>
 
   <div class="offseason-badges">
@@ -889,32 +870,7 @@ body {
   <div class="footer-copy">© 1989–${new Date().getFullYear()} · C.D. Bustarviejo · Todos los derechos reservados</div>
 </footer>
 
-<script>
-(function(){
-  var target = new Date(${year}, 8, 1, 0, 0, 0); // 1 de septiembre ${year}
-  function update(){
-    var now = new Date();
-    var diff = target - now;
-    if(diff <= 0){ 
-      document.getElementById('cd-days').textContent = '0';
-      document.getElementById('cd-hours').textContent = '0';
-      document.getElementById('cd-mins').textContent = '0';
-      document.getElementById('cd-secs').textContent = '0';
-      return;
-    }
-    var d = Math.floor(diff / 86400000);
-    var h = Math.floor((diff % 86400000) / 3600000);
-    var m = Math.floor((diff % 3600000) / 60000);
-    var s = Math.floor((diff % 60000) / 1000);
-    document.getElementById('cd-days').textContent = d;
-    document.getElementById('cd-hours').textContent = h;
-    document.getElementById('cd-mins').textContent = m;
-    document.getElementById('cd-secs').textContent = s;
-  }
-  update();
-  setInterval(update, 1000);
-})();
-</script>
+
 
 </body>
 </html>`;
