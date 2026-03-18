@@ -148,6 +148,7 @@ import PlayerEvaluations from './pages/PlayerEvaluations';
 import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import PlayerStatsPreview from './pages/PlayerStatsPreview';
+import PosterGenerator from './pages/PosterGenerator';
 import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
 import Reminders from './pages/Reminders';
@@ -170,7 +171,6 @@ import UploadDiagnostics from './pages/UploadDiagnostics';
 import UserManagement from './pages/UserManagement';
 import Voluntariado from './pages/Voluntariado';
 import WebContacts from './pages/WebContacts';
-import PosterGenerator from './pages/PosterGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -276,6 +276,7 @@ export const PAGES = {
     "PlayerProfile": PlayerProfile,
     "PlayerRenewal": PlayerRenewal,
     "PlayerStatsPreview": PlayerStatsPreview,
+    "PosterGenerator": PosterGenerator,
     "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
     "Reminders": Reminders,
@@ -298,7 +299,6 @@ export const PAGES = {
     "UserManagement": UserManagement,
     "Voluntariado": Voluntariado,
     "WebContacts": WebContacts,
-    "PosterGenerator": PosterGenerator,
 }
 
 export const pagesConfig = {

@@ -17,7 +17,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
-import DailyTasksPanel from "../components/admin/DailyTasksPanel";
+import CreditMonitor from "../components/admin/CreditMonitor";
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -686,8 +686,8 @@ export default function Home() {
           />
         )}
 
-        {/* Panel de Tareas Diarias - Lo primero que ve el admin */}
-        {isAdmin && <DailyTasksPanel />}
+        {/* Monitor de Créditos de Integración */}
+        {isAdmin && <CreditMonitor />}
 
         {/* Alerta de Jugadores Duplicados - Solo Admin */}
         {isAdmin && <DuplicatePlayersAlert />}
