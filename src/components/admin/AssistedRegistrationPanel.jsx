@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Phone, CheckCircle2, Clock, Loader2, MessageCircle, UserPlus } from "lucide-react";
+import { Phone, CheckCircle2, Clock, Loader2, MessageCircle, UserPlus, Plus } from "lucide-react";
+import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 
 function RequestCard({ request, onMarkContacted, onMarkResolved, onUpdateNotes }) {
