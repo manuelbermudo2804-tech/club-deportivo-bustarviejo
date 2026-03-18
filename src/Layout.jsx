@@ -46,8 +46,7 @@ const AutomaticPaymentReminders = React.lazy(() => import("./components/reminder
 import PlanPaymentReminders from "./components/reminders/PlanPaymentReminders";
 import AutomaticRenewalReminders from "./components/reminders/AutomaticRenewalReminders";
 import AutomaticRenewalClosure from "./components/renewals/AutomaticRenewalClosure.jsx";
-import FrontendAutoCloseCallups from "./components/engines/FrontendAutoCloseCallups";
-import FrontendAutoCloseRenewals from "./components/engines/FrontendAutoCloseRenewals";
+// FrontendAutoCloseCallups y FrontendAutoCloseRenewals eliminados — ahora se ejecutan desde el botón de Tareas Diarias
 import RenewalNotificationEngine from "./components/renewals/RenewalNotificationEngine";
 import PostRenewalPaymentReminder from "./components/renewals/PostRenewalPaymentReminder.jsx";
 const PaymentApprovalNotifier = React.lazy(() => import("./components/payments/PaymentApprovalNotifier"));
@@ -1243,8 +1242,7 @@ export default function Layout({ children, currentPageName }) {
                                           <NotificationBadge />
                                           <PaymentApprovalNotifier isAdmin={isAdmin} />
                                           {/* ClothingApprovalNotifier desactivado - equipación gestionada por proveedor externo */}
-                                          {isAdmin && <FrontendAutoCloseCallups />}
-                                          {isAdmin && <FrontendAutoCloseRenewals />}
+                                          {/* Auto-cierre movido al botón de Tareas Diarias en Home */}
                                         </Suspense>
                                       )}
 
