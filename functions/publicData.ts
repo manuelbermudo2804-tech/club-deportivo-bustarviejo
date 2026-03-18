@@ -609,3 +609,310 @@ tr:hover { background: #fafafa; }
 </body>
 </html>`;
 }
+
+function generarHTMLOffseason() {
+  const ESCUDO = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png';
+  const WEB = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/';
+
+  // Calcular próximo 1 de septiembre
+  const now = new Date();
+  const year = now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear(); // si ya pasó sept, apuntar al siguiente
+  const nextSeason = `${year}/${year + 1}`;
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competición — C.D. Bustarviejo</title>
+<link rel="icon" href="${ESCUDO}">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Montserrat', Arial, sans-serif;
+  color: #222;
+  background: #fff;
+  padding-top: 80px;
+}
+
+/* HEADER */
+.header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: #fff; border-bottom: 1px solid #eaeaea; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.header-contenido { max-width: 1200px; margin: auto; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; }
+.logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; color: #222; }
+.logo img { width: 44px; }
+.menu { display: flex; gap: 22px; align-items: center; }
+.menu a { text-decoration: none; color: #222; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; }
+.menu a:hover { color: #f57c00; }
+.btn-menu { background: #f57c00; color: #000 !important; padding: 12px 20px; border-radius: 30px; font-weight: 800; font-size: 0.85rem; text-decoration: none; }
+.menu-check { display: none; }
+.menu-toggle { display: none; font-size: 2.2rem; cursor: pointer; margin-left: auto; min-width: 44px; min-height: 44px; line-height: 44px; text-align: center; user-select: none; }
+
+/* HERO OFFSEASON */
+.offseason-hero {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+  position: relative;
+  overflow: hidden;
+}
+.offseason-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 50%, rgba(245,124,0,0.08) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(245,124,0,0.05) 0%, transparent 40%);
+  animation: bgFloat 20s ease-in-out infinite;
+}
+@keyframes bgFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-2%, -1%); }
+}
+
+.offseason-escudo {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 4px solid rgba(245,124,0,0.4);
+  box-shadow: 0 0 60px rgba(245,124,0,0.2), 0 20px 60px rgba(0,0,0,0.3);
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 60px rgba(245,124,0,0.2), 0 20px 60px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 0 80px rgba(245,124,0,0.35), 0 20px 60px rgba(0,0,0,0.3); }
+}
+
+.offseason-titulo {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  line-height: 1.2;
+}
+.offseason-titulo span { color: #f57c00; }
+
+.offseason-sub {
+  font-size: 1.2rem;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 48px;
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* CUENTA ATRÁS */
+.countdown {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 48px;
+}
+.cd-box {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(245,124,0,0.3);
+  border-radius: 16px;
+  padding: 20px 24px;
+  min-width: 90px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.cd-number {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #f57c00;
+  line-height: 1;
+  display: block;
+}
+.cd-label {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 6px;
+  display: block;
+}
+
+/* BADGES */
+.offseason-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 40px;
+}
+.badge {
+  background: rgba(245,124,0,0.15);
+  border: 1px solid rgba(245,124,0,0.3);
+  color: #f5a623;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.offseason-msg {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.85rem;
+  position: relative;
+  z-index: 1;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* FOOTER */
+.footer { background: #111; color: #eee; padding: 50px 20px 25px; }
+.footer-contenido { max-width: 1200px; margin: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 40px; }
+.footer-logo { width: 70px; margin-bottom: 12px; }
+.footer-titulo { font-weight: 800; margin-bottom: 12px; font-size: 1rem; }
+.footer-texto { color: #ccc; font-size: 0.9rem; line-height: 1.8; }
+.footer-texto a { color: #ccc; text-decoration: none; }
+.footer-texto a:hover { color: #f57c00; }
+.footer-links { list-style: none; padding: 0; }
+.footer-links li { margin-bottom: 8px; }
+.footer-links a { color: #ccc; text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+.footer-links a:hover { color: #f57c00; }
+.footer-copy { text-align: center; margin-top: 35px; font-size: 0.85rem; color: #aaa; border-top: 1px solid #333; padding-top: 20px; }
+
+@media (max-width: 768px) {
+  body { padding-top: 90px; }
+  .menu-toggle { display: block !important; }
+  .header-contenido { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
+  .logo { order: 1; }
+  .menu-check { order: 2; }
+  .menu-toggle { order: 2; }
+  .menu { order: 3; width: 100%; display: none !important; flex-direction: column; align-items: center; background: #fff; padding: 15px 0; margin-top: 10px; border-top: 1px solid #eaeaea; gap: 0; }
+  .menu-check:checked ~ .menu { display: flex !important; }
+  .menu a { font-size: 1.05rem; padding: 14px 0; width: 100%; text-align: center; border-bottom: 1px solid #f0f0f0; }
+  .menu a:last-child { border-bottom: none; }
+  .menu .btn-menu { margin-top: 10px; }
+  .offseason-titulo { font-size: 2rem; }
+  .offseason-sub { font-size: 1rem; }
+  .cd-number { font-size: 2rem; }
+  .cd-box { min-width: 70px; padding: 14px 16px; }
+  .offseason-escudo { width: 100px; height: 100px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-contenido">
+    <a class="logo" href="${WEB}">
+      <img src="${ESCUDO}" alt="Escudo C.D. Bustarviejo">
+      <span>C.D. Bustarviejo</span>
+    </a>
+    <input type="checkbox" id="menu-check" class="menu-check">
+    <label for="menu-check" class="menu-toggle" aria-label="Abrir menú">☰</label>
+    <nav class="menu">
+      <a href="${WEB}">Inicio</a>
+      <a href="${WEB}el-club.html">El Club</a>
+      <a href="${WEB}equipos.html">Equipos</a>
+      <a href="${WEB}patrocinadores.html">Patrocinadores</a>
+      <a href="${WEB}tienda.html">Tienda</a>
+      <a href="${WEB}comunicados.html">Comunicados</a>
+      <a href="${WEB}galeria.html">Galería</a>
+      <a class="btn-menu" style="background:#333;color:#fff !important;">Competición</a>
+      <a href="${WEB}area-interna.html">Área interna</a>
+      <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank">Hazte socio</a>
+    </nav>
+  </div>
+</header>
+
+<section class="offseason-hero">
+  <img src="${ESCUDO}" alt="C.D. Bustarviejo" class="offseason-escudo">
+  <h1 class="offseason-titulo">¡Volvemos <span>pronto</span>! 💪</h1>
+  <p class="offseason-sub">La competición ha terminado por esta temporada. Estamos preparando la nueva temporada <strong>${nextSeason}</strong> con más fuerza que nunca.</p>
+  
+  <div class="countdown" id="countdown">
+    <div class="cd-box"><span class="cd-number" id="cd-days">--</span><span class="cd-label">Días</span></div>
+    <div class="cd-box"><span class="cd-number" id="cd-hours">--</span><span class="cd-label">Horas</span></div>
+    <div class="cd-box"><span class="cd-number" id="cd-mins">--</span><span class="cd-label">Minutos</span></div>
+    <div class="cd-box"><span class="cd-number" id="cd-secs">--</span><span class="cd-label">Segundos</span></div>
+  </div>
+
+  <div class="offseason-badges">
+    <div class="badge">⚽ +200 jugadores</div>
+    <div class="badge">🏟️ Desde 1989</div>
+    <div class="badge">💚 Bustarviejo</div>
+  </div>
+
+  <p class="offseason-msg">Mientras tanto, sigue al club en redes sociales y prepárate para la nueva temporada. ¡Nos vemos en septiembre!</p>
+</section>
+
+<footer class="footer">
+  <div class="footer-contenido">
+    <div class="footer-col">
+      <img src="${ESCUDO}" class="footer-logo" alt="Escudo">
+      <p class="footer-titulo">C.D. Bustarviejo</p>
+      <p class="footer-texto">Deporte y valores desde 1989</p>
+    </div>
+    <div class="footer-col">
+      <p class="footer-titulo">Enlaces</p>
+      <ul class="footer-links">
+        <li><a href="${WEB}">Inicio</a></li>
+        <li><a href="${WEB}el-club.html">El Club</a></li>
+        <li><a href="${WEB}equipos.html">Equipos</a></li>
+        <li><a href="${WEB}patrocinadores.html">Patrocinadores</a></li>
+        <li><a href="${WEB}galeria.html">Galería</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <p class="footer-titulo">Contacto</p>
+      <p class="footer-texto">
+        📧 <a href="mailto:info@cdbustarviejo.com">info@cdbustarviejo.com</a><br>
+        📍 Bustarviejo (Madrid)
+      </p>
+    </div>
+  </div>
+  <div class="footer-copy">© 1989–${new Date().getFullYear()} · C.D. Bustarviejo · Todos los derechos reservados</div>
+</footer>
+
+<script>
+(function(){
+  var target = new Date(${year}, 8, 1); // 1 de septiembre
+  function update(){
+    var now = new Date();
+    var diff = target - now;
+    if(diff <= 0){ 
+      document.getElementById('cd-days').textContent = '0';
+      document.getElementById('cd-hours').textContent = '0';
+      document.getElementById('cd-mins').textContent = '0';
+      document.getElementById('cd-secs').textContent = '0';
+      return;
+    }
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cd-days').textContent = d;
+    document.getElementById('cd-hours').textContent = h;
+    document.getElementById('cd-mins').textContent = m;
+    document.getElementById('cd-secs').textContent = s;
+  }
+  update();
+  setInterval(update, 1000);
+})();
+</script>
+
+</body>
+</html>`;
+}
