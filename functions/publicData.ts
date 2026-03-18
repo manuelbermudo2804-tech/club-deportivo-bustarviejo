@@ -891,7 +891,7 @@ body {
 
 <script>
 (function(){
-  var target = new Date(${year}, 8, 1); // 1 de septiembre
+  var target = new Date(${year}, 8, 1, 0, 0, 0); // 1 de septiembre ${year}
   function update(){
     var now = new Date();
     var diff = target - now;
