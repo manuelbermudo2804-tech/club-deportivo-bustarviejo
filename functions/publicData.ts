@@ -119,7 +119,12 @@ Deno.serve(async (req) => {
       return Response.json(data, { headers: corsHeaders });
     }
 
-    const htmlPage = generarHTML(data);
+    // Detectar si hay datos de competición
+    const hayDatos = (data.proximos_partidos?.length > 0) ||
+      Object.keys(data.clasificaciones || {}).length > 0 ||
+      Object.keys(data.goleadores || {}).length > 0;
+
+    const htmlPage = hayDatos ? generarHTML(data) : generarHTMLOffseason();
     return new Response(htmlPage, {
       headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
     });
