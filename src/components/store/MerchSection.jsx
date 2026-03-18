@@ -15,23 +15,27 @@ export default function MerchSection({ merchUrl }) {
             </div>
             <div>
               <h2 className="text-xl font-bold">🛒 Merchandising del Club</h2>
-              <p className="text-green-100 text-sm">Bufandas, gorras, tazas, camisetas casuales y artículos exclusivos</p>
+              <p className="text-green-100 text-sm">Gorras, tazas, camisetas casuales, sudaderas y artículos exclusivos del club</p>
             </div>
           </div>
         </div>
 
         {/* Contenido */}
         <div className="p-5 space-y-4">
-          {/* Aviso importante */}
-          <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4">
+          {/* Invitación + aviso */}
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center mb-1">
+            <p className="text-green-800 text-sm">
+              💚 ¡Lleva los colores del <strong>CD Bustarviejo</strong> a todas partes! Artículos ideales para regalar o para el día a día.
+            </p>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Info className="w-5 h-5 text-white" />
-              </div>
+              <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-blue-900 text-sm">ℹ️ Tienda gestionada por un proveedor externo</p>
-                <p className="text-blue-800 text-sm mt-1">
-                  Esta tienda es un servicio externo independiente del club. El CD Bustarviejo <strong>no gestiona pedidos, envíos, devoluciones ni incidencias</strong> de esta tienda.
+                <p className="font-semibold text-blue-900 text-sm">ℹ️ Tienda gestionada por un proveedor externo</p>
+                <p className="text-blue-700 text-sm mt-1">
+                  Los pedidos, envíos y devoluciones se gestionan directamente con la tienda online, no a través del club.
                 </p>
               </div>
             </div>
@@ -58,7 +62,7 @@ export default function MerchSection({ merchUrl }) {
           {/* Nota */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
             <p className="text-xs text-slate-600 leading-relaxed">
-              <strong>📌 Nota:</strong> El club no tiene responsabilidad alguna sobre los productos, plazos de entrega ni calidad de los artículos de merchandising. Para cualquier reclamación, contacta directamente con la tienda online.
+              <strong>📌 Nota:</strong> Para cualquier consulta sobre pedidos, plazos de entrega o incidencias, contacta directamente con la tienda online.
             </p>
           </div>
 

@@ -20,18 +20,23 @@ export default function EquipacionSection({ clothingUrl }) {
           </div>
         </div>
 
-        {/* Avisos importantes */}
+        {/* Contenido */}
         <div className="p-5 space-y-4">
-          {/* Aviso principal */}
-          <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
+          {/* Invitación */}
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
+            <p className="text-orange-800 text-sm">
+              🧡 ¡Equipa a tus jugadores con la mejor imagen! Ropa de entrenamiento de calidad con el escudo del <strong>CD Bustarviejo</strong>.
+            </p>
+          </div>
+
+          {/* Aviso importante */}
+          <div className="bg-amber-50 border border-amber-300 rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <AlertTriangle className="w-5 h-5 text-white" />
-              </div>
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-amber-900 text-sm">⚠️ MUY IMPORTANTE — Leer antes de comprar</p>
+                <p className="font-semibold text-amber-900 text-sm">📋 Importante antes de hacer tu pedido</p>
                 <p className="text-amber-800 text-sm mt-1">
-                  Toda la equipación se <strong>fabrica bajo pedido</strong>. Los artículos con escudo del club y las camisetas sublimadas del primer equipo <strong>no admiten devolución ni cambio</strong>.
+                  Toda la equipación se <strong>fabrica bajo pedido</strong>. Los artículos con escudo del club y las camisetas sublimadas <strong>no admiten devolución ni cambio</strong>, así que es fundamental elegir bien la talla.
                 </p>
               </div>
             </div>
