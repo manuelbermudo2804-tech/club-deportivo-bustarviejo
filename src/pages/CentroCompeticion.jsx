@@ -753,7 +753,19 @@ export default function CentroCompeticion() {
           ) : filteredStandingsPack ? (
             <StandingsDisplay data={filteredStandingsPack} fullPage={true} />
           ) : (
-            <Card className="border-2 border-dashed"><CardContent className="p-8 text-center text-slate-500">Sin datos de clasificación para {category}</CardContent></Card>
+            <Card className="border-2 border-dashed border-orange-300 bg-gradient-to-br from-orange-50 to-white overflow-hidden">
+              <CardContent className="p-8 text-center relative">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-orange-200/30 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 mb-4">
+                  <Trophy className="w-7 h-7 text-white" />
+                </div>
+                <p className="font-bold text-slate-800 text-lg mb-2">Sin datos de clasificación</p>
+                <p className="text-slate-600 text-sm mb-3">La clasificación de <strong>{category}</strong> estará disponible cuando comience la competición.</p>
+                <span className="inline-block px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+                  🏆 ¡Preparando la temporada!
+                </span>
+              </CardContent>
+            </Card>
           )
         )}
 

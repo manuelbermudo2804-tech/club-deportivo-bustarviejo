@@ -184,7 +184,10 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500">Sin datos</p>
+                  <div className="text-center py-1">
+                    <p className="text-xs font-semibold text-orange-600">🏆 Preparando temporada</p>
+                    <p className="text-[10px] text-slate-500">Datos en septiembre</p>
+                  </div>
                 )}
               </div>
             </Link>

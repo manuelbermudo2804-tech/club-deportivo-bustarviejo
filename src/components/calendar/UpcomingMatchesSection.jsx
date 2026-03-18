@@ -220,13 +220,28 @@ export default function UpcomingMatchesSection() {
     .sort((a, b) => a.dateInfo.raw - b.dateInfo.raw);
 
   if (futureMatches.length === 0 && recentResults.length === 0) {
+    // Sin datos: podría ser fuera de temporada o simplemente sin partidos programados
     return (
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 text-center">
-        <div className="w-16 h-16 mx-auto rounded-full bg-slate-700 flex items-center justify-center mb-3">
-          <Trophy className="w-8 h-8 text-slate-500" />
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-green-500/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+        
+        <div className="relative z-10">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 mb-3">
+            <Trophy className="w-7 h-7 text-white" />
+          </div>
+          <p className="text-white font-bold text-lg mb-1">¡Preparando la temporada!</p>
+          <p className="text-slate-400 text-sm mb-4">Los partidos y resultados aparecerán aquí cuando comience la competición.</p>
+          <div className="flex justify-center gap-2">
+            <span className="px-3 py-1 bg-orange-500/20 text-orange-300 rounded-full text-xs font-semibold border border-orange-500/30">
+              🏟️ Desde 1989
+            </span>
+            <span className="px-3 py-1 bg-green-500/20 text-green-300 rounded-full text-xs font-semibold border border-green-500/30">
+              💚 Bustarviejo
+            </span>
+          </div>
         </div>
-        <p className="text-white font-bold">No hay partidos próximos</p>
-        <p className="text-xs text-slate-400 mt-1">Los próximos partidos aparecerán aquí automáticamente</p>
       </div>
     );
   }
