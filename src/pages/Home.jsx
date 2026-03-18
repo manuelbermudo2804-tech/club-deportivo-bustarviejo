@@ -17,7 +17,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
-import CreditMonitor from "../components/admin/CreditMonitor";
+import CreditMonitor from "@/components/admin/CreditMonitor";
 
 export default function Home() {
   const queryClient = useQueryClient();
