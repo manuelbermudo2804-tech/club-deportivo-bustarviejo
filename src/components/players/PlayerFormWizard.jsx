@@ -24,6 +24,7 @@ import { useImageUpload } from "../utils/useImageUpload";
 import { logUploadError, logUploadButtonClick, logInputChange, generateDiagnosticCode } from "../utils/uploadLogger";
 // SendDiagnosticButton removed from wizard UI - only used in admin diagnostics page
 import { saveFormDraft, loadFormDraft, clearFormDraft, markCameraOpening, checkCameraReload, clearCameraFlag } from "./wizard/useFormPersistence";
+import HelpRequestBanner from "./wizard/HelpRequestBanner";
 
 // --- Helpers (same as original PlayerForm) ---
 const calculateAge = (birthDate) => {
@@ -577,6 +578,17 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
               {renderStep()}
             </motion.div>
           </AnimatePresence>
+
+          {/* Banner de ayuda: aparece tras 2+ fallos de subida */}
+          {isParent && uploadFailCount >= 2 && (
+            <div className="my-4">
+              <HelpRequestBanner
+                failedAttempts={uploadFailCount}
+                playerName={currentPlayer.nombre || ""}
+                userEmail={currentPlayer.email_padre || currentUser?.email || ""}
+              />
+            </div>
+          )}
 
           <WizardNavButtons
             currentStep={step}
