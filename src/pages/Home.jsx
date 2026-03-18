@@ -17,7 +17,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
-import CreditMonitor from "@/components/admin/CreditMonitor";
+
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -686,8 +686,23 @@ export default function Home() {
           />
         )}
 
-        {/* Monitor de Créditos de Integración */}
-        {isAdmin && <CreditMonitor />}
+        {/* Enlace al Monitor de Créditos */}
+        {isAdmin && (
+          <Link to={createPageUrl("CreditUsage")}>
+            <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-3 flex items-center justify-between hover:border-yellow-500/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Monitor de Créditos</p>
+                  <p className="text-slate-400 text-xs">Ver consumo real detallado</p>
+                </div>
+              </div>
+              <span className="text-slate-500 text-lg">→</span>
+            </div>
+          </Link>
+        )}
 
         {/* Alerta de Jugadores Duplicados - Solo Admin */}
         {isAdmin && <DuplicatePlayersAlert />}
