@@ -345,10 +345,33 @@ export default function Players() {
   });
 
   const handleSubmit = async (playerData) => {
-    if (editingPlayer) {
-      updatePlayerMutation.mutate({ id: editingPlayer.id, playerData, originalPlayer: editingPlayer });
+    // Limpiar campo interno de Alta Asistida antes de guardar
+    const assistedId = playerData._assisted_id || editingPlayer?._assisted_id;
+    const cleanData = { ...playerData };
+    delete cleanData._assisted_id;
+
+    if (editingPlayer?.id) {
+      updatePlayerMutation.mutate({ id: editingPlayer.id, playerData: cleanData, originalPlayer: editingPlayer });
     } else {
-      createPlayerMutation.mutate(playerData);
+      createPlayerMutation.mutate(cleanData, {
+        onSuccess: async () => {
+          // Si viene de Alta Asistida, marcar la solicitud como resuelta
+          if (assistedId) {
+            try {
+              const me = await base44.auth.me();
+              await base44.entities.AssistedRegistration.update(assistedId, {
+                estado: 'resuelto',
+                resuelto_por: me?.email,
+                fecha_resolucion: new Date().toISOString(),
+                notas_admin: (await base44.entities.AssistedRegistration.filter({ id: assistedId }))?.[0]?.notas_admin 
+                  ? undefined 
+                  : 'Jugador dado de alta manualmente por admin desde panel de Alta Asistida'
+              });
+              toast.success('Solicitud de Alta Asistida marcada como resuelta');
+            } catch (e) { console.error('Error marking assisted registration:', e); }
+          }
+        }
+      });
     }
   };
 
