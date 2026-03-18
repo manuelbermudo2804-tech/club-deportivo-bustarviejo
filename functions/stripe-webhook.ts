@@ -791,7 +791,6 @@ Deno.serve(async (req) => {
 
           }
         }
-        }
     }
 
     // ========== INVOICE.PAYMENT_SUCCEEDED ==========
