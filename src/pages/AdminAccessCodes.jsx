@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import BulkInviteDialog from "@/components/admin/BulkInviteDialog";
+import AssistedRegistrationPanel from "@/components/admin/AssistedRegistrationPanel";
 
 function InviteDialog({ open, onOpenChange, onInvite }) {
   const [email, setEmail] = useState("");
@@ -547,6 +548,9 @@ export default function AdminAccessCodes() {
           </Button>
         </div>
       </div>
+
+      {/* 📞 SOLICITUDES DE ALTA ASISTIDA */}
+      <AssistedRegistrationPanel />
 
       {/* 🚨 ALERTAS DE SEGURIDAD */}
       {(securityAlerts.length > 0 || unauthorizedScreenVisits.length > 0) && (
