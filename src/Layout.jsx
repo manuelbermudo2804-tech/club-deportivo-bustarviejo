@@ -442,9 +442,16 @@ export default function Layout({ children, currentPageName }) {
     } catch {}
   }, []);
 
+  // Solo refrescar datos del usuario al volver a la app (no en cada navegación)
   useEffect(() => {
-    executeFetch();
-  }, [location.pathname]);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        executeFetch();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
 
 
   // useEffect de redirección ELIMINADO - causaba loops infinitos de React #310
