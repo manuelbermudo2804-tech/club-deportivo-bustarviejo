@@ -42,7 +42,7 @@ ${carnetBlock(nombre, numeroSocio, temporada, dni, '✅ SOCIO VERIFICADO', 'badg
 }
 
 function emailRenovacion({ nombre, numeroSocio, temporada, amount, fechaVencimiento }) {
-  const fv = fechaVencimiento || (temporada?.includes('-') ? `30 de junio de ${temporada.split('-')[1]}` : '');
+  const fv = fechaVencimiento || '';
   return baseLayout('#16a34a', 'Cuota renovada con éxito', '✅',
     `<p style="margin:12px 0;font-size:15px;color:#333333">Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
 <p style="margin:12px 0;font-size:15px;color:#333333">Tu suscripción anual se ha renovado correctamente. Hemos cobrado <strong>${amount||25}€</strong> de tu cuota de socio.</p>
@@ -65,7 +65,7 @@ function emailSuscripcionCancelada({ nombre, fechaVencimiento }) {
   return baseLayout('#d97706', 'Suscripción cancelada', '🔔',
     `<p style="margin:12px 0;font-size:15px;color:#333333">Estimado/a <strong>${nombre||'socio/a'}</strong>,</p>
 <p style="margin:12px 0;font-size:15px;color:#333333">Tu suscripción anual de socio del CD Bustarviejo ha sido <strong>cancelada</strong>.</p>
-<div style="border-radius:8px;padding:16px;margin:18px 0;background:#fff7ed;border-left:4px solid #ea580c"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>📅 Tu membresía seguirá activa</strong> hasta el <strong>${fechaVencimiento||'30 de junio'}</strong>.</p><p style="margin:4px 0;font-size:13px;color:#333333">Después de esa fecha, no se realizarán más cobros automáticos.</p></div>
+<div style="border-radius:8px;padding:16px;margin:18px 0;background:#fff7ed;border-left:4px solid #ea580c"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>📅 Tu membresía seguirá activa</strong> hasta el <strong>${fechaVencimiento||'la fecha de vencimiento de tu carnet'}</strong>.</p><p style="margin:4px 0;font-size:13px;color:#333333">Después de esa fecha, no se realizarán más cobros automáticos.</p></div>
 <div style="border-radius:8px;padding:16px;margin:18px 0;background:#eff6ff;border-left:4px solid #3b82f6"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>¿Quieres volver?</strong> Si en el futuro deseas renovar tu membresía, podrás hacerlo desde nuestra web o app.</p></div>
 <p style="margin:12px 0;font-size:15px;color:#333333">Gracias por el tiempo que nos has acompañado. ¡Siempre serás bienvenido/a! 💚</p>
 <p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
