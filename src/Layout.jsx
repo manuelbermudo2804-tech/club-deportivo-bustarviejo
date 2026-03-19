@@ -494,10 +494,9 @@ export default function Layout({ children, currentPageName }) {
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
   });
 
-  // NAVIGATION ITEMS BLOCK REMOVED - now in useNavigationItems hook
-  // Keeping a marker so we know where it was
-  if (false) { // Dead code block start — replaced by useNavigationItems
-    { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
+  // Navigation items are now in useNavigationItems hook
+  void 0; // placeholder line — safe to remove
+  if (false) {
     { title: "🔄 Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
