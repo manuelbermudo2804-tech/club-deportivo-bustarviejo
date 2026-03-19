@@ -38,6 +38,13 @@ function RequestCard({ request, onMarkContacted, onMarkResolved, onUpdateNotes }
                   WhatsApp
                 </a>
               </p>
+              {request.horario_contacto && request.horario_contacto !== 'Cualquier hora' && (
+                <p>🕐 <span className="font-semibold text-orange-700">Horario preferido: {request.horario_contacto}</span></p>
+              )}
+              {request.horario_contacto === 'Cualquier hora' && (
+                <p>🕐 Cualquier hora</p>
+              )}
+              {request.notas_horario && <p>📝 {request.notas_horario}</p>}
               {request.email_usuario && <p>📧 {request.email_usuario}</p>}
               {request.nombre_jugador && <p>⚽ Jugador: {request.nombre_jugador}</p>}
               <p>🔄 Intentos fallidos: {request.intentos_subida || 0}</p>

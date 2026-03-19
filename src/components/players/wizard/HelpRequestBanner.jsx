@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, Heart, Loader2, CheckCircle2, HelpCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ export default function HelpRequestBanner({ failedAttempts = 0, playerName = "",
   const [expanded, setExpanded] = useState(false);
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [horario, setHorario] = useState("Cualquier hora");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -58,6 +60,7 @@ export default function HelpRequestBanner({ failedAttempts = 0, playerName = "",
       await base44.entities.AssistedRegistration.create({
         nombre_contacto: nombre.trim(),
         telefono: telefono.trim(),
+        horario_contacto: horario,
         email_usuario: userEmail || "",
         nombre_jugador: playerName || "",
         estado: "pendiente",
@@ -121,6 +124,19 @@ export default function HelpRequestBanner({ failedAttempts = 0, playerName = "",
                 placeholder="Ej: 612 345 678"
                 className="rounded-xl h-12 text-base border-orange-200 bg-white"
               />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-orange-900">¿Cuándo prefieres que te llamemos?</Label>
+              <Select value={horario} onValueChange={setHorario}>
+                <SelectTrigger className="rounded-xl h-12 text-base border-orange-200 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Mañanas (9:00-14:00)">☀️ Mañanas (9:00-14:00)</SelectItem>
+                  <SelectItem value="Tardes (15:00-20:00)">🌅 Tardes (15:00-20:00)</SelectItem>
+                  <SelectItem value="Cualquier hora">🕐 Cualquier hora</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button
               type="submit"
