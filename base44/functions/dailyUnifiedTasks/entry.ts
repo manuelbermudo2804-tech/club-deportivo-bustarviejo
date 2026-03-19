@@ -295,6 +295,37 @@ async function taskBirthdays(base44) {
 }
 
 // ══════════════════════════════════════════════════
+// TASK 4: Auto-unpublish expired announcements
+// ══════════════════════════════════════════════════
+async function taskExpireAnnouncements(base44) {
+  const now = new Date();
+  const announcements = await base44.asServiceRole.entities.Announcement.filter({ publicado: true });
+  let unpublished = 0;
+
+  for (const a of announcements) {
+    let expired = false;
+
+    // Check fecha_caducidad_calculada (datetime)
+    if (a.fecha_caducidad_calculada && new Date(a.fecha_caducidad_calculada) < now) {
+      expired = true;
+    }
+    // Check fecha_expiracion (date)
+    else if (a.fecha_expiracion && a.fecha_expiracion < now.toISOString().split('T')[0]) {
+      expired = true;
+    }
+
+    if (expired) {
+      await base44.asServiceRole.entities.Announcement.update(a.id, { publicado: false, banner_activo: false });
+      unpublished++;
+      console.log(`[ANNOUNCEMENTS] ⏰ Unpublished: "${a.titulo}"`);
+    }
+  }
+
+  console.log(`[ANNOUNCEMENTS] Unpublished ${unpublished} expired announcements`);
+  return { unpublished, checked: announcements.length };
+}
+
+// ══════════════════════════════════════════════════
 // MAIN HANDLER
 // ══════════════════════════════════════════════════
 Deno.serve(async (req) => {
