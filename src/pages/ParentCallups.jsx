@@ -31,6 +31,8 @@ import WeatherWidget from "../components/callups/WeatherWidget";
 import CallupCountdown from "../components/callups/CallupCountdown";
 import CallupMap from "../components/callups/CallupMap";
 import CallupStatusBanner from "../components/callups/CallupStatusBanner";
+import TransportePanel from "../components/callups/TransportePanel";
+import TransporteModal from "../components/callups/TransporteModal";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 
@@ -45,6 +47,10 @@ export default function ParentCallups() {
     comentario: ""
   });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showTransporteModal, setShowTransporteModal] = useState(false);
+  const [transporteCallup, setTransporteCallup] = useState(null);
+  const [transportePlayer, setTransportePlayer] = useState(null);
+  const [savingTransporte, setSavingTransporte] = useState(false);
 
   const queryClient = useQueryClient();
   
@@ -139,6 +145,34 @@ export default function ParentCallups() {
         jugadores_convocados: updatedJugadores
       }
     });
+  };
+
+  const handleOpenTransporte = (callup, player) => {
+    setTransporteCallup(callup);
+    setTransportePlayer(player);
+    setShowTransporteModal(true);
+  };
+
+  const handleSaveTransporte = async (transporteData) => {
+    if (!transporteCallup || !transportePlayer) return;
+    setSavingTransporte(true);
+    
+    const freshCallups = await base44.entities.Convocatoria.filter({ id: transporteCallup.id });
+    const freshCallup = freshCallups?.[0] || transporteCallup;
+
+    const updatedJugadores = freshCallup.jugadores_convocados.map(j => {
+      if (j.jugador_id === transportePlayer.id) {
+        return { ...j, transporte: transporteData };
+      }
+      return j;
+    });
+
+    await base44.entities.Convocatoria.update(freshCallup.id, { jugadores_convocados: updatedJugadores });
+    queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+    setSavingTransporte(false);
+    setShowTransporteModal(false);
+    setTransporteCallup(null);
+    setTransportePlayer(null);
   };
 
   const getSeasonRange = (s) => {
