@@ -494,10 +494,9 @@ export default function Layout({ children, currentPageName }) {
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
   });
 
-  // Navigation items are now in useNavigationItems hook
-  void 0; // placeholder line — safe to remove
+  /* Navigation items extracted to useNavigationItems hook */
   if (false) {
-    { title: "🔄 Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
+    void 0; // dead-code marker
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
