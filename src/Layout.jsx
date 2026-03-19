@@ -494,9 +494,9 @@ export default function Layout({ children, currentPageName }) {
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
   });
 
-  /* DEAD_NAV_START — admin+coach block removed */
-  void(0); /* placeholder */ const _deadCodeRemoved1 = [
-                // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
+  /* DEAD_NAV_REPLACED */
+  if (false) { const _dead = [
+                // dead
                 ...(programaSociosActivo && isMemberPaid ? [{ 
                   title: "🎫 MI CARNET DE SOCIO", 
                   url: createPageUrl("MemberCardDisplay"), 
