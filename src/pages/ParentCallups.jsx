@@ -76,7 +76,7 @@ export default function ParentCallups() {
     queryKey: ['convocatorias'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
     initialData: [],
-    refetchInterval: 30000,
+    refetchInterval: 120000, // Cada 2 min en vez de 30s — suficiente para convocatorias
   });
 
   const updateCallupMutation = useMutation({
