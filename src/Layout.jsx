@@ -494,14 +494,7 @@ export default function Layout({ children, currentPageName }) {
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
   });
 
-  /* Navigation items now come from useNavigationItems hook */
-
-    // ⚽ DEPORTIVO
-    { title: "─ DEPORTIVO ─", section: true },
-    { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
-    { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
-    { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
-    { title: "⏱️ Control Minutos", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
+  /* Navigation items extracted to useNavigationItems hook */
 
     // 📅 CALENDARIO Y EVENTOS
     { title: "─ CALENDARIO Y EVENTOS ─", section: true },
