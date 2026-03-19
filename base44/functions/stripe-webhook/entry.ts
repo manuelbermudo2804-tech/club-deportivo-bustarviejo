@@ -1199,7 +1199,7 @@ Deno.serve(async (req) => {
                     subject: '🔔 Tu suscripción de socio ha sido cancelada',
                     body: emailSuscripcionCancelada({
                       nombre: member.nombre_completo || '',
-                      fechaVencimiento: member.fecha_vencimiento ? new Date(member.fecha_vencimiento).toLocaleDateString('es-ES') : '30 de junio'
+                      fechaVencimiento: member.fecha_vencimiento ? new Date(member.fecha_vencimiento).toLocaleDateString('es-ES') : 'la fecha de vencimiento de tu carnet'
                     })
                   });
                 } catch {}
