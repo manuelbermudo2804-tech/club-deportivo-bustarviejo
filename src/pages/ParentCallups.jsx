@@ -547,6 +547,18 @@ export default function ParentCallups() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de transporte compartido */}
+      <TransporteModal
+        open={showTransporteModal}
+        onOpenChange={setShowTransporteModal}
+        existingTransporte={transporteCallup?.jugadores_convocados?.find(j => j.jugador_id === transportePlayer?.id)?.transporte}
+        playerName={transportePlayer?.nombre}
+        userPhone={myPlayers[0]?.telefono || ""}
+        userName={user?.full_name || ""}
+        onSave={handleSaveTransporte}
+        isSaving={savingTransporte}
+      />
       </div>
       </div>
     </>
