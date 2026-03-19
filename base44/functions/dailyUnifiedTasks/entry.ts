@@ -413,6 +413,7 @@ Deno.serve(async (req) => {
     const codes = await taskExpireAccessCodes(base44);
     const birthdays = await taskBirthdays(base44);
     const announcements = await taskExpireAnnouncements(base44);
+    const cleanup = await taskCleanupOldData(base44);
 
     console.log('═══════════════════════════════════════');
     console.log('  DAILY UNIFIED TASKS - Complete!');
@@ -424,7 +425,8 @@ Deno.serve(async (req) => {
       callups,
       accessCodes: codes,
       birthdays,
-      announcements
+      announcements,
+      cleanup
     });
   } catch (error) {
     console.error('[DAILY] Fatal error:', error);
