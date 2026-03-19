@@ -376,47 +376,33 @@ export default function Layout({ children, currentPageName }) {
     }, []);
 
     // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
-  // Badge Mercadillo: cargar conteo y calcular nuevos
+  // Badge Mercadillo: solo cargar cuando se visita la página del Mercadillo
+  // El conteo se carga de localStorage para el badge (sin query a BD)
   useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await base44.entities.MarketListing.filter({ estado: 'activo' });
-        const count = (data || []).length;
-        setMarketCount(count);
-        const lastSeen = Number(localStorage.getItem('marketLastSeenCount') || 0);
-        setMarketNewCount(count > lastSeen ? count - lastSeen : 0);
-      } catch {}
-    };
-    load();
+    const lastSeen = Number(localStorage.getItem('marketLastSeenCount') || 0);
+    // Sin query — el badge solo muestra "nuevo" si la página Mercadillo actualizó el count
+    const cachedCount = Number(localStorage.getItem('marketTotalCount') || 0);
+    setMarketCount(cachedCount);
+    setMarketNewCount(cachedCount > lastSeen ? cachedCount - lastSeen : 0);
   }, []);
 
-  // Actualizar al volver a la app
-  useEffect(() => {
-    const onVis = () => {
-      if (document.visibilityState === 'visible') {
-        (async () => {
-          try {
-            const data = await base44.entities.MarketListing.filter({ estado: 'activo' });
-            const count = (data || []).length;
-            setMarketCount(count);
-            const lastSeen = Number(localStorage.getItem('marketLastSeenCount') || 0);
-            setMarketNewCount(count > lastSeen ? count - lastSeen : 0);
-          } catch {}
-        })();
-      }
-    };
-    document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
-  }, []);
-
-  // Marcar como visto al entrar en Mercadillo
+  // Marcar como visto al entrar en Mercadillo y actualizar cache
   useEffect(() => {
     const p = location.pathname.toLowerCase();
-    if (p.includes('mercadillo') && marketCount > 0) {
-      localStorage.setItem('marketLastSeenCount', String(marketCount));
-      setMarketNewCount(0);
+    if (p.includes('mercadillo')) {
+      // Al entrar en Mercadillo, cargar el conteo real y cachear
+      (async () => {
+        try {
+          const data = await base44.entities.MarketListing.filter({ estado: 'activo' });
+          const count = (data || []).length;
+          localStorage.setItem('marketTotalCount', String(count));
+          localStorage.setItem('marketLastSeenCount', String(count));
+          setMarketCount(count);
+          setMarketNewCount(0);
+        } catch {}
+      })();
     }
-  }, [location.pathname, marketCount]);
+  }, [location.pathname]);
 
   // Redirigir alias de PWA a la ruta canónica
   useEffect(() => {
