@@ -442,6 +442,11 @@ export default function Layout({ children, currentPageName }) {
     } catch {}
   }, []);
 
+  // Carga inicial de datos del usuario (solo una vez)
+  useEffect(() => {
+    executeFetch();
+  }, []);
+
   // Solo refrescar datos del usuario al volver a la app (no en cada navegación)
   useEffect(() => {
     const onVisibility = () => {
