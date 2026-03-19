@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 async function sendViaResend(to, subject, html) {
   const key = Deno.env.get('RESEND_API_KEY');
