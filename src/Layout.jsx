@@ -26,6 +26,7 @@ import GlobalErrorHandler from "./components/utils/GlobalErrorHandler";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
 import LanguageSelector from "./components/LanguageSelector";
+import { useNavigationItems } from "./components/layout/useNavigationItems";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 import { ChatUnreadProvider } from "./components/chat/ChatUnreadProvider";
 import ChatCountsBridge from "./components/chat/ChatCountsBridge";
