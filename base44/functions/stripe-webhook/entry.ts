@@ -685,13 +685,12 @@ Deno.serve(async (req) => {
           const isSuscripcion = session.mode === 'subscription';
           const origenPago = metadata.origen_pago || (isSuscripcion ? 'stripe_suscripcion' : 'stripe_unico');
 
-          // Calcular fecha_vencimiento (30 junio del año de fin de temporada)
+          // Calcular fecha_vencimiento (1 año desde la fecha de pago)
           let fechaVencimiento = null;
           try {
-            if (temporada && temporada.includes('-')) {
-              const endYear = temporada.split('-')[1];
-              fechaVencimiento = `${endYear}-06-30`;
-            }
+            const payDate = new Date();
+            payDate.setFullYear(payDate.getFullYear() + 1);
+            fechaVencimiento = payDate.toISOString().slice(0, 10);
           } catch {}
 
           // Datos de suscripción si aplica
