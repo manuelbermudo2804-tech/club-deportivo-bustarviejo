@@ -85,6 +85,7 @@ import CoordinatorChat from './pages/CoordinatorChat';
 import CoordinatorChatsHub from './pages/CoordinatorChatsHub';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
 import CoordinatorSettings from './pages/CoordinatorSettings';
+import CreditUsage from './pages/CreditUsage';
 import CustomPaymentPlans from './pages/CustomPaymentPlans';
 import DeleteAccount from './pages/DeleteAccount';
 import DocumentManagement from './pages/DocumentManagement';
@@ -143,11 +144,11 @@ import PaymentReminders from './pages/PaymentReminders';
 import Payments from './pages/Payments';
 import PaymentsDashboard from './pages/PaymentsDashboard';
 import PlayerDashboard from './pages/PlayerDashboard';
-import Players from './pages/Players';
 import PlayerEvaluations from './pages/PlayerEvaluations';
 import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import PlayerStatsPreview from './pages/PlayerStatsPreview';
+import Players from './pages/Players';
 import PosterGenerator from './pages/PosterGenerator';
 import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
@@ -213,6 +214,7 @@ export const PAGES = {
     "CoordinatorChatsHub": CoordinatorChatsHub,
     "CoordinatorDashboard": CoordinatorDashboard,
     "CoordinatorSettings": CoordinatorSettings,
+    "CreditUsage": CreditUsage,
     "CustomPaymentPlans": CustomPaymentPlans,
     "DeleteAccount": DeleteAccount,
     "DocumentManagement": DocumentManagement,
@@ -271,11 +273,11 @@ export const PAGES = {
     "Payments": Payments,
     "PaymentsDashboard": PaymentsDashboard,
     "PlayerDashboard": PlayerDashboard,
-    "Players": Players,
     "PlayerEvaluations": PlayerEvaluations,
     "PlayerProfile": PlayerProfile,
     "PlayerRenewal": PlayerRenewal,
     "PlayerStatsPreview": PlayerStatsPreview,
+    "Players": Players,
     "PosterGenerator": PosterGenerator,
     "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
