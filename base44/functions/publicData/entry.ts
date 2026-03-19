@@ -7,6 +7,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 // Caché en memoria: datos + timestamp
 let cachedData = null;
 let cacheTimestamp = 0;
+let cachedDateStr = '';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
 Deno.serve(async (req) => {
