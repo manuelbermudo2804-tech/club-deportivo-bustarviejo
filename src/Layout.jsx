@@ -486,13 +486,17 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-  const adminNavigationItems = useMemo(() => [
-    // 🏠 INICIO
-    { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
-    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
+  const navigationItems = useNavigationItems({
+    user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, hasPlayers,
+    programaSociosActivo, isMemberPaid, loteriaVisible, marketNewCount,
+    playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses,
+    chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount,
+    pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
+  });
 
-    // 👥 GESTIÓN DE PERSONAS
-    { title: "─ GESTIÓN DE PERSONAS ─", section: true },
+  // NAVIGATION ITEMS BLOCK REMOVED - now in useNavigationItems hook
+  // Keeping a marker so we know where it was
+  if (false) { // Dead code block start — replaced by useNavigationItems
     { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
     { title: "🔄 Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
     { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
