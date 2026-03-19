@@ -485,69 +485,93 @@ Deno.serve(async (req) => {
               const candidates = await base44.asServiceRole.entities.ClubMember.filter({ email: payerEmail, temporada: tempActual });
               const pendingMember = candidates?.find(m => m.estado_pago !== 'Pagado');
 
+              // Calcular fecha_vencimiento
+              let plFechaVenc = null;
+              try {
+                if (tempActual && tempActual.includes('-')) {
+                  plFechaVenc = `${tempActual.split('-')[1]}-06-30`;
+                }
+              } catch {}
+
+              const plUpdateData = {
+                estado_pago: 'Pagado',
+                metodo_pago: 'Tarjeta',
+                activo: true,
+                origen_pago: 'stripe_unico',
+                renovacion_automatica: false,
+                fecha_alta: today,
+                fecha_pago: today,
+                fecha_vencimiento: plFechaVenc,
+                fecha_ultimo_cobro: new Date().toISOString(),
+              };
+
+              let finalMember = pendingMember;
+
               if (pendingMember) {
-                // Calcular fecha_vencimiento
-                let plFechaVenc = null;
-                try {
-                  if (tempActual && tempActual.includes('-')) {
-                    plFechaVenc = `${tempActual.split('-')[1]}-06-30`;
-                  }
-                } catch {}
-
-                await base44.asServiceRole.entities.ClubMember.update(pendingMember.id, {
-                  estado_pago: 'Pagado',
-                  metodo_pago: 'Tarjeta',
-                  activo: true,
-                  origen_pago: 'stripe_unico',
-                  renovacion_automatica: false,
-                  fecha_alta: today,
-                  fecha_pago: today,
-                  fecha_vencimiento: plFechaVenc,
-                  fecha_ultimo_cobro: new Date().toISOString(),
-                });
+                await base44.asServiceRole.entities.ClubMember.update(pendingMember.id, plUpdateData);
                 console.log('[stripe-webhook] Socio marcado Pagado via Payment Link:', pendingMember.id, payerEmail);
-
-                // Log Stripe
-                try {
-                  await base44.asServiceRole.entities.StripePaymentLog.create({
-                    section: 'socios_payment_link',
-                    amount: amountPaid,
-                    currency: session.currency || 'eur',
-                    status: 'succeeded',
-                    session_id: session.id,
-                    payment_intent_id: session.payment_intent || null,
-                    email: payerEmail,
-                    related_entity: 'ClubMember',
-                    related_id: pendingMember.id,
-                    metadata: { source: 'payment_link', email: payerEmail },
-                    created_at: new Date().toISOString()
-                  });
-                } catch (logErr) {
-                  console.error('[stripe-webhook] Error log Payment Link:', logErr?.message);
-                }
-
-                // Emails
-                try {
-                  await base44.asServiceRole.integrations.Core.SendEmail({
-                    to: payerEmail,
-                    subject: '🎉 ¡Bienvenido/a al CD Bustarviejo!',
-                    body: emailBienvenida({
-                      nombre: pendingMember.nombre_completo,
-                      numeroSocio: pendingMember.numero_socio,
-                      temporada: tempActual,
-                      dni: pendingMember.dni || ''
-                    })
-                  });
-                  await base44.asServiceRole.integrations.Core.SendEmail({
-                    to: 'cdbustarviejo@outlook.es',
-                    subject: `✅ Nuevo socio pagado (Payment Link) - ${pendingMember.nombre_completo}`,
-                    body: `Socio pagado via Payment Link:\nNombre: ${pendingMember.nombre_completo}\nEmail: ${payerEmail}\nNúmero: ${pendingMember.numero_socio}\nTemporada: ${tempActual}`
-                  });
-                } catch (emailErr) {
-                  console.error('[stripe-webhook] Error email Payment Link:', emailErr?.message);
-                }
               } else {
-                console.log('[stripe-webhook] Payment Link: no se encontró socio pendiente para', payerEmail, tempActual);
+                // AUTO-CREAR socio: pagó por Payment Link sin pre-registro
+                console.log('[stripe-webhook] Payment Link: no hay socio pendiente, auto-creando para', payerEmail);
+                const customerName = session.customer_details?.name || payerEmail.split('@')[0] || '';
+                const allMembersForPL = await base44.asServiceRole.entities.ClubMember.list();
+                const currentYearPL = new Date().getFullYear();
+                const membersThisYearPL = allMembersForPL.filter(m => m.numero_socio?.includes(`CDB-${currentYearPL}`));
+                const nextNumberPL = membersThisYearPL.length + 1;
+                const numeroSocioPL = `CDB-${currentYearPL}-${String(nextNumberPL).padStart(4, '0')}`;
+
+                finalMember = await base44.asServiceRole.entities.ClubMember.create({
+                  numero_socio: numeroSocioPL,
+                  tipo_inscripcion: 'Nueva Inscripción',
+                  nombre_completo: customerName,
+                  email: payerEmail,
+                  es_socio_externo: true,
+                  cuota_socio: amountPaid,
+                  temporada: tempActual,
+                  notas: 'Socio auto-creado desde Payment Link (sin pre-registro web)',
+                  ...plUpdateData,
+                });
+                console.log('[stripe-webhook] Socio AUTO-CREADO via Payment Link:', finalMember.id, numeroSocioPL);
+              }
+
+              // Log Stripe
+              try {
+                await base44.asServiceRole.entities.StripePaymentLog.create({
+                  section: 'socios_payment_link',
+                  amount: amountPaid,
+                  currency: session.currency || 'eur',
+                  status: 'succeeded',
+                  session_id: session.id,
+                  payment_intent_id: session.payment_intent || null,
+                  email: payerEmail,
+                  related_entity: 'ClubMember',
+                  related_id: finalMember.id,
+                  metadata: { source: 'payment_link', email: payerEmail, auto_created: !pendingMember },
+                  created_at: new Date().toISOString()
+                });
+              } catch (logErr) {
+                console.error('[stripe-webhook] Error log Payment Link:', logErr?.message);
+              }
+
+              // Emails
+              try {
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to: payerEmail,
+                  subject: '🎉 ¡Bienvenido/a al CD Bustarviejo!',
+                  body: emailBienvenida({
+                    nombre: finalMember.nombre_completo,
+                    numeroSocio: finalMember.numero_socio,
+                    temporada: tempActual,
+                    dni: finalMember.dni || ''
+                  })
+                });
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                  to: 'cdbustarviejo@outlook.es',
+                  subject: `✅ Nuevo socio pagado (Payment Link) - ${finalMember.nombre_completo}`,
+                  body: `Socio pagado via Payment Link:\nNombre: ${finalMember.nombre_completo}\nEmail: ${payerEmail}\nNúmero: ${finalMember.numero_socio}\nTemporada: ${tempActual}${!pendingMember ? '\n⚠️ AUTO-CREADO (no se pre-registró en la web). Revisar datos.' : ''}`
+                });
+              } catch (emailErr) {
+                console.error('[stripe-webhook] Error email Payment Link:', emailErr?.message);
               }
             } catch (plErr) {
               console.error('[stripe-webhook] Error procesando Payment Link:', plErr?.message);
