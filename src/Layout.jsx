@@ -819,8 +819,7 @@ export default function Layout({ children, currentPageName }) {
       // Usuario normal de familia (padre/madre sin roles especiales)
       navigationItems = parentNavigationItems;
     }
-  } // Dead code block end — replaced by useNavigationItems
-
+  DEAD_NAV_END */
 
   const handleLogout = () => {
     base44.auth.logout();
