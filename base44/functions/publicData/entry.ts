@@ -27,6 +27,10 @@ Deno.serve(async (req) => {
     const now = Date.now();
     let proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo;
 
+    // Invalidar caché si cambió el día (para actualizar filtro de próximos partidos)
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (cachedDateStr !== todayStr) { cachedData = null; cachedDateStr = todayStr; }
+
     // Si la caché es válida, usar datos cacheados
     if (cachedData && (now - cacheTimestamp) < CACHE_TTL_MS) {
       ({ proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo } = cachedData);
