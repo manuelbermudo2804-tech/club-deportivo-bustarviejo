@@ -485,12 +485,12 @@ Deno.serve(async (req) => {
               const candidates = await base44.asServiceRole.entities.ClubMember.filter({ email: payerEmail, temporada: tempActual });
               const pendingMember = candidates?.find(m => m.estado_pago !== 'Pagado');
 
-              // Calcular fecha_vencimiento
+              // Calcular fecha_vencimiento (1 año desde la fecha de pago)
               let plFechaVenc = null;
               try {
-                if (tempActual && tempActual.includes('-')) {
-                  plFechaVenc = `${tempActual.split('-')[1]}-06-30`;
-                }
+                const plPayDate = new Date();
+                plPayDate.setFullYear(plPayDate.getFullYear() + 1);
+                plFechaVenc = plPayDate.toISOString().slice(0, 10);
               } catch {}
 
               const plUpdateData = {
