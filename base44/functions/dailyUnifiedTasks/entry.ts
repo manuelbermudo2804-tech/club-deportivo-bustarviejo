@@ -326,7 +326,103 @@ async function taskExpireAnnouncements(base44) {
 }
 
 // ══════════════════════════════════════════════════
-// TASK 5: Cleanup old data (reduce DB volume)
+// TASK 5: Remind parents with pending callup confirmations
+// Sends reminders 48h and 24h before the match
+// ══════════════════════════════════════════════════
+async function taskCallupReminders(base44) {
+  const now = new Date();
+  const allCallups = await base44.asServiceRole.entities.Convocatoria.list('-fecha_partido', 200);
+  let sent = 0, skipped = 0;
+
+  for (const c of allCallups) {
+    if (!c.publicada || c.cerrada || c.estado_convocatoria === 'cancelada') continue;
+
+    // Calculate hours until match
+    const matchDateTime = new Date(c.fecha_partido + 'T' + (c.hora_partido || '12:00'));
+    const hoursUntil = (matchDateTime - now) / (1000 * 60 * 60);
+
+    // Only remind between 20-50h before (covers both 24h and 48h windows)
+    if (hoursUntil < 20 || hoursUntil > 50) continue;
+
+    // Determine reminder type
+    const reminderType = hoursUntil <= 26 ? '24h' : '48h';
+
+    const pendingPlayers = (c.jugadores_convocados || []).filter(j => j.confirmacion === 'pendiente');
+    if (!pendingPlayers.length) continue;
+
+    for (const jp of pendingPlayers) {
+      const emails = [];
+      if (jp.email_padre) emails.push(jp.email_padre);
+      if (jp.email_jugador && !jp.email_padre) emails.push(jp.email_jugador);
+
+      if (!emails.length) continue;
+
+      // Check if we already sent this specific reminder
+      const reminderKey = `callup-reminder-${c.id}-${jp.jugador_id}-${reminderType}`;
+      try {
+        const existing = await base44.asServiceRole.entities.AppNotification.filter({ referencia_id: reminderKey });
+        if (existing.length > 0) { skipped++; continue; }
+      } catch { /* continue if filter fails */ }
+
+      // Send email reminder
+      const fechaStr = new Date(c.fecha_partido).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+      const urgency = reminderType === '24h' ? '⚠️ MAÑANA' : '⏰ En 2 días';
+      const subject = `${urgency} - Confirma asistencia de ${jp.jugador_nombre} al partido`;
+      const html = `<!DOCTYPE html><html><body style="margin:0;padding:20px;background:#f1f5f9;font-family:Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1);">
+  <div style="background:${reminderType === '24h' ? '#dc2626' : '#ea580c'};padding:24px;text-align:center;color:#fff;">
+    <div style="font-size:36px;margin-bottom:8px;">${reminderType === '24h' ? '⚠️' : '⏰'}</div>
+    <h1 style="margin:0;font-size:22px;">Confirmación pendiente</h1>
+    <p style="margin:8px 0 0;opacity:.9;font-size:14px;">${jp.jugador_nombre} - ${c.categoria}</p>
+  </div>
+  <div style="padding:24px;text-align:center;">
+    <p style="font-size:16px;color:#334155;line-height:1.6;">
+      <strong>${jp.jugador_nombre}</strong> está convocado para un partido que es <strong>${urgency.toLowerCase()}</strong> y aún no has confirmado si asistirá.
+    </p>
+    <div style="background:#fef3c7;border:2px solid #fbbf24;border-radius:12px;padding:16px;margin:16px 0;text-align:left;">
+      <p style="margin:0 0 8px;font-weight:bold;color:#92400e;">📋 ${c.titulo}</p>
+      <p style="margin:4px 0;color:#78350f;">📅 ${fechaStr} a las ${c.hora_partido || 'hora por confirmar'}</p>
+      <p style="margin:4px 0;color:#78350f;">📍 ${c.ubicacion || 'Por confirmar'}</p>
+      ${c.rival ? `<p style="margin:4px 0;color:#78350f;">⚽ vs ${c.rival}</p>` : ''}
+    </div>
+    <a href="https://app.cdbustarviejo.com/ParentCallups" style="display:inline-block;background:#ea580c;color:#fff;font-size:16px;font-weight:bold;text-decoration:none;padding:14px 32px;border-radius:10px;margin-top:8px;">
+      Confirmar Asistencia →
+    </a>
+    <p style="font-size:12px;color:#94a3b8;margin-top:16px;">Si ya has confirmado en la app, ignora este mensaje.</p>
+  </div>
+</div></body></html>`;
+
+      for (const email of emails) {
+        try {
+          await sendWithResend(email, subject, html);
+          sent++;
+        } catch (err) {
+          console.error(`[CALLUP-REMINDER] Error sending to ${email}:`, err.message);
+        }
+      }
+
+      // Record that we sent this reminder
+      try {
+        await base44.asServiceRole.entities.AppNotification.create({
+          usuario_email: emails[0],
+          tipo: 'convocatoria_pendiente',
+          titulo: `${urgency} - Confirma asistencia`,
+          mensaje: `${jp.jugador_nombre} tiene una convocatoria pendiente: ${c.titulo}`,
+          prioridad: 'importante',
+          url_accion: '/ParentCallups',
+          referencia_id: reminderKey,
+          vista: false
+        });
+      } catch {}
+    }
+  }
+
+  console.log(`[CALLUP-REMINDER] Sent: ${sent}, Skipped: ${skipped}`);
+  return { sent, skipped };
+}
+
+// ══════════════════════════════════════════════════
+// TASK 6: Cleanup old data (reduce DB volume)
 // ══════════════════════════════════════════════════
 async function taskCleanupOldData(base44) {
   const now = new Date();
@@ -410,6 +506,7 @@ Deno.serve(async (req) => {
     console.log('═══════════════════════════════════════');
 
     const callups = await taskAutoCloseCallups(base44);
+    const callupReminders = await taskCallupReminders(base44);
     const codes = await taskExpireAccessCodes(base44);
     const birthdays = await taskBirthdays(base44);
     const announcements = await taskExpireAnnouncements(base44);
@@ -423,6 +520,7 @@ Deno.serve(async (req) => {
       success: true,
       timestamp: new Date().toISOString(),
       callups,
+      callupReminders,
       accessCodes: codes,
       birthdays,
       announcements,
