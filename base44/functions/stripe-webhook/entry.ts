@@ -841,7 +841,8 @@ Deno.serve(async (req) => {
             const month = now.getMonth() + 1;
             const temporada = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
             const email = subMeta.user_email || subMeta.email || invoice.customer_email;
-            const fechaVencimiento = temporada.includes('-') ? `${temporada.split('-')[1]}-06-30` : null;
+            const fvDate = new Date(); fvDate.setFullYear(fvDate.getFullYear() + 1);
+            const fechaVencimiento = fvDate.toISOString().slice(0, 10);
 
             // Obtener fecha próximo cobro de la suscripción
             let fechaProximoCobro = null;
