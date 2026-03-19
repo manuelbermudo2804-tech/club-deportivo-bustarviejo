@@ -268,7 +268,7 @@ export default function MemberCardDisplay() {
               <div>
                 <p className="text-xs text-slate-500 uppercase tracking-wide">Válido hasta</p>
                 <p className="text-base font-semibold text-slate-700">
-                  {memberData.fecha_caducidad ? format(new Date(memberData.fecha_caducidad), "d 'de' MMMM yyyy", { locale: es }) : "31 Diciembre " + new Date().getFullYear()}
+                  {memberData.fecha_vencimiento ? format(new Date(memberData.fecha_vencimiento), "d 'de' MMMM yyyy", { locale: es }) : "Sin fecha de vencimiento"}
                 </p>
               </div>
             </div>
