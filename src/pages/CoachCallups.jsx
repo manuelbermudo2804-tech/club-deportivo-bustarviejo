@@ -287,9 +287,8 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
         console.error('⚠️ [CoachCallups] Error enviando mensaje al chat:', chatError);
       }
 
-      // Mark as sent
+      // Mark as sent (only update the flag, not the whole object)
       await base44.entities.Convocatoria.update(callup.id, {
-        ...callup,
         notificaciones_enviadas: true
       });
       
@@ -497,43 +496,7 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
       ? upcomingCallups.filter(c => c.publicada === true)
       : upcomingCallups.filter(c => !c.publicada);
 
-  // AUTO-CIERRE: 2h15 tras hora_partido o 00:30 del día siguiente si no hay hora
-  const autoCloseRanRef = React.useRef(false);
-  useEffect(() => {
-    if (!callups || autoCloseRanRef.current) return;
-    autoCloseRanRef.current = true;
-
-    const now = new Date();
-    const toClose = (callups || []).filter(c => {
-      if (c.cerrada) return false;
-      const baseDate = new Date(c.fecha_partido);
-      if (isNaN(baseDate.getTime())) return false;
-      let cutoff;
-      if (c.hora_partido) {
-        const [hh, mm] = String(c.hora_partido).split(':').map(n => parseInt(n, 10));
-        const start = new Date(baseDate);
-        start.setHours(hh || 0, mm || 0, 0, 0);
-        cutoff = new Date(start.getTime() + 135 * 60 * 1000); // 2h15m
-      } else {
-        cutoff = new Date(baseDate);
-        cutoff.setDate(cutoff.getDate() + 1);
-        cutoff.setHours(0, 30, 0, 0); // 00:30 del día siguiente
-      }
-      return now > cutoff;
-    });
-
-    if (toClose.length === 0) {
-      autoCloseRanRef.current = false; // permitir reintentos cuando cambie callups
-      return;
-    }
-
-    Promise.all(toClose.map(c => base44.entities.Convocatoria.update(c.id, { ...c, cerrada: true })))
-      .then(() => {
-        autoCloseRanRef.current = false;
-        queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
-      })
-      .catch(() => { autoCloseRanRef.current = false; });
-  }, [callups, queryClient]);
+  // AUTO-CIERRE eliminado del frontend — se ejecuta en dailyUnifiedTasks (backend)
 
   const prepareExportData = () => {
     return filteredByStatus.map(c => ({
