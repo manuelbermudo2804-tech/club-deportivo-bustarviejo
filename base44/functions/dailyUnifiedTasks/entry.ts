@@ -326,6 +326,77 @@ async function taskExpireAnnouncements(base44) {
 }
 
 // ══════════════════════════════════════════════════
+// TASK 5: Cleanup old data (reduce DB volume)
+// ══════════════════════════════════════════════════
+async function taskCleanupOldData(base44) {
+  const now = new Date();
+  const stats = { birthdayLogs: 0, notifications: 0, chatMessages: 0, analyticsEvents: 0 };
+
+  // 1. BirthdayLog older than 90 days
+  const cutoff90 = new Date(now);
+  cutoff90.setDate(cutoff90.getDate() - 90);
+  const cutoff90Str = cutoff90.toISOString();
+  try {
+    const oldLogs = await base44.asServiceRole.entities.BirthdayLog.filter({
+      created_date: { $lt: cutoff90Str }
+    });
+    for (const log of oldLogs) {
+      await base44.asServiceRole.entities.BirthdayLog.delete(log.id);
+      stats.birthdayLogs++;
+    }
+  } catch (e) { console.error('[CLEANUP] BirthdayLog error:', e.message); }
+
+  // 2. AppNotification read (vista=true) older than 30 days
+  const cutoff30 = new Date(now);
+  cutoff30.setDate(cutoff30.getDate() - 30);
+  const cutoff30Str = cutoff30.toISOString();
+  try {
+    const oldNotifs = await base44.asServiceRole.entities.AppNotification.filter({
+      vista: true,
+      created_date: { $lt: cutoff30Str }
+    });
+    for (const n of oldNotifs) {
+      await base44.asServiceRole.entities.AppNotification.delete(n.id);
+      stats.notifications++;
+    }
+  } catch (e) { console.error('[CLEANUP] AppNotification error:', e.message); }
+
+  // 3. ChatMessage older than 6 months (deleted=true or very old)
+  const cutoff180 = new Date(now);
+  cutoff180.setDate(cutoff180.getDate() - 180);
+  const cutoff180Str = cutoff180.toISOString();
+  try {
+    // Only delete messages marked as deleted
+    const oldDeletedMsgs = await base44.asServiceRole.entities.ChatMessage.filter({
+      eliminado: true,
+      created_date: { $lt: cutoff180Str }
+    });
+    for (const m of oldDeletedMsgs) {
+      await base44.asServiceRole.entities.ChatMessage.delete(m.id);
+      stats.chatMessages++;
+    }
+  } catch (e) { console.error('[CLEANUP] ChatMessage error:', e.message); }
+
+  // 4. AnalyticsEvent older than 60 days
+  const cutoff60 = new Date(now);
+  cutoff60.setDate(cutoff60.getDate() - 60);
+  const cutoff60Str = cutoff60.toISOString();
+  try {
+    const oldEvents = await base44.asServiceRole.entities.AnalyticsEvent.filter({
+      created_date: { $lt: cutoff60Str }
+    });
+    for (const ev of oldEvents) {
+      await base44.asServiceRole.entities.AnalyticsEvent.delete(ev.id);
+      stats.analyticsEvents++;
+    }
+  } catch (e) { console.error('[CLEANUP] AnalyticsEvent error:', e.message); }
+
+  const total = stats.birthdayLogs + stats.notifications + stats.chatMessages + stats.analyticsEvents;
+  console.log(`[CLEANUP] Deleted ${total} old records: ${JSON.stringify(stats)}`);
+  return stats;
+}
+
+// ══════════════════════════════════════════════════
 // MAIN HANDLER
 // ══════════════════════════════════════════════════
 Deno.serve(async (req) => {
