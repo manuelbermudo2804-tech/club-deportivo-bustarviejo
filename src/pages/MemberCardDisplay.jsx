@@ -60,10 +60,17 @@ export default function MemberCardDisplay() {
 
         console.log('👨‍👩‍👧 [MemberCard] Hijos encontrados:', allPlayers.length);
 
-        // Si no tiene hijos, carnet siempre verde (socio sin hijos o socio externo)
+        // Si no tiene hijos (socio externo): verificar fecha_vencimiento
         if (allPlayers.length === 0) {
-          console.log('✅ [MemberCard] Sin hijos - carnet VERDE por defecto');
-          setIsActive(true);
+          const vencimiento = member.fecha_vencimiento ? new Date(member.fecha_vencimiento) : null;
+          const hoy = new Date();
+          if (vencimiento && hoy > vencimiento) {
+            console.log('❌ [MemberCard] Sin hijos - membresía VENCIDA:', member.fecha_vencimiento);
+            setIsActive(false);
+          } else {
+            console.log('✅ [MemberCard] Sin hijos - carnet VERDE');
+            setIsActive(true);
+          }
           setLoading(false);
           return;
         }
