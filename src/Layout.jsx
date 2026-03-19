@@ -494,7 +494,7 @@ export default function Layout({ children, currentPageName }) {
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
   });
 
-  /* Old navigation definitions removed - now in useNavigationItems hook — admin+coach block removed */
+  /* DEAD_NAV_START — admin+coach block removed */
   void(0); /* placeholder */ const _deadCodeRemoved1 = [
                 // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
                 ...(programaSociosActivo && isMemberPaid ? [{ 
