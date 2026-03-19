@@ -494,16 +494,7 @@ export default function Layout({ children, currentPageName }) {
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
   });
 
-  /* Navigation items extracted to useNavigationItems hook */
-  if (false) {
-    void 0; // dead-code marker
-    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
-    { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
-    { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
-    { title: "🔑 Códigos de Acceso", url: createPageUrl("AdminAccessCodes"), icon: KeyRound, badge: pendingInvitations > 0 ? pendingInvitations : null },
-
-    // 💰 FINANZAS
-    { title: "─ FINANZAS ─", section: true },
+  /* Navigation items now come from useNavigationItems hook */
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
     { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
