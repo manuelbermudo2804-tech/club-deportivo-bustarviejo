@@ -494,8 +494,7 @@ export default function Layout({ children, currentPageName }) {
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
   });
 
-  /* Navigation items now come from useNavigationItems hook */
-    { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+  /* Navigation items now come from useNavigationItems hook — old definitions removed */
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
     { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
