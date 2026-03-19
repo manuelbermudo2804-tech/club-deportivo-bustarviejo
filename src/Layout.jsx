@@ -901,7 +901,7 @@ export default function Layout({ children, currentPageName }) {
       // Usuario normal de familia (padre/madre sin roles especiales)
       navigationItems = parentNavigationItems;
     }
-
+  } // Dead code block end — replaced by useNavigationItems
 
 
   const handleLogout = () => {
