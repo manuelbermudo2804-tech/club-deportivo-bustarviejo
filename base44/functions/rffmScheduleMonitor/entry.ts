@@ -350,8 +350,14 @@ Deno.serve(async (req) => {
         }
 
         // Find matching convocatoria for this category AND jornada to prevent duplicates
-        // Check both open callups and ALL recent callups for this jornada
-        const callup = openCallups.find(c => c.categoria === config.categoria);
+        // ONLY match convocatorias created by the system OR that match this specific jornada+rival
+        // Never touch manually-created callups (amistosos, torneos, etc.)
+        const callup = openCallups.find(c => 
+          c.categoria === config.categoria && (
+            c.entrenador_email === 'sistema@cdbustarviejo.es' ||
+            (c.titulo?.includes(`Jornada ${jornada}`) && c.rival?.toUpperCase() === rival?.toUpperCase())
+          )
+        );
 
         // Also check if a convocatoria already exists for this specific jornada+category (even if closed/past)
         const existingForJornada = allCallups.find(c => 

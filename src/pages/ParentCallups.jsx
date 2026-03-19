@@ -114,10 +114,14 @@ export default function ParentCallups() {
     setShowConfirmDialog(true);
   };
 
-  const handleSubmitConfirmation = () => {
+  const handleSubmitConfirmation = async () => {
     if (!selectedCallup || !selectedPlayer) return;
 
-    const updatedJugadores = selectedCallup.jugadores_convocados.map(j => {
+    // Re-read the callup fresh from DB to avoid overwriting concurrent changes
+    const freshCallups = await base44.entities.Convocatoria.filter({ id: selectedCallup.id });
+    const freshCallup = freshCallups?.[0] || selectedCallup;
+
+    const updatedJugadores = freshCallup.jugadores_convocados.map(j => {
       if (j.jugador_id === selectedPlayer.id) {
         return {
           ...j,
@@ -130,9 +134,8 @@ export default function ParentCallups() {
     });
 
     updateCallupMutation.mutate({
-      id: selectedCallup.id,
+      id: freshCallup.id,
       callupData: {
-        ...selectedCallup,
         jugadores_convocados: updatedJugadores
       }
     });
