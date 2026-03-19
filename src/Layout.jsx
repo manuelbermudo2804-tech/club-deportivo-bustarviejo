@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useFetchUser } from "./components/layout/useFetchUser";
 
 
-import { Menu, X, Smartphone } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Menu, Bell, LogOut, Calendar, Megaphone, Mail, Archive, Settings, MessageCircle, Clock, Image, X, User as UserIcon, ClipboardCheck, Star, Award, FileText, Clover, UserCircle, FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert, UserX, RotateCw, CheckCircle2, Trophy, ChevronLeft, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +26,6 @@ import GlobalErrorHandler from "./components/utils/GlobalErrorHandler";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
 import LanguageSelector from "./components/LanguageSelector";
-import { useNavigationItems } from "./components/layout/useNavigationItems";
 import { useUnifiedNotifications } from "./components/notifications/useUnifiedNotifications";
 import { ChatUnreadProvider } from "./components/chat/ChatUnreadProvider";
 import ChatCountsBridge from "./components/chat/ChatCountsBridge";
@@ -486,17 +485,95 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-  const navigationItems = useNavigationItems({
-    user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, hasPlayers,
-    programaSociosActivo, isMemberPaid, loteriaVisible, marketNewCount,
-    playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses,
-    chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount,
-    pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, unresolvedAdminChats, paymentsInReview,
-  });
+  const adminNavigationItems = useMemo(() => [
+    // 🏠 INICIO
+    { title: "🏠 Inicio", url: createPageUrl("Home"), icon: Home },
+    { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
 
-  /* DEAD_NAV_REPLACED */
-  if (false) { const _dead = [
-                // dead
+    // 👥 GESTIÓN DE PERSONAS
+    { title: "─ GESTIÓN DE PERSONAS ─", section: true },
+    { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
+    { title: "🔄 Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
+    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
+    { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
+    { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
+    { title: "🔑 Códigos de Acceso", url: createPageUrl("AdminAccessCodes"), icon: KeyRound, badge: pendingInvitations > 0 ? pendingInvitations : null },
+
+    // 💰 FINANZAS
+    { title: "─ FINANZAS ─", section: true },
+    { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
+    { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
+    { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
+    { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
+    { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
+
+    // ⚽ DEPORTIVO
+    { title: "─ DEPORTIVO ─", section: true },
+    { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
+    { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
+    { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+    { title: "⏱️ Control Minutos", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
+
+    // 📅 CALENDARIO Y EVENTOS
+    { title: "─ CALENDARIO Y EVENTOS ─", section: true },
+    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
+    { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+
+    // 💬 COMUNICACIÓN
+    { title: "─ COMUNICACIÓN ─", section: true },
+    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
+    { title: "💬 Chat Coordinador-Familias", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
+    { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
+    { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
+    { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+    { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
+    { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle },
+    { title: "✉️ Buzón Juvenil", url: createPageUrl("JuniorMailboxAdmin"), icon: MessageCircle },
+
+    // 🛍️ TIENDA Y SERVICIOS
+    { title: "─ TIENDA Y SERVICIOS ─", section: true },
+    { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },
+    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
+    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
+    { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
+    { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
+    { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
+
+    { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
+
+    // 🖼️ CONTENIDO
+    { title: "─ CONTENIDO ─", section: true },
+    { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+
+    // 👨‍👩‍👧 MIS HIJOS (si tiene hijos)
+    ...(hasPlayers ? [
+      { title: "─ MIS HIJOS ─", section: true },
+      { title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null },
+    ] : []),
+
+    // ⚙️ CONFIGURACIÓN
+    { title: "─ CONFIGURACIÓN ─", section: true },
+    { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
+    { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+    { title: "📊 Estadísticas Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
+    { title: "🔬 Centro de Diagnóstico", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
+    { title: "⚡ Monitor de Créditos", url: createPageUrl("CreditUsage"), icon: BarChart3 },
+
+    // 🧪 DESARROLLO
+    { title: "─ DESARROLLO ─", section: true },
+    { title: "📖 Manual de Acceso", url: createPageUrl("ManualAcceso"), icon: FileText },
+    { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
+    { title: "📊 Preview Stats Jugador", url: createPageUrl("PlayerStatsPreview"), icon: BarChart3 },
+    { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
+    { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
+    { title: "👁️ Preview Flujo Alta", url: createPageUrl("OnboardingPreview"), icon: UserIcon },
+    { title: "📸 Diagnóstico Subidas", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
+    ], [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview]);
+
+  const coachNavigationItems = useMemo(() => [
+                // 🎫 CARNET DE SOCIO (si es socio pagado - con o sin hijos)
                 ...(programaSociosActivo && isMemberPaid ? [{ 
                   title: "🎫 MI CARNET DE SOCIO", 
                   url: createPageUrl("MemberCardDisplay"), 
@@ -819,7 +896,8 @@ export default function Layout({ children, currentPageName }) {
       // Usuario normal de familia (padre/madre sin roles especiales)
       navigationItems = parentNavigationItems;
     }
-  DEAD_NAV_END */
+
+
 
   const handleLogout = () => {
     base44.auth.logout();
