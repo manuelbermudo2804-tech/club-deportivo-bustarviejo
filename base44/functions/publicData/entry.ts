@@ -88,9 +88,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Deduplicar próximos partidos (por categoría + jornada + local + visitante)
+    // Filtrar solo partidos futuros (hoy incluido) y deduplicar
+    const hoyStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const proximosDedup = new Map();
     for (const p of proximosPartidos) {
+      // Excluir partidos ya disputados
+      if (p.fecha_iso && p.fecha_iso < hoyStr) continue;
       const key = `${p.categoria}_${p.jornada}_${p.local}_${p.visitante}`;
       if (!proximosDedup.has(key)) proximosDedup.set(key, p);
     }
