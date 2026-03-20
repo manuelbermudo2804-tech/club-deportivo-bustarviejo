@@ -462,7 +462,9 @@ Deno.serve(async (req) => {
 
           // Solo procesar si parece una cuota de socio (25€)
           if (payerEmail && amountPaid >= 24 && amountPaid <= 26) {
-            console.log('[stripe-webhook] Payment Link detectado (sin metadata), buscando socio por email:', payerEmail);
+            // Detectar si es suscripción o pago único por session.mode
+            const plIsSuscripcion = session.mode === 'subscription';
+            console.log('[stripe-webhook] Payment Link detectado (sin metadata), email:', payerEmail, 'modo:', session.mode, 'suscripción:', plIsSuscripcion);
 
             try {
               // Determinar temporada desde SeasonConfig (igual que publicMemberRegister)
@@ -493,16 +495,40 @@ Deno.serve(async (req) => {
                 plFechaVenc = plPayDate.toISOString().slice(0, 10);
               } catch {}
 
+              // Obtener datos de suscripción si aplica
+              let plStripeSubId = null;
+              let plStripeCustomerId = session.customer || null;
+              let plFechaProximoCobro = null;
+              if (plIsSuscripcion && session.subscription) {
+                plStripeSubId = session.subscription;
+                try {
+                  const plSub = await stripe.subscriptions.retrieve(session.subscription);
+                  if (plSub.current_period_end) {
+                    plFechaProximoCobro = new Date(plSub.current_period_end * 1000).toISOString();
+                  }
+                  // Añadir metadata a la suscripción para que futuras renovaciones se identifiquen
+                  await stripe.subscriptions.update(session.subscription, {
+                    metadata: { tipo: 'cuota_socio', email: payerEmail, temporada: tempActual }
+                  });
+                } catch (subErr) {
+                  console.error('[stripe-webhook] Error obteniendo suscripción Payment Link:', subErr?.message);
+                }
+              }
+
               const plUpdateData = {
                 estado_pago: 'Pagado',
                 metodo_pago: 'Tarjeta',
                 activo: true,
-                origen_pago: 'stripe_unico',
-                renovacion_automatica: false,
+                origen_pago: plIsSuscripcion ? 'stripe_suscripcion' : 'stripe_unico',
+                renovacion_automatica: plIsSuscripcion,
                 fecha_alta: today,
                 fecha_pago: today,
                 fecha_vencimiento: plFechaVenc,
                 fecha_ultimo_cobro: new Date().toISOString(),
+                ...(plStripeSubId ? { stripe_subscription_id: plStripeSubId } : {}),
+                ...(plStripeCustomerId ? { stripe_customer_id: plStripeCustomerId } : {}),
+                ...(plIsSuscripcion ? { stripe_subscription_status: 'active' } : {}),
+                ...(plFechaProximoCobro ? { fecha_proximo_cobro: plFechaProximoCobro } : {}),
               };
 
               let finalMember = pendingMember;
