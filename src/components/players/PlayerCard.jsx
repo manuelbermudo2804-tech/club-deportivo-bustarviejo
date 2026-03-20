@@ -276,7 +276,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-bold text-lg text-slate-900 leading-tight truncate">{player.nombre}</h3>
+                <h3 className="font-bold text-sm text-slate-900 leading-tight line-clamp-2">{player.nombre}</h3>
                 <Badge className={`${statusBadge.cls} text-[10px] flex-shrink-0`}>{statusBadge.text}</Badge>
               </div>
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
