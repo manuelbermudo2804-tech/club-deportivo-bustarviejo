@@ -223,7 +223,12 @@ function generarHTML(data) {
   }
 
   // ─── PRÓXIMO PARTIDO DESTACADO (HERO) ───
-  const sortedProximos = [...(data.proximos_partidos || [])].sort((a, b) => (a.fecha_iso || '').localeCompare(b.fecha_iso || ''));
+  // Ordenar por fecha + hora para que el hero sea siempre el más inminente
+  const sortedProximos = [...(data.proximos_partidos || [])].sort((a, b) => {
+    const cmpDate = (a.fecha_iso || '').localeCompare(b.fecha_iso || '');
+    if (cmpDate !== 0) return cmpDate;
+    return (a.hora || '99:99').localeCompare(b.hora || '99:99');
+  });
   const heroMatch = sortedProximos[0];
   let heroHTML = '';
   if (heroMatch) {
