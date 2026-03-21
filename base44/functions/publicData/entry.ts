@@ -238,6 +238,13 @@ function generarHTML(data) {
     const campoLink = (!esLocal && heroMatch.campo)
       ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + heroMatch.campo)}" target="_blank" rel="noopener" class="hero-mapa-btn">📍 Cómo llegar</a>`
       : '';
+    // Build countdown ISO string for JS
+    let countdownISO = '';
+    if (heroMatch.fecha_iso && heroMatch.hora) {
+      countdownISO = `${heroMatch.fecha_iso}T${heroMatch.hora}:00`;
+    } else if (heroMatch.fecha_iso) {
+      countdownISO = `${heroMatch.fecha_iso}T12:00:00`;
+    }
     heroHTML = `
       <div class="hero-match">
         ${badge ? `<div class="hero-badge ${badgeClass}">${badge}</div>` : ''}
@@ -260,7 +267,13 @@ function generarHTML(data) {
           ${heroMatch.hora ? `<span>🕐 ${heroMatch.hora}</span>` : ''}
           <span>${esLocal ? '🏠 Casa' : '✈️ Fuera'}</span>
         </div>
+        ${countdownISO ? `<div class="hero-countdown" id="countdown" data-target="${countdownISO}">
+          <div class="cd-box"><span class="cd-number" id="cd-d">--</span><span class="cd-label">Días</span></div>
+          <div class="cd-box"><span class="cd-number" id="cd-h">--</span><span class="cd-label">Horas</span></div>
+          <div class="cd-box"><span class="cd-number" id="cd-m">--</span><span class="cd-label">Min</span></div>
+        </div>` : ''}
         ${campoLink}
+        ${ultimoResHTML}
       </div>`;
   }
 
