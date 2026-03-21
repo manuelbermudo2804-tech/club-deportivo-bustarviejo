@@ -480,8 +480,9 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #1a1a2e; background:
 .menu-toggle { display: none; font-size: 2.2rem; cursor: pointer; min-width: 44px; min-height: 44px; line-height: 44px; text-align: center; user-select: none; }
 
 /* ═══ HERO ═══ */
-.hero-section { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f3460 100%); padding: 48px 20px 56px; text-align: center; position: relative; overflow: hidden; }
-.hero-section::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 40%, rgba(245,124,0,0.08) 0%, transparent 50%); }
+.hero-section { background: linear-gradient(135deg, #0a0f1d 0%, #111827 30%, #0f2847 60%, #0c1a33 100%); padding: 48px 20px 56px; text-align: center; position: relative; overflow: hidden; }
+.hero-section::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 40%, rgba(245,124,0,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 60%, rgba(245,124,0,0.05) 0%, transparent 40%); }
+.hero-escudo { width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(245,124,0,0.4); margin: 0 auto 16px; display: block; position: relative; }
 .hero-title { color: #fff; font-size: 2.4rem; font-weight: 900; margin-bottom: 4px; position: relative; }
 .hero-title span { color: #f57c00; }
 .hero-sub { color: rgba(255,255,255,0.6); font-size: 1rem; margin-bottom: 32px; position: relative; }
