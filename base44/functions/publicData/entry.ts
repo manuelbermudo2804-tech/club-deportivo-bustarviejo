@@ -366,7 +366,7 @@ function generarHTML(data) {
         <td class="td-pts"><strong>${eq.puntos}</strong></td>
       </tr>`;
     }
-    clasifHTML += `<div class="clasif-grupo">
+    clasifHTML += `<div class="clasif-grupo" data-cat="${cat}">
       <h3>${cat}</h3>
       <div class="tabla-scroll"><table>
         <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
