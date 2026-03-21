@@ -314,7 +314,8 @@ function generarHTML(data) {
 
         ${campoLink}
         ${ultimoResHTML}
-      </div>`;
+      </div>
+      ${resumenHTML}`;
   }
 
   // ─── CARDS DE PARTIDOS ───
