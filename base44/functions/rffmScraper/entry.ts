@@ -561,52 +561,83 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, standings, retried: standings.length < 5 });
       }
 
-      // Fetch scorers (with automatic retry with URL variants and re-login)
+      // Fetch scorers - the RFFM goleadores page works in 2 steps:
+      // 1. Load the page to get the real competition codes from the dropdown
+      // 2. Submit the form with the correct codcompeticion + codgrupo
       case 'scorers': {
         let scorers = [];
+        console.log(`[SCORERS] Starting with params: Comp=${p.CodCompeticion}, Grupo=${p.CodGrupo}, Temp=${p.CodTemporada}`);
         
-        // First detect total jornadas to use a real jornada number
-        let totalJ = 20;
-        try {
-          const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
-          totalJ = detectTotalJornadas(j1Html);
-          console.log(`[SCORERS] Detected ${totalJ} total jornadas`);
-        } catch (e) {
-          console.log(`[SCORERS] Could not detect jornadas, using default ${totalJ}`);
+        // Step 1: Load the goleadores landing page to discover competition codes
+        const landingUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&cod_agrupacion=1`;
+        const landingHtml = await fetchPage(landingUrl, cookies);
+        
+        if (landingHtml.includes('Datos de Acceso') && landingHtml.includes('NLogin')) {
+          console.log(`[SCORERS] Got login page on landing, re-logging in...`);
+          cookies = await rffmLogin();
         }
         
-        // Build URLs: try with real jornada (totalJ) and also with jornada 0
-        // The RFFM scorers page sometimes needs a real jornada to show data
-        const urlsToTry = [
-          // CamelCase with last jornada
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=${totalJ}&CodCompeticion=${p.CodCompeticion}&CodTemporada=${p.CodTemporada}&CodGrupo=${p.CodGrupo}&cod_agrupacion=1`,
-          // CamelCase with jornada 0
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=0&CodCompeticion=${p.CodCompeticion}&CodTemporada=${p.CodTemporada}&CodGrupo=${p.CodGrupo}&cod_agrupacion=1`,
-          // lowercase with last jornada
-          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=${totalJ}&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`,
-        ];
+        // Step 2: Find the competition dropdown options
+        const $land = load(landingHtml);
+        const competitionOptions = [];
+        $land('select[name="codcompeticion"] option').each((_, opt) => {
+          const val = $land(opt).attr('value');
+          const txt = $land(opt).text().trim();
+          if (val && val !== '0') competitionOptions.push({ value: val, text: txt });
+        });
+        console.log(`[SCORERS] Found ${competitionOptions.length} competition options`);
         
-        for (let i = 0; i < urlsToTry.length && scorers.length < 3; i++) {
-          const scorersUrl = urlsToTry[i];
-          console.log(`[SCORERS] Trying URL ${i}: ${scorersUrl.substring(0, 180)}`);
-          
-          for (let attempt = 0; attempt < 2; attempt++) {
-            if (attempt > 0) {
-              console.log(`[SCORERS] Re-login for URL ${i}`);
-              cookies = await rffmLogin();
-              await new Promise(r => setTimeout(r, 1500));
-            }
-            const html = await fetchPage(scorersUrl, cookies);
-            if (html.includes('Datos de Acceso') && html.includes('NLogin')) {
-              console.log(`[SCORERS] Got login page, will re-login`);
-              continue;
-            }
-            scorers = parseScorers(html);
-            console.log(`[SCORERS] URL ${i}, attempt ${attempt}: found ${scorers.length} scorers (html: ${html.length} bytes)`);
-            if (scorers.length >= 3) break;
-          }
+        // Step 3: Try each competition that might match our category
+        // We need to load the groups for each competition to find the right one
+        // Strategy: try ALL competitions and look for groups with Bustarviejo teams
+        const codTemporada = $land('select[name="codtemporada"] option[selected]').attr('value') || p.CodTemporada;
+        
+        for (const comp of competitionOptions) {
           if (scorers.length >= 3) break;
+          
+          // Load groups for this competition
+          const groupUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&codcompeticion=${comp.value}&codtemporada=${codTemporada}&cod_agrupacion=1`;
+          const groupHtml = await fetchPage(groupUrl, cookies);
+          const $g = load(groupHtml);
+          
+          // Check if this page already has scorers data
+          const directScorers = parseScorers(groupHtml);
+          if (directScorers.length > 0) {
+            // Check if any scorer belongs to a Bustarviejo team
+            const hasBustar = directScorers.some(s => /bustarviejo/i.test(s.equipo || ''));
+            if (hasBustar) {
+              console.log(`[SCORERS] Found ${directScorers.length} scorers (with Bustarviejo) in comp "${comp.text}"`);
+              scorers = directScorers;
+              break;
+            }
+          }
+          
+          // Get available groups for this competition
+          const groupOptions = [];
+          $g('select[name="codgrupo"] option').each((_, opt) => {
+            const val = $g(opt).attr('value');
+            if (val && val !== '0') groupOptions.push(val);
+          });
+          
+          // Try each group
+          for (const grp of groupOptions) {
+            if (scorers.length >= 3) break;
+            const fullUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&codcompeticion=${comp.value}&codgrupo=${grp}&codtemporada=${codTemporada}&cod_agrupacion=1`;
+            const fullHtml = await fetchPage(fullUrl, cookies);
+            const grpScorers = parseScorers(fullHtml);
+            
+            if (grpScorers.length > 0) {
+              const hasBustar = grpScorers.some(s => /bustarviejo/i.test(s.equipo || ''));
+              if (hasBustar) {
+                console.log(`[SCORERS] Found ${grpScorers.length} scorers in comp "${comp.text}" group ${grp}`);
+                scorers = grpScorers;
+                break;
+              }
+            }
+          }
         }
+        
+        console.log(`[SCORERS] Final result: ${scorers.length} scorers`);
         return Response.json({ success: true, scorers, total: scorers.length, retried: scorers.length < 3 });
       }
 
