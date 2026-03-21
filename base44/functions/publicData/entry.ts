@@ -382,6 +382,37 @@ function generarHTML(data) {
   }
   if (!hayGoleadores) golesHTML = '<p class="sin-datos">No hay goleadores registrados.</p>';
 
+  // ─── ÚLTIMO RESULTADO DEL BUSTARVIEJO (para hero) ───
+  const ultimoResultado = (data.resultados_recientes || []).find(r => {
+    return r.local?.toLowerCase().includes('bustarviejo') || r.visitante?.toLowerCase().includes('bustarviejo');
+  });
+  let ultimoResHTML = '';
+  if (ultimoResultado) {
+    const esLocal = ultimoResultado.local.toLowerCase().includes('bustarviejo');
+    const gN = esLocal ? ultimoResultado.goles_local : ultimoResultado.goles_visitante;
+    const gR = esLocal ? ultimoResultado.goles_visitante : ultimoResultado.goles_local;
+    const rival = esLocal ? ultimoResultado.visitante : ultimoResultado.local;
+    const res = gN > gR ? 'victoria' : gN < gR ? 'derrota' : 'empate';
+    const icon = res === 'victoria' ? '✅' : res === 'derrota' ? '❌' : '🤝';
+    const rivalCorto = rival.length > 25 ? rival.substring(0, 22) + '...' : rival;
+    ultimoResHTML = `<div class="hero-ultimo"><span class="hero-ultimo-label">Último resultado</span><span class="hero-ultimo-res">${icon} Bustarviejo <strong>${gN}-${gR}</strong> ${rivalCorto}</span></div>`;
+  }
+
+  // ─── CATEGORÍAS DISPONIBLES (para filtro) ───
+  const allCats = new Set();
+  (data.proximos_partidos || []).forEach(p => p.categoria && allCats.add(p.categoria));
+  (data.resultados_recientes || []).forEach(r => r.categoria && allCats.add(r.categoria));
+  Object.keys(data.clasificaciones || {}).forEach(c => allCats.add(c));
+  Object.keys(data.goleadores || {}).forEach(c => allCats.add(c));
+  const categorias = [...allCats].sort();
+
+  // ─── OG META: próximo partido para preview ───
+  let ogDescription = 'Próximos partidos, resultados, clasificaciones y goleadores del C.D. Bustarviejo';
+  if (heroMatch) {
+    const esL = heroMatch.local.toLowerCase().includes('bustarviejo');
+    ogDescription = `⚽ ${heroMatch.local} vs ${heroMatch.visitante} — ${fechaBonita(heroMatch.fecha)}${heroMatch.hora ? ' a las ' + heroMatch.hora : ''} | ${catCorta(heroMatch.categoria)}`;
+  }
+
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -389,6 +420,15 @@ function generarHTML(data) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Competición — C.D. Bustarviejo</title>
 <link rel="icon" href="${ESCUDO}">
+<meta property="og:title" content="Competición ${temporada} — C.D. Bustarviejo">
+<meta property="og:description" content="${ogDescription}">
+<meta property="og:image" content="${ESCUDO}">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Competición ${temporada} — C.D. Bustarviejo">
+<meta name="twitter:description" content="${ogDescription}">
+<meta name="twitter:image" content="${ESCUDO}">
+<meta name="description" content="${ogDescription}">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
