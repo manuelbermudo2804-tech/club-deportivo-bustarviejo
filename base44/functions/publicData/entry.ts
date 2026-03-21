@@ -327,7 +327,7 @@ function generarHTML(data) {
       const resultado = golesNuestros > golesRival ? 'victoria' : golesNuestros < golesRival ? 'derrota' : 'empate';
       const resLabel = resultado === 'victoria' ? '✅ Victoria' : resultado === 'derrota' ? '❌ Derrota' : '🤝 Empate';
       resultadosHTML += `
-        <div class="result-card result-${resultado}">
+        <div class="result-card result-${resultado}" data-cat="${r.categoria}">
           <div class="result-header">
             <span class="match-cat">${catCorta(r.categoria)} — J${r.jornada}</span>
             <span class="result-label result-label-${resultado}">${resLabel}</span>
