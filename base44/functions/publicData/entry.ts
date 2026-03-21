@@ -693,10 +693,7 @@ tbody tr:hover { background: #f8fafc; }
   <label class="tab-label" for="radio-goleadores">⚽ Goleadores</label>
 </div>
 
-${categorias.length > 1 ? `<div class="filter-bar" id="filter-bar">
-  <button class="filter-btn active" data-filter="all">Todos</button>
-  ${categorias.map(c => `<button class="filter-btn" data-filter="${c}">${catCorta(c)}</button>`).join('')}
-</div>` : ''}
+
 
 <div class="contenido-comp">
   <div id="sec-proximos" class="seccion">
