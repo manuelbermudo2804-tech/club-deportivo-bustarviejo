@@ -656,7 +656,7 @@ tbody tr:hover { background: #f8fafc; }
 </style>
 </head>
 <body>
-<!-- v5-${new Date().toISOString()} -->
+
 <header class="header">
   <div class="header-contenido">
     <a class="logo" href="${WEB}">
