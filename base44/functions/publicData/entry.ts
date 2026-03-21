@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
 
     const htmlPage = (!hayDatos || forceOffseason) ? generarHTMLOffseason() : generarHTML(data);
     return new Response(htmlPage, {
-      headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
+      headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, max-age=0' },
     });
 
   } catch (error) {
