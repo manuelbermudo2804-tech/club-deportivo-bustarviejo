@@ -487,7 +487,7 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #1a1a2e; background:
 .hero-title span { color: #f57c00; }
 .hero-sub { color: rgba(255,255,255,0.6); font-size: 1rem; margin-bottom: 32px; position: relative; }
 
-.hero-match { background: rgba(255,255,255,0.06); border: 1px solid rgba(245,124,0,0.25); border-radius: 20px; padding: 28px 24px; max-width: 600px; margin: 0 auto; position: relative; backdrop-filter: blur(10px); }
+.hero-match { background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid rgba(245,124,0,0.3); border-radius: 20px; padding: 28px 24px; max-width: 600px; margin: 0 auto; position: relative; box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1); }
 .hero-badge { display: inline-block; font-size: 0.75rem; font-weight: 900; letter-spacing: 1px; padding: 6px 18px; border-radius: 50px; margin-bottom: 12px; text-transform: uppercase; }
 .badge-hoy { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; animation: pulse 1.5s infinite; box-shadow: 0 4px 15px rgba(239,68,68,0.4); }
 .badge-manana { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; box-shadow: 0 4px 15px rgba(245,158,11,0.3); }
