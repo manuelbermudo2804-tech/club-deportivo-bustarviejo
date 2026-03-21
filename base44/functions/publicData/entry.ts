@@ -611,8 +611,13 @@ input[name="tab"] { display: none; }
 .match-vs-label { font-size: 0.85rem; color: #64748b; font-weight: 600; margin-bottom: 4px; }
 .match-rival-name { font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1.2; }
 .match-jornada { font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 6px; }
-.match-mapa { display: block; text-align: center; padding: 12px; background: #eff6ff; color: #2563eb; font-weight: 700; font-size: 0.9rem; text-decoration: none; border-top: 2px solid #e2e8f0; }
+.match-actions { display: flex; border-top: 2px solid #e2e8f0; }
+.match-actions a { flex: 1; text-align: center; padding: 12px; font-weight: 700; font-size: 0.85rem; text-decoration: none; transition: background 0.2s; }
+.match-mapa { background: #eff6ff; color: #2563eb; border-right: 1px solid #e2e8f0; }
 .match-mapa:hover { background: #dbeafe; }
+.match-wa { background: #f0fdf4; color: #16a34a; }
+.match-wa:hover { background: #dcfce7; }
+.match-actions a:only-child { border-right: none; }
 
 /* ═══ RESULT CARDS ═══ */
 .result-card { background: #fff; border-radius: 14px; margin-bottom: 12px; overflow: hidden; border: 1px solid #e2e8f0; transition: all 0.2s; }
