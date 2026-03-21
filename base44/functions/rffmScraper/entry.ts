@@ -624,8 +624,8 @@ Deno.serve(async (req) => {
 
       // Debug scorers page structure
       case 'debug_scorers': {
-        // Correct URL from navigation: NFG_CMP_Goleadores (not NFG_CmpGoleadores)
-        const scorersUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=${p.CodJornada || '15'}&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`;
+        // Use CamelCase variant which returns data (81KB)
+        const scorersUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=0&CodCompeticion=${p.CodCompeticion}&CodTemporada=${p.CodTemporada}&CodGrupo=${p.CodGrupo}&cod_agrupacion=1`;
         const html = await fetchPage(scorersUrl, cookies);
         const $s = load(html);
         
