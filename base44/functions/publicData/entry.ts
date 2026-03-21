@@ -767,7 +767,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var now = new Date();
       var diff = target - now;
       if (diff <= 0) {
-        el.innerHTML = '<div style="color:#f57c00;font-weight:800;font-size:1.1rem">\\u00a1YA TOCA! \\u26bd\\ud83d\\udd25</div>';
+        el.innerHTML = '<div style="color:#f57c00;font-weight:800;font-size:1.1rem">YA TOCA!</div>';
         return;
       }
       var d = Math.floor(diff / 86400000);
