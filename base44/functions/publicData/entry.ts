@@ -282,13 +282,6 @@ function generarHTML(data) {
     const campoLink = (!esLocal && heroMatch.campo)
       ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + heroMatch.campo)}" target="_blank" rel="noopener" class="hero-mapa-btn">📍 Cómo llegar</a>`
       : '';
-    // Build countdown ISO string for JS
-    let countdownISO = '';
-    if (heroMatch.fecha_iso && heroMatch.hora) {
-      countdownISO = `${heroMatch.fecha_iso}T${heroMatch.hora}:00`;
-    } else if (heroMatch.fecha_iso) {
-      countdownISO = `${heroMatch.fecha_iso}T12:00:00`;
-    }
     heroHTML = `
       <div class="hero-match">
         ${badge ? `<div class="hero-badge ${badgeClass}">${badge}</div>` : ''}
