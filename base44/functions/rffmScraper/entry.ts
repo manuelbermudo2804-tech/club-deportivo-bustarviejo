@@ -64,14 +64,39 @@ async function rffmLogin() {
 }
 
 async function fetchPage(url, cookies) {
-  const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Cookie': cookies } });
+  // Follow redirects manually to preserve cookies (RFFM sometimes redirects to login)
+  let currentUrl = url;
+  let maxRedirects = 5;
+  let resp;
+  while (maxRedirects-- > 0) {
+    resp = await fetch(currentUrl, { 
+      redirect: 'manual',
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Cookie': cookies } 
+    });
+    const location = resp.headers.get('location');
+    if (location && (resp.status === 301 || resp.status === 302 || resp.status === 303 || resp.status === 307)) {
+      currentUrl = location.startsWith('http') ? location : `https://intranet.ffmadrid.es${location}`;
+      // Merge any new cookies from redirect
+      for (const c of (resp.headers.getSetCookie?.() || [])) {
+        const pair = c.split(';')[0];
+        cookies = cookies.replace(new RegExp(pair.split('=')[0] + '=[^;]*'), pair);
+      }
+      continue;
+    }
+    break;
+  }
   // RFFM pages use ISO-8859-1 (Latin-1) encoding, not UTF-8
   // We must decode the raw bytes with the correct charset to preserve ñ, á, é, etc.
   const buf = await resp.arrayBuffer();
   const ct = resp.headers.get('content-type') || '';
   const charsetMatch = ct.match(/charset=([^\s;]+)/i);
   const charset = charsetMatch ? charsetMatch[1] : 'iso-8859-1';
-  return new TextDecoder(charset).decode(buf);
+  const html = new TextDecoder(charset).decode(buf);
+  // Detect if we got the login page instead of data
+  if (html.includes('Datos de Acceso') && html.includes('NLogin')) {
+    console.log(`[RFFM] Got login page for URL: ${url.substring(0, 120)}`);
+  }
+  return html;
 }
 
 function buildJornadaUrl(p, jornada) {
