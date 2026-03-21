@@ -751,23 +751,22 @@ ${categorias.length > 1 ? `<div class="filter-bar" id="filter-bar">
 </footer>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
   // ═══ COUNTDOWN ═══
   var el = document.getElementById('countdown');
-  if (el && el.dataset.target) {
-    // Parse as local time (the date/time is already in Europe/Madrid)
-    var parts = el.dataset.target.match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+)/);
+  if (el && el.dataset && el.dataset.target) {
+    var parts = el.dataset.target.match(/(\\d+)-(\\d+)-(\\d+)T(\\d+):(\\d+)/);
     var target;
     if (parts) {
-      target = new Date(+parts[1], +parts[2]-1, +parts[3], +parts[4], +parts[5], 0);
+      target = new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]), parseInt(parts[4]), parseInt(parts[5]), 0);
     } else {
       target = new Date(el.dataset.target);
     }
     function updateCountdown() {
       var now = new Date();
-      var diff = target - now;
+      var diff = target.getTime() - now.getTime();
       if (diff <= 0) {
-        el.innerHTML = '<div style="color:#f57c00;font-weight:800;font-size:1.1rem">YA TOCA!</div>';
+        el.innerHTML = '<div style="color:#f57c00;font-weight:800;font-size:1.1rem">EN JUEGO</div>';
         return;
       }
       var d = Math.floor(diff / 86400000);
@@ -788,23 +787,20 @@ document.addEventListener('DOMContentLoaded', function() {
   var bar = document.getElementById('filter-bar');
   if (bar) {
     var btns = bar.querySelectorAll('.filter-btn');
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].addEventListener('click', function(e) {
-        for (var j = 0; j < btns.length; j++) { btns[j].classList.remove('active'); }
-        e.currentTarget.classList.add('active');
-        var filter = e.currentTarget.getAttribute('data-filter');
-        var items = document.querySelectorAll('[data-cat]');
-        for (var k = 0; k < items.length; k++) {
-          if (filter === 'all' || items[k].getAttribute('data-cat') === filter) {
-            items[k].style.display = '';
-          } else {
-            items[k].style.display = 'none';
-          }
-        }
-      });
+    function handleFilter(e) {
+      var clicked = e.target;
+      if (!clicked.classList.contains('filter-btn')) return;
+      for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
+      clicked.classList.add('active');
+      var filter = clicked.getAttribute('data-filter');
+      var items = document.querySelectorAll('[data-cat]');
+      for (var k = 0; k < items.length; k++) {
+        items[k].style.display = (filter === 'all' || items[k].getAttribute('data-cat') === filter) ? '' : 'none';
+      }
     }
+    bar.addEventListener('click', handleFilter);
   }
-});
+})();
 </script>
 
 </body>
