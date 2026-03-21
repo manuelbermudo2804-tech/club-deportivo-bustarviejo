@@ -85,7 +85,7 @@ export default function NextMatchFromDB({ category, standings }) {
         {match.campo && (
           !isLocal ? (
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + match.campo)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg px-3 py-1.5 transition-colors"
