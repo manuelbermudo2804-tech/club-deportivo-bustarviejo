@@ -141,9 +141,21 @@ function MatchCard({ match, isFirst }) {
 
         {/* Campo */}
         {match.campo && (
-          <p className="text-center text-[10px] text-slate-400 mt-2 truncate">
-            📍 {match.campo}
-          </p>
+          !isLocal ? (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 mt-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              <span className="text-[10px] text-blue-300 truncate">📍 {match.campo}</span>
+              <span className="text-[10px] text-blue-400 font-semibold whitespace-nowrap">→ Mapa</span>
+            </a>
+          ) : (
+            <p className="text-center text-[10px] text-slate-400 mt-2 truncate">
+              📍 {match.campo}
+            </p>
+          )
         )}
       </div>
     </div>
