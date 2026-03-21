@@ -763,32 +763,45 @@ ${categorias.length > 1 ? `<div class="filter-bar" id="filter-bar">
 </footer>
 
 <script>
+(function(){
 // Countdown
+function initCountdown(){
 var cdEl=document.getElementById("countdown");
-if(cdEl){
+if(!cdEl)return;
 var t=cdEl.getAttribute("data-target");
-if(t){
+if(!t)return;
 var p=t.match(/([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+)/);
 var goal=p?new Date(+p[1],+p[2]-1,+p[3],+p[4],+p[5],0):new Date(t);
-var tick=function(){
+function tick(){
 var d=goal-new Date();
-if(d<=0){cdEl.innerHTML="<div style='color:#f57c00;font-weight:800;font-size:1.1rem'>EN JUEGO</div>";return;}
+if(d<=0){cdEl.innerHTML="<div style=\\"color:#f57c00;font-weight:800;font-size:1.1rem\\">EN JUEGO</div>";return;}
 var dd=Math.floor(d/864e5),hh=Math.floor(d%864e5/36e5),mm=Math.floor(d%36e5/6e4);
 var eD=document.getElementById("cd-d"),eH=document.getElementById("cd-h"),eM=document.getElementById("cd-m");
 if(eD)eD.textContent=dd;if(eH)eH.textContent=hh;if(eM)eM.textContent=mm;
-};tick();setInterval(tick,3e4);
-}}
+}
+tick();setInterval(tick,30000);
+}
 // Category filter
+function initFilter(){
 var fb=document.getElementById("filter-bar");
-if(fb){fb.onclick=function(e){
-var b=e.target;while(b&&b!==fb&&!b.classList.contains("filter-btn"))b=b.parentNode;
-if(!b||!b.classList.contains("filter-btn"))return;
-var all=fb.querySelectorAll(".filter-btn");
-for(var i=0;i<all.length;i++)all[i].classList.remove("active");
-b.classList.add("active");
-var f=b.getAttribute("data-filter"),items=document.querySelectorAll("[data-cat]");
-for(var k=0;k<items.length;k++)items[k].style.display=(f==="all"||items[k].getAttribute("data-cat")===f)?"":"none";
-};}
+if(!fb)return;
+var btns=fb.getElementsByClassName("filter-btn");
+for(var i=0;i<btns.length;i++){
+btns[i].onclick=function(){
+for(var j=0;j<btns.length;j++)btns[j].className="filter-btn";
+this.className="filter-btn active";
+var f=this.getAttribute("data-filter");
+var items=document.querySelectorAll("[data-cat]");
+for(var k=0;k<items.length;k++){
+items[k].style.display=(f==="all"||items[k].getAttribute("data-cat")===f)?"":"none";
+}
+};
+}
+}
+// Run immediately since script is at bottom of body
+initCountdown();
+initFilter();
+})();
 </script>
 
 </body>
