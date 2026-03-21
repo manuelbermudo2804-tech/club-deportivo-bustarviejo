@@ -82,9 +82,21 @@ export default function NextMatchFromDB({ category, standings }) {
           <span>{isLocal ? "🏠 Casa" : "✈️ Fuera"}</span>
         </div>
         {match.campo && (
-          <div className="flex items-center gap-1.5 bg-white/10 rounded-lg px-3 py-1.5">
-            <span className="text-xs text-slate-300">📍 {match.campo}</span>
-          </div>
+          !isLocal ? (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              <span className="text-xs text-blue-300">📍 {match.campo}</span>
+              <span className="text-[10px] text-blue-400">→ Mapa</span>
+            </a>
+          ) : (
+            <div className="flex items-center gap-1.5 bg-white/10 rounded-lg px-3 py-1.5">
+              <span className="text-xs text-slate-300">📍 {match.campo}</span>
+            </div>
+          )
         )}
       </div>
 
