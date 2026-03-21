@@ -518,17 +518,13 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #1a1a2e; background:
 .hero-ultimo-res { color: #e2e8f0; font-size: 0.85rem; font-weight: 600; }
 .hero-ultimo-res strong { color: #fff; font-weight: 900; font-size: 1rem; }
 
-/* ═══ HERO COUNTDOWN ═══ */
-.hero-countdown { margin-top: 14px; display: flex; justify-content: center; gap: 12px; }
-.cd-box { background: rgba(255,255,255,0.1); border: 1px solid rgba(245,124,0,0.3); border-radius: 12px; padding: 10px 14px; min-width: 60px; text-align: center; }
-.cd-number { font-size: 1.5rem; font-weight: 900; color: #f57c00; display: block; line-height: 1; }
-.cd-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; display: block; }
-
-/* ═══ CATEGORY FILTER ═══ */
-.filter-bar { display: flex; justify-content: center; padding: 14px 20px 0; gap: 6px; flex-wrap: wrap; }
-.filter-btn { padding: 6px 16px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #e2e8f0; color: #475569; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.3px; }
-.filter-btn:hover { background: #cbd5e1; }
-.filter-btn.active { background: #f57c00; color: #fff; border-color: #f57c00; box-shadow: 0 3px 10px rgba(245,124,0,0.3); }
+/* ═══ RESUMEN POSICIONES ═══ */
+.resumen-grid { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 24px; position: relative; }
+.resumen-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 18px; min-width: 110px; text-align: center; transition: transform 0.2s; }
+.resumen-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.12); }
+.resumen-pos { font-size: 1.6rem; font-weight: 900; color: #f57c00; line-height: 1; }
+.resumen-cat { font-size: 0.7rem; font-weight: 700; color: #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+.resumen-detail { font-size: 0.6rem; color: rgba(255,255,255,0.45); margin-top: 4px; }
 
 /* ═══ WHATSAPP BUTTON ═══ */
 .wa-btn { display: inline-flex; align-items: center; gap: 5px; background: #25d366; color: #fff !important; text-decoration: none; padding: 5px 14px; border-radius: 50px; font-weight: 700; font-size: 0.72rem; transition: all 0.2s; }
