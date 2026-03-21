@@ -751,47 +751,60 @@ ${categorias.length > 1 ? `<div class="filter-bar" id="filter-bar">
 </footer>
 
 <script>
-// ═══ COUNTDOWN ═══
-(function(){
+document.addEventListener('DOMContentLoaded', function() {
+  // ═══ COUNTDOWN ═══
   var el = document.getElementById('countdown');
-  if (!el) return;
-  var target = new Date(el.dataset.target);
-  function update() {
-    var now = new Date();
-    var diff = target - now;
-    if (diff <= 0) { el.innerHTML = '<div style="color:#f57c00;font-weight:800;font-size:1.1rem">¡YA TOCA! ⚽🔥</div>'; return; }
-    var d = Math.floor(diff / 86400000);
-    var h = Math.floor((diff % 86400000) / 3600000);
-    var m = Math.floor((diff % 3600000) / 60000);
-    document.getElementById('cd-d').textContent = d;
-    document.getElementById('cd-h').textContent = h;
-    document.getElementById('cd-m').textContent = m;
+  if (el && el.dataset.target) {
+    // Parse as local time (the date/time is already in Europe/Madrid)
+    var parts = el.dataset.target.match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+)/);
+    var target;
+    if (parts) {
+      target = new Date(+parts[1], +parts[2]-1, +parts[3], +parts[4], +parts[5], 0);
+    } else {
+      target = new Date(el.dataset.target);
+    }
+    function updateCountdown() {
+      var now = new Date();
+      var diff = target - now;
+      if (diff <= 0) {
+        el.innerHTML = '<div style="color:#f57c00;font-weight:800;font-size:1.1rem">\\u00a1YA TOCA! \\u26bd\\ud83d\\udd25</div>';
+        return;
+      }
+      var d = Math.floor(diff / 86400000);
+      var h = Math.floor((diff % 86400000) / 3600000);
+      var m = Math.floor((diff % 3600000) / 60000);
+      var elD = document.getElementById('cd-d');
+      var elH = document.getElementById('cd-h');
+      var elM = document.getElementById('cd-m');
+      if (elD) elD.textContent = d;
+      if (elH) elH.textContent = h;
+      if (elM) elM.textContent = m;
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 30000);
   }
-  update();
-  setInterval(update, 60000);
-})();
 
-// ═══ CATEGORY FILTER ═══
-(function(){
+  // ═══ CATEGORY FILTER ═══
   var bar = document.getElementById('filter-bar');
-  if (!bar) return;
-  var btns = bar.querySelectorAll('.filter-btn');
-  btns.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      btns.forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      var filter = btn.dataset.filter;
-      var items = document.querySelectorAll('[data-cat]');
-      items.forEach(function(item) {
-        if (filter === 'all' || item.dataset.cat === filter) {
-          item.style.display = '';
-        } else {
-          item.style.display = 'none';
+  if (bar) {
+    var btns = bar.querySelectorAll('.filter-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function(e) {
+        for (var j = 0; j < btns.length; j++) { btns[j].classList.remove('active'); }
+        e.currentTarget.classList.add('active');
+        var filter = e.currentTarget.getAttribute('data-filter');
+        var items = document.querySelectorAll('[data-cat]');
+        for (var k = 0; k < items.length; k++) {
+          if (filter === 'all' || items[k].getAttribute('data-cat') === filter) {
+            items[k].style.display = '';
+          } else {
+            items[k].style.display = 'none';
+          }
         }
       });
-    });
-  });
-})();
+    }
+  }
+});
 </script>
 
 </body>
