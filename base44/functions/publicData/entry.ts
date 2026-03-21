@@ -687,8 +687,12 @@ tbody tr:hover { background: #f8fafc; }
   .hero-ultimo-res { font-size: 0.78rem; }
   .bloque { padding: 20px 16px; }
   .bloque h2 { font-size: 1.2rem; }
-  .match-teams { flex-direction: column; gap: 8px; padding: 12px; }
-  .match-team, .match-team:last-child { justify-content: center; text-align: center; flex-direction: row; }
+  .match-time-block { flex: 0 0 100px; padding: 16px 12px; }
+  .match-hora { font-size: 1.8rem; }
+  .match-rival-block { padding: 16px; }
+  .match-rival-name { font-size: 1.25rem; }
+  .match-lugar { font-size: 0.75rem; }
+  .day-date { font-size: 1.1rem; }
   .result-teams { gap: 10px; }
   .score-num { font-size: 1.4rem; }
   table { font-size: 0.72rem; min-width: 520px; }
