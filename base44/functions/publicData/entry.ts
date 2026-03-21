@@ -472,6 +472,37 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #1a1a2e; background:
 .hero-mapa-btn { display: inline-block; margin-top: 8px; background: #2563eb; color: #fff; text-decoration: none; padding: 10px 24px; border-radius: 50px; font-size: 0.85rem; font-weight: 700; transition: all 0.2s; }
 .hero-mapa-btn:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.3); }
 
+/* ═══ HERO ÚLTIMO RESULTADO ═══ */
+.hero-ultimo { margin-top: 18px; padding: 12px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; }
+.hero-ultimo-label { display: block; font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.hero-ultimo-res { color: #e2e8f0; font-size: 0.85rem; font-weight: 600; }
+.hero-ultimo-res strong { color: #fff; font-weight: 900; font-size: 1rem; }
+
+/* ═══ HERO COUNTDOWN ═══ */
+.hero-countdown { margin-top: 14px; display: flex; justify-content: center; gap: 12px; }
+.cd-box { background: rgba(255,255,255,0.1); border: 1px solid rgba(245,124,0,0.3); border-radius: 12px; padding: 10px 14px; min-width: 60px; text-align: center; }
+.cd-number { font-size: 1.5rem; font-weight: 900; color: #f57c00; display: block; line-height: 1; }
+.cd-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; display: block; }
+
+/* ═══ CATEGORY FILTER ═══ */
+.filter-bar { display: flex; justify-content: center; padding: 14px 20px 0; gap: 6px; flex-wrap: wrap; }
+.filter-btn { padding: 6px 16px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #e2e8f0; color: #475569; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.3px; }
+.filter-btn:hover { background: #cbd5e1; }
+.filter-btn.active { background: #f57c00; color: #fff; border-color: #f57c00; box-shadow: 0 3px 10px rgba(245,124,0,0.3); }
+
+/* ═══ WHATSAPP BUTTON ═══ */
+.wa-btn { display: inline-flex; align-items: center; gap: 5px; background: #25d366; color: #fff !important; text-decoration: none; padding: 5px 14px; border-radius: 50px; font-weight: 700; font-size: 0.72rem; transition: all 0.2s; }
+.wa-btn:hover { background: #1ebe5d; transform: translateY(-1px); }
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.match-card, .result-card, .clasif-grupo { animation: fadeInUp 0.4s ease-out both; }
+.match-card:nth-child(1), .result-card:nth-child(1) { animation-delay: 0.05s; }
+.match-card:nth-child(2), .result-card:nth-child(2) { animation-delay: 0.1s; }
+.match-card:nth-child(3), .result-card:nth-child(3) { animation-delay: 0.15s; }
+.match-card:nth-child(4), .result-card:nth-child(4) { animation-delay: 0.2s; }
+.match-card:nth-child(5), .result-card:nth-child(5) { animation-delay: 0.25s; }
+
 /* ═══ TABS ═══ */
 .tabs-bar { display: flex; justify-content: center; gap: 8px; background: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); flex-wrap: wrap; position: sticky; top: 80px; z-index: 50; }
 .tab-label { padding: 10px 22px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #64748b; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.3px; }
