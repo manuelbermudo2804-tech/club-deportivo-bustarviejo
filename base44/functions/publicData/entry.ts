@@ -96,17 +96,29 @@ Deno.serve(async (req) => {
     // Filtrar solo partidos futuros (hoy incluido) y deduplicar
     const hoyStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const proximosDedup = new Map();
+    const resultadosRecientesDedup = new Map();
     for (const p of proximosPartidos) {
-      // Excluir partidos ya disputados
-      if (p.fecha_iso && p.fecha_iso < hoyStr) continue;
       const key = `${p.categoria}_${p.jornada}_${p.local}_${p.visitante}`;
-      if (!proximosDedup.has(key)) proximosDedup.set(key, p);
+      if (p.jugado && p.goles_local != null && p.goles_visitante != null) {
+        if (!resultadosRecientesDedup.has(key)) resultadosRecientesDedup.set(key, p);
+      } else if (!p.fecha_iso || p.fecha_iso >= hoyStr) {
+        if (!proximosDedup.has(key)) proximosDedup.set(key, p);
+      }
     }
     const proximos = Array.from(proximosDedup.values()).map(p => ({
       categoria: p.categoria, jornada: p.jornada, local: p.local,
       visitante: p.visitante, fecha: p.fecha, hora: p.hora,
       campo: p.campo, fecha_iso: p.fecha_iso,
     }));
+    const resultadosRecientes = Array.from(resultadosRecientesDedup.values())
+      .map(p => ({
+        categoria: p.categoria, jornada: p.jornada, local: p.local,
+        visitante: p.visitante, fecha: p.fecha, hora: p.hora,
+        campo: p.campo, fecha_iso: p.fecha_iso,
+        goles_local: p.goles_local, goles_visitante: p.goles_visitante,
+      }))
+      .sort((a, b) => (b.fecha_iso || '').localeCompare(a.fecha_iso || ''))
+      .slice(0, 20);
 
     const data = {
       club: 'CD Bustarviejo',
