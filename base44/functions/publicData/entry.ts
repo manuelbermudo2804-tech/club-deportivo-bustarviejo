@@ -387,7 +387,7 @@ function generarHTML(data) {
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
       filas += `<tr><td class="td-pos">${medal}</td><td class="td-equipo">${j.jugador}</td><td class="td-goles"><strong>${j.goles}</strong> ⚽</td></tr>`;
     });
-    golesHTML += `<div class="clasif-grupo">
+    golesHTML += `<div class="clasif-grupo" data-cat="${cat}">
       <h3>${cat}</h3>
       <div class="tabla-scroll"><table>
         <thead><tr><th>#</th><th>Jugador</th><th>Goles</th></tr></thead>
