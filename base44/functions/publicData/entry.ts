@@ -222,6 +222,22 @@ function generarHTML(data) {
     return (cat || '').replace('Fútbol ', '').replace('Baloncesto ', '🏀 ').replace('(Mixto)', '').trim();
   }
 
+  // ─── ÚLTIMO RESULTADO DEL BUSTARVIEJO (para hero) ───
+  const ultimoResultado = (data.resultados_recientes || []).find(r => {
+    return r.local?.toLowerCase().includes('bustarviejo') || r.visitante?.toLowerCase().includes('bustarviejo');
+  });
+  let ultimoResHTML = '';
+  if (ultimoResultado) {
+    const esLocalUlt = ultimoResultado.local.toLowerCase().includes('bustarviejo');
+    const gN = esLocalUlt ? ultimoResultado.goles_local : ultimoResultado.goles_visitante;
+    const gR = esLocalUlt ? ultimoResultado.goles_visitante : ultimoResultado.goles_local;
+    const rival = esLocalUlt ? ultimoResultado.visitante : ultimoResultado.local;
+    const res = gN > gR ? 'victoria' : gN < gR ? 'derrota' : 'empate';
+    const icon = res === 'victoria' ? '✅' : res === 'derrota' ? '❌' : '🤝';
+    const rivalCorto = rival.length > 25 ? rival.substring(0, 22) + '...' : rival;
+    ultimoResHTML = `<div class="hero-ultimo"><span class="hero-ultimo-label">Último resultado</span><span class="hero-ultimo-res">${icon} Bustarviejo <strong>${gN}-${gR}</strong> ${rivalCorto}</span></div>`;
+  }
+
   // ─── PRÓXIMO PARTIDO DESTACADO (HERO) ───
   // Ordenar por fecha + hora para que el hero sea siempre el más inminente
   const sortedProximos = [...(data.proximos_partidos || [])].sort((a, b) => {
