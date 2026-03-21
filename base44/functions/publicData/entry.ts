@@ -325,40 +325,47 @@ function generarHTML(data) {
       ${resumenHTML}`;
   }
 
-  // ─── CARDS DE PARTIDOS ───
+  // ─── CARDS DE PARTIDOS (diseño ultra-claro para fácil lectura) ───
+  // Agrupar partidos por fecha para mostrar cabecera de día
   let proximosHTML = '';
   if (sortedProximos.length > 0) {
+    let lastDateGroup = '';
     for (const p of sortedProximos) {
       const esLocal = p.local.toLowerCase().includes('bustarviejo');
       const badge = diasHasta(p.fecha_iso);
-      const badgeClass = badge === '¡HOY!' ? 'badge-hoy' : badge === 'MAÑANA' ? 'badge-manana' : 'badge-pronto';
-      const mapaBtn = (!esLocal && p.campo)
-        ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + p.campo)}" target="_blank" rel="noopener" class="mapa-btn">📍 Cómo llegar</a>`
-        : (p.campo ? `<span class="campo-texto">📍 ${p.campo}</span>` : '');
-      const waText = encodeURIComponent(`⚽ ¡Partido del C.D. Bustarviejo!\n${p.local} vs ${p.visitante}\n📅 ${fechaBonita(p.fecha)}${p.hora ? ' 🕐 ' + p.hora : ''}\n${esLocal ? '🏠 En casa' : '✈️ Fuera'}\n\n¡Vamos Bustarviejo! 💪🟠`);
+      const rival = esLocal ? p.visitante : p.local;
+      const rivalCorto = rival.replace(/^(C\.D\.|A\.D\.|U\.D\.|C\.F\.|RECREATIVO|ESCUELA FUT\.)\s*/i, '').trim();
+      const lugar = esLocal ? 'EN CASA' : 'FUERA';
+      const lugarIcon = esLocal ? '🏠' : '✈️';
+      const dateGroup = p.fecha_iso || 'sin-fecha';
+      
+      // Cabecera de día
+      if (dateGroup !== lastDateGroup) {
+        const fechaLarga = fechaBonita(p.fecha);
+        const esBadge = badge === '¡HOY!' || badge === 'MAÑANA';
+        proximosHTML += `<div class="day-header">${esBadge ? `<span class="day-badge ${badge === '¡HOY!' ? 'day-badge-hoy' : 'day-badge-manana'}">${badge}</span>` : ''}<span class="day-date">${fechaLarga || 'Fecha por confirmar'}</span></div>`;
+        lastDateGroup = dateGroup;
+      }
+
+      const campoLink = (!esLocal && p.campo)
+        ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + p.campo)}" target="_blank" rel="noopener" class="match-mapa">📍 Cómo llegar a ${p.campo}</a>`
+        : '';
+      
       proximosHTML += `
-        <div class="match-card" data-cat="${p.categoria}">
-          <div class="match-header">
-            <span class="match-cat">${catCorta(p.categoria)} — J${p.jornada}</span>
-            ${badge ? `<span class="match-badge ${badgeClass}">${badge}</span>` : ''}
-          </div>
-          <div class="match-teams">
-            <div class="match-team ${esLocal ? 'team-us' : ''}">
-              <span class="team-icon">${esLocal ? '🏠' : '⚽'}</span>
-              <span class="team-name">${p.local}</span>
+        <div class="match-card-v2">
+          <div class="match-cat-bar">${catCorta(p.categoria)}</div>
+          <div class="match-main-info">
+            <div class="match-time-block">
+              ${p.hora ? `<div class="match-hora">${p.hora}</div>` : '<div class="match-hora-tbd">Hora por confirmar</div>'}
+              <div class="match-lugar ${esLocal ? 'lugar-casa' : 'lugar-fuera'}">${lugarIcon} ${lugar}</div>
             </div>
-            <div class="match-vs">VS</div>
-            <div class="match-team ${!esLocal ? 'team-us' : ''}">
-              <span class="team-icon">${!esLocal ? '🏠' : '⚽'}</span>
-              <span class="team-name">${p.visitante}</span>
+            <div class="match-rival-block">
+              <div class="match-vs-label">Bustarviejo vs</div>
+              <div class="match-rival-name">${rivalCorto}</div>
+              <div class="match-jornada">Jornada ${p.jornada}</div>
             </div>
           </div>
-          <div class="match-footer">
-            <span>📅 ${fechaBonita(p.fecha)}</span>
-            ${p.hora ? `<span>🕐 ${p.hora}</span>` : ''}
-            ${mapaBtn}
-            <a href="https://wa.me/?text=${waText}" target="_blank" rel="noopener" class="wa-btn">📲 Compartir</a>
-          </div>
+          ${campoLink}
         </div>`;
     }
   } else {
