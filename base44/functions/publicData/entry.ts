@@ -584,23 +584,31 @@ input[name="tab"] { display: none; }
 .bloque { background: #fff; border-radius: 16px; padding: 32px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; }
 .bloque h2 { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #f57c00; display: flex; align-items: center; gap: 10px; }
 
-/* ═══ MATCH CARDS ═══ */
-.match-card { background: #fff; border: 1px solid #e2e8f0; border-left: 4px solid #f57c00; border-radius: 14px; padding: 0; margin-bottom: 14px; transition: all 0.25s; overflow: hidden; }
-.match-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); border-color: #f57c00; }
-.match-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
-.match-cat { font-size: 0.72rem; color: #f57c00; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-.match-badge { font-size: 0.68rem; font-weight: 900; padding: 4px 14px; border-radius: 50px; letter-spacing: 0.5px; }
-.match-teams { display: flex; align-items: center; justify-content: center; padding: 16px 18px; gap: 14px; }
-.match-team { flex: 1; display: flex; align-items: center; gap: 8px; }
-.match-team:last-child { justify-content: flex-end; text-align: right; flex-direction: row-reverse; }
-.team-icon { font-size: 1.3rem; }
-.team-name { font-weight: 700; font-size: 0.88rem; color: #334155; line-height: 1.2; }
-.team-us .team-name { color: #ea580c; font-weight: 800; }
-.match-vs { font-weight: 900; font-size: 0.85rem; color: #fff; background: #0f172a; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.match-footer { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px 18px; background: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 0.78rem; color: #64748b; flex-wrap: wrap; }
-.mapa-btn { background: #2563eb; color: #fff !important; text-decoration: none; padding: 5px 16px; border-radius: 50px; font-weight: 700; font-size: 0.75rem; transition: all 0.2s; }
-.mapa-btn:hover { background: #1d4ed8; }
-.campo-texto { color: #94a3b8; }
+/* ═══ DAY HEADERS ═══ */
+.day-header { display: flex; align-items: center; gap: 12px; padding: 18px 0 8px; margin-top: 8px; }
+.day-header:first-child { margin-top: 0; padding-top: 0; }
+.day-date { font-size: 1.3rem; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; }
+.day-badge { font-size: 0.85rem; font-weight: 900; padding: 6px 18px; border-radius: 50px; text-transform: uppercase; letter-spacing: 1px; }
+.day-badge-hoy { background: #ef4444; color: #fff; animation: pulse 1.5s infinite; }
+.day-badge-manana { background: #f59e0b; color: #000; }
+
+/* ═══ MATCH CARDS v2 (ultra-claro) ═══ */
+.match-card-v2 { background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; margin-bottom: 16px; overflow: hidden; transition: box-shadow 0.2s; }
+.match-card-v2:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.match-cat-bar { background: #0f172a; color: #f5a623; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 10px 20px; text-align: center; }
+.match-main-info { display: flex; align-items: stretch; }
+.match-time-block { flex: 0 0 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 16px; background: #f8fafc; border-right: 2px solid #e2e8f0; }
+.match-hora { font-size: 2.2rem; font-weight: 900; color: #0f172a; line-height: 1; }
+.match-hora-tbd { font-size: 0.85rem; font-weight: 700; color: #94a3b8; text-align: center; line-height: 1.3; }
+.match-lugar { font-size: 0.85rem; font-weight: 800; margin-top: 8px; padding: 4px 14px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; }
+.lugar-casa { background: #dcfce7; color: #166534; }
+.lugar-fuera { background: #dbeafe; color: #1e40af; }
+.match-rival-block { flex: 1; padding: 20px 24px; display: flex; flex-direction: column; justify-content: center; }
+.match-vs-label { font-size: 0.85rem; color: #64748b; font-weight: 600; margin-bottom: 4px; }
+.match-rival-name { font-size: 1.5rem; font-weight: 900; color: #0f172a; line-height: 1.2; }
+.match-jornada { font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 6px; }
+.match-mapa { display: block; text-align: center; padding: 12px; background: #eff6ff; color: #2563eb; font-weight: 700; font-size: 0.9rem; text-decoration: none; border-top: 2px solid #e2e8f0; }
+.match-mapa:hover { background: #dbeafe; }
 
 /* ═══ RESULT CARDS ═══ */
 .result-card { background: #fff; border-radius: 14px; margin-bottom: 12px; overflow: hidden; border: 1px solid #e2e8f0; transition: all 0.2s; }
