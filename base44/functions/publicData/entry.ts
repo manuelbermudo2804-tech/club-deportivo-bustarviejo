@@ -626,6 +626,12 @@ tbody tr:hover { background: #f8fafc; }
   .hero-vs { width: 42px; height: 42px; font-size: 1.2rem; }
   .tabs-bar { top: 90px; gap: 6px; padding: 12px 10px; }
   .tab-label { padding: 8px 14px; font-size: 0.7rem; }
+  .filter-bar { padding: 10px 10px 0; gap: 4px; }
+  .filter-btn { padding: 5px 10px; font-size: 0.65rem; }
+  .cd-box { min-width: 50px; padding: 8px 10px; }
+  .cd-number { font-size: 1.2rem; }
+  .hero-ultimo { padding: 10px 14px; }
+  .hero-ultimo-res { font-size: 0.78rem; }
   .bloque { padding: 20px 16px; }
   .bloque h2 { font-size: 1.2rem; }
   .match-teams { flex-direction: column; gap: 8px; padding: 12px; }
