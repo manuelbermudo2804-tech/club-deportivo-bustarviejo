@@ -8,7 +8,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 let cachedData = null;
 let cacheTimestamp = 0;
 let cachedDateStr = '';
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutos (para actualizar hora de partidos de hoy)
 
 Deno.serve(async (req) => {
   const corsHeaders = {
