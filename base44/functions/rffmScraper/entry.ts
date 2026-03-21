@@ -650,6 +650,39 @@ Deno.serve(async (req) => {
         
         const frames = $s('frame, iframe').map((_, f) => ({ name: $s(f).attr('name') || '', src: ($s(f).attr('src') || '').substring(0, 300) })).get();
         
+        // Find forms with their actions
+        const forms = $s('form').map((_, f) => ({
+          action: ($s(f).attr('action') || '').substring(0, 200),
+          method: $s(f).attr('method') || 'GET',
+          id: $s(f).attr('id') || '',
+          name: $s(f).attr('name') || '',
+        })).get();
+        
+        // Find select dropdowns with their options
+        const selects = $s('select').map((_, sel) => ({
+          name: $s(sel).attr('name') || $s(sel).attr('id') || '',
+          options: $s(sel).find('option').map((__, opt) => ({
+            value: ($s(opt).attr('value') || '').substring(0, 50),
+            text: $s(opt).text().trim().substring(0, 80),
+            selected: $s(opt).attr('selected') !== undefined,
+          })).get().slice(0, 20),
+        })).get();
+        
+        // Find any AJAX/onclick handlers that might load data
+        const onclicks = [];
+        $s('[onclick]').each((_, el) => {
+          onclicks.push($s(el).attr('onclick').substring(0, 200));
+        });
+        
+        // Find script content that might reveal API endpoints
+        const scriptSnippets = [];
+        $s('script').each((_, sc) => {
+          const txt = $s(sc).text();
+          if (txt.includes('Goleador') || txt.includes('goleador') || txt.includes('ajax') || txt.includes('fetch') || txt.includes('submit')) {
+            scriptSnippets.push(txt.substring(0, 500));
+          }
+        });
+        
         const tables = [];
         $s('table').each((i, table) => {
           const rows = [];
@@ -661,7 +694,8 @@ Deno.serve(async (req) => {
         });
         
         return Response.json({ 
-          success: true, scorersUrl, htmlLength: html.length, frames, 
+          success: true, scorersUrl, htmlLength: html.length, frames, forms, selects,
+          onclicks: onclicks.slice(0, 10), scriptSnippets: scriptSnippets.slice(0, 5),
           tablesCount: tables.length, tables: tables.slice(0, 8),
         });
       }
