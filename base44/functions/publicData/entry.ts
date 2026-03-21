@@ -124,6 +124,7 @@ Deno.serve(async (req) => {
       club: 'CD Bustarviejo',
       actualizado: new Date().toISOString(),
       proximos_partidos: proximos,
+      resultados_recientes: resultadosRecientes,
       resultados: resultadosPorCategoria,
       clasificaciones: clasificacionesPorCategoria,
       goleadores: goleadoresPorCategoria,
