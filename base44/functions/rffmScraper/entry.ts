@@ -561,19 +561,34 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, standings, retried: standings.length < 5 });
       }
 
-      // Fetch scorers (with automatic retry if too few results)
+      // Fetch scorers (with automatic retry with URL variants and re-login)
       case 'scorers': {
         let scorers = [];
-        for (let attempt = 0; attempt < 3; attempt++) {
-          if (attempt > 0) {
-            console.log(`[SCORERS RETRY] attempt ${attempt + 1}/3 (got ${scorers.length})`);
-            await new Promise(r => setTimeout(r, 2000 + attempt * 1500));
+        // Try all URL variants (lowercase, CamelCase, no-jornada)
+        for (let variant = 0; variant <= 2 && scorers.length < 3; variant++) {
+          const scorersUrl = buildScorersUrl(p, variant);
+          console.log(`[SCORERS] Trying variant ${variant}: ${scorersUrl.substring(0, 150)}`);
+          
+          for (let attempt = 0; attempt < 2; attempt++) {
+            if (attempt > 0) {
+              // Re-login on retry (session might have expired)
+              console.log(`[SCORERS] Re-login attempt ${attempt + 1} for variant ${variant}`);
+              cookies = await rffmLogin();
+              await new Promise(r => setTimeout(r, 1500));
+            }
+            const html = await fetchPage(scorersUrl, cookies);
+            // Skip if we got the login page
+            if (html.includes('Datos de Acceso') && html.includes('NLogin')) {
+              console.log(`[SCORERS] Got login page, will re-login`);
+              continue;
+            }
+            scorers = parseScorers(html);
+            console.log(`[SCORERS] Variant ${variant}, attempt ${attempt}: found ${scorers.length} scorers (html: ${html.length} bytes)`);
+            if (scorers.length >= 3) break;
           }
-          const html = await fetchPage(buildScorersUrl(p), cookies);
-          scorers = parseScorers(html);
-          if (scorers.length >= 5) break; // Got enough data
+          if (scorers.length >= 3) break;
         }
-        return Response.json({ success: true, scorers, total: scorers.length, retried: scorers.length < 5 });
+        return Response.json({ success: true, scorers, total: scorers.length, retried: scorers.length < 3 });
       }
 
       // Debug standings page structure
