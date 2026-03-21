@@ -287,8 +287,9 @@ function generarHTML(data) {
       const mapaBtn = (!esLocal && p.campo)
         ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + p.campo)}" target="_blank" rel="noopener" class="mapa-btn">📍 Cómo llegar</a>`
         : (p.campo ? `<span class="campo-texto">📍 ${p.campo}</span>` : '');
+      const waText = encodeURIComponent(`⚽ ¡Partido del C.D. Bustarviejo!\n${p.local} vs ${p.visitante}\n📅 ${fechaBonita(p.fecha)}${p.hora ? ' 🕐 ' + p.hora : ''}\n${esLocal ? '🏠 En casa' : '✈️ Fuera'}\n\n¡Vamos Bustarviejo! 💪🟠`);
       proximosHTML += `
-        <div class="match-card">
+        <div class="match-card" data-cat="${p.categoria}">
           <div class="match-header">
             <span class="match-cat">${catCorta(p.categoria)} — J${p.jornada}</span>
             ${badge ? `<span class="match-badge ${badgeClass}">${badge}</span>` : ''}
@@ -308,6 +309,7 @@ function generarHTML(data) {
             <span>📅 ${fechaBonita(p.fecha)}</span>
             ${p.hora ? `<span>🕐 ${p.hora}</span>` : ''}
             ${mapaBtn}
+            <a href="https://wa.me/?text=${waText}" target="_blank" rel="noopener" class="wa-btn">📲 Compartir</a>
           </div>
         </div>`;
     }
