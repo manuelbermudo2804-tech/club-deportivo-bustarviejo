@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, Clock, MapPin, ChevronDown, ChevronUp, Zap } from "lucide-react";
 import RecentResultCard from "./RecentResultCard";
+import { extractTownFromCampo } from "../utils/campoParsing";
 
 function formatMatchDate(dateStr) {
   if (!dateStr) return null;
@@ -148,7 +149,7 @@ function MatchCard({ match, isFirst }) {
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-1.5 mt-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg px-3 py-1.5 transition-colors"
             >
-              <span className="text-[10px] text-blue-300 truncate">📍 {match.campo}</span>
+              <span className="text-[10px] text-blue-300 truncate">📍 {extractTownFromCampo(match.campo) || match.campo}</span>
               <span className="text-[10px] text-blue-400 font-semibold whitespace-nowrap">→ Mapa</span>
             </a>
           ) : (

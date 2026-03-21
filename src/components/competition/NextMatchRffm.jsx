@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, Trophy, Loader2, RefreshCw } from "lucide-react";
+import { extractTownFromCampo } from "../utils/campoParsing";
 
 function buildIntranetUrl(publicUrl) {
   if (!publicUrl) return null;
@@ -186,8 +187,8 @@ export default function NextMatchRffm({ config, category, standings, onMatchLoad
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg px-3 py-1.5 transition-colors"
             >
-              <span className="text-xs text-blue-300">📍 {match.campo}</span>
-              <span className="text-[10px] text-blue-400">→ Mapa</span>
+              <span className="text-xs text-blue-300">📍 {extractTownFromCampo(match.campo) || match.campo}</span>
+              <span className="text-[10px] text-blue-400 font-semibold">→ Mapa</span>
             </a>
           ) : (
             <div className="flex items-center gap-1.5 bg-white/10 rounded-lg px-3 py-1.5">
