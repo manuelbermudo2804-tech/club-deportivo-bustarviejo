@@ -366,10 +366,8 @@ function generarHTML(data) {
   }
 
   // ─── RESULTADOS RECIENTES (fusionados) ───
-  // Filtrar solo partidos de Bustarviejo y limitar a los más recientes
-  const bustResults = allResults.filter(r =>
-    r.local?.toLowerCase().includes('bustarviejo') || r.visitante?.toLowerCase().includes('bustarviejo')
-  ).slice(0, 30);
+  // Mostrar solo los últimos 10 resultados (de cualquier equipo de la liga)
+  const bustResults = allResults.slice(0, 10);
   let resultadosHTML = '';
   if (bustResults.length > 0) {
     for (const r of bustResults) {
