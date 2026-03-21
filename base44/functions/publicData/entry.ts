@@ -365,10 +365,14 @@ function generarHTML(data) {
     proximosHTML = '<p class="sin-datos">No hay próximos partidos programados.</p>';
   }
 
-  // ─── RESULTADOS RECIENTES ───
+  // ─── RESULTADOS RECIENTES (fusionados) ───
+  // Filtrar solo partidos de Bustarviejo y limitar a los más recientes
+  const bustResults = allResults.filter(r =>
+    r.local?.toLowerCase().includes('bustarviejo') || r.visitante?.toLowerCase().includes('bustarviejo')
+  ).slice(0, 30);
   let resultadosHTML = '';
-  if (data.resultados_recientes && data.resultados_recientes.length > 0) {
-    for (const r of data.resultados_recientes) {
+  if (bustResults.length > 0) {
+    for (const r of bustResults) {
       const esLocal = r.local.toLowerCase().includes('bustarviejo');
       const golesNuestros = esLocal ? r.goles_local : r.goles_visitante;
       const golesRival = esLocal ? r.goles_visitante : r.goles_local;
