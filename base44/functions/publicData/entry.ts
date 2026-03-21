@@ -245,7 +245,19 @@ function generarHTML(data) {
     if (cmpDate !== 0) return cmpDate;
     return (a.hora || '99:99').localeCompare(b.hora || '99:99');
   });
-  const heroMatch = sortedProximos[0];
+  // Elegir el partido más próximo que AÚN NO ha empezado
+  const ahora = new Date();
+  const heroMatch = sortedProximos.find(p => {
+    if (!p.fecha_iso) return true;
+    if (p.fecha_iso > ahora.toISOString().split('T')[0]) return true;
+    if (p.fecha_iso === ahora.toISOString().split('T')[0] && p.hora) {
+      const [hh, mm] = p.hora.split(':').map(Number);
+      const matchTime = new Date(ahora);
+      matchTime.setHours(hh, mm || 0, 0, 0);
+      return ahora < matchTime;
+    }
+    return p.fecha_iso === ahora.toISOString().split('T')[0]; // hoy sin hora → mostrar
+  }) || sortedProximos[0]; // fallback al primero si todos pasaron
   let heroHTML = '';
   if (heroMatch) {
     const esLocal = heroMatch.local.toLowerCase().includes('bustarviejo');
