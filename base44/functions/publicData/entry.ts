@@ -744,6 +744,50 @@ ${categorias.length > 1 ? `<div class="filter-bar" id="filter-bar">
   <div class="footer-copy">© 1989–${new Date().getFullYear()} · C.D. Bustarviejo · Todos los derechos reservados</div>
 </footer>
 
+<script>
+// ═══ COUNTDOWN ═══
+(function(){
+  var el = document.getElementById('countdown');
+  if (!el) return;
+  var target = new Date(el.dataset.target);
+  function update() {
+    var now = new Date();
+    var diff = target - now;
+    if (diff <= 0) { el.innerHTML = '<div style="color:#f57c00;font-weight:800;font-size:1.1rem">¡YA TOCA! ⚽🔥</div>'; return; }
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    document.getElementById('cd-d').textContent = d;
+    document.getElementById('cd-h').textContent = h;
+    document.getElementById('cd-m').textContent = m;
+  }
+  update();
+  setInterval(update, 60000);
+})();
+
+// ═══ CATEGORY FILTER ═══
+(function(){
+  var bar = document.getElementById('filter-bar');
+  if (!bar) return;
+  var btns = bar.querySelectorAll('.filter-btn');
+  btns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      btns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var filter = btn.dataset.filter;
+      var items = document.querySelectorAll('[data-cat]');
+      items.forEach(function(item) {
+        if (filter === 'all' || item.dataset.cat === filter) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+})();
+</script>
+
 </body>
 </html>`;
 }
