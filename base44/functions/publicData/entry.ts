@@ -371,11 +371,19 @@ function generarHTML(data) {
   let resultadosHTML = '';
   if (bustResults.length > 0) {
     for (const r of bustResults) {
-      const esLocal = r.local.toLowerCase().includes('bustarviejo');
-      const golesNuestros = esLocal ? r.goles_local : r.goles_visitante;
-      const golesRival = esLocal ? r.goles_visitante : r.goles_local;
-      const resultado = golesNuestros > golesRival ? 'victoria' : golesNuestros < golesRival ? 'derrota' : 'empate';
-      const resLabel = resultado === 'victoria' ? '✅ Victoria' : resultado === 'derrota' ? '❌ Derrota' : '🤝 Empate';
+      const esBustarviejo = r.local?.toLowerCase().includes('bustarviejo') || r.visitante?.toLowerCase().includes('bustarviejo');
+      const esLocal = r.local?.toLowerCase().includes('bustarviejo');
+      let resultado = 'empate';
+      let resLabel = '';
+      if (esBustarviejo) {
+        const golesNuestros = esLocal ? r.goles_local : r.goles_visitante;
+        const golesRival = esLocal ? r.goles_visitante : r.goles_local;
+        resultado = golesNuestros > golesRival ? 'victoria' : golesNuestros < golesRival ? 'derrota' : 'empate';
+        resLabel = resultado === 'victoria' ? '✅ Victoria' : resultado === 'derrota' ? '❌ Derrota' : '🤝 Empate';
+      } else {
+        resultado = r.goles_local > r.goles_visitante ? 'victoria' : r.goles_local < r.goles_visitante ? 'derrota' : 'empate';
+        resLabel = `${r.goles_local} - ${r.goles_visitante}`;
+      }
       resultadosHTML += `
         <div class="result-card result-${resultado}" data-cat="${r.categoria}">
           <div class="result-header">
