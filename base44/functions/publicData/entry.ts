@@ -501,7 +501,7 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #1a1a2e; background:
 .hero-team-name { color: #e2e8f0; font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
 .hero-us .hero-team-name { color: #f57c00; }
 .hero-tag { font-size: 0.65rem; color: #f5a623; font-weight: 800; text-transform: uppercase; margin-top: 4px; }
-.hero-vs { color: #fff; font-weight: 900; font-size: 1.5rem; background: linear-gradient(135deg, #16a34a, #15803d); width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 20px rgba(22,163,74,0.3); }
+.hero-vs { color: #fff; font-weight: 900; font-size: 1.3rem; background: linear-gradient(135deg, #f57c00, #e65100); width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 20px rgba(245,124,0,0.4); letter-spacing: 1px; }
 .hero-info { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 12px; }
 .hero-mapa-btn { display: inline-block; margin-top: 8px; background: #2563eb; color: #fff; text-decoration: none; padding: 10px 24px; border-radius: 50px; font-size: 0.85rem; font-weight: 700; transition: all 0.2s; }
 .hero-mapa-btn:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.3); }
