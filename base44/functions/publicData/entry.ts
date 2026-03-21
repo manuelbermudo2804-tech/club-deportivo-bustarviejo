@@ -238,6 +238,22 @@ function generarHTML(data) {
     ultimoResHTML = `<div class="hero-ultimo"><span class="hero-ultimo-label">Último resultado</span><span class="hero-ultimo-res">${icon} Bustarviejo <strong>${gN}-${gR}</strong> ${rivalCorto}</span></div>`;
   }
 
+  // ─── RESUMEN RÁPIDO: posición de Bustarviejo en cada liga ───
+  let resumenHTML = '';
+  const resumenItems = [];
+  for (const cat in data.clasificaciones) {
+    const bust = data.clasificaciones[cat].find(e => e.equipo.toLowerCase().includes('bustarviejo'));
+    if (bust) {
+      const total = data.clasificaciones[cat].length;
+      resumenItems.push({ cat, pos: bust.posicion, total, pts: bust.puntos, pj: bust.pj });
+    }
+  }
+  if (resumenItems.length > 0) {
+    resumenHTML = '<div class="resumen-grid">' + resumenItems.map(r => 
+      `<div class="resumen-card"><div class="resumen-pos">${r.pos}º</div><div class="resumen-cat">${catCorta(r.cat)}</div><div class="resumen-detail">${r.pts} pts · ${r.pj} PJ · de ${r.total}</div></div>`
+    ).join('') + '</div>';
+  }
+
   // ─── PRÓXIMO PARTIDO DESTACADO (HERO) ───
   // Ordenar por fecha + hora para que el hero sea siempre el más inminente
   const sortedProximos = [...(data.proximos_partidos || [])].sort((a, b) => {
