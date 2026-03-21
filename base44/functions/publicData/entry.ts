@@ -205,7 +205,7 @@ function generarHTML(data) {
           <span class="partido-vs">vs</span>
           <span class="${!esLocal ? 'equipo-nuestro' : ''}">${p.visitante}</span>
         </div>
-        <div class="partido-info">📅 ${p.fecha} — 🕐 ${p.hora} — 📍 ${p.campo || 'Por confirmar'}</div>
+        <div class="partido-info">📅 ${p.fecha} — 🕐 ${p.hora} — ${(!esLocal && p.campo) ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + p.campo)}" target="_blank" rel="noopener" style="color:#f57c00;text-decoration:underline;font-weight:700;">📍 ${p.campo} → Mapa</a>` : `📍 ${p.campo || 'Por confirmar'}`}</div>
       </div>`;
     }
   } else {
