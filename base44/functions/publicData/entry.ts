@@ -682,6 +682,7 @@ tbody tr:hover { background: #f8fafc; }
 </header>
 
 <section class="hero-section">
+  <img src="${ESCUDO}" alt="C.D. Bustarviejo" class="hero-escudo">
   <h1 class="hero-title">Competición <span>${temporada}</span></h1>
   <p class="hero-sub">Próximos partidos, resultados, clasificaciones y goleadores</p>
   ${heroHTML}
