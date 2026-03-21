@@ -350,6 +350,7 @@ function generarHTML(data) {
       const campoLink = (!esLocal && p.campo)
         ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + p.campo)}" target="_blank" rel="noopener" class="match-mapa">📍 Cómo llegar a ${p.campo}</a>`
         : '';
+      const waText = encodeURIComponent(`⚽ ¡Partido del C.D. Bustarviejo!\n${catCorta(p.categoria)}\n${p.local} vs ${p.visitante}\n📅 ${fechaBonita(p.fecha)}${p.hora ? ' 🕐 ' + p.hora : ''}\n${esLocal ? '🏠 En casa' : '✈️ Fuera'}\n\n¡Vamos Bustarviejo! 💪🟠`);
       
       proximosHTML += `
         <div class="match-card-v2">
@@ -365,7 +366,10 @@ function generarHTML(data) {
               <div class="match-jornada">Jornada ${p.jornada}</div>
             </div>
           </div>
-          ${campoLink}
+          <div class="match-actions">
+            ${campoLink}
+            <a href="https://wa.me/?text=${waText}" target="_blank" rel="noopener" class="match-wa">📲 Compartir por WhatsApp</a>
+          </div>
         </div>`;
     }
   } else {
