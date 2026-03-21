@@ -587,12 +587,22 @@ Deno.serve(async (req) => {
         });
         console.log(`[SCORERS] Found ${competitionOptions.length} competition options`);
         
-        // Step 3: Try each competition that might match our category
-        // We need to load the groups for each competition to find the right one
-        // Strategy: try ALL competitions and look for groups with Bustarviejo teams
+        // Step 3: Sort competitions to try the most likely ones first
+        // Prioritize competitions that match common keywords for lower divisions
         const codTemporada = $land('select[name="codtemporada"] option[selected]').attr('value') || p.CodTemporada;
         
-        for (const comp of competitionOptions) {
+        // Sort: put likely matches first (SEGUNDA, PREFERENTE, PRIMERA for Bustarviejo's typical level)
+        const priorityKeywords = ['SEGUNDA', 'PREFERENTE', 'PRIMERA', 'CADETE', 'JUVENIL', 'INFANTIL', 'ALEVIN', 'BENJAMIN', 'PREBENJAMIN', 'FEMENIN'];
+        const sortedCompetitions = [...competitionOptions].sort((a, b) => {
+          const aHit = priorityKeywords.findIndex(k => a.text.toUpperCase().includes(k));
+          const bHit = priorityKeywords.findIndex(k => b.text.toUpperCase().includes(k));
+          if (aHit >= 0 && bHit < 0) return -1;
+          if (bHit >= 0 && aHit < 0) return 1;
+          if (aHit >= 0 && bHit >= 0) return aHit - bHit;
+          return 0;
+        });
+        
+        for (const comp of sortedCompetitions) {
           if (scorers.length >= 3) break;
           
           // Load groups for this competition
