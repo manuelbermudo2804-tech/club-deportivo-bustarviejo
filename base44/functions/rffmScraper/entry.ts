@@ -564,26 +564,45 @@ Deno.serve(async (req) => {
       // Fetch scorers (with automatic retry with URL variants and re-login)
       case 'scorers': {
         let scorers = [];
-        // Try all URL variants (lowercase, CamelCase, no-jornada)
-        for (let variant = 0; variant <= 2 && scorers.length < 3; variant++) {
-          const scorersUrl = buildScorersUrl(p, variant);
-          console.log(`[SCORERS] Trying variant ${variant}: ${scorersUrl.substring(0, 150)}`);
+        
+        // First detect total jornadas to use a real jornada number
+        let totalJ = 20;
+        try {
+          const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
+          totalJ = detectTotalJornadas(j1Html);
+          console.log(`[SCORERS] Detected ${totalJ} total jornadas`);
+        } catch (e) {
+          console.log(`[SCORERS] Could not detect jornadas, using default ${totalJ}`);
+        }
+        
+        // Build URLs: try with real jornada (totalJ) and also with jornada 0
+        // The RFFM scorers page sometimes needs a real jornada to show data
+        const urlsToTry = [
+          // CamelCase with last jornada
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=${totalJ}&CodCompeticion=${p.CodCompeticion}&CodTemporada=${p.CodTemporada}&CodGrupo=${p.CodGrupo}&cod_agrupacion=1`,
+          // CamelCase with jornada 0
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=0&CodCompeticion=${p.CodCompeticion}&CodTemporada=${p.CodTemporada}&CodGrupo=${p.CodGrupo}&cod_agrupacion=1`,
+          // lowercase with last jornada
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=${totalJ}&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`,
+        ];
+        
+        for (let i = 0; i < urlsToTry.length && scorers.length < 3; i++) {
+          const scorersUrl = urlsToTry[i];
+          console.log(`[SCORERS] Trying URL ${i}: ${scorersUrl.substring(0, 180)}`);
           
           for (let attempt = 0; attempt < 2; attempt++) {
             if (attempt > 0) {
-              // Re-login on retry (session might have expired)
-              console.log(`[SCORERS] Re-login attempt ${attempt + 1} for variant ${variant}`);
+              console.log(`[SCORERS] Re-login for URL ${i}`);
               cookies = await rffmLogin();
               await new Promise(r => setTimeout(r, 1500));
             }
             const html = await fetchPage(scorersUrl, cookies);
-            // Skip if we got the login page
             if (html.includes('Datos de Acceso') && html.includes('NLogin')) {
               console.log(`[SCORERS] Got login page, will re-login`);
               continue;
             }
             scorers = parseScorers(html);
-            console.log(`[SCORERS] Variant ${variant}, attempt ${attempt}: found ${scorers.length} scorers (html: ${html.length} bytes)`);
+            console.log(`[SCORERS] URL ${i}, attempt ${attempt}: found ${scorers.length} scorers (html: ${html.length} bytes)`);
             if (scorers.length >= 3) break;
           }
           if (scorers.length >= 3) break;
