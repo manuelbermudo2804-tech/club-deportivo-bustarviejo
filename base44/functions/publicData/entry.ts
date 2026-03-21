@@ -763,56 +763,32 @@ ${categorias.length > 1 ? `<div class="filter-bar" id="filter-bar">
 </footer>
 
 <script>
-(function() {
-  // ═══ COUNTDOWN ═══
-  var el = document.getElementById('countdown');
-  if (el && el.dataset && el.dataset.target) {
-    var parts = el.dataset.target.match(/([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+)/);
-    var target;
-    if (parts) {
-      target = new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]), parseInt(parts[4]), parseInt(parts[5]), 0);
-    } else {
-      target = new Date(el.dataset.target);
-    }
-    function updateCountdown() {
-      var now = new Date();
-      var diff = target.getTime() - now.getTime();
-      if (diff <= 0) {
-        el.innerHTML = '<div style="color:#f57c00;font-weight:800;font-size:1.1rem">EN JUEGO</div>';
-        return;
-      }
-      var d = Math.floor(diff / 86400000);
-      var h = Math.floor((diff % 86400000) / 3600000);
-      var m = Math.floor((diff % 3600000) / 60000);
-      var elD = document.getElementById('cd-d');
-      var elH = document.getElementById('cd-h');
-      var elM = document.getElementById('cd-m');
-      if (elD) elD.textContent = d;
-      if (elH) elH.textContent = h;
-      if (elM) elM.textContent = m;
-    }
-    updateCountdown();
-    setInterval(updateCountdown, 30000);
-  }
-
-  // ═══ CATEGORY FILTER ═══
-  var bar = document.getElementById('filter-bar');
-  if (bar) {
-    var btns = bar.querySelectorAll('.filter-btn');
-    function handleFilter(e) {
-      var clicked = e.target;
-      if (!clicked.classList.contains('filter-btn')) return;
-      for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
-      clicked.classList.add('active');
-      var filter = clicked.getAttribute('data-filter');
-      var items = document.querySelectorAll('[data-cat]');
-      for (var k = 0; k < items.length; k++) {
-        items[k].style.display = (filter === 'all' || items[k].getAttribute('data-cat') === filter) ? '' : 'none';
-      }
-    }
-    bar.addEventListener('click', handleFilter);
-  }
-})();
+// Countdown
+var cdEl=document.getElementById("countdown");
+if(cdEl){
+var t=cdEl.getAttribute("data-target");
+if(t){
+var p=t.match(/([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+)/);
+var goal=p?new Date(+p[1],+p[2]-1,+p[3],+p[4],+p[5],0):new Date(t);
+var tick=function(){
+var d=goal-new Date();
+if(d<=0){cdEl.innerHTML="<div style='color:#f57c00;font-weight:800;font-size:1.1rem'>EN JUEGO</div>";return;}
+var dd=Math.floor(d/864e5),hh=Math.floor(d%864e5/36e5),mm=Math.floor(d%36e5/6e4);
+var eD=document.getElementById("cd-d"),eH=document.getElementById("cd-h"),eM=document.getElementById("cd-m");
+if(eD)eD.textContent=dd;if(eH)eH.textContent=hh;if(eM)eM.textContent=mm;
+};tick();setInterval(tick,3e4);
+}}
+// Category filter
+var fb=document.getElementById("filter-bar");
+if(fb){fb.onclick=function(e){
+var b=e.target;while(b&&b!==fb&&!b.classList.contains("filter-btn"))b=b.parentNode;
+if(!b||!b.classList.contains("filter-btn"))return;
+var all=fb.querySelectorAll(".filter-btn");
+for(var i=0;i<all.length;i++)all[i].classList.remove("active");
+b.classList.add("active");
+var f=b.getAttribute("data-filter"),items=document.querySelectorAll("[data-cat]");
+for(var k=0;k<items.length;k++)items[k].style.display=(f==="all"||items[k].getAttribute("data-cat")===f)?"":"none";
+};}
 </script>
 
 </body>
