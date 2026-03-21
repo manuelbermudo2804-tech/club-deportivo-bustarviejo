@@ -352,7 +352,17 @@ function parseStandings(html) {
 }
 
 // Build the correct scorers URL: NFG_CMP_Goleadores (with underscores)
-function buildScorersUrl(p) {
+// Try both CamelCase and lowercase param variants (RFFM is inconsistent)
+function buildScorersUrl(p, variant = 0) {
+  if (variant === 1) {
+    // Variant with CamelCase params (like jornada/results URLs use)
+    return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=0&CodCompeticion=${p.CodCompeticion}&CodTemporada=${p.CodTemporada}&CodGrupo=${p.CodGrupo}&cod_agrupacion=1`;
+  }
+  if (variant === 2) {
+    // Variant without CodJornada (some competitions don't use it)
+    return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`;
+  }
+  // Default: lowercase params
   return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=0&codcompeticion=${p.CodCompeticion}&codtemporada=${p.CodTemporada}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`;
 }
 
