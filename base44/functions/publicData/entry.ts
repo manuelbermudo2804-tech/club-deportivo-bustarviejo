@@ -767,7 +767,7 @@ ${categorias.length > 1 ? `<div class="filter-bar" id="filter-bar">
   // ═══ COUNTDOWN ═══
   var el = document.getElementById('countdown');
   if (el && el.dataset && el.dataset.target) {
-    var parts = el.dataset.target.match(/(\\d+)-(\\d+)-(\\d+)T(\\d+):(\\d+)/);
+    var parts = el.dataset.target.match(/([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+)/);
     var target;
     if (parts) {
       target = new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]), parseInt(parts[4]), parseInt(parts[5]), 0);
