@@ -222,8 +222,22 @@ function generarHTML(data) {
     return (cat || '').replace('Fútbol ', '').replace('Baloncesto ', '🏀 ').replace('(Mixto)', '').trim();
   }
 
+  // ─── FUSIONAR RESULTADOS de ambas fuentes (ProximoPartido jugado + Resultado entity) ───
+  // data.resultados_recientes viene de ProximoPartido (jugado=true) — puede estar vacío
+  // data.resultados viene de Resultado entity agrupado por categoría — tiene datos reales
+  const allResults = [...(data.resultados_recientes || [])];
+  // Añadir resultados de la entidad Resultado que no estén ya
+  for (const cat in (data.resultados || {})) {
+    for (const r of data.resultados[cat]) {
+      const isDup = allResults.some(e => e.local === r.local && e.visitante === r.visitante && e.jornada === r.jornada);
+      if (!isDup) allResults.push({ ...r, categoria: cat });
+    }
+  }
+  // Ordenar por jornada desc (las más recientes primero)
+  allResults.sort((a, b) => (b.jornada || 0) - (a.jornada || 0));
+
   // ─── ÚLTIMO RESULTADO DEL BUSTARVIEJO (para hero) ───
-  const ultimoResultado = (data.resultados_recientes || []).find(r => {
+  const ultimoResultado = allResults.find(r => {
     return r.local?.toLowerCase().includes('bustarviejo') || r.visitante?.toLowerCase().includes('bustarviejo');
   });
   let ultimoResHTML = '';
