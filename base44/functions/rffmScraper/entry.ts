@@ -421,7 +421,7 @@ Deno.serve(async (req) => {
     const { action, url, jornada } = await req.json().catch(() => ({}));
     if (!url) return Response.json({ error: 'Missing url' }, { status: 400 });
 
-    const cookies = await rffmLogin();
+    let cookies = await rffmLogin();
     const p = extractParams(url);
 
     switch (action) {
