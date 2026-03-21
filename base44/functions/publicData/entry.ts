@@ -164,28 +164,174 @@ function generarHTML(data) {
   const ESCUDO = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png';
   const WEB = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/';
 
-  // Clasificaciones
+  // Temporada automática
+  const now = new Date();
+  const yr = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+  const temporada = `${yr}/${yr + 1}`;
+
+  // Helper: formatear fecha bonita
+  function fechaBonita(fechaStr) {
+    if (!fechaStr) return '';
+    const parts = fechaStr.split('/');
+    if (parts.length !== 3) return fechaStr;
+    const [d, m, y] = parts;
+    const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${dias[date.getDay()]} ${date.getDate()} ${meses[date.getMonth()]}`;
+  }
+
+  // Helper: días hasta partido
+  function diasHasta(fechaIso) {
+    if (!fechaIso) return '';
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const fecha = new Date(fechaIso + 'T00:00:00');
+    const diff = Math.ceil((fecha - hoy) / 86400000);
+    if (diff === 0) return '¡HOY!';
+    if (diff === 1) return 'MAÑANA';
+    if (diff <= 7) return `En ${diff} días`;
+    return '';
+  }
+
+  // Helper: categoría corta
+  function catCorta(cat) {
+    return (cat || '').replace('Fútbol ', '').replace('Baloncesto ', '🏀 ').replace('(Mixto)', '').trim();
+  }
+
+  // ─── PRÓXIMO PARTIDO DESTACADO (HERO) ───
+  const sortedProximos = [...(data.proximos_partidos || [])].sort((a, b) => (a.fecha_iso || '').localeCompare(b.fecha_iso || ''));
+  const heroMatch = sortedProximos[0];
+  let heroHTML = '';
+  if (heroMatch) {
+    const esLocal = heroMatch.local.toLowerCase().includes('bustarviejo');
+    const badge = diasHasta(heroMatch.fecha_iso);
+    const badgeClass = badge === '¡HOY!' ? 'badge-hoy' : badge === 'MAÑANA' ? 'badge-manana' : 'badge-pronto';
+    const campoLink = (!esLocal && heroMatch.campo)
+      ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + heroMatch.campo)}" target="_blank" rel="noopener" class="hero-mapa-btn">📍 Cómo llegar</a>`
+      : '';
+    heroHTML = `
+      <div class="hero-match">
+        ${badge ? `<div class="hero-badge ${badgeClass}">${badge}</div>` : ''}
+        <div class="hero-cat">${catCorta(heroMatch.categoria)} — Jornada ${heroMatch.jornada}</div>
+        <div class="hero-teams">
+          <div class="hero-team ${esLocal ? 'hero-us' : ''}">
+            <div class="hero-team-icon">${esLocal ? '🏠' : '⚽'}</div>
+            <div class="hero-team-name">${heroMatch.local}</div>
+            ${esLocal ? '<div class="hero-tag">NOSOTROS</div>' : ''}
+          </div>
+          <div class="hero-vs">VS</div>
+          <div class="hero-team ${!esLocal ? 'hero-us' : ''}">
+            <div class="hero-team-icon">${!esLocal ? '🏠' : '⚽'}</div>
+            <div class="hero-team-name">${heroMatch.visitante}</div>
+            ${!esLocal ? '<div class="hero-tag">NOSOTROS</div>' : ''}
+          </div>
+        </div>
+        <div class="hero-info">
+          <span>📅 ${fechaBonita(heroMatch.fecha)}</span>
+          ${heroMatch.hora ? `<span>🕐 ${heroMatch.hora}</span>` : ''}
+          <span>${esLocal ? '🏠 Casa' : '✈️ Fuera'}</span>
+        </div>
+        ${campoLink}
+      </div>`;
+  }
+
+  // ─── CARDS DE PARTIDOS ───
+  let proximosHTML = '';
+  if (sortedProximos.length > 0) {
+    for (const p of sortedProximos) {
+      const esLocal = p.local.toLowerCase().includes('bustarviejo');
+      const badge = diasHasta(p.fecha_iso);
+      const badgeClass = badge === '¡HOY!' ? 'badge-hoy' : badge === 'MAÑANA' ? 'badge-manana' : 'badge-pronto';
+      const mapaBtn = (!esLocal && p.campo)
+        ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + p.campo)}" target="_blank" rel="noopener" class="mapa-btn">📍 Cómo llegar</a>`
+        : (p.campo ? `<span class="campo-texto">📍 ${p.campo}</span>` : '');
+      proximosHTML += `
+        <div class="match-card">
+          <div class="match-header">
+            <span class="match-cat">${catCorta(p.categoria)} — J${p.jornada}</span>
+            ${badge ? `<span class="match-badge ${badgeClass}">${badge}</span>` : ''}
+          </div>
+          <div class="match-teams">
+            <div class="match-team ${esLocal ? 'team-us' : ''}">
+              <span class="team-icon">${esLocal ? '🏠' : '⚽'}</span>
+              <span class="team-name">${p.local}</span>
+            </div>
+            <div class="match-vs">VS</div>
+            <div class="match-team ${!esLocal ? 'team-us' : ''}">
+              <span class="team-icon">${!esLocal ? '🏠' : '⚽'}</span>
+              <span class="team-name">${p.visitante}</span>
+            </div>
+          </div>
+          <div class="match-footer">
+            <span>📅 ${fechaBonita(p.fecha)}</span>
+            ${p.hora ? `<span>🕐 ${p.hora}</span>` : ''}
+            ${mapaBtn}
+          </div>
+        </div>`;
+    }
+  } else {
+    proximosHTML = '<p class="sin-datos">No hay próximos partidos programados.</p>';
+  }
+
+  // ─── RESULTADOS RECIENTES ───
+  let resultadosHTML = '';
+  if (data.resultados_recientes && data.resultados_recientes.length > 0) {
+    for (const r of data.resultados_recientes) {
+      const esLocal = r.local.toLowerCase().includes('bustarviejo');
+      const golesNuestros = esLocal ? r.goles_local : r.goles_visitante;
+      const golesRival = esLocal ? r.goles_visitante : r.goles_local;
+      const resultado = golesNuestros > golesRival ? 'victoria' : golesNuestros < golesRival ? 'derrota' : 'empate';
+      const resLabel = resultado === 'victoria' ? '✅ Victoria' : resultado === 'derrota' ? '❌ Derrota' : '🤝 Empate';
+      resultadosHTML += `
+        <div class="result-card result-${resultado}">
+          <div class="result-header">
+            <span class="match-cat">${catCorta(r.categoria)} — J${r.jornada}</span>
+            <span class="result-label result-label-${resultado}">${resLabel}</span>
+          </div>
+          <div class="result-teams">
+            <div class="result-team ${esLocal ? 'team-us' : ''}">
+              <span class="team-name">${r.local}</span>
+            </div>
+            <div class="result-score">
+              <span class="score-num">${r.goles_local}</span>
+              <span class="score-sep">-</span>
+              <span class="score-num">${r.goles_visitante}</span>
+            </div>
+            <div class="result-team ${!esLocal ? 'team-us' : ''}">
+              <span class="team-name">${r.visitante}</span>
+            </div>
+          </div>
+          ${r.fecha ? `<div class="result-date">📅 ${fechaBonita(r.fecha)}</div>` : ''}
+        </div>`;
+    }
+  } else {
+    resultadosHTML = '<p class="sin-datos">No hay resultados recientes.</p>';
+  }
+
+  // ─── CLASIFICACIONES ───
   let clasifHTML = '';
   for (const cat in data.clasificaciones) {
     let filas = '';
     for (const eq of data.clasificaciones[cat]) {
       const esNuestro = eq.equipo.toLowerCase().includes('bustarviejo');
       const dg = eq.gf - eq.gc;
-      filas += `<tr class="${esNuestro ? 'club-propio' : ''}">
-        <td>${eq.posicion}</td><td class="td-equipo">${eq.equipo}</td>
+      filas += `<tr class="${esNuestro ? 'row-us' : ''}">
+        <td class="td-pos">${eq.posicion}</td><td class="td-equipo">${eq.equipo}${esNuestro ? ' 🟠' : ''}</td>
         <td>${eq.pj}</td><td>${eq.pg}</td><td>${eq.pe}</td><td>${eq.pp}</td>
         <td>${eq.gf}</td><td>${eq.gc}</td><td>${dg >= 0 ? '+' : ''}${dg}</td>
-        <td><strong>${eq.puntos}</strong></td>
+        <td class="td-pts"><strong>${eq.puntos}</strong></td>
       </tr>`;
     }
-    clasifHTML += `<h3>${cat}</h3>
+    clasifHTML += `<div class="clasif-grupo">
+      <h3>${cat}</h3>
       <div class="tabla-scroll"><table>
-        <tr><th>#</th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr>
-        ${filas}
-      </table></div>`;
+        <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
+        <tbody>${filas}</tbody>
+      </table></div>
+    </div>`;
   }
 
-  // Goleadores
+  // ─── GOLEADORES ───
   let golesHTML = '';
   let hayGoleadores = false;
   for (const cat in data.goleadores) {
@@ -194,36 +340,18 @@ function generarHTML(data) {
     hayGoleadores = true;
     let filas = '';
     jugadores.forEach((j, i) => {
-      const emoji = i === 0 ? ' 🥇' : i === 1 ? ' 🥈' : i === 2 ? ' 🥉' : '';
-      filas += `<tr><td>${i + 1}</td><td class="td-equipo">${j.jugador}${emoji}</td><td><strong>${j.goles}</strong></td></tr>`;
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
+      filas += `<tr><td class="td-pos">${medal}</td><td class="td-equipo">${j.jugador}</td><td class="td-goles"><strong>${j.goles}</strong> ⚽</td></tr>`;
     });
-    golesHTML += `<h3>${cat}</h3>
+    golesHTML += `<div class="clasif-grupo">
+      <h3>${cat}</h3>
       <div class="tabla-scroll"><table>
-        <tr><th>#</th><th>Jugador</th><th>Goles ⚽</th></tr>
-        ${filas}
-      </table></div>`;
+        <thead><tr><th>#</th><th>Jugador</th><th>Goles</th></tr></thead>
+        <tbody>${filas}</tbody>
+      </table></div>
+    </div>`;
   }
   if (!hayGoleadores) golesHTML = '<p class="sin-datos">No hay goleadores registrados.</p>';
-
-  // Próximos partidos
-  let proximosHTML = '';
-  if (data.proximos_partidos && data.proximos_partidos.length > 0) {
-    const partidos = [...data.proximos_partidos].sort((a, b) => (a.fecha_iso || '').localeCompare(b.fecha_iso || ''));
-    for (const p of partidos) {
-      const esLocal = p.local.toLowerCase().includes('bustarviejo');
-      proximosHTML += `<div class="partido-card">
-        <div class="partido-cat">${p.categoria} — Jornada ${p.jornada}</div>
-        <div class="partido-equipos">
-          <span class="${esLocal ? 'equipo-nuestro' : ''}">${p.local}</span>
-          <span class="partido-vs">vs</span>
-          <span class="${!esLocal ? 'equipo-nuestro' : ''}">${p.visitante}</span>
-        </div>
-        <div class="partido-info">📅 ${p.fecha} — 🕐 ${p.hora} — ${(!esLocal && p.campo) ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + p.campo)}" target="_blank" rel="noopener" style="color:#f57c00;text-decoration:underline;font-weight:700;">📍 ${p.campo} → Mapa</a>` : `📍 ${p.campo || 'Por confirmar'}`}</div>
-      </div>`;
-    }
-  } else {
-    proximosHTML = '<p class="sin-datos">No hay próximos partidos programados.</p>';
-  }
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -232,308 +360,169 @@ function generarHTML(data) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Competición — C.D. Bustarviejo</title>
 <link rel="icon" href="${ESCUDO}">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-/* ═══ RESET ═══ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: 'Montserrat', Arial, sans-serif;
-  color: #222;
-  background: #fff;
-  font-size: 19px;
-  line-height: 1.8;
-  padding-top: 80px;
-}
+body { font-family: 'Montserrat', Arial, sans-serif; color: #1a1a2e; background: #fafafa; padding-top: 80px; }
 
-/* ═══ HEADER — EXACTO COMO LA WEB ═══ */
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-  background: #fff;
-  border-bottom: 1px solid #eaeaea;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.header-contenido {
-  max-width: 1200px;
-  margin: auto;
-  padding: 14px 22px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  text-decoration: none;
-  color: #222;
-}
+/* ═══ HEADER ═══ */
+.header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: #fff; border-bottom: 1px solid #eaeaea; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.header-contenido { max-width: 1200px; margin: auto; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; }
+.logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; color: #222; }
 .logo img { width: 44px; }
-.menu {
-  display: flex;
-  gap: 22px;
-  align-items: center;
-}
-.menu a {
-  text-decoration: none;
-  color: #222;
-  font-weight: 700;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-}
+.menu { display: flex; gap: 22px; align-items: center; }
+.menu a { text-decoration: none; color: #222; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; }
 .menu a:hover { color: #f57c00; }
-.btn-menu {
-  background: #f57c00;
-  color: #000 !important;
-  padding: 12px 20px;
-  border-radius: 30px;
-  font-weight: 800;
-  font-size: 0.85rem;
-  text-decoration: none;
-}
+.btn-menu { background: #f57c00; color: #000 !important; padding: 12px 20px; border-radius: 30px; font-weight: 800; font-size: 0.85rem; text-decoration: none; }
 .menu-check { display: none; }
-.menu-toggle {
-  display: none;
-  font-size: 2.2rem;
-  cursor: pointer;
-  margin-left: auto;
-  min-width: 44px;
-  min-height: 44px;
-  line-height: 44px;
-  text-align: center;
-  user-select: none;
-  -webkit-user-select: none;
-}
+.menu-toggle { display: none; font-size: 2.2rem; cursor: pointer; min-width: 44px; min-height: 44px; line-height: 44px; text-align: center; user-select: none; }
 
-/* ═══ HERO COMPETICIÓN ═══ */
-.cabecera-pagina {
-  background: #f5f5f5;
-  padding: 70px 20px;
-  text-align: center;
-}
-.cabecera-pagina h1 {
-  font-size: 2.8rem;
-  font-weight: 800;
-  color: #222;
-  margin-bottom: 8px;
-}
-.cabecera-pagina p {
-  font-size: 1.15rem;
-  opacity: 0.9;
-  color: #555;
-}
+/* ═══ HERO ═══ */
+.hero-section { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f3460 100%); padding: 48px 20px 56px; text-align: center; position: relative; overflow: hidden; }
+.hero-section::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 40%, rgba(245,124,0,0.08) 0%, transparent 50%); }
+.hero-title { color: #fff; font-size: 2.4rem; font-weight: 900; margin-bottom: 4px; position: relative; }
+.hero-title span { color: #f57c00; }
+.hero-sub { color: rgba(255,255,255,0.6); font-size: 1rem; margin-bottom: 32px; position: relative; }
+
+.hero-match { background: rgba(255,255,255,0.06); border: 1px solid rgba(245,124,0,0.25); border-radius: 20px; padding: 28px 24px; max-width: 600px; margin: 0 auto; position: relative; backdrop-filter: blur(10px); }
+.hero-badge { display: inline-block; font-size: 0.75rem; font-weight: 900; letter-spacing: 1px; padding: 6px 18px; border-radius: 50px; margin-bottom: 12px; text-transform: uppercase; }
+.badge-hoy { background: #ef4444; color: #fff; animation: pulse 1.5s infinite; }
+.badge-manana { background: #f59e0b; color: #000; }
+.badge-pronto { background: rgba(245,124,0,0.2); color: #f5a623; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } }
+
+.hero-cat { color: #f5a623; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+.hero-teams { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 16px; }
+.hero-team { text-align: center; flex: 1; }
+.hero-team-icon { font-size: 2.2rem; margin-bottom: 6px; }
+.hero-team-name { color: #e2e8f0; font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
+.hero-us .hero-team-name { color: #f57c00; }
+.hero-tag { font-size: 0.65rem; color: #f5a623; font-weight: 800; text-transform: uppercase; margin-top: 4px; }
+.hero-vs { color: #fff; font-weight: 900; font-size: 1.5rem; background: linear-gradient(135deg, #16a34a, #15803d); width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 20px rgba(22,163,74,0.3); }
+.hero-info { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 12px; }
+.hero-mapa-btn { display: inline-block; margin-top: 8px; background: #2563eb; color: #fff; text-decoration: none; padding: 10px 24px; border-radius: 50px; font-size: 0.85rem; font-weight: 700; transition: all 0.2s; }
+.hero-mapa-btn:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.3); }
 
 /* ═══ TABS ═══ */
-.tabs-bar {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  background: white;
-  padding: 16px 20px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.04);
-  flex-wrap: wrap;
-}
-.tab-label {
-  padding: 12px 28px;
-  border-radius: 50px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: #f5f5f5;
-  color: #555;
-  border: 2px solid transparent;
-  text-transform: uppercase;
-}
-.tab-label:hover { background: #eee; }
-
+.tabs-bar { display: flex; justify-content: center; gap: 8px; background: #fff; padding: 16px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); flex-wrap: wrap; position: sticky; top: 80px; z-index: 50; }
+.tab-label { padding: 10px 22px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #64748b; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.3px; }
+.tab-label:hover { background: #e2e8f0; }
 input[name="tab"] { display: none; }
 .seccion { display: none; }
-#radio-proximos:checked ~ .contenido-comp #sec-proximos { display: block; }
-#radio-clasificacion:checked ~ .contenido-comp #sec-clasificacion { display: block; }
+#radio-proximos:checked ~ .contenido-comp #sec-proximos,
+#radio-resultados:checked ~ .contenido-comp #sec-resultados,
+#radio-clasificacion:checked ~ .contenido-comp #sec-clasificacion,
 #radio-goleadores:checked ~ .contenido-comp #sec-goleadores { display: block; }
-
 #radio-proximos:checked ~ .tabs-bar label[for="radio-proximos"],
+#radio-resultados:checked ~ .tabs-bar label[for="radio-resultados"],
 #radio-clasificacion:checked ~ .tabs-bar label[for="radio-clasificacion"],
-#radio-goleadores:checked ~ .tabs-bar label[for="radio-goleadores"] {
-  background: #f57c00;
-  color: #000;
-  border-color: #f57c00;
-  box-shadow: 0 4px 14px rgba(245,124,0,0.3);
-}
+#radio-goleadores:checked ~ .tabs-bar label[for="radio-goleadores"] { background: #0f172a; color: #fff; border-color: #0f172a; box-shadow: 0 4px 14px rgba(15,23,42,0.25); }
 
 /* ═══ CONTENIDO ═══ */
-.contenido-comp {
-  max-width: 950px;
-  margin: 0 auto;
-  padding: 28px 22px 60px;
-}
-.bloque {
-  background: #fff;
-  border-radius: 10px;
-  padding: 40px;
-  margin-bottom: 24px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.07);
-}
-.bloque h2 {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #222;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 3px solid #f57c00;
-}
-h3 {
-  font-size: 1rem;
-  color: #222;
-  font-weight: 700;
-  margin: 24px 0 12px;
-  padding: 10px 16px;
-  background: #fff7ed;
-  border-radius: 10px;
-  border-left: 4px solid #f57c00;
-}
+.contenido-comp { max-width: 900px; margin: 0 auto; padding: 28px 16px 60px; }
+.bloque { background: #fff; border-radius: 16px; padding: 32px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; }
+.bloque h2 { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #f57c00; display: flex; align-items: center; gap: 10px; }
+
+/* ═══ MATCH CARDS ═══ */
+.match-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 0; margin-bottom: 12px; transition: all 0.25s; overflow: hidden; }
+.match-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); border-color: #f57c00; }
+.match-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+.match-cat { font-size: 0.72rem; color: #f57c00; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.match-badge { font-size: 0.68rem; font-weight: 900; padding: 4px 14px; border-radius: 50px; letter-spacing: 0.5px; }
+.match-teams { display: flex; align-items: center; justify-content: center; padding: 16px 18px; gap: 14px; }
+.match-team { flex: 1; display: flex; align-items: center; gap: 8px; }
+.match-team:last-child { justify-content: flex-end; text-align: right; flex-direction: row-reverse; }
+.team-icon { font-size: 1.3rem; }
+.team-name { font-weight: 700; font-size: 0.88rem; color: #334155; line-height: 1.2; }
+.team-us .team-name { color: #ea580c; font-weight: 800; }
+.match-vs { font-weight: 900; font-size: 0.85rem; color: #fff; background: #0f172a; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.match-footer { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px 18px; background: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 0.78rem; color: #64748b; flex-wrap: wrap; }
+.mapa-btn { background: #2563eb; color: #fff !important; text-decoration: none; padding: 5px 16px; border-radius: 50px; font-weight: 700; font-size: 0.75rem; transition: all 0.2s; }
+.mapa-btn:hover { background: #1d4ed8; }
+.campo-texto { color: #94a3b8; }
+
+/* ═══ RESULT CARDS ═══ */
+.result-card { background: #fff; border-radius: 14px; margin-bottom: 12px; overflow: hidden; border: 1px solid #e2e8f0; transition: all 0.2s; }
+.result-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+.result-victoria { border-left: 4px solid #16a34a; }
+.result-derrota { border-left: 4px solid #ef4444; }
+.result-empate { border-left: 4px solid #94a3b8; }
+.result-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; background: #f8fafc; }
+.result-label { font-size: 0.72rem; font-weight: 800; padding: 3px 12px; border-radius: 50px; }
+.result-label-victoria { background: #dcfce7; color: #166534; }
+.result-label-derrota { background: #fee2e2; color: #991b1b; }
+.result-label-empate { background: #f1f5f9; color: #475569; }
+.result-teams { display: flex; align-items: center; justify-content: center; padding: 14px 18px; gap: 16px; }
+.result-team { flex: 1; }
+.result-team:last-child { text-align: right; }
+.result-score { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.score-num { font-size: 1.8rem; font-weight: 900; color: #0f172a; }
+.score-sep { font-size: 1.2rem; color: #cbd5e1; font-weight: 300; }
+.result-date { text-align: center; padding: 8px; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid #f1f5f9; }
 
 /* ═══ TABLAS ═══ */
-.tabla-scroll { overflow-x: auto; margin-bottom: 20px; border-radius: 12px; border: 1px solid #eee; }
-table { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 0.8rem; }
-th {
-  background: #1a1a1a;
-  color: white;
-  padding: 12px 10px;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  font-weight: 700;
-}
-td { padding: 10px; border-bottom: 1px solid #f0f0f0; text-align: center; }
-.td-equipo { text-align: left !important; white-space: nowrap; }
-tr:hover { background: #fafafa; }
-.club-propio { background: #fff7ed !important; }
-.club-propio td { color: #e65100; font-weight: 700; }
+.clasif-grupo { margin-bottom: 8px; }
+.clasif-grupo h3 { font-size: 0.9rem; color: #0f172a; font-weight: 700; margin: 20px 0 10px; padding: 10px 16px; background: linear-gradient(90deg, #fff7ed, #fff); border-radius: 10px; border-left: 4px solid #f57c00; }
+.tabla-scroll { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; min-width: 580px; font-size: 0.78rem; }
+thead th { background: #0f172a; color: #e2e8f0; padding: 11px 8px; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; white-space: nowrap; text-align: center; }
+thead th:nth-child(2) { text-align: left; }
+tbody td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #475569; }
+.td-pos { font-weight: 700; color: #0f172a; width: 36px; }
+.td-equipo { text-align: left !important; white-space: nowrap; font-weight: 600; color: #334155; }
+.td-pts { color: #0f172a; font-size: 0.85rem; }
+.td-goles { color: #0f172a; font-size: 0.85rem; }
+tbody tr:hover { background: #f8fafc; }
+.row-us { background: #fff7ed !important; }
+.row-us td { color: #ea580c !important; font-weight: 700; }
+.row-us:hover { background: #ffedd5 !important; }
 
-/* ═══ PARTIDO CARDS ═══ */
-.partido-card {
-  background: #f5f5f5;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 18px 20px;
-  margin-bottom: 12px;
-  transition: all 0.2s;
-}
-.partido-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.1);
-  border-color: #f57c00;
-}
-.partido-cat {
-  font-size: 0.75rem;
-  color: #f57c00;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.partido-equipos {
-  font-size: 1.1rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.partido-vs { color: #aaa; font-size: 0.8rem; font-weight: 400; }
-.equipo-nuestro { color: #e65100; font-weight: 800; }
-.partido-info { font-size: 0.8rem; color: #777; margin-top: 8px; }
-.sin-datos { text-align: center; color: #aaa; padding: 40px 20px; font-size: 1rem; }
+.sin-datos { text-align: center; color: #94a3b8; padding: 48px 20px; font-size: 1rem; }
 
-/* ═══ FOOTER — EXACTO COMO LA WEB ═══ */
-.footer {
-  background: #111;
-  color: #eee;
-  padding: 50px 20px 25px;
-}
-.footer-contenido {
-  max-width: 1200px;
-  margin: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 40px;
-}
+/* ═══ FOOTER ═══ */
+.footer { background: #0f172a; color: #e2e8f0; padding: 50px 20px 25px; }
+.footer-contenido { max-width: 1200px; margin: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 40px; }
 .footer-logo { width: 70px; margin-bottom: 12px; }
 .footer-titulo { font-weight: 800; margin-bottom: 12px; font-size: 1rem; }
-.footer-texto { color: #ccc; font-size: 0.9rem; line-height: 1.8; }
-.footer-texto a { color: #ccc; text-decoration: none; }
+.footer-texto { color: #94a3b8; font-size: 0.9rem; line-height: 1.8; }
+.footer-texto a { color: #94a3b8; text-decoration: none; }
 .footer-texto a:hover { color: #f57c00; }
-.footer-links { list-style: none; padding: 0; }
+.footer-links { list-style: none; }
 .footer-links li { margin-bottom: 8px; }
-.footer-links a { color: #ccc; text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+.footer-links a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; }
 .footer-links a:hover { color: #f57c00; }
-.footer-copy {
-  text-align: center;
-  margin-top: 35px;
-  font-size: 0.85rem;
-  color: #aaa;
-  border-top: 1px solid #333;
-  padding-top: 20px;
-}
+.footer-copy { text-align: center; margin-top: 35px; font-size: 0.85rem; color: #64748b; border-top: 1px solid #1e293b; padding-top: 20px; }
 
 /* ═══ RESPONSIVE ═══ */
 @media (max-width: 768px) {
-  body { padding-top: 90px; font-size: 18px; }
+  body { padding-top: 90px; }
   .menu-toggle { display: block !important; }
-  .header-contenido {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
+  .header-contenido { flex-wrap: wrap; }
   .logo { order: 1; }
-  .menu-check { order: 2; }
   .menu-toggle { order: 2; }
-  .menu {
-    order: 3;
-    width: 100%;
-    display: none !important;
-    flex-direction: column;
-    align-items: center;
-    background: #fff;
-    padding: 15px 0;
-    margin-top: 10px;
-    border-top: 1px solid #eaeaea;
-    gap: 0;
-  }
-  /* Cuando el checkbox está marcado, mostrar el menú */
+  .menu { order: 3; width: 100%; display: none !important; flex-direction: column; align-items: center; background: #fff; padding: 15px 0; margin-top: 10px; border-top: 1px solid #eaeaea; gap: 0; }
   .menu-check:checked ~ .menu { display: flex !important; }
-  .menu a {
-    font-size: 1.05rem;
-    padding: 14px 0;
-    width: 100%;
-    text-align: center;
-    border-bottom: 1px solid #f0f0f0;
-  }
-  .menu a:last-child { border-bottom: none; }
+  .menu a { font-size: 1.05rem; padding: 14px 0; width: 100%; text-align: center; border-bottom: 1px solid #f0f0f0; }
   .menu .btn-menu { margin-top: 10px; }
-  .cabecera-pagina { padding: 50px 16px; }
-  .cabecera-pagina h1 { font-size: 2rem; }
-  .cabecera-pagina p { font-size: 1rem; }
-  .tab-label { padding: 10px 18px; font-size: 0.8rem; }
-  .bloque { padding: 22px; }
-  .bloque h2 { font-size: 1.3rem; }
-  h3 { font-size: 0.9rem; }
-  table { font-size: 0.75rem; }
-  .partido-equipos { font-size: 1rem; }
+  .hero-title { font-size: 1.8rem; }
+  .hero-teams { gap: 12px; }
+  .hero-team-name { font-size: 0.85rem; }
+  .hero-team-icon { font-size: 1.6rem; }
+  .hero-vs { width: 42px; height: 42px; font-size: 1.2rem; }
+  .tabs-bar { top: 90px; gap: 6px; padding: 12px 10px; }
+  .tab-label { padding: 8px 14px; font-size: 0.7rem; }
+  .bloque { padding: 20px 16px; }
+  .bloque h2 { font-size: 1.2rem; }
+  .match-teams { flex-direction: column; gap: 8px; padding: 12px; }
+  .match-team, .match-team:last-child { justify-content: center; text-align: center; flex-direction: row; }
+  .result-teams { gap: 10px; }
+  .score-num { font-size: 1.4rem; }
+  table { font-size: 0.72rem; min-width: 520px; }
 }
 </style>
 </head>
 <body>
 
-<!-- HEADER — idéntico a la web -->
 <header class="header">
   <div class="header-contenido">
     <a class="logo" href="${WEB}">
@@ -550,25 +539,27 @@ tr:hover { background: #fafafa; }
       <a href="${WEB}tienda.html">Tienda</a>
       <a href="${WEB}comunicados.html">Comunicados</a>
       <a href="${WEB}galeria.html">Galería</a>
-      <a class="btn-menu" style="background:#333;color:#fff !important;">Competición</a>
+      <a class="btn-menu" style="background:#0f172a;color:#fff !important;">Competición</a>
       <a href="${WEB}area-interna.html">Área interna</a>
       <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank">Hazte socio</a>
     </nav>
   </div>
 </header>
 
-<!-- CABECERA PÁGINA -->
-<section class="cabecera-pagina">
-  <h1>Competición</h1>
-  <p>Resultados, clasificaciones y goleadores — Temporada 2024/2025</p>
+<section class="hero-section">
+  <h1 class="hero-title">Competición <span>${temporada}</span></h1>
+  <p class="hero-sub">Próximos partidos, resultados, clasificaciones y goleadores</p>
+  ${heroHTML}
 </section>
 
 <input type="radio" name="tab" id="radio-proximos" checked>
+<input type="radio" name="tab" id="radio-resultados">
 <input type="radio" name="tab" id="radio-clasificacion">
 <input type="radio" name="tab" id="radio-goleadores">
 
 <div class="tabs-bar">
-  <label class="tab-label" for="radio-proximos">📅 Próximos Partidos</label>
+  <label class="tab-label" for="radio-proximos">📅 Partidos</label>
+  <label class="tab-label" for="radio-resultados">📊 Resultados</label>
   <label class="tab-label" for="radio-clasificacion">🏆 Clasificación</label>
   <label class="tab-label" for="radio-goleadores">⚽ Goleadores</label>
 </div>
@@ -578,6 +569,13 @@ tr:hover { background: #fafafa; }
     <div class="bloque">
       <h2>📅 Próximos Partidos</h2>
       ${proximosHTML}
+    </div>
+  </div>
+
+  <div id="sec-resultados" class="seccion">
+    <div class="bloque">
+      <h2>📊 Últimos Resultados</h2>
+      ${resultadosHTML}
     </div>
   </div>
 
@@ -596,15 +594,14 @@ tr:hover { background: #fafafa; }
   </div>
 </div>
 
-<!-- FOOTER — idéntico a la web -->
 <footer class="footer">
   <div class="footer-contenido">
-    <div class="footer-col">
+    <div>
       <img src="${ESCUDO}" class="footer-logo" alt="Escudo">
       <p class="footer-titulo">C.D. Bustarviejo</p>
       <p class="footer-texto">Deporte y valores desde 1989</p>
     </div>
-    <div class="footer-col">
+    <div>
       <p class="footer-titulo">Enlaces</p>
       <ul class="footer-links">
         <li><a href="${WEB}">Inicio</a></li>
@@ -616,7 +613,7 @@ tr:hover { background: #fafafa; }
         <li><a href="${WEB}privacidad.html">Política de Privacidad</a></li>
       </ul>
     </div>
-    <div class="footer-col">
+    <div>
       <p class="footer-titulo">Contacto</p>
       <p class="footer-texto">
         📧 <a href="mailto:info@cdbustarviejo.com">info@cdbustarviejo.com</a><br>
@@ -624,12 +621,8 @@ tr:hover { background: #fafafa; }
       </p>
     </div>
   </div>
-  <div class="footer-copy">
-    © 1989–2026 · C.D. Bustarviejo · Todos los derechos reservados
-  </div>
+  <div class="footer-copy">© 1989–${new Date().getFullYear()} · C.D. Bustarviejo · Todos los derechos reservados</div>
 </footer>
-
-<!-- menú hamburguesa funciona solo con CSS, sin JavaScript -->
 
 </body>
 </html>`;
