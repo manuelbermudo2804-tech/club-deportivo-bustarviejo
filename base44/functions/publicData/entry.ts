@@ -489,9 +489,9 @@ body { font-family: 'Montserrat', Arial, sans-serif; color: #1a1a2e; background:
 
 .hero-match { background: rgba(255,255,255,0.06); border: 1px solid rgba(245,124,0,0.25); border-radius: 20px; padding: 28px 24px; max-width: 600px; margin: 0 auto; position: relative; backdrop-filter: blur(10px); }
 .hero-badge { display: inline-block; font-size: 0.75rem; font-weight: 900; letter-spacing: 1px; padding: 6px 18px; border-radius: 50px; margin-bottom: 12px; text-transform: uppercase; }
-.badge-hoy { background: #ef4444; color: #fff; animation: pulse 1.5s infinite; }
-.badge-manana { background: #f59e0b; color: #000; }
-.badge-pronto { background: rgba(245,124,0,0.2); color: #f5a623; }
+.badge-hoy { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; animation: pulse 1.5s infinite; box-shadow: 0 4px 15px rgba(239,68,68,0.4); }
+.badge-manana { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; box-shadow: 0 4px 15px rgba(245,158,11,0.3); }
+.badge-pronto { background: rgba(245,124,0,0.2); color: #f5a623; border: 1px solid rgba(245,124,0,0.3); }
 @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } }
 
 .hero-cat { color: #f5a623; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
