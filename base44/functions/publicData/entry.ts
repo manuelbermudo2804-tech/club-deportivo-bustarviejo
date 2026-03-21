@@ -94,22 +94,46 @@ Deno.serve(async (req) => {
     }
 
     // Filtrar solo partidos futuros (hoy incluido) y deduplicar
+    // Para partidos de HOY: excluir si su hora + 2h ya pasó (probablemente terminado)
     const hoyStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const ahora = new Date();
     const proximosDedup = new Map();
     const resultadosRecientesDedup = new Map();
     for (const p of proximosPartidos) {
       const key = `${p.categoria}_${p.jornada}_${p.local}_${p.visitante}`;
       if (p.jugado && p.goles_local != null && p.goles_visitante != null) {
         if (!resultadosRecientesDedup.has(key)) resultadosRecientesDedup.set(key, p);
-      } else if (!p.fecha_iso || p.fecha_iso >= hoyStr) {
+      } else if (!p.fecha_iso || p.fecha_iso > hoyStr) {
+        // Partido futuro (no es hoy) → incluir
         if (!proximosDedup.has(key)) proximosDedup.set(key, p);
+      } else if (p.fecha_iso === hoyStr) {
+        // Partido de HOY → solo incluir si la hora+2h no ha pasado aún
+        if (p.hora) {
+          const [h, m] = p.hora.split(':').map(Number);
+          const matchEnd = new Date(ahora);
+          matchEnd.setHours(h + 2, m || 0, 0, 0);
+          if (ahora < matchEnd) {
+            if (!proximosDedup.has(key)) proximosDedup.set(key, p);
+          }
+          // Si ya terminó, no se añade a próximos (quedará sin mostrar hasta que el scraper lo marque como jugado)
+        } else {
+          // Sin hora → incluir por defecto
+          if (!proximosDedup.has(key)) proximosDedup.set(key, p);
+        }
       }
     }
-    const proximos = Array.from(proximosDedup.values()).map(p => ({
-      categoria: p.categoria, jornada: p.jornada, local: p.local,
-      visitante: p.visitante, fecha: p.fecha, hora: p.hora,
-      campo: p.campo, fecha_iso: p.fecha_iso,
-    }));
+    // Ordenar por fecha + hora para que los de hoy avancen según pasan las horas
+    const proximos = Array.from(proximosDedup.values())
+      .map(p => ({
+        categoria: p.categoria, jornada: p.jornada, local: p.local,
+        visitante: p.visitante, fecha: p.fecha, hora: p.hora,
+        campo: p.campo, fecha_iso: p.fecha_iso,
+      }))
+      .sort((a, b) => {
+        const cmpDate = (a.fecha_iso || '').localeCompare(b.fecha_iso || '');
+        if (cmpDate !== 0) return cmpDate;
+        return (a.hora || '99:99').localeCompare(b.hora || '99:99');
+      });
     const resultadosRecientes = Array.from(resultadosRecientesDedup.values())
       .map(p => ({
         categoria: p.categoria, jornada: p.jornada, local: p.local,
