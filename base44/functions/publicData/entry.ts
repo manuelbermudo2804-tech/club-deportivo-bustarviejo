@@ -554,7 +554,7 @@ input[name="tab"] { display: none; }
 .bloque h2 { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #f57c00; display: flex; align-items: center; gap: 10px; }
 
 /* ═══ MATCH CARDS ═══ */
-.match-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 0; margin-bottom: 12px; transition: all 0.25s; overflow: hidden; }
+.match-card { background: #fff; border: 1px solid #e2e8f0; border-left: 4px solid #f57c00; border-radius: 14px; padding: 0; margin-bottom: 14px; transition: all 0.25s; overflow: hidden; }
 .match-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); border-color: #f57c00; }
 .match-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
 .match-cat { font-size: 0.72rem; color: #f57c00; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
