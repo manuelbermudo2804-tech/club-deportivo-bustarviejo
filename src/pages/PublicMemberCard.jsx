@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { base44 } from "@/api/base44Client";
 import { CheckCircle2, XCircle, Clock, MapPin, Phone, Store, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -23,25 +24,48 @@ export default function PublicMemberCard() {
       return;
     }
 
-    // Fetch directly from the backend function endpoint via plain fetch
-    // This avoids needing SDK auth — the backend GET renders HTML or we call POST
-    const funcUrl = `${window.location.origin}/api/functions/publicMemberCard`;
-    
-    fetch(funcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'get', token }),
-    })
-      .then(async (res) => {
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || 'Error al cargar el carnet');
-        setData(json);
+    // Fetch member data directly from entities (no backend needed)
+    // The SDK is initialized with requiresAuth: false so this works without login
+    (async () => {
+      try {
+        const members = await base44.entities.ClubMember.filter({ carnet_token: token });
+        if (!members || members.length === 0) {
+          setError('Carnet no encontrado');
+          setLoading(false);
+          return;
+        }
+        const member = members[0];
+        
+        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+        const seasonConfig = configs?.[0];
+        
+        if (!seasonConfig?.carnet_publico_activo) {
+          setError('Servicio no disponible');
+          setLoading(false);
+          return;
+        }
+        
+        const now = new Date();
+        const vencimiento = member.fecha_vencimiento ? new Date(member.fecha_vencimiento) : null;
+        const isPaid = member.estado_pago === 'Pagado';
+        const isExpired = vencimiento ? now > vencimiento : false;
+        const isActive = isPaid && !isExpired && member.activo !== false;
+        
+        setData({
+          nombre: member.nombre_completo,
+          numero_socio: member.numero_socio || member.id?.slice(-8).toUpperCase(),
+          estado: isActive ? 'activo' : 'expirado',
+          fecha_alta: member.fecha_alta || null,
+          fecha_vencimiento: member.fecha_vencimiento || null,
+          comercios: seasonConfig.comercios_descuento || [],
+        });
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
+        console.error('Error loading public card:', err);
         setError(err.message || 'Error al cargar el carnet');
         setLoading(false);
-      });
+      }
+    })();
   }, []);
 
   useEffect(() => {
