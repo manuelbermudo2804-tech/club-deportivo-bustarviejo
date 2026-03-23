@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { base44 } from "@/api/base44Client";
 import { CheckCircle2, XCircle, Clock, MapPin, Phone, Store, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -24,14 +23,23 @@ export default function PublicMemberCard() {
       return;
     }
 
-    base44.functions.invoke('publicMemberCard', { action: 'get', token })
-      .then((res) => {
-        setData(res.data);
+    // Fetch directly from the backend function endpoint via plain fetch
+    // This avoids needing SDK auth — the backend GET renders HTML or we call POST
+    const funcUrl = `${window.location.origin}/api/functions/publicMemberCard`;
+    
+    fetch(funcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get', token }),
+    })
+      .then(async (res) => {
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Error al cargar el carnet');
+        setData(json);
         setLoading(false);
       })
       .catch((err) => {
-        const msg = err?.response?.data?.error || err.message || 'Error al cargar el carnet';
-        setError(msg);
+        setError(err.message || 'Error al cargar el carnet');
         setLoading(false);
       });
   }, []);
