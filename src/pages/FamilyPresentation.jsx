@@ -457,7 +457,7 @@ const slides = [
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
             <div className="text-4xl mb-3">👕</div>
             <h3 className="font-bold mb-2">Pack obligatorio</h3>
-            <p className="text-sm opacity-80">Camiseta + pantalón + sudadera de entrenamiento</p>
+            <p className="text-sm opacity-80">Equipación completa: 1ª y 2ª equipación, ropa de entrenamiento, paseo, etc.</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
             <div className="text-4xl mb-3">🧥</div>
