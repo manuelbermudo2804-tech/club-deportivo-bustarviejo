@@ -31,7 +31,7 @@ const slides = [
         <div className="flex flex-col gap-5 w-full max-w-2xl text-left">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
             <p className="text-lg font-bold mb-2">📋 Gestión imposible sin ella</p>
-            <p className="text-sm opacity-85">Con más de 200 jugadores y familias, necesitamos una herramienta centralizada. No podemos seguir con papeles, llamadas y mensajes dispersos.</p>
+            <p className="text-sm opacity-85">Con alrededor de 130 jugadores y familias — y con la esperanza de seguir creciendo — necesitamos una herramienta centralizada. No podemos seguir con papeles, llamadas y mensajes dispersos.</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
             <p className="text-lg font-bold mb-2">💬 WhatsApp genera problemas</p>
@@ -72,15 +72,15 @@ const slides = [
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <span className="text-3xl flex-shrink-0">⛔</span>
+              <span className="text-3xl flex-shrink-0">💛</span>
               <div>
-                <p className="font-bold text-lg">Sin pagar → No puede jugar</p>
-                <p className="text-sm opacity-80">Los jugadores sin pagos al día no serán convocados</p>
+                <p className="font-bold text-lg">Sin pagar → Problema para todos</p>
+                <p className="text-sm opacity-80">El club siempre escucha a familias con dificultades. Hablad con nosotros. Pero los impagos acumulados son un problema serio que afecta a todo el club.</p>
               </div>
             </div>
           </div>
         </div>
-        <p className="text-sm opacity-60 max-w-lg">Suena estricto, pero es la única forma de que el club funcione bien para todos. Os pedimos colaboración.</p>
+        <p className="text-sm opacity-60 max-w-lg">No queremos ser estrictos — queremos que funcione para todos. Si tenéis cualquier problema, hablad con nosotros.</p>
       </div>
     ),
   },
