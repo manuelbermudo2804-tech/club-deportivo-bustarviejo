@@ -139,8 +139,29 @@ function renderCardHTML(member, seasonConfig) {
     <div class="tip">
       <h3>🎫 Carnet Digital de Socio</h3>
       <p>Este carnet te identifica como <strong>socio oficial del CD Bustarviejo</strong> y te permite acceder a descuentos exclusivos en comercios colaboradores.</p>
-      <div class="tip-box">
-        <p><strong>💡 Consejo:</strong> Guarda este enlace en los favoritos de tu móvil para tenerlo siempre a mano.</p>
+      
+      <div style="background:#eff6ff;border:2px solid #93c5fd;border-radius:12px;padding:16px;margin-top:16px;text-align:left;">
+        <h4 style="margin:0 0 12px;font-size:14px;font-weight:700;color:#1e3a5f;">📱 Tenlo siempre a mano — Añádelo a tu pantalla de inicio</h4>
+        
+        <div style="background:white;border-radius:8px;padding:12px;border:1px solid #bfdbfe;margin-bottom:10px;">
+          <p style="font-size:13px;font-weight:600;color:#1e293b;margin:0 0 6px;">🍎 iPhone / iPad:</p>
+          <ol style="font-size:12px;color:#475569;margin:0;padding-left:20px;line-height:1.6;">
+            <li>Pulsa el botón <strong>Compartir</strong> (el cuadrado con flecha ↑) abajo en Safari</li>
+            <li>Desliza y pulsa <strong>"Añadir a pantalla de inicio"</strong></li>
+            <li>Dale a <strong>Añadir</strong> — ¡listo!</li>
+          </ol>
+        </div>
+        
+        <div style="background:white;border-radius:8px;padding:12px;border:1px solid #bfdbfe;">
+          <p style="font-size:13px;font-weight:600;color:#1e293b;margin:0 0 6px;">🤖 Android:</p>
+          <ol style="font-size:12px;color:#475569;margin:0;padding-left:20px;line-height:1.6;">
+            <li>Pulsa los <strong>3 puntos</strong> (⋮) arriba a la derecha en Chrome</li>
+            <li>Pulsa <strong>"Añadir a pantalla de inicio"</strong></li>
+            <li>Confirma con <strong>Añadir</strong> — ¡listo!</li>
+          </ol>
+        </div>
+        
+        <p style="font-size:12px;color:#1e40af;text-align:center;margin:10px 0 0;">Aparecerá como un icono en tu móvil, como si fuera una app 🎉</p>
       </div>
     </div>
   </div>
