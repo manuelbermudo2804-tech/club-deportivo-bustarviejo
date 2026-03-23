@@ -219,9 +219,29 @@ export default function PublicMemberCard() {
                 Este carnet te identifica como <strong>socio oficial del CD Bustarviejo</strong> y te permite acceder a descuentos exclusivos en comercios colaboradores de la zona.
               </p>
             </div>
-            <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
-              <h4 className="font-bold text-orange-900 text-sm mb-2">💡 Consejo:</h4>
-              <p className="text-sm text-orange-800">Guarda este enlace en los favoritos de tu móvil o añádelo a la pantalla de inicio para tenerlo siempre a mano.</p>
+
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 space-y-3">
+              <h4 className="font-bold text-blue-900 text-sm">📱 Tenlo siempre a mano — Añádelo a tu pantalla de inicio</h4>
+              
+              <div className="bg-white rounded-lg p-3 border border-blue-200">
+                <p className="font-semibold text-slate-800 text-sm mb-1">🍎 iPhone / iPad:</p>
+                <ol className="text-xs text-slate-700 space-y-1 list-decimal list-inside">
+                  <li>Pulsa el botón <strong>Compartir</strong> (el cuadrado con flecha ↑) abajo en Safari</li>
+                  <li>Desliza y pulsa <strong>"Añadir a pantalla de inicio"</strong></li>
+                  <li>Dale a <strong>Añadir</strong> — ¡listo!</li>
+                </ol>
+              </div>
+
+              <div className="bg-white rounded-lg p-3 border border-blue-200">
+                <p className="font-semibold text-slate-800 text-sm mb-1">🤖 Android:</p>
+                <ol className="text-xs text-slate-700 space-y-1 list-decimal list-inside">
+                  <li>Pulsa los <strong>3 puntos</strong> (⋮) arriba a la derecha en Chrome</li>
+                  <li>Pulsa <strong>"Añadir a pantalla de inicio"</strong></li>
+                  <li>Confirma con <strong>Añadir</strong> — ¡listo!</li>
+                </ol>
+              </div>
+
+              <p className="text-xs text-blue-800 text-center">Aparecerá como un icono en tu móvil, como si fuera una app 🎉</p>
             </div>
           </CardContent>
         </Card>
