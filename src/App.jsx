@@ -27,8 +27,13 @@ const AppRouter = () => {
   const location = useLocation();
   
   // Rutas 100% públicas (sin auth, sin layout)
-  if (location.pathname === '/PublicMemberCard') {
-    return <PublicMemberCard />;
+  const publicPaths = ['/PublicMemberCard'];
+  if (publicPaths.includes(location.pathname)) {
+    return (
+      <Routes>
+        <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
+      </Routes>
+    );
   }
   
   return <AuthenticatedApp />;
