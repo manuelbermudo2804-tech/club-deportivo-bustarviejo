@@ -443,7 +443,40 @@ const slides = [
     ),
   },
 
-  // ── 15. MÁS FUNCIONES ──
+  // ── 15. TIENDA DE ROPA ──
+  {
+    id: "shop",
+    bg: "from-indigo-700 to-blue-900",
+    content: (
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
+        <div className="text-6xl mb-6">🛍️</div>
+        <h2 className="text-4xl md:text-5xl font-black mb-4">Tienda de Ropa del Club</h2>
+        <p className="text-xl opacity-80 mb-8">Los packs y equipación se piden desde la app</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl mb-8">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+            <div className="text-4xl mb-3">👕</div>
+            <h3 className="font-bold mb-2">Pack obligatorio</h3>
+            <p className="text-sm opacity-80">Camiseta + pantalón + sudadera de entrenamiento</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+            <div className="text-4xl mb-3">🧥</div>
+            <h3 className="font-bold mb-2">Ropa opcional</h3>
+            <p className="text-sm opacity-80">Chaqueta de partidos, chubasquero, anorak, mochila…</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+            <div className="text-4xl mb-3">📦</div>
+            <h3 className="font-bold mb-2">Te llega a casa</h3>
+            <p className="text-sm opacity-80">Eliges tallas, pagas y recibes el pedido sin moverte</p>
+          </div>
+        </div>
+        <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-xl p-5 max-w-2xl w-full">
+          <p className="text-sm font-bold">⚠️ El pedido de ropa se hace exclusivamente desde la app. Elegís tallas por prenda, pagáis y os llega a casa.</p>
+        </div>
+      </div>
+    ),
+  },
+
+  // ── 16. MÁS FUNCIONES ──
   {
     id: "extras",
     bg: "from-slate-700 to-slate-900",
