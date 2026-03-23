@@ -213,6 +213,47 @@ export default function ParentPayments() {
         const { id, isUpdate, ...updateData } = paymentData;
         const payment = await base44.entities.Payment.update(id, updateData);
         console.log('✅ [ParentPayments] Pago actualizado:', payment.id);
+
+        // Enviar emails de confirmación también para updates con justificante
+        const player = players.find(p => p.id === paymentData.jugador_id);
+        try {
+          if (seasonConfig?.notificaciones_admin_email) {
+            await base44.functions.invoke('sendEmail', {
+              to: "cdbustarviejo@gmail.com",
+              subject: `Justificante de Pago Recibido - ${paymentData.jugador_nombre}`,
+              html: `
+                <h2>Justificante de Pago Recibido</h2>
+                <p><strong>Jugador:</strong> ${paymentData.jugador_nombre}</p>
+                <p><strong>Mes:</strong> ${paymentData.mes}</p>
+                <p><strong>Temporada:</strong> ${paymentData.temporada}</p>
+                <p><strong>Cantidad:</strong> ${paymentData.cantidad}€</p>
+                <p><strong>Estado:</strong> En revisión 🟠</p>
+                <hr>
+                <p style="font-size: 12px; color: #666;">Registrado el ${new Date().toLocaleString('es-ES')}</p>
+              `
+            });
+          }
+          const confirmBody = `<h2>Justificante Recibido - CD Bustarviejo</h2>
+          <p>Hemos recibido el justificante de pago para <strong>${paymentData.jugador_nombre}</strong>.</p>
+          <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 16px 0;">
+            <p>📅 <strong>Periodo:</strong> ${paymentData.mes}</p>
+            <p>📚 <strong>Temporada:</strong> ${paymentData.temporada}</p>
+            <p>💰 <strong>Cantidad:</strong> ${paymentData.cantidad} euros</p>
+            <p>📊 <strong>Estado:</strong> En revisión 🟠</p>
+          </div>
+          <p>Estamos verificando tu justificante y actualizaremos el estado pronto.</p>
+          <p style="margin-top: 24px;">Atentamente,<br><strong>CD Bustarviejo</strong></p>`;
+          if (player?.email_padre) {
+            await base44.functions.invoke('sendEmail', { to: player.email_padre, subject: "Justificante Recibido - CD Bustarviejo", html: confirmBody });
+          }
+          if (player?.email_tutor_2) {
+            await base44.functions.invoke('sendEmail', { to: player.email_tutor_2, subject: "Justificante Recibido - CD Bustarviejo", html: confirmBody });
+          }
+        } catch (e) { console.error('Error sending update emails:', e); }
+
+        // Invalidar queries
+        queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+        queryClient.invalidateQueries({ queryKey: ['allPayments'] });
         return payment;
       }
 
@@ -265,7 +306,7 @@ export default function ParentPayments() {
           });
         }
         
-        // Send confirmation to parents
+        // Send confirmation to parents (solo 1 email por padre, no duplicar)
         const confirmBody = `<h2>Pago Registrado - CD Bustarviejo</h2>
         <p>Estimados padres/tutores,</p>
         <p>Confirmamos que hemos recibido el registro de pago para <strong>${paymentData.jugador_nombre}</strong>.</p>
@@ -284,7 +325,8 @@ export default function ParentPayments() {
         <p style="color: #64748b; font-size: 14px; margin-top: 16px;">Contacto: cdbustarviejo@gmail.com</p>
         `;
         
-        console.log('📧 [ParentPayments] Enviando confirmación a padres:', { padre: player?.email_padre, tutor2: player?.email_tutor_2 });
+        // Enviar a padres evitando duplicados (si email_padre === email_tutor_2)
+        const emailsSent = new Set();
         
         if (player?.email_padre) {
           console.log('📤 [ParentPayments] Enviando a padre:', player.email_padre);
@@ -293,10 +335,11 @@ export default function ParentPayments() {
             subject: "Pago Registrado - CD Bustarviejo",
             html: confirmBody
           });
+          emailsSent.add(player.email_padre.toLowerCase());
           console.log('✅ [ParentPayments] Email enviado a padre');
         }
         
-        if (player?.email_tutor_2) {
+        if (player?.email_tutor_2 && !emailsSent.has(player.email_tutor_2.toLowerCase())) {
           console.log('📤 [ParentPayments] Enviando a tutor 2:', player.email_tutor_2);
           await base44.functions.invoke('sendEmail', {
             to: player.email_tutor_2,
@@ -372,7 +415,7 @@ export default function ParentPayments() {
           });
         }
         
-        // Send confirmation to parents
+        // Send confirmation to parents (evitar duplicados)
         const confirmBody = `<h2>Justificante Recibido - CD Bustarviejo</h2>
         <p>Estimados padres/tutores,</p>
         <p>Hemos recibido el justificante de pago para <strong>${payment.jugador_nombre}</strong>.</p>
@@ -391,7 +434,7 @@ export default function ParentPayments() {
         <p style="color: #64748b; font-size: 14px; margin-top: 16px;">Contacto: cdbustarviejo@gmail.com</p>
         `;
         
-        console.log('📧 [ParentPayments] Enviando confirmación de justificante a padres:', { padre: player?.email_padre, tutor2: player?.email_tutor_2 });
+        const emailsSent = new Set();
         
         if (player?.email_padre) {
           console.log('📤 [ParentPayments] Enviando a padre:', player.email_padre);
@@ -400,10 +443,11 @@ export default function ParentPayments() {
             subject: "Justificante Recibido - CD Bustarviejo",
             html: confirmBody
           });
+          emailsSent.add(player.email_padre.toLowerCase());
           console.log('✅ [ParentPayments] Email enviado a padre');
         }
         
-        if (player?.email_tutor_2) {
+        if (player?.email_tutor_2 && !emailsSent.has(player.email_tutor_2.toLowerCase())) {
           console.log('📤 [ParentPayments] Enviando a tutor 2:', player.email_tutor_2);
           await base44.functions.invoke('sendEmail', {
             to: player.email_tutor_2,
