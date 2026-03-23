@@ -101,8 +101,14 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.ClubMember.update(memberId, { carnet_token: carnetToken });
       }
 
-      // Build public URL — usar dominio publicado
-      const appUrl = `https://cd-bustarviejo.base44.app/PublicMemberCard?token=${carnetToken}`;
+      // Build public URL — funciona tanto en dominio personalizado como en base44
+      const reqUrl = new URL(req.url);
+      const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || `${reqUrl.protocol}//${reqUrl.host}`;
+      // Si viene de la app, usar el dominio de la app; si no, usar la URL genérica de base44
+      const appBaseUrl = origin.includes('base44') || origin.includes('cdbustarviejo') 
+        ? origin 
+        : 'https://app.base44.com/apps/6911b8e453ca3ac01fb134d6';
+      const appUrl = `${appBaseUrl}/PublicMemberCard?token=${carnetToken}`;
 
       // Send email via Resend
       const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
