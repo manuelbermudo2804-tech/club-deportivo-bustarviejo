@@ -1,4 +1,19 @@
-import { createClientFromRequest, createClient } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+
+/**
+ * Helper: creates a Base44 client for public (unauthenticated) GET requests.
+ * We build a synthetic Request with the platform headers so the SDK works.
+ */
+function createPublicClient(reqUrl) {
+  const appId = Deno.env.get('BASE44_APP_ID');
+  const syntheticReq = new Request(reqUrl, {
+    headers: new Headers({
+      'Base44-App-Id': appId,
+      'Base44-Service-Role': 'true',
+    }),
+  });
+  return createClientFromRequest(syntheticReq);
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = {
@@ -15,13 +30,11 @@ Deno.serve(async (req) => {
 
   // =============================================
   // GET ?token=XXX → HTML completo del carnet (PÚBLICO, sin auth)
-  // Usa createClient con APP_ID del entorno (no necesita headers del request)
   // =============================================
   if (req.method === 'GET' && url.searchParams.get('token')) {
     try {
       const token = url.searchParams.get('token');
-      const appId = Deno.env.get('BASE44_APP_ID');
-      const base44 = createClient({ appId });
+      const base44 = createPublicClient(req.url);
 
       const members = await base44.asServiceRole.entities.ClubMember.filter({ carnet_token: token });
       if (!members || members.length === 0) {
@@ -75,7 +88,6 @@ Deno.serve(async (req) => {
 
   // =============================================
   // POST — API JSON (para la app React y admin)
-  // Usa createClientFromRequest (tiene headers de auth)
   // =============================================
   if (req.method === 'POST') {
     const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' };
