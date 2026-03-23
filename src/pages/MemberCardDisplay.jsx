@@ -49,16 +49,23 @@ export default function MemberCardDisplay() {
         setMemberData(member);
         console.log('✅ [MemberCard] Usuario ES SOCIO:', member.nombre_completo);
 
-        // 2. Verificar COLOR del carnet (verde/rojo): todas las cuotas actuales de TODOS los hijos al día
-        const allPlayers = await base44.entities.Player.filter({ 
-          $or: [
-            { email_padre: currentUser.email },
-            { email_tutor_2: currentUser.email }
-          ],
-          activo: true
-        });
+        // 2. Verificar COLOR del carnet (verde/rojo)
+        // Si es socio externo o socio-padre sin hijos → solo verificar fecha_vencimiento
+        const esSocioExterno = member.es_socio_externo === true;
+        
+        let allPlayers = [];
+        if (!esSocioExterno) {
+          // Buscar hijos por email_padre y email_tutor_2 (dos queries separadas, $or no soportado)
+          const [byPadre, byTutor2] = await Promise.all([
+            base44.entities.Player.filter({ email_padre: currentUser.email, activo: true }).catch(() => []),
+            base44.entities.Player.filter({ email_tutor_2: currentUser.email, activo: true }).catch(() => []),
+          ]);
+          const map = new Map();
+          [...byPadre, ...byTutor2].forEach(p => map.set(p.id, p));
+          allPlayers = Array.from(map.values());
+        }
 
-        console.log('👨‍👩‍👧 [MemberCard] Hijos encontrados:', allPlayers.length);
+        console.log('👨‍👩‍👧 [MemberCard] Hijos encontrados:', allPlayers.length, esSocioExterno ? '(socio externo, ignorados)' : '');
 
         // Si no tiene hijos (socio externo): verificar fecha_vencimiento
         if (allPlayers.length === 0) {
