@@ -23,6 +23,17 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
 
+const AppRouter = () => {
+  const location = useLocation();
+  
+  // Rutas 100% públicas (sin auth, sin layout)
+  if (location.pathname === '/PublicMemberCard') {
+    return <PublicMemberCard />;
+  }
+  
+  return <AuthenticatedApp />;
+};
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
 
