@@ -168,7 +168,7 @@ export default function Layout({ children, currentPageName }) {
   const [showMemberCard, setShowMemberCard] = useState(false);
   const [extraChargeModalOpen, setExtraChargeModalOpen] = useState(false);
   const [memberCardActive, setMemberCardActive] = useState(false);
-  const [programaSociosActivo, setProgramaSociosActivo] = useState(false);
+  const programaSociosActivo = activeSeasonConfig?.programa_socios_activo || false;
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
