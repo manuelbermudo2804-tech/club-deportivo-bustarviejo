@@ -2,25 +2,12 @@
 // GET ?token=XXX → devuelve HTML completa (para socios externos, sin login)
 // POST con auth → acciones admin (generateToken, sendCarnetEmail)
 
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest, createClient } from 'npm:@base44/sdk@0.8.21';
 
 const APP_ID = Deno.env.get('BASE44_APP_ID');
-const API_BASE = 'https://app.base44.com/api';
 
-// Fetch data from Base44 REST API without SDK (no auth needed for service-level calls)
-async function fetchEntities(entityName, query = {}) {
-  const url = `${API_BASE}/apps/${APP_ID}/entities/${entityName}/filter`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    console.error(`API error ${res.status} for ${entityName}:`, text);
-    throw new Error(`API error: ${res.status}`);
-  }
-  return await res.json();
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function renderCardHTML(member, seasonConfig) {
@@ -83,47 +70,19 @@ function renderCardHTML(member, seasonConfig) {
       min-height: 100vh;
       background: linear-gradient(135deg, ${isActive ? '#16a34a, #15803d, #14532d' : '#dc2626, #b91c1c, #7f1d1d'});
       padding: 24px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
     .container { max-width: 420px; width: 100%; }
-    .card {
-      background: white;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,.3);
-      border: 4px solid white;
-    }
-    .header {
-      background: linear-gradient(135deg, ${statusColor}, ${isActive ? '#15803d' : '#991b1b'});
-      padding: 24px;
-      text-align: center;
-      color: white;
-    }
+    .card { background:white; border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.3); border:4px solid white; }
+    .header { background:linear-gradient(135deg, ${statusColor}, ${isActive ? '#15803d' : '#991b1b'}); padding:24px; text-align:center; color:white; }
     .header img { width:48px; height:48px; border-radius:10px; margin-bottom:8px; }
     .header h1 { font-size:22px; font-weight:800; margin:0; }
     .header p { font-size:13px; opacity:.9; margin-top:4px; }
-    .status {
-      background: ${statusBg};
-      padding: 40px 24px;
-      text-align: center;
-    }
-    .status svg { margin: 0 auto 16px; display: block; }
-    .status h2 {
-      font-size: 36px;
-      font-weight: 900;
-      color: ${statusColor};
-      margin: 0 0 4px;
-    }
+    .status { background:${statusBg}; padding:40px 24px; text-align:center; }
+    .status svg { margin:0 auto 16px; display:block; }
+    .status h2 { font-size:36px; font-weight:900; color:${statusColor}; margin:0 0 4px; }
     .status p { font-size:16px; font-weight:600; color:${statusColor}; opacity:.85; }
-    .clock {
-      background: #0f172a;
-      color: white;
-      padding: 16px 24px;
-      text-align: center;
-      border-top: 4px solid #ea580c;
-    }
+    .clock { background:#0f172a; color:white; padding:16px 24px; text-align:center; border-top:4px solid #ea580c; }
     .clock .label { font-size:12px; opacity:.7; margin-bottom:4px; }
     .clock .time { font-size:32px; font-weight:700; font-family:'Courier New',monospace; letter-spacing:3px; }
     .clock .date { font-size:13px; opacity:.7; margin-top:4px; }
@@ -132,41 +91,15 @@ function renderCardHTML(member, seasonConfig) {
     .info-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#94a3b8; font-weight:600; }
     .info-value { font-size:18px; font-weight:700; color:#1e293b; margin-top:2px; }
     .info-value.mono { font-family:'Courier New',monospace; color:#ea580c; }
-    .tip {
-      background: white;
-      border-radius: 16px;
-      border: 2px solid white;
-      box-shadow: 0 10px 25px rgba(0,0,0,.15);
-      padding: 24px;
-      margin-top: 24px;
-      text-align: center;
-    }
+    .tip { background:white; border-radius:16px; border:2px solid white; box-shadow:0 10px 25px rgba(0,0,0,.15); padding:24px; margin-top:24px; text-align:center; }
     .tip h3 { font-size:16px; font-weight:700; color:#1e293b; margin-bottom:8px; }
     .tip p { font-size:13px; color:#475569; line-height:1.5; }
-    .tip-box {
-      background:#fff7ed;
-      border:2px solid #fed7aa;
-      border-radius:10px;
-      padding:12px 16px;
-      margin-top:12px;
-      text-align:left;
-    }
+    .tip-box { background:#fff7ed; border:2px solid #fed7aa; border-radius:10px; padding:12px 16px; margin-top:12px; text-align:left; }
     .tip-box p { font-size:13px; color:#9a3412; margin:0; }
   </style>
   <script>
-    function updateClock() {
-      const now = new Date();
-      const timeEl = document.getElementById('clock-time');
-      const dateEl = document.getElementById('clock-date');
-      if (timeEl) {
-        timeEl.textContent = now.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-      }
-      if (dateEl) {
-        dateEl.textContent = now.toLocaleDateString('es-ES', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
-      }
-    }
-    setInterval(updateClock, 1000);
-    document.addEventListener('DOMContentLoaded', updateClock);
+    function updateClock(){var n=new Date();var t=document.getElementById('clock-time');var d=document.getElementById('clock-date');if(t)t.textContent=n.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});if(d)d.textContent=n.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
+    setInterval(updateClock,1000);document.addEventListener('DOMContentLoaded',updateClock);
   </script>
 </head>
 <body>
@@ -202,9 +135,7 @@ function renderCardHTML(member, seasonConfig) {
         </div>
       </div>
     </div>
-
     ${comerciosHTML}
-
     <div class="tip">
       <h3>🎫 Carnet Digital de Socio</h3>
       <p>Este carnet te identifica como <strong>socio oficial del CD Bustarviejo</strong> y te permite acceder a descuentos exclusivos en comercios colaboradores.</p>
@@ -217,9 +148,6 @@ function renderCardHTML(member, seasonConfig) {
 </html>`;
 }
 
-function escapeHtml(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = {
@@ -233,38 +161,40 @@ Deno.serve(async (req) => {
   }
 
   // ═══════════════════════════════════════════════
-  // GET — Página HTML pública (sin auth, sin SDK)
-  // El navegador abre directamente esta URL
+  // GET — Página HTML pública (sin auth de usuario)
+  // Usa createClient con appId para leer datos
   // ═══════════════════════════════════════════════
   if (req.method === 'GET') {
     const url = new URL(req.url);
     const token = url.searchParams.get('token');
 
     if (!token) {
-      return new Response('<h1>Enlace no válido</h1><p>Falta el token del carnet.</p>', {
+      return new Response('<html><body style="font-family:sans-serif;text-align:center;padding:60px;"><h1>Enlace no válido</h1><p>Falta el token del carnet.</p></body></html>', {
         status: 400,
         headers: { 'Content-Type': 'text/html; charset=utf-8' },
       });
     }
 
     try {
-      // Fetch member by carnet_token using REST API (no SDK needed)
-      const members = await fetchEntities('ClubMember', { carnet_token: token });
+      // Use createClientFromRequest — the platform DOES inject Base44-App-Id
+      // on GET requests to backend functions hosted under the app domain.
+      // We just need the entities, not user auth.
+      const base44 = createClientFromRequest(req);
+      
+      const members = await base44.asServiceRole.entities.ClubMember.filter({ carnet_token: token });
       if (!members || members.length === 0) {
-        return new Response('<h1>Carnet no encontrado</h1><p>El enlace no es válido o ha expirado.</p>', {
+        return new Response('<html><body style="font-family:sans-serif;text-align:center;padding:60px;"><h1>Carnet no encontrado</h1><p>El enlace no es válido o ha expirado.</p></body></html>', {
           status: 404,
           headers: { 'Content-Type': 'text/html; charset=utf-8' },
         });
       }
 
       const member = members[0];
-
-      // Fetch active season config
-      const configs = await fetchEntities('SeasonConfig', { activa: true });
+      const configs = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
       const seasonConfig = configs?.[0];
 
       if (!seasonConfig?.carnet_publico_activo) {
-        return new Response('<h1>Servicio no disponible</h1><p>El carnet digital público no está activado en este momento.</p>', {
+        return new Response('<html><body style="font-family:sans-serif;text-align:center;padding:60px;"><h1>Servicio no disponible</h1><p>El carnet digital público no está activado en este momento.</p></body></html>', {
           status: 403,
           headers: { 'Content-Type': 'text/html; charset=utf-8' },
         });
@@ -277,10 +207,40 @@ Deno.serve(async (req) => {
       });
     } catch (error) {
       console.error('Error rendering public card:', error);
-      return new Response('<h1>Error</h1><p>No se pudo cargar el carnet. Inténtalo de nuevo.</p>', {
-        status: 500,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      });
+      
+      // Fallback: try using createClient with just appId
+      try {
+        console.log('Trying fallback with createClient...');
+        const base44 = createClient({ appId: APP_ID });
+        
+        const members = await base44.entities.ClubMember.filter({ carnet_token: token });
+        if (!members || members.length === 0) {
+          return new Response('<html><body style="font-family:sans-serif;text-align:center;padding:60px;"><h1>Carnet no encontrado</h1></body></html>', {
+            status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          });
+        }
+        const member = members[0];
+        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+        const seasonConfig = configs?.[0];
+        
+        if (!seasonConfig?.carnet_publico_activo) {
+          return new Response('<html><body style="font-family:sans-serif;text-align:center;padding:60px;"><h1>Servicio no disponible</h1></body></html>', {
+            status: 403, headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          });
+        }
+        
+        const html = renderCardHTML(member, seasonConfig);
+        return new Response(html, {
+          status: 200,
+          headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, no-store' },
+        });
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        return new Response(`<html><body style="font-family:sans-serif;text-align:center;padding:60px;"><h1>Error</h1><p>No se pudo cargar el carnet. Inténtalo de nuevo.</p><p style="color:#999;font-size:12px;">${escapeHtml(error.message)}</p></body></html>`, {
+          status: 500,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
     }
   }
 
@@ -294,7 +254,6 @@ Deno.serve(async (req) => {
       const body = await req.json();
       const { action, memberId } = body;
 
-      // ACTION: generateToken
       if (action === 'generateToken') {
         const user = await base44.auth.me();
         if (!user || user.role !== 'admin') {
@@ -308,7 +267,6 @@ Deno.serve(async (req) => {
         return Response.json({ token: newToken }, { headers: jsonHeaders });
       }
 
-      // ACTION: sendCarnetEmail
       if (action === 'sendCarnetEmail') {
         const user = await base44.auth.me();
         if (!user || user.role !== 'admin') {
@@ -330,7 +288,7 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.entities.ClubMember.update(memberId, { carnet_token: carnetToken });
         }
 
-        // URL directa al GET de esta misma función (HTML público)
+        // URL directa al GET de esta misma función
         const appBaseUrl = 'https://app.cdbustarviejo.com';
         const cardUrl = `${appBaseUrl}/api/functions/publicMemberCard?token=${carnetToken}`;
 
@@ -344,16 +302,16 @@ Deno.serve(async (req) => {
             </div>
             <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0;">
               <p style="font-size: 16px; color: #334155;">Hola <strong>${member.nombre_completo}</strong>,</p>
-              <p style="color: #475569;">Tu carnet de socio digital del CD Bustarviejo ya está listo. Puedes acceder a él en cualquier momento desde el siguiente enlace:</p>
+              <p style="color: #475569;">Tu carnet de socio digital del CD Bustarviejo ya está listo:</p>
               <div style="text-align: center; margin: 24px 0;">
                 <a href="${cardUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 16px;">
                   📱 Ver mi Carnet Digital
                 </a>
               </div>
               <div style="background: #fff7ed; border: 2px solid #fed7aa; border-radius: 12px; padding: 16px; margin: 20px 0;">
-                <p style="margin: 0; font-size: 14px; color: #9a3412;"><strong>💡 Consejo:</strong> Guarda este enlace en los favoritos de tu móvil o añádelo a la pantalla de inicio para tenerlo siempre a mano cuando vayas a un comercio.</p>
+                <p style="margin: 0; font-size: 14px; color: #9a3412;"><strong>💡 Consejo:</strong> Guarda este enlace en los favoritos de tu móvil para tenerlo siempre a mano.</p>
               </div>
-              <p style="color: #64748b; font-size: 13px;">Simplemente enseña tu carnet digital en la pantalla del móvil en los comercios adheridos para obtener tus descuentos de socio.</p>
+              <p style="color: #64748b; font-size: 13px;">Enseña tu carnet digital en los comercios adheridos para obtener tus descuentos.</p>
             </div>
             <div style="text-align: center; padding: 20px; color: #94a3b8; font-size: 12px; border-radius: 0 0 16px 16px; background: #f1f5f9;">
               <p style="margin: 0;">CD Bustarviejo — Deporte y valores desde 1989</p>
@@ -379,7 +337,6 @@ Deno.serve(async (req) => {
       }
 
       return Response.json({ error: 'Acción no válida' }, { status: 400, headers: jsonHeaders });
-
     } catch (error) {
       console.error('Error in publicMemberCard POST:', error);
       return Response.json({ error: error.message }, { status: 500, headers: jsonHeaders });
