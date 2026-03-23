@@ -24,7 +24,13 @@ export default function PublicMemberCard() {
     }
 
     // Llamada directa sin autenticación (endpoint público)
-    fetch(`${window.location.origin}/functions/publicMemberCard`, {
+    // Construir URL del endpoint de funciones
+    const origin = window.location.origin;
+    const functionsUrl = origin.includes('base44.app') || origin.includes('cdbustarviejo')
+      ? `${origin}/functions/publicMemberCard`
+      : `${origin}/functions/publicMemberCard`;
+    
+    fetch(functionsUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'get', token })
