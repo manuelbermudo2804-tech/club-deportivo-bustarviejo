@@ -156,6 +156,17 @@ export default function FeatureControlSection({
           {/* Programa de Socios */}
           <FeatureRow icon={<Users className="w-5 h-5 text-green-600" />} title="Programa de Socios" subtitle="Carnets digitales con descuentos en comercios" checked={activeSeason.programa_socios_activo || false} onChange={(v) => toggleFeature('programa_socios_activo', v)} />
           {activeSeason.programa_socios_activo && (
+            <div className="ml-8">
+              <FeatureRow
+                icon={<Mail className="w-5 h-5 text-cyan-600" />}
+                title="🌐 Carnet Público (Socios Externos)"
+                subtitle="Permite enviar un enlace con el carnet digital a socios que NO tienen la app (web, externos)"
+                checked={activeSeason.carnet_publico_activo || false}
+                onChange={(v) => toggleFeature('carnet_publico_activo', v)}
+              />
+            </div>
+          )}
+          {activeSeason.programa_socios_activo && (
             <div className="ml-8 space-y-4 bg-green-50 rounded-xl p-4 border-2 border-green-200">
               <div className="flex items-center gap-2">
                 <Label className="text-sm font-medium">💰 Precio anual socio (€):</Label>

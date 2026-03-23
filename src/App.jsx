@@ -13,6 +13,7 @@ import MinorPreview from '@/pages/MinorPreview';
 import PosterGenerator from '@/pages/PosterGenerator';
 import CreditUsage from '@/pages/CreditUsage';
 import FamilyPresentation from '@/pages/FamilyPresentation';
+import PublicMemberCard from '@/pages/PublicMemberCard';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -68,6 +69,7 @@ const AuthenticatedApp = () => {
       <Route path="/PosterGenerator" element={<LayoutWrapper currentPageName="PosterGenerator"><PosterGenerator /></LayoutWrapper>} />
       <Route path="/CreditUsage" element={<LayoutWrapper currentPageName="CreditUsage"><CreditUsage /></LayoutWrapper>} />
       <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
+      <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
