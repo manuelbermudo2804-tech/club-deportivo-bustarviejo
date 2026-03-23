@@ -18,26 +18,74 @@ const slides = [
     ),
   },
   {
+    id: "free",
+    bg: "from-green-600 to-emerald-800",
+    content: (
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
+        <div className="text-7xl mb-6">🆓</div>
+        <h2 className="text-4xl md:text-6xl font-black mb-4">La app es 100% GRATUITA</h2>
+        <p className="text-xl md:text-2xl opacity-90 mb-8">No cuesta nada. Ni ahora ni nunca.</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-2xl w-full border border-white/10 mb-8">
+          <p className="text-lg leading-relaxed">El club ha invertido en esta herramienta para <strong>facilitar la gestión a todas las familias</strong>. Solo necesitas tu móvil y tu email.</p>
+        </div>
+        <div className="bg-red-500/20 border border-red-400/30 rounded-xl p-5 max-w-2xl w-full">
+          <p className="text-sm font-bold">⚠️ Es FUNDAMENTAL que todas las familias la usen. Sin ella, no podemos gestionar el club correctamente.</p>
+        </div>
+      </div>
+    ),
+  },
+  {
     id: "why",
     bg: "from-slate-900 to-slate-800",
     content: (
       <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">🤔</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-8">¿Por qué una app?</h2>
+        <div className="text-6xl mb-6">🔄</div>
+        <h2 className="text-4xl md:text-5xl font-black mb-4">Sustituye a TODO esto</h2>
+        <p className="text-xl opacity-80 mb-8">Una sola app en vez de muchas herramientas distintas</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
           {[
-            { icon: "📋", title: "Todo centralizado", desc: "Convocatorias, pagos, horarios... en un solo sitio" },
-            { icon: "⚡", title: "Comunicación rápida", desc: "Chat directo con entrenadores y coordinadores" },
-            { icon: "💳", title: "Pagos sin líos", desc: "Cuotas claras, justificantes digitales" },
-            { icon: "🔔", title: "Nunca te pierdas nada", desc: "Notificaciones de partidos, eventos y anuncios" },
+            { icon: "💬", old: "Grupos de WhatsApp", now: "Chat integrado por categoría" },
+            { icon: "📧", old: "Emails y circulares", now: "Anuncios y notificaciones al instante" },
+            { icon: "📊", old: "Hojas de Excel", now: "Pagos, asistencia y datos automáticos" },
+            { icon: "📝", old: "Google Forms / papeles", now: "Inscripciones y formularios digitales" },
+            { icon: "📅", old: "Calendarios dispersos", now: "Calendario unificado del club" },
+            { icon: "📞", old: "Llamadas y mensajes sueltos", now: "Chat directo con entrenador/coordinador" },
           ].map((item, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-              <div className="text-3xl mb-3">{item.icon}</div>
-              <h3 className="font-bold text-lg mb-1">{item.title}</h3>
-              <p className="text-sm opacity-80">{item.desc}</p>
+            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-5 text-left border border-white/10">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-2xl">{item.icon}</span>
+                <span className="text-red-400 line-through text-sm">{item.old}</span>
+              </div>
+              <p className="text-green-400 font-bold text-sm">✅ {item.now}</p>
             </div>
           ))}
         </div>
+      </div>
+    ),
+  },
+  {
+    id: "screenshots",
+    bg: "from-gray-900 to-gray-800",
+    content: (
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-5xl mx-auto">
+        <div className="text-6xl mb-4">📸</div>
+        <h2 className="text-3xl md:text-5xl font-black mb-6">Así se ve la app por dentro</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+          {[
+            { label: "Panel principal", url: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=300&h=500&fit=crop" },
+            { label: "Convocatorias", url: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=300&h=500&fit=crop" },
+            { label: "Chat de equipo", url: "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=300&h=500&fit=crop" },
+            { label: "Calendario", url: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=300&h=500&fit=crop" },
+          ].map((item, i) => (
+            <div key={i} className="flex flex-col items-center gap-2">
+              <div className="bg-white/10 rounded-2xl border-2 border-white/20 overflow-hidden shadow-2xl" style={{aspectRatio:'9/16', width:'100%', maxWidth:200}}>
+                <img src={item.url} alt={item.label} className="w-full h-full object-cover" />
+              </div>
+              <span className="text-xs font-bold opacity-70">{item.label}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs opacity-50 mt-4">Imágenes de referencia — la app real se verá en la demo en vivo</p>
       </div>
     ),
   },
@@ -149,7 +197,6 @@ const slides = [
             <ul className="space-y-2 text-sm">
               <li>✅ <strong>Pago único</strong> — toda la cuota de una vez</li>
               <li>✅ <strong>3 plazos</strong> — Junio, Septiembre, Diciembre</li>
-              <li>✅ <strong>Plan mensual</strong> — domiciliación por tarjeta</li>
             </ul>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 text-left">
