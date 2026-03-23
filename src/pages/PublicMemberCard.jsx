@@ -24,7 +24,7 @@ export default function PublicMemberCard() {
     }
 
     // Llamada directa sin autenticación (endpoint público)
-    fetch(`/api/functions/publicMemberCard`, {
+    fetch(`${window.location.origin}/functions/publicMemberCard`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'get', token })
