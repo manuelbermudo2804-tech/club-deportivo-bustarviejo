@@ -68,24 +68,29 @@ const slides = [
     bg: "from-gray-900 to-gray-800",
     content: (
       <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-5xl mx-auto">
-        <div className="text-6xl mb-4">📸</div>
+        <div className="text-6xl mb-4">📱</div>
         <h2 className="text-3xl md:text-5xl font-black mb-6">Así se ve la app por dentro</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl">
           {[
-            { label: "Panel principal", url: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=300&h=500&fit=crop" },
-            { label: "Convocatorias", url: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=300&h=500&fit=crop" },
-            { label: "Chat de equipo", url: "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=300&h=500&fit=crop" },
-            { label: "Calendario", url: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=300&h=500&fit=crop" },
+            { label: "Panel principal", icon: "🏠", items: ["Próximos partidos", "Alertas y avisos", "Accesos rápidos", "Chat y anuncios"] },
+            { label: "Convocatorias", icon: "🏆", items: ["Rival y hora", "Confirmar asistencia", "Transporte compartido", "Cómo llegar"] },
+            { label: "Chat de equipo", icon: "💬", items: ["Mensajes grupales", "Fotos y archivos", "Encuestas rápidas", "Audio y emojis"] },
+            { label: "Mis pagos", icon: "💳", items: ["Estado de cuotas", "Subir justificante", "Histórico", "Recibos PDF"] },
           ].map((item, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
-              <div className="bg-white/10 rounded-2xl border-2 border-white/20 overflow-hidden shadow-2xl" style={{aspectRatio:'9/16', width:'100%', maxWidth:200}}>
-                <img src={item.url} alt={item.label} className="w-full h-full object-cover" />
+              <div className="bg-gradient-to-b from-white/15 to-white/5 rounded-2xl border-2 border-white/20 p-5 shadow-2xl w-full" style={{aspectRatio:'9/16', display:'flex', flexDirection:'column', justifyContent:'center'}}>
+                <div className="text-4xl mb-3">{item.icon}</div>
+                <div className="space-y-2">
+                  {item.items.map((line, j) => (
+                    <div key={j} className="bg-white/10 rounded-lg px-3 py-2 text-xs text-left">{line}</div>
+                  ))}
+                </div>
               </div>
               <span className="text-xs font-bold opacity-70">{item.label}</span>
             </div>
           ))}
         </div>
-        <p className="text-xs opacity-50 mt-4">Imágenes de referencia — la app real se verá en la demo en vivo</p>
+        <p className="text-sm opacity-60 mt-6">👉 En la demo en vivo veréis la app real funcionando</p>
       </div>
     ),
   },
