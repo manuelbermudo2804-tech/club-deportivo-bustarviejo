@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest, createClient } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
   const corsHeaders = {
@@ -11,18 +11,20 @@ Deno.serve(async (req) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  const base44 = createClientFromRequest(req);
   const url = new URL(req.url);
 
   // =============================================
-  // GET ?token=XXX → Devuelve HTML completo del carnet (PÚBLICO, sin auth)
+  // GET ?token=XXX → HTML completo del carnet (PÚBLICO, sin auth)
+  // Usa createClient con APP_ID del entorno (no necesita headers del request)
   // =============================================
   if (req.method === 'GET' && url.searchParams.get('token')) {
     try {
       const token = url.searchParams.get('token');
+      const appId = Deno.env.get('BASE44_APP_ID');
+      const base44 = createClient({ appId });
 
       const members = await base44.asServiceRole.entities.ClubMember.filter({ carnet_token: token });
-      if (members.length === 0) {
+      if (!members || members.length === 0) {
         return new Response(renderErrorPage('Carnet no encontrado', 'El enlace no es válido o ha expirado. Contacta con el club para obtener uno nuevo.'), {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
@@ -32,7 +34,7 @@ Deno.serve(async (req) => {
       const member = members[0];
 
       const configs = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
-      const seasonConfig = configs[0];
+      const seasonConfig = configs?.[0];
 
       if (!seasonConfig?.carnet_publico_activo) {
         return new Response(renderErrorPage('Servicio no disponible', 'El carnet digital público no está activado en este momento. Contacta con el club.'), {
@@ -59,12 +61,12 @@ Deno.serve(async (req) => {
 
       return new Response(html, {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' },
+        headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, no-store' },
       });
 
     } catch (error) {
       console.error('Error rendering public card:', error);
-      return new Response(renderErrorPage('Error', 'Ha ocurrido un error al cargar el carnet. Inténtalo de nuevo.'), {
+      return new Response(renderErrorPage('Error', 'Ha ocurrido un error al cargar el carnet. Inténtalo de nuevo más tarde.'), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
       });
@@ -73,10 +75,12 @@ Deno.serve(async (req) => {
 
   // =============================================
   // POST — API JSON (para la app React y admin)
+  // Usa createClientFromRequest (tiene headers de auth)
   // =============================================
   if (req.method === 'POST') {
     const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' };
     try {
+      const base44 = createClientFromRequest(req);
       const body = await req.json();
       const { action, token: bodyToken, memberId } = body;
 
@@ -153,7 +157,6 @@ Deno.serve(async (req) => {
 
         // URL directa a la función backend (HTML puro, sin app)
         const reqUrl = new URL(req.url);
-        // Construir URL base de la función
         const functionBaseUrl = `${reqUrl.protocol}//${reqUrl.host}${reqUrl.pathname}`;
         const cardUrl = `${functionBaseUrl}?token=${carnetToken}`;
 
@@ -245,7 +248,7 @@ function renderCardPage({ nombre, numeroSocio, isActive, fechaVencimiento, comer
           ${c.telefono ? `<div style="font-size:12px;color:#64748b;margin-top:4px;">📞 ${c.telefono}</div>` : ''}
         </div>
       `).join('')
-    : '<p style="text-align:center;color:#94a3b8;font-size:14px;">No hay comercios configurados aún</p>';
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -339,26 +342,22 @@ function renderCardPage({ nombre, numeroSocio, isActive, fechaVencimiento, comer
 </head>
 <body>
   <div class="container">
-    <!-- CARNET -->
     <div class="card">
       <div class="card-header">
         <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="CD Bustarviejo" class="club-logo" />
         <h1>🎫 CARNET DE SOCIO</h1>
         <p>CD Bustarviejo</p>
       </div>
-
       <div class="status-section">
         <span class="status-icon pulse">${statusIcon}</span>
         <div class="status-text">${statusText}</div>
         <div class="status-sub">${statusSubtext}</div>
       </div>
-
       <div class="clock-section">
         <div class="clock-label">⏰ Hora actual (antifraude)</div>
         <div class="clock-time" id="clock">--:--:--</div>
         <div class="clock-date" id="clockDate">...</div>
       </div>
-
       <div class="info-section">
         <div class="info-row">
           <div class="info-label">Socio</div>
@@ -374,16 +373,11 @@ function renderCardPage({ nombre, numeroSocio, isActive, fechaVencimiento, comer
         </div>
       </div>
     </div>
-
-    <!-- COMERCIOS -->
     ${comercios.length > 0 ? `
     <div class="comercios-section">
       <div class="comercios-title">🏪 Descuentos Disponibles</div>
       ${comerciosHtml}
-    </div>
-    ` : ''}
-
-    <!-- CONSEJOS -->
+    </div>` : ''}
     <div class="tip-box">
       <h3>🎫 Carnet Digital de Socio</h3>
       <p>Este carnet te identifica como <strong>socio oficial del CD Bustarviejo</strong> y te permite acceder a descuentos exclusivos en comercios colaboradores.</p>
@@ -392,7 +386,6 @@ function renderCardPage({ nombre, numeroSocio, isActive, fechaVencimiento, comer
       </div>
     </div>
   </div>
-
   <script>
     function updateClock() {
       var now = new Date();
