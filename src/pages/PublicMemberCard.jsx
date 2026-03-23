@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { appParams } from "@/lib/app-params";
+import { base44 } from "@/api/base44Client";
 import { CheckCircle2, XCircle, Clock, MapPin, Phone, Store, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -24,23 +24,14 @@ export default function PublicMemberCard() {
       return;
     }
 
-    // Llamada directa sin autenticación (endpoint público)
-    const baseUrl = appParams.serverUrl || window.location.origin;
-    const functionsUrl = `${baseUrl}/apps/${appParams.appId}/functions/publicMemberCard`;
-    
-    fetch(functionsUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'get', token })
-    })
-      .then(async (res) => {
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || 'Error al cargar el carnet');
-        setData(json);
+    base44.functions.invoke('publicMemberCard', { action: 'get', token })
+      .then((res) => {
+        setData(res.data);
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || 'Error al cargar el carnet');
+        const msg = err?.response?.data?.error || err.message || 'Error al cargar el carnet';
+        setError(msg);
         setLoading(false);
       });
   }, []);
