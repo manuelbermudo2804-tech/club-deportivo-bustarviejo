@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, XCircle, Clock, MapPin, Phone, Store, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -24,14 +23,20 @@ export default function PublicMemberCard() {
       return;
     }
 
-    base44.functions.invoke("publicMemberCard", { action: "get", token })
-      .then((res) => {
-        setData(res.data);
+    // Llamada directa sin autenticación (endpoint público)
+    fetch(`/api/functions/publicMemberCard`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get', token })
+    })
+      .then(async (res) => {
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Error al cargar el carnet');
+        setData(json);
         setLoading(false);
       })
       .catch((err) => {
-        const msg = err?.response?.data?.error || "Error al cargar el carnet";
-        setError(msg);
+        setError(err.message || 'Error al cargar el carnet');
         setLoading(false);
       });
   }, []);

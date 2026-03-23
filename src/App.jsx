@@ -69,7 +69,6 @@ const AuthenticatedApp = () => {
       <Route path="/PosterGenerator" element={<LayoutWrapper currentPageName="PosterGenerator"><PosterGenerator /></LayoutWrapper>} />
       <Route path="/CreditUsage" element={<LayoutWrapper currentPageName="CreditUsage"><CreditUsage /></LayoutWrapper>} />
       <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
-      <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
@@ -83,7 +82,10 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
-          <AuthenticatedApp />
+          <Routes>
+            <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
+            <Route path="*" element={<AuthenticatedApp />} />
+          </Routes>
         </Router>
         <Toaster />
         <VisualEditAgent />
