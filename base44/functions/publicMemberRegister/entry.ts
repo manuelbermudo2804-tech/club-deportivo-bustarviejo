@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
     // Generar número de socio
     let allMembers = [];
     try { allMembers = await base44.asServiceRole.entities.ClubMember.list(); } catch {}
-    const currentYear = now.getFullYear();
+    const currentYear = new Date().getFullYear();
     const membersThisYear = allMembers.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
     const nextNumber = membersThisYear.length + 1;
     const numeroSocio = `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
