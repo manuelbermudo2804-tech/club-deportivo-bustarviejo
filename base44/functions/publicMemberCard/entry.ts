@@ -288,9 +288,9 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.entities.ClubMember.update(memberId, { carnet_token: carnetToken });
         }
 
-        // URL directa al GET de esta misma función
+        // URL a la página React pública de la app
         const appBaseUrl = 'https://app.cdbustarviejo.com';
-        const cardUrl = `${appBaseUrl}/api/functions/publicMemberCard?token=${carnetToken}`;
+        const cardUrl = `${appBaseUrl}/PublicMemberCard?token=${carnetToken}`;
 
         const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
