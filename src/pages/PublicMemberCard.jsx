@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { appParams } from "@/lib/app-params";
 import { CheckCircle2, XCircle, Clock, MapPin, Phone, Store, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -24,11 +25,8 @@ export default function PublicMemberCard() {
     }
 
     // Llamada directa sin autenticación (endpoint público)
-    // Construir URL del endpoint de funciones
-    const origin = window.location.origin;
-    const functionsUrl = origin.includes('base44.app') || origin.includes('cdbustarviejo')
-      ? `${origin}/functions/publicMemberCard`
-      : `${origin}/functions/publicMemberCard`;
+    const baseUrl = appParams.serverUrl || window.location.origin;
+    const functionsUrl = `${baseUrl}/apps/${appParams.appId}/functions/publicMemberCard`;
     
     fetch(functionsUrl, {
       method: 'POST',
