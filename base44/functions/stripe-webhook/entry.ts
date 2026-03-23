@@ -484,7 +484,10 @@ Deno.serve(async (req) => {
               }
               console.log('[stripe-webhook] Payment Link: temporada activa =', tempActual);
 
-              const candidates = await base44.asServiceRole.entities.ClubMember.filter({ email: payerEmail, temporada: tempActual });
+              // Buscar por email (case-insensitive: normalizar a minúsculas)
+              const normalizedEmail = payerEmail.toLowerCase().trim();
+              const allMembersForSearch = await base44.asServiceRole.entities.ClubMember.filter({ temporada: tempActual });
+              const candidates = allMembersForSearch.filter(m => m.email?.toLowerCase().trim() === normalizedEmail);
               const pendingMember = candidates?.find(m => m.estado_pago !== 'Pagado');
 
               // Calcular fecha_vencimiento (1 año desde la fecha de pago)
@@ -756,13 +759,23 @@ Deno.serve(async (req) => {
 
           let member = null;
 
-          // 1. Si viene con membership_id → ya existía, solo marcar Pagado
+          // 1. Si viene con membership_id → ya existía, marcar Pagado + rellenar datos del metadata
           if (membershipId) {
             try {
-              await base44.asServiceRole.entities.ClubMember.update(membershipId, memberUpdateData);
+              // Enriquecer con datos del formulario que vienen en metadata
+              const enrichData = {};
+              if (metadata.dni) enrichData.dni = metadata.dni;
+              if (metadata.telefono) enrichData.telefono = metadata.telefono;
+              if (metadata.direccion) enrichData.direccion = metadata.direccion;
+              if (metadata.municipio) enrichData.municipio = metadata.municipio;
+              if (metadata.nombre_completo) enrichData.nombre_completo = metadata.nombre_completo;
+              if (metadata.referido_por) enrichData.referido_por = metadata.referido_por;
+              if (metadata.es_segundo_progenitor === 'true') enrichData.es_segundo_progenitor = true;
+              
+              await base44.asServiceRole.entities.ClubMember.update(membershipId, { ...memberUpdateData, ...enrichData });
               const members = await base44.asServiceRole.entities.ClubMember.filter({ id: membershipId });
               member = members?.[0] || null;
-              console.log('[stripe-webhook] ClubMember marcado Pagado', { membership_id: membershipId, origen_pago: origenPago });
+              console.log('[stripe-webhook] ClubMember marcado Pagado + datos enriquecidos', { membership_id: membershipId, origen_pago: origenPago, enrichedFields: Object.keys(enrichData) });
             } catch (e) {
               console.error('[stripe-webhook] Error actualizando ClubMember:', e?.message || e);
             }
