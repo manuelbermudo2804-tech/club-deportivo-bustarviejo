@@ -65,10 +65,10 @@ export default function SponsorBanner() {
 
   return (
     <div className="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 border-t border-slate-700/60">
-      <div className="flex items-center h-10 overflow-hidden">
+      <div className="flex items-center h-14 overflow-hidden">
         {/* Label */}
         <div className="flex-shrink-0 px-2.5 border-r border-slate-700/50 h-full flex items-center">
-          <span className="text-[8px] uppercase tracking-widest text-slate-500 font-bold leading-tight text-center">
+          <span className="text-[9px] uppercase tracking-widest text-slate-500 font-bold leading-tight text-center">
             SPONSOR<br/>OFICIAL
           </span>
         </div>
@@ -96,15 +96,15 @@ export default function SponsorBanner() {
                     <img
                       src={sponsor.logo_url}
                       alt={sponsor.nombre}
-                      className={`${isPremium ? 'h-7' : 'h-5'} w-auto object-contain`}
+                      className={`${isPremium ? 'h-9' : 'h-7'} w-auto object-contain`}
                       style={{ filter: isPremium ? 'drop-shadow(0 0 4px rgba(255,200,0,0.3))' : 'none' }}
                     />
                   ) : (
-                    <div className={`${isPremium ? 'w-7 h-7' : 'w-5 h-5'} rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
-                      <Building2 className="w-3 h-3 text-white" />
+                    <div className={`${isPremium ? 'w-9 h-9' : 'w-7 h-7'} rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
+                      <Building2 className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <span className={`${isPremium ? 'text-xs font-bold text-amber-300' : 'text-[11px] font-medium text-slate-300'}`}>
+                  <span className={`${isPremium ? 'text-sm font-bold text-amber-300' : 'text-xs font-medium text-slate-300'}`}>
                     {sponsor.nombre}
                   </span>
                   {isPremium && (
