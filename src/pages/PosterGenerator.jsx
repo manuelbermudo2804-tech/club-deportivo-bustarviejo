@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Download, Loader2 } from "lucide-react";
 
 const BG_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6992c6be619d2da592897991/b76322ed2_fondo.jpg";
@@ -10,12 +11,12 @@ const QR_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/publi
 export default function PosterGenerator() {
   const posterRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
+  const [slogan, setSlogan] = useState("TU CLUB. TU PUEBLO.");
 
   const handleDownload = async () => {
     if (!posterRef.current) return;
     setDownloading(true);
     try {
-      // Wait for all images to be fully loaded
       const images = posterRef.current.querySelectorAll("img");
       await Promise.all(
         Array.from(images).map(
@@ -37,12 +38,10 @@ export default function PosterGenerator() {
         height: 1123,
         logging: false,
         imageTimeout: 15000,
-        proxy: undefined,
       });
 
       canvas.toBlob((blob) => {
         if (!blob) {
-          console.error("No se pudo generar el blob");
           setDownloading(false);
           return;
         }
@@ -56,7 +55,7 @@ export default function PosterGenerator() {
         URL.revokeObjectURL(url);
         setDownloading(false);
       }, "image/png", 1.0);
-      return; // setDownloading handled in toBlob callback
+      return;
     } catch (e) {
       console.error("Error generando imagen:", e);
     }
@@ -68,7 +67,7 @@ export default function PosterGenerator() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">🖨️ Cartel de Captación</h1>
-          <p className="text-sm text-slate-600 mt-1">Descarga el cartel en alta calidad para imprimir</p>
+          <p className="text-sm text-slate-600 mt-1">Personaliza el slogan y descarga el cartel en alta calidad</p>
         </div>
         <Button
           onClick={handleDownload}
@@ -84,6 +83,18 @@ export default function PosterGenerator() {
         </Button>
       </div>
 
+      {/* Editable slogan */}
+      <div className="max-w-md">
+        <label className="text-sm font-semibold text-slate-700 mb-1 block">Frase final del cartel</label>
+        <Input
+          value={slogan}
+          onChange={(e) => setSlogan(e.target.value.toUpperCase())}
+          placeholder="TU CLUB. TU PUEBLO."
+          className="font-bold text-lg uppercase"
+        />
+        <p className="text-xs text-slate-500 mt-1">Cambia esta frase para adaptar el cartel a cada pueblo</p>
+      </div>
+
       <div className="flex justify-center overflow-x-auto pb-4">
         <div className="flex-shrink-0">
           {/* ====== POSTER A4: 794×1123 ====== */}
@@ -95,62 +106,57 @@ export default function PosterGenerator() {
               position: "relative",
               overflow: "hidden",
               fontFamily: "'Georgia', 'Times New Roman', serif",
+              background: "#1a0f05",
             }}
           >
-            {/* Background */}
+            {/* Background image */}
             <img
               src={BG_URL}
               alt=""
               crossOrigin="anonymous"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
             />
 
-            {/* LIGHTER warm overlay - más transparente para que se vea la foto */}
+            {/* Dark warm overlay - sepia vintage feel */}
             <div style={{
               position: "absolute", inset: 0,
-              background: "linear-gradient(180deg, rgba(180,120,60,0.25) 0%, rgba(140,80,30,0.18) 40%, rgba(100,50,15,0.22) 60%, rgba(40,20,5,0.55) 85%, rgba(15,8,0,0.82) 100%)",
+              background: "linear-gradient(180deg, rgba(60,30,10,0.55) 0%, rgba(80,40,15,0.40) 30%, rgba(50,25,8,0.45) 55%, rgba(30,15,5,0.70) 80%, rgba(10,5,0,0.88) 100%)",
             }} />
-            {/* Sepia warm tint */}
             <div style={{
               position: "absolute", inset: 0,
-              background: "rgba(160, 100, 50, 0.12)",
+              background: "rgba(120, 70, 30, 0.15)",
               mixBlendMode: "color",
             }} />
 
-            {/* ===== DECORATIVE BORDER ===== */}
+            {/* ===== DECORATIVE OVAL RING ===== */}
             <div style={{
               position: "absolute",
-              top: 14, left: 14, right: 14, bottom: 14,
-              border: "2px solid rgba(200,160,100,0.45)",
-              borderRadius: 8,
+              top: "22%",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: 620,
+              height: 480,
+              border: "3px solid rgba(180,120,50,0.4)",
+              borderRadius: "50%",
               zIndex: 5,
             }} />
             <div style={{
               position: "absolute",
-              top: 20, left: 20, right: 20, bottom: 20,
-              border: "1px solid rgba(200,160,100,0.25)",
-              borderRadius: 4,
+              top: "22.5%",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: 600,
+              height: 465,
+              border: "1.5px solid rgba(180,120,50,0.25)",
+              borderRadius: "50%",
               zIndex: 5,
             }} />
-
-            {/* Corner ornaments */}
-            {[
-              { top: 10, left: 10 },
-              { top: 10, right: 10 },
-              { bottom: 10, left: 10 },
-              { bottom: 10, right: 10 },
-            ].map((pos, i) => (
-              <div key={i} style={{
-                position: "absolute",
-                ...pos,
-                width: 40, height: 40,
-                zIndex: 6,
-                borderTop: pos.top !== undefined ? "3px solid rgba(200,150,80,0.6)" : "none",
-                borderBottom: pos.bottom !== undefined ? "3px solid rgba(200,150,80,0.6)" : "none",
-                borderLeft: pos.left !== undefined ? "3px solid rgba(200,150,80,0.6)" : "none",
-                borderRight: pos.right !== undefined ? "3px solid rgba(200,150,80,0.6)" : "none",
-              }} />
-            ))}
 
             {/* Content */}
             <div style={{
@@ -160,8 +166,52 @@ export default function PosterGenerator() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              padding: "46px 56px 36px",
+              padding: "50px 56px 40px",
             }}>
+
+              {/* ========== TITLE: TODO EL CLUB EN TU MOVIL ========== */}
+              <div style={{
+                fontSize: 62,
+                fontWeight: 900,
+                color: "#f0d8a0",
+                textAlign: "center",
+                lineHeight: 0.95,
+                letterSpacing: 2,
+                textShadow: "0 4px 24px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.9), 3px 3px 0 rgba(40,20,5,0.7)",
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontStyle: "italic",
+                marginBottom: 6,
+              }}>
+                TODO EL CLUB
+              </div>
+              <div style={{
+                fontSize: 36,
+                fontWeight: 700,
+                color: "#e8cdb0",
+                textAlign: "center",
+                letterSpacing: 4,
+                textShadow: "0 3px 16px rgba(0,0,0,0.8), 2px 2px 0 rgba(40,20,5,0.6)",
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontStyle: "italic",
+                marginBottom: 16,
+              }}>
+                EN TU MÓVIL
+              </div>
+
+              {/* ========== Subtitle features ========== */}
+              <div style={{
+                fontSize: 18,
+                color: "#d4b896",
+                textAlign: "center",
+                letterSpacing: 2,
+                fontStyle: "italic",
+                textShadow: "0 2px 10px rgba(0,0,0,0.7)",
+                lineHeight: 1.6,
+                marginBottom: 20,
+              }}>
+                Partidos &nbsp;·&nbsp; Resultados &nbsp;·&nbsp; Goleadores<br />
+                Socios &nbsp;·&nbsp; Inscripciones &nbsp;·&nbsp; Tienda
+              </div>
 
               {/* ========== LOGO ========== */}
               <img
@@ -169,172 +219,113 @@ export default function PosterGenerator() {
                 alt="CD Bustarviejo"
                 crossOrigin="anonymous"
                 style={{
-                  width: 190,
-                  height: 190,
+                  width: 165,
+                  height: 165,
                   objectFit: "contain",
-                  borderRadius: 14,
+                  borderRadius: 12,
                   filter: "drop-shadow(0 8px 32px rgba(0,0,0,0.6))",
-                  marginBottom: 24,
+                  marginBottom: 20,
                 }}
               />
 
-              {/* ========== CLUB NAME ========== */}
+              {/* ========== ESCANEA Y DESCÚBRELO ========== */}
               <div style={{
-                fontSize: 50,
+                fontSize: 32,
                 fontWeight: 900,
-                color: "white",
+                color: "#f0d8a0",
                 textAlign: "center",
-                lineHeight: 1.08,
                 letterSpacing: 3,
-                textShadow: "0 4px 24px rgba(0,0,0,0.7), 0 1px 2px rgba(0,0,0,0.9), 0 0 60px rgba(200,120,40,0.3)",
+                textShadow: "0 3px 20px rgba(0,0,0,0.8), 2px 2px 0 rgba(40,20,5,0.6)",
                 fontFamily: "'Georgia', 'Times New Roman', serif",
-                marginBottom: 12,
-              }}>
-                CLUB DEPORTIVO<br />BUSTARVIEJO
-              </div>
-
-              {/* ===== Ornamental divider ===== */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                <div style={{ width: 60, height: 1, background: "linear-gradient(90deg, transparent, rgba(200,160,100,0.7))" }} />
-                <div style={{ fontSize: 14, color: "rgba(200,160,100,0.8)" }}>✦</div>
-                <div style={{ width: 60, height: 1, background: "linear-gradient(90deg, rgba(200,160,100,0.7), transparent)" }} />
-              </div>
-
-              {/* Subtitle */}
-              <div style={{
-                fontSize: 19,
-                color: "#e8cdb5",
-                textAlign: "center",
-                letterSpacing: 5,
-                fontWeight: 400,
-                fontStyle: "italic",
-                textShadow: "0 2px 10px rgba(0,0,0,0.7)",
-                marginBottom: 30,
-              }}>
-                Deporte &nbsp;·&nbsp; Valores &nbsp;·&nbsp; Comunidad
-              </div>
-
-              {/* ========== TODO EL CLUB ========== */}
-              <div style={{
-                fontSize: 38,
-                fontWeight: 900,
-                color: "white",
-                textAlign: "center",
-                letterSpacing: 4,
-                textShadow: "0 3px 20px rgba(0,0,0,0.7), 0 0 50px rgba(200,120,40,0.25)",
-                fontFamily: "'Segoe UI', Arial, Helvetica, sans-serif",
                 marginBottom: 22,
               }}>
-                TODO EL CLUB, AQUÍ
+                ESCANEA Y DESCÚBRELO
               </div>
 
-              {/* ========== QR CARD ========== */}
+              {/* ========== QR CODE (NO TOCAR) ========== */}
               <div style={{
-                background: "linear-gradient(160deg, rgba(255,252,245,0.96), rgba(245,235,220,0.96))",
-                borderRadius: 22,
-                padding: "22px 26px 18px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                boxShadow: "0 16px 60px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5)",
-                border: "2px solid rgba(180,140,80,0.35)",
-                position: "relative",
+                background: "white",
+                borderRadius: 12,
+                padding: 10,
+                boxShadow: "0 12px 48px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3)",
+                marginBottom: 24,
               }}>
+                <img
+                  src={QR_URL}
+                  alt="QR"
+                  crossOrigin="anonymous"
+                  style={{ width: 220, height: 220, display: "block" }}
+                />
+              </div>
 
-                {/* QR */}
-                <div style={{ position: "relative", marginBottom: 14 }}>
-                  <img
-                    src={QR_URL}
-                    alt="QR"
-                    crossOrigin="anonymous"
-                    style={{ width: 250, height: 250, display: "block" }}
-                  />
-                  {/* Logo overlay on QR center */}
-                  <div style={{
-                    position: "absolute",
-                    top: "50%", left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    background: "white",
-                    borderRadius: 10, padding: 5,
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
+              {/* ========== WEB & EMAIL ========== */}
+              <div style={{
+                textAlign: "center",
+                marginBottom: 8,
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  marginBottom: 6,
+                }}>
+                  <span style={{ fontSize: 18, color: "#c8a882" }}>🌐</span>
+                  <span style={{
+                    fontSize: 19,
+                    color: "#e0c8a8",
+                    letterSpacing: 1.5,
+                    fontWeight: 400,
+                    textShadow: "0 2px 8px rgba(0,0,0,0.6)",
                   }}>
-                    <img
-                      src={LOGO_URL}
-                      alt=""
-                      crossOrigin="anonymous"
-                      style={{ width: 44, height: 44, objectFit: "contain", borderRadius: 6 }}
-                    />
-                  </div>
+                    www.cdbustarviejo.com
+                  </span>
                 </div>
-
-                {/* Texts under QR */}
                 <div style={{
-                  textAlign: "center",
-                  color: "#3a2010",
-                  lineHeight: 1.7,
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
                 }}>
-                  <div style={{ fontSize: 17, fontWeight: 700 }}>Hazte socio</div>
-                  <div style={{ fontSize: 17, fontWeight: 700 }}>Formulario jugador@s</div>
-                  <div style={{ fontSize: 15, fontWeight: 400, color: "#6a4a2a" }}>
-                    Tienda &nbsp;·&nbsp; Información
-                  </div>
-                </div>
-
-                {/* Italic tagline */}
-                <div style={{
-                  marginTop: 8,
-                  fontSize: 13,
-                  fontStyle: "italic",
-                  color: "#8a6a4a",
-                  letterSpacing: 0.5,
-                }}>
-                  Un club abierto a toda la comunidad
+                  <span style={{ fontSize: 18, color: "#c8a882" }}>✉</span>
+                  <span style={{
+                    fontSize: 19,
+                    color: "#e0c8a8",
+                    letterSpacing: 1.5,
+                    fontWeight: 400,
+                    textShadow: "0 2px 8px rgba(0,0,0,0.6)",
+                  }}>
+                    info@cdbustarviejo.com
+                  </span>
                 </div>
               </div>
 
               {/* Spacer */}
               <div style={{ flex: 1 }} />
 
-              {/* ===== Ornamental divider bottom ===== */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                <div style={{ width: 80, height: 1, background: "linear-gradient(90deg, transparent, rgba(200,160,100,0.5))" }} />
-                <div style={{ fontSize: 10, color: "rgba(200,160,100,0.6)" }}>◆</div>
-                <div style={{ width: 80, height: 1, background: "linear-gradient(90deg, rgba(200,160,100,0.5), transparent)" }} />
-              </div>
-
-              {/* ========== SLOGAN ========== */}
+              {/* ========== SLOGAN (editable) ========== */}
               <div style={{
-                fontSize: 24,
+                fontSize: 36,
                 fontWeight: 900,
-                color: "white",
-                letterSpacing: 4,
-                textShadow: "0 2px 16px rgba(0,0,0,0.8)",
+                color: "#f0d8a0",
+                letterSpacing: 5,
+                textShadow: "0 3px 20px rgba(0,0,0,0.8), 2px 2px 0 rgba(40,20,5,0.6)",
                 textAlign: "center",
-                fontFamily: "'Segoe UI', Arial, Helvetica, sans-serif",
-                marginBottom: 10,
+                fontFamily: "'Georgia', 'Times New Roman', serif",
               }}>
-                TU CLUB. TU PUEBLO. TU DEPORTE.
-              </div>
-
-              <div style={{
-                fontSize: 14,
-                color: "#c8a882",
-                letterSpacing: 3,
-                fontWeight: 400,
-              }}>
-                www.cdbustarviejo.com
+                {slogan || "TU CLUB. TU PUEBLO."}
               </div>
             </div>
 
-            {/* Top & bottom accent lines */}
+            {/* Top accent line */}
             <div style={{
               position: "absolute", top: 0, left: 0, right: 0, height: 4,
-              background: "linear-gradient(90deg, transparent 5%, rgba(180,120,50,0.6) 30%, rgba(200,150,70,0.8) 50%, rgba(180,120,50,0.6) 70%, transparent 95%)",
+              background: "linear-gradient(90deg, transparent 5%, rgba(180,120,50,0.5) 30%, rgba(200,150,70,0.7) 50%, rgba(180,120,50,0.5) 70%, transparent 95%)",
             }} />
+            {/* Bottom accent line */}
             <div style={{
               position: "absolute", bottom: 0, left: 0, right: 0, height: 4,
-              background: "linear-gradient(90deg, transparent 5%, rgba(180,120,50,0.6) 30%, rgba(200,150,70,0.8) 50%, rgba(180,120,50,0.6) 70%, transparent 95%)",
+              background: "linear-gradient(90deg, transparent 5%, rgba(180,120,50,0.5) 30%, rgba(200,150,70,0.7) 50%, rgba(180,120,50,0.5) 70%, transparent 95%)",
             }} />
           </div>
         </div>
