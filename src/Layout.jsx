@@ -1415,7 +1415,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         )}
 
-        <main className={`lg:ml-72 pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-24 lg:pb-20' : 'pb-20 lg:pb-4'}`} style={{ minHeight: '-webkit-fill-available' }}>
+        <main className={`lg:ml-72 pt-[100px] lg:pt-0 ${sponsorBannerVisible ? 'pb-[120px] lg:pb-20' : 'pb-20 lg:pb-4'}`} style={{ minHeight: '-webkit-fill-available' }}>
 
           {/* Widget de cumpleaños hoy */}
 
@@ -1505,7 +1505,13 @@ export default function Layout({ children, currentPageName }) {
           </main>
 
 
-        {/* Banner de Patrocinadores - Footer fijo */}
+        {/* Sponsor Banner — sits ABOVE the bottom bar on mobile */}
+        {sponsorBannerVisible && (
+          <div className="lg:hidden fixed left-0 right-0 z-[49]" style={{ bottom: 56 + (typeof CSS !== 'undefined' && CSS.supports?.('padding-bottom', 'env(safe-area-inset-bottom)') ? 0 : 0) }}>
+            <Suspense fallback={null}><SponsorBanner /></Suspense>
+          </div>
+        )}
+
         {/* Mobile Bottom Bar */}
         <MobileBottomBar 
           location={location} 
@@ -1526,11 +1532,12 @@ export default function Layout({ children, currentPageName }) {
           </Suspense>
         )}
 
+        {/* Desktop sponsor banner - bottom of sidebar area */}
         {sponsorBannerVisible && (
-                        <div className={`lg:ml-72 fixed left-0 right-0 z-40 bottom-0`}>
-                          <Suspense fallback={null}><SponsorBanner /></Suspense>
-                        </div>
-                      )}
+          <div className="hidden lg:block lg:ml-72 fixed left-0 right-0 z-40 bottom-0">
+            <Suspense fallback={null}><SponsorBanner /></Suspense>
+          </div>
+        )}
         </div>
         </>
         </ChatUnreadProvider>
