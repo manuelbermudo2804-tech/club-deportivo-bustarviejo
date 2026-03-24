@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Building2 } from "lucide-react";
 
 export default function SponsorBanner() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollRef = useRef(null);
+  const animRef = useRef(null);
+  const speedRef = useRef(0.5);
 
   const { data: sponsors = [] } = useQuery({
     queryKey: ['activeSponsors'],
@@ -17,8 +19,7 @@ export default function SponsorBanner() {
             const order = { "Principal": 0, "Oro": 1, "Plata": 2, "Bronce": 3, "Colaborador": 4 };
             return (order[a.nivel_patrocinio] || 5) - (order[b.nivel_patrocinio] || 5);
           });
-      } catch (error) {
-        console.error("Error cargando patrocinadores:", error);
+      } catch {
         return [];
       }
     },
@@ -27,85 +28,102 @@ export default function SponsorBanner() {
     retry: 1,
   });
 
-  const getDisplayTime = (sponsor) => {
-    const times = { "Principal": 8000, "Oro": 6000, "Plata": 4000, "Bronce": 3000, "Colaborador": 3000 };
-    return times[sponsor?.nivel_patrocinio] || 3000;
-  };
-
+  // Infinite scroll animation
   useEffect(() => {
-    if (sponsors.length <= 1) return;
-    const currentSponsor = sponsors[currentIndex];
-    const displayTime = getDisplayTime(currentSponsor);
-    const timeout = setTimeout(() => {
-      setCurrentIndex(prev => (prev + 1) % sponsors.length);
-    }, displayTime);
-    return () => clearTimeout(timeout);
-  }, [sponsors.length, currentIndex, sponsors]);
+    const el = scrollRef.current;
+    if (!el || sponsors.length === 0) return;
+
+    let pos = 0;
+    const animate = () => {
+      pos += speedRef.current;
+      // When we've scrolled past the first set, reset seamlessly
+      const half = el.scrollWidth / 2;
+      if (pos >= half) pos = 0;
+      el.scrollLeft = pos;
+      animRef.current = requestAnimationFrame(animate);
+    };
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [sponsors.length]);
+
+  // Pause on touch
+  const handleTouchStart = () => { speedRef.current = 0; };
+  const handleTouchEnd = () => { speedRef.current = 0.5; };
 
   if (sponsors.length === 0) return null;
 
   const nivelColors = {
-    "Principal": "from-yellow-500 to-amber-600",
-    "Oro": "from-yellow-400 to-yellow-500",
-    "Plata": "from-slate-400 to-slate-500",
-    "Bronce": "from-orange-500 to-orange-600",
-    "Colaborador": "from-blue-500 to-blue-600"
+    "Principal": "from-amber-500 to-yellow-600",
+    "Oro": "from-yellow-400 to-amber-500",
+    "Plata": "from-slate-300 to-slate-400",
+    "Bronce": "from-orange-400 to-orange-500",
+    "Colaborador": "from-blue-400 to-blue-500"
   };
 
-  const sponsor = sponsors[currentIndex];
-  if (!sponsor) return null;
-
-  const isPremium = ["Principal", "Oro"].includes(sponsor.nivel_patrocinio);
-  const logoSize = isPremium ? "h-7" : "h-5";
-  const textSize = isPremium ? "text-xs font-bold" : "text-[11px] font-medium";
-  const bgStyle = isPremium
-    ? `bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]}`
-    : "bg-white/10";
-
-  const content = (
-    <div className={`flex items-center gap-2 ${bgStyle} rounded-md px-3 py-1 transition-all`}>
-      {sponsor.logo_url ? (
-        <img
-          src={sponsor.logo_url}
-          alt={sponsor.nombre}
-          className={`${logoSize} w-auto object-contain ${isPremium ? 'drop-shadow-md' : ''}`}
-        />
-      ) : (
-        <div className={`${isPremium ? 'w-7 h-7' : 'w-5 h-5'} rounded bg-white/20 flex items-center justify-center`}>
-          <Building2 className={`${isPremium ? 'w-4 h-4' : 'w-3 h-3'} text-white`} />
-        </div>
-      )}
-      <span className={`${textSize} text-white`}>{sponsor.nombre}</span>
-    </div>
-  );
+  // Duplicate items for seamless infinite loop
+  const items = [...sponsors, ...sponsors];
 
   return (
-    <div className="bg-gradient-to-r from-slate-800 to-slate-900 border-t border-slate-700">
-      <div className="py-1.5 px-3">
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold hidden sm:inline">
-            Patrocinador
+    <div className="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 border-t border-slate-700/60">
+      <div className="flex items-center h-10 overflow-hidden">
+        {/* Label */}
+        <div className="flex-shrink-0 px-2.5 border-r border-slate-700/50 h-full flex items-center">
+          <span className="text-[8px] uppercase tracking-widest text-slate-500 font-bold leading-tight text-center">
+            SPONSOR<br/>OFICIAL
           </span>
-          {sponsor.website_url ? (
-            <a href={sponsor.website_url} target="_blank" rel="noopener noreferrer">
-              {content}
-            </a>
-          ) : (
-            content
-          )}
-          {sponsors.length > 1 && (
-            <div className="flex gap-0.5 ml-2">
-              {sponsors.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`rounded-full transition-all ${
-                    idx === currentIndex ? 'bg-orange-500 w-2.5 h-1.5' : 'bg-slate-600 w-1.5 h-1.5'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
+        </div>
+
+        {/* Carousel */}
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-hidden flex items-center"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onMouseEnter={() => { speedRef.current = 0; }}
+          onMouseLeave={() => { speedRef.current = 0.5; }}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          <div className="flex items-center gap-5 px-4 whitespace-nowrap">
+            {items.map((sponsor, idx) => {
+              const isPremium = ["Principal", "Oro"].includes(sponsor.nivel_patrocinio);
+
+              const inner = (
+                <div
+                  key={`${sponsor.id}-${idx}`}
+                  className="flex items-center gap-2 flex-shrink-0"
+                >
+                  {sponsor.logo_url ? (
+                    <img
+                      src={sponsor.logo_url}
+                      alt={sponsor.nombre}
+                      className={`${isPremium ? 'h-7' : 'h-5'} w-auto object-contain`}
+                      style={{ filter: isPremium ? 'drop-shadow(0 0 4px rgba(255,200,0,0.3))' : 'none' }}
+                    />
+                  ) : (
+                    <div className={`${isPremium ? 'w-7 h-7' : 'w-5 h-5'} rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
+                      <Building2 className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                  <span className={`${isPremium ? 'text-xs font-bold text-amber-300' : 'text-[11px] font-medium text-slate-300'}`}>
+                    {sponsor.nombre}
+                  </span>
+                  {isPremium && (
+                    <span className="text-[8px] bg-amber-500/20 text-amber-400 px-1 rounded font-bold uppercase">
+                      {sponsor.nivel_patrocinio}
+                    </span>
+                  )}
+                </div>
+              );
+
+              return sponsor.website_url ? (
+                <a key={`${sponsor.id}-${idx}`} href={sponsor.website_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                  {inner}
+                </a>
+              ) : (
+                <div key={`${sponsor.id}-${idx}`} className="flex-shrink-0">{inner}</div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
