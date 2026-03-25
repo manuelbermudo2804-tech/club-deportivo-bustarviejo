@@ -64,10 +64,10 @@ export default function SponsorBanner() {
   const items = [...sponsors, ...sponsors];
 
   return (
-    <div className="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 border-t border-slate-700/60">
+    <div className="bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 border-t border-slate-300/60">
       <div className="flex items-center h-14 overflow-hidden">
         {/* Label */}
-        <div className="flex-shrink-0 px-2.5 border-r border-slate-700/50 h-full flex items-center">
+        <div className="flex-shrink-0 px-2.5 border-r border-slate-300/50 h-full flex items-center">
           <span className="text-[9px] uppercase tracking-widest text-slate-500 font-bold leading-tight text-center">
             SPONSOR<br/>OFICIAL
           </span>
@@ -104,11 +104,11 @@ export default function SponsorBanner() {
                       <Building2 className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <span className={`${isPremium ? 'text-sm font-bold text-amber-300' : 'text-xs font-medium text-slate-300'}`}>
+                  <span className={`${isPremium ? 'text-sm font-bold text-amber-700' : 'text-xs font-medium text-slate-600'}`}>
                     {sponsor.nombre}
                   </span>
                   {isPremium && (
-                    <span className="text-[8px] bg-amber-500/20 text-amber-400 px-1 rounded font-bold uppercase">
+                    <span className="text-[8px] bg-amber-500/20 text-amber-700 px-1 rounded font-bold uppercase">
                       {sponsor.nivel_patrocinio}
                     </span>
                   )}
