@@ -49,6 +49,8 @@ export default function InscriptionPaymentFlow({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadedConfigs, setLoadedConfigs] = useState(null);
   
+  const [retryCount, setRetryCount] = useState(0);
+  
   // Si no llegan categoryConfigs o están vacías, cargar directamente
   useEffect(() => {
     if (categoryConfigsProp && categoryConfigsProp.length > 0) return;
@@ -62,7 +64,7 @@ export default function InscriptionPaymentFlow({
         console.error('Error cargando CategoryConfigs:', e);
       }
     })();
-  }, [categoryConfigsProp]);
+  }, [categoryConfigsProp, retryCount]);
 
   const categoryConfigs = (categoryConfigsProp && categoryConfigsProp.length > 0) ? categoryConfigsProp : (loadedConfigs || []);
   
