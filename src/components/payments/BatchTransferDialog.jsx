@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function BatchTransferDialog({ open, onClose, concept, total, onConfirm }) {
   const [file, setFile] = useState(null);
+  const [isSending, setIsSending] = useState(false);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`IBAN: ES8200494447382010004048\nConcepto: ${concept}\nImporte: ${Number(total).toFixed(2)}€`)}`;
   return (
     <Dialog open={open} onOpenChange={(v)=>{ if(!v) onClose(); }}>
@@ -60,8 +62,29 @@ export default function BatchTransferDialog({ open, onClose, concept, total, onC
           <p className="text-sm text-slate-700">Sube un único justificante para este lote. Se registrará como <strong>pago múltiple</strong> con el detalle de jugadores.</p>
           <input type="file" accept="image/*,application/pdf" onChange={(e)=> setFile(e.target.files?.[0] || null)} className="w-full" />
           <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
-            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancelar</Button>
-            <Button onClick={() => file && onConfirm(file)} disabled={!file} className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto">Enviar justificante</Button>
+            <Button variant="outline" onClick={onClose} disabled={isSending} className="w-full sm:w-auto">Cancelar</Button>
+            <Button 
+              onClick={async () => {
+                if (!file || isSending) return;
+                setIsSending(true);
+                try {
+                  await onConfirm(file);
+                } finally {
+                  setIsSending(false);
+                }
+              }} 
+              disabled={!file || isSending} 
+              className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto"
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                'Enviar justificante'
+              )}
+            </Button>
           </div>
         </div>
       </DialogContent>

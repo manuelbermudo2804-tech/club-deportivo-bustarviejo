@@ -46,6 +46,7 @@ export default function ParentPayments() {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [transferConcept, setTransferConcept] = useState("");
   const [showSummary, setShowSummary] = useState(false);
+  const [summaryMode, setSummaryMode] = useState('all'); // 'all' | 'transfer'
   const queryClient = useQueryClient();
   
   // Tutorial interactivo para primera visita
@@ -1240,8 +1241,8 @@ export default function ParentPayments() {
         <PaymentsCartBar
           selectedCount={cartSelected.length}
           total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
-          onPayCard={() => setShowSummary(true)}
-          onTransfer={() => setShowSummary(true)}
+          onPayCard={() => { setSummaryMode('all'); setShowSummary(true); }}
+          onTransfer={() => { setSummaryMode('transfer'); setShowSummary(true); }}
         />
 
         <BatchSummaryDialog
@@ -1249,6 +1250,7 @@ export default function ParentPayments() {
           onClose={() => setShowSummary(false)}
           items={cartSelected}
           total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
+          mode={summaryMode}
           onPayCard={async () => { 
             await handlePayCartWithCard();
             // No cerrar - se redirige a Stripe
