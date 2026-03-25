@@ -366,6 +366,17 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     // Documentos sensibles van a almacenamiento PRIVADO
     const isSensitive = ['dni', 'libro', 'dniTutor'].includes(type);
 
+    // Validar archivo vacío o demasiado grande
+    if (file.size === 0) {
+      toast.error('El archivo está vacío o no se pudo leer. Inténtalo de nuevo.', { duration: 6000 });
+      return null;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(0);
+      toast.error(`El archivo pesa ${sizeMB}MB (máx 10MB). Baja la resolución de la cámara o envía la foto por WhatsApp a ti mismo y súbela desde ahí.`, { duration: 10000 });
+      return null;
+    }
+
     setUploading(true);
     try {
       if (isSensitive) {
@@ -379,7 +390,10 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
       }
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Error al subir el archivo");
+      toast.error(
+        'No se pudo subir el documento. Prueba con una foto más pequeña o envíatela por WhatsApp y súbela desde ahí (se reduce sola).',
+        { duration: 10000 }
+      );
       return null;
     } finally {
       setUploading(false);

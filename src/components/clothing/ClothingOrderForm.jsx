@@ -125,28 +125,36 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
     }
   };
 
+  const [uploadError, setUploadError] = useState(null);
+
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
 
-    // Validar tamaño de archivo (max 10MB)
+    if (file.size === 0) {
+      toast.error('El archivo está vacío o no se pudo leer. Inténtalo de nuevo.', { duration: 6000 });
+      return;
+    }
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("El archivo es demasiado grande. Máximo 10MB");
-      e.target.value = ''; // Reset input
+      const sizeMB = (file.size / 1024 / 1024).toFixed(0);
+      toast.error(`El archivo pesa ${sizeMB}MB (máx 10MB). Baja la resolución o envía la foto por WhatsApp a ti mismo.`, { duration: 10000 });
       return;
     }
 
     setUploadingFile(true);
+    setUploadError(null);
     try {
       const response = await base44.integrations.Core.UploadFile({ file });
       setOrderData({ ...orderData, justificante_url: response.file_url });
       toast.success("Justificante subido correctamente");
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Error al subir el justificante. Intenta con un archivo más pequeño.");
+      const msg = 'No se pudo subir el justificante. Prueba con una captura de pantalla (pesan menos) o envíate la foto por WhatsApp y súbela desde ahí.';
+      setUploadError(msg);
+      toast.error(msg, { duration: 10000 });
     } finally {
       setUploadingFile(false);
-      e.target.value = ''; // Reset input
     }
   };
 
@@ -473,7 +481,16 @@ export default function ClothingOrderForm({ players, onSubmit, onCancel, isSubmi
                         {orderData.justificante_url && <Button type="button" variant="outline" onClick={() => setOrderData({...orderData, justificante_url: ""})} className="bg-white"><X className="w-4 h-4" /></Button>}
                       </div>
                       <input id="file-upload" type="file" accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,application/pdf" onChange={handleFileUpload} className="hidden" />
-                      {orderData.justificante_url ? <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p> : <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>}
+                      {orderData.justificante_url ? (
+                        <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
+                      ) : uploadError ? (
+                        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3 space-y-1">
+                          <p className="text-sm text-red-800 font-medium">❌ {uploadError}</p>
+                          <p className="text-xs text-red-700">💡 <strong>Alternativa:</strong> Envíate la foto por WhatsApp y súbela desde la galería (se reduce automáticamente).</p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
