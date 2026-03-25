@@ -954,8 +954,8 @@ export default function Layout({ children, currentPageName }) {
           </main>
 
 
-        {/* Sponsor Banner — sits ABOVE the bottom bar on mobile */}
-        {sponsorBannerVisible && (
+        {/* Sponsor Banner — sits ABOVE the bottom bar on mobile, hidden in chat pages */}
+        {sponsorBannerVisible && !['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub', 'CoachChatsHub', 'CoordinatorChatsHub', 'AdminChatsHub'].includes(currentPageName) && (
           <div className="lg:hidden fixed left-0 right-0 z-[49]" style={{ bottom: 56 + (typeof CSS !== 'undefined' && CSS.supports?.('padding-bottom', 'env(safe-area-inset-bottom)') ? 0 : 0) }}>
             <Suspense fallback={null}><SponsorBanner /></Suspense>
           </div>
