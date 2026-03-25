@@ -1,6 +1,6 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, Loader2, Download, FileText, Lock } from "lucide-react";
@@ -79,15 +79,16 @@ export default function StepDocuments({
         <Label className={`text-sm font-medium ${fieldErrors.dni_jugador ? "text-red-600" : "text-slate-700"}`}>
           Número de {docLabel} {requiresDNI ? "*" : "(opcional)"}
         </Label>
-        <Input
-          id="wiz-dni"
-          value={currentPlayer.dni_jugador || ""}
-          onChange={(e) => {
-            setCurrentPlayer({ ...currentPlayer, dni_jugador: e.target.value });
-            if (fieldErrors.dni_jugador) setFieldErrors(prev => ({ ...prev, dni_jugador: null }));
-          }}
-          placeholder={currentPlayer.tipo_documento === "Pasaporte" ? "ABC123456" : "12345678A"}
-          className={`rounded-xl h-12 text-base ${fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
+        <ValidatedInput
+        id="wiz-dni"
+        validationType="dni"
+        value={currentPlayer.dni_jugador || ""}
+        onChange={(e) => {
+          setCurrentPlayer({ ...currentPlayer, dni_jugador: e.target.value });
+          if (fieldErrors.dni_jugador) setFieldErrors(prev => ({ ...prev, dni_jugador: null }));
+        }}
+        placeholder={currentPlayer.tipo_documento === "Pasaporte" ? "ABC123456" : "12345678A"}
+        className={`rounded-xl h-12 text-base ${fieldErrors.dni_jugador ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
         />
         {fieldErrors.dni_jugador && <p className="text-xs text-red-600 mt-1">{fieldErrors.dni_jugador}</p>}
       </div>
@@ -119,6 +120,7 @@ export default function StepDocuments({
           uploading={uploadingDNITrasero}
           onUpload={onDNITraseroUpload}
           inputId="wiz-dni-trasero-upload"
+          error={fieldErrors.dni_jugador_trasero_url}
         />
       )}
 

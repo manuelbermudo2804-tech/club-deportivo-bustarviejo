@@ -86,7 +86,7 @@ export default function ParentPayments() {
     staleTime: 300000,
     gcTime: 300000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 
   const { data: payments = [], isLoading: loadingPayments } = useQuery({
@@ -110,7 +110,7 @@ export default function ParentPayments() {
     staleTime: 300000,
     gcTime: 300000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 
   const isLoading = !user || loadingPlayers;

@@ -25,6 +25,7 @@ import { logUploadError, logUploadButtonClick, logInputChange, generateDiagnosti
 // SendDiagnosticButton removed from wizard UI - only used in admin diagnostics page
 import { saveFormDraft, loadFormDraft, clearFormDraft, markCameraOpening, checkCameraReload, clearCameraFlag } from "./wizard/useFormPersistence";
 import HelpRequestBanner from "./wizard/HelpRequestBanner";
+import { validators } from "../utils/validators";
 
 // --- Helpers (same as original PlayerForm) ---
 const calculateAge = (birthDate) => {
@@ -406,7 +407,16 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
     if (s === 2) {
       if (requiresDNI && !currentPlayer.dni_jugador?.trim()) errors.dni_jugador = "DNI obligatorio (mayor de 14)";
+      // Validar formato DNI (solo si es tipo DNI, no pasaporte)
+      if (currentPlayer.dni_jugador?.trim() && currentPlayer.tipo_documento === "DNI") {
+        const dniCheck = validators.dni(currentPlayer.dni_jugador);
+        if (!dniCheck.valid) errors.dni_jugador = dniCheck.error;
+      }
       if (requiresDNI && !currentPlayer.dni_jugador_url) errors.dni_jugador_url = "Documento escaneado obligatorio";
+      // Cara trasera obligatoria si tiene DNI (no pasaporte)
+      if (requiresDNI && currentPlayer.tipo_documento === "DNI" && !currentPlayer.dni_jugador_trasero_url) {
+        errors.dni_jugador_trasero_url = "La cara trasera del DNI es obligatoria";
+      }
       if (!requiresDNI && !isAdultPlayerSelfRegistration && !currentPlayer.dni_jugador_url && !currentPlayer.libro_familia_url)
         errors.libro_familia_url = "Libro de Familia obligatorio (menor sin DNI)";
     }
@@ -414,10 +424,29 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!isAdultPlayerSelfRegistration && !isMayorDeEdad) {
         if (!currentPlayer.nombre_tutor_legal?.trim()) errors.nombre_tutor_legal = "Nombre del tutor obligatorio";
         if (!currentPlayer.dni_tutor_legal?.trim()) errors.dni_tutor_legal = "DNI del tutor obligatorio";
+        // Validar formato DNI tutor
+        if (currentPlayer.dni_tutor_legal?.trim() && currentPlayer.tipo_documento_tutor === "DNI") {
+          const dniCheck = validators.dni(currentPlayer.dni_tutor_legal);
+          if (!dniCheck.valid) errors.dni_tutor_legal = dniCheck.error;
+        }
         if (!currentPlayer.dni_tutor_legal_url) errors.dni_tutor_legal_url = "Documento del tutor obligatorio";
+        // Cara trasera tutor obligatoria si es DNI
+        if (currentPlayer.tipo_documento_tutor === "DNI" && !currentPlayer.dni_tutor_legal_trasero_url) {
+          errors.dni_tutor_legal_trasero_url = "La cara trasera del DNI del tutor es obligatoria";
+        }
       }
       if (!currentPlayer.email_padre?.trim()) errors.email_padre = "Email obligatorio";
+      // Validar formato email
+      if (currentPlayer.email_padre?.trim()) {
+        const emailCheck = validators.email(currentPlayer.email_padre.trim());
+        if (!emailCheck.valid) errors.email_padre = emailCheck.error;
+      }
       if (!currentPlayer.telefono?.trim()) errors.telefono = "Teléfono obligatorio";
+      // Validar formato teléfono
+      if (currentPlayer.telefono?.trim()) {
+        const telCheck = validators.telefono(currentPlayer.telefono.replace(/[\s+]/g, '').replace(/^34/, ''));
+        if (!telCheck.valid) errors.telefono = telCheck.error;
+      }
       if (!currentPlayer.direccion?.trim()) errors.direccion = "Dirección obligatoria";
       if (!currentPlayer.municipio?.trim()) errors.municipio = "Municipio obligatorio";
     }

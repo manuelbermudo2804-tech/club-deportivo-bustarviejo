@@ -143,7 +143,8 @@ export default function StepTutor({
           <Label className={`text-sm font-medium ${fieldErrors.dni_tutor_legal ? "text-red-600" : "text-slate-700"}`}>
             {currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte" : "DNI"} *
           </Label>
-          <Input
+          <ValidatedInput
+            validationType={currentPlayer.tipo_documento_tutor === "DNI" ? "dni" : undefined}
             value={currentPlayer.dni_tutor_legal || ""}
             onChange={(e) => {
               setCurrentPlayer({ ...currentPlayer, dni_tutor_legal: e.target.value });
@@ -210,6 +211,7 @@ export default function StepTutor({
                 uploading={uploadingDNITutorTrasero}
                 onUpload={onDNITutorTraseroUpload}
                 inputId="wiz-dni-tutor-trasero-upload"
+                error={fieldErrors.dni_tutor_legal_trasero_url}
               />
             )}
           </>
