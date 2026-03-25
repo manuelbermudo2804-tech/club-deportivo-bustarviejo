@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useFetchUser } from "./components/layout/useFetchUser";
+import useEngineStages from "./hooks/useEngineStages";
 
 
 import { Menu, X, Smartphone } from "lucide-react";
@@ -184,9 +185,7 @@ export default function Layout({ children, currentPageName }) {
   const [installContext, setInstallContext] = useState('manual');
 
   const [isAppInstalled, setIsAppInstalled] = useState(false);
-  const [enginesReady, setEnginesReady] = useState(false);
-  const [enginesStage2Ready, setEnginesStage2Ready] = useState(false);
-  const [enginesStage3Ready, setEnginesStage3Ready] = useState(false);
+  const { enginesReady, enginesStage2Ready, enginesStage3Ready, enginesStage4Ready, enginesStage5Ready } = useEngineStages(isLoading, user);
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -632,29 +631,10 @@ export default function Layout({ children, currentPageName }) {
       setOnboardingView('none');
     }, [user]);
 
-    // Activar motores en diferido para evitar ráfaga de llamadas (aumentado a 5s)
-    useEffect(() => {
-      if (!isLoading && user) {
-        const id = setTimeout(() => setEnginesReady(true), 5000);
-        return () => clearTimeout(id);
-      }
-    }, [isLoading, user]);
+    // Engine stages gestionados por useEngineStages hook
 
     // Escalonar carga de motores en 5 oleadas para reducir presión en RAM
-    // En dispositivos con poca RAM (<2GB) o navegadores antiguos, retrasar más
-    const isLowEndDevice = typeof navigator !== 'undefined' && (navigator.deviceMemory ? navigator.deviceMemory < 2 : false);
-    const stageMultiplier = isLowEndDevice ? 1.8 : 1;
-    const [enginesStage4Ready, setEnginesStage4Ready] = useState(false);
-    const [enginesStage5Ready, setEnginesStage5Ready] = useState(false);
-    // Escalonar engines con delays más conservadores para no sobrecargar al inicio
-    useEffect(() => {
-      if (!enginesReady) return;
-      const t2 = setTimeout(() => setEnginesStage2Ready(true), 4000 * stageMultiplier);
-      const t3 = setTimeout(() => setEnginesStage3Ready(true), 8000 * stageMultiplier);
-      const t4 = setTimeout(() => setEnginesStage4Ready(true), 14000 * stageMultiplier);
-      const t5 = setTimeout(() => setEnginesStage5Ready(true), 20000 * stageMultiplier);
-      return () => { clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
-    }, [enginesReady]);
+    // Engine stages 2-5 gestionados por useEngineStages hook
 
     // Invitar en el primer arranque desde el icono (PWA)
     useEffect(() => {
