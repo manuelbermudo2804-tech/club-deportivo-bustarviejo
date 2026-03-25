@@ -370,9 +370,6 @@ export default function ParentPlayers() {
           // El mayor (primera posición) no tiene descuento, los demás sí
           const oldestPlayerId = allFamilyBirthDates[0]?.id;
           
-          // Obtener todos los pagos pendientes de la familia
-          const allPayments = await base44.entities.Payment.list();
-          
           // Actualizar descuentos de todos los hermanos existentes
           for (const sibling of familyPlayers) {
             const shouldHaveDiscount = sibling.id !== oldestPlayerId;
