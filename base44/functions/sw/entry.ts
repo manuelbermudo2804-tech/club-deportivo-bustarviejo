@@ -8,13 +8,24 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+  // Allow the app to set the badge count directly
+  if (event.data && event.data.type === 'SET_BADGE') {
+    const count = event.data.count || 0;
+    if (navigator.setAppBadge) {
+      if (count > 0) {
+        navigator.setAppBadge(count).catch(() => {});
+      } else {
+        navigator.clearAppBadge().catch(() => {});
+      }
+    }
+  }
 });
 
 self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Push notification handler
+// Push notification handler — also updates icon badge
 self.addEventListener('push', (event) => {
   try {
     const data = event.data ? event.data.json() : {};
@@ -26,34 +37,67 @@ self.addEventListener('push', (event) => {
       requireInteraction: data.requireInteraction || false,
       data: data.data || {}
     };
-    
+
+    // Update the app icon badge count
+    const badgePromise = (async () => {
+      if (!navigator.setAppBadge) return;
+      try {
+        // If the push payload includes a badge count, use it
+        if (typeof data.badgeCount === 'number') {
+          await navigator.setAppBadge(data.badgeCount);
+        } else {
+          // Otherwise, count visible notifications + 1
+          const notifications = await self.registration.getNotifications();
+          await navigator.setAppBadge(notifications.length + 1);
+        }
+      } catch {}
+    })();
+
     event.waitUntil(
-      self.registration.showNotification(data.title || '🔔 CD Bustarviejo', options)
+      Promise.all([
+        self.registration.showNotification(data.title || '\uD83D\uDD14 CD Bustarviejo', options),
+        badgePromise
+      ])
     );
   } catch (e) {
     console.error('Error in push handler:', e);
   }
 });
 
-// Click handler para notificaciones
+// Click handler para notificaciones — clears badge
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const data = event.notification.data || {};
   const url = data.url || '/';
-  
+
+  // Update badge: count remaining notifications
+  const updateBadge = (async () => {
+    if (!navigator.setAppBadge) return;
+    try {
+      const remaining = await self.registration.getNotifications();
+      if (remaining.length > 0) {
+        await navigator.setAppBadge(remaining.length);
+      } else {
+        await navigator.clearAppBadge();
+      }
+    } catch {}
+  })();
+
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then(clientList => {
-      // Si hay una ventana abierta, enfócala
-      for (let i = 0; i < clientList.length; i++) {
-        if (clientList[i].url === url && 'focus' in clientList[i]) {
-          return clientList[i].focus();
+    Promise.all([
+      updateBadge,
+      clients.matchAll({ type: 'window' }).then(clientList => {
+        for (let i = 0; i < clientList.length; i++) {
+          if ('focus' in clientList[i]) {
+            clientList[i].navigate(url);
+            return clientList[i].focus();
+          }
         }
-      }
-      // Si no, abre una nueva
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
+    ])
   );
 });
 
