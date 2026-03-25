@@ -377,8 +377,8 @@ export default function ParentPayments() {
     mutationFn: async ({ paymentId, file }) => {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       const payment = payments.find(p => p.id === paymentId);
+      // Solo enviar los campos que cambian — NO spread del payment completo
       await base44.entities.Payment.update(paymentId, {
-        ...payment,
         justificante_url: file_url,
         estado: "En revisión"
       });
@@ -490,6 +490,8 @@ export default function ParentPayments() {
   };
 
   const handleSubmitPayment = async (paymentData) => {
+    // Prevenir doble-click
+    if (createPaymentMutation.isPending) return;
     createPaymentMutation.mutate(paymentData);
   };
 

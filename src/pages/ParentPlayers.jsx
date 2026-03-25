@@ -346,12 +346,16 @@ export default function ParentPlayers() {
       
       // Recalcular descuentos de TODOS los hermanos de la familia
       try {
-        const allPlayersInDB = await base44.entities.Player.list();
-        const familyPlayers = allPlayersInDB.filter(p => 
-          (p.email_padre === currentUser?.email || p.email_padre === dataWithParentEmail.email_padre) &&
-          p.activo &&
-          p.id !== newPlayer.id
-        );
+        // Buscar SOLO jugadores de esta familia (no todos los del club)
+        const [famByPadre, famByTutor] = await Promise.all([
+          base44.entities.Player.filter({ email_padre: currentUser?.email || dataWithParentEmail.email_padre, activo: true }).catch(() => []),
+          dataWithParentEmail.email_padre !== currentUser?.email
+            ? base44.entities.Player.filter({ email_padre: dataWithParentEmail.email_padre, activo: true }).catch(() => [])
+            : Promise.resolve([])
+        ]);
+        const famMap = new Map();
+        [...famByPadre, ...famByTutor].forEach(p => famMap.set(p.id, p));
+        const familyPlayers = Array.from(famMap.values()).filter(p => p.id !== newPlayer.id);
         
         if (familyPlayers.length > 0) {
           // Incluir el nuevo jugador en el cálculo
@@ -385,11 +389,10 @@ export default function ParentPlayers() {
               // Buscar dónde aplicar el descuento de 25€
               if (shouldHaveDiscount && !currentHasDiscount) {
                 // El hermano ahora tiene derecho a descuento - buscar dónde aplicarlo
+                const siblingPayments = await base44.entities.Payment.filter({ jugador_id: sibling.id, estado: "Pendiente", is_deleted: { $ne: true } }).catch(() => []);
                 
                 // Primero intentar en Junio si está pendiente
-                const junioPendiente = allPayments.find(p => 
-                  p.jugador_id === sibling.id && 
-                  p.estado === "Pendiente" &&
+                const junioPendiente = siblingPayments.find(p =>
                   p.mes === "Junio"
                 );
                 
@@ -405,9 +408,7 @@ export default function ParentPlayers() {
                   }
                 } else {
                   // Junio ya está pagado/en revisión - aplicar en siguiente cuota pendiente
-                  const siguienteCuotaPendiente = allPayments.find(p => 
-                    p.jugador_id === sibling.id && 
-                    p.estado === "Pendiente" &&
+                  const siguienteCuotaPendiente = siblingPayments.find(p => 
                     (p.mes === "Septiembre" || p.mes === "Diciembre")
                   );
                   
@@ -802,6 +803,9 @@ Email: cdbustarviejo@gmail.com
   });
 
   const handlePaymentFlowContinue = (paymentsData) => {
+    // Prevenir doble-click
+    if (isProcessing) return;
+    
     const descuentoCalculado = pendingPlayerData._descuentoCalculado || 0;
 
     setIsProcessing(true);
