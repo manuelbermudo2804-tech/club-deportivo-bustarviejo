@@ -14,7 +14,7 @@ import useChunkRecovery from "./hooks/useChunkRecovery";
 
 import { Menu, X, Smartphone } from "lucide-react";
 import { toast } from "sonner";
-import { buildAdminNavigation, buildCoachNavigation, buildCoordinatorNavigation, buildParentNavigation, buildPlayerNavigation, buildTreasurerNavigation, buildMinorNavigation } from "./components/layout/navigationItems";
+import useNavigation from "./hooks/useNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -175,7 +175,7 @@ export default function Layout({ children, currentPageName }) {
   const [installContext, setInstallContext] = useState('manual');
 
   const { isAppInstalled, showFirstLaunchInvite, setShowFirstLaunchInvite, markInstalled, dismissFirstLaunch } = usePwaDetection(user);
-  const { enginesReady, enginesStage2Ready, enginesStage3Ready, enginesStage4Ready, enginesStage5Ready } = useEngineStages(isLoading, user);
+  const { enginesReady, enginesStage2Ready, enginesStage3Ready } = useEngineStages(isLoading, user);
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -290,46 +290,14 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-  const navCtx = { playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview, programaSociosActivo, isMemberPaid, isJunta, isPlayer, user };
-
-  const adminNavigationItems = useMemo(() => buildAdminNavigation(navCtx),
-    [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview]);
-
-  const coachNavigationItems = useMemo(() => buildCoachNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas]);
-
-  const coordinatorNavigationItems = useMemo(() => buildCoordinatorNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, user?.es_entrenador]);
-
-  const parentNavigationItems = useMemo(() => buildParentNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, isJunta, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount]);
-
-  const playerNavigationItems = useMemo(() => buildPlayerNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, loteriaVisible, marketNewCount]);
-
-  const treasurerNavigationItems = useMemo(() => buildTreasurerNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, unreadAnnouncementsCount, marketNewCount]);
-
-  const minorNavigationItems = useMemo(() => buildMinorNavigation(navCtx),
-    [pendingCallupsCount]);
-
-  let navigationItems;
-    if (isAdmin) {
-      navigationItems = adminNavigationItems;
-    } else if (isMinor) {
-      navigationItems = minorNavigationItems;
-    } else if (isCoordinator) {
-      navigationItems = coordinatorNavigationItems;
-    } else if (isTreasurer) {
-      navigationItems = treasurerNavigationItems;
-    } else if (isCoach) {
-      navigationItems = coachNavigationItems;
-    } else if (isPlayer) {
-        navigationItems = playerNavigationItems;
-    } else {
-      // Usuario normal de familia (padre/madre sin roles especiales)
-      navigationItems = parentNavigationItems;
-    }
+  const navigationItems = useNavigation({
+    user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, hasPlayers,
+    loteriaVisible, isMemberPaid, programaSociosActivo,
+    playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses,
+    chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount,
+    pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount,
+    unresolvedAdminChats, paymentsInReview,
+  });
 
 
 
@@ -573,8 +541,6 @@ export default function Layout({ children, currentPageName }) {
                   enginesReady={enginesReady}
                   enginesStage2Ready={enginesStage2Ready}
                   enginesStage3Ready={enginesStage3Ready}
-                  enginesStage4Ready={enginesStage4Ready}
-                  enginesStage5Ready={enginesStage5Ready}
                 />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

@@ -1,18 +1,23 @@
 import React, { Suspense } from "react";
-import NotificationBadge from "../NotificationBadge";
-import SessionManager from "../SessionManager";
-import PlanPaymentReminders from "../reminders/PlanPaymentReminders";
-import AutomaticRenewalReminders from "../reminders/AutomaticRenewalReminders";
-import AutomaticRenewalClosure from "../renewals/AutomaticRenewalClosure";
-import RenewalNotificationEngine from "../renewals/RenewalNotificationEngine";
-import PostRenewalPaymentReminder from "../renewals/PostRenewalPaymentReminder";
-import CallupSoundNotifier from "../notifications/CallupSoundNotifier";
-import AnnouncementSoundNotifier from "../notifications/AnnouncementSoundNotifier";
-import PaymentSoundNotifier from "../notifications/PaymentSoundNotifier";
 
+// Stage 1: esencial
+const SessionManager = React.lazy(() => import("../SessionManager"));
+
+// Stage 2: notificaciones y pagos
+const NotificationBadge = React.lazy(() => import("../NotificationBadge"));
 const PaymentApprovalNotifier = React.lazy(() => import("../payments/PaymentApprovalNotifier"));
 
-export default function EngineLoaders({ user, isAdmin, enginesReady, enginesStage2Ready, enginesStage3Ready, enginesStage4Ready, enginesStage5Ready }) {
+// Stage 3: recordatorios, renovaciones y sonidos (consolidado)
+const PlanPaymentReminders = React.lazy(() => import("../reminders/PlanPaymentReminders"));
+const AutomaticRenewalReminders = React.lazy(() => import("../reminders/AutomaticRenewalReminders"));
+const AutomaticRenewalClosure = React.lazy(() => import("../renewals/AutomaticRenewalClosure"));
+const RenewalNotificationEngine = React.lazy(() => import("../renewals/RenewalNotificationEngine"));
+const PostRenewalPaymentReminder = React.lazy(() => import("../renewals/PostRenewalPaymentReminder"));
+const CallupSoundNotifier = React.lazy(() => import("../notifications/CallupSoundNotifier"));
+const AnnouncementSoundNotifier = React.lazy(() => import("../notifications/AnnouncementSoundNotifier"));
+const PaymentSoundNotifier = React.lazy(() => import("../notifications/PaymentSoundNotifier"));
+
+export default function EngineLoaders({ user, isAdmin, enginesReady, enginesStage2Ready, enginesStage3Ready }) {
   return (
     <>
       {enginesReady && (
@@ -33,18 +38,8 @@ export default function EngineLoaders({ user, isAdmin, enginesReady, enginesStag
           <PlanPaymentReminders user={user} />
           <AutomaticRenewalReminders />
           <AutomaticRenewalClosure />
-        </Suspense>
-      )}
-
-      {enginesStage4Ready && (
-        <Suspense fallback={null}>
           <RenewalNotificationEngine />
           <PostRenewalPaymentReminder />
-        </Suspense>
-      )}
-
-      {enginesStage5Ready && (
-        <Suspense fallback={null}>
           <CallupSoundNotifier user={user} />
           <AnnouncementSoundNotifier user={user} />
           <PaymentSoundNotifier user={user} />
