@@ -119,7 +119,20 @@ export default function Layout({ children, currentPageName }) {
   const { notifications } = useUnifiedNotifications(user, pauseRealtime);
   
   // SISTEMA DE CHATS - estado local sincronizado via ChatCountsBridge dentro del Provider
-  const [chatCounts, setChatCounts] = useState({ team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0, total: 0 });
+  // Inicializar desde cache de localStorage para que el badge del icono sea inmediato
+  const [chatCounts, setChatCounts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('chat_unread_counts');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.team_chats) {
+          const teamTotal = Object.values(parsed.team_chats || {}).reduce((s, v) => s + (v || 0), 0);
+          return { ...parsed, total: teamTotal + (parsed.coordinator || 0) + (parsed.admin || 0) + (parsed.staff || 0) + (parsed.system || 0) };
+        }
+      }
+    } catch {}
+    return { team_chats: {}, coordinator: 0, admin: 0, staff: 0, system: 0, total: 0 };
+  });
   const teamChatsTotal = Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0);
   const chatMenuCounts = {
     staffCount: chatCounts.staff || 0,
