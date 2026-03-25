@@ -28,6 +28,7 @@ import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 import { CUOTAS_FALLBACK, CATEGORY_NAME_MAPPING, getCuotasFromConfig, getImportePorMesFromConfig } from '../lib/cuotasConfig';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
@@ -429,6 +430,9 @@ export default function ParentPayments() {
   const handleFileUpload = async (paymentId, e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Prevenir doble-envío
+    if (uploadingPaymentId) return;
 
     // Validar tamaño de archivo (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
@@ -1274,6 +1278,24 @@ export default function ParentPayments() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Overlay de subida de justificante */}
+      <Dialog open={!!uploadingPaymentId} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-xs" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-bold text-slate-900">Enviando justificante...</p>
+              <p className="text-sm text-slate-500 mt-1">Por favor no cierres esta pantalla</p>
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+              <div className="h-full bg-orange-500 rounded-full animate-pulse" style={{ width: '70%' }} />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       </div>
       </div>
       </>
