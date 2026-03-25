@@ -20,18 +20,18 @@ export default function ContactCard() {
         </div>
         
         <a 
-          href="mailto:CDBUSTARVIEJO@GMAIL.COM"
+          href="mailto:info@cdbustarviejo.com"
           className="flex items-center justify-center gap-2 bg-white text-orange-700 hover:bg-orange-50 transition-colors font-bold text-sm py-2 px-3 rounded-lg shadow w-full mb-2"
         >
           <Mail className="w-4 h-4" />
-          CDBUSTARVIEJO@GMAIL.COM
+          info@cdbustarviejo.com
         </a>
 
         <div className="grid grid-cols-4 gap-1.5">
           {emailSubjects.map((item) => (
             <a
               key={item.label}
-              href={`mailto:CDBUSTARVIEJO@GMAIL.COM?subject=${encodeURIComponent(item.subject)}`}
+              href={`mailto:info@cdbustarviejo.com?subject=${encodeURIComponent(item.subject)}`}
               className="flex flex-col items-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg p-1.5 text-center"
             >
               <item.icon className="w-3.5 h-3.5 flex-shrink-0" />

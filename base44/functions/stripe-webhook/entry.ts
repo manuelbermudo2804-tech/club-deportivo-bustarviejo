@@ -15,7 +15,7 @@ function baseLayout(headerBg, headerTitle, headerEmoji, contentHtml) {
 </div>
 <div style="padding:28px 24px">${contentHtml}</div>
 <div style="background:#333333;padding:20px 24px;text-align:center">
-<p style="margin:4px 0;font-size:12px;color:#cccccc">📧 <a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none">cdbustarviejo@gmail.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" style="color:#fb923c;text-decoration:none">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p>
+<p style="margin:4px 0;font-size:12px;color:#cccccc">📧 <a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none">info@cdbustarviejo.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" style="color:#fb923c;text-decoration:none">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p>
 <p style="margin:10px 0 4px;font-size:12px;color:#cccccc">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p>
 </div>
 </div></body></html>`;

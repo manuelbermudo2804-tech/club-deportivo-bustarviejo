@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
 <div style="border-radius:8px;padding:16px;margin:18px 0;background:#eff6ff;border-left:4px solid #3b82f6"><p style="margin:4px 0;font-size:13px;color:#333333"><strong>📲 Guarda este email</strong> como comprobante de tu membresía.</p></div>
 <p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong><br/><span style="font-size:12px;color:#64748b">Tu club de siempre 💚</span></p>
 </div>
-<div style="background:#333333;padding:20px 24px;text-align:center"><p style="margin:4px 0;font-size:12px;color:#cccccc">📧 <a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none">cdbustarviejo@gmail.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" style="color:#fb923c;text-decoration:none">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p><p style="margin:10px 0 4px;font-size:12px;color:#cccccc">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p></div>
+<div style="background:#333333;padding:20px 24px;text-align:center"><p style="margin:4px 0;font-size:12px;color:#cccccc">📧 <a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none">info@cdbustarviejo.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" style="color:#fb923c;text-decoration:none">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p><p style="margin:10px 0 4px;font-size:12px;color:#cccccc">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p></div>
 </div></body></html>`;
 
     console.log('[sendMembershipWelcome] 📧 Enviando email de bienvenida a:', email);

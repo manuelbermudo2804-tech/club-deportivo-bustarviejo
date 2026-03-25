@@ -7,7 +7,7 @@ const FOOTER = `
 <tr><td style="background:#1e293b;padding:20px 24px;text-align:center;">
   <div style="color:#94a3b8;font-size:12px;line-height:1.6;">
     <strong style="color:#f8fafc;">CD Bustarviejo</strong><br>
-    <a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none;">cdbustarviejo@gmail.com</a>
+    <a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a>
   </div>
 </td></tr>`;
 

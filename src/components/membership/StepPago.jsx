@@ -113,8 +113,8 @@ export default function StepPago({
           tratamiento de tus datos personales por parte del CD Bustarviejo para gestionar tu membresía.
           Tus datos serán tratados de forma confidencial conforme al RGPD. Puedes ejercer tus derechos
           enviando un email a{" "}
-          <a href="mailto:cdbustarviejo@gmail.com" className="text-orange-600 underline">
-            cdbustarviejo@gmail.com
+          <a href="mailto:info@cdbustarviejo.com" className="text-orange-600 underline">
+            info@cdbustarviejo.com
           </a>.
         </p>
       </div>

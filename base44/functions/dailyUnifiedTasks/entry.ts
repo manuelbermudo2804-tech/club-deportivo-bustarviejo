@@ -91,7 +91,7 @@ function buildAutoResendEmail(code, nombreDestino, reenvioNum) {
         <a href="${appUrl}" target="_blank" style="display:inline-block;color:#fff;font-size:16px;font-weight:bold;text-decoration:none;padding:16px 40px;border-radius:10px;">Abrir la App →</a>
       </td></tr>
     </table>
-    <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:12px;">Recordatorio nº${reenvioNum}. Ayuda: cdbustarviejo@gmail.com</p>
+    <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:12px;">Recordatorio nº${reenvioNum}. Ayuda: info@cdbustarviejo.com</p>
   </td></tr>
 </table>
 </td></tr></table>
