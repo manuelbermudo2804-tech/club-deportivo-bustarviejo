@@ -6,6 +6,7 @@ import { useFetchUser } from "./components/layout/useFetchUser";
 
 
 import { Menu, X, Smartphone } from "lucide-react";
+import { toast } from "sonner";
 import { buildAdminNavigation, buildCoachNavigation, buildCoordinatorNavigation, buildParentNavigation, buildPlayerNavigation, buildTreasurerNavigation, buildMinorNavigation } from "./components/layout/navigationItems";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
