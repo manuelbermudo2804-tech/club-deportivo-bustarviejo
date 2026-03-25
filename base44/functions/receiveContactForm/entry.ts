@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
             </div>
           </div>`;
         // Obtener emails de coordinadores para notificarles también
-        let recipients = ['cdbustarviejo@gmail.com'];
+        let recipients = ['info@cdbustarviejo.com'];
         try {
           const allUsers = await base44.asServiceRole.entities.User.list();
           const coordinators = allUsers.filter(u => u.es_coordinador === true);

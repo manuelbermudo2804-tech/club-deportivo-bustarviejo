@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
 </tr>
 <tr>
 <td style="background:#1e293b;padding:16px;text-align:center;">
-  <p style="color:#94a3b8;font-size:11px;margin:0;">CD Bustarviejo · cdbustarviejo@gmail.com</p>
+  <p style="color:#94a3b8;font-size:11px;margin:0;">CD Bustarviejo · info@cdbustarviejo.com</p>
 </td>
 </tr>
 </table>
