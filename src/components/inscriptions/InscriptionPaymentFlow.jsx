@@ -6,35 +6,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreditCard, Gift, Info, Loader2, CheckCircle2 } from "lucide-react";
 
-const CATEGORY_NAME_MAPPING = {
-  "Fútbol Aficionado": "AFICIONADO",
-  "Fútbol Juvenil": "JUVENIL",
-  "Fútbol Cadete": "CADETE",
-  "Fútbol Infantil (Mixto)": "INFANTIL",
-  "Fútbol Alevín (Mixto)": "ALEVIN",
-  "Fútbol Benjamín (Mixto)": "BENJAMIN",
-  "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
-  "Fútbol Femenino": "FEMENINO",
-  "Baloncesto (Mixto)": "BALONCESTO"
-};
+import { CATEGORY_NAME_MAPPING, getCuotasFromConfig as getCuotasFromConfigShared } from '../../lib/cuotasConfig';
 
 const getCuotasFromConfig = (categoria, categoryConfigs) => {
   if (!categoryConfigs || categoryConfigs.length === 0) return null;
-  
-  const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
-  const categoryConfig = categoryConfigs.find(c => 
-    (c.nombre === categoria || c.nombre === mappedName) && c.activa
-  );
-  
-  if (categoryConfig) {
-    return {
-      inscripcion: categoryConfig.cuota_inscripcion,
-      segunda: categoryConfig.cuota_segunda,
-      tercera: categoryConfig.cuota_tercera,
-      total: categoryConfig.cuota_total
-    };
-  }
-  return null;
+  const result = getCuotasFromConfigShared(categoria, categoryConfigs);
+  // Return null if no config found (to trigger fallback UI)
+  if (result.inscripcion === 0 && result.segunda === 0 && result.tercera === 0 && result.total === 0) return null;
+  return result;
 };
 
 export default function InscriptionPaymentFlow({ 

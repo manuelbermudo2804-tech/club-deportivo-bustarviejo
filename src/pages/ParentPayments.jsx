@@ -27,62 +27,7 @@ import PaymentCard from "../components/payments/PaymentCard";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
-// Cuotas fallback (se sobreescriben con CategoryConfig si existe)
-const CUOTAS_FALLBACK = {
-  "Fútbol Aficionado": { inscripcion: 165, segunda: 100, tercera: 95, total: 360 },
-  "Fútbol Juvenil": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
-  "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
-  "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
-  "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
-  "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
-  "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
-  "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
-  "Baloncesto (Mixto)": { inscripcion: 50, segunda: 50, tercera: 50, total: 150 }
-};
-
-// Mapeo de nombres de deporte a nombres de categoría en CategoryConfig
-const CATEGORY_NAME_MAPPING = {
-  "Fútbol Aficionado": "AFICIONADO",
-  "Fútbol Juvenil": "JUVENIL",
-  "Fútbol Cadete": "CADETE",
-  "Fútbol Infantil (Mixto)": "INFANTIL",
-  "Fútbol Alevín (Mixto)": "ALEVIN",
-  "Fútbol Benjamín (Mixto)": "BENJAMIN",
-  "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
-  "Fútbol Femenino": "FEMENINO",
-  "Baloncesto (Mixto)": "BALONCESTO"
-};
-
-// Función que obtiene cuotas de CategoryConfig si existe
-const getCuotasFromConfig = (categoria, categoryConfigs) => {
-  if (!categoryConfigs || categoryConfigs.length === 0) {
-    return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
-  }
-  
-  const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
-  const categoryConfig = categoryConfigs.find(c => 
-    (c.nombre === categoria || c.nombre === mappedName) && c.activa
-  );
-  
-  if (categoryConfig) {
-    return {
-      inscripcion: categoryConfig.cuota_inscripcion,
-      segunda: categoryConfig.cuota_segunda,
-      tercera: categoryConfig.cuota_tercera,
-      total: categoryConfig.cuota_total
-    };
-  }
-  
-  return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
-};
-
-const getImportePorMesFromConfig = (categoria, mes, categoryConfigs) => {
-  const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
-  if (mes === "Junio") return cuotas.inscripcion;
-  if (mes === "Septiembre") return cuotas.segunda;
-  if (mes === "Diciembre") return cuotas.tercera;
-  return 0;
-};
+import { CUOTAS_FALLBACK, CATEGORY_NAME_MAPPING, getCuotasFromConfig, getImportePorMesFromConfig } from '../lib/cuotasConfig';
 
 export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
@@ -192,15 +137,21 @@ export default function ParentPayments() {
 
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs'],
-    queryFn: () => base44.entities.CategoryConfig.list(),
+    queryFn: () => base44.entities.CategoryConfig.filter({ activa: true }),
     staleTime: 600000, // 10 minutos
     gcTime: 1200000,
     refetchOnWindowFocus: false,
   });
 
+  const playerIds = players.map(p => p.id);
   const { data: customPlans = [] } = useQuery({
-    queryKey: ['customPaymentPlans'],
-    queryFn: () => base44.entities.CustomPaymentPlan.list(),
+    queryKey: ['customPaymentPlans', playerIds.join(',')],
+    queryFn: async () => {
+      if (!playerIds.length) return [];
+      const plans = await base44.entities.CustomPaymentPlan.filter({ estado: 'Activo' });
+      return plans.filter(p => playerIds.includes(p.jugador_id));
+    },
+    enabled: playerIds.length > 0,
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
