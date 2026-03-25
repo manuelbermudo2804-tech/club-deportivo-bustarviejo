@@ -491,7 +491,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
               <Info className="h-5 w-5 text-green-600" />
               <AlertDescription className="text-green-900">
                 <p className="font-bold text-lg mb-2">✅ Temporada Pagada Completamente</p>
-                <p>El jugador <strong>{selectedPlayer.nombre}</strong> ya tiene todos los pagos de la temporada {currentSeason} completados.</p>
+                <p>El jugador <strong>{selectedPlayer.nombre}</strong> ya tiene todos los pagos de la temporada {seasonConfig?.temporada || currentPayment.temporada} completados.</p>
                 <p className="mt-2 text-sm">No es necesario registrar más pagos para este jugador. Selecciona otro jugador.</p>
               </AlertDescription>
             </Alert>
