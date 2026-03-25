@@ -5,6 +5,11 @@ import { base44 } from "@/api/base44Client";
 import { useFetchUser } from "./components/layout/useFetchUser";
 import useEngineStages from "./hooks/useEngineStages";
 import useAppUpdater from "./hooks/useAppUpdater";
+import useRateLimit from "./hooks/useRateLimit";
+import useMarketBadge from "./hooks/useMarketBadge";
+import usePwaDetection from "./hooks/usePwaDetection";
+import useStripeReturn from "./hooks/useStripeReturn";
+import useChunkRecovery from "./hooks/useChunkRecovery";
 
 
 import { Menu, X, Smartphone } from "lucide-react";
@@ -90,8 +95,9 @@ export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
   const currentSeason = getCurrentSeason();
-  const [rateLimited, setRateLimited] = useState(false);
-  const rateLimitTimerRef = useRef(null);
+  // Rate limit, chunk recovery, PWA detection — hooks extraídos
+  const rateLimited = useRateLimit();
+  useChunkRecovery();
   const [onboardingView, setOnboardingView] = useState('loading');
 
   const {
@@ -160,17 +166,15 @@ export default function Layout({ children, currentPageName }) {
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showFirstTimeRegistration, setShowFirstTimeRegistration] = useState(false);
   const [showInstallSuccess, setShowInstallSuccess] = useState(false);
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
-  const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
+  const showPaymentSuccess = useStripeReturn(/* setExtraChargeVisible not needed here — handled in useFetchUser */);
   
   const { showUpdateNotification, hasNewVersion, applyUpdate, BUILD_VERSION } = useAppUpdater();
   // Mercadillo badge
-  const [marketCount, setMarketCount] = useState(0);
-  const [marketNewCount, setMarketNewCount] = useState(0);
+  const { marketCount, marketNewCount } = useMarketBadge(location.pathname);
 
   const [installContext, setInstallContext] = useState('manual');
 
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const { isAppInstalled, showFirstLaunchInvite, setShowFirstLaunchInvite, markInstalled, dismissFirstLaunch } = usePwaDetection(user);
   const { enginesReady, enginesStage2Ready, enginesStage3Ready, enginesStage4Ready, enginesStage5Ready } = useEngineStages(isLoading, user);
 
   const [showWelcome, setShowWelcome] = useState(false);
@@ -206,11 +210,7 @@ export default function Layout({ children, currentPageName }) {
   const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
 
-      // Detectar si la app está instalada - solo por localStorage (marcado manual)
-                  useEffect(() => {
-                    const userMarkedInstalled = localStorage.getItem('pwaInstalled') === 'true';
-                    setIsAppInstalled(userMarkedInstalled);
-                  }, []);
+      // Detección de PWA gestionada por usePwaDetection hook
 
         // Modo silencioso por mantenimiento eliminado
 
@@ -226,78 +226,16 @@ export default function Layout({ children, currentPageName }) {
 
   // Cargar idioma desde localStorage después del montaje
   useEffect(() => {
-    // Recuperación automática ante errores de carga de chunks (404/ChunkLoadError)
-    const chunkErrorHandler = (e) => {
-      const msg = (e?.reason?.message || e?.message || '').toString();
-      if (/(Loading chunk|ChunkLoadError|Failed to fetch dynamically imported module)/i.test(msg)) {
-        try { if (window.caches) { caches.keys().then(keys => keys.forEach(k => caches.delete(k))); } } catch {}
-        try { if (navigator.serviceWorker) { navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())); } } catch {}
-        window.location.reload();
-      }
-    };
-    window.addEventListener('unhandledrejection', chunkErrorHandler);
-
-     const savedLang = localStorage.getItem('appLanguage');
+    const savedLang = localStorage.getItem('appLanguage');
     if (savedLang) setCurrentLang(savedLang);
-    return () => {
-      // Quitar manejadores de recuperación de chunks
-      try {
-        window.removeEventListener('unhandledrejection', chunkErrorHandler);
-      } catch {}
-    };
-    }, []);
+  }, []);
 
     // Actualizaciones y detección de nuevas versiones gestionadas por useAppUpdater hook
 
-    // Rate limit guard - pausa consultas si recibimos 429
-    // También detecta errores de red/WebSocket comunes en navegadores antiguos
-    useEffect(() => {
-      const onRateLimit = (e) => {
-        try {
-          const msg = (e?.reason?.message || e?.message || '').toString();
-          if (/rate limit|429|too many requests/i.test(msg)) {
-            if (rateLimitTimerRef.current) clearTimeout(rateLimitTimerRef.current);
-            window.__BASE44_PAUSE_REALTIME__ = true;
-            setRateLimited(true);
-            rateLimitTimerRef.current = setTimeout(() => {
-              window.__BASE44_PAUSE_REALTIME__ = false;
-              setRateLimited(false);
-            }, 25000);
-          }
-        } catch {}
-      };
-      window.addEventListener('unhandledrejection', onRateLimit);
-      return () => window.removeEventListener('unhandledrejection', onRateLimit);
-    }, []);
+    // Rate limit gestionado por useRateLimit hook
 
     // Configuración de temporada se carga dentro de fetchUser para evitar llamadas duplicadas
-  // Badge Mercadillo: solo cargar cuando se visita la página del Mercadillo
-  // El conteo se carga de localStorage para el badge (sin query a BD)
-  useEffect(() => {
-    const lastSeen = Number(localStorage.getItem('marketLastSeenCount') || 0);
-    // Sin query — el badge solo muestra "nuevo" si la página Mercadillo actualizó el count
-    const cachedCount = Number(localStorage.getItem('marketTotalCount') || 0);
-    setMarketCount(cachedCount);
-    setMarketNewCount(cachedCount > lastSeen ? cachedCount - lastSeen : 0);
-  }, []);
-
-  // Marcar como visto al entrar en Mercadillo y actualizar cache
-  useEffect(() => {
-    const p = location.pathname.toLowerCase();
-    if (p.includes('mercadillo')) {
-      // Al entrar en Mercadillo, cargar el conteo real y cachear
-      (async () => {
-        try {
-          const data = await base44.entities.MarketListing.filter({ estado: 'activo' });
-          const count = (data || []).length;
-          localStorage.setItem('marketTotalCount', String(count));
-          localStorage.setItem('marketLastSeenCount', String(count));
-          setMarketCount(count);
-          setMarketNewCount(0);
-        } catch {}
-      })();
-    }
-  }, [location.pathname]);
+  // Badge Mercadillo gestionado por useMarketBadge hook
 
   // Redirigir alias de PWA a la ruta canónica
   useEffect(() => {
@@ -307,35 +245,7 @@ export default function Layout({ children, currentPageName }) {
     }
   }, []);
 
-  // Detectar retorno de Stripe (éxito de pago)
-  useEffect(() => {
-    try {
-      const url = new URL(window.location.href);
-      const payment = url.searchParams.get('payment');
-      if (payment === 'ok') {
-        setShowPaymentSuccess(true);
-        // Ocultar inmediatamente el banner del cobro extra y recordar no mostrarlo
-        try {
-          const extraId = new URL(window.location.href).searchParams.get('extra_charge_id');
-          if (extraId) {
-            const arr = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
-            if (!arr.includes(extraId)) {
-              arr.push(extraId);
-              localStorage.setItem('extraChargeSuppress', JSON.stringify(arr));
-            }
-          }
-        } catch {}
-        setExtraChargeVisible(null);
-        setTimeout(() => setShowPaymentSuccess(false), 3000);
-        url.searchParams.delete('payment');
-        url.searchParams.delete('type');
-        url.searchParams.delete('extra_charge_id');
-        url.searchParams.delete('session_id');
-        const cleaned = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '');
-        window.history.replaceState({}, '', cleaned);
-      }
-    } catch {}
-  }, []);
+  // Retorno de Stripe gestionado por useStripeReturn hook
 
   // Carga inicial de datos del usuario (solo una vez)
   useEffect(() => {
@@ -532,17 +442,7 @@ export default function Layout({ children, currentPageName }) {
     // Escalonar carga de motores en 5 oleadas para reducir presión en RAM
     // Engine stages 2-5 gestionados por useEngineStages hook
 
-    // Invitar en el primer arranque desde el icono (PWA)
-    useEffect(() => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      if (isStandalone) {
-        localStorage.setItem('pwaInstalled', 'true');
-        setIsAppInstalled(true);
-      }
-      if (user?.tipo_panel && isStandalone && !localStorage.getItem('firstLaunchDone') && user?.es_segundo_progenitor !== true) {
-        setShowFirstLaunchInvite(true);
-      }
-    }, [user]);
+    // First launch invite gestionado por usePwaDetection hook
 
   // Flags para manejar páginas públicas sin returns antes de hooks
   const isPublicPage = isPublicPageRef.current;
@@ -642,8 +542,7 @@ export default function Layout({ children, currentPageName }) {
                 isAndroid={isAndroid}
                 onInstalled={() => {
                   localStorage.setItem('installCompleted', 'true');
-                  localStorage.setItem('pwaInstalled', 'true');
-                  setIsAppInstalled(true);
+                  markInstalled();
                   setShowInstallInstructions(false);
                   if (installContext === 'onboarding') setShowInstallSuccess(true);
                 }}
@@ -659,10 +558,9 @@ export default function Layout({ children, currentPageName }) {
                 {showFirstLaunchInvite && (
                   <FirstLaunchInviteOverlay
                     user={user}
-                    onDismiss={() => { setShowFirstLaunchInvite(false); localStorage.setItem('firstLaunchDone', 'true'); }}
+                    onDismiss={dismissFirstLaunch}
                     onNavigate={() => {
-                      localStorage.setItem('firstLaunchDone', 'true');
-                      setShowFirstLaunchInvite(false);
+                      dismissFirstLaunch();
                       const target = user?.tipo_panel === 'familia' ? createPageUrl('ParentPlayers') : createPageUrl('PlayerProfile');
                       window.location.href = target;
                     }}
