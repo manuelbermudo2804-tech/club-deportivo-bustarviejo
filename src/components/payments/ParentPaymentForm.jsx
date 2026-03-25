@@ -148,31 +148,33 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
     fetchConfig();
   }, []);
 
+  // Inicialización: seleccionar jugador preseleccionado o de URL (solo al montar o cuando cambian configs)
+  const initializedRef = React.useRef(false);
   useEffect(() => {
-    // EJECUTAR SIEMPRE si hay preselectedPlayerId, incluso si ya hay jugador_id
-    if (players && players.length > 0) {
-      if (preselectedPlayerId) {
-        const player = players.find(p => p.id === preselectedPlayerId);
-        if (player) {
-          handlePlayerChange(player.id, preselectedMonth);
-          return;
-        }
-      }
-      
-      // Si no hay preselected y tampoco hay jugador seleccionado, intentar URL param
-      if (!currentPayment.jugador_id) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const jugadorId = urlParams.get('jugador_id');
-        
-        if (jugadorId) {
-          const player = players.find(p => p.id === jugadorId);
-          if (player) {
-            handlePlayerChange(player.id);
-          }
-        }
+    if (!players || players.length === 0 || categoryConfigs.length === 0) return;
+    
+    if (preselectedPlayerId) {
+      const player = players.find(p => p.id === preselectedPlayerId);
+      if (player) {
+        handlePlayerChange(player.id, preselectedMonth);
+        initializedRef.current = true;
+        return;
       }
     }
-  }, [players, payments, preselectedPlayerId, preselectedMonth, categoryConfigs]);
+    
+    // Si no hay preselected y no se ha inicializado, intentar URL param
+    if (!initializedRef.current && !currentPayment.jugador_id) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const jugadorId = urlParams.get('jugador_id');
+      if (jugadorId) {
+        const player = players.find(p => p.id === jugadorId);
+        if (player) {
+          handlePlayerChange(player.id);
+        }
+      }
+      initializedRef.current = true;
+    }
+  }, [players, preselectedPlayerId, preselectedMonth, categoryConfigs]);
 
   // CRÍTICO: Re-evaluar tipo de pago cuando cambian los payments (para detectar cuotas recién generadas)
   useEffect(() => {
