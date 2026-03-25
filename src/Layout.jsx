@@ -10,6 +10,7 @@ import useMarketBadge from "./hooks/useMarketBadge";
 import usePwaDetection from "./hooks/usePwaDetection";
 import useStripeReturn from "./hooks/useStripeReturn";
 import useChunkRecovery from "./hooks/useChunkRecovery";
+import useAppBadge from "./hooks/useAppBadge";
 
 
 import { Menu, X, Smartphone } from "lucide-react";
@@ -171,6 +172,10 @@ export default function Layout({ children, currentPageName }) {
   const { showUpdateNotification, hasNewVersion, applyUpdate, BUILD_VERSION } = useAppUpdater();
   // Mercadillo badge
   const { marketCount, marketNewCount } = useMarketBadge(location.pathname);
+
+  // Badge numérico en el icono de la PWA (Android/Desktop)
+  const badgeTotal = (pendingCallupsCount || 0) + (unreadAnnouncementsCount || 0) + (pendingSignaturesCount || 0) + (chatCounts.total || 0) + (pendingCallupResponses || 0);
+  useAppBadge(badgeTotal);
 
   const [installContext, setInstallContext] = useState('manual');
 
