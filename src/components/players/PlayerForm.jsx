@@ -753,7 +753,7 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
                         La imposibilidad de asistir a los entrenamientos no supondrá, en ningún caso, la disminución o exención del pago de las cuotas por temporada.
                       </li>
                       <li>
-                        <strong>La inscripción NO incluye la equipación y el pack de ropa de entrenamiento.</strong> Puedes realizar tus pedidos en el apartado <strong>"Pedidos Ropa"</strong> del menú.
+                        <strong>La inscripción NO incluye la equipación y el pack de ropa de entrenamiento.</strong> Puedes consultar la equipación disponible en el apartado <strong>"Tienda"</strong> del menú.
                       </li>
                       <li>
                         No se tramitará la ficha federativa, ni el seguro de accidentes, si no está entregada la ficha de inscripción y el importe correspondiente. Los jugadores/as no podrán realizar la actividad hasta no cumplir con estos requisitos.
