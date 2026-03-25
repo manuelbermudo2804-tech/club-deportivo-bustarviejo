@@ -30,6 +30,9 @@ import { ChatUnreadProvider } from "./components/chat/ChatUnreadProvider";
 import ChatCountsBridge from "./components/chat/ChatCountsBridge";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
+import ActiveBanner from "./components/announcements/ActiveBanner";
+import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
+const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 
 
 
