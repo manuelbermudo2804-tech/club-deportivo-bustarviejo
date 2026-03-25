@@ -55,7 +55,7 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
             ) : null;
           })()}
           <div className="flex items-start sm:items-center justify-between gap-3">
-            <p className="text-sm text-slate-600">{mode === 'transfer' ? 'Confirma el detalle para generar la transferencia.' : 'Puedes pagar todas juntas con tarjeta o generar una única transferencia.'}</p>
+            <p className="text-sm text-slate-600">{mode === 'transfer' ? 'Confirma el detalle para generar la transferencia.' : mode === 'card' ? 'Confirma el detalle para pagar con tarjeta.' : 'Puedes pagar todas juntas con tarjeta o generar una única transferencia.'}</p>
             <div className="text-right font-bold shrink-0">Total: {Number(total).toFixed(2)}€</div>
           </div>
           <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
@@ -67,24 +67,26 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
             >
               Seguir seleccionando
             </Button>
-            <Button 
-              onClick={async () => {
-                setIsProcessingTransfer(true);
-                await onTransfer();
-                setIsProcessingTransfer(false);
-              }} 
-              className="w-full sm:w-auto bg-slate-800 text-white hover:bg-slate-900"
-              disabled={isProcessingCard || isProcessingTransfer}
-            >
-              {isProcessingTransfer ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Preparando...
-                </>
-              ) : (
-                <>🧾 Confirmar transferencia</>
-              )}
-            </Button>
+            {mode !== 'card' && (
+              <Button 
+                onClick={async () => {
+                  setIsProcessingTransfer(true);
+                  await onTransfer();
+                  setIsProcessingTransfer(false);
+                }} 
+                className="w-full sm:w-auto bg-slate-800 text-white hover:bg-slate-900"
+                disabled={isProcessingCard || isProcessingTransfer}
+              >
+                {isProcessingTransfer ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Preparando...
+                  </>
+                ) : (
+                  <>🧾 Confirmar transferencia</>
+                )}
+              </Button>
+            )}
             {mode !== 'transfer' && (
               <Button 
                 className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto" 
@@ -104,7 +106,7 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
                     Abriendo Stripe...
                   </>
                 ) : (
-                  <>💳 Pagar con tarjeta</>
+                  <>💳 Confirmar pago con tarjeta</>
                 )}
               </Button>
             )}

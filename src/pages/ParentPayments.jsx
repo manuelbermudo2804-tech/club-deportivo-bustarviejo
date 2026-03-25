@@ -1241,7 +1241,7 @@ export default function ParentPayments() {
         <PaymentsCartBar
           selectedCount={cartSelected.length}
           total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
-          onPayCard={() => { setSummaryMode('all'); setShowSummary(true); }}
+          onPayCard={() => { setSummaryMode('card'); setShowSummary(true); }}
           onTransfer={() => { setSummaryMode('transfer'); setShowSummary(true); }}
         />
 
