@@ -98,7 +98,7 @@ export default function InscriptionPaymentFlow({
   const importeTotal = cuotas ? cuotas.total - descuentoHermano : 0;
   const importeInscripcion = cuotas ? cuotas.inscripcion - descuentoHermano : 0;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // Prevenir doble-click
     if (isSubmitting) {
       console.log('⚠️ [InscriptionPaymentFlow] Ya está procesando - ignorando');
@@ -171,9 +171,11 @@ export default function InscriptionPaymentFlow({
     }
 
     try {
-      onContinue({ tipoPago, payments: paymentsToCreate });
+      await onContinue({ tipoPago, payments: paymentsToCreate });
     } catch (err) {
       console.error('[InscriptionPaymentFlow] Error en onContinue:', err);
+    } finally {
+      // SIEMPRE desbloquear el botón (si la página sigue montada)
       setIsSubmitting(false);
     }
   };
