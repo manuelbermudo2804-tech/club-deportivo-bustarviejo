@@ -643,9 +643,7 @@ export default function ParentPayments() {
     });
     // Marcar cada payment en revisión con justificante común
     for (const it of items) {
-      const current = payments.find((p) => p.id === it.payment_id);
       await base44.entities.Payment.update(it.payment_id, {
-        ...(current || {}),
         estado: 'En revisión',
         metodo_pago: 'Transferencia',
         justificante_url: file_url
