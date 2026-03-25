@@ -49,7 +49,18 @@ export default function StepPago({
       }
     } catch (err) {
       console.error("Stripe checkout error:", err);
-      toast.error("Error al conectar con el sistema de pago: " + (err?.response?.data?.error || err.message));
+      const rawMsg = err?.response?.data?.error || err?.message || '';
+      let userMsg = 'Error al conectar con el sistema de pago.';
+      if (rawMsg.includes('network') || rawMsg.includes('Network') || rawMsg.includes('Failed to fetch')) {
+        userMsg = 'Error de conexión. Comprueba tu conexión a internet e inténtalo de nuevo.';
+      } else if (rawMsg.includes('timeout') || rawMsg.includes('Timeout')) {
+        userMsg = 'La conexión tardó demasiado. Inténtalo de nuevo en unos segundos.';
+      } else if (rawMsg.includes('500') || rawMsg.includes('Internal')) {
+        userMsg = 'Error temporal del servidor de pagos. Espera unos segundos e inténtalo de nuevo.';
+      } else if (rawMsg) {
+        userMsg = `Error en el pago: ${rawMsg}`;
+      }
+      toast.error(userMsg, { duration: 8000 });
     } finally {
       setLoading(false);
     }

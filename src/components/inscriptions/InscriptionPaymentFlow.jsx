@@ -151,8 +151,6 @@ export default function InscriptionPaymentFlow({
         }
       );
     } else if (tipoPago === "Plan Mensual") {
-      // Solo se crea el pago inicial como "Pendiente".
-      // La suscripción de Stripe se gestionará al pagar con tarjeta.
       const pagoInicial = Math.round(importeTotal * pctInicial / 100);
       const restante = importeTotal - pagoInicial;
       const MES_NUM = { "Septiembre": 9, "Octubre": 10, "Noviembre": 11, "Diciembre": 12, "Enero": 1, "Febrero": 2, "Marzo": 3, "Abril": 4, "Mayo": 5, "Junio": 6 };
@@ -172,16 +170,33 @@ export default function InscriptionPaymentFlow({
       });
     }
 
-    onContinue({ tipoPago, payments: paymentsToCreate });
+    try {
+      onContinue({ tipoPago, payments: paymentsToCreate });
+    } catch (err) {
+      console.error('[InscriptionPaymentFlow] Error en onContinue:', err);
+      setIsSubmitting(false);
+    }
   };
 
   if (!cuotas) {
     return (
-      <Alert className="bg-red-50 border-red-300">
-        <AlertDescription className="text-red-800">
-          No se encontró configuración de cuotas. Contacta con el administrador.
-        </AlertDescription>
-      </Alert>
+      <Card className="border-2 border-red-400 shadow-lg">
+        <CardContent className="pt-6 space-y-4">
+          <Alert className="bg-red-50 border-red-300">
+            <AlertDescription className="text-red-800">
+              <p className="font-bold mb-2">⚠️ No se encontró configuración de cuotas</p>
+              <p className="text-sm mb-3">Puede ser un error temporal de conexión. Pulsa reintentar o contacta con el club.</p>
+            </AlertDescription>
+          </Alert>
+          <Button
+            onClick={() => setLoadedConfigs(null)}
+            variant="outline"
+            className="w-full border-red-300 text-red-700 hover:bg-red-50"
+          >
+            🔄 Reintentar
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 

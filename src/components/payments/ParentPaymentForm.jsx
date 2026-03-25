@@ -373,6 +373,9 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
     }
   };
 
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadRetryCount, setUploadRetryCount] = useState(0);
+
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -385,17 +388,31 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
       return;
     }
 
+    // Validar archivo vacío
+    if (file.size === 0) {
+      toast.error('El archivo está vacío o no se pudo leer. Inténtalo de nuevo.', { duration: 6000 });
+      return;
+    }
+
     setUploadingFile(true);
+    setUploadError(null);
     try {
       const file_uri = await uploadPrivateFile(file);
       setCurrentPayment(prev => ({
         ...prev,
         justificante_url: file_uri
       }));
+      setUploadRetryCount(0);
       toast.success("🔒 Justificante subido de forma segura");
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Error al subir el justificante. Intenta con un archivo más pequeño.");
+      const attempt = uploadRetryCount + 1;
+      setUploadRetryCount(attempt);
+      const errorMsg = attempt >= 2
+        ? 'Sigue sin funcionar. Prueba con una captura de pantalla del justificante (suelen pesar menos) o contacta con el club.'
+        : 'No se pudo subir el justificante. Pulsa de nuevo para reintentar, o prueba con una foto más pequeña.';
+      setUploadError(errorMsg);
+      toast.error(errorMsg, { duration: 8000 });
     } finally {
       setUploadingFile(false);
     }
@@ -826,6 +843,11 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
                   />
                   {currentPayment.justificante_url ? (
                     <p className="text-sm text-green-600 font-medium">✓ Justificante subido correctamente</p>
+                  ) : uploadError ? (
+                    <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3 space-y-2">
+                      <p className="text-sm text-red-800 font-medium">❌ {uploadError}</p>
+                      <p className="text-xs text-red-700">💡 <strong>Alternativas:</strong> Baja la resolución de la cámara en Ajustes, o envíate la foto por WhatsApp y súbela desde ahí (se reduce sola).</p>
+                    </div>
                   ) : (
                     <p className="text-sm text-red-600 font-medium">⚠️ Debes subir el justificante para continuar</p>
                   )}
