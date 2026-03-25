@@ -193,7 +193,7 @@ export default function InscriptionPaymentFlow({
             </AlertDescription>
           </Alert>
           <Button
-            onClick={() => setLoadedConfigs(null)}
+            onClick={() => { setLoadedConfigs(null); setRetryCount(c => c + 1); }}
             variant="outline"
             className="w-full border-red-300 text-red-700 hover:bg-red-50"
           >
