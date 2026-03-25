@@ -4,6 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useFetchUser } from "./components/layout/useFetchUser";
 import useEngineStages from "./hooks/useEngineStages";
+import useAppUpdater from "./hooks/useAppUpdater";
 
 
 import { Menu, X, Smartphone } from "lucide-react";
@@ -56,9 +57,6 @@ import InstallSuccessOverlay from "./components/pwa/InstallSuccessOverlay";
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
-
-// BUILD VERSION - cambia automáticamente con cada publicación porque se genera al compilar
-const BUILD_VERSION = "build_1708714800001";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -165,19 +163,7 @@ export default function Layout({ children, currentPageName }) {
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showFirstLaunchInvite, setShowFirstLaunchInvite] = useState(false);
   
-  const [showUpdateNotification, setShowUpdateNotification] = useState(false);
-  const [hasNewVersion, setHasNewVersion] = useState(() => {
-    // Check immediately on mount if there's a new build version
-    try {
-      const savedVersion = localStorage.getItem('app_build_version');
-      if (savedVersion && savedVersion !== BUILD_VERSION) {
-        return true; // New version detected!
-      }
-      // First visit or same version - save current
-      localStorage.setItem('app_build_version', BUILD_VERSION);
-      return false;
-    } catch { return false; }
-  });
+  const { showUpdateNotification, hasNewVersion, applyUpdate, BUILD_VERSION } = useAppUpdater();
   // Mercadillo badge
   const [marketCount, setMarketCount] = useState(0);
   const [marketNewCount, setMarketNewCount] = useState(0);
@@ -261,86 +247,7 @@ export default function Layout({ children, currentPageName }) {
     };
     }, []);
 
-    // Actualización automática MEJORADA (cada 1 min + al volver a la app)
-    useEffect(() => {
-      if (!('serviceWorker' in navigator)) return;
-
-      const checkForNewVersion = async () => {
-        try {
-          const reg = await navigator.serviceWorker.getRegistration();
-          if (!reg) return;
-          // Forzar búsqueda en el servidor
-          await reg.update();
-          // Si hay una versión esperando, mostrar aviso
-          if (reg.waiting) { setShowUpdateNotification(true); setHasNewVersion(true); }
-        } catch (e) { 
-          console.error('Error verificando actualizaciones:', e); 
-        }
-      };
-
-      // 1. Chequeo inicial y periódico (5 minutos)
-      checkForNewVersion();
-      const intervalId = setInterval(checkForNewVersion, 300 * 1000);
-
-      // 2. Chequeo inteligente al volver a la app (visibilidad)
-      const onVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-          console.log('👁️ [LAYOUT] App visible - actualizando datos...');
-          checkForNewVersion();
-          // Forzar actualización del Service Worker si hay uno esperando
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistration().then(reg => {
-              if (reg?.waiting) {
-                              setShowUpdateNotification(true);
-                              setHasNewVersion(true);
-                            }
-            });
-          }
-        }
-      };
-      document.addEventListener('visibilitychange', onVisibilityChange);
-
-      // 3. Listener estándar de instalación en segundo plano
-      (async () => {
-        try {
-          const reg = await navigator.serviceWorker.getRegistration();
-          if (reg) {
-            reg.addEventListener('updatefound', () => {
-              const newWorker = reg.installing;
-              if (newWorker) {
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && reg.waiting) {
-                                    setShowUpdateNotification(true);
-                                    setHasNewVersion(true);
-                                  }
-                });
-              }
-            });
-          }
-        } catch {}
-      })();
-
-      // 4. Recarga automática si el controlador cambia (ej. otra pestaña actualizó)
-      const onCtrlChange = () => window.location.reload();
-      navigator.serviceWorker.addEventListener('controllerchange', onCtrlChange);
-
-      return () => {
-        clearInterval(intervalId);
-        document.removeEventListener('visibilitychange', onVisibilityChange);
-        navigator.serviceWorker.removeEventListener('controllerchange', onCtrlChange);
-      };
-    }, []);
-
-    // Build version check - detect new deploys without SW dependency
-    useEffect(() => {
-      const savedVersion = localStorage.getItem('app_build_version');
-      if (savedVersion && savedVersion !== BUILD_VERSION) {
-        setHasNewVersion(true);
-        setShowUpdateNotification(true);
-      } else {
-        localStorage.setItem('app_build_version', BUILD_VERSION);
-      }
-    }, []);
+    // Actualizaciones y detección de nuevas versiones gestionadas por useAppUpdater hook
 
     // Rate limit guard - pausa consultas si recibimos 429
     // También detecta errores de red/WebSocket comunes en navegadores antiguos
@@ -527,29 +434,18 @@ export default function Layout({ children, currentPageName }) {
         toast.dismiss(toastId);
         return toast.info('Verificación no disponible en este modo');
       }
-      
       const reg = await navigator.serviceWorker.getRegistration();
       if (!reg) {
         toast.dismiss(toastId);
-        // Intentar registrar de nuevo si no existe
         return toast.info('App no instalada o en modo desarrollo');
       }
-      
       await reg.update();
-      
       if (reg.waiting) {
-        setShowUpdateNotification(true);
         toast.dismiss(toastId);
         toast.success('¡Nueva versión disponible!');
       } else {
-        setTimeout(() => {
-          if (showUpdateNotification) {
-             toast.dismiss(toastId);
-          } else {
-             toast.dismiss(toastId);
-             toast.success('Tu app está actualizada ✅');
-          }
-        }, 1500);
+        toast.dismiss(toastId);
+        toast.success('Tu app está actualizada ✅');
       }
     } catch (e) {
       toast.dismiss(toastId);
@@ -843,11 +739,7 @@ export default function Layout({ children, currentPageName }) {
         </Suspense>
 
         {showUpdateNotification && (
-          <UpdateNotificationBar onUpdate={() => {
-            localStorage.setItem('app_build_version', BUILD_VERSION);
-            setShowUpdateNotification(false);
-            window.location.reload();
-          }} />
+          <UpdateNotificationBar onUpdate={applyUpdate} />
         )}
 
         {rateLimited && <RateLimitBanner />}
