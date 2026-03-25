@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-export default function BatchSummaryDialog({ open, onClose, items = [], total = 0, onPayCard, onTransfer }) {
+export default function BatchSummaryDialog({ open, onClose, items = [], total = 0, onPayCard, onTransfer, mode = 'all' }) {
   const [isProcessingCard, setIsProcessingCard] = useState(false);
   const [isProcessingTransfer, setIsProcessingTransfer] = useState(false);
   return (
@@ -12,7 +12,7 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-bold">Resumen de pago</h3>
-            <p className="text-sm text-slate-600">Has seleccionado varias cuotas. Revisa el detalle y elige cómo quieres pagar.</p>
+            <p className="text-sm text-slate-600">{mode === 'transfer' ? 'Revisa el detalle antes de generar la transferencia.' : 'Has seleccionado varias cuotas. Revisa el detalle y elige cómo quieres pagar.'}</p>
           </div>
           <div className="max-h-64 overflow-auto border rounded-xl">
             <table className="w-full text-sm">
@@ -55,7 +55,7 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
             ) : null;
           })()}
           <div className="flex items-start sm:items-center justify-between gap-3">
-            <p className="text-sm text-slate-600">Puedes pagar todas juntas con tarjeta o generar una única transferencia. El comprobante se aplica a cada cuota del lote.</p>
+            <p className="text-sm text-slate-600">{mode === 'transfer' ? 'Confirma el detalle para generar la transferencia.' : 'Puedes pagar todas juntas con tarjeta o generar una única transferencia.'}</p>
             <div className="text-right font-bold shrink-0">Total: {Number(total).toFixed(2)}€</div>
           </div>
           <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
@@ -73,8 +73,7 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
                 await onTransfer();
                 setIsProcessingTransfer(false);
               }} 
-              variant="secondary" 
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto bg-slate-800 text-white hover:bg-slate-900"
               disabled={isProcessingCard || isProcessingTransfer}
             >
               {isProcessingTransfer ? (
@@ -83,30 +82,32 @@ export default function BatchSummaryDialog({ open, onClose, items = [], total = 
                   Preparando...
                 </>
               ) : (
-                <>🧾 Transferencia</>
+                <>🧾 Confirmar transferencia</>
               )}
             </Button>
-            <Button 
-              className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto" 
-              onClick={async () => {
-                setIsProcessingCard(true);
-                try {
-                  await onPayCard();
-                } catch (error) {
-                  setIsProcessingCard(false);
-                }
-              }}
-              disabled={isProcessingCard || isProcessingTransfer}
-            >
-              {isProcessingCard ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Abriendo Stripe...
-                </>
-              ) : (
-                <>💳 Pagar con tarjeta</>
-              )}
-            </Button>
+            {mode !== 'transfer' && (
+              <Button 
+                className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto" 
+                onClick={async () => {
+                  setIsProcessingCard(true);
+                  try {
+                    await onPayCard();
+                  } catch (error) {
+                    setIsProcessingCard(false);
+                  }
+                }}
+                disabled={isProcessingCard || isProcessingTransfer}
+              >
+                {isProcessingCard ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Abriendo Stripe...
+                  </>
+                ) : (
+                  <>💳 Pagar con tarjeta</>
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>
