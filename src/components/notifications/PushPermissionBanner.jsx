@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
 const DISMISS_KEY = 'push_banner_dismissed_at';
-const DISMISS_DAYS = 7;
+const DISMISS_DAYS = 1;
 
 export default function PushPermissionBanner({ user }) {
   const [visible, setVisible] = useState(false);
@@ -12,13 +12,29 @@ export default function PushPermissionBanner({ user }) {
 
   useEffect(() => {
     if (!user?.email) return;
-    // No mostrar si no hay soporte
     if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
-    // No mostrar si ya tiene permiso
-    if (Notification.permission === 'granted') return;
-    // No mostrar si bloqueó (no podemos hacer nada)
+    // Si ya tiene permiso granted, verificar que tenga suscripción activa
+    if (Notification.permission === 'granted') {
+      // Comprobar asíncronamente si hay suscripción real
+      (async () => {
+        try {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          const reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
+          if (reg?.pushManager) {
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) return; // Tiene suscripción activa, todo OK
+          }
+          // Permiso granted pero sin suscripción — mostrar banner para re-suscribir
+          setVisible(true);
+        } catch {
+          // En caso de error, no mostrar
+        }
+      })();
+      return;
+    }
+    // Si bloqueó, no podemos hacer nada
     if (Notification.permission === 'denied') return;
-    // No mostrar si descartó hace menos de 7 días
+    // Permiso default — solo ocultar si descartó recientemente
     const dismissed = localStorage.getItem(DISMISS_KEY);
     if (dismissed) {
       const daysAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60 * 24);

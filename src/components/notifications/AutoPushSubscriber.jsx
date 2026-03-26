@@ -4,36 +4,49 @@ import { base44 } from '@/api/base44Client';
 /**
  * Componente silencioso que auto-suscribe al usuario a push notifications.
  * Se monta en el Layout y no renderiza nada.
- * Solo actúa una vez por sesión y si el usuario ya aceptó notificaciones.
+ * 
+ * Mejoras v2:
+ * - NO usa attempted.current — comprueba CADA vez que la app se enfoca
+ * - Detecta si el endpoint cambió (permisos revocados/reactivados) y actualiza la BD
+ * - Limpia suscripciones inactivas viejas del mismo usuario
  */
 export default function AutoPushSubscriber({ user }) {
-  const attempted = useRef(false);
+  const lastEndpoint = useRef(null);
 
+  // Ejecutar al montar y cuando la app vuelve al foco
   useEffect(() => {
-    if (!user?.email || attempted.current) return;
+    if (!user?.email) return;
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
-    attempted.current = true;
-    autoSubscribe(user.email);
+    // Ejecutar inmediatamente
+    autoSubscribe(user.email, lastEndpoint);
+
+    // También al volver a la app (tab/app focus)
+    const onFocus = () => autoSubscribe(user.email, lastEndpoint);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') onFocus();
+    });
+
+    return () => {
+      document.removeEventListener('visibilitychange', onFocus);
+    };
   }, [user?.email]);
 
   return null;
 }
 
-async function autoSubscribe(email) {
+async function autoSubscribe(email, lastEndpointRef) {
   try {
-    // 1. Solo proceder si ya tiene permiso granted (no pedir permiso automáticamente)
+    // Solo proceder si ya tiene permiso granted
     if (Notification.permission !== 'granted') return;
 
-    // 2. Buscar SW activo con scope raíz
+    // Buscar SW activo con scope raíz
     const regs = await navigator.serviceWorker.getRegistrations();
     let reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
-    
-    // Si no hay SW raíz, intentar registrar uno
+
     if (!reg) {
       try {
         reg = await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
-        // Esperar a que se active
         if (!reg.active) {
           await new Promise((resolve) => {
             const sw = reg.installing || reg.waiting;
@@ -44,11 +57,10 @@ async function autoSubscribe(email) {
                 resolve();
               }
             });
-            setTimeout(resolve, 5000); // timeout de seguridad
+            setTimeout(resolve, 5000);
           });
         }
       } catch {
-        // Intentar sin scope explícito
         reg = regs.find(r => r.active);
         if (!reg) return;
       }
@@ -56,34 +68,38 @@ async function autoSubscribe(email) {
 
     if (!reg.pushManager) return;
 
-    // 3. Comprobar si ya está suscrito
-    const existing = await reg.pushManager.getSubscription();
-    if (existing) {
-      // Ya suscrito — verificar que está en BD
-      await syncSubscriptionToDB(email, existing);
-      return;
+    // Comprobar suscripción actual del navegador
+    let sub = await reg.pushManager.getSubscription();
+
+    if (!sub) {
+      // No hay suscripción activa en el navegador — crear una nueva
+      const res = await base44.functions.invoke('getVapidPublicKey', {});
+      const vapidKey = res.data?.publicKey;
+      if (!vapidKey) return;
+
+      const applicationServerKey = vapidKeyToUint8Array(vapidKey);
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
     }
 
-    // 4. Obtener VAPID key del backend
-    const res = await base44.functions.invoke('getVapidPublicKey', {});
-    const vapidKey = res.data?.publicKey;
-    if (!vapidKey) return;
+    // Si el endpoint no cambió desde la última comprobación, no hacer nada
+    if (lastEndpointRef.current === sub.endpoint) return;
+    lastEndpointRef.current = sub.endpoint;
 
-    // 5. Convertir VAPID key
-    const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
-    const b64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const raw = atob(b64);
-    const applicationServerKey = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; i++) applicationServerKey[i] = raw.charCodeAt(i);
-
-    // 6. Suscribir
-    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
+    // Sincronizar con BD
     await syncSubscriptionToDB(email, sub);
-
-    console.log('✅ Auto-push subscription OK');
+    console.log('✅ Auto-push subscription synced');
   } catch (e) {
     console.warn('Auto-push subscription failed (non-blocking):', e.message);
   }
+}
+
+function vapidKeyToUint8Array(vapidKey) {
+  const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
+  const b64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(b64);
+  const arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
 }
 
 async function syncSubscriptionToDB(email, sub) {
@@ -91,34 +107,41 @@ async function syncSubscriptionToDB(email, sub) {
     const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
     const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
 
-    // Verificar si ya existe esta suscripción
-    const existing = await base44.entities.PushSubscription.filter({
-      usuario_email: email,
-      endpoint: sub.endpoint
-    });
+    // Buscar todas las suscripciones del usuario
+    const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: email });
 
-    if (existing.length > 0) {
-      // Actualizar keys si cambiaron
-      if (existing[0].p256dh_key !== p256dh || existing[0].auth_key !== auth || !existing[0].activa) {
-        await base44.entities.PushSubscription.update(existing[0].id, {
+    // Buscar si ya existe este endpoint
+    const existing = allSubs.find(s => s.endpoint === sub.endpoint);
+
+    if (existing) {
+      // Actualizar si keys cambiaron o estaba inactiva
+      if (existing.p256dh_key !== p256dh || existing.auth_key !== auth || !existing.activa) {
+        await base44.entities.PushSubscription.update(existing.id, {
           p256dh_key: p256dh,
           auth_key: auth,
           activa: true,
           user_agent: navigator.userAgent.slice(0, 200)
         });
       }
-      return;
+    } else {
+      // Crear nueva suscripción
+      await base44.entities.PushSubscription.create({
+        usuario_email: email,
+        endpoint: sub.endpoint,
+        p256dh_key: p256dh,
+        auth_key: auth,
+        activa: true,
+        user_agent: navigator.userAgent.slice(0, 200)
+      });
     }
 
-    // Crear nueva suscripción
-    await base44.entities.PushSubscription.create({
-      usuario_email: email,
-      endpoint: sub.endpoint,
-      p256dh_key: p256dh,
-      auth_key: auth,
-      activa: true,
-      user_agent: navigator.userAgent.slice(0, 200)
-    });
+    // Desactivar suscripciones viejas con endpoints distintos (ya no sirven)
+    const stale = allSubs.filter(s => s.endpoint !== sub.endpoint && s.activa);
+    for (const s of stale) {
+      try {
+        await base44.entities.PushSubscription.update(s.id, { activa: false });
+      } catch {}
+    }
   } catch (e) {
     console.warn('Error syncing push subscription to DB:', e.message);
   }

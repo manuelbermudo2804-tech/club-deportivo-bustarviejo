@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Bell, Save, AlertCircle } from "lucide-react";
+import PushStatusCard from "../components/notifications/PushStatusCard";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -109,6 +110,9 @@ export default function NotificationPreferences() {
               <p className="text-orange-700">
                 Como padre/madre, recibirás todas las notificaciones importantes automáticamente (convocatorias, pagos, mensajes urgentes). No es posible desactivarlas para garantizar que estés informado.
               </p>
+              <div className="mt-4">
+                <PushStatusCard user={user} />
+              </div>
               <div className="bg-white rounded-lg p-4 text-left mt-4">
                 <p className="text-sm font-semibold text-slate-900 mb-2">✅ Notificaciones activas:</p>
                 <ul className="text-sm text-slate-700 space-y-1">
@@ -150,6 +154,8 @@ export default function NotificationPreferences() {
       </div>
 
 
+
+      <PushStatusCard user={user} />
 
       <Alert className="bg-blue-50 border-blue-200">
         <AlertDescription className="text-blue-800">
