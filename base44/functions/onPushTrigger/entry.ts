@@ -423,18 +423,8 @@ Deno.serve(async (req) => {
     }
 
     // ==========================================
-    // 15. CLOTHING ORDER (estado cambia)
+    // 15. CLOTHING ORDER — ELIMINADO (tienda externa, ya no aplica)
     // ==========================================
-    if (entityName === 'ClothingOrder') {
-      const estado = data.estado;
-      if (!estado || estado === 'Pendiente' || estado === 'En revisión') return Response.json({ skipped: 'no relevant status' });
-      const email = data.email_padre;
-      if (!email) return Response.json({ skipped: 'no email' });
-      const statusMsg = { 'Confirmado': 'ha sido confirmado ✅', 'Preparado': 'está preparado para recoger 📦', 'Entregado': 'ha sido entregado 🎉' };
-      const msg = statusMsg[estado] || `estado: ${estado}`;
-      const result = await sendPushToEmails(base44, [email], '👕 Pedido de ropa', `Tu pedido de ${data.jugador_nombre || 'equipación'} ${msg}`, '/ParentOrders', `clothing-${event.entity_id}-${estado}`);
-      return Response.json({ type: 'clothing_order', ...result });
-    }
 
     // ==========================================
     // 16. MARKET RESERVATION (alguien reserva tu artículo)
