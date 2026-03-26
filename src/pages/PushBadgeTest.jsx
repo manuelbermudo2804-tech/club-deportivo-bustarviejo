@@ -29,23 +29,46 @@ export default function PushBadgeTest() {
         setStatus(s => ({ ...s, sw: '❌ Service Worker no soportado' }));
         return;
       }
-      // Registrar con scope raíz para que pushManager funcione
+      setStatus(s => ({ ...s, sw: '⏳ Registrando SW...' }));
+
+      // Primero desregistrar SWs antiguos que tengan scope incorrecto
+      const existingRegs = await navigator.serviceWorker.getRegistrations();
+      for (const r of existingRegs) {
+        if (r.scope.includes('/functions')) {
+          await r.unregister();
+        }
+      }
+
+      // Registrar con scope raíz — requiere Service-Worker-Allowed: / en el header del SW
       const reg = await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
+      
       // Esperar a que esté activo
-      if (reg.installing) {
-        await new Promise(resolve => {
-          reg.installing.addEventListener('statechange', function handler() {
+      const waitForActive = (registration) => {
+        return new Promise((resolve) => {
+          const sw = registration.installing || registration.waiting || registration.active;
+          if (sw && sw.state === 'activated') { resolve(registration); return; }
+          if (!sw) { resolve(registration); return; }
+          sw.addEventListener('statechange', function handler() {
             if (this.state === 'activated') {
               this.removeEventListener('statechange', handler);
-              resolve();
+              resolve(registration);
             }
           });
         });
-      }
-      setStatus(s => ({ ...s, sw: '✅ SW registrado con scope: ' + reg.scope }));
+      };
+      await waitForActive(reg);
+
+      setStatus(s => ({ ...s, sw: `✅ SW registrado | scope: ${reg.scope} | active: ${!!reg.active}` }));
       return reg;
     } catch (e) {
-      setStatus(s => ({ ...s, sw: '❌ Error SW: ' + e.message }));
+      // Si scope '/' falla, intentar sin scope explícito
+      try {
+        const reg = await navigator.serviceWorker.register('/functions/sw');
+        setStatus(s => ({ ...s, sw: `⚠️ SW registrado (scope limitado): ${reg.scope}` }));
+        return reg;
+      } catch (e2) {
+        setStatus(s => ({ ...s, sw: '❌ Error SW: ' + e.message + ' | Fallback: ' + e2.message }));
+      }
     }
   };
 
@@ -70,28 +93,23 @@ export default function PushBadgeTest() {
 
       // 3b. Buscar SW activo
       const regs = await navigator.serviceWorker.getRegistrations();
-      setStatus(s => ({ ...s, push_debug: `SWs: ${regs.length} | Scopes: ${regs.map(r => r.scope).join(', ')} | Activos: ${regs.filter(r => r.active).length}` }));
+      const regInfo = regs.map(r => `${r.scope}(active:${!!r.active})`);
+      setStatus(s => ({ ...s, push_debug: `SWs: ${regs.length} | ${regInfo.join(', ')}` }));
 
-      let reg = regs.find(r => r.active);
+      // Preferir el de scope raíz, luego cualquier activo
+      let reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
+      if (!reg) reg = regs.find(r => r.active);
       if (!reg) {
-        // Intentar esperar a que se active
-        setStatus(s => ({ ...s, push: '⏳ Esperando a que el SW se active...' }));
-        reg = await navigator.serviceWorker.ready;
-      }
-      if (!reg) {
-        setStatus(s => ({ ...s, push: '❌ No hay SW activo. Registra primero (paso 2).' }));
+        setStatus(s => ({ ...s, push: '❌ No hay SW activo. Ejecuta paso 2 primero.' }));
         return;
       }
 
-      setStatus(s => ({ ...s, push: '⏳ SW activo. Suscribiendo a push...' }));
+      setStatus(s => ({ ...s, push: `⏳ Usando SW scope: ${reg.scope}. Suscribiendo...` }));
 
-      // 3c. Convertir VAPID key
-      const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
-      const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
-      const rawData = atob(base64);
-      const applicationServerKey = new Uint8Array(rawData.length);
-      for (let i = 0; i < rawData.length; i++) {
-        applicationServerKey[i] = rawData.charCodeAt(i);
+      // 3c. Verificar que tiene pushManager
+      if (!reg.pushManager) {
+        setStatus(s => ({ ...s, push: '❌ Este SW no tiene pushManager. El scope debe cubrir esta página.' }));
+        return;
       }
 
       // 3d. Suscribir
