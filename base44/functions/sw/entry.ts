@@ -18,34 +18,43 @@ self.addEventListener('activate', (event) => {
 // Push notification handler
 self.addEventListener('push', (event) => {
   const data = (() => { try { return event.data ? event.data.json() : {}; } catch { return {}; } })();
+  const tag = data.tag || 'notification';
+
   const options = {
     body: data.body || 'Tienes notificaciones pendientes',
     icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
     badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
-    tag: data.tag || 'notification',
-    renotify: data.renotify !== false,
+    tag: tag,
+    renotify: true,
     requireInteraction: true,
     vibrate: [200, 100, 200],
-    actions: [],
+    silent: false,
     data: data.data || {}
   };
 
   // Badge numerico en el icono de la PWA
   const badgeCount = typeof data.badgeCount === 'number' ? data.badgeCount : 1;
-  const badgePromise = (async () => {
-    try {
-      if (self.navigator && self.navigator.setAppBadge) {
-        if (badgeCount > 0) await self.navigator.setAppBadge(badgeCount);
-        else await self.navigator.clearAppBadge();
-      }
-    } catch {}
-  })();
 
   event.waitUntil(
-    Promise.all([
-      self.registration.showNotification(data.title || 'CD Bustarviejo', options),
-      badgePromise
-    ])
+    (async () => {
+      // 1. Cerrar notificacion anterior con mismo tag para forzar heads-up
+      const existing = await self.registration.getNotifications({ tag: tag });
+      for (const n of existing) { n.close(); }
+
+      // 2. Pequeña pausa para que el SO registre el cierre
+      await new Promise(r => setTimeout(r, 100));
+
+      // 3. Mostrar nueva notificacion (aparecera como heads-up)
+      await self.registration.showNotification(data.title || 'CD Bustarviejo', options);
+
+      // 4. Actualizar badge
+      try {
+        if (self.navigator && self.navigator.setAppBadge) {
+          if (badgeCount > 0) await self.navigator.setAppBadge(badgeCount);
+          else await self.navigator.clearAppBadge();
+        }
+      } catch {}
+    })()
   );
 });
 

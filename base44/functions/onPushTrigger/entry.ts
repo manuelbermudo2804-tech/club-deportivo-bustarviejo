@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
         `💬 ${senderName}`,
         msgPreview || '📎 Archivo adjunto',
         '/FamilyChatsHub',
-        `chat-${normalizedCat}-${event.entity_id}`
+        `chat-${normalizedCat}`
       );
       return Response.json({ type: 'chat', ...result });
     }
