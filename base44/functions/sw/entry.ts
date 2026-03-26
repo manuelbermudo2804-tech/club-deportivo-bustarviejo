@@ -24,7 +24,9 @@ self.addEventListener('push', (event) => {
     badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
     tag: data.tag || 'notification',
     renotify: data.renotify !== false,
-    requireInteraction: data.requireInteraction || false,
+    requireInteraction: true,
+    vibrate: [200, 100, 200],
+    actions: [],
     data: data.data || {}
   };
 

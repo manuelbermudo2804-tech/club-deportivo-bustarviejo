@@ -56,7 +56,8 @@ async function sendPushToEmails(base44, emails, title, body, url, tag) {
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { auth: sub.auth_key, p256dh: sub.p256dh_key } },
-          payload
+          payload,
+          { urgency: 'high', TTL: 86400 }
         );
         sent++;
       } catch (err) {
