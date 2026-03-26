@@ -112,7 +112,16 @@ export default function PushBadgeTest() {
         return;
       }
 
-      // 3d. Suscribir
+      // 3d. Convertir VAPID key de base64url a Uint8Array
+      const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
+      const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = atob(base64);
+      const applicationServerKey = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; i++) {
+        applicationServerKey[i] = rawData.charCodeAt(i);
+      }
+
+      // 3e. Suscribir
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey
