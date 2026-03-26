@@ -16,41 +16,44 @@ self.addEventListener('activate', (event) => {
 
 // Push notification handler — actualiza badge del icono
 self.addEventListener('push', (event) => {
-  try {
-    const data = event.data ? event.data.json() : {};
-    const options = {
-      body: data.body || 'Tienes notificaciones pendientes',
-      icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
-      badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
-      tag: data.tag || 'notification',
-      requireInteraction: data.requireInteraction || false,
-      data: data.data || {}
-    };
+  const data = (() => { try { return event.data ? event.data.json() : {}; } catch { return {}; } })();
+  const options = {
+    body: data.body || 'Tienes notificaciones pendientes',
+    icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
+    badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
+    tag: data.tag || 'notification',
+    requireInteraction: data.requireInteraction || false,
+    data: data.data || {}
+  };
 
-    // Actualizar el badge numérico del icono de la PWA
-    const badgePromise = (async () => {
-      if (!navigator.setAppBadge) return;
-      try {
-        const count = typeof data.badgeCount === 'number' ? data.badgeCount : 1;
-        if (count > 0) {
-          await navigator.setAppBadge(count);
+  // Badge numérico en el icono de la PWA
+  const badgeCount = typeof data.badgeCount === 'number' ? data.badgeCount : 1;
+  const badgePromise = (async () => {
+    try {
+      if (self.navigator && self.navigator.setAppBadge) {
+        if (badgeCount > 0) {
+          await self.navigator.setAppBadge(badgeCount);
+        } else {
+          await self.navigator.clearAppBadge();
+        }
+      } else if (typeof navigator !== 'undefined' && navigator.setAppBadge) {
+        if (badgeCount > 0) {
+          await navigator.setAppBadge(badgeCount);
         } else {
           await navigator.clearAppBadge();
         }
-      } catch (e) {
-        // Silently fail — no all browsers support this
       }
-    })();
+    } catch (e) {
+      // Silently fail
+    }
+  })();
 
-    event.waitUntil(
-      Promise.all([
-        self.registration.showNotification(data.title || 'CD Bustarviejo', options),
-        badgePromise
-      ])
-    );
-  } catch (e) {
-    console.error('Push handler error:', e);
-  }
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(data.title || 'CD Bustarviejo', options),
+      badgePromise
+    ])
+  );
 });
 
 // Al hacer click en la notificación, abrir la app y limpiar badge
