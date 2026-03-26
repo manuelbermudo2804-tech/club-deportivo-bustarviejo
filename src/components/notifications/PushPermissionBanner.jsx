@@ -21,13 +21,42 @@ export default function PushPermissionBanner({ user }) {
     }
     const perm = Notification.permission;
     setPermState(perm);
-    if (perm === 'granted') return;
-    const dismissed = localStorage.getItem(DISMISS_KEY);
-    if (dismissed) {
-      const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
-      if (hoursAgo < DISMISS_HOURS) return;
+
+    // Si el permiso del navegador es denied o default, mostrar banner
+    if (perm !== 'granted') {
+      const dismissed = localStorage.getItem(DISMISS_KEY);
+      if (dismissed) {
+        const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
+        if (hoursAgo < DISMISS_HOURS) return;
+      }
+      setVisible(true);
+      return;
     }
-    setVisible(true);
+
+    // Permiso es 'granted' en JS, pero puede estar bloqueado a nivel OS (Android PWA)
+    // Verificar si realmente hay una suscripción push activa
+    (async () => {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        const swReg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
+        if (swReg?.pushManager) {
+          const sub = await swReg.pushManager.getSubscription();
+          if (!sub) {
+            // No hay suscripción activa — puede ser que el OS la revocó
+            setPermState('default');
+            const dismissed = localStorage.getItem(DISMISS_KEY);
+            if (dismissed) {
+              const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
+              if (hoursAgo < DISMISS_HOURS) return;
+            }
+            setVisible(true);
+          }
+          // Si hay suscripción activa, todo OK — no mostrar banner
+        }
+      } catch {
+        // Si falla la comprobación, no mostrar nada para no molestar
+      }
+    })();
   }, [user?.email]);
 
   const handleActivate = async () => {
