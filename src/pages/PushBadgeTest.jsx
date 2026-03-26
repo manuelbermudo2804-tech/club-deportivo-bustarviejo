@@ -56,18 +56,36 @@ export default function PushBadgeTest() {
         setStatus(s => ({ ...s, push: '❌ Primero obtén la VAPID key' }));
         return;
       }
-      
-      // Buscar cualquier registro de SW
-      const regs = await navigator.serviceWorker.getRegistrations();
-      setStatus(s => ({ ...s, push_debug: `SWs encontrados: ${regs.length} | Scopes: ${regs.map(r => r.scope).join(', ')}` }));
-      
-      let reg = regs.find(r => r.active);
-      if (!reg) {
-        setStatus(s => ({ ...s, push: '❌ No hay SW activo. Registra primero (paso 2) y espera unos segundos.' }));
+
+      setStatus(s => ({ ...s, push: '⏳ Pidiendo permiso de notificaciones...' }));
+
+      // 3a. Pedir permiso de notificaciones PRIMERO
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        setStatus(s => ({ ...s, push: `❌ Permiso de notificaciones: "${permission}". Debes aceptar.` }));
         return;
       }
 
-      // Convertir base64url a Uint8Array
+      setStatus(s => ({ ...s, push: '⏳ Permiso OK. Buscando SW activo...' }));
+
+      // 3b. Buscar SW activo
+      const regs = await navigator.serviceWorker.getRegistrations();
+      setStatus(s => ({ ...s, push_debug: `SWs: ${regs.length} | Scopes: ${regs.map(r => r.scope).join(', ')} | Activos: ${regs.filter(r => r.active).length}` }));
+
+      let reg = regs.find(r => r.active);
+      if (!reg) {
+        // Intentar esperar a que se active
+        setStatus(s => ({ ...s, push: '⏳ Esperando a que el SW se active...' }));
+        reg = await navigator.serviceWorker.ready;
+      }
+      if (!reg) {
+        setStatus(s => ({ ...s, push: '❌ No hay SW activo. Registra primero (paso 2).' }));
+        return;
+      }
+
+      setStatus(s => ({ ...s, push: '⏳ SW activo. Suscribiendo a push...' }));
+
+      // 3c. Convertir VAPID key
       const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
       const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
       const rawData = atob(base64);
@@ -76,6 +94,7 @@ export default function PushBadgeTest() {
         applicationServerKey[i] = rawData.charCodeAt(i);
       }
 
+      // 3d. Suscribir
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey
