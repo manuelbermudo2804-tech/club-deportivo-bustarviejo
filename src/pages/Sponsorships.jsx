@@ -25,10 +25,7 @@ export default function Sponsorships() {
     queryFn: () => base44.entities.Sponsor.list('-created_date'),
   });
 
-  const { data: impressions = [] } = useQuery({
-    queryKey: ['sponsorImpressions'],
-    queryFn: () => base44.entities.SponsorImpression.list(),
-  });
+
 
   const { data: players = [] } = useQuery({
     queryKey: ['players'],
@@ -207,7 +204,6 @@ export default function Sponsorships() {
             <SponsorCard
               key={sponsor.id}
               sponsor={sponsor}
-              impressions={impressions.filter(i => i.sponsor_id === sponsor.id)}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onToggleActive={handleToggleActive}

@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, FileText, Calendar, Euro, Building2, Phone, Mail, Power, Eye, MousePointer, TrendingUp } from "lucide-react";
+import { Pencil, Trash2, FileText, Calendar, Euro, Building2, Phone, Mail, Power, MousePointer } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -15,10 +15,8 @@ const nivelColors = {
   "Colaborador": "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
 };
 
-export default function SponsorCard({ sponsor, impressions = [], onEdit, onDelete, onToggleActive }) {
-  const clicks = impressions.filter(i => i.tipo === 'click').length;
-  const views = impressions.filter(i => i.tipo === 'impresion').length;
-  const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : '0';
+export default function SponsorCard({ sponsor, onEdit, onDelete, onToggleActive }) {
+  const clicks = sponsor.clicks_totales || 0;
   const isExpiringSoon = () => {
     if (!sponsor.fecha_fin) return false;
     const endDate = new Date(sponsor.fecha_fin);
@@ -94,24 +92,14 @@ export default function SponsorCard({ sponsor, impressions = [], onEdit, onDelet
           </div>
         </div>
 
-        {/* Métricas de visibilidad */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <div className="bg-blue-50 rounded-lg p-2 text-center">
-            <Eye className="w-4 h-4 text-blue-500 mx-auto mb-0.5" />
-            <p className="text-lg font-bold text-blue-800">{views.toLocaleString()}</p>
-            <p className="text-[10px] text-blue-600">Impresiones</p>
+        {/* Métrica de clicks en el banner */}
+        {clicks > 0 && (
+          <div className="flex items-center gap-2 mb-3 p-2 bg-green-50 rounded-lg">
+            <MousePointer className="w-4 h-4 text-green-600" />
+            <span className="text-sm font-bold text-green-800">{clicks}</span>
+            <span className="text-xs text-green-600">clicks en el banner</span>
           </div>
-          <div className="bg-green-50 rounded-lg p-2 text-center">
-            <MousePointer className="w-4 h-4 text-green-500 mx-auto mb-0.5" />
-            <p className="text-lg font-bold text-green-800">{clicks.toLocaleString()}</p>
-            <p className="text-[10px] text-green-600">Clicks</p>
-          </div>
-          <div className="bg-orange-50 rounded-lg p-2 text-center">
-            <TrendingUp className="w-4 h-4 text-orange-500 mx-auto mb-0.5" />
-            <p className="text-lg font-bold text-orange-800">{ctr}%</p>
-            <p className="text-[10px] text-orange-600">CTR</p>
-          </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           {sponsor.precio_anual && (
