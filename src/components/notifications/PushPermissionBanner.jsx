@@ -13,7 +13,7 @@ export default function PushPermissionBanner({ user }) {
 
   useEffect(() => {
     if (!user?.email) return;
-    // Sin soporte: mostrar banner informativo para instalar la app
+    // Sin soporte real: no hay API de notificaciones
     if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
       setNoSupport(true);
       setVisible(true);
@@ -21,13 +21,18 @@ export default function PushPermissionBanner({ user }) {
     }
     // Ya tiene permiso
     if (Notification.permission === 'granted') return;
-    // Bloqueó notificaciones
+    // Bloqueó notificaciones — marcar pero MOSTRAR botón igualmente (algunos navegadores re-preguntan)
     if (Notification.permission === 'denied') {
-      setNoSupport(true);
+      // No mostrar si descartó hace menos de 2 horas
+      const dismissed = localStorage.getItem(DISMISS_KEY);
+      if (dismissed) {
+        const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
+        if (hoursAgo < DISMISS_HOURS) return;
+      }
       setVisible(true);
       return;
     }
-    // No mostrar si descartó hace menos de 2 horas
+    // Permiso 'default' — no mostrar si descartó hace poco
     const dismissed = localStorage.getItem(DISMISS_KEY);
     if (dismissed) {
       const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
@@ -109,27 +114,30 @@ export default function PushPermissionBanner({ user }) {
 
   if (!visible) return null;
 
-  const blockedOrNoSupport = noSupport;
+  const isDenied = 'Notification' in window && Notification.permission === 'denied';
+  const canAskPermission = 'Notification' in window && !noSupport;
 
   return (
     <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 flex items-center gap-3 shadow-md animate-fade-in">
       <Bell className="w-5 h-5 flex-shrink-0 animate-bounce" />
-      <p className="text-sm font-medium flex-1 leading-tight">
-        {blockedOrNoSupport
-          ? (Notification?.permission === 'denied'
-            ? 'Las notificaciones están bloqueadas. Ve a Ajustes de tu navegador para activarlas.'
-            : 'Instala la app o abre desde Chrome/Safari para activar notificaciones')
-          : 'Activa las notificaciones para recibir avisos de convocatorias, anuncios y mensajes del chat'
-        }
-      </p>
-      {!blockedOrNoSupport && (
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium leading-tight">
+          {noSupport
+            ? 'Instala la app o abre desde Chrome/Safari para activar notificaciones'
+            : isDenied
+              ? 'Las notificaciones están bloqueadas. Pulsa "Activar" para intentar reactivarlas o ve a Ajustes del navegador.'
+              : 'Activa las notificaciones para recibir avisos de convocatorias, anuncios y mensajes'
+          }
+        </p>
+      </div>
+      {canAskPermission && (
         <Button
           size="sm"
           onClick={handleActivate}
           disabled={requesting}
-          className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs px-3 py-1 h-auto whitespace-nowrap"
+          className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs px-4 py-1.5 h-auto whitespace-nowrap shadow-lg"
         >
-          {requesting ? '...' : 'Activar'}
+          {requesting ? '...' : '🔔 Activar'}
         </Button>
       )}
       <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full flex-shrink-0">
