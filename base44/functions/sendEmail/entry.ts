@@ -24,6 +24,24 @@ Deno.serve(async (req) => {
 
     console.log('[sendEmail] 📧 Enviando email a:', to, '| Subject:', subject);
 
+    // Inyectar footer con web + redes sociales si no lo tiene ya
+    const SOCIAL_FOOTER = `<div style="background:#1e293b;padding:24px;text-align:center;border-radius:0 0 12px 12px;margin-top:24px;">
+<div style="margin-bottom:12px;"><a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:10px 24px;border-radius:8px;">🌐 www.cdbustarviejo.com</a></div>
+<div style="margin-bottom:14px;"><a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Facebook">📘</a><a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Instagram">📸</a></div>
+<div style="color:#94a3b8;font-size:12px;line-height:1.6;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a></div>
+</div>`;
+
+    // Solo añadir si el HTML no contiene ya el bloque de redes
+    let finalHtml = html;
+    if (!html.includes('www.cdbustarviejo.com')) {
+      // Insertar antes del cierre de </body> o al final
+      if (html.includes('</body>')) {
+        finalHtml = html.replace('</body>', SOCIAL_FOOTER + '</body>');
+      } else {
+        finalHtml = html + SOCIAL_FOOTER;
+      }
+    }
+
     // Enviar email usando Resend
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -35,7 +53,7 @@ Deno.serve(async (req) => {
         from: 'noreply@cdbustarviejo.com',
         to: [to],
         subject: subject,
-        html: html
+        html: finalHtml
       })
     });
 

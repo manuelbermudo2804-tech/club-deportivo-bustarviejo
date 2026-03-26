@@ -4,7 +4,14 @@
  */
 
 const FOOTER = `
-<tr><td style="background:#1e293b;padding:20px 24px;text-align:center;">
+<tr><td style="background:#1e293b;padding:24px;text-align:center;">
+  <div style="margin-bottom:12px;">
+    <a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:10px 24px;border-radius:8px;">🌐 www.cdbustarviejo.com</a>
+  </div>
+  <div style="margin-bottom:14px;">
+    <a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Facebook">📘</a>
+    <a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Instagram">📸</a>
+  </div>
   <div style="color:#94a3b8;font-size:12px;line-height:1.6;">
     <strong style="color:#f8fafc;">CD Bustarviejo</strong><br>
     <a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a>
