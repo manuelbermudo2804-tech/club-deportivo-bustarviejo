@@ -1,22 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
-
-export default function PushNotificationSubscriber({ user }) {
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [swError, setSwError] = useState(null);
-
-  useEffect(() => {
-    // Verificar soporte de Web Push
-    const supported = 'serviceWorker' in navigator && 'PushManager' in window;
-    setIsSupported(supported);
-
-    if (supported && user?.email) {
-      registerServiceWorker();
-    }
+/**
+ * DEPRECATED: Este componente ya no renderiza nada.
+ * Las notificaciones push se gestionan desde PushPermissionBanner (banner superior)
+ * y AutoPushSubscriber (suscripción silenciosa).
+ */
+export default function PushNotificationSubscriber() {
+  return null;
+}
   }, [user?.email]);
 
   const registerServiceWorker = async () => {
