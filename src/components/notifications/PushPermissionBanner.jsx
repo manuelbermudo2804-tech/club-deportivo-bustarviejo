@@ -10,29 +10,18 @@ export default function PushPermissionBanner({ user }) {
   const [visible, setVisible] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [noSupport, setNoSupport] = useState(false);
+  const [permState, setPermState] = useState('default');
 
   useEffect(() => {
     if (!user?.email) return;
-    // Sin soporte real: no hay API de notificaciones
     if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
       setNoSupport(true);
       setVisible(true);
       return;
     }
-    // Ya tiene permiso
-    if (Notification.permission === 'granted') return;
-    // Bloqueó notificaciones — marcar pero MOSTRAR botón igualmente (algunos navegadores re-preguntan)
-    if (Notification.permission === 'denied') {
-      // No mostrar si descartó hace menos de 2 horas
-      const dismissed = localStorage.getItem(DISMISS_KEY);
-      if (dismissed) {
-        const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
-        if (hoursAgo < DISMISS_HOURS) return;
-      }
-      setVisible(true);
-      return;
-    }
-    // Permiso 'default' — no mostrar si descartó hace poco
+    const perm = Notification.permission;
+    setPermState(perm);
+    if (perm === 'granted') return;
     const dismissed = localStorage.getItem(DISMISS_KEY);
     if (dismissed) {
       const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
@@ -45,10 +34,9 @@ export default function PushPermissionBanner({ user }) {
     setRequesting(true);
     try {
       const permission = await Notification.requestPermission();
+      setPermState(permission);
       if (permission === 'granted') {
         setVisible(false);
-        // AutoPushSubscriber se encarga de suscribir, pero forzamos aquí también
-        // para que no dependa de un re-render
         try {
           let reg = (await navigator.serviceWorker.getRegistrations())
             .find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
@@ -80,26 +68,21 @@ export default function PushPermissionBanner({ user }) {
             if (sub) {
               const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
               const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
-              // Eliminar suscripciones viejas (mismo email o mismo endpoint) para evitar endpoints caducados
               const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email });
               for (const oldSub of allSubs || []) {
                 try { await base44.entities.PushSubscription.delete(oldSub.id); } catch {}
               }
-              // Crear nueva suscripción limpia
               await base44.entities.PushSubscription.create({
                 usuario_email: user.email, endpoint: sub.endpoint,
                 p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
               });
-              console.log('✅ Push subscription creada:', sub.endpoint);
             }
           }
         } catch (e) {
           console.warn('Push subscription after permission grant failed:', e.message);
         }
       } else {
-        // Denied or dismissed — hide banner
-        localStorage.setItem(DISMISS_KEY, String(Date.now()));
-        setVisible(false);
+        setPermState('denied');
       }
     } catch {
       setVisible(false);
@@ -114,32 +97,63 @@ export default function PushPermissionBanner({ user }) {
 
   if (!visible) return null;
 
-  const isDenied = 'Notification' in window && Notification.permission === 'denied';
-  const canAskPermission = 'Notification' in window && !noSupport;
+  const isDenied = permState === 'denied';
+
+  if (noSupport) {
+    return (
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 flex items-center gap-3 shadow-md animate-fade-in">
+        <Bell className="w-5 h-5 flex-shrink-0" />
+        <p className="text-sm font-medium flex-1 leading-tight">
+          Instala la app o abre desde Chrome/Safari para activar notificaciones
+        </p>
+        <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full flex-shrink-0">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
+  if (isDenied) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /android/i.test(navigator.userAgent);
+
+    return (
+      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 shadow-md animate-fade-in">
+        <div className="flex items-start gap-3">
+          <Bell className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold leading-tight mb-1">⚠️ Notificaciones bloqueadas</p>
+            <p className="text-xs leading-snug opacity-90">
+              {isIOS
+                ? 'Ve a Ajustes de iPhone → Safari → Sitios web → Notificaciones → busca esta web y actívalas'
+                : isAndroid
+                  ? 'Pulsa el candado 🔒 en la barra de dirección de Chrome → Notificaciones → Permitir'
+                  : 'Pulsa el candado 🔒 en la barra de dirección → Permisos → Notificaciones → Permitir'
+              }
+            </p>
+          </div>
+          <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full flex-shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 flex items-center gap-3 shadow-md animate-fade-in">
       <Bell className="w-5 h-5 flex-shrink-0 animate-bounce" />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium leading-tight">
-          {noSupport
-            ? 'Instala la app o abre desde Chrome/Safari para activar notificaciones'
-            : isDenied
-              ? 'Las notificaciones están bloqueadas. Pulsa "Activar" para intentar reactivarlas o ve a Ajustes del navegador.'
-              : 'Activa las notificaciones para recibir avisos de convocatorias, anuncios y mensajes'
-          }
-        </p>
-      </div>
-      {canAskPermission && (
-        <Button
-          size="sm"
-          onClick={handleActivate}
-          disabled={requesting}
-          className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs px-4 py-1.5 h-auto whitespace-nowrap shadow-lg"
-        >
-          {requesting ? '...' : '🔔 Activar'}
-        </Button>
-      )}
+      <p className="text-sm font-medium flex-1 leading-tight">
+        Activa las notificaciones para recibir avisos de convocatorias, anuncios y mensajes
+      </p>
+      <Button
+        size="sm"
+        onClick={handleActivate}
+        disabled={requesting}
+        className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs px-4 py-1.5 h-auto whitespace-nowrap shadow-lg"
+      >
+        {requesting ? '...' : '🔔 Activar'}
+      </Button>
       <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full flex-shrink-0">
         <X className="w-4 h-4" />
       </button>
