@@ -320,8 +320,95 @@ Deno.serve(async (req) => {
     // 11. EXTRA CHARGES
     // ==========================================
     if (entityName === 'ExtraCharge') {
-      if (!data.activo) return Response.json({ skipped: 'not active' });
-      const destinatarios = data.destinatario_categoria || 'Todos';
+      if (data.estado !== 'activo') return Response.json({ skipped: 'not active' });
+      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+      const targetEmails = [];
+      // If asignado_a has specific player IDs, use those; otherwise all active players
+      const assignedIds = data.asignado_a || [];
+      for (const p of allPlayers) {
+        if (assignedIds.length > 0 && !assignedIds.includes(p.id)) continue;
+        if (p.email_padre) targetEmails.push(p.email_padre);
+        if (p.email_tutor_2) targetEmails.push(p.email_tutor_2);
+      }
+      const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
+      const titulo = data.titulo || 'Nuevo cobro extra';
+      const result = await sendPushToEmails(base44, filtered, `💰 ${titulo}`, data.descripcion ? data.descripcion.substring(0, 100) : 'Tienes un nuevo cobro pendiente', '/', `extra-${event.entity_id}`);
+      return Response.json({ type: 'extra_charge', ...result });
+    }
+
+    // ==========================================
+    // 12. PUSH NOTIFICATION (manual admin)
+    // ==========================================
+    if (entityName === 'PushNotification') {
+      if (data.enviada) return Response.json({ skipped: 'already sent' });
+      const titulo = data.titulo || 'Notificación';
+      const mensaje = data.mensaje || '';
+      const tipoDestinatario = data.tipo_destinatario || 'todos';
+
+      const [allPlayers, allUsers] = await Promise.all([
+        base44.asServiceRole.entities.Player.filter({ activo: true }),
+        base44.asServiceRole.entities.User.list('-created_date', 500)
+      ]);
+
+      const targetEmails = [];
+      if (tipoDestinatario === 'todos' || tipoDestinatario === 'padres') {
+        for (const p of allPlayers) {
+          if (tipoDestinatario === 'todos' || tipoDestinatario === 'padres') {
+            if (data.categoria_destino && (p.categoria_principal || p.deporte) !== data.categoria_destino) continue;
+            if (p.email_padre) targetEmails.push(p.email_padre);
+            if (p.email_tutor_2) targetEmails.push(p.email_tutor_2);
+          }
+        }
+      }
+      if (tipoDestinatario === 'todos' || tipoDestinatario === 'entrenadores') {
+        for (const u of allUsers) {
+          if (u.es_entrenador) targetEmails.push(u.email);
+        }
+      }
+      if (tipoDestinatario === 'todos' || tipoDestinatario === 'administradores') {
+        for (const u of allUsers) {
+          if (u.role === 'admin') targetEmails.push(u.email);
+        }
+      }
+      if (tipoDestinatario === 'categoria' && data.categoria_destino) {
+        for (const p of allPlayers) {
+          if ((p.categoria_principal || p.deporte) !== data.categoria_destino) continue;
+          if (p.email_padre) targetEmails.push(p.email_padre);
+          if (p.email_tutor_2) targetEmails.push(p.email_tutor_2);
+          if (p.email_jugador) targetEmails.push(p.email_jugador);
+        }
+      }
+
+      const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
+      const icon = data.icono || '📢';
+      const result = await sendPushToEmails(base44, filtered, `${icon} ${titulo}`, mensaje.substring(0, 100), data.enlace_destino || '/', `manual-push-${event.entity_id}`);
+
+      // Mark as sent
+      try {
+        await base44.asServiceRole.entities.PushNotification.update(event.entity_id, {
+          enviada: true, fecha_envio: new Date().toISOString(), destinatarios_count: filtered.length
+        });
+      } catch {}
+
+      return Response.json({ type: 'manual_push', ...result });
+    }
+
+    // ==========================================
+    // 13. JUNIOR MAILBOX (respuesta al menor)
+    // ==========================================
+    if (entityName === 'JuniorMailbox') {
+      // Only notify when admin responds (update with respuesta_admin)
+      if (!data.respuesta_admin || !data.jugador_email) return Response.json({ skipped: 'no response or no email' });
+      const result = await sendPushToEmails(base44, [data.jugador_email], '📬 ¡Te han respondido!', `${data.respondido_por_nombre || 'El club'} ha respondido a tu mensaje`, '/JuniorMailbox', `junior-reply-${event.entity_id}`);
+      return Response.json({ type: 'junior_mailbox_reply', ...result });
+    }
+
+    // ==========================================
+    // 14. SURVEYS (nueva encuesta)
+    // ==========================================
+    if (entityName === 'Survey') {
+      if (!data.activa) return Response.json({ skipped: 'not active' });
+      const destinatarios = data.destinatarios || 'Todos';
       const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
       const targetEmails = [];
       for (const p of allPlayers) {
@@ -331,9 +418,45 @@ Deno.serve(async (req) => {
         if (p.email_tutor_2) targetEmails.push(p.email_tutor_2);
       }
       const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
-      const titulo = data.titulo || 'Nuevo cobro extra';
-      const result = await sendPushToEmails(base44, filtered, `💰 ${titulo}`, data.descripcion ? data.descripcion.substring(0, 100) : 'Tienes un nuevo cobro pendiente', '/', `extra-${event.entity_id}`);
-      return Response.json({ type: 'extra_charge', ...result });
+      const result = await sendPushToEmails(base44, filtered, `📊 ${data.titulo || 'Nueva encuesta'}`, data.descripcion ? data.descripcion.substring(0, 100) : 'Hay una nueva encuesta disponible', '/Surveys', `survey-${event.entity_id}`);
+      return Response.json({ type: 'survey', ...result });
+    }
+
+    // ==========================================
+    // 15. CLOTHING ORDER (estado cambia)
+    // ==========================================
+    if (entityName === 'ClothingOrder') {
+      const estado = data.estado;
+      if (!estado || estado === 'Pendiente' || estado === 'En revisión') return Response.json({ skipped: 'no relevant status' });
+      const email = data.email_padre;
+      if (!email) return Response.json({ skipped: 'no email' });
+      const statusMsg = { 'Confirmado': 'ha sido confirmado ✅', 'Preparado': 'está preparado para recoger 📦', 'Entregado': 'ha sido entregado 🎉' };
+      const msg = statusMsg[estado] || `estado: ${estado}`;
+      const result = await sendPushToEmails(base44, [email], '👕 Pedido de ropa', `Tu pedido de ${data.jugador_nombre || 'equipación'} ${msg}`, '/ParentOrders', `clothing-${event.entity_id}-${estado}`);
+      return Response.json({ type: 'clothing_order', ...result });
+    }
+
+    // ==========================================
+    // 16. MARKET RESERVATION (alguien reserva tu artículo)
+    // ==========================================
+    if (entityName === 'MarketReservation') {
+      const listingId = data.listing_id;
+      if (!listingId) return Response.json({ skipped: 'no listing_id' });
+      try {
+        const listings = await base44.asServiceRole.entities.MarketListing.filter({ id: listingId });
+        const listing = listings[0];
+        if (!listing || !listing.vendedor_email) return Response.json({ skipped: 'listing not found' });
+        const compradorNombre = data.comprador_nombre || 'Alguien';
+        const result = await sendPushToEmails(base44, [listing.vendedor_email], '🛒 ¡Reserva en Mercadillo!', `${compradorNombre} quiere tu artículo "${listing.titulo}"`, '/Mercadillo', `market-res-${event.entity_id}`);
+        return Response.json({ type: 'market_reservation', ...result });
+      } catch (e) { return Response.json({ error: e.message }, { status: 500 }); }
+    }
+
+    // ==========================================
+    // 17. CONVOCATORIA updates (cancel/reschedule)
+    // ==========================================
+    if (entityName === 'Convocatoria_update_handled_above') {
+      // Already handled in section 2 via create+update events
     }
 
     return Response.json({ skipped: 'unhandled entity', entityName });
