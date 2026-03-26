@@ -6,7 +6,7 @@ import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
 // Persist last visited path + scroll per tab across renders
 const tabState = {};
 
-export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, currentPageName, user }) {
+export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, currentPageName }) {
   const navigate = useNavigate();
   const currentTabRef = useRef(null);
 
@@ -129,6 +129,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
               className="flex-1 flex flex-col items-center justify-center py-2 pb-1 no-select active:opacity-70"
               style={{ minHeight: '56px', WebkitTapHighlightColor: 'transparent', WebkitAppearance: 'none' }}
             >
+              {/* Active indicator pill */}
               {isActive && (
                 <div className="absolute top-0 w-8 h-[3px] bg-orange-500 rounded-full" style={{ left: '50%', transform: 'translateX(-50%)' }} />
               )}

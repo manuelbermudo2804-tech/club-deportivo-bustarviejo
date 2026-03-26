@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { LogOut, Smartphone, RotateCw, MessageCircle, Mail, Bell } from "lucide-react";
+import { LogOut, Smartphone, RotateCw, MessageCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import NotificationCenter from "../NotificationCenter";

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 export default function MobileMenu({
   isAdmin, isAppInstalled, navigationItems, location,
   hasNewVersion, onClose, onShowDeleteAccount, onShowFeedback,
-  onShowInstall, onLogout, BUILD_VERSION, user
+  onShowInstall, onLogout, BUILD_VERSION
 }) {
   return (
     <div className="lg:hidden fixed inset-0 z-[100]" style={{ backgroundColor: 'rgba(15, 23, 42, 0.97)' }}>
