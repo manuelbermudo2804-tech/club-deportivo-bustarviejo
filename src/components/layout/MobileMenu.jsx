@@ -35,10 +35,8 @@ export default function MobileMenu({
         if (vapidKey) {
           const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
           const b64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
-          const raw = atob(b64);
-          const key = new Uint8Array(raw.length);
-          for (let i = 0; i < raw.length; i++) key[i] = raw.charCodeAt(i);
-          sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+          const raw = Uint8Array.from(window.atob(b64), c => c.charCodeAt(0));
+          sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: raw });
         }
       }
       if (sub) {
