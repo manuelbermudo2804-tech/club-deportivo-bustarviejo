@@ -8,47 +8,61 @@ if (VAPID_PUBLIC && VAPID_PRIVATE) {
   webpush.setVapidDetails('mailto:CDBUSTARVIEJO@GMAIL.COM', VAPID_PUBLIC, VAPID_PRIVATE);
 }
 
-// Normalize category name to group_id format
 const toGroupId = (s) => (s || '').toString().replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
 
 async function sendPushToEmails(base44, emails, title, body, url, tag) {
-  if (!emails.length || !VAPID_PUBLIC || !VAPID_PRIVATE) return { sent: 0, failed: 0 };
+  const uniqueEmails = [...new Set(emails)];
+  if (!uniqueEmails.length || !VAPID_PUBLIC || !VAPID_PRIVATE) return { sent: 0, failed: 0 };
 
-  // Get all active subscriptions for the target emails
-  const allSubs = [];
-  for (const email of [...new Set(emails)]) {
-    try {
-      const subs = await base44.asServiceRole.entities.PushSubscription.filter({
-        usuario_email: email,
-        activa: true
-      });
-      allSubs.push(...subs);
-    } catch {}
+  // Get all active subscriptions for ALL target emails in one query
+  const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true });
+  const targetSubs = allSubs.filter(s => uniqueEmails.includes(s.usuario_email));
+
+  if (targetSubs.length === 0) return { sent: 0, failed: 0 };
+
+  // Count existing unread notifications per user for badge count
+  // Group subs by email to send correct badge per user
+  const subsByEmail = {};
+  for (const sub of targetSubs) {
+    if (!subsByEmail[sub.usuario_email]) subsByEmail[sub.usuario_email] = [];
+    subsByEmail[sub.usuario_email].push(sub);
   }
 
-  if (allSubs.length === 0) return { sent: 0, failed: 0 };
-
-  const payload = JSON.stringify({
-    title,
-    body,
-    tag: tag || 'notification',
-    badgeCount: 1,
-    requireInteraction: false,
-    data: { url: url || '/', timestamp: new Date().toISOString() }
-  });
-
   let sent = 0, failed = 0;
-  for (const sub of allSubs) {
+  for (const [email, subs] of Object.entries(subsByEmail)) {
+    // Count how many unread push notifications this user has (approximate via AppNotification)
+    let badgeCount = 1;
     try {
-      await webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { auth: sub.auth_key, p256dh: sub.p256dh_key } },
-        payload
-      );
-      sent++;
-    } catch (err) {
-      failed++;
-      if (err.statusCode === 410 || err.statusCode === 404) {
-        try { await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false }); } catch {}
+      const unread = await base44.asServiceRole.entities.AppNotification.filter({
+        usuario_email: email,
+        vista: false
+      });
+      badgeCount = Math.max(1, (unread || []).length + 1);
+    } catch {
+      badgeCount = 1;
+    }
+
+    const payload = JSON.stringify({
+      title,
+      body,
+      tag: tag || 'notification',
+      badgeCount,
+      requireInteraction: false,
+      data: { url: url || '/', timestamp: new Date().toISOString() }
+    });
+
+    for (const sub of subs) {
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { auth: sub.auth_key, p256dh: sub.p256dh_key } },
+          payload
+        );
+        sent++;
+      } catch (err) {
+        failed++;
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          try { await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false }); } catch {}
+        }
       }
     }
   }
@@ -69,7 +83,7 @@ Deno.serve(async (req) => {
     const senderEmail = data.created_by || data.remitente_email || data.autor_email || data.entrenador_email || '';
 
     // ==========================================
-    // 1. CHAT MESSAGES (ChatMessage entity)
+    // 1. CHAT MESSAGES
     // ==========================================
     if (entityName === 'ChatMessage') {
       const grupoId = data.grupo_id || data.deporte || '';
@@ -78,10 +92,14 @@ Deno.serve(async (req) => {
       
       if (!grupoId) return Response.json({ skipped: 'no grupo_id' });
 
-      // Find all players in this category to get parent emails
       const normalizedCat = toGroupId(grupoId);
-      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
-      
+
+      // Fetch players and users in parallel for speed
+      const [allPlayers, allUsers] = await Promise.all([
+        base44.asServiceRole.entities.Player.filter({ activo: true }),
+        base44.asServiceRole.entities.User.list('-created_date', 500)
+      ]);
+
       const targetEmails = [];
       for (const p of allPlayers) {
         const playerCat = toGroupId(p.categoria_principal || p.deporte || '');
@@ -91,9 +109,7 @@ Deno.serve(async (req) => {
         if (p.email_jugador) targetEmails.push(p.email_jugador);
       }
 
-      // Also notify coaches/coordinators of this category
-      const users = await base44.asServiceRole.entities.User.list('-created_date', 500);
-      for (const u of users) {
+      for (const u of allUsers) {
         if (u.es_entrenador && (u.categorias_entrena || []).some(c => toGroupId(c) === normalizedCat)) {
           targetEmails.push(u.email);
         }
@@ -102,7 +118,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Exclude sender
       const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
       
       const result = await sendPushToEmails(
@@ -116,10 +131,9 @@ Deno.serve(async (req) => {
     }
 
     // ==========================================
-    // 2. CONVOCATORIAS (Convocatoria entity)
+    // 2. CONVOCATORIAS
     // ==========================================
     if (entityName === 'Convocatoria') {
-      // Only send on published callups
       if (!data.publicada) return Response.json({ skipped: 'not published' });
 
       const jugadores = data.jugadores_convocados || [];
@@ -130,7 +144,6 @@ Deno.serve(async (req) => {
         if (j.email_jugador) targetEmails.push(j.email_jugador);
       }
 
-      // If no emails in jugadores_convocados, lookup from Player entity
       if (targetEmails.length === 0) {
         for (const j of jugadores) {
           if (!j.jugador_id) continue;
@@ -160,7 +173,7 @@ Deno.serve(async (req) => {
     }
 
     // ==========================================
-    // 3. ANNOUNCEMENTS (Announcement entity)
+    // 3. ANNOUNCEMENTS
     // ==========================================
     if (entityName === 'Announcement') {
       if (!data.publicado) return Response.json({ skipped: 'not published' });
@@ -169,13 +182,11 @@ Deno.serve(async (req) => {
       const prioridad = data.prioridad || 'Normal';
       const destinatarios = data.destinatarios_tipo || 'Todos';
 
-      // Get target emails based on destinatarios_tipo
       const targetEmails = [];
       
       if (data.destinatarios_emails && data.destinatarios_emails.length > 0) {
         targetEmails.push(...data.destinatarios_emails);
       } else {
-        // Get players by category
         const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
         for (const p of allPlayers) {
           const matchCategory = destinatarios === 'Todos' || 
@@ -201,10 +212,9 @@ Deno.serve(async (req) => {
     }
 
     // ==========================================
-    // 4. PLAYER UPDATED (federation signatures)
+    // 4. PLAYER (federation signatures)
     // ==========================================
     if (entityName === 'Player') {
-      // Only trigger when firma links are set but not completed
       const hasNewFirmaJugador = data.enlace_firma_jugador && !data.firma_jugador_completada;
       const hasNewFirmaTutor = data.enlace_firma_tutor && !data.firma_tutor_completada;
       

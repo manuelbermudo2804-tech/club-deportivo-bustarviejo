@@ -1,7 +1,8 @@
 Deno.serve((_req) => {
   const swCode = `
 self.addEventListener('install', (event) => {
-  // No skipWaiting automatically to allow "Update Available" prompt
+  // Forzar activacion inmediata del nuevo SW
+  self.skipWaiting();
 });
 
 self.addEventListener('message', (event) => {
@@ -11,10 +12,10 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  self.clients.claim();
+  event.waitUntil(self.clients.claim());
 });
 
-// Push notification handler — actualiza badge del icono
+// Push notification handler
 self.addEventListener('push', (event) => {
   const data = (() => { try { return event.data ? event.data.json() : {}; } catch { return {}; } })();
   const options = {
@@ -31,21 +32,10 @@ self.addEventListener('push', (event) => {
   const badgePromise = (async () => {
     try {
       if (self.navigator && self.navigator.setAppBadge) {
-        if (badgeCount > 0) {
-          await self.navigator.setAppBadge(badgeCount);
-        } else {
-          await self.navigator.clearAppBadge();
-        }
-      } else if (typeof navigator !== 'undefined' && navigator.setAppBadge) {
-        if (badgeCount > 0) {
-          await navigator.setAppBadge(badgeCount);
-        } else {
-          await navigator.clearAppBadge();
-        }
+        if (badgeCount > 0) await self.navigator.setAppBadge(badgeCount);
+        else await self.navigator.clearAppBadge();
       }
-    } catch (e) {
-      // Silently fail
-    }
+    } catch {}
   })();
 
   event.waitUntil(
@@ -56,40 +46,31 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Al hacer click en la notificacion, abrir la app
+// Click en notificacion -> abrir la app
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-
-  // Ruta deseada (ej: /FamilyChatsHub)
   const targetPath = (event.notification.data && event.notification.data.url) || '/';
 
   event.waitUntil(
     (async () => {
-      // Buscar ventanas abiertas de la app
       const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-
-      // Si hay una ventana abierta, navegar y enfocar
-      if (allClients.length > 0) {
-        const client = allClients[0];
+      
+      // Si hay ventana abierta, navegar y enfocar
+      for (const client of allClients) {
         try {
-          // Intentar navegar a la ruta deseada
           await client.navigate(new URL(targetPath, self.registration.scope).href);
           return client.focus();
         } catch {
-          // Si navigate falla, al menos enfocar
-          return client.focus();
+          try { return client.focus(); } catch {}
         }
       }
-
-      // Si no hay ventana abierta, abrir una nueva
-      // Usar URL absoluta basada en el scope del SW
-      const url = new URL(targetPath, self.registration.scope).href;
-      return clients.openWindow(url);
+      
+      // No hay ventana -> abrir nueva
+      return clients.openWindow(new URL(targetPath, self.registration.scope).href);
     })()
   );
 });
 
-// Keep SW alive minimal fetch pass-through
 self.addEventListener('fetch', () => {});
   `.trim();
 
