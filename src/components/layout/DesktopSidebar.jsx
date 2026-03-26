@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import NotificationCenter from "../NotificationCenter";
 import ThemeToggle from "../ThemeToggle";
 import LanguageSelector from "../LanguageSelector";
-import activatePushNotifications from "../notifications/activatePushNotifications";
 
 const GlobalSearch = React.lazy(() => import("../GlobalSearch"));
 
@@ -19,9 +18,6 @@ export default function DesktopSidebar({
   onLogout, onShowInstall, onCheckUpdates, onShowFeedback, onShowDeleteAccount,
   playerName, hasNewVersion
 }) {
-  const handleActivateNotifications = async () => {
-    await activatePushNotifications(user?.email);
-  };
   const location = useLocation();
 
   return (
@@ -51,12 +47,6 @@ export default function DesktopSidebar({
       </div>
 
       <div className="p-4 space-y-2">
-        {/* Botón activar notificaciones */}
-        <button onClick={handleActivateNotifications} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-all shadow-md mb-2">
-          <Bell className="w-5 h-5" />
-          <span className="font-bold text-sm">🔔 Activar Notificaciones</span>
-        </button>
-
         {isAdmin ? (
           <Link to={createPageUrl("FeedbackManagement")} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all shadow-md mb-2">
             <MessageCircle className="w-5 h-5" />

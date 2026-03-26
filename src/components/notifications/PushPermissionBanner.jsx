@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
 const DISMISS_KEY = 'push_banner_dismissed_at';
-const DISMISS_DAYS = 7;
+const DISMISS_HOURS = 2;
 
 export default function PushPermissionBanner({ user }) {
   const [visible, setVisible] = useState(false);
@@ -21,8 +21,8 @@ export default function PushPermissionBanner({ user }) {
     // No mostrar si descartó hace menos de 7 días
     const dismissed = localStorage.getItem(DISMISS_KEY);
     if (dismissed) {
-      const daysAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60 * 24);
-      if (daysAgo < DISMISS_DAYS) return;
+      const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
+      if (hoursAgo < DISMISS_HOURS) return;
     }
     setVisible(true);
   }, [user?.email]);

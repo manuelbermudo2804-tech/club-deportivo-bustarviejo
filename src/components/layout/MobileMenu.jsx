@@ -1,20 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MessageCircle, Smartphone, RotateCw, UserX, LogOut, X, Bell } from "lucide-react";
+import { MessageCircle, Smartphone, RotateCw, UserX, LogOut, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import activatePushNotifications from "../notifications/activatePushNotifications";
 
 export default function MobileMenu({
   isAdmin, isAppInstalled, navigationItems, location,
   hasNewVersion, onClose, onShowDeleteAccount, onShowFeedback,
   onShowInstall, onLogout, BUILD_VERSION, user
 }) {
-  const handleActivateNotifications = async () => {
-    const ok = await activatePushNotifications(user?.email);
-    if (ok) onClose();
-  };
-
   return (
     <div className="lg:hidden fixed inset-0 z-[100]" style={{ backgroundColor: 'rgba(15, 23, 42, 0.97)' }}>
       <div className="flex flex-col h-full">
@@ -33,13 +27,6 @@ export default function MobileMenu({
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {/* Botón activar notificaciones */}
-          <button onClick={handleActivateNotifications}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg mb-4">
-            <Bell className="w-6 h-6 flex-shrink-0" />
-            <span className="font-bold text-base flex-1">🔔 Activar Notificaciones</span>
-          </button>
-
           {isAdmin ? (
             <Link to={createPageUrl("FeedbackManagement")} onClick={onClose}
               className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg mb-4">
