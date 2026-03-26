@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { MessageCircle, Smartphone, RotateCw, UserX, LogOut, X, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { base44 } from "@/api/base44Client";
+import activatePushNotifications from "../notifications/activatePushNotifications";
 
 export default function MobileMenu({
   isAdmin, isAppInstalled, navigationItems, location,
@@ -11,56 +11,8 @@ export default function MobileMenu({
   onShowInstall, onLogout, BUILD_VERSION, user
 }) {
   const handleActivateNotifications = async () => {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        // Suscribirse automáticamente como hace el banner
-        let reg = (await navigator.serviceWorker.getRegistrations())
-          .find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
-        if (!reg) {
-          reg = await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
-          await new Promise(resolve => {
-            const sw = reg.installing || reg.waiting;
-            if (!sw || reg.active) return resolve();
-            sw.addEventListener('statechange', function h() {
-              if (this.state === 'activated') { this.removeEventListener('statechange', h); resolve(); }
-            });
-            setTimeout(resolve, 5000);
-          });
-        }
-        if (reg?.pushManager) {
-          let sub = await reg.pushManager.getSubscription();
-          if (!sub) {
-            const res = await base44.functions.invoke('getVapidPublicKey', {});
-            const vapidKey = res.data?.publicKey;
-            if (vapidKey) {
-              const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
-              const b64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
-              const raw = atob(b64);
-              const key = new Uint8Array(raw.length);
-              for (let i = 0; i < raw.length; i++) key[i] = raw.charCodeAt(i);
-              sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
-            }
-          }
-          if (sub) {
-            const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
-            const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
-            const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email });
-            for (const oldSub of allSubs || []) {
-              try { await base44.entities.PushSubscription.delete(oldSub.id); } catch {}
-            }
-            await base44.entities.PushSubscription.create({
-              usuario_email: user.email, endpoint: sub.endpoint,
-              p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
-            });
-            alert('✅ Notificaciones activadas correctamente');
-            onClose();
-          }
-        }
-      }
-    } catch (e) {
-      alert('❌ Error: ' + e.message);
-    }
+    const ok = await activatePushNotifications(user?.email);
+    if (ok) onClose();
   };
 
   return (
