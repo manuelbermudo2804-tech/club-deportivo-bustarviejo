@@ -94,6 +94,7 @@ export function buildAdminNavigation(ctx) {
     { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
     { title: "👁️ Preview Flujo Alta", url: createPageUrl("OnboardingPreview"), icon: UserIcon },
     { title: "📸 Diagnóstico Subidas", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
+    { title: "🔔 Test Push/Badge", url: "/PushBadgeTest", icon: Bell },
   ];
 }
 
