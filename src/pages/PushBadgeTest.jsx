@@ -29,11 +29,20 @@ export default function PushBadgeTest() {
         setStatus(s => ({ ...s, sw: '❌ Service Worker no soportado' }));
         return;
       }
-      let reg = await navigator.serviceWorker.getRegistration();
-      if (!reg) {
-        reg = await navigator.serviceWorker.register('/functions/sw');
+      // Registrar con scope raíz para que pushManager funcione
+      const reg = await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
+      // Esperar a que esté activo
+      if (reg.installing) {
+        await new Promise(resolve => {
+          reg.installing.addEventListener('statechange', function handler() {
+            if (this.state === 'activated') {
+              this.removeEventListener('statechange', handler);
+              resolve();
+            }
+          });
+        });
       }
-      setStatus(s => ({ ...s, sw: '✅ SW registrado: ' + reg.scope }));
+      setStatus(s => ({ ...s, sw: '✅ SW registrado con scope: ' + reg.scope }));
       return reg;
     } catch (e) {
       setStatus(s => ({ ...s, sw: '❌ Error SW: ' + e.message }));
@@ -48,10 +57,13 @@ export default function PushBadgeTest() {
         return;
       }
       
-      // Esperar a que el SW esté listo (más fiable que getRegistration)
-      const reg = await navigator.serviceWorker.ready;
+      // Buscar cualquier registro de SW
+      const regs = await navigator.serviceWorker.getRegistrations();
+      setStatus(s => ({ ...s, push_debug: `SWs encontrados: ${regs.length} | Scopes: ${regs.map(r => r.scope).join(', ')}` }));
+      
+      let reg = regs.find(r => r.active);
       if (!reg) {
-        setStatus(s => ({ ...s, push: '❌ Primero registra el SW' }));
+        setStatus(s => ({ ...s, push: '❌ No hay SW activo. Registra primero (paso 2) y espera unos segundos.' }));
         return;
       }
 
@@ -171,6 +183,9 @@ export default function PushBadgeTest() {
             actionLabel="Suscribir"
             result={status.push}
           />
+          {status.push_debug && (
+            <p className="text-xs text-blue-600 font-mono px-3 -mt-2">{status.push_debug}</p>
+          )}
           <Step
             num={4}
             title="Badging API disponible"
