@@ -248,31 +248,6 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
             <span className="mt-0.5 leading-tight text-orange-600 font-bold" style={{ fontSize: '9px' }}>Activar</span>
           </button>
         )}
-          const isActive = activeTabKey === key;
-          return (
-            <button
-              key={key}
-              onClick={() => handleTabClick({ key, url })}
-              aria-label={label}
-              className="flex-1 flex flex-col items-center justify-center py-2 pb-1 no-select active:opacity-70"
-              style={{ minHeight: '56px', WebkitTapHighlightColor: 'transparent', WebkitAppearance: 'none' }}
-            >
-              {/* Active indicator pill */}
-              {isActive && (
-                <div className="absolute top-0 w-8 h-[3px] bg-orange-500 rounded-full" style={{ left: '50%', transform: 'translateX(-50%)' }} />
-              )}
-              <div className="relative" style={{ transform: isActive ? 'scale(1.1) translateY(-2px)' : 'none' }}>
-                <Icon className={`w-6 h-6 ${isActive ? 'text-orange-600' : 'text-slate-400'}`} />
-                {badge > 0 && (
-                  <div className="absolute -top-1.5 -right-2 bg-red-500 text-white rounded-full font-bold px-1 shadow-sm flex items-center justify-center" style={{ fontSize: '10px', minWidth: '18px', height: '18px' }}>
-                    {badge > 99 ? '99+' : badge}
-                  </div>
-                )}
-              </div>
-              <span className={`mt-0.5 leading-tight ${isActive ? 'text-orange-600 font-bold' : 'text-slate-400'}`} style={{ fontSize: '10px' }}>{label}</span>
-            </button>
-          );
-        })}
       </div>
     </div>
   );

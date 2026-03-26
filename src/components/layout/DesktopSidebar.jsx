@@ -1,12 +1,13 @@
 import React, { Suspense } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { LogOut, Smartphone, RotateCw, MessageCircle, Mail } from "lucide-react";
+import { LogOut, Smartphone, RotateCw, MessageCircle, Mail, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import NotificationCenter from "../NotificationCenter";
 import ThemeToggle from "../ThemeToggle";
 import LanguageSelector from "../LanguageSelector";
+import { base44 } from "@/api/base44Client";
 
 const GlobalSearch = React.lazy(() => import("../GlobalSearch"));
 
@@ -18,6 +19,54 @@ export default function DesktopSidebar({
   onLogout, onShowInstall, onCheckUpdates, onShowFeedback, onShowDeleteAccount,
   playerName, hasNewVersion
 }) {
+  const handleActivateNotifications = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+      const regs = await navigator.serviceWorker.getRegistrations();
+      let reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
+      if (!reg) {
+        reg = await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
+        await new Promise(resolve => {
+          const sw = reg.installing || reg.waiting;
+          if (!sw || reg.active) return resolve();
+          sw.addEventListener('statechange', function h() {
+            if (this.state === 'activated') { this.removeEventListener('statechange', h); resolve(); }
+          });
+          setTimeout(resolve, 5000);
+        });
+      }
+      if (!reg?.pushManager) return;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        const res = await base44.functions.invoke('getVapidPublicKey', {});
+        const vapidKey = res.data?.publicKey;
+        if (vapidKey) {
+          const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
+          const b64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+          const raw = atob(b64);
+          const key = new Uint8Array(raw.length);
+          for (let i = 0; i < raw.length; i++) key[i] = raw.charCodeAt(i);
+          sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+        }
+      }
+      if (sub) {
+        const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
+        const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
+        const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email });
+        for (const oldSub of allSubs || []) {
+          try { await base44.entities.PushSubscription.delete(oldSub.id); } catch {}
+        }
+        await base44.entities.PushSubscription.create({
+          usuario_email: user.email, endpoint: sub.endpoint,
+          p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
+        });
+        alert('✅ Notificaciones activadas correctamente');
+      }
+    } catch (e) {
+      alert('❌ Error: ' + e.message);
+    }
+  };
   const location = useLocation();
 
   return (
@@ -47,6 +96,12 @@ export default function DesktopSidebar({
       </div>
 
       <div className="p-4 space-y-2">
+        {/* Botón activar notificaciones */}
+        <button onClick={handleActivateNotifications} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-all shadow-md mb-2">
+          <Bell className="w-5 h-5" />
+          <span className="font-bold text-sm">🔔 Activar Notificaciones</span>
+        </button>
+
         {isAdmin ? (
           <Link to={createPageUrl("FeedbackManagement")} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600 transition-all shadow-md mb-2">
             <MessageCircle className="w-5 h-5" />
