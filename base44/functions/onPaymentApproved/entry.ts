@@ -1,4 +1,11 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import webpush from 'npm:web-push@3.6.7';
+
+const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY');
+const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY');
+if (VAPID_PUBLIC && VAPID_PRIVATE) {
+  webpush.setVapidDetails('mailto:CDBUSTARVIEJO@GMAIL.COM', VAPID_PUBLIC, VAPID_PRIVATE);
+}
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
@@ -124,6 +131,35 @@ Deno.serve(async (req) => {
         console.log('[onPaymentApproved] Email sent to:', email);
       } catch (emailErr) {
         console.error('[onPaymentApproved] Error sending email:', emailErr.message);
+      }
+    }
+
+    // Push notification
+    if (VAPID_PUBLIC && VAPID_PRIVATE) {
+      try {
+        const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true });
+        const targetSubs = allSubs.filter(s => emails.includes(s.usuario_email));
+        for (const sub of targetSubs) {
+          try {
+            await webpush.sendNotification(
+              { endpoint: sub.endpoint, keys: { auth: sub.auth_key, p256dh: sub.p256dh_key } },
+              JSON.stringify({
+                title: '✅ Pago Aprobado',
+                body: `El pago de ${data.cantidad}€ de ${data.jugador_nombre} (${data.mes}) ha sido aprobado`,
+                tag: `payment-approved-${event.entity_id}`,
+                badgeCount: 1, renotify: true, requireInteraction: false,
+                data: { url: '/ParentPayments', timestamp: new Date().toISOString() }
+              }),
+              { urgency: 'high', TTL: 86400 }
+            );
+          } catch (pushErr) {
+            if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+              try { await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false }); } catch {}
+            }
+          }
+        }
+      } catch (pushGroupErr) {
+        console.error('[onPaymentApproved] Push error:', pushGroupErr.message);
       }
     }
 
