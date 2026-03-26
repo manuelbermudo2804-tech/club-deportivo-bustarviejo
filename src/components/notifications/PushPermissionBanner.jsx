@@ -66,19 +66,17 @@ export default function PushPermissionBanner({ user }) {
             if (sub) {
               const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
               const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
-              const existing = await base44.entities.PushSubscription.filter({
-                usuario_email: user.email, endpoint: sub.endpoint
-              });
-              if (existing.length > 0) {
-                await base44.entities.PushSubscription.update(existing[0].id, {
-                  p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
-                });
-              } else {
-                await base44.entities.PushSubscription.create({
-                  usuario_email: user.email, endpoint: sub.endpoint,
-                  p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
-                });
+              // Eliminar suscripciones viejas (mismo email o mismo endpoint) para evitar endpoints caducados
+              const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email });
+              for (const oldSub of allSubs || []) {
+                try { await base44.entities.PushSubscription.delete(oldSub.id); } catch {}
               }
+              // Crear nueva suscripción limpia
+              await base44.entities.PushSubscription.create({
+                usuario_email: user.email, endpoint: sub.endpoint,
+                p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
+              });
+              console.log('✅ Push subscription creada:', sub.endpoint);
             }
           }
         } catch (e) {
