@@ -73,8 +73,14 @@ export default function useAppUpdater() {
       } catch {}
     })();
 
-    // 4. Recarga automática si el controlador cambia
-    const onCtrlChange = () => window.location.reload();
+    // 4. Recarga automática si el controlador cambia (con debounce anti-bucle)
+    let reloadScheduled = false;
+    const onCtrlChange = () => {
+      if (reloadScheduled) return;
+      reloadScheduled = true;
+      // Pequeño delay para evitar recargas múltiples
+      setTimeout(() => window.location.reload(), 300);
+    };
     navigator.serviceWorker.addEventListener('controllerchange', onCtrlChange);
 
     return () => {
@@ -95,9 +101,24 @@ export default function useAppUpdater() {
     }
   }, []);
 
-  const applyUpdate = () => {
+  const applyUpdate = async () => {
     localStorage.setItem('app_build_version', BUILD_VERSION);
     setShowUpdateNotification(false);
+    setHasNewVersion(false);
+
+    // Enviar SKIP_WAITING al SW en espera para que se active
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg?.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          // Esperar un momento para que el controllerchange haga el reload
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+    } catch {}
+
+    // Si controllerchange no recargó, forzar reload
     window.location.reload();
   };
 
