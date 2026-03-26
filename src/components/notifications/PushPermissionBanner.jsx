@@ -9,16 +9,25 @@ const DISMISS_HOURS = 2;
 export default function PushPermissionBanner({ user }) {
   const [visible, setVisible] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  const [noSupport, setNoSupport] = useState(false);
 
   useEffect(() => {
     if (!user?.email) return;
-    // No mostrar si no hay soporte
-    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
-    // No mostrar si ya tiene permiso
+    // Sin soporte: mostrar banner informativo para instalar la app
+    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setNoSupport(true);
+      setVisible(true);
+      return;
+    }
+    // Ya tiene permiso
     if (Notification.permission === 'granted') return;
-    // No mostrar si bloqueó (no podemos hacer nada)
-    if (Notification.permission === 'denied') return;
-    // No mostrar si descartó hace menos de 7 días
+    // Bloqueó notificaciones
+    if (Notification.permission === 'denied') {
+      setNoSupport(true);
+      setVisible(true);
+      return;
+    }
+    // No mostrar si descartó hace menos de 2 horas
     const dismissed = localStorage.getItem(DISMISS_KEY);
     if (dismissed) {
       const hoursAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60);
@@ -100,20 +109,29 @@ export default function PushPermissionBanner({ user }) {
 
   if (!visible) return null;
 
+  const blockedOrNoSupport = noSupport;
+
   return (
     <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 flex items-center gap-3 shadow-md animate-fade-in">
       <Bell className="w-5 h-5 flex-shrink-0 animate-bounce" />
       <p className="text-sm font-medium flex-1 leading-tight">
-        Activa las notificaciones para recibir avisos de convocatorias, anuncios y mensajes del chat
+        {blockedOrNoSupport
+          ? (Notification?.permission === 'denied'
+            ? 'Las notificaciones están bloqueadas. Ve a Ajustes de tu navegador para activarlas.'
+            : 'Instala la app o abre desde Chrome/Safari para activar notificaciones')
+          : 'Activa las notificaciones para recibir avisos de convocatorias, anuncios y mensajes del chat'
+        }
       </p>
-      <Button
-        size="sm"
-        onClick={handleActivate}
-        disabled={requesting}
-        className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs px-3 py-1 h-auto whitespace-nowrap"
-      >
-        {requesting ? '...' : 'Activar'}
-      </Button>
+      {!blockedOrNoSupport && (
+        <Button
+          size="sm"
+          onClick={handleActivate}
+          disabled={requesting}
+          className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs px-3 py-1 h-auto whitespace-nowrap"
+        >
+          {requesting ? '...' : 'Activar'}
+        </Button>
+      )}
       <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full flex-shrink-0">
         <X className="w-4 h-4" />
       </button>
