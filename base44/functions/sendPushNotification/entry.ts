@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
           title: titulo,
           body: cuerpo,
           tag: tag || 'notification',
+          badgeCount: payload.badgeCount || 1,
           requireInteraction: requireInteraction || false,
           data: {
             url: url || '/',
