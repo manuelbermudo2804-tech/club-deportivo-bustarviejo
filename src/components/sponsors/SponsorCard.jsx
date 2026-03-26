@@ -93,13 +93,11 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onToggleActive 
         </div>
 
         {/* Métrica de clicks en el banner */}
-        {clicks > 0 && (
-          <div className="flex items-center gap-2 mb-3 p-2 bg-green-50 rounded-lg">
-            <MousePointer className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-bold text-green-800">{clicks}</span>
-            <span className="text-xs text-green-600">clicks en el banner</span>
-          </div>
-        )}
+        <div className={`flex items-center gap-2 mb-3 p-2 rounded-lg ${clicks > 0 ? 'bg-green-50' : 'bg-slate-50'}`}>
+          <MousePointer className={`w-4 h-4 ${clicks > 0 ? 'text-green-600' : 'text-slate-400'}`} />
+          <span className={`text-sm font-bold ${clicks > 0 ? 'text-green-800' : 'text-slate-500'}`}>{clicks}</span>
+          <span className={`text-xs ${clicks > 0 ? 'text-green-600' : 'text-slate-400'}`}>clicks en el banner</span>
+        </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           {sponsor.precio_anual && (
