@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
         `💬 ${senderName}`,
         msgPreview || '📎 Archivo adjunto',
         '/FamilyChatsHub',
-        `chat-${normalizedCat}`
+        `chat-${event.entity_id}`
       );
       return Response.json({ type: 'chat', ...result });
     }
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
         `⚽ ${titulo}`,
         `${fecha}${hora ? ' a las ' + hora : ''} - Confirma asistencia`,
         '/ParentCallups',
-        `callup-${event.entity_id}`
+        `callup-${event.entity_id}-${Date.now()}`
       );
       return Response.json({ type: 'callup', ...result });
     }
@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
         `${icon} ${titulo}`,
         (data.contenido || '').substring(0, 100),
         '/Announcements',
-        `announcement-${event.entity_id}`
+        `announcement-${event.entity_id}-${Date.now()}`
       );
       return Response.json({ type: 'announcement', ...result });
     }
@@ -235,7 +235,7 @@ Deno.serve(async (req) => {
         '✍️ Firma pendiente',
         `${nombre} tiene documentos de federación pendientes de firmar`,
         '/FederationSignatures',
-        `signature-${event.entity_id}`
+        `signature-${event.entity_id}-${Date.now()}`
       );
       return Response.json({ type: 'signature', ...result });
     }
