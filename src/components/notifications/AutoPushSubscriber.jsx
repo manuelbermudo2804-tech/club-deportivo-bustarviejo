@@ -66,7 +66,7 @@ async function autoSubscribe(email) {
 
     // 4. Obtener VAPID key del backend
     const res = await base44.functions.invoke('getVapidPublicKey', {});
-    const vapidKey = res.data?.vapidPublicKey;
+    const vapidKey = res.data?.publicKey;
     if (!vapidKey) return;
 
     // 5. Convertir VAPID key
