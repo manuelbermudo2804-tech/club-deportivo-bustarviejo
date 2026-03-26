@@ -104,6 +104,8 @@ Deno.serve(async (req) => {
     // ==========================================
     if (entityName === 'Convocatoria') {
       if (!data.publicada) return Response.json({ skipped: 'not published' });
+      // NEVER send push for system-created callups — only human coaches can publish
+      if (data.entrenador_email === 'sistema@cdbustarviejo.es') return Response.json({ skipped: 'system callup - never auto-notify' });
       const jugadores = data.jugadores_convocados || [];
       const targetEmails = [];
       for (const j of jugadores) {
