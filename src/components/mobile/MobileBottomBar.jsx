@@ -1,8 +1,7 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
 
 // Persist last visited path + scroll per tab across renders
 const tabState = {};
@@ -10,94 +9,6 @@ const tabState = {};
 export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, currentPageName, user }) {
   const navigate = useNavigate();
   const currentTabRef = useRef(null);
-  const [pushNeedsReactivation, setPushNeedsReactivation] = useState(false);
-
-  useEffect(() => {
-    if (!user?.email || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
-    checkPushStatus();
-  }, [user?.email]);
-
-  const checkPushStatus = async () => {
-    try {
-      const permission = Notification.permission;
-      if (permission !== 'granted') {
-        setPushNeedsReactivation(true);
-        return;
-      }
-      const regs = await navigator.serviceWorker.getRegistrations();
-      const reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
-      if (!reg?.pushManager) {
-        setPushNeedsReactivation(true);
-        return;
-      }
-      const sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        setPushNeedsReactivation(true);
-        return;
-      }
-      // Verificar si el endpoint está en BD
-      const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email, activa: true });
-      if (!allSubs || allSubs.length === 0) {
-        setPushNeedsReactivation(true);
-        return;
-      }
-      setPushNeedsReactivation(false);
-    } catch (e) {
-      console.warn('Push status check failed:', e.message);
-      setPushNeedsReactivation(true);
-    }
-  };
-
-  const handleReactivatePush = async () => {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return;
-      const regs = await navigator.serviceWorker.getRegistrations();
-      let reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
-      if (!reg) {
-        reg = await navigator.serviceWorker.register('/functions/sw', { scope: '/' });
-        await new Promise(resolve => {
-          const sw = reg.installing || reg.waiting;
-          if (!sw || reg.active) return resolve();
-          sw.addEventListener('statechange', function h() {
-            if (this.state === 'activated') { this.removeEventListener('statechange', h); resolve(); }
-          });
-          setTimeout(resolve, 5000);
-        });
-      }
-      if (!reg?.pushManager) return;
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        const res = await base44.functions.invoke('getVapidPublicKey', {});
-        const vapidKey = res.data?.publicKey;
-        if (vapidKey) {
-          const padding = '='.repeat((4 - vapidKey.length % 4) % 4);
-          const b64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/');
-          const raw = atob(b64);
-          const key = new Uint8Array(raw.length);
-          for (let i = 0; i < raw.length; i++) key[i] = raw.charCodeAt(i);
-          sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
-        }
-      }
-      if (sub) {
-        const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
-        const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
-        // Eliminar suscripciones viejas
-        const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email });
-        for (const oldSub of allSubs || []) {
-          try { await base44.entities.PushSubscription.delete(oldSub.id); } catch {}
-        }
-        await base44.entities.PushSubscription.create({
-          usuario_email: user.email, endpoint: sub.endpoint,
-          p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
-        });
-        setPushNeedsReactivation(false);
-        alert('✅ Notificaciones activadas correctamente');
-      }
-    } catch (e) {
-      alert('❌ Error: ' + e.message);
-    }
-  };
 
   const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub', 'CoachChatsHub', 'CoordinatorChatsHub', 'AdminChatsHub'];
   const isInChat = chatPages.includes(currentPageName);
@@ -233,21 +144,6 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
             </button>
           );
         })}
-        {/* Botón de notificaciones - solo aparece si necesita reactivación */}
-        {pushNeedsReactivation && (
-          <button
-            onClick={handleReactivatePush}
-            aria-label="Activar notificaciones"
-            className="flex-1 flex flex-col items-center justify-center py-2 pb-1 no-select active:opacity-70 bg-orange-50"
-            style={{ minHeight: '56px', WebkitTapHighlightColor: 'transparent', WebkitAppearance: 'none' }}
-          >
-            <div className="relative animate-pulse">
-              <Bell className="w-6 h-6 text-orange-600" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
-            </div>
-            <span className="mt-0.5 leading-tight text-orange-600 font-bold" style={{ fontSize: '9px' }}>Activar</span>
-          </button>
-        )}
       </div>
     </div>
   );
