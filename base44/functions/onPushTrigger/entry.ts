@@ -96,6 +96,20 @@ Deno.serve(async (req) => {
 
       const normalizedCat = toGroupId(grupoId);
 
+      // Count recent unread messages in this chat (last 24h, not from sender)
+      let recentCount = 1;
+      try {
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const recentMsgs = await base44.asServiceRole.entities.ChatMessage.filter({
+          grupo_id: grupoId
+        });
+        // Count msgs from last 24h not by the sender
+        recentCount = recentMsgs.filter(m => 
+          m.created_date >= since && m.remitente_email !== senderEmail
+        ).length;
+        if (recentCount < 1) recentCount = 1;
+      } catch { recentCount = 1; }
+
       // Fetch players and users in parallel for speed
       const [allPlayers, allUsers] = await Promise.all([
         base44.asServiceRole.entities.Player.filter({ activo: true }),
@@ -121,15 +135,20 @@ Deno.serve(async (req) => {
       }
 
       const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
+
+      // Build body: "3 mensajes nuevos" or just the preview
+      const body = recentCount > 1 
+        ? `${recentCount} mensajes nuevos` 
+        : (msgPreview || '📎 Archivo adjunto');
       
       const result = await sendPushToEmails(
         base44, filtered,
         `💬 ${senderName}`,
-        msgPreview || '📎 Archivo adjunto',
+        body,
         '/FamilyChatsHub',
         `chat-${normalizedCat}`
       );
-      return Response.json({ type: 'chat', ...result });
+      return Response.json({ type: 'chat', recentCount, ...result });
     }
 
     // ==========================================

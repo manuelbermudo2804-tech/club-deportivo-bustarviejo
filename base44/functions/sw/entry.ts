@@ -37,17 +37,10 @@ self.addEventListener('push', (event) => {
 
   event.waitUntil(
     (async () => {
-      // 1. Cerrar notificacion anterior con mismo tag para forzar heads-up
-      const existing = await self.registration.getNotifications({ tag: tag });
-      for (const n of existing) { n.close(); }
-
-      // 2. Pequeña pausa para que el SO registre el cierre
-      await new Promise(r => setTimeout(r, 100));
-
-      // 3. Mostrar nueva notificacion (aparecera como heads-up)
+      // Mostrar notificacion (renotify:true + mismo tag = reemplaza y suena)
       await self.registration.showNotification(data.title || 'CD Bustarviejo', options);
 
-      // 4. Actualizar badge
+      // Actualizar badge numerico en icono PWA
       try {
         if (self.navigator && self.navigator.setAppBadge) {
           if (badgeCount > 0) await self.navigator.setAppBadge(badgeCount);
