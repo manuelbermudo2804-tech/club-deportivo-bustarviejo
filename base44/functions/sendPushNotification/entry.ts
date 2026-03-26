@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import webpush from 'npm:web-push@3.6.7';
 
 // Configurar web-push con las claves VAPID
@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     }
 
     // Obtener suscripciones activas del usuario
-    const subscriptions = await base44.entities.PushSubscription.filter({
+    const subscriptions = await base44.asServiceRole.entities.PushSubscription.filter({
       usuario_email,
       activa: true
     });
@@ -47,8 +47,8 @@ Deno.serve(async (req) => {
         const pushSubscription = {
           endpoint: sub.endpoint,
           keys: {
-            auth: sub.auth_key,
-            p256dh: sub.p256dh_key
+            auth: sub.auth_key || (sub.keys && sub.keys.auth),
+            p256dh: sub.p256dh_key || (sub.keys && sub.keys.p256dh)
           }
         };
 
@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
         
         // Si la suscripción es inválida, marcarla como inactiva
         if (error.statusCode === 410 || error.statusCode === 404) {
-          await base44.entities.PushSubscription.update(sub.id, { activa: false });
+          await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false });
         }
         
         results.push({ email: usuario_email, status: 'error', error: error.message });

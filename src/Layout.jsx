@@ -40,6 +40,7 @@ import { SeasonProvider } from "./components/season/SeasonProvider";
 import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
+import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 
 
@@ -519,6 +520,7 @@ export default function Layout({ children, currentPageName }) {
             <>
               <GlobalErrorHandler />
               <ChatCountsBridge onCounts={setChatCounts} />
+              <AutoPushSubscriber user={user} />
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
 
               <InstallInstructionsModal
