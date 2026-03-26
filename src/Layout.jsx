@@ -41,6 +41,7 @@ import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
+import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 
 
@@ -579,6 +580,10 @@ export default function Layout({ children, currentPageName }) {
           setMobileMenuOpen={setMobileMenuOpen}
           onShowInstall={() => { setInstallContext('manual'); setShowInstallInstructions(true); }}
         />
+
+        <div className="lg:ml-72 fixed top-[56px] lg:top-0 left-0 right-0 z-[45]">
+          <PushPermissionBanner user={user} />
+        </div>
 
         {mobileMenuOpen && (
           <Suspense fallback={null}>
