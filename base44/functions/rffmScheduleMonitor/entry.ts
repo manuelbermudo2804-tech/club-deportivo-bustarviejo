@@ -365,12 +365,42 @@ Deno.serve(async (req) => {
           c.titulo?.includes(`Jornada ${jornada}`)
         );
 
-        // --- FASE 4: NO auto-create convocatorias ---
-        // Las convocatorias SOLO las crean los entrenadores manualmente.
-        // El sistema solo sincroniza ProximoPartido (calendario de partidos).
+        // --- FASE 4: Auto-create DRAFT (never published, never notified) ---
+        // El sistema SOLO crea borradores. JAMÁS publica ni envía notificaciones.
+        // El entrenador debe revisar, editar y publicar manualmente.
         if (!callup && !existingForJornada) {
-          // Solo log — no crear convocatoria automática
-          console.log(`[rffmScheduleMonitor] Partido detectado sin convocatoria: ${config.categoria} J${jornada} vs ${rival} (${matchDate}). El entrenador debe crearla manualmente.`);
+          if (!matchDate) return null; // Can't create without a date
+
+          // Get active players for this category
+          const players = await base44.asServiceRole.entities.Player.filter({ 
+            categoria_principal: config.categoria, activo: true 
+          });
+          const jugadores_convocados = players.map(p => ({
+            jugador_id: p.id,
+            jugador_nombre: p.nombre,
+            email_padre: p.email_padre || '',
+            email_jugador: p.email_jugador || '',
+            confirmacion: 'pendiente',
+          }));
+
+          await base44.asServiceRole.entities.Convocatoria.create({
+            titulo: `Jornada ${jornada} vs ${rival}`,
+            categoria: config.categoria,
+            tipo: 'Partido',
+            rival,
+            fecha_partido: matchDate,
+            hora_partido: match.hora || '00:00',
+            ubicacion: match.campo || 'Por confirmar',
+            local_visitante: isLocal ? 'Local' : 'Visitante',
+            jugadores_convocados,
+            entrenador_email: 'sistema@cdbustarviejo.es',
+            entrenador_nombre: 'Sistema automático',
+            publicada: false,
+            notificaciones_enviadas: false,
+            descripcion: `Borrador creado automáticamente desde RFFM (Jornada ${jornada}). Revisa y publica cuando esté lista.`,
+          });
+
+          created.push({ categoria: config.categoria, rival, jornada, fecha: matchDate });
           return null;
         }
 
