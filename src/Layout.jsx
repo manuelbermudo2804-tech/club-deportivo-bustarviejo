@@ -733,6 +733,7 @@ export default function Layout({ children, currentPageName }) {
           isPlayer={isPlayer}
           isMinor={isMinor}
           currentPageName={currentPageName}
+          user={user}
         />
 
         {/* Delete Account Dialog */}
