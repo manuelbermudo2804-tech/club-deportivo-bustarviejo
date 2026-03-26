@@ -56,27 +56,30 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Al hacer click en la notificación, abrir la app y limpiar badge
+// Al hacer click en la notificación, abrir la app en la página correspondiente
+// NO limpiamos el badge aquí — se limpia cuando el usuario abre la app y lee
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || '/';
+  const path = (event.notification.data && event.notification.data.url) || '/';
+  // Construir URL absoluta usando el scope del SW
+  const baseUrl = self.registration.scope.replace(/\\/$/, '');
+  const fullUrl = path.startsWith('http') ? path : baseUrl + path;
 
   event.waitUntil(
     (async () => {
-      // Limpiar badge al interactuar
-      if (navigator.clearAppBadge) {
-        try { await navigator.clearAppBadge(); } catch {}
-      }
-      
-      const clientList = await clients.matchAll({ type: 'window' });
+      // Intentar reutilizar una ventana/tab existente de la app
+      const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
       for (const client of clientList) {
-        if ('focus' in client) {
-          await client.navigate(url);
-          return client.focus();
-        }
+        try {
+          if (client.url && client.url.startsWith(baseUrl)) {
+            await client.navigate(fullUrl);
+            return client.focus();
+          }
+        } catch {}
       }
+      // Si no hay ventana abierta, abrir una nueva
       if (clients.openWindow) {
-        return clients.openWindow(url);
+        return clients.openWindow(fullUrl);
       }
     })()
   );
