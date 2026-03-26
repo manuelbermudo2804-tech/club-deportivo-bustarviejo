@@ -47,7 +47,9 @@ export default function PushBadgeTest() {
         setStatus(s => ({ ...s, push: '❌ Primero obtén la VAPID key' }));
         return;
       }
-      const reg = await navigator.serviceWorker.getRegistration();
+      
+      // Esperar a que el SW esté listo (más fiable que getRegistration)
+      const reg = await navigator.serviceWorker.ready;
       if (!reg) {
         setStatus(s => ({ ...s, push: '❌ Primero registra el SW' }));
         return;
