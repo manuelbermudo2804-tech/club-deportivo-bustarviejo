@@ -26,7 +26,7 @@ self.addEventListener('push', (event) => {
     data: data.data || {}
   };
 
-  // Badge numérico en el icono de la PWA
+  // Badge numerico en el icono de la PWA
   const badgeCount = typeof data.badgeCount === 'number' ? data.badgeCount : 1;
   const badgePromise = (async () => {
     try {
@@ -56,31 +56,35 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Al hacer click en la notificación, abrir la app en la página correspondiente
-// NO limpiamos el badge aquí — se limpia cuando el usuario abre la app y lee
+// Al hacer click en la notificacion, abrir la app
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const path = (event.notification.data && event.notification.data.url) || '/';
-  // Construir URL absoluta usando el scope del SW
-  const baseUrl = self.registration.scope.replace(/\\/$/, '');
-  const fullUrl = path.startsWith('http') ? path : baseUrl + path;
+
+  // Ruta deseada (ej: /FamilyChatsHub)
+  const targetPath = (event.notification.data && event.notification.data.url) || '/';
 
   event.waitUntil(
     (async () => {
-      // Intentar reutilizar una ventana/tab existente de la app
-      const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-      for (const client of clientList) {
+      // Buscar ventanas abiertas de la app
+      const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+
+      // Si hay una ventana abierta, navegar y enfocar
+      if (allClients.length > 0) {
+        const client = allClients[0];
         try {
-          if (client.url && client.url.startsWith(baseUrl)) {
-            await client.navigate(fullUrl);
-            return client.focus();
-          }
-        } catch {}
+          // Intentar navegar a la ruta deseada
+          await client.navigate(new URL(targetPath, self.registration.scope).href);
+          return client.focus();
+        } catch {
+          // Si navigate falla, al menos enfocar
+          return client.focus();
+        }
       }
+
       // Si no hay ventana abierta, abrir una nueva
-      if (clients.openWindow) {
-        return clients.openWindow(fullUrl);
-      }
+      // Usar URL absoluta basada en el scope del SW
+      const url = new URL(targetPath, self.registration.scope).href;
+      return clients.openWindow(url);
     })()
   );
 });
