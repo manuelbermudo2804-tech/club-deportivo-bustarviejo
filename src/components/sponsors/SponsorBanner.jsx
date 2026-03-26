@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Building2 } from "lucide-react";
@@ -49,6 +49,23 @@ export default function SponsorBanner() {
   // Pause on touch
   const handleTouchStart = () => { speedRef.current = 0; };
   const handleTouchEnd = () => { speedRef.current = 0.5; };
+
+  // Track click on sponsor logo
+  const handleSponsorClick = useCallback((sponsor) => {
+    try {
+      base44.entities.SponsorImpression.create({
+        sponsor_id: sponsor.id,
+        sponsor_nombre: sponsor.nombre,
+        ubicacion: 'banner',
+        tipo: 'click',
+        pagina: window.location.pathname
+      });
+      // Also increment counter on sponsor
+      base44.entities.Sponsor.update(sponsor.id, {
+        clicks_totales: (sponsor.clicks_totales || 0) + 1
+      });
+    } catch {}
+  }, []);
 
   if (sponsors.length === 0) return null;
 
@@ -116,7 +133,7 @@ export default function SponsorBanner() {
               );
 
               return sponsor.website_url ? (
-                <a key={`${sponsor.id}-${idx}`} href={sponsor.website_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                <a key={`${sponsor.id}-${idx}`} href={sponsor.website_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0" onClick={() => handleSponsorClick(sponsor)}>
                   {inner}
                 </a>
               ) : (

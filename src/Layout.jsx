@@ -42,6 +42,7 @@ import ActiveBanner from "./components/announcements/ActiveBanner";
 import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
+import SponsorRecruitBanner from "./components/sponsors/SponsorRecruitBanner";
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 
 
@@ -650,6 +651,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </ErrorBoundary>
           </PullToRefresh>
+          <SponsorRecruitBanner user={user} />
           <ActiveBanner position="bottom" user={user} />
 
           <ExtraChargePayModal
