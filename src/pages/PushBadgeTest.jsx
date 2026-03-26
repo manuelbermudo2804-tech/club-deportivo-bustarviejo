@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bell, CheckCircle, XCircle, Loader2, Send } from 'lucide-react';
 
+const BUILD_TS = '20260326_v3'; // Cambia para verificar que el código se actualizó
+
 export default function PushBadgeTest() {
   const [status, setStatus] = useState({});
   const [subscription, setSubscription] = useState(null);
@@ -206,6 +208,7 @@ export default function PushBadgeTest() {
           <p className="text-xs text-slate-500">
             Ejecuta cada paso en orden para verificar que todo funciona en Base44
           </p>
+          <p className="text-xs text-blue-500 font-mono">Build: {BUILD_TS}</p>
         </CardHeader>
         <CardContent className="space-y-3">
           <Step
@@ -276,6 +279,14 @@ export default function PushBadgeTest() {
               <li>Acepta el permiso de notificaciones cuando lo pida</li>
             </ul>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs"
+            onClick={() => { caches.keys().then(k => Promise.all(k.map(n => caches.delete(n)))).then(() => window.location.reload()); }}
+          >
+            🗑️ Limpiar cache y recargar
+          </Button>
         </CardContent>
       </Card>
     </div>
