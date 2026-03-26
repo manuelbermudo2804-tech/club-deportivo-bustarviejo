@@ -1,12 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const BUILD_VERSION = "build_1708714800001";
 
-// Hook que gestiona la detección de actualizaciones del Service Worker
-// y nuevas versiones del build. Devuelve estado y acciones.
 export default function useAppUpdater() {
+  // Anti-bucle: si acabamos de hacer un applyUpdate, no mostrar de nuevo
+  const justUpdated = useRef(() => {
+    try {
+      const ts = sessionStorage.getItem('update_applied_at');
+      if (ts && Date.now() - Number(ts) < 30000) return true; // 30s de gracia
+    } catch {}
+    return false;
+  });
+
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
   const [hasNewVersion, setHasNewVersion] = useState(() => {
+    if (justUpdated.current()) return false;
     try {
       const savedVersion = localStorage.getItem('app_build_version');
       if (savedVersion && savedVersion !== BUILD_VERSION) {
@@ -20,6 +28,7 @@ export default function useAppUpdater() {
   // Service Worker update check (periodic + visibility)
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
+    if (justUpdated.current()) return; // No chequear justo tras update
 
     const checkForNewVersion = async () => {
       try {
@@ -92,6 +101,10 @@ export default function useAppUpdater() {
 
   // Build version check (sin dependencia de SW)
   useEffect(() => {
+    if (justUpdated.current()) {
+      localStorage.setItem('app_build_version', BUILD_VERSION);
+      return;
+    }
     const savedVersion = localStorage.getItem('app_build_version');
     if (savedVersion && savedVersion !== BUILD_VERSION) {
       setHasNewVersion(true);
@@ -105,6 +118,7 @@ export default function useAppUpdater() {
     localStorage.setItem('app_build_version', BUILD_VERSION);
     setShowUpdateNotification(false);
     setHasNewVersion(false);
+    try { sessionStorage.setItem('update_applied_at', String(Date.now())); } catch {}
 
     // Enviar SKIP_WAITING al SW en espera para que se active
     try {
