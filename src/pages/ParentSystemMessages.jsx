@@ -210,10 +210,7 @@ export default function ParentSystemMessages() {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] pb-14 lg:pt-0 lg:pb-0 lg:static lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)]">
-      <div className="hidden lg:block">
-        <SocialLinks />
-      </div>
+    <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0 lg:relative lg:inset-auto lg:h-[calc(100vh-0px)]">
       <Card className="border-orange-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
         <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white flex-shrink-0 p-4 sm:p-6">
           <div className="flex items-center justify-between">
