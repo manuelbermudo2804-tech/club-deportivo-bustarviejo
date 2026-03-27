@@ -212,17 +212,12 @@ export default function ParentSystemMessages() {
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden pt-[100px] lg:pt-0 pb-0 lg:relative lg:inset-auto lg:h-[calc(100vh-0px)]">
       <Card className="border-orange-200 shadow-lg h-full flex flex-col overflow-hidden lg:rounded-lg rounded-none">
-        <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white flex-shrink-0 p-4 sm:p-6">
+        <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white flex-shrink-0 p-2">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
-                Mensajes del Club
-              </CardTitle>
-              <p className="text-xs sm:text-sm text-orange-100 mt-1">
-                Recordatorios y comunicaciones privadas de la administración
-              </p>
-            </div>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Bell className="w-4 h-4" />
+              Mensajes del Club
+            </CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0 relative">
@@ -328,18 +323,10 @@ export default function ParentSystemMessages() {
             </Button>
           )}
 
-          <div className="p-3 sm:p-4 bg-gradient-to-r from-orange-50 to-orange-100 border-t flex-shrink-0">
-            <div className="flex items-center gap-3 bg-white rounded-xl p-3 border-2 border-orange-300">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Bell className="w-5 h-5 text-orange-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-bold text-orange-900">📬 Solo Lectura</p>
-                <p className="text-xs text-orange-700">
-                  Esta sección es solo para mensajes del sistema. Para contactar con el club, usa el chat de coordinador o entrenador.
-                </p>
-              </div>
-            </div>
+          <div className="px-2 py-1.5 bg-orange-50 border-t flex-shrink-0">
+            <p className="text-[11px] text-orange-700 text-center">
+              📬 Solo lectura · Para contactar con el club, usa el chat de coordinador o entrenador.
+            </p>
           </div>
         </CardContent>
       </Card>
