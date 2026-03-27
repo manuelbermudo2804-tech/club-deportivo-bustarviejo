@@ -210,7 +210,7 @@ export default function ParentSystemMessages() {
   }
 
   return (
-    <div className="flex flex-col lg:p-4 lg:max-w-4xl lg:mx-auto space-y-2" style={{ height: 'calc(100dvh - 156px)', minHeight: '300px' }}>
+    <div className="h-[calc(100vh-100px)] lg:p-4 lg:max-w-4xl lg:mx-auto lg:h-[calc(100vh-110px)] space-y-2">
       <div className="hidden lg:block">
         <SocialLinks />
       </div>
