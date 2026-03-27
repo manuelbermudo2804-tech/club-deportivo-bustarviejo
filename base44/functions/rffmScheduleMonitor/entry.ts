@@ -270,7 +270,8 @@ Deno.serve(async (req) => {
 
     // 2. Get all convocatorias (open = not closed, not cancelled, future)
     const today = new Date().toISOString().split('T')[0];
-    const allCallups = await base44.asServiceRole.entities.Convocatoria.list('-fecha_partido');
+    const allCallupsRaw = await base44.asServiceRole.entities.Convocatoria.list('-fecha_partido', 500);
+    const allCallups = Array.isArray(allCallupsRaw) ? allCallupsRaw : (allCallupsRaw?.results || allCallupsRaw?.items || []);
     const openCallups = allCallups.filter(c => 
       !c.cerrada && c.estado_convocatoria !== 'cancelada' && c.fecha_partido >= today
     );
