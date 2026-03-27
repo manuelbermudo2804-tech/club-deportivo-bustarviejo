@@ -12,23 +12,8 @@ const DISMISS_KEY = 'sponsor_recruit_dismissed';
 const SHOW_INTERVAL_DAYS = 30; // Mostrar una vez al mes
 
 export default function SponsorRecruitBanner({ user }) {
-  const [visible, setVisible] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-
-  useEffect(() => {
-    if (!user?.email) return;
-    // Solo mostrar a padres y jugadores (no staff)
-    if (user.role === 'admin' || user.es_entrenador || user.es_coordinador || user.es_tesorero) return;
-
-    const dismissed = localStorage.getItem(DISMISS_KEY);
-    if (dismissed) {
-      const daysAgo = (Date.now() - Number(dismissed)) / (1000 * 60 * 60 * 24);
-      if (daysAgo < SHOW_INTERVAL_DAYS) return;
-    }
-    // Mostrar tras 3 segundos para no molestar al entrar
-    const t = setTimeout(() => setVisible(true), 3000);
-    return () => clearTimeout(t);
-  }, [user?.email]);
+  // Banner desactivado
+  return null;
 
   const handleDismiss = () => {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
