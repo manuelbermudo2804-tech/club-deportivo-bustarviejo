@@ -137,17 +137,28 @@ function parseJornadaMatches(html) {
 
 async function findNextMatch(url, cookies, lastKnownJornada) {
   const p = extractParams(url);
-  // Start from last known jornada (from ProximoPartido) to avoid scanning played jornadas
-  const startFrom = Math.max(1, (lastKnownJornada || 1) - 1); // -1 as safety margin
+  const startFrom = Math.max(1, (lastKnownJornada || 1) - 1);
   
-  // First fetch to detect total jornadas
-  const firstHtml = await fetchPage(buildJornadaUrl(p, startFrom), cookies);
+  let currentCookies = cookies;
+  
+  // Helper: fetch with session-expiry detection
+  async function safeFetch(fetchUrl) {
+    let html = await fetchPage(fetchUrl, currentCookies);
+    if (html.includes('Datos de Acceso') && html.includes('NLogin')) {
+      console.log(`[rffmScheduleMonitor] Session expired, re-logging in...`);
+      currentCookies = await rffmLogin();
+      await new Promise(r => setTimeout(r, 2000));
+      html = await fetchPage(fetchUrl, currentCookies);
+    }
+    return html;
+  }
+  
+  const firstHtml = await safeFetch(buildJornadaUrl(p, startFrom));
   const total = detectTotalJornadas(firstHtml);
   
-  // Scan from startFrom onwards (max 8 jornadas ahead should be enough)
   const maxScan = Math.min(total, startFrom + 8);
   for (let j = startFrom; j <= maxScan; j++) {
-    const html = j === startFrom ? firstHtml : await fetchPage(buildJornadaUrl(p, j), cookies);
+    const html = j === startFrom ? firstHtml : await safeFetch(buildJornadaUrl(p, j));
     const matches = parseJornadaMatches(html);
     const bust = matches.find(m =>
       !m.jugado &&
@@ -156,6 +167,8 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
       !m.visitante?.toUpperCase().includes('DESCANSA')
     );
     if (bust) return { jornada: j, match: bust };
+    // Small pause between jornada fetches
+    if (j < maxScan) await new Promise(r => setTimeout(r, 800));
   }
   return { match: null };
 }
@@ -206,10 +219,20 @@ async function updateRecentResults(activeConfigs, cookies, base44) {
     if (!url) continue;
     const p = extractParams(url);
 
-    for (const candidate of candidates) {
+    for (let ci = 0; ci < candidates.length; ci++) {
+      const candidate = candidates[ci];
       if (!candidate.jornada) continue;
+      // Pause between fetches within same category
+      if (ci > 0) await new Promise(r => setTimeout(r, 1000));
       try {
-        const html = await fetchPage(buildJornadaUrl(p, candidate.jornada), cookies);
+        let html = await fetchPage(buildJornadaUrl(p, candidate.jornada), cookies);
+        // Detect session expiry
+        if (html.includes('Datos de Acceso') && html.includes('NLogin')) {
+          console.log(`[rffmScheduleMonitor] Session expired during result check, re-logging in...`);
+          cookies = await rffmLogin();
+          await new Promise(r => setTimeout(r, 2000));
+          html = await fetchPage(buildJornadaUrl(p, candidate.jornada), cookies);
+        }
         const matches = parseJornadaMatches(html);
         
         // Find the Bustarviejo match in this jornada
@@ -297,13 +320,14 @@ Deno.serve(async (req) => {
       if (p.jornada && p.jornada > current) lastJornadaByCategory[p.categoria] = p.jornada;
     }
 
-    // 3. Process categories in parallel (batches of 3 to avoid overloading RFFM)
+    // 3. Process categories SEQUENTIALLY with pauses to avoid RFFM rate limiting
+    let currentCookies = cookies;
     const processCategory = async (config) => {
       try {
         const url = config.rfef_results_url || config.rfef_url;
         const lastKnown = lastJornadaByCategory[config.categoria] || 1;
         
-        const result = await findNextMatch(url, cookies, lastKnown);
+        const result = await findNextMatch(url, currentCookies, lastKnown);
         const match = result?.match;
         if (!match) return null;
 
@@ -513,10 +537,14 @@ Deno.serve(async (req) => {
       }
     };
 
-    // Run in parallel batches of 3
-    for (let i = 0; i < activeConfigs.length; i += 3) {
-      const batch = activeConfigs.slice(i, i + 3);
-      await Promise.all(batch.map(c => processCategory(c)));
+    // Run SEQUENTIALLY with pauses between categories to avoid RFFM rate limiting
+    for (let i = 0; i < activeConfigs.length; i++) {
+      if (i > 0) {
+        const pauseMs = 3000;
+        console.log(`[rffmScheduleMonitor] Pausing ${pauseMs/1000}s before category ${i+1}/${activeConfigs.length}...`);
+        await new Promise(r => setTimeout(r, pauseMs));
+      }
+      await processCategory(activeConfigs[i]);
     }
 
     return Response.json({

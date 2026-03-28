@@ -18,8 +18,9 @@ async function sendViaResend(to, subject, html) {
  * Accepts optional { categoria } param to sync only one category.
  * If no param, syncs ALL categories sequentially.
  * 
- * Optimized for speed: reduced sleeps, larger batches, fewer retries,
- * limited jornada scan depth (max 5 backwards) to avoid timeout.
+ * ANTI-RATE-LIMIT: processes one category at a time with pauses between
+ * each data type (standings → results → scorers) and between categories.
+ * Re-authenticates if session expires mid-run.
  */
 
 // ---- RFFM helpers ----
@@ -182,15 +183,15 @@ function parseScorers(html) {
 
 function getSeason() { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 8 ? `${y}/${y+1}` : `${y-1}/${y}`; }
 
-// ---- Helpers (OPTIMIZED: faster sleeps, bigger batches) ----
+// ---- Helpers (ANTI-RATE-LIMIT: generous pauses) ----
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-async function retryOnRateLimit(fn, label = '', maxRetries = 2) {
+async function retryOnRateLimit(fn, label = '', maxRetries = 3) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try { return await fn(); } catch (e) {
-      if (/rate limit|429/i.test(e.message || '') && attempt < maxRetries) {
-        const wait = 2000 + attempt * 3000;
+      if (/rate limit|429|503|502|timeout/i.test(e.message || '') && attempt < maxRetries) {
+        const wait = 3000 + attempt * 5000; // 3s, 8s, 13s
         console.log(`[RATE-LIMIT] ${label}: waiting ${wait/1000}s (retry ${attempt+1}/${maxRetries})`);
         await sleep(wait);
       } else { throw e; }
@@ -215,24 +216,39 @@ async function batchCreate(entity, records, label = '') {
 }
 
 // ---- Sync one category ----
+// Returns { ...result, cookies } so the caller can use refreshed cookies
 
 async function syncCategory(config, cookies, base44, temporada) {
   const cat = config.categoria;
   const t0 = Date.now();
-  const result = { cat, standings: null, results: null, scorers: null, errors: [] };
+  const result = { cat, standings: null, results: null, scorers: null, errors: [], cookies };
+
+  // Helper: fetch page with session-expiry detection and auto-relogin
+  async function safeFetch(url) {
+    let html = await fetchPage(url, result.cookies);
+    // Detect session expiry (RFFM redirects to login page)
+    if (html.includes('Datos de Acceso') && html.includes('NLogin')) {
+      console.log(`[RFFM] Session expired during ${cat}, re-logging in...`);
+      result.cookies = await rffmLogin();
+      await sleep(2000);
+      html = await fetchPage(url, result.cookies);
+    }
+    return html;
+  }
 
   // --- STANDINGS ---
   if (config.rfef_url) {
     try {
       const p = extractParams(config.rfef_url);
-      let html = await fetchPage(buildClassUrl(p), cookies);
+      let html = await safeFetch(buildClassUrl(p));
       let standings = parseStandings(html);
       if (!standings.length) {
-        const j1 = await fetchPage(buildJornadaUrl(p, 1), cookies);
+        const j1 = await safeFetch(buildJornadaUrl(p, 1));
         const tot = detectTotal(j1);
         for (let j = tot; j >= Math.max(1, tot - 3) && !standings.length; j--) {
-          html = await fetchPage(buildClassUrl(p, j), cookies);
+          html = await safeFetch(buildClassUrl(p, j));
           standings = parseStandings(html);
+          await sleep(500); // small pause between jornada attempts
         }
       }
       if (standings.length) {
@@ -250,18 +266,22 @@ async function syncCategory(config, cookies, base44, temporada) {
     } catch (e) { result.errors.push({ type: 'standings', error: e.message }); }
   }
 
+  // Pause between data types to avoid rate limiting
+  await sleep(2000);
+
   // --- RESULTS (latest jornada, scan backwards max 5) ---
   if (config.rfef_results_url || config.rfef_url) {
     try {
       const url = config.rfef_results_url || config.rfef_url;
       const p = extractParams(url);
-      const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
+      const j1Html = await safeFetch(buildJornadaUrl(p, 1));
       const total = detectTotal(j1Html);
       let latestJ = null, latestM = null;
       for (let j = total; j >= Math.max(1, total - 5); j--) {
-        const html = j === 1 ? j1Html : await fetchPage(buildJornadaUrl(p, j), cookies);
+        const html = j === 1 ? j1Html : await safeFetch(buildJornadaUrl(p, j));
         const matches = parseMatches(html);
         if (matches.some(m => m.jugado)) { latestJ = j; latestM = matches; break; }
+        await sleep(500); // small pause between jornada scans
       }
       if (latestJ && latestM) {
         const existing = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ }));
@@ -318,10 +338,13 @@ async function syncCategory(config, cookies, base44, temporada) {
     } catch (e) { result.errors.push({ type: 'results', error: e.message }); }
   }
 
+  // Pause between data types
+  await sleep(2000);
+
   // --- SCORERS ---
   if (config.rfef_scorers_url) {
     try {
-      const html = await fetchPage(config.rfef_scorers_url, cookies);
+      const html = await safeFetch(config.rfef_scorers_url);
       const scorers = parseScorers(html);
       console.log(`[SCORERS] ${cat}: ${scorers.length} scorers`);
       if (scorers.length) {
@@ -339,6 +362,11 @@ async function syncCategory(config, cookies, base44, temporada) {
 
   console.log(`[SYNC] ${cat}: ${((Date.now()-t0)/1000).toFixed(1)}s — st:${result.standings?'ok':'skip'} res:${result.results?'ok':'skip'} sc:${result.scorers?'ok':'skip'} err:${result.errors.length}`);
   return result;
+}
+
+// Re-export cookies from a sync result so next category uses fresh session
+function getLatestCookies(syncResult, fallback) {
+  return syncResult?.cookies || fallback;
 }
 
 // ---- Main handler ----
@@ -367,9 +395,17 @@ Deno.serve(async (req) => {
 
     console.log(`[RFFM] ${configs.length} categories to sync`);
 
+    let currentCookies = cookies;
     for (let ci = 0; ci < configs.length; ci++) {
-      if (ci > 0) await sleep(1500); // brief pause between categories
-      const r = await syncCategory(configs[ci], cookies, base44, temporada);
+      if (ci > 0) {
+        // Generous pause between categories (4s) to avoid RFFM rate limiting
+        const pauseMs = 4000;
+        console.log(`[RFFM] Pausing ${pauseMs/1000}s before category ${ci+1}/${configs.length}...`);
+        await sleep(pauseMs);
+      }
+      const r = await syncCategory(configs[ci], currentCookies, base44, temporada);
+      // Use refreshed cookies if the category had to re-login
+      currentCookies = getLatestCookies(r, currentCookies);
       results.push(r);
     }
 
