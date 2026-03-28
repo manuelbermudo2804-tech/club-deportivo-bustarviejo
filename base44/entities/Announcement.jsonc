@@ -1,0 +1,157 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del anuncio"
+    },
+    "contenido": {
+      "type": "string",
+      "description": "Contenido completo del anuncio"
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "Normal",
+        "Importante",
+        "Urgente"
+      ],
+      "default": "Normal",
+      "description": "Nivel de prioridad del anuncio"
+    },
+    "destinatarios_tipo": {
+      "type": "string",
+      "enum": [
+        "Todos",
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "default": "Todos",
+      "description": "A qui\u00e9n va dirigido el anuncio"
+    },
+    "publicado": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el anuncio est\u00e1 visible"
+    },
+    "destacado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el anuncio est\u00e1 anclado"
+    },
+    "tipo_caducidad": {
+      "type": "string",
+      "enum": [
+        "fecha",
+        "horas"
+      ],
+      "default": "fecha"
+    },
+    "duracion_horas": {
+      "type": "number",
+      "description": "Duraci\u00f3n en horas antes de expirar (si tipo_caducidad es 'horas')"
+    },
+    "fecha_expiracion": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de expiraci\u00f3n"
+    },
+    "fecha_caducidad_calculada": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha calculada de caducidad"
+    },
+    "enviar_email": {
+      "type": "boolean",
+      "default": false
+    },
+    "email_enviado": {
+      "type": "boolean",
+      "default": false
+    },
+    "fecha_publicacion": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "leido_por": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Usuarios que leyeron el anuncio"
+    },
+    "destinatarios_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de emails espec\u00edficos que ver\u00e1n el anuncio (vac\u00edo = todos)"
+    },
+    "mostrar_como_banner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar este anuncio como banner"
+    },
+    "banner_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Activar/desactivar banner"
+    },
+    "banner_posicion": {
+      "type": "string",
+      "enum": [
+        "top",
+        "bottom"
+      ],
+      "default": "top",
+      "description": "Posici\u00f3n del banner"
+    },
+    "banner_dismissible": {
+      "type": "boolean",
+      "default": true,
+      "description": "Permitir que el usuario cierre el banner"
+    },
+    "banner_variant": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "success",
+        "danger"
+      ],
+      "default": "info",
+      "description": "Estilo visual del banner"
+    },
+    "push_enviada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se envi\u00f3 la notificaci\u00f3n push autom\u00e1tica"
+    }
+  },
+  "required": [
+    "titulo",
+    "contenido",
+    "prioridad",
+    "destinatarios_tipo"
+  ]
+}
