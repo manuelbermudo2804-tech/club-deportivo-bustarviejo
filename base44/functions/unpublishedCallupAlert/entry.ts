@@ -64,9 +64,14 @@ Deno.serve(async (req) => {
     // Get all unpublished, active convocatorias
     let allConvocatorias = await base44.asServiceRole.entities.Convocatoria.list('-created_date', 200);
     if (!Array.isArray(allConvocatorias)) {
-      console.log(`[UnpublishedAlert] Convocatoria.list returned non-array:`, typeof allConvocatorias, JSON.stringify(allConvocatorias).slice(0, 200));
-      allConvocatorias = [];
+      // Sometimes the SDK returns a JSON string instead of array — parse it
+      if (typeof allConvocatorias === 'string') {
+        try { allConvocatorias = JSON.parse(allConvocatorias); } catch { allConvocatorias = []; }
+      } else {
+        allConvocatorias = allConvocatorias?.results || allConvocatorias?.items || [];
+      }
     }
+    if (!Array.isArray(allConvocatorias)) allConvocatorias = [];
     console.log(`[UnpublishedAlert] Total convocatorias: ${allConvocatorias.length}`);
     const drafts = allConvocatorias.filter(c => c.publicada === false || c.publicada === null || c.publicada === undefined);
     console.log(`[UnpublishedAlert] Unpublished drafts: ${drafts.length}`);
