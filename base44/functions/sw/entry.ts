@@ -29,7 +29,7 @@ self.addEventListener('push', (event) => {
     requireInteraction: true,
     vibrate: [200, 100, 200],
     silent: false,
-    data: data.data || {}
+    data: { url: data.url || (data.data && data.data.url) || '/', ...(data.data || {}) }
   };
 
   // Badge numerico en el icono de la PWA
