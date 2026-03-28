@@ -433,21 +433,18 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, jornada: parseInt(j), matches });
       }
 
-      // Fetch ALL jornadas at once
+      // Fetch ALL jornadas at once (sequentially with pauses to avoid rate limiting)
       case 'all_results': {
-        // First, load jornada 1 to detect total jornadas
         const firstHtml = await fetchPage(buildJornadaUrl(p, 1), cookies);
         const totalJornadas = detectTotalJornadas(firstHtml);
         
         const allJornadas = [];
-        
-        // Parse jornada 1 which we already fetched
         const j1Matches = parseJornadaMatches(firstHtml);
         allJornadas.push({ jornada: 1, matches: j1Matches });
         
-        // Fetch remaining jornadas in batches of 5 to avoid overloading
-        for (let batch = 2; batch <= totalJornadas; batch += 5) {
-          const batchEnd = Math.min(batch + 4, totalJornadas);
+        // Fetch remaining jornadas in batches of 3 with pauses
+        for (let batch = 2; batch <= totalJornadas; batch += 3) {
+          const batchEnd = Math.min(batch + 2, totalJornadas);
           const promises = [];
           for (let j = batch; j <= batchEnd; j++) {
             promises.push(
@@ -458,9 +455,10 @@ Deno.serve(async (req) => {
           }
           const results = await Promise.all(promises);
           allJornadas.push(...results);
+          // Pause between batches
+          if (batch + 3 <= totalJornadas) await new Promise(r => setTimeout(r, 1500));
         }
         
-        // Sort by jornada number
         allJornadas.sort((a, b) => a.jornada - b.jornada);
         
         // Extract Bustarviejo matches specifically
@@ -486,19 +484,17 @@ Deno.serve(async (req) => {
       }
 
       // Find next unplayed match for Bustarviejo
-      // Strategy: scan ALL jornadas (1 to total) for unplayed Bustarviejo matches,
-      // then pick the one with the earliest date. This handles postponed matches correctly.
+      // Sequential with pauses to avoid rate limiting
       case 'next_match': {
         const refJ = parseInt(jornada || p.CodJornada || '1');
         const j1Html = await fetchPage(buildJornadaUrl(p, refJ), cookies);
         const totalJ = detectTotalJornadas(j1Html);
         
-        // Collect ALL unplayed Bustarviejo matches across all jornadas
         const candidates = [];
         
-        // Scan from jornada 1 to totalJ (batch fetching for speed)
-        for (let batch = 1; batch <= totalJ; batch += 5) {
-          const batchEnd = Math.min(batch + 4, totalJ);
+        // Scan in batches of 3 with pauses
+        for (let batch = 1; batch <= totalJ; batch += 3) {
+          const batchEnd = Math.min(batch + 2, totalJ);
           const promises = [];
           for (let j = batch; j <= batchEnd; j++) {
             promises.push(
@@ -517,6 +513,7 @@ Deno.serve(async (req) => {
             );
           }
           await Promise.all(promises);
+          if (batch + 3 <= totalJ) await new Promise(r => setTimeout(r, 1000));
         }
         
         if (candidates.length === 0) {
@@ -561,23 +558,29 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, standings, retried: standings.length < 5 });
       }
 
-      // Fetch scorers - the RFFM goleadores page works in 2 steps:
+      // Fetch scorers - SEQUENTIAL with pauses to avoid rate limiting
       // 1. Load the page to get the real competition codes from the dropdown
       // 2. Submit the form with the correct codcompeticion + codgrupo
       case 'scorers': {
         let scorers = [];
         console.log(`[SCORERS] Starting with params: Comp=${p.CodCompeticion}, Grupo=${p.CodGrupo}, Temp=${p.CodTemporada}`);
         
-        // Step 1: Load the goleadores landing page to discover competition codes
-        const landingUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&cod_agrupacion=1`;
-        const landingHtml = await fetchPage(landingUrl, cookies);
-        
-        if (landingHtml.includes('Datos de Acceso') && landingHtml.includes('NLogin')) {
-          console.log(`[SCORERS] Got login page on landing, re-logging in...`);
-          cookies = await rffmLogin();
+        // Helper: fetch with session check
+        async function scorerFetch(url) {
+          let html = await fetchPage(url, cookies);
+          if (html.includes('Datos de Acceso') && html.includes('NLogin')) {
+            console.log(`[SCORERS] Session expired, re-logging in...`);
+            cookies = await rffmLogin();
+            await new Promise(r => setTimeout(r, 2000));
+            html = await fetchPage(url, cookies);
+          }
+          return html;
         }
         
-        // Step 2: Find the competition dropdown options
+        // Step 1: Load goleadores landing page
+        const landingUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&cod_agrupacion=1`;
+        const landingHtml = await scorerFetch(landingUrl);
+        
         const $land = load(landingHtml);
         const competitionOptions = [];
         $land('select[name="codcompeticion"] option').each((_, opt) => {
@@ -587,11 +590,9 @@ Deno.serve(async (req) => {
         });
         console.log(`[SCORERS] Found ${competitionOptions.length} competition options`);
         
-        // Step 3: Sort competitions to try the most likely ones first
-        // Prioritize competitions that match common keywords for lower divisions
         const codTemporada = $land('select[name="codtemporada"] option[selected]').attr('value') || p.CodTemporada;
         
-        // Sort: put likely matches first (SEGUNDA, PREFERENTE, PRIMERA for Bustarviejo's typical level)
+        // Sort: put likely matches first
         const priorityKeywords = ['SEGUNDA', 'PREFERENTE', 'PRIMERA', 'CADETE', 'JUVENIL', 'INFANTIL', 'ALEVIN', 'BENJAMIN', 'PREBENJAMIN', 'FEMENIN'];
         const sortedCompetitions = [...competitionOptions].sort((a, b) => {
           const aHit = priorityKeywords.findIndex(k => a.text.toUpperCase().includes(k));
@@ -602,18 +603,19 @@ Deno.serve(async (req) => {
           return 0;
         });
         
-        for (const comp of sortedCompetitions) {
+        for (let ci = 0; ci < sortedCompetitions.length; ci++) {
+          const comp = sortedCompetitions[ci];
           if (scorers.length >= 3) break;
           
-          // Load groups for this competition
+          // Pause between competition fetches
+          if (ci > 0) await new Promise(r => setTimeout(r, 1500));
+          
           const groupUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&codcompeticion=${comp.value}&codtemporada=${codTemporada}&cod_agrupacion=1`;
-          const groupHtml = await fetchPage(groupUrl, cookies);
+          const groupHtml = await scorerFetch(groupUrl);
           const $g = load(groupHtml);
           
-          // Check if this page already has scorers data
           const directScorers = parseScorers(groupHtml);
           if (directScorers.length > 0) {
-            // Check if any scorer belongs to a Bustarviejo team
             const hasBustar = directScorers.some(s => /bustarviejo/i.test(s.equipo || ''));
             if (hasBustar) {
               console.log(`[SCORERS] Found ${directScorers.length} scorers (with Bustarviejo) in comp "${comp.text}"`);
@@ -622,18 +624,21 @@ Deno.serve(async (req) => {
             }
           }
           
-          // Get available groups for this competition
           const groupOptions = [];
           $g('select[name="codgrupo"] option').each((_, opt) => {
             const val = $g(opt).attr('value');
             if (val && val !== '0') groupOptions.push(val);
           });
           
-          // Try each group
-          for (const grp of groupOptions) {
+          // Try each group SEQUENTIALLY with pauses
+          for (let gi = 0; gi < groupOptions.length; gi++) {
+            const grp = groupOptions[gi];
             if (scorers.length >= 3) break;
+            
+            if (gi > 0) await new Promise(r => setTimeout(r, 1000));
+            
             const fullUrl = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&codcompeticion=${comp.value}&codgrupo=${grp}&codtemporada=${codTemporada}&cod_agrupacion=1`;
-            const fullHtml = await fetchPage(fullUrl, cookies);
+            const fullHtml = await scorerFetch(fullUrl);
             const grpScorers = parseScorers(fullHtml);
             
             if (grpScorers.length > 0) {

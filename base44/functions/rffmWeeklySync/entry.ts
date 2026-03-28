@@ -341,23 +341,49 @@ async function syncCategory(config, cookies, base44, temporada) {
   // Pause between data types
   await sleep(2000);
 
-  // --- SCORERS ---
+  // --- SCORERS (with retry — most fragile data type) ---
   if (config.rfef_scorers_url) {
-    try {
-      const html = await safeFetch(config.rfef_scorers_url);
-      const scorers = parseScorers(html);
-      console.log(`[SCORERS] ${cat}: ${scorers.length} scorers`);
-      if (scorers.length) {
-        const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }));
-        if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
-        const records = scorers.map((s, i) => ({
-          temporada, categoria: cat, jugador_nombre: s.jugador, equipo: s.equipo,
-          goles: s.goles, posicion: i + 1, fecha_actualizacion: new Date().toISOString(),
-        }));
-        await batchCreate(base44.asServiceRole.entities.Goleador, records, `Sc ${cat}`);
-        result.scorers = { players: scorers.length };
+    let scorerAttempts = 0;
+    const maxScorerAttempts = 3;
+    while (scorerAttempts < maxScorerAttempts && !result.scorers) {
+      scorerAttempts++;
+      try {
+        if (scorerAttempts > 1) {
+          const retryWait = 3000 + (scorerAttempts - 1) * 4000;
+          console.log(`[SCORERS] ${cat}: retry ${scorerAttempts}/${maxScorerAttempts} after ${retryWait/1000}s...`);
+          await sleep(retryWait);
+        }
+        const html = await safeFetch(config.rfef_scorers_url);
+        // Verify we got actual data, not an error page
+        if (html.length < 500 || (html.includes('Datos de Acceso') && html.includes('NLogin'))) {
+          console.log(`[SCORERS] ${cat}: got login/empty page (attempt ${scorerAttempts})`);
+          // Force re-login for next attempt
+          result.cookies = await rffmLogin();
+          await sleep(2000);
+          continue;
+        }
+        const scorers = parseScorers(html);
+        console.log(`[SCORERS] ${cat}: ${scorers.length} scorers (attempt ${scorerAttempts})`);
+        if (scorers.length) {
+          const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }));
+          if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
+          const records = scorers.map((s, i) => ({
+            temporada, categoria: cat, jugador_nombre: s.jugador, equipo: s.equipo,
+            goles: s.goles, posicion: i + 1, fecha_actualizacion: new Date().toISOString(),
+          }));
+          await batchCreate(base44.asServiceRole.entities.Goleador, records, `Sc ${cat}`);
+          result.scorers = { players: scorers.length };
+        } else {
+          // 0 scorers could mean bad page — retry
+          console.log(`[SCORERS] ${cat}: 0 scorers, may retry...`);
+        }
+      } catch (e) {
+        console.error(`[SCORERS] ${cat}: error attempt ${scorerAttempts}:`, e.message);
+        if (scorerAttempts >= maxScorerAttempts) {
+          result.errors.push({ type: 'scorers', error: e.message });
+        }
       }
-    } catch (e) { result.errors.push({ type: 'scorers', error: e.message }); }
+    }
   }
 
   console.log(`[SYNC] ${cat}: ${((Date.now()-t0)/1000).toFixed(1)}s — st:${result.standings?'ok':'skip'} res:${result.results?'ok':'skip'} sc:${result.scorers?'ok':'skip'} err:${result.errors.length}`);
