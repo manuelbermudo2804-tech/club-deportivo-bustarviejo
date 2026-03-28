@@ -200,18 +200,23 @@ async function retryOnRateLimit(fn, label = '', maxRetries = 3) {
 }
 
 async function batchDelete(entity, items) {
-  for (let i = 0; i < items.length; i += 8) {
-    const batch = items.slice(i, i + 8);
+  // Safety: ensure items is an array
+  const arr = Array.isArray(items) ? items : (items?.results || items?.items || []);
+  if (!arr.length) return;
+  // Smaller batches (4) with longer pauses (1.5s) to avoid Base44 rate limits
+  for (let i = 0; i < arr.length; i += 4) {
+    const batch = arr.slice(i, i + 4);
     await retryOnRateLimit(() => Promise.all(batch.map(o => entity.delete(o.id))), `del ${i}`);
-    if (i + 8 < items.length) await sleep(300);
+    if (i + 4 < arr.length) await sleep(1500);
   }
 }
 
 async function batchCreate(entity, records, label = '') {
-  for (let i = 0; i < records.length; i += 20) {
-    const batch = records.slice(i, i + 20);
+  // Smaller batches (10) with longer pauses (1.5s) to avoid Base44 rate limits
+  for (let i = 0; i < records.length; i += 10) {
+    const batch = records.slice(i, i + 10);
     await retryOnRateLimit(() => entity.bulkCreate(batch), `${label} ${i}`);
-    if (i + 20 < records.length) await sleep(300);
+    if (i + 10 < records.length) await sleep(1500);
   }
 }
 
