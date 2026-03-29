@@ -135,7 +135,7 @@ export default function PushPermissionBanner({ user }) {
 
   if (!visible) return null;
 
-  // Estado DENIED — siempre intentar requestPermission() que en Android PWA reabre ajustes del sistema
+  // Estado DENIED
   if (denied) {
     return (
       <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg animate-fade-in">
@@ -146,7 +146,10 @@ export default function PushPermissionBanner({ user }) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold leading-tight">⚠️ Notificaciones desactivadas</p>
             <p className="text-xs opacity-90 leading-tight mt-0.5">
-              No recibirás avisos de convocatorias, anuncios ni mensajes
+              No recibirás avisos de convocatorias ni mensajes
+            </p>
+            <p className="text-[11px] opacity-80 mt-1 leading-snug">
+              📱 Ajústes del móvil → Apps → <strong>CD Bustarviejo</strong> → Notificaciones → Activar
             </p>
           </div>
           <Button
