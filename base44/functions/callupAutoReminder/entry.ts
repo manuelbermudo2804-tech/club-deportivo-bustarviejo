@@ -41,21 +41,28 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Fecha de mañana (zona horaria España)
-    const now = new Date();
-    const madridOffset = 1; // CET +1 (CEST +2 en verano, pero simplificamos)
-    const utcHours = now.getUTCHours();
-    // Calcular fecha en Madrid
-    const madridNow = new Date(now.getTime() + madridOffset * 60 * 60 * 1000);
-    const tomorrow = new Date(madridNow);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().slice(0, 10); // YYYY-MM-DD
+    // Fecha de mañana (zona horaria España - correcta con DST)
+    function getMadridDate(daysFromNow = 0) {
+      const now = new Date();
+      const madrid = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+      madrid.setDate(madrid.getDate() + daysFromNow);
+      return madrid.toISOString().slice(0, 10);
+    }
+    const tomorrowStr = getMadridDate(1);
 
     console.log(`[CallupReminder] Buscando convocatorias para mañana: ${tomorrowStr}`);
 
     // Buscar convocatorias publicadas y activas para mañana
-    const allCallups = await base44.asServiceRole.entities.Convocatoria.filter({ publicada: true });
-    const tomorrowCallups = allCallups.filter(c => 
+    let allCallupsRaw = await base44.asServiceRole.entities.Convocatoria.filter({ publicada: true });
+    if (!Array.isArray(allCallupsRaw)) {
+      if (typeof allCallupsRaw === 'string') {
+        try { allCallupsRaw = JSON.parse(allCallupsRaw); } catch { allCallupsRaw = []; }
+      } else {
+        allCallupsRaw = allCallupsRaw?.results || allCallupsRaw?.items || [];
+      }
+    }
+    if (!Array.isArray(allCallupsRaw)) allCallupsRaw = [];
+    const tomorrowCallups = allCallupsRaw.filter(c => 
       c.fecha_partido === tomorrowStr && 
       c.estado_convocatoria === 'activa' &&
       !c.cerrada
