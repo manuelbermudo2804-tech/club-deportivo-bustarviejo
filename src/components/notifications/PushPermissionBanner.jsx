@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Bell, X } from 'lucide-react';
+import { Bell, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
 const DISMISS_KEY = 'push_banner_dismissed_at';
+const DISMISS_DENIED_KEY = 'push_denied_banner_dismissed_at';
 const DISMISS_DAYS = 1;
+const DISMISS_DENIED_DAYS = 7;
 
 export default function PushPermissionBanner({ user }) {
   const [visible, setVisible] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -32,8 +35,17 @@ export default function PushPermissionBanner({ user }) {
       })();
       return;
     }
-    // Si bloqueó, no podemos hacer nada
-    if (Notification.permission === 'denied') return;
+    // Si bloqueó, mostrar banner informativo (con dismiss más largo)
+    if (Notification.permission === 'denied') {
+      const dismissedDenied = localStorage.getItem(DISMISS_DENIED_KEY);
+      if (dismissedDenied) {
+        const daysAgo = (Date.now() - Number(dismissedDenied)) / (1000 * 60 * 60 * 24);
+        if (daysAgo < DISMISS_DENIED_DAYS) return;
+      }
+      setDenied(true);
+      setVisible(true);
+      return;
+    }
     // Permiso default — solo ocultar si descartó recientemente
     const dismissed = localStorage.getItem(DISMISS_KEY);
     if (dismissed) {
@@ -112,11 +124,38 @@ export default function PushPermissionBanner({ user }) {
   };
 
   const handleDismiss = () => {
-    localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    if (denied) {
+      localStorage.setItem(DISMISS_DENIED_KEY, String(Date.now()));
+    } else {
+      localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    }
     setVisible(false);
   };
 
   if (!visible) return null;
+
+  if (denied) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /android/i.test(navigator.userAgent);
+    const instructions = isIOS
+      ? 'Ve a Ajustes > Safari > Notificaciones y activa esta web'
+      : isAndroid
+        ? 'Toca el candado 🔒 en la barra de dirección > Notificaciones > Permitir'
+        : 'Haz clic en el candado 🔒 de la barra de dirección > Notificaciones > Permitir';
+
+    return (
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 flex items-center gap-3 shadow-md animate-fade-in">
+        <Settings className="w-5 h-5 flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold leading-tight">Notificaciones bloqueadas</p>
+          <p className="text-xs opacity-90 leading-tight mt-0.5">{instructions}</p>
+        </div>
+        <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full flex-shrink-0">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 flex items-center gap-3 shadow-md animate-fade-in">
