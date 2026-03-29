@@ -149,7 +149,7 @@ export default function PushPermissionBanner({ user }) {
               No recibirás avisos de convocatorias ni mensajes
             </p>
             <p className="text-[11px] opacity-80 mt-1 leading-snug">
-              📱 Ajústes del móvil → Apps → <strong>CD Bustarviejo</strong> → Notificaciones → Activar
+              📱 Mantén pulsado el icono de la app → Info → Notificaciones → Activar
             </p>
           </div>
           <Button
