@@ -202,9 +202,9 @@ export default function PushStatusCard({ user }) {
                     setTestResult(null);
                     try {
                       await base44.functions.invoke('sendPushNotification', {
-                        email: user.email,
-                        title: '🔔 Prueba de notificación',
-                        body: '¡Las notificaciones funcionan correctamente!',
+                        usuario_email: user.email,
+                        titulo: '🔔 Prueba de notificación',
+                        cuerpo: '¡Las notificaciones funcionan correctamente!',
                         url: '/NotificationPreferences',
                         tag: 'test-push-' + Date.now()
                       });
