@@ -5,7 +5,6 @@ import { base44 } from '@/api/base44Client';
 
 const DISMISS_KEY = 'push_banner_dismissed_at';
 const DISMISS_DAYS = 1;
-// Para denied: solo 12h de dismiss (queremos que lo vean)
 const DISMISS_DENIED_KEY = 'push_denied_banner_dismissed_at';
 const DISMISS_DENIED_HOURS = 12;
 
@@ -13,7 +12,6 @@ export default function PushPermissionBanner({ user }) {
   const [visible, setVisible] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [denied, setDenied] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -109,26 +107,19 @@ export default function PushPermissionBanner({ user }) {
   const handleActivate = async () => {
     setRequesting(true);
     try {
-      // Intentar pedir permiso — en Android PWA muchas veces funciona incluso si estaba denied
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         setDenied(false);
-        setShowInstructions(false);
         setVisible(false);
         localStorage.removeItem(DISMISS_DENIED_KEY);
         await subscribeAfterGrant();
-      } else if (permission === 'denied') {
-        // El navegador no muestra el diálogo → mostrar instrucciones manuales
-        setDenied(true);
-        setShowInstructions(true);
       } else {
-        // dismissed
-        localStorage.setItem(DISMISS_KEY, String(Date.now()));
-        setVisible(false);
+        // En Android PWA, requestPermission() abre los ajustes del sistema.
+        // Si vuelve sin conceder, seguimos mostrando el banner.
+        setDenied(true);
       }
     } catch {
       setDenied(true);
-      setShowInstructions(true);
     }
     setRequesting(false);
   };
@@ -144,12 +135,8 @@ export default function PushPermissionBanner({ user }) {
 
   if (!visible) return null;
 
-  // Estado DENIED con instrucciones
+  // Estado DENIED — siempre intentar requestPermission() que en Android PWA reabre ajustes del sistema
   if (denied) {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /android/i.test(navigator.userAgent);
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-
     return (
       <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg animate-fade-in">
         <div className="px-4 py-3 flex items-center gap-3">
@@ -174,38 +161,6 @@ export default function PushPermissionBanner({ user }) {
             <X className="w-4 h-4" />
           </button>
         </div>
-
-        {showInstructions && (
-          <div className="bg-white/10 backdrop-blur-sm px-4 py-3 border-t border-white/20">
-            <p className="text-xs font-bold mb-2 text-yellow-200">📱 Actívalas manualmente en 3 pasos:</p>
-            {isPWA && isAndroid ? (
-              <ol className="text-xs space-y-1.5 list-decimal list-inside opacity-95">
-                <li>Toca los <strong>3 puntos ⋮</strong> de arriba a la derecha</li>
-                <li>Selecciona <strong>"Información de la app"</strong> o <strong>"Configuración"</strong></li>
-                <li>Activa <strong>"Notificaciones"</strong></li>
-              </ol>
-            ) : isAndroid ? (
-              <ol className="text-xs space-y-1.5 list-decimal list-inside opacity-95">
-                <li>Toca el icono <strong>🔒 candado</strong> en la barra de dirección</li>
-                <li>Toca <strong>"Permisos"</strong> o <strong>"Configuración del sitio"</strong></li>
-                <li>Cambia <strong>Notificaciones</strong> a <strong>"Permitir"</strong></li>
-              </ol>
-            ) : isIOS ? (
-              <ol className="text-xs space-y-1.5 list-decimal list-inside opacity-95">
-                <li>Ve a <strong>Ajustes del iPhone</strong> → <strong>Safari</strong> → <strong>Notificaciones</strong></li>
-                <li>Busca esta web y activa las notificaciones</li>
-                <li>Vuelve aquí y recarga la página</li>
-              </ol>
-            ) : (
-              <ol className="text-xs space-y-1.5 list-decimal list-inside opacity-95">
-                <li>Haz clic en el <strong>🔒 candado</strong> de la barra de dirección</li>
-                <li>Busca <strong>"Notificaciones"</strong> en los permisos</li>
-                <li>Cámbialo a <strong>"Permitir"</strong> y recarga</li>
-              </ol>
-            )}
-            <p className="text-[10px] opacity-70 mt-2">Después de activarlas, vuelve a esta pantalla y se configurarán automáticamente.</p>
-          </div>
-        )}
       </div>
     );
   }
