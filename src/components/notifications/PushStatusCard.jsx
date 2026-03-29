@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, BellOff, CheckCircle2, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Bell, BellOff, CheckCircle2, XCircle, AlertTriangle, RefreshCw, Send } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
@@ -10,9 +10,11 @@ import { toast } from 'sonner';
  * y permite activarlas/reactivarlas si están desactivadas.
  */
 export default function PushStatusCard({ user }) {
-  const [status, setStatus] = useState('checking'); // checking, active, denied, not_subscribed, not_supported
+  const [status, setStatus] = useState('checking'); // checking, active, denied, not_subscribed, not_supported, os_blocked
   const [activating, setActivating] = useState(false);
   const [dbCount, setDbCount] = useState(0);
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testResult, setTestResult] = useState(null); // 'sent', 'failed'
 
   useEffect(() => {
     if (!user?.email) return;
@@ -39,15 +41,23 @@ export default function PushStatusCard({ user }) {
       return;
     }
 
-    // 3. Verificar que hay suscripción activa en BD
+    // 3. Verificar suscripción push real en el navegador
     try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      const reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
+      const browserSub = reg?.pushManager ? await reg.pushManager.getSubscription() : null;
+
+      // 4. Verificar que hay suscripción activa en BD
       const subs = await base44.entities.PushSubscription.filter({
         usuario_email: user.email,
         activa: true
       });
       setDbCount(subs.length);
 
-      if (subs.length > 0) {
+      if (!browserSub) {
+        // Permiso granted pero sin suscripción en el navegador
+        setStatus('not_subscribed');
+      } else if (subs.length > 0) {
         setStatus('active');
       } else {
         setStatus('not_subscribed');
@@ -142,7 +152,7 @@ export default function PushStatusCard({ user }) {
     },
     active: {
       icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50 border-green-200',
-      title: '🟢 Notificaciones activas', desc: `Recibirás avisos de convocatorias, mensajes, anuncios y más`
+      title: '🟢 Notificaciones activas', desc: 'Recibirás avisos de convocatorias, mensajes, anuncios y más. Si no te llegan, envía una de prueba para verificar.'
     },
     denied: {
       icon: XCircle, color: 'text-red-600', bg: 'bg-red-50 border-red-200',
@@ -172,27 +182,64 @@ export default function PushStatusCard({ user }) {
             <h3 className="font-bold text-slate-900 text-lg">{cfg.title}</h3>
             <p className="text-sm text-slate-600 mt-1">{cfg.desc}</p>
 
-            {(status === 'not_subscribed') && (
+            {(status === 'not_subscribed' || status === 'denied') && (
               <Button
                 onClick={handleActivate}
                 disabled={activating}
                 className="mt-3 bg-orange-600 hover:bg-orange-700 font-bold"
               >
                 <Bell className="w-4 h-4 mr-2" />
-                {activating ? 'Activando...' : 'Activar notificaciones'}
+                {activating ? 'Activando...' : '🔔 Activar notificaciones'}
               </Button>
             )}
 
             {status === 'active' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={checkStatus}
-                className="mt-2"
-              >
-                <RefreshCw className="w-3 h-3 mr-1" />
-                Verificar estado
-              </Button>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    setSendingTest(true);
+                    setTestResult(null);
+                    try {
+                      await base44.functions.invoke('sendPushNotification', {
+                        email: user.email,
+                        title: '🔔 Prueba de notificación',
+                        body: '¡Las notificaciones funcionan correctamente!',
+                        url: '/NotificationPreferences',
+                        tag: 'test-push-' + Date.now()
+                      });
+                      setTestResult('sent');
+                      toast.success('🔔 Notificación enviada. Si no la recibes en 10 segundos, comprueba los ajustes de tu móvil.');
+                    } catch (e) {
+                      setTestResult('failed');
+                      toast.error('Error al enviar: ' + e.message);
+                    }
+                    setSendingTest(false);
+                  }}
+                  disabled={sendingTest}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                >
+                  <Send className="w-3 h-3 mr-1" />
+                  {sendingTest ? 'Enviando...' : 'Enviar prueba'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={checkStatus}
+                >
+                  <RefreshCw className="w-3 h-3 mr-1" />
+                  Verificar
+                </Button>
+              </div>
+            )}
+
+            {testResult === 'sent' && (
+              <div className="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-200">
+                <p className="text-xs text-blue-800">
+                  ℹ️ Notificación enviada. Si <strong>no te llega en 10 segundos</strong>, tus notificaciones están bloqueadas a nivel de sistema.
+                  Ve a <strong>Ajustes del móvil → Apps → Chrome/tu navegador → Notificaciones</strong> y actívalas.
+                </p>
+              </div>
             )}
           </div>
         </div>
