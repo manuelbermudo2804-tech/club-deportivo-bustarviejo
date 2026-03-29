@@ -73,11 +73,15 @@ Deno.serve(async (req) => {
     if (!Array.isArray(allConvocatorias)) allConvocatorias = [];
     console.log(`[UnpublishedAlert] Total convocatorias: ${allConvocatorias.length}`);
 
-    // Filter unpublished — EXCLUDE auto-generated drafts (no coach or no players)
+    // Filter unpublished — EXCLUDE auto-generated RFFM drafts (sistema@cdbustarviejo.es with no real coach)
     const drafts = allConvocatorias.filter(c => {
       if (c.publicada === true) return false;
-      if (!c.entrenador_email) return false;
+      // Must have players
       if (!c.jugadores_convocados || c.jugadores_convocados.length === 0) return false;
+      // Exclude pure RFFM system drafts that no coach has touched
+      if (c.entrenador_email === 'sistema@cdbustarviejo.es') return false;
+      // Must have a coach email
+      if (!c.entrenador_email) return false;
       return true;
     });
     console.log(`[UnpublishedAlert] Unpublished human-created drafts: ${drafts.length}`);
