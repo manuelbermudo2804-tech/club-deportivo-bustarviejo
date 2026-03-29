@@ -378,6 +378,29 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
     }
 
     try {
+      // Desanclar mensajes anteriores de esta convocatoria en el chat del grupo
+      try {
+        const existingMessages = await base44.entities.ChatMessage.filter({
+          grupo_id: grupoId,
+          anclado: true
+        });
+        const callupTitle = callup.titulo || '';
+        const callupRival = callup.rival || '';
+        for (const msg of existingMessages) {
+          const txt = msg.mensaje || '';
+          // Identificar mensajes de la misma convocatoria (contienen el título o rival)
+          const isRelated = (callupTitle && txt.includes(callupTitle)) || 
+            (callupRival && txt.includes(callupRival) && (txt.includes('CONVOCATORIA') || txt.includes('REPROGRAMADA') || txt.includes('CANCELADA')));
+          if (isRelated) {
+            await base44.entities.ChatMessage.update(msg.id, { anclado: false });
+            console.log('📌 Desanclado mensaje anterior:', msg.id);
+          }
+        }
+      } catch (unpinErr) {
+        console.warn('⚠️ Error desanclando mensajes anteriores:', unpinErr);
+      }
+
+      // Crear nuevo mensaje anclado
       await base44.entities.ChatMessage.create({
         remitente_email: user.email,
         remitente_nombre: user.full_name || 'Entrenador',
@@ -385,7 +408,10 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
         tipo: 'entrenador_a_grupo',
         grupo_id: grupoId,
         deporte: callup.categoria,
-        prioridad: 'Urgente'
+        prioridad: 'Urgente',
+        anclado: true,
+        anclado_por: user.email,
+        anclado_fecha: new Date().toISOString()
       });
     } catch (e) {
       console.error('Error sending chat notification:', e);

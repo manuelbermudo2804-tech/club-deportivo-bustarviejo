@@ -103,6 +103,38 @@ Deno.serve(async (req) => {
     // 2. CONVOCATORIAS
     // ==========================================
     if (entityName === 'Convocatoria') {
+      // 2a. Cancelación o reprogramación
+      const estado = data.estado_convocatoria;
+      if (estado === 'cancelada' || estado === 'reprogramada') {
+        const jugadores = data.jugadores_convocados || [];
+        const targetEmails = [];
+        for (const j of jugadores) {
+          if (j.email_padre) targetEmails.push(j.email_padre);
+          if (j.email_jugador) targetEmails.push(j.email_jugador);
+        }
+        // Also fetch tutor2 and minor emails from Player entity
+        const allPlayersData = await base44.asServiceRole.entities.Player.filter({ activo: true });
+        for (const j of jugadores) {
+          if (!j.jugador_id) continue;
+          const p = allPlayersData.find(pl => pl.id === j.jugador_id);
+          if (p?.email_tutor_2) targetEmails.push(p.email_tutor_2);
+          if (p?.acceso_menor_email && p?.acceso_menor_autorizado && !p?.acceso_menor_revocado) targetEmails.push(p.acceso_menor_email);
+        }
+        const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
+        const titulo = data.titulo || 'Convocatoria';
+        const rival = data.rival ? ` vs ${data.rival}` : '';
+        if (estado === 'cancelada') {
+          const result = await sendPushToEmails(base44, filtered, `🚫 CANCELADA: ${titulo}${rival}`, `Motivo: ${data.motivo_cambio || 'Ver app'}`, '/ParentCallups', `callup-cancel-${event.entity_id}`);
+          return Response.json({ type: 'callup_cancel', ...result });
+        } else {
+          const nuevaFecha = data.fecha_partido || '';
+          const nuevaHora = data.hora_partido || '';
+          const result = await sendPushToEmails(base44, filtered, `🔄 REPROGRAMADA: ${titulo}${rival}`, `Nueva fecha: ${nuevaFecha}${nuevaHora ? ' a las ' + nuevaHora : ''} — Revisa tu disponibilidad`, '/ParentCallups', `callup-reschedule-${event.entity_id}`);
+          return Response.json({ type: 'callup_reschedule', ...result });
+        }
+      }
+
+      // 2b. Nueva publicación
       if (!data.publicada) return Response.json({ skipped: 'not published' });
       // NEVER send push for system-created callups — only human coaches can publish
       if (data.entrenador_email === 'sistema@cdbustarviejo.es') return Response.json({ skipped: 'system callup - never auto-notify' });
@@ -444,12 +476,7 @@ Deno.serve(async (req) => {
       } catch (e) { return Response.json({ error: e.message }, { status: 500 }); }
     }
 
-    // ==========================================
-    // 17. CONVOCATORIA updates (cancel/reschedule)
-    // ==========================================
-    if (entityName === 'Convocatoria_update_handled_above') {
-      // Already handled in section 2 via create+update events
-    }
+    // (Section 17 removed — cancel/reschedule handled in section 2)
 
     return Response.json({ skipped: 'unhandled entity', entityName });
   } catch (error) {
