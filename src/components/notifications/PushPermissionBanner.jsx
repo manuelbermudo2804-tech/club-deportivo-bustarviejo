@@ -113,13 +113,18 @@ export default function PushPermissionBanner({ user }) {
         setVisible(false);
         localStorage.removeItem(DISMISS_DENIED_KEY);
         await subscribeAfterGrant();
-      } else {
-        // En Android PWA, requestPermission() abre los ajustes del sistema.
-        // Si vuelve sin conceder, seguimos mostrando el banner.
+      } else if (permission === 'denied') {
+        // Permiso denegado explícitamente → mostrar estado denied
         setDenied(true);
+      } else {
+        // 'default' — el usuario cerró el diálogo sin decidir, cerrar banner igualmente
+        setVisible(false);
+        localStorage.setItem(DISMISS_KEY, String(Date.now()));
       }
     } catch {
-      setDenied(true);
+      // En algunos navegadores requestPermission falla → cerrar banner
+      setVisible(false);
+      localStorage.setItem(DISMISS_KEY, String(Date.now()));
     }
     setRequesting(false);
   };
