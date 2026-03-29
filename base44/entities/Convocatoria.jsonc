@@ -1,0 +1,217 @@
+{
+  "name": "Convocatoria",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo de la convocatoria (ej: Partido vs Real Madrid)"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "description": "Categor\u00eda del equipo"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Partido",
+        "Entrenamiento Especial",
+        "Torneo",
+        "Amistoso"
+      ],
+      "default": "Partido",
+      "description": "Tipo de convocatoria"
+    },
+    "rival": {
+      "type": "string",
+      "description": "Nombre del equipo rival"
+    },
+    "fecha_partido": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del partido"
+    },
+    "hora_partido": {
+      "type": "string",
+      "description": "Hora del partido (ej: 10:00)"
+    },
+    "hora_concentracion": {
+      "type": "string",
+      "description": "Hora de concentraci\u00f3n (ej: 09:30)"
+    },
+    "ubicacion": {
+      "type": "string",
+      "description": "Lugar donde se juega"
+    },
+    "enlace_ubicacion": {
+      "type": "string",
+      "description": "URL de Google Maps para la ubicaci\u00f3n"
+    },
+    "local_visitante": {
+      "type": "string",
+      "enum": [
+        "Local",
+        "Visitante"
+      ],
+      "description": "Si es partido local o visitante"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Informaci\u00f3n adicional o instrucciones"
+    },
+    "jugadores_convocados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "email_padre": {
+            "type": "string"
+          },
+          "email_jugador": {
+            "type": "string"
+          },
+          "confirmacion": {
+            "type": "string",
+            "enum": [
+              "pendiente",
+              "asistire",
+              "no_asistire",
+              "duda"
+            ]
+          },
+          "fecha_confirmacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "comentario": {
+            "type": "string"
+          },
+          "transporte": {
+            "type": "object",
+            "properties": {
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "ofrezco_plazas",
+                  "necesito_transporte",
+                  "voy_por_mi_cuenta"
+                ],
+                "description": "Tipo de necesidad de transporte"
+              },
+              "plazas": {
+                "type": "number",
+                "description": "Plazas libres ofrecidas o plazas necesitadas"
+              },
+              "punto_salida": {
+                "type": "string",
+                "description": "Desde d\u00f3nde sale (para quien ofrece)"
+              },
+              "telefono_contacto": {
+                "type": "string",
+                "description": "Tel\u00e9fono de contacto para WhatsApp"
+              },
+              "nombre_contacto": {
+                "type": "string",
+                "description": "Nombre del padre/tutor que ofrece/necesita"
+              }
+            }
+          }
+        }
+      },
+      "description": "Lista de jugadores convocados con su estado de confirmaci\u00f3n"
+    },
+    "entrenador_email": {
+      "type": "string",
+      "description": "Email del entrenador que cre\u00f3 la convocatoria"
+    },
+    "entrenador_nombre": {
+      "type": "string",
+      "description": "Nombre del entrenador"
+    },
+    "entrenador_telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono del entrenador para contacto"
+    },
+    "publicada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la convocatoria ya fue publicada/enviada"
+    },
+    "publicada_por": {
+      "type": "string",
+      "description": "Email del entrenador/admin que public\u00f3 la convocatoria"
+    },
+    "publicada_por_nombre": {
+      "type": "string",
+      "description": "Nombre del entrenador/admin que public\u00f3 la convocatoria"
+    },
+    "notificaciones_enviadas": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se enviaron las notificaciones"
+    },
+    "fecha_publicacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se public\u00f3"
+    },
+    "cerrada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya pas\u00f3 el partido y est\u00e1 cerrada"
+    },
+    "estado_convocatoria": {
+      "type": "string",
+      "enum": [
+        "activa",
+        "cancelada",
+        "reprogramada"
+      ],
+      "default": "activa",
+      "description": "Estado de la convocatoria: activa, cancelada o reprogramada"
+    },
+    "motivo_cambio": {
+      "type": "string",
+      "description": "Motivo de la cancelaci\u00f3n o reprogramaci\u00f3n"
+    },
+    "fecha_partido_original": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha original antes de reprogramar"
+    },
+    "hora_partido_original": {
+      "type": "string",
+      "description": "Hora original antes de reprogramar"
+    },
+    "alerta_enviada_fecha": {
+      "type": "string",
+      "description": "Fecha (YYYY-MM-DD) del \u00faltimo env\u00edo de alerta de borrador sin publicar, para no repetir el mismo d\u00eda"
+    }
+  },
+  "required": [
+    "titulo",
+    "categoria",
+    "tipo",
+    "fecha_partido",
+    "hora_partido",
+    "ubicacion",
+    "jugadores_convocados",
+    "entrenador_email"
+  ]
+}

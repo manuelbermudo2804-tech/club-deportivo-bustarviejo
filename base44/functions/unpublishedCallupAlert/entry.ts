@@ -105,6 +105,12 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message: 'No urgent drafts found', alerted: 0 });
     }
 
+    // SAFETY: cap at 5 drafts max to prevent spam floods
+    if (urgentDrafts.length > 5) {
+      console.warn(`[UnpublishedAlert] Too many urgent drafts (${urgentDrafts.length}), capping at 5 to prevent spam`);
+      urgentDrafts.length = 5;
+    }
+
     // Get all coaches
     let allUsersRaw = await base44.asServiceRole.entities.User.list('-created_date', 200);
     if (!Array.isArray(allUsersRaw)) allUsersRaw = [];
@@ -116,6 +122,13 @@ Deno.serve(async (req) => {
     let totalAlerted = 0;
 
     for (const draft of urgentDrafts) {
+      // Skip if we already alerted about this draft today
+      const alertKey = `${getMadridDate(0)}`;
+      if (draft.alerta_enviada_fecha === alertKey) {
+        console.log(`[UnpublishedAlert] Already alerted today for ${draft.titulo}, skipping`);
+        continue;
+      }
+
       const categoria = draft.categoria;
       const days = daysUntil(draft.fecha_partido);
       const daysText = days === 0 ? 'HOY' : days === 1 ? 'MAÑANA' : `en ${days} días`;
@@ -198,6 +211,13 @@ Deno.serve(async (req) => {
 
         await sendViaResend(recipient.email, subjectLine, emailHtml);
         totalAlerted++;
+      }
+
+      // Mark this draft as alerted today to prevent re-sending
+      try {
+        await base44.asServiceRole.entities.Convocatoria.update(draft.id, { alerta_enviada_fecha: alertKey });
+      } catch (e) {
+        console.warn(`[UnpublishedAlert] Could not mark draft ${draft.id} as alerted:`, e.message);
       }
     }
 
