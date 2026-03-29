@@ -31,13 +31,15 @@ export default function MobileHeader({
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={onShowInstall}
-              className="p-2 bg-green-500 text-white rounded-xl animate-pulse shadow-lg"
-              title="Ver cómo instalar"
-            >
-              <Smartphone className="w-5 h-5" />
-            </button>
+            {!(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) && (
+              <button
+                onClick={onShowInstall}
+                className="p-2 bg-green-500 text-white rounded-xl shadow-lg"
+                title="Ver cómo instalar"
+              >
+                <Smartphone className="w-5 h-5" />
+              </button>
+            )}
 
             {/* Badges adicionales para chats en móvil */}
             {!isAdmin && chatMenuCounts.coordinatorForFamilyCount > 0 && (
