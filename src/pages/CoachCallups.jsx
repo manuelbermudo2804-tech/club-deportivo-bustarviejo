@@ -429,26 +429,26 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
         emails.push(playerData.acceso_menor_email);
       }
 
-      for (const email of [...new Set(emails)]) {
-        try {
-          const subject = isCancelling
-            ? `🚫 CANCELADA: ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''} - CD Bustarviejo`
-            : `🔄 REPROGRAMADA: ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''} - CD Bustarviejo`;
-          await base44.functions.invoke('sendEmail', {
-            to: email,
-            subject,
-            html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
-              <div style="background:${isCancelling ? '#dc2626' : '#d97706'};color:white;padding:20px;border-radius:12px;text-align:center;margin-bottom:20px">
-                <h1 style="margin:0;font-size:24px">${isCancelling ? '🚫 Convocatoria Cancelada' : '🔄 Convocatoria Reprogramada'}</h1>
-              </div>
-              <h2 style="color:#1e293b">${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''}</h2>
-              <p><strong>Motivo:</strong> ${motivo}</p>
-              ${!isCancelling ? `<p><strong>Nueva fecha:</strong> ${format(new Date(nuevaFecha), "EEEE d 'de' MMMM yyyy", { locale: es })} a las ${nuevaHora}</p>` : ''}
-              <p style="color:#64748b;font-size:12px;margin-top:20px">Club Deportivo Bustarviejo</p>
-            </div>`
-          });
-          await new Promise(r => setTimeout(r, 200));
-        } catch (e) { console.error('Error emailing', email, e); }
+      // Solo enviar email en cancelaciones (crítico). Reprogramaciones: push + chat basta.
+      if (isCancelling) {
+        for (const email of [...new Set(emails)]) {
+          try {
+            const subject = `🚫 CANCELADA: ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''} - CD Bustarviejo`;
+            await base44.functions.invoke('sendEmail', {
+              to: email,
+              subject,
+              html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+                <div style="background:#dc2626;color:white;padding:20px;border-radius:12px;text-align:center;margin-bottom:20px">
+                  <h1 style="margin:0;font-size:24px">🚫 Convocatoria Cancelada</h1>
+                </div>
+                <h2 style="color:#1e293b">${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''}</h2>
+                <p><strong>Motivo:</strong> ${motivo}</p>
+                <p style="color:#64748b;font-size:12px;margin-top:20px">Club Deportivo Bustarviejo</p>
+              </div>`
+            });
+            await new Promise(r => setTimeout(r, 200));
+          } catch (e) { console.error('Error emailing', email, e); }
+        }
       }
     });
     await Promise.all(emailPromises);
