@@ -170,22 +170,33 @@ export default function PushPermissionBanner({ user }) {
 
   // Estado DEFAULT o GRANTED sin suscripción — botón de activar directo
   return (
-    <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 flex items-center gap-3 shadow-md animate-fade-in">
-      <Bell className="w-5 h-5 flex-shrink-0 animate-bounce" />
-      <p className="text-sm font-medium flex-1 leading-tight">
-        🔔 Activa las notificaciones para no perderte convocatorias ni mensajes
-      </p>
-      <Button
-        size="sm"
-        onClick={handleActivate}
-        disabled={requesting}
-        className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs px-3 py-1 h-auto whitespace-nowrap"
-      >
-        {requesting ? '...' : 'Activar'}
-      </Button>
-      <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full flex-shrink-0">
-        <X className="w-4 h-4" />
-      </button>
+    <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md animate-fade-in">
+      <div className="px-4 py-3 flex items-center gap-3">
+        <Bell className="w-5 h-5 flex-shrink-0 animate-bounce" />
+        <p className="text-sm font-bold flex-1 leading-tight">
+          🔔 Activa las notificaciones para no perderte convocatorias ni mensajes
+        </p>
+        <Button
+          size="sm"
+          onClick={handleActivate}
+          disabled={requesting}
+          className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-xs px-3 py-1 h-auto whitespace-nowrap"
+        >
+          {requesting ? '...' : 'Activar'}
+        </Button>
+        <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full flex-shrink-0">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="px-4 pb-3 pt-0">
+        <div className="bg-white/15 rounded-lg px-3 py-2 text-xs leading-relaxed space-y-1">
+          <p className="font-semibold">📱 ¿Cómo se hace? Es muy fácil:</p>
+          <p>1️⃣ Pulsa el botón <span className="bg-white/25 px-1.5 py-0.5 rounded font-bold">Activar</span> de arriba</p>
+          <p>2️⃣ Cuando te salga un mensaje del móvil, pulsa <strong>"Permitir"</strong></p>
+          <p>3️⃣ ¡Listo! Ya recibirás avisos de convocatorias y mensajes 🎉</p>
+          <p className="opacity-80 pt-1">⚠️ Si no te sale nada al pulsar, ve a <strong>Ajustes del móvil → Apps → tu navegador → Notificaciones → Activar</strong></p>
+        </div>
+      </div>
     </div>
   );
 }
