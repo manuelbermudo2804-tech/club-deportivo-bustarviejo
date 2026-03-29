@@ -7,6 +7,17 @@ webpush.setVapidDetails(
   Deno.env.get('VAPID_PRIVATE_KEY')
 );
 
+async function sendEmail(to, subject, body) {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) return;
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'CD Bustarviejo <noreply@cdbustarviejo.com>', to: [to], subject, html: body })
+  });
+  if (!resp.ok) console.error(`[Email] Error ${resp.status}`);
+}
+
 async function sendPush(base44, email, title, body, url, tag) {
   const subs = await base44.asServiceRole.entities.PushSubscription.filter({ usuario_email: email, activa: true });
   for (const sub of subs) {
@@ -91,8 +102,24 @@ Deno.serve(async (req) => {
 
       for (const coach of categoryCoaches) {
         const title = `${emoji} Convocatoria pendiente`;
-        const body = `${draft.categoria}: ${draft.rival || draft.titulo} es ${daysText}. Revisa y publica cuando esté lista.`;
-        await sendPush(base44, coach.email, title, body, '/CoachCallups', `draft-${draft.categoria}-${draft.fecha_partido}`);
+        const pushBody = `${draft.categoria}: ${draft.rival || draft.titulo} es ${daysText}. Revisa y publica cuando esté lista.`;
+        await sendPush(base44, coach.email, title, pushBody, '/CoachCallups', `draft-${draft.categoria}-${draft.fecha_partido}`);
+
+        // Email de respaldo
+        const emailHtml = `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:20px">
+          <div style="background:#ea580c;color:white;padding:20px;border-radius:12px;text-align:center;margin-bottom:16px">
+            <div style="font-size:36px">${emoji}</div>
+            <h2 style="margin:8px 0 0">Convocatoria pendiente</h2>
+          </div>
+          <p>Hola ${coach.full_name || 'entrenador/a'},</p>
+          <p>El partido de <strong>${draft.categoria}</strong> contra <strong>${draft.rival || draft.titulo}</strong> es <strong>${daysText}</strong> y la convocatoria aún no está publicada.</p>
+          <p>Revísala y publícala cuando esté lista para que los padres puedan confirmar asistencia.</p>
+          <div style="text-align:center;margin:24px 0">
+            <a href="https://app.cdbustarviejo.com/CoachCallups" style="background:#ea580c;color:white;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:700">📋 Ver convocatorias</a>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;text-align:center">Aviso automático · CD Bustarviejo</p>
+        </div>`;
+        await sendEmail(coach.email, `${emoji} ${draft.categoria}: convocatoria pendiente (${daysText})`, emailHtml);
         totalSent++;
       }
 
