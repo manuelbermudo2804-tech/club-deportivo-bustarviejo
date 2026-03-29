@@ -21,13 +21,13 @@ async function sendViaResend(to, subject, html) {
   if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
 }
 
-async function sendPush(base44, email, title, body, url) {
+async function sendPush(base44, email, title, body, url, tag) {
   const subs = await base44.asServiceRole.entities.PushSubscription.filter({ usuario_email: email, activa: true });
   for (const sub of subs) {
     try {
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh_key, auth: sub.auth_key } },
-        JSON.stringify({ title, body, url: url || '/CoachCallups', tag: `unpublished-callup-${Date.now()}` })
+        JSON.stringify({ title, body, url: url || '/CoachCallups', tag: `unpublished-callup-${tag || 'generic'}` })
       );
     } catch (err) {
       if (err.statusCode === 410 || err.statusCode === 404) {
@@ -64,7 +64,6 @@ Deno.serve(async (req) => {
     // Get all unpublished, active convocatorias
     let allConvocatorias = await base44.asServiceRole.entities.Convocatoria.list('-created_date', 200);
     if (!Array.isArray(allConvocatorias)) {
-      // Sometimes the SDK returns a JSON string instead of array — parse it
       if (typeof allConvocatorias === 'string') {
         try { allConvocatorias = JSON.parse(allConvocatorias); } catch { allConvocatorias = []; }
       } else {
@@ -73,19 +72,31 @@ Deno.serve(async (req) => {
     }
     if (!Array.isArray(allConvocatorias)) allConvocatorias = [];
     console.log(`[UnpublishedAlert] Total convocatorias: ${allConvocatorias.length}`);
-    const drafts = allConvocatorias.filter(c => c.publicada === false || c.publicada === null || c.publicada === undefined);
-    console.log(`[UnpublishedAlert] Unpublished drafts: ${drafts.length}`);
-    console.log(`[UnpublishedAlert] Draft dates: ${drafts.map(d => d.fecha_partido + ' ' + d.titulo).join(', ')}`);
-    console.log(`[UnpublishedAlert] Date range: ${today} to ${in3Days}`);
-    
-    // Filter: match date is within next 3 days (including today) and not cancelled
-    // NOTE: We DO include cerrada=true drafts if they were never published,
-    // because that means the match happened without anyone being notified
-    const urgentDrafts = drafts.filter(d => {
+
+    // Filter unpublished — EXCLUDE auto-generated drafts (no coach or no players)
+    const drafts = allConvocatorias.filter(c => {
+      if (c.publicada === true) return false;
+      if (!c.entrenador_email) return false;
+      if (!c.jugadores_convocados || c.jugadores_convocados.length === 0) return false;
+      return true;
+    });
+    console.log(`[UnpublishedAlert] Unpublished human-created drafts: ${drafts.length}`);
+    // Filter: match date within next 3 days, not cancelled/closed
+    const urgentDraftsRaw = drafts.filter(d => {
       if (d.estado_convocatoria === 'cancelada') return false;
+      if (d.cerrada) return false;
       const fecha = d.fecha_partido;
       if (!fecha) return false;
       return fecha >= today && fecha <= in3Days;
+    });
+
+    // Deduplicate by categoria+rival to avoid spam from duplicate drafts
+    const seen = new Set();
+    const urgentDrafts = urgentDraftsRaw.filter(d => {
+      const key = `${d.categoria}::${d.rival || d.titulo}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
 
     console.log(`[UnpublishedAlert] Found ${urgentDrafts.length} urgent unpublished drafts`);
@@ -139,7 +150,7 @@ Deno.serve(async (req) => {
         // Send push notification
         const pushTitle = `${urgencyEmoji} Convocatoria sin publicar`;
         const pushBody = `${draft.titulo} es ${daysText} y NO está publicada. Los padres no lo saben.`;
-        await sendPush(base44, recipient.email, pushTitle, pushBody, '/CoachCallups');
+        await sendPush(base44, recipient.email, pushTitle, pushBody, '/CoachCallups', `draft-${draft.id}`);
 
         // Send email
         const emailHtml = `<!DOCTYPE html>
