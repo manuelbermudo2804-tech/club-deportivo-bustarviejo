@@ -134,7 +134,32 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 2b. Nueva publicación
+      // 2b. Check if all players responded → notify coach ONCE
+      if (data.publicada && event.type === 'update') {
+        const jugadores = data.jugadores_convocados || [];
+        if (jugadores.length > 0) {
+          const allResponded = jugadores.every(j => j.confirmacion && j.confirmacion !== 'pendiente');
+          if (allResponded) {
+            // Find coach(es) for this category
+            const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 500);
+            const coachEmails = [];
+            for (const u of allUsers) {
+              if (u.es_entrenador && (u.categorias_entrena || []).includes(data.categoria)) coachEmails.push(u.email);
+            }
+            if (coachEmails.length > 0) {
+              const asistiran = jugadores.filter(j => j.confirmacion === 'asistire').length;
+              const noAsistiran = jugadores.filter(j => j.confirmacion === 'no_asistire').length;
+              const duda = jugadores.filter(j => j.confirmacion === 'duda').length;
+              const result = await sendPushToEmails(base44, coachEmails, `✅ Todos han respondido`, `${data.titulo || data.categoria}: ${asistiran} asisten, ${noAsistiran} no${duda ? `, ${duda} duda` : ''}`, '/CoachCallups', `callup-allresponded-${event.entity_id}`);
+              return Response.json({ type: 'callup_all_responded', ...result });
+            }
+          }
+        }
+        // Individual confirmations: do NOT push coach (avoid 20 pushes)
+        return Response.json({ skipped: 'callup update - no coach push for individual confirmations' });
+      }
+
+      // 2c. Nueva publicación
       if (!data.publicada) return Response.json({ skipped: 'not published' });
       // NEVER send push for system-created callups — only human coaches can publish
       if (data.entrenador_email === 'sistema@cdbustarviejo.es') return Response.json({ skipped: 'system callup - never auto-notify' });
