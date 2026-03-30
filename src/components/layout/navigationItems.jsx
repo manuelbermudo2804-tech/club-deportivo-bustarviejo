@@ -4,7 +4,7 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon
+  User as UserIcon, Share2
 } from "lucide-react";
 
 /**
@@ -52,6 +52,7 @@ export function buildAdminNavigation(ctx) {
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
 
     { title: "─ COMUNICACIÓN ─", section: true },
+    { title: "📱 Centro Difusión Social", url: createPageUrl("SocialHub"), icon: Share2 },
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
     { title: "💬 Chat Coordinador-Familias", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },

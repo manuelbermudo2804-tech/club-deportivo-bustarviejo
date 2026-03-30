@@ -1,0 +1,65 @@
+{
+  "name": "SocialPost",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "partidos_finde",
+        "resultados",
+        "anuncio",
+        "hazte_socio",
+        "tienda",
+        "loteria",
+        "evento",
+        "femenino",
+        "personalizado"
+      ],
+      "description": "Tipo de contenido generado"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo descriptivo del post"
+    },
+    "contenido_whatsapp": {
+      "type": "string",
+      "description": "Texto generado para WhatsApp"
+    },
+    "contenido_instagram": {
+      "type": "string",
+      "description": "Texto generado para Instagram"
+    },
+    "contenido_twitter": {
+      "type": "string",
+      "description": "Texto generado para Twitter/X"
+    },
+    "enviado_whatsapp": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 al canal de WhatsApp"
+    },
+    "enviado_instagram": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se public\u00f3 en Instagram"
+    },
+    "enviado_twitter": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se public\u00f3 en Twitter"
+    },
+    "datos_origen": {
+      "type": "string",
+      "description": "JSON con los datos usados para generar (IDs de convocatorias, resultados, etc.)"
+    },
+    "creado_por": {
+      "type": "string",
+      "description": "Email del admin que gener\u00f3 el contenido"
+    }
+  },
+  "required": [
+    "tipo",
+    "titulo",
+    "contenido_whatsapp"
+  ]
+}

@@ -16,6 +16,7 @@ import PushBadgeTest from '@/pages/PushBadgeTest';
 import PushStats from '@/pages/PushStats';
 import FamilyPresentation from '@/pages/FamilyPresentation';
 import PublicMemberCard from '@/pages/PublicMemberCard';
+import SocialHub from '@/pages/SocialHub';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -89,6 +90,7 @@ const AuthenticatedApp = () => {
       <Route path="/PushBadgeTest" element={<LayoutWrapper currentPageName="PushBadgeTest"><PushBadgeTest /></LayoutWrapper>} />
       <Route path="/PushStats" element={<LayoutWrapper currentPageName="PushStats"><PushStats /></LayoutWrapper>} />
       <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
+      <Route path="/SocialHub" element={<LayoutWrapper currentPageName="SocialHub"><SocialHub /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
