@@ -1,299 +1,307 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Share2, Trophy, Megaphone, Heart, ShoppingBag, Clover, Calendar, Users, PenLine, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Share2, Calendar, Trophy, Megaphone, Heart, Users, PenLine, Loader2, Wand2, Copy, Check, ArrowLeft, MessageCircle, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ContentGenerator from "../components/social/ContentGenerator";
-import ContentHistoryList from "../components/social/ContentHistoryList";
+import { toast } from "sonner";
 import moment from "moment";
 
 const CONTENT_TYPES = [
-  {
-    id: "partidos_finde",
-    title: "⚽ Partidos del Fin de Semana",
-    description: "Genera un resumen con todos los partidos del próximo finde",
-    icon: Calendar,
-    gradient: "from-orange-500 to-orange-600",
-  },
-  {
-    id: "resultados",
-    title: "📊 Resultados de la Jornada",
-    description: "Resumen de todos los resultados de la última jornada",
-    icon: Trophy,
-    gradient: "from-blue-500 to-blue-600",
-  },
-  {
-    id: "anuncio",
-    title: "📢 Anuncio del Club",
-    description: "Convierte un anuncio de la app en post para redes",
-    icon: Megaphone,
-    gradient: "from-pink-500 to-pink-600",
-  },
-  {
-    id: "hazte_socio",
-    title: "❤️ Hazte Socio",
-    description: "Promoción del carnet de socio del club",
-    icon: Heart,
-    gradient: "from-purple-500 to-purple-600",
-  },
-  {
-    id: "femenino",
-    title: "⚽👧 Fútbol Femenino",
-    description: "Captación de jugadoras para el equipo femenino",
-    icon: Users,
-    gradient: "from-fuchsia-500 to-fuchsia-600",
-  },
-  {
-    id: "evento",
-    title: "🎉 Evento del Club",
-    description: "Promocionar un evento (fiesta, torneo, asamblea...)",
-    icon: Calendar,
-    gradient: "from-green-500 to-green-600",
-  },
-  {
-    id: "personalizado",
-    title: "✏️ Texto Libre",
-    description: "Escribe tú el tema y la IA genera el contenido",
-    icon: PenLine,
-    gradient: "from-slate-500 to-slate-600",
-  },
+  { id: "partidos_finde", title: "⚽ Partidos del Finde", emoji: "⚽", icon: Calendar, gradient: "from-orange-500 to-orange-600" },
+  { id: "resultados", title: "📊 Resultados", emoji: "📊", icon: Trophy, gradient: "from-blue-500 to-blue-600" },
+  { id: "anuncio", title: "📢 Anuncio", emoji: "📢", icon: Megaphone, gradient: "from-pink-500 to-pink-600" },
+  { id: "hazte_socio", title: "❤️ Hazte Socio", emoji: "❤️", icon: Heart, gradient: "from-purple-500 to-purple-600" },
+  { id: "femenino", title: "⚽👧 Femenino", emoji: "⚽", icon: Users, gradient: "from-fuchsia-500 to-fuchsia-600" },
+  { id: "evento", title: "🎉 Evento", emoji: "🎉", icon: Calendar, gradient: "from-green-500 to-green-600" },
+  { id: "personalizado", title: "✏️ Libre", emoji: "✏️", icon: PenLine, gradient: "from-slate-500 to-slate-600" },
 ];
+
+async function fetchDataForType(type) {
+  if (type === "partidos_finde") {
+    const today = new Date();
+    const dow = today.getDay();
+    const sat = new Date(today); sat.setDate(today.getDate() + ((6 - dow + 7) % 7 || 7));
+    const sun = new Date(sat); sun.setDate(sat.getDate() + 1);
+    const satStr = sat.toISOString().split("T")[0];
+    const sunStr = sun.toISOString().split("T")[0];
+    const [partidos, convos] = await Promise.all([
+      base44.entities.ProximoPartido.filter({ jugado: false }, "fecha_iso", 50).catch(() => []),
+      base44.entities.Convocatoria.filter({ publicada: true, cerrada: false }, "-fecha_partido", 30).catch(() => []),
+    ]);
+    const pf = partidos.filter(p => p.fecha_iso >= satStr && p.fecha_iso <= sunStr);
+    const cf = convos.filter(c => c.fecha_partido >= satStr && c.fecha_partido <= sunStr);
+    let d = "";
+    pf.forEach(p => { d += `${p.categoria}: ${p.local} vs ${p.visitante} | ${p.fecha} ${p.hora||""} | Campo: ${p.campo||"?"}\n`; });
+    cf.forEach(c => { d += `${c.categoria}: ${c.titulo} | ${c.fecha_partido} ${c.hora_partido} | ${c.ubicacion} | ${c.local_visitante||""}\n`; });
+    return d || "No hay partidos este finde. Escribe los datos aquí.";
+  }
+  if (type === "resultados") {
+    const [res, jug] = await Promise.all([
+      base44.entities.Resultado.filter({ estado: "finalizado" }, "-fecha_actualizacion", 30).catch(() => []),
+      base44.entities.ProximoPartido.filter({ jugado: true }, "-fecha_iso", 20).catch(() => []),
+    ]);
+    let d = "";
+    res.forEach(r => { d += `${r.categoria} J${r.jornada||"?"}: ${r.local} ${r.goles_local??""} - ${r.goles_visitante??""} ${r.visitante}\n`; });
+    jug.slice(0,15).forEach(p => { d += `${p.categoria}: ${p.local} ${p.goles_local??""} - ${p.goles_visitante??""} ${p.visitante} (${p.fecha||""})\n`; });
+    return d || "No hay resultados recientes. Escribe los datos aquí.";
+  }
+  if (type === "anuncio") {
+    const anuncios = await base44.entities.Announcement.filter({ publicado: true }, "-created_date", 5).catch(() => []);
+    if (!anuncios.length) return "No hay anuncios recientes. Escribe tu anuncio aquí.";
+    return anuncios.map((a,i) => `${i+1}. ${a.titulo}\n${a.contenido?.substring(0,300)||""}`).join("\n\n");
+  }
+  if (type === "hazte_socio") {
+    const s = await base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []);
+    return `Programa de Socios CD Bustarviejo\nPrecio: ${s[0]?.precio_socio||25}€/temporada\nCarnet digital con QR, descuentos en comercios locales\nEnlace: ${window.location.origin}/ClubMembership`;
+  }
+  if (type === "femenino") {
+    return `Captación Fútbol Femenino CD Bustarviejo\nTodas las edades, no hace falta experiencia\nEntrenadores titulados, ambiente familiar\nEnlace: ${window.location.origin}/JoinFemenino`;
+  }
+  if (type === "evento") {
+    const evs = await base44.entities.Event.filter({ publicado: true }, "-fecha", 10).catch(() => []);
+    const fut = evs.filter(e => e.fecha >= new Date().toISOString().split("T")[0]);
+    if (!fut.length) return "No hay eventos próximos. Escribe los datos del evento.";
+    return fut.slice(0,5).map(e => `${e.titulo} | ${moment(e.fecha).format("DD/MM/YYYY")} ${e.hora||""} | ${e.ubicacion||""}\n${e.descripcion?.substring(0,150)||""}`).join("\n\n");
+  }
+  return "";
+}
+
+const WA_PROMPT = `Eres el community manager del CD Bustarviejo, un club de fútbol base de la Sierra Norte de Madrid. Tu estilo es:
+
+🔥 ENERGÉTICO, CERCANO, DE PUEBLO — como un mensaje de un amigo que te está contando las cosas del club con pasión
+🎯 Usas emojis con CRITERIO (no spam, pero que le den vida)
+📱 Formato PERFECTO para WhatsApp: saltos de línea claros, bloques visuales, fácil de leer en el móvil
+⚡ Los textos tienen que ser LA LECHE DE CHULOS — que la gente quiera compartirlos
+🏟️ Menciona SIEMPRE "CD Bustarviejo" o "C.D. Bustarviejo" al menos una vez
+❌ NO inventes datos — usa SOLO lo que te doy
+✅ Si hay victorias, CELÉBRALAS con ganas
+💪 Si hay derrotas, anima al equipo
+
+REGLAS DE FORMATO:
+- Máximo 600 caracteres
+- Primera línea: emoji llamativo + título en mayúsculas
+- Datos organizados por categoría
+- Cierre motivador o CTA
+- NO uses hashtags (es WhatsApp, no Instagram)`;
 
 export default function SocialHub() {
   const queryClient = useQueryClient();
   const [selectedType, setSelectedType] = useState(null);
-  const [loadingData, setLoadingData] = useState(false);
-  const [datosIA, setDatosIA] = useState("");
-  const [customTopic, setCustomTopic] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [datos, setDatos] = useState("");
+  const [whatsappText, setWhatsappText] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
 
-  // Historial
   const { data: history = [] } = useQuery({
     queryKey: ["socialPosts"],
-    queryFn: () => base44.entities.SocialPost.list("-created_date", 30),
+    queryFn: () => base44.entities.SocialPost.list("-created_date", 20),
     staleTime: 60000,
   });
 
-  // Datos para generadores automáticos
-  const fetchDataForType = async (type) => {
-    setLoadingData(true);
+  const selectType = async (type) => {
     setSelectedType(type);
-    setDatosIA("");
-
-    try {
-      if (type === "partidos_finde") {
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
-        const saturday = new Date(today);
-        saturday.setDate(today.getDate() + (daysUntilSat === 0 ? 0 : daysUntilSat));
-        const sunday = new Date(saturday);
-        sunday.setDate(saturday.getDate() + 1);
-
-        const satStr = saturday.toISOString().split("T")[0];
-        const sunStr = sunday.toISOString().split("T")[0];
-
-        // Intentar con ProximoPartido y Convocatoria
-        const [partidos, convocatorias] = await Promise.all([
-          base44.entities.ProximoPartido.filter({ jugado: false }, "fecha_iso", 50).catch(() => []),
-          base44.entities.Convocatoria.filter({ publicada: true, cerrada: false }, "-fecha_partido", 30).catch(() => []),
-        ]);
-
-        const partidosFinde = partidos.filter((p) => p.fecha_iso >= satStr && p.fecha_iso <= sunStr);
-        const convosFinde = convocatorias.filter((c) => c.fecha_partido >= satStr && c.fecha_partido <= sunStr);
-
-        let datos = "PARTIDOS DEL FIN DE SEMANA:\n\n";
-        if (partidosFinde.length > 0) {
-          partidosFinde.forEach((p) => {
-            datos += `- ${p.categoria}: ${p.local} vs ${p.visitante} | ${p.fecha} ${p.hora || ""} | ${p.campo || ""}\n`;
-          });
-        }
-        if (convosFinde.length > 0) {
-          datos += "\nCONVOCATORIAS PUBLICADAS:\n";
-          convosFinde.forEach((c) => {
-            datos += `- ${c.categoria}: ${c.titulo} | ${c.fecha_partido} ${c.hora_partido} | ${c.ubicacion} | ${c.local_visitante || ""}\n`;
-          });
-        }
-        if (partidosFinde.length === 0 && convosFinde.length === 0) {
-          datos += "No hay partidos registrados para este fin de semana.\nPuedes escribir los datos manualmente aquí.";
-        }
-        setDatosIA(datos);
-
-      } else if (type === "resultados") {
-        const resultados = await base44.entities.Resultado.filter({ estado: "finalizado" }, "-fecha_actualizacion", 30).catch(() => []);
-        // Also check ProximoPartido with jugado=true
-        const jugados = await base44.entities.ProximoPartido.filter({ jugado: true }, "-fecha_iso", 30).catch(() => []);
-
-        let datos = "RESULTADOS RECIENTES:\n\n";
-        if (resultados.length > 0) {
-          const byJornada = {};
-          resultados.forEach((r) => {
-            const key = r.jornada || "?";
-            if (!byJornada[key]) byJornada[key] = [];
-            byJornada[key].push(r);
-          });
-          Object.entries(byJornada).slice(0, 3).forEach(([jornada, res]) => {
-            datos += `JORNADA ${jornada}:\n`;
-            res.forEach((r) => {
-              datos += `  ${r.categoria}: ${r.local} ${r.goles_local ?? "?"} - ${r.goles_visitante ?? "?"} ${r.visitante}\n`;
-            });
-            datos += "\n";
-          });
-        }
-        if (jugados.length > 0) {
-          datos += "PARTIDOS JUGADOS (DB Próximos Partidos):\n";
-          jugados.slice(0, 15).forEach((p) => {
-            datos += `  ${p.categoria}: ${p.local} ${p.goles_local ?? "?"} - ${p.goles_visitante ?? "?"} ${p.visitante} (${p.fecha || ""})\n`;
-          });
-        }
-        if (resultados.length === 0 && jugados.length === 0) {
-          datos += "No hay resultados recientes. Escribe los datos manualmente.";
-        }
-        setDatosIA(datos);
-
-      } else if (type === "anuncio") {
-        const anuncios = await base44.entities.Announcement.filter({ publicado: true }, "-created_date", 10).catch(() => []);
-        let datos = "ANUNCIOS RECIENTES DEL CLUB:\n\n";
-        if (anuncios.length > 0) {
-          anuncios.slice(0, 5).forEach((a, i) => {
-            datos += `${i + 1}. ${a.titulo} (${a.prioridad})\n   ${a.contenido?.substring(0, 200) || ""}\n\n`;
-          });
-          datos += "Elige uno o combina varios para el post.";
-        } else {
-          datos += "No hay anuncios recientes. Escribe el contenido del anuncio aquí.";
-        }
-        setDatosIA(datos);
-
-      } else if (type === "hazte_socio") {
-        const season = await base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []);
-        const precio = season[0]?.precio_socio || 25;
-        setDatosIA(`PROGRAMA DE SOCIOS CD BUSTARVIEJO:
-- Precio: ${precio}€/temporada
-- Carnet digital de socio con QR
-- Descuentos en comercios locales colaboradores
-- Apoyas directamente al deporte base del pueblo
-- Enlace: ${window.location.origin}/ClubMembership`);
-
-      } else if (type === "femenino") {
-        setDatosIA(`CAPTACIÓN FÚTBOL FEMENINO CD BUSTARVIEJO:
-- Buscamos jugadoras de TODAS las edades
-- No hace falta experiencia previa
-- Entrenadores titulados
-- Ambiente familiar y seguro
-- Enlace de inscripción: ${window.location.origin}/JoinFemenino`);
-
-      } else if (type === "evento") {
-        const eventos = await base44.entities.Event.filter({ publicado: true }, "-fecha", 10).catch(() => []);
-        const futuros = eventos.filter((e) => e.fecha >= new Date().toISOString().split("T")[0]);
-        let datos = "PRÓXIMOS EVENTOS DEL CLUB:\n\n";
-        if (futuros.length > 0) {
-          futuros.slice(0, 5).forEach((e) => {
-            datos += `- ${e.titulo} | ${moment(e.fecha).format("DD/MM/YYYY")} ${e.hora || ""} | ${e.ubicacion || ""}\n  ${e.descripcion?.substring(0, 150) || ""}\n\n`;
-          });
-        } else {
-          datos += "No hay eventos próximos. Escribe los datos del evento aquí.";
-        }
-        setDatosIA(datos);
-
-      } else if (type === "personalizado") {
-        setDatosIA("");
-      }
-    } catch (e) {
-      console.error("Error fetching data:", e);
-      setDatosIA("Error al cargar datos. Puedes escribir los datos manualmente.");
-    }
-    setLoadingData(false);
+    setWhatsappText("");
+    setEditing(false);
+    setLoading(true);
+    const d = await fetchDataForType(type);
+    setDatos(d);
+    setLoading(false);
   };
 
-  const typeConfig = CONTENT_TYPES.find((t) => t.id === selectedType);
+  const generate = async () => {
+    if (!datos.trim()) { toast.error("Escribe algo primero"); return; }
+    setGenerating(true);
+    try {
+      const typeLabel = CONTENT_TYPES.find(t => t.id === selectedType)?.title || selectedType;
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `${WA_PROMPT}\n\nTIPO DE CONTENIDO: ${typeLabel}\n\nDATOS:\n${datos}\n\nGenera el mensaje de WhatsApp:`,
+      });
+      setWhatsappText(typeof result === "string" ? result : JSON.stringify(result));
+    } catch (e) {
+      toast.error("Error al generar");
+    }
+    setGenerating(false);
+  };
+
+  const copyAndOpen = async () => {
+    try {
+      await navigator.clipboard.writeText(whatsappText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+      toast.success("¡Texto copiado! Ahora pégalo en tu Canal de WhatsApp");
+      // Guardar en historial
+      const user = await base44.auth.me();
+      await base44.entities.SocialPost.create({
+        tipo: selectedType,
+        titulo: CONTENT_TYPES.find(t => t.id === selectedType)?.title || selectedType,
+        contenido_whatsapp: whatsappText,
+        enviado_whatsapp: true,
+        datos_origen: datos.substring(0, 2000),
+        creado_por: user.email,
+      });
+      queryClient.invalidateQueries({ queryKey: ["socialPosts"] });
+      // Abrir WhatsApp
+      setTimeout(() => { window.open("https://wa.me/", "_blank"); }, 500);
+    } catch {
+      toast.error("Error al copiar");
+    }
+  };
+
+  const typeConfig = CONTENT_TYPES.find(t => t.id === selectedType);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <div className="px-4 lg:px-8 py-6 space-y-6 max-w-4xl mx-auto">
+      <div className="px-4 lg:px-8 py-6 space-y-5 max-w-2xl mx-auto">
+        
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Share2 className="w-6 h-6 text-white" />
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-xl mx-auto mb-3">
+            <MessageCircle className="w-8 h-8 text-white" />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">Centro de Difusión Social</h1>
-            <p className="text-slate-400 text-sm">Genera contenido para tu Canal de WhatsApp y redes sociales</p>
-          </div>
+          <h1 className="text-2xl font-black text-white">Canal de WhatsApp</h1>
+          <p className="text-slate-400 text-sm mt-1">Genera → Copia → Pega en tu Canal</p>
         </div>
 
-        {/* Selector de tipo de contenido */}
+        {/* ========== MENÚ PRINCIPAL ========== */}
         {!selectedType && (
-          <>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="space-y-4">
+            <p className="text-slate-300 text-sm font-medium text-center">¿Qué quieres publicar?</p>
+            <div className="grid grid-cols-2 gap-3">
               {CONTENT_TYPES.map((type) => (
                 <button
                   key={type.id}
-                  onClick={() => fetchDataForType(type.id)}
-                  className="bg-white rounded-xl p-4 text-left hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 border border-slate-200"
+                  onClick={() => selectType(type.id)}
+                  className={`bg-gradient-to-br ${type.gradient} rounded-2xl p-4 text-left text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.03] active:scale-95`}
                 >
-                  <div className={`w-10 h-10 bg-gradient-to-br ${type.gradient} rounded-xl flex items-center justify-center mb-2 shadow`}>
-                    <type.icon className="w-5 h-5 text-white" />
-                  </div>
-                  <p className="font-bold text-sm text-slate-800">{type.title}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{type.description}</p>
+                  <type.icon className="w-6 h-6 mb-1.5 opacity-90" />
+                  <p className="font-bold text-sm">{type.title}</p>
                 </button>
               ))}
             </div>
 
-            {/* Historial */}
-            <Card className="bg-white/95">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">📋 Historial de publicaciones</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ContentHistoryList posts={history} />
-              </CardContent>
-            </Card>
-          </>
+            {/* Historial compacto */}
+            {history.length > 0 && (
+              <div className="bg-slate-800/60 rounded-2xl p-4 space-y-2">
+                <p className="text-slate-300 text-xs font-bold flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> Últimas publicaciones
+                </p>
+                {history.slice(0, 5).map((post) => (
+                  <div key={post.id} className="flex items-center gap-2 text-sm">
+                    <span className="text-green-400">✓</span>
+                    <span className="text-slate-300 truncate flex-1">{post.titulo}</span>
+                    <span className="text-slate-500 text-xs">{moment(post.created_date).format("DD/MM")}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
-        {/* Generador seleccionado */}
+        {/* ========== GENERADOR ========== */}
         {selectedType && (
           <div className="space-y-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { setSelectedType(null); setDatosIA(""); }}
-              className="text-white border-slate-600 hover:bg-slate-700"
+            <button
+              onClick={() => { setSelectedType(null); setWhatsappText(""); setDatos(""); }}
+              className="text-slate-400 text-sm flex items-center gap-1 hover:text-white transition-colors"
             >
-              ← Volver
-            </Button>
+              <ArrowLeft className="w-4 h-4" /> Volver
+            </button>
 
-            {loadingData ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
-                <span className="text-white ml-3">Cargando datos del club...</span>
+            {loading ? (
+              <div className="flex flex-col items-center py-16">
+                <Loader2 className="w-10 h-10 animate-spin text-green-400" />
+                <p className="text-slate-300 mt-3 text-sm">Cargando datos del club...</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {/* Datos de origen (editables) */}
-                <Card className="bg-white/95">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">📝 Datos de origen {selectedType !== "personalizado" && "(puedes editar)"}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <textarea
-                      value={datosIA}
-                      onChange={(e) => setDatosIA(e.target.value)}
-                      placeholder={selectedType === "personalizado" ? "Escribe aquí el tema sobre el que quieres generar contenido..." : "Datos cargados automáticamente..."}
-                      className="w-full min-h-[120px] p-3 border rounded-lg text-sm resize-y"
-                    />
-                  </CardContent>
-                </Card>
+              <>
+                {/* Datos editables */}
+                <div className="bg-slate-800/80 rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-slate-400 text-xs font-bold">📝 Datos {selectedType !== "personalizado" && "(editables)"}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full bg-gradient-to-r ${typeConfig?.gradient} text-white font-bold`}>
+                      {typeConfig?.title}
+                    </span>
+                  </div>
+                  <textarea
+                    value={datos}
+                    onChange={(e) => setDatos(e.target.value)}
+                    placeholder="Escribe aquí los datos para generar el contenido..."
+                    className="w-full min-h-[100px] p-3 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 resize-y focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
 
-                {/* Generador */}
-                <ContentGenerator
-                  tipo={selectedType}
-                  titulo={typeConfig?.title || "Contenido"}
-                  datosParaIA={datosIA}
-                  onSaved={() => queryClient.invalidateQueries({ queryKey: ["socialPosts"] })}
-                />
-              </div>
+                {/* Botón GENERAR */}
+                {!whatsappText && (
+                  <button
+                    onClick={generate}
+                    disabled={generating || !datos.trim()}
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 text-white font-bold text-lg py-4 rounded-2xl shadow-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    {generating ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" /> Generando texto molón...</>
+                    ) : (
+                      <><Wand2 className="w-5 h-5" /> ✨ Generar mensaje</>
+                    )}
+                  </button>
+                )}
+
+                {/* Resultado */}
+                {whatsappText && (
+                  <div className="space-y-3 animate-fade-in">
+                    {/* Preview tipo WhatsApp */}
+                    <div className="bg-[#e5ddd5] rounded-2xl p-3 shadow-inner">
+                      <div className="bg-[#dcf8c6] rounded-xl p-3 shadow max-w-[90%] ml-auto">
+                        {editing ? (
+                          <textarea
+                            value={whatsappText}
+                            onChange={(e) => setWhatsappText(e.target.value)}
+                            className="w-full min-h-[150px] p-2 bg-white rounded-lg text-sm resize-y border-0"
+                            autoFocus
+                            onBlur={() => setEditing(false)}
+                          />
+                        ) : (
+                          <div
+                            onClick={() => setEditing(true)}
+                            className="whitespace-pre-wrap text-sm text-slate-800 cursor-text leading-relaxed"
+                          >
+                            {whatsappText}
+                          </div>
+                        )}
+                        {!editing && (
+                          <p className="text-[10px] text-slate-500 mt-1 text-right">Toca para editar</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Botón regenerar */}
+                    <button
+                      onClick={generate}
+                      disabled={generating}
+                      className="text-slate-400 text-sm flex items-center gap-1.5 mx-auto hover:text-white transition-colors"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${generating ? "animate-spin" : ""}`} />
+                      {generating ? "Regenerando..." : "Regenerar texto"}
+                    </button>
+
+                    {/* BOTÓN PRINCIPAL — COPIAR Y ABRIR WHATSAPP */}
+                    <button
+                      onClick={copyAndOpen}
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-5 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                    >
+                      {copied ? (
+                        <><Check className="w-6 h-6" /> ¡Copiado! Abriendo WhatsApp...</>
+                      ) : (
+                        <><Copy className="w-6 h-6" /> 📋 Copiar y abrir WhatsApp</>
+                      )}
+                    </button>
+                    <p className="text-slate-500 text-xs text-center">
+                      Se copia al portapapeles → se abre WhatsApp → pegas en tu Canal
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
