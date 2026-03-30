@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, Archive, BarChart3, FileSignature, Heart, Award, RotateCcw, MessageCircle, ShieldAlert, UserCircle, Gift, Mail, Trophy, Share2 } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Bell, Settings, CheckCircle2, Star, TrendingUp, FileText, Clover, Archive, BarChart3, FileSignature, Heart, Award, RotateCcw, MessageCircle, ShieldAlert, UserCircle, Gift, Mail, Trophy, Share2 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 // DEFINICIÓN COMPLETA - organizado por secciones lógicas
@@ -39,7 +39,6 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "anuncios", title: "📢 Anuncios", icon: Megaphone, url: createPageUrl("Announcements"), gradient: "from-pink-600 to-pink-700", priority: 22 },
   { id: "documentos", title: "📄 Documentos", icon: FileText, url: createPageUrl("DocumentManagement"), gradient: "from-slate-600 to-slate-700", priority: 23 },
   { id: "encuestas", title: "📋 Encuestas", icon: FileText, url: createPageUrl("Surveys"), gradient: "from-purple-600 to-purple-700", priority: 24 },
-  { id: "tareas_junta", title: "🗂️ Tareas Junta", icon: ClipboardCheck, url: createPageUrl("BoardTasks"), gradient: "from-slate-600 to-slate-700", priority: 25 },
 
   // --- TIENDA Y SERVICIOS ---
   { id: "tienda", title: "🛍️ Tienda", icon: ShoppingBag, url: createPageUrl("Tienda"), gradient: "from-orange-600 to-orange-700", priority: 26 },

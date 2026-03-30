@@ -59,7 +59,6 @@ export function buildAdminNavigation(ctx) {
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-    { title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck },
     { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle },
     { title: "✉️ Buzón Juvenil", url: createPageUrl("JuniorMailboxAdmin"), icon: MessageCircle },
 
@@ -219,13 +218,12 @@ export function buildCoordinatorNavigation(ctx) {
 
 export function buildParentNavigation(ctx) {
   const {
-    programaSociosActivo, isMemberPaid, isJunta, pendingCallupsCount,
+    programaSociosActivo, isMemberPaid, pendingCallupsCount,
     pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount,
   } = ctx;
 
   return [
     ...(programaSociosActivo && isMemberPaid ? [{ title: "🎫 MI CARNET DE SOCIO", url: createPageUrl("MemberCardDisplay"), icon: Users, highlight: true }] : []),
-    ...(isJunta ? [{ title: "🗂️ Tareas Junta", url: createPageUrl("BoardTasks"), icon: ClipboardCheck, highlight: true }] : []),
     { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: chatMenuCounts.systemMessagesCount },

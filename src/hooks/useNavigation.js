@@ -19,7 +19,6 @@ export default function useNavigation({
   isCoach,
   isCoordinator,
   isTreasurer,
-  isJunta,
   isPlayer,
   isMinor,
   hasPlayers,
@@ -48,7 +47,7 @@ export default function useNavigation({
     pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible,
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders,
     marketNewCount, unresolvedAdminChats, paymentsInReview,
-    programaSociosActivo, isMemberPaid, isJunta, isPlayer, user,
+    programaSociosActivo, isMemberPaid, isPlayer, user,
   };
 
   // Each role builds its own menu — memoized with relevant deps
@@ -62,7 +61,7 @@ export default function useNavigation({
     [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, user?.es_entrenador]);
 
   const parentNav = useMemo(() => buildParentNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, isJunta, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount]);
+    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount]);
 
   const playerNav = useMemo(() => buildPlayerNavigation(navCtx),
     [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, loteriaVisible, marketNewCount]);

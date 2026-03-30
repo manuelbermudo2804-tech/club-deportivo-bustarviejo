@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, Calendar, Bell, CreditCard, Image, Megaphone, ShoppingBag, FileText, Heart, FileSignature, BarChart3, Clover, Trophy, MessageCircle, Settings, Gift, ClipboardCheck } from "lucide-react";
+import { Users, Calendar, Bell, CreditCard, Image, Megaphone, ShoppingBag, FileText, Heart, FileSignature, BarChart3, Clover, Trophy, MessageCircle, Settings, Gift } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 // DEFINICIÓN COMPLETA - refleja TODO el menú lateral de familias
@@ -25,7 +25,6 @@ export const ALL_PARENT_BUTTONS = [
   { id: "socio", title: "🎫 Hacerse Socio", icon: Heart, url: createPageUrl("ClubMembership"), gradient: "from-pink-600 to-pink-700", priority: 18 },
   { id: "notificaciones", title: "⚙️ Preferencias Notif.", icon: Settings, url: createPageUrl("NotificationPreferences"), gradient: "from-slate-600 to-slate-700", priority: 19 },
   { id: "loteria", title: "🍀 Lotería Navidad", icon: Clover, url: createPageUrl("ParentLottery"), gradient: "from-green-600 to-red-600", priority: 20, conditional: true, conditionKey: "loteriaVisible" },
-  { id: "tareas_junta", title: "🗂️ Tareas Junta", icon: ClipboardCheck, url: createPageUrl("BoardTasks"), gradient: "from-slate-600 to-slate-700", priority: 21, conditional: true, conditionKey: "isJunta" },
 ];
 
 export const DEFAULT_PARENT_BUTTONS = [

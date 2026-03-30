@@ -312,7 +312,7 @@ export default function Layout({ children, currentPageName }) {
 
 
   const navigationItems = useNavigation({
-    user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, hasPlayers,
+    user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, hasPlayers,
     loteriaVisible, isMemberPaid, programaSociosActivo,
     playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses,
     chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount,

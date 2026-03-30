@@ -61,8 +61,6 @@ export default function Home() {
         } else if (currentUser.tipo_panel === 'jugador_menor' || currentUser.es_menor === true) {
           window.location.href = createPageUrl('MinorDashboard');
           return;
-        } else if (currentUser.es_junta === true) {
-          // Junta se queda en Home
         } else if (currentUser.es_tesorero) {
           window.location.href = createPageUrl('TreasurerDashboard');
           return;
@@ -102,7 +100,7 @@ export default function Home() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    enabled: queriesEnabled && (isAdmin || user?.es_junta),
+    enabled: queriesEnabled && isAdmin,
   });
 
   const { data: callups } = useQuery({
