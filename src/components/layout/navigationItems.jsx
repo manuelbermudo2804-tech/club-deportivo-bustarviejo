@@ -88,12 +88,8 @@ export function buildAdminNavigation(ctx) {
     { title: "⚡ Monitor de Créditos", url: createPageUrl("CreditUsage"), icon: BarChart3 },
 
     { title: "─ DESARROLLO ─", section: true },
-    { title: "📖 Manual de Acceso", url: createPageUrl("ManualAcceso"), icon: FileText },
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
-    { title: "📊 Preview Stats Jugador", url: createPageUrl("PlayerStatsPreview"), icon: BarChart3 },
     { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
-    { title: "🧪 Vista Post-Instalación", url: createPageUrl("InstallSuccessPreview"), icon: Download },
-    { title: "👁️ Preview Flujo Alta", url: createPageUrl("OnboardingPreview"), icon: UserIcon },
     { title: "📸 Diagnóstico Subidas", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
     { title: "📊 Estadísticas Push", url: "/PushStats", icon: Bell },
     { title: "🔔 Test Push/Badge", url: "/PushBadgeTest", icon: Bell },
@@ -122,10 +118,6 @@ export function buildCoachNavigation(ctx) {
     { title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3 },
     { title: "⏱️ Control Minutos", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
 
-    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
-    { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
-    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
-
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
     ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
@@ -143,6 +135,10 @@ export function buildCoachNavigation(ctx) {
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+
+    { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
+    { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
 
     ...(hasPlayers ? [
       { title: "─ MIS HIJOS ─", section: true },
