@@ -325,6 +325,15 @@ export default function MemberCardDisplay() {
                         {comercio.telefono}
                       </p>
                     )}
+                    {comercio.codigo_descuento && isActive && (
+                      <div className="mt-3 bg-blue-50 border-2 border-blue-300 border-dashed rounded-lg p-3">
+                        <p className="text-xs text-blue-700 font-semibold mb-1">🏷️ Código de descuento:</p>
+                        <p className="text-lg font-mono font-black text-blue-900 tracking-wider text-center bg-white rounded px-2 py-1 border border-blue-200 select-all">{comercio.codigo_descuento}</p>
+                        {comercio.instrucciones_codigo && (
+                          <p className="text-xs text-blue-600 mt-1.5 text-center">{comercio.instrucciones_codigo}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

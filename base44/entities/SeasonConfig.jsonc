@@ -1,0 +1,354 @@
+{
+  "name": "SeasonConfig",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada (ej: 2024-2025)"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es la temporada activa"
+    },
+    "cuota_unica": {
+      "type": "number",
+      "description": "Importe de cuota \u00fanica en euros"
+    },
+    "cuota_tres_meses": {
+      "type": "number",
+      "description": "Importe de cuota fraccionada (cada pago) en euros"
+    },
+    "permitir_plan_mensual": {
+      "type": "boolean",
+      "default": false,
+      "description": "Permitir plan mensual con domiciliaci\u00f3n por tarjeta (60% inicial + resto prorrateado)"
+    },
+    "plan_mensual_porcentaje_inicial": {
+      "type": "number",
+      "default": 60,
+      "description": "Porcentaje del total que se paga inicialmente en Junio (ej: 60)"
+    },
+    "plan_mensual_mes_fin": {
+      "type": "string",
+      "enum": [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio"
+      ],
+      "default": "Mayo",
+      "description": "\u00daltimo mes en que se cobra la mensualidad"
+    },
+    "plan_mensual_modo_test": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activado, el Plan Mensual solo estar\u00e1 visible para los emails de la lista de test"
+    },
+    "plan_mensual_emails_test": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de emails que pueden ver el Plan Mensual en modo test"
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de inicio de temporada"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de fin de temporada"
+    },
+    "google_sheets_id": {
+      "type": "string",
+      "description": "ID del Google Sheets para sincronizaci\u00f3n de presupuestos"
+    },
+    "permitir_renovaciones": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se permite renovar jugadores de temporadas anteriores"
+    },
+    "fecha_limite_renovaciones": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite para renovar jugadores (opcional)"
+    },
+    "enviar_recordatorios_renovacion": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enviar recordatorios autom\u00e1ticos de renovaci\u00f3n"
+    },
+    "dias_antes_recordatorio_renovacion": {
+      "type": "number",
+      "default": 15,
+      "description": "D\u00edas antes de la fecha l\u00edmite para enviar recordatorio autom\u00e1tico"
+    },
+    "tienda_ropa_abierta": {
+      "type": "boolean",
+      "default": false,
+      "description": "Control manual para abrir/cerrar la tienda de ropa"
+    },
+    "productos_ropa": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "orden": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Cat\u00e1logo de productos de ropa con precios configurables"
+    },
+    "loteria_navidad_abierta": {
+      "type": "boolean",
+      "default": false,
+      "description": "Control manual para abrir/cerrar pedidos de loter\u00eda"
+    },
+    "loteria_requiere_pago_adelantado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la loter\u00eda requiere pago adelantado con justificante"
+    },
+    "precio_decimo_loteria": {
+      "type": "number",
+      "default": 22,
+      "description": "Precio del d\u00e9cimo de loter\u00eda en euros"
+    },
+    "loteria_max_decimos": {
+      "type": "number",
+      "description": "N\u00famero m\u00e1ximo de d\u00e9cimos disponibles para vender"
+    },
+    "bizum_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Permitir pagos con Bizum"
+    },
+    "bizum_telefono": {
+      "type": "string",
+      "description": "N\u00famero de tel\u00e9fono del club para Bizum"
+    },
+    "mostrar_patrocinadores": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar banner de patrocinadores en la app"
+    },
+    "notificaciones_admin_email": {
+      "type": "boolean",
+      "default": false,
+      "description": "Enviar correos autom\u00e1ticos al administrador"
+    },
+    "notificaciones_push_manuales_activas": {
+      "type": "boolean",
+      "default": true,
+      "description": "Activar/desactivar SOLO las notificaciones push manuales"
+    },
+    "programa_referidos_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Activar programa de incentivos por referir nuevos socios"
+    },
+    "referidos_permitir_whatsapp_padres": {
+      "type": "boolean",
+      "default": true,
+      "description": "Permitir a los padres compartir su enlace de referidos por WhatsApp"
+    },
+    "tier_1_activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "tier_3_activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "tier_5_activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "tier_10_activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "tier_15_activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "referidos_premio_1": {
+      "type": "number",
+      "default": 5
+    },
+    "referidos_premio_3": {
+      "type": "number",
+      "default": 15
+    },
+    "referidos_sorteo_3": {
+      "type": "number",
+      "default": 1
+    },
+    "referidos_premio_5": {
+      "type": "number",
+      "default": 25
+    },
+    "referidos_sorteo_5": {
+      "type": "number",
+      "default": 3
+    },
+    "referidos_premio_10": {
+      "type": "number",
+      "default": 50
+    },
+    "referidos_sorteo_10": {
+      "type": "number",
+      "default": 5
+    },
+    "referidos_premio_15": {
+      "type": "number",
+      "default": 50
+    },
+    "referidos_sorteo_15": {
+      "type": "number",
+      "default": 10
+    },
+    "referidos_premio_hotel": {
+      "type": "boolean",
+      "default": true
+    },
+    "sorteo_premios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista de premios disponibles en los sorteos"
+    },
+    "bonus_femenino_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Activar bonus extra por referir jugadoras al f\u00fatbol femenino"
+    },
+    "bonus_femenino_credito": {
+      "type": "number",
+      "default": 10,
+      "description": "Cr\u00e9dito extra en ropa por cada jugadora femenina referida"
+    },
+    "bonus_femenino_sorteos": {
+      "type": "number",
+      "default": 2,
+      "description": "Participaciones extra en sorteo por cada jugadora femenina referida"
+    },
+    "programa_socios_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Activar sistema de carnets digitales de socio con descuentos"
+    },
+    "carnet_publico_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Activar enlace p\u00fablico del carnet de socio (para socios externos sin app)"
+    },
+    "precio_socio": {
+      "type": "number",
+      "default": 25,
+      "description": "Precio anual de la cuota de socio en euros"
+    },
+    "dias_gracia_carnet": {
+      "type": "number",
+      "default": 15,
+      "description": "D\u00edas de gracia despu\u00e9s de cada fecha l\u00edmite de pago"
+    },
+    "comercios_descuento": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "descuento": {
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string",
+            "enum": [
+              "Restaurantes",
+              "Tiendas",
+              "Servicios",
+              "Ocio",
+              "Salud",
+              "Otro"
+            ]
+          },
+          "codigo_descuento": {
+            "type": "string",
+            "description": "C\u00f3digo de descuento que el socio debe usar (ej: para tiendas online)"
+          },
+          "instrucciones_codigo": {
+            "type": "string",
+            "description": "Instrucciones para usar el c\u00f3digo (ej: Introduce este c\u00f3digo en el checkout)"
+          }
+        }
+      },
+      "description": "Lista de comercios que ofrecen descuentos a socios del club"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas sobre la temporada"
+    },
+    "tienda_ropa_url": {
+      "type": "string",
+      "description": "URL externa de la tienda de equipaci\u00f3n"
+    },
+    "tienda_merch_url": {
+      "type": "string",
+      "description": "URL externa de la tienda de merchandising del club"
+    },
+    "bloqueo_convocatorias_impago": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activo, los jugadores con pagos vencidos aparecen marcados y excluidos por defecto en las convocatorias"
+    },
+    "dias_gracia_convocatoria": {
+      "type": "number",
+      "default": 14,
+      "description": "D\u00edas de gracia despu\u00e9s del vencimiento del pago antes de marcar al jugador como moroso en convocatorias"
+    }
+  },
+  "required": [
+    "temporada",
+    "cuota_unica",
+    "cuota_tres_meses"
+  ]
+}

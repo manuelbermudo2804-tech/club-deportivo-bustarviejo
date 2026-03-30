@@ -195,6 +195,10 @@ export default function FeatureControlSection({
                       </select>
                       <Input placeholder="Dirección (opcional)" value={comercio.direccion || ""} onChange={(e) => { const updated = [...activeSeason.comercios_descuento]; updated[index].direccion = e.target.value; update({ comercios_descuento: updated }); }} className="text-sm" />
                       <Input placeholder="Teléfono (opcional)" value={comercio.telefono || ""} onChange={(e) => { const updated = [...activeSeason.comercios_descuento]; updated[index].telefono = e.target.value; update({ comercios_descuento: updated }); }} className="text-sm" />
+                      <div className="bg-blue-50 rounded-lg p-2 space-y-1.5 border border-blue-200">
+                        <Input placeholder="Código descuento (ej: CDBUSTARVIEJO10)" value={comercio.codigo_descuento || ""} onChange={(e) => { const updated = [...activeSeason.comercios_descuento]; updated[index].codigo_descuento = e.target.value; update({ comercios_descuento: updated }); }} className="text-sm font-mono bg-white" />
+                        <Input placeholder="Instrucciones (ej: Usa este código en el checkout)" value={comercio.instrucciones_codigo || ""} onChange={(e) => { const updated = [...activeSeason.comercios_descuento]; updated[index].instrucciones_codigo = e.target.value; update({ comercios_descuento: updated }); }} className="text-sm bg-white" />
+                      </div>
                     </div>
                   ))}
                 </div>
