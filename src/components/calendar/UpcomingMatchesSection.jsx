@@ -293,7 +293,9 @@ export default function UpcomingMatchesSection({ myCategories = [] }) {
     ? recentResults.filter(m => categoriesMatch(m.categoria, filterCategories))
     : recentResults;
 
-  if (futureMatchesAll.length === 0 && recentResults.length === 0) {
+  const hasAnyMatches = allWithDates.length > 0;
+
+  if (futureMatchesAll.length === 0 && recentResults.length === 0 && !hasAnyMatches) {
     // Sin datos: podría ser fuera de temporada o simplemente sin partidos programados
     return (
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-center relative overflow-hidden">
