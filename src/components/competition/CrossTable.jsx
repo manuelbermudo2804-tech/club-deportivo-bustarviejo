@@ -76,10 +76,12 @@ export default function CrossTable({ category, config }) {
 
   if (!configReady) {
     return (
-      <Card><CardContent className="p-8 text-center">
-        <Loader2 className="w-8 h-8 text-orange-600 mx-auto mb-2 animate-spin" />
-        <p className="text-slate-600 text-sm">Cargando configuración...</p>
-      </CardContent></Card>
+      <div>
+        <Card><CardContent className="p-8 text-center">
+          <Loader2 className="w-8 h-8 text-orange-600 mx-auto mb-2 animate-spin" />
+          <p className="text-slate-600 text-sm">Cargando configuración...</p>
+        </CardContent></Card>
+      </div>
     );
   }
 
@@ -98,33 +100,42 @@ export default function CrossTable({ category, config }) {
 
   if (isLoading) {
     return (
-      <Card><CardContent className="p-8 text-center">
-        <Loader2 className="w-8 h-8 text-orange-600 mx-auto mb-2 animate-spin" />
-        <p className="text-slate-600 text-sm">Cargando tabla cruzada desde la RFFM...</p>
-        <p className="text-xs text-slate-400 mt-1">Esto puede tardar unos segundos</p>
-      </CardContent></Card>
+      <div className="space-y-4">
+        <Card><CardContent className="p-8 text-center">
+          <Loader2 className="w-8 h-8 text-orange-600 mx-auto mb-2 animate-spin" />
+          <p className="text-slate-600 text-sm">Cargando tabla cruzada desde la RFFM...</p>
+          <p className="text-xs text-slate-400 mt-1">Esto puede tardar unos segundos</p>
+        </CardContent></Card>
+        <BustarviejoSchedule config={config} />
+      </div>
     );
   }
 
   if (error || !data?.success) {
     return (
-      <Card className="border-red-200">
-        <CardContent className="p-6 text-center">
-          <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-          <p className="text-sm text-red-700 mb-2">Error al cargar la tabla cruzada</p>
-          <Button size="sm" variant="outline" onClick={() => refetch()} className="gap-1.5">
-            <RefreshCw className="w-3.5 h-3.5" /> Reintentar
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Card className="border-red-200">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+            <p className="text-sm text-red-700 mb-2">Error al cargar la tabla cruzada</p>
+            <Button size="sm" variant="outline" onClick={() => refetch()} className="gap-1.5">
+              <RefreshCw className="w-3.5 h-3.5" /> Reintentar
+            </Button>
+          </CardContent>
+        </Card>
+        <BustarviejoSchedule config={config} />
+      </div>
     );
   }
 
   if (!teams.length) {
     return (
-      <Card><CardContent className="p-8 text-center">
-        <p className="text-slate-600">No se encontraron datos de tabla cruzada.</p>
-      </CardContent></Card>
+      <div className="space-y-4">
+        <Card><CardContent className="p-8 text-center">
+          <p className="text-slate-600">No se encontraron datos de tabla cruzada.</p>
+        </CardContent></Card>
+        <BustarviejoSchedule config={config} />
+      </div>
     );
   }
 
