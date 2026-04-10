@@ -240,7 +240,7 @@ export default function CrossTable({ category, config }) {
         </div>
       </Card>
 
-      {bustIdx >= 0 && <BustarvijoDetail teams={teams} matrix={matrix} bustIdx={bustIdx} />}
+
 
       <BustarviejoSchedule config={config} />
 
@@ -248,86 +248,5 @@ export default function CrossTable({ category, config }) {
         Datos extraídos de la intranet RFFM · Desliza horizontalmente para ver toda la tabla
       </p>
     </div>
-  );
-}
-
-function BustarvijoDetail({ teams, matrix, bustIdx }) {
-  const bustTeam = teams[bustIdx];
-  const homeResults = [];
-  const awayResults = [];
-
-  teams.forEach((t, idx) => {
-    if (idx === bustIdx) return;
-    const homeCell = matrix[bustIdx]?.[idx];
-    if (homeCell) homeResults.push({ rival: t, ...homeCell });
-    const awayCell = matrix[idx]?.[bustIdx];
-    if (awayCell) awayResults.push({ rival: t, gl: awayCell.goles_visitante, gv: awayCell.goles_local, jugado: awayCell.jugado, isAway: true });
-  });
-
-  const allPlayed = [...homeResults.filter(r => r.jugado), ...awayResults.filter(r => r.jugado)];
-  const wins = allPlayed.filter(r => (r.isAway ? r.gl > r.gv : r.goles_local > r.goles_visitante)).length;
-  const draws = allPlayed.filter(r => (r.isAway ? r.gl === r.gv : r.goles_local === r.goles_visitante)).length;
-  const losses = allPlayed.length - wins - draws;
-
-  return (
-    <Card className="border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-white">
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Badge className="bg-orange-600 text-white">CD Bustarviejo</Badge>
-          <span className="text-xs text-slate-600">{allPlayed.length} partidos jugados</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="bg-green-50 rounded-lg p-2 border border-green-200">
-            <div className="text-lg font-bold text-green-700">{wins}</div>
-            <div className="text-[10px] text-green-600">Victorias</div>
-          </div>
-          <div className="bg-yellow-50 rounded-lg p-2 border border-yellow-200">
-            <div className="text-lg font-bold text-yellow-700">{draws}</div>
-            <div className="text-[10px] text-yellow-600">Empates</div>
-          </div>
-          <div className="bg-red-50 rounded-lg p-2 border border-red-200">
-            <div className="text-lg font-bold text-red-700">{losses}</div>
-            <div className="text-[10px] text-red-600">Derrotas</div>
-          </div>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-slate-700 mb-1.5">🏠 En casa</p>
-          <div className="space-y-1">
-            {homeResults.map((r, i) => (
-              <div key={i} className={`flex items-center justify-between px-2 py-1 rounded text-xs ${
-                !r.jugado ? "bg-slate-50" : r.goles_local > r.goles_visitante ? "bg-green-50" : r.goles_local === r.goles_visitante ? "bg-yellow-50" : "bg-red-50"
-              }`}>
-                <span className="truncate flex-1">{shortName(r.rival.name)}</span>
-                {r.jugado ? (
-                  <span className="font-bold ml-2">{r.goles_local} - {r.goles_visitante}</span>
-                ) : (
-                  <span className="text-slate-400 ml-2">Pend.</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-slate-700 mb-1.5">📍 Fuera</p>
-          <div className="space-y-1">
-            {awayResults.map((r, i) => (
-              <div key={i} className={`flex items-center justify-between px-2 py-1 rounded text-xs ${
-                !r.jugado ? "bg-slate-50" : r.gl > r.gv ? "bg-green-50" : r.gl === r.gv ? "bg-yellow-50" : "bg-red-50"
-              }`}>
-                <span className="truncate flex-1">{shortName(r.rival.name)}</span>
-                {r.jugado ? (
-                  <span className="font-bold ml-2">{r.gl} - {r.gv}</span>
-                ) : (
-                  <span className="text-slate-400 ml-2">Pend.</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

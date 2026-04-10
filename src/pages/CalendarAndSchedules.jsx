@@ -20,6 +20,7 @@ import TrainingScheduleForm from "../components/training/TrainingScheduleForm";
 import ContactCard from "../components/ContactCard";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import UpcomingMatchesSection from "../components/calendar/UpcomingMatchesSection";
+import MyLeagueSchedules from "../components/competition/MyLeagueSchedules";
 
 const DIAS_ORDEN = {
   "Lunes": 1,
@@ -398,10 +399,14 @@ export default function CalendarAndSchedules() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
           <TabsTrigger value="partidos" className="flex items-center gap-2">
             <Trophy className="w-4 h-4" />
             Partidos
+          </TabsTrigger>
+          <TabsTrigger value="jornadas" className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4" />
+            Jornadas
           </TabsTrigger>
           <TabsTrigger value="calendario" className="flex items-center gap-2">
             <CalendarIcon className="w-4 h-4" />
@@ -417,6 +422,15 @@ export default function CalendarAndSchedules() {
         <TabsContent value="partidos" className="space-y-4 mt-4">
           <UpcomingMatchesSection myCategories={myCategories} />
           <ContactCard />
+        </TabsContent>
+
+        {/* JORNADAS TAB */}
+        <TabsContent value="jornadas" className="space-y-4 mt-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 mb-1">Calendario de Liga</h2>
+            <p className="text-sm text-slate-500 mb-4">Todas las jornadas de tus equipos: resultados y partidos pendientes</p>
+          </div>
+          <MyLeagueSchedules myCategories={myCategories} isAdmin={isAdmin} />
         </TabsContent>
 
         {/* CALENDARIO TAB */}
