@@ -902,20 +902,32 @@ Deno.serve(async (req) => {
           crossTableData = { tableIdx: i, rowCount: rows.length, rows };
         });
         
-        // Get raw HTML of the cross table to understand structure
-        let rawTableHtml = '';
-        $ct('table').each((i, table) => {
-          if (rawTableHtml) return;
-          const text = $ct(table).text();
-          if (text.includes('CASA') && text.includes('FUERA')) {
-            // Get first 2 data rows raw HTML
-            const trs = $ct(table).find('> tbody > tr, > tr').toArray();
-            if (trs.length > 1) {
-              rawTableHtml = $ct(trs[1]).html().substring(0, 2000);
-            }
+        // Find Detalle_Equipo function and any JS file that contains it
+        const jsSrcs = [];
+        $ct('script[src]').each((i, s) => {
+          const src = $ct(s).attr('src') || '';
+          jsSrcs.push(src);
+        });
+        
+        // Search for inline function definitions
+        const allInlineJS = [];
+        $ct('script:not([src])').each((i, s) => {
+          const content = $ct(s).html() || '';
+          if (content.includes('Detalle_Equipo') || content.includes('function ') || content.includes('document.write')) {
+            allInlineJS.push({ idx: i, content: content.substring(0, 2000) });
           }
         });
-        return Response.json({ success: true, usedUrl, htmlLength: html.length, rawRow: rawTableHtml });
+        
+        // Get a large chunk of HTML around the table area
+        const tableAreaStart = html.indexOf('CASA');
+        const tableArea = tableAreaStart > 0 ? html.substring(tableAreaStart, tableAreaStart + 15000) : 'NOT FOUND';
+        
+        return Response.json({ 
+          success: true, usedUrl, htmlLength: html.length,
+          jsSrcs: jsSrcs.slice(0, 20),
+          inlineJS: allInlineJS.slice(0, 10),
+          tableArea: tableArea.substring(0, 6000)
+        });
       }
 
       default:
