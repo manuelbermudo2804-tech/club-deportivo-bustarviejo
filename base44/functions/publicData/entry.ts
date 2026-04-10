@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 // API PÚBLICA - No requiere autenticación
 // Devuelve datos deportivos para mostrar en la web del club
@@ -155,9 +155,11 @@ Deno.serve(async (req) => {
     };
 
     // Cargar datos de CompetitionCache (jornadas y tabla cruzada)
+    // base44 may not be defined if we used cached data above, so create it if needed
     let competitionCache = [];
     try {
-      competitionCache = await base44.asServiceRole.entities.CompetitionCache.list('-ultima_sync', 50);
+      const base44ForCache = createClientFromRequest(req);
+      competitionCache = await base44ForCache.asServiceRole.entities.CompetitionCache.list('-ultima_sync', 50);
     } catch (e) { console.error('Error loading CompetitionCache:', e); }
 
     const jornadasCache = {};
