@@ -37,8 +37,9 @@ export default function MyLeagueSchedules({ myCategories, isAdmin }) {
     ? configs.filter(c => c.rfef_url)
     : configs.filter(c => {
         if (!c.rfef_url) return false;
-        if (!myCategories || myCategories.length === 0) return true;
-        // Match by partial category name (e.g. "Fútbol Cadete" matches "Fútbol Cadete")
+        // If user has no categories, show nothing (not all)
+        if (!myCategories || myCategories.length === 0) return false;
+        // Match by partial category name
         const cat = (c.categoria || "").toLowerCase();
         return myCategories.some(mc => {
           const mcLower = (mc || "").toLowerCase();

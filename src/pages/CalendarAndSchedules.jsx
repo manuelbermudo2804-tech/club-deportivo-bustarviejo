@@ -126,16 +126,19 @@ export default function CalendarAndSchedules() {
   }, [players, user, userRole]);
 
   useEffect(() => {
-    if (myPlayers.length > 0) {
-      const cats = new Set();
-      myPlayers.forEach(p => {
-        if (p.deporte) cats.add(p.deporte);
-        if (p.categoria_principal) cats.add(p.categoria_principal);
-        if (p.categorias && Array.isArray(p.categorias)) p.categorias.forEach(c => cats.add(c));
-      });
-      setMyCategories([...cats]);
+    const cats = new Set();
+    // Categorías de jugadores vinculados (padres/jugadores)
+    myPlayers.forEach(p => {
+      if (p.deporte) cats.add(p.deporte);
+      if (p.categoria_principal) cats.add(p.categoria_principal);
+      if (p.categorias && Array.isArray(p.categorias)) p.categorias.forEach(c => cats.add(c));
+    });
+    // Categorías que entrena el usuario (entrenadores/coordinadores)
+    if (user?.categorias_entrena && Array.isArray(user.categorias_entrena)) {
+      user.categorias_entrena.forEach(c => cats.add(c));
     }
-  }, [myPlayers]);
+    setMyCategories([...cats]);
+  }, [myPlayers, user]);
 
   const myPlayersSports = useMemo(() => {
     if (!user) return [];
