@@ -19,9 +19,9 @@ import RffmImportButton from "../components/competition/RffmImportButton";
 import RffmUrlManager from "../components/competition/RffmUrlManager";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
-import SeasonSchedule from "../components/competition/SeasonSchedule";
+import CrossTable from "../components/competition/CrossTable";
 import RffmMonitorPanel from "../components/competition/RffmMonitorPanel";
-import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2, Database, Calendar } from "lucide-react";
+import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2, Database, Grid3X3, Calendar } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 import { toast } from "sonner";
@@ -73,7 +73,7 @@ export default function CentroCompeticion() {
   const defaultView = getUrlParam('vista', 'clasificacion');
 
   const [category, setCategory] = React.useState(defaultCat);
-  const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores' | 'calendario'
+  const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores' | 'cruces'
   const [search, setSearch] = React.useState('');
   const [fav, setFav] = React.useState(() => storedFav === defaultCat);
   const queryClient = useQueryClient();
@@ -461,10 +461,10 @@ export default function CentroCompeticion() {
         <Users className="w-4 h-4" /> Goleadores
       </button>
       <button
-        onClick={() => setView('calendario')}
-        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'calendario' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        onClick={() => setView('cruces')}
+        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'cruces' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Calendar className="w-4 h-4" /> Calendario
+        <Grid3X3 className="w-4 h-4" /> Cruces
       </button>
     </div>
   );
@@ -810,8 +810,8 @@ export default function CentroCompeticion() {
           <ScorersList categoryFullName={category} isAdmin={isAdmin} />
         )}
 
-        {view === 'calendario' && (
-          <SeasonSchedule category={category} />
+        {view === 'cruces' && (
+          <CrossTable category={category} config={config} />
         )}
       </ErrorBoundary>
 
