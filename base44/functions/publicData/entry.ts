@@ -154,6 +154,19 @@ Deno.serve(async (req) => {
       goleadores: goleadoresPorCategoria,
     };
 
+    // Cargar datos de CompetitionCache (jornadas y tabla cruzada)
+    let competitionCache = [];
+    try {
+      competitionCache = await base44.asServiceRole.entities.CompetitionCache.list('-ultima_sync', 50);
+    } catch (e) { console.error('Error loading CompetitionCache:', e); }
+
+    const jornadasCache = {};
+    const crossTableCache = {};
+    for (const cc of competitionCache) {
+      if (cc.tipo === 'jornadas' && cc.datos) jornadasCache[cc.categoria] = cc.datos;
+      if (cc.tipo === 'tabla_cruzada' && cc.datos) crossTableCache[cc.categoria] = cc.datos;
+    }
+
     let wantsJSON = false;
     try {
       const url = new URL(req.url);
@@ -161,7 +174,7 @@ Deno.serve(async (req) => {
     } catch {}
 
     if (wantsJSON) {
-      return Response.json(data, { headers: corsHeaders });
+      return Response.json({ ...data, jornadas_cache: jornadasCache, cross_table_cache: crossTableCache }, { headers: corsHeaders });
     }
 
     // Detectar si hay datos de competición
@@ -173,7 +186,7 @@ Deno.serve(async (req) => {
     let forceOffseason = false;
     try { forceOffseason = new URL(req.url).searchParams.get('preview') === 'offseason'; } catch {}
 
-    const htmlPage = (!hayDatos || forceOffseason) ? generarHTMLOffseason() : generarHTML(data);
+    const htmlPage = (!hayDatos || forceOffseason) ? generarHTMLOffseason() : generarHTML(data, jornadasCache, crossTableCache);
     return new Response(htmlPage, {
       headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, max-age=0' },
     });
@@ -184,7 +197,7 @@ Deno.serve(async (req) => {
   }
 });
 
-function generarHTML(data) {
+function generarHTML(data, jornadasCache, crossTableCache) {
   const ESCUDO = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png';
   const WEB = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/';
 
@@ -472,7 +485,85 @@ function generarHTML(data) {
   (data.resultados_recientes || []).forEach(r => r.categoria && allCats.add(r.categoria));
   Object.keys(data.clasificaciones || {}).forEach(c => allCats.add(c));
   Object.keys(data.goleadores || {}).forEach(c => allCats.add(c));
+  Object.keys(jornadasCache || {}).forEach(c => allCats.add(c));
+  Object.keys(crossTableCache || {}).forEach(c => allCats.add(c));
   const categorias = [...allCats].sort();
+
+  // ─── CALENDARIO DE JORNADAS ───
+  let jornadasHTML = '';
+  const hasCachedJornadas = Object.keys(jornadasCache || {}).length > 0;
+  if (hasCachedJornadas) {
+    for (const cat of Object.keys(jornadasCache).sort()) {
+      const jData = jornadasCache[cat];
+      if (!jData.jornadas || jData.jornadas.length === 0) continue;
+      jornadasHTML += `<div class="clasif-grupo"><h3>${cat}</h3>`;
+      for (const j of jData.jornadas) {
+        if (!j.matches || j.matches.length === 0) continue;
+        jornadasHTML += `<div class="jornada-block"><div class="jornada-header">Jornada ${j.jornada}</div><div class="jornada-matches">`;
+        for (const m of j.matches) {
+          const esBust = (m.local || '').toUpperCase().includes('BUSTARVIEJO') || (m.visitante || '').toUpperCase().includes('BUSTARVIEJO');
+          const rowClass = esBust ? 'jm-row jm-bust' : 'jm-row';
+          if (m.jugado) {
+            const esLocal = (m.local || '').toUpperCase().includes('BUSTARVIEJO');
+            let resClass = '';
+            if (esBust) {
+              const gN = esLocal ? m.goles_local : m.goles_visitante;
+              const gR = esLocal ? m.goles_visitante : m.goles_local;
+              resClass = gN > gR ? 'jm-win' : gN < gR ? 'jm-loss' : 'jm-draw';
+            }
+            jornadasHTML += `<div class="${rowClass} ${resClass}"><span class="jm-team jm-local">${m.local}</span><span class="jm-score">${m.goles_local} - ${m.goles_visitante}</span><span class="jm-team jm-visit">${m.visitante}</span></div>`;
+          } else {
+            jornadasHTML += `<div class="${rowClass}"><span class="jm-team jm-local">${m.local}</span><span class="jm-pending">${m.fecha || ''} ${m.hora || ''}</span><span class="jm-team jm-visit">${m.visitante}</span></div>`;
+          }
+        }
+        jornadasHTML += '</div></div>';
+      }
+      jornadasHTML += '</div>';
+    }
+  }
+  if (!jornadasHTML) jornadasHTML = '<p class="sin-datos">No hay datos de jornadas disponibles. Se actualizan automáticamente cada 4 horas.</p>';
+
+  // ─── TABLA CRUZADA ───
+  let cruzadaHTML = '';
+  const hasCrossTable = Object.keys(crossTableCache || {}).length > 0;
+  if (hasCrossTable) {
+    for (const cat of Object.keys(crossTableCache).sort()) {
+      const ct = crossTableCache[cat];
+      if (!ct.teams || ct.teams.length === 0) continue;
+      cruzadaHTML += `<div class="clasif-grupo"><h3>${cat}</h3><p class="cross-info">Local ↓ / Visitante → · ${ct.teams.length} equipos · ${ct.result_count || 0} enfrentamientos</p><div class="tabla-scroll"><table class="cross-table">`;
+      // Header
+      cruzadaHTML += '<thead><tr><th class="cross-corner">Local \\ Visitante</th>';
+      for (const t of ct.teams) {
+        const short = (t.name || '').replace(/^C\.D\.\s*/i,'').replace(/^A\.D\.\s*/i,'').substring(0,12);
+        const isBust = (t.name || '').toUpperCase().includes('BUSTARVIEJO');
+        cruzadaHTML += `<th class="cross-th ${isBust ? 'cross-bust' : ''}" title="${t.name}">${short}</th>`;
+      }
+      cruzadaHTML += '</tr></thead><tbody>';
+      // Body
+      for (let li = 0; li < ct.teams.length; li++) {
+        const localTeam = ct.teams[li];
+        const isBustRow = (localTeam.name || '').toUpperCase().includes('BUSTARVIEJO');
+        const shortLocal = (localTeam.name || '').replace(/^C\.D\.\s*/i,'').replace(/^A\.D\.\s*/i,'').substring(0,18);
+        cruzadaHTML += `<tr class="${isBustRow ? 'row-us' : ''}">`;
+        cruzadaHTML += `<td class="cross-team ${isBustRow ? 'cross-bust' : ''}" title="${localTeam.name}">${shortLocal}${isBustRow ? ' 🟠' : ''}</td>`;
+        for (let vi = 0; vi < ct.teams.length; vi++) {
+          if (li === vi) { cruzadaHTML += '<td class="cross-self">✕</td>'; continue; }
+          const cell = ct.matrix?.[li]?.[vi];
+          const isBustCol = (ct.teams[vi].name || '').toUpperCase().includes('BUSTARVIEJO');
+          if (!cell || !cell.jugado) {
+            cruzadaHTML += `<td class="cross-empty ${(isBustRow || isBustCol) ? 'cross-highlight' : ''}">—</td>`;
+          } else {
+            const gl = cell.goles_local, gv = cell.goles_visitante;
+            const cls = gl > gv ? 'cross-win' : gl < gv ? 'cross-loss' : 'cross-draw';
+            cruzadaHTML += `<td class="${cls} ${(isBustRow || isBustCol) ? 'cross-highlight' : ''}" title="${localTeam.name} ${gl}-${gv} ${ct.teams[vi].name}">${gl}-${gv}</td>`;
+          }
+        }
+        cruzadaHTML += '</tr>';
+      }
+      cruzadaHTML += '</tbody></table></div></div>';
+    }
+  }
+  if (!cruzadaHTML) cruzadaHTML = '<p class="sin-datos">No hay datos de tabla cruzada disponibles. Se actualizan automáticamente cada 4 horas.</p>';
 
   // ─── OG META: próximo partido para preview ───
   let ogDescription = 'Próximos partidos, resultados, clasificaciones y goleadores del C.D. Bustarviejo';
@@ -577,11 +668,15 @@ input[name="tab"] { display: none; }
 #radio-proximos:checked ~ .contenido-comp #sec-proximos,
 #radio-resultados:checked ~ .contenido-comp #sec-resultados,
 #radio-clasificacion:checked ~ .contenido-comp #sec-clasificacion,
-#radio-goleadores:checked ~ .contenido-comp #sec-goleadores { display: block; }
+#radio-goleadores:checked ~ .contenido-comp #sec-goleadores,
+#radio-jornadas:checked ~ .contenido-comp #sec-jornadas,
+#radio-cruzada:checked ~ .contenido-comp #sec-cruzada { display: block; }
 #radio-proximos:checked ~ .tabs-bar label[for="radio-proximos"],
 #radio-resultados:checked ~ .tabs-bar label[for="radio-resultados"],
 #radio-clasificacion:checked ~ .tabs-bar label[for="radio-clasificacion"],
-#radio-goleadores:checked ~ .tabs-bar label[for="radio-goleadores"] { background: #0f172a; color: #fff; border-color: #0f172a; box-shadow: 0 4px 14px rgba(15,23,42,0.25); }
+#radio-goleadores:checked ~ .tabs-bar label[for="radio-goleadores"],
+#radio-jornadas:checked ~ .tabs-bar label[for="radio-jornadas"],
+#radio-cruzada:checked ~ .tabs-bar label[for="radio-cruzada"] { background: #0f172a; color: #fff; border-color: #0f172a; box-shadow: 0 4px 14px rgba(15,23,42,0.25); }
 
 /* ═══ CONTENIDO ═══ */
 .contenido-comp { max-width: 900px; margin: 0 auto; padding: 28px 16px 60px; }
@@ -656,6 +751,38 @@ tbody tr:hover { background: #f8fafc; }
 .row-us:hover { background: #ffedd5 !important; }
 
 .sin-datos { text-align: center; color: #94a3b8; padding: 48px 20px; font-size: 1rem; }
+
+/* ═══ JORNADAS ═══ */
+.jornada-block { margin-bottom: 16px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+.jornada-header { background: #0f172a; color: #f5a623; font-weight: 800; font-size: 0.85rem; padding: 10px 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+.jornada-matches { padding: 4px 0; }
+.jm-row { display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.78rem; }
+.jm-row:last-child { border-bottom: none; }
+.jm-bust { background: #fff7ed !important; font-weight: 700; }
+.jm-bust .jm-team { color: #ea580c; }
+.jm-win { border-left: 3px solid #16a34a; }
+.jm-loss { border-left: 3px solid #ef4444; }
+.jm-draw { border-left: 3px solid #94a3b8; }
+.jm-team { flex: 1; }
+.jm-local { text-align: right; padding-right: 10px; }
+.jm-visit { text-align: left; padding-left: 10px; }
+.jm-score { font-weight: 900; font-size: 0.9rem; min-width: 50px; text-align: center; color: #0f172a; }
+.jm-pending { font-size: 0.72rem; color: #94a3b8; min-width: 90px; text-align: center; }
+
+/* ═══ CROSS TABLE ═══ */
+.cross-info { font-size: 0.75rem; color: #64748b; margin-bottom: 10px; }
+.cross-table { font-size: 0.65rem; min-width: 400px; }
+.cross-table th, .cross-table td { padding: 5px 4px; text-align: center; white-space: nowrap; }
+.cross-corner { background: #0f172a; color: #e2e8f0; font-size: 0.6rem; text-align: left !important; min-width: 120px; padding-left: 8px !important; }
+.cross-th { background: #1e293b; color: #e2e8f0; font-size: 0.55rem; font-weight: 700; max-width: 55px; overflow: hidden; text-overflow: ellipsis; }
+.cross-bust { background: #f97316 !important; color: #fff !important; }
+.cross-team { text-align: left !important; font-weight: 600; color: #334155; white-space: nowrap; min-width: 120px; padding-left: 8px !important; font-size: 0.68rem; }
+.cross-self { background: #cbd5e1; color: #94a3b8; font-size: 0.7rem; }
+.cross-empty { color: #cbd5e1; }
+.cross-win { background: #dcfce7; color: #166534; font-weight: 700; }
+.cross-loss { background: #fee2e2; color: #991b1b; font-weight: 700; }
+.cross-draw { background: #fef9c3; color: #854d0e; font-weight: 700; }
+.cross-highlight { box-shadow: inset 0 0 0 1px rgba(249,115,22,0.3); }
 
 /* ═══ FOOTER ═══ */
 .footer { background: #0f172a; color: #e2e8f0; padding: 50px 20px 25px; }
@@ -744,12 +871,16 @@ tbody tr:hover { background: #f8fafc; }
 <input type="radio" name="tab" id="radio-resultados">
 <input type="radio" name="tab" id="radio-clasificacion">
 <input type="radio" name="tab" id="radio-goleadores">
+<input type="radio" name="tab" id="radio-jornadas">
+<input type="radio" name="tab" id="radio-cruzada">
 
 <div class="tabs-bar">
   <label class="tab-label" for="radio-proximos">📅 Partidos</label>
   <label class="tab-label" for="radio-resultados">📊 Resultados</label>
   <label class="tab-label" for="radio-clasificacion">🏆 Clasificación</label>
   <label class="tab-label" for="radio-goleadores">⚽ Goleadores</label>
+  <label class="tab-label" for="radio-jornadas">📋 Jornadas</label>
+  <label class="tab-label" for="radio-cruzada">🔀 Tabla Cruzada</label>
 </div>
 
 
@@ -780,6 +911,20 @@ tbody tr:hover { background: #f8fafc; }
     <div class="bloque">
       <h2>⚽ Goleadores C.D. Bustarviejo</h2>
       ${golesHTML}
+    </div>
+  </div>
+
+  <div id="sec-jornadas" class="seccion">
+    <div class="bloque">
+      <h2>📋 Calendario de Jornadas</h2>
+      ${jornadasHTML}
+    </div>
+  </div>
+
+  <div id="sec-cruzada" class="seccion">
+    <div class="bloque">
+      <h2>🔀 Tabla Cruzada</h2>
+      ${cruzadaHTML}
     </div>
   </div>
 </div>
