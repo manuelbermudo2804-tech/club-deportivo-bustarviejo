@@ -35,7 +35,6 @@ function CellScore({ cell }) {
   const { goles_local: gl, goles_visitante: gv } = cell;
   const isWin = gl > gv;
   const isDraw = gl === gv;
-  const isLoss = gl < gv;
   return (
     <span className={`font-bold text-xs whitespace-nowrap ${isWin ? "text-green-700" : isDraw ? "text-yellow-700" : "text-red-600"}`}>
       {gl}-{gv}
@@ -49,17 +48,19 @@ export default function CrossTable({ category, config }) {
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => base44.auth.me() });
   const isAdmin = me?.role === "admin";
 
+  const configReady = config !== undefined;
+  const hasUrl = !!config?.rfef_url;
+
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["cross-table", category],
     queryFn: async () => {
-      if (!config?.rfef_url) return null;
       const res = await base44.functions.invoke("rffmScraper", {
         action: "cross_table",
         url: config.rfef_url,
       });
       return res.data;
     },
-    enabled: !!config?.rfef_url,
+    enabled: configReady && hasUrl,
     staleTime: 30 * 60_000,
     gcTime: 60 * 60_000,
     refetchOnWindowFocus: false,
@@ -72,7 +73,16 @@ export default function CrossTable({ category, config }) {
     return { teams: data.teams, matrix: data.matrix || {}, bustIdx: bIdx };
   }, [data]);
 
-  if (!config?.rfef_url) {
+  if (!configReady) {
+    return (
+      <Card><CardContent className="p-8 text-center">
+        <Loader2 className="w-8 h-8 text-orange-600 mx-auto mb-2 animate-spin" />
+        <p className="text-slate-600 text-sm">Cargando configuración...</p>
+      </CardContent></Card>
+    );
+  }
+
+  if (!hasUrl) {
     return (
       <Card className="border-2 border-dashed border-orange-300 bg-gradient-to-br from-orange-50 to-white">
         <CardContent className="p-8 text-center">
@@ -119,7 +129,6 @@ export default function CrossTable({ category, config }) {
 
   return (
     <div className="space-y-3">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-bold text-slate-800">Tabla Cruzada</h3>
@@ -136,7 +145,6 @@ export default function CrossTable({ category, config }) {
         </Button>
       </div>
 
-      {/* Legend */}
       <div className="flex items-center gap-3 text-xs text-slate-600 flex-wrap">
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-100 border border-green-300" /> Victoria local</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-100 border border-yellow-300" /> Empate</span>
@@ -144,7 +152,6 @@ export default function CrossTable({ category, config }) {
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-slate-200 border border-slate-300" /> Sin jugar</span>
       </div>
 
-      {/* Cross table - scrollable */}
       <Card className="overflow-hidden">
         <div ref={scrollRef} className="overflow-x-auto">
           <table className="text-[10px] sm:text-xs border-collapse min-w-max">
@@ -153,7 +160,7 @@ export default function CrossTable({ category, config }) {
                 <th className="sticky left-0 z-10 bg-slate-800 text-white px-2 py-2 text-left font-bold min-w-[120px]">
                   Local ↓ / Visitante →
                 </th>
-                {teams.map((t, i) => (
+                {teams.map((t) => (
                   <th
                     key={t.id}
                     className={`px-1 py-2 text-center font-semibold min-w-[48px] max-w-[60px] border-l border-slate-200 ${
@@ -161,7 +168,7 @@ export default function CrossTable({ category, config }) {
                     }`}
                     title={t.name}
                   >
-                    <div className="writing-mode-vertical text-[9px] sm:text-[10px] leading-tight truncate" style={{ writingMode: "vertical-lr", transform: "rotate(180deg)", maxHeight: 80 }}>
+                    <div className="text-[9px] sm:text-[10px] leading-tight truncate" style={{ writingMode: "vertical-lr", transform: "rotate(180deg)", maxHeight: 80 }}>
                       {shortName(t.name)}
                     </div>
                   </th>
@@ -221,7 +228,6 @@ export default function CrossTable({ category, config }) {
         </div>
       </Card>
 
-      {/* Bustarviejo detail */}
       {bustIdx >= 0 && <BustarvijoDetail teams={teams} matrix={matrix} bustIdx={bustIdx} />}
 
       <p className="text-[10px] text-slate-400 text-center">
@@ -272,7 +278,6 @@ function BustarvijoDetail({ teams, matrix, bustIdx }) {
           </div>
         </div>
 
-        {/* Home results */}
         <div>
           <p className="text-xs font-semibold text-slate-700 mb-1.5">🏠 En casa</p>
           <div className="space-y-1">
@@ -291,7 +296,6 @@ function BustarvijoDetail({ teams, matrix, bustIdx }) {
           </div>
         </div>
 
-        {/* Away results */}
         <div>
           <p className="text-xs font-semibold text-slate-700 mb-1.5">📍 Fuera</p>
           <div className="space-y-1">

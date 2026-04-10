@@ -416,9 +416,15 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const authUser = await base44.auth.me();
-    if (authUser?.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (!authUser) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { action, url, jornada } = await req.json().catch(() => ({}));
+
+    // Read-only actions allowed for all authenticated users; debug/write actions require admin
+    const readOnlyActions = ['cross_table', 'standings', 'results', 'all_results', 'next_match', 'scorers', 'test'];
+    if (!readOnlyActions.includes(action) && authUser.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
     if (!url) return Response.json({ error: 'Missing url' }, { status: 400 });
 
     let cookies = await rffmLogin();
