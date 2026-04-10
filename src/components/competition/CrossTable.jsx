@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
-import BustarviejoSchedule from "./BustarviejoSchedule";
+
 import { toast } from "sonner";
 
 const BUST = ["BUSTARVIEJO"];
@@ -106,7 +106,6 @@ export default function CrossTable({ category, config }) {
           <p className="text-slate-600 text-sm">Cargando tabla cruzada desde la RFFM...</p>
           <p className="text-xs text-slate-400 mt-1">Esto puede tardar unos segundos</p>
         </CardContent></Card>
-        <BustarviejoSchedule config={config} />
       </div>
     );
   }
@@ -123,7 +122,6 @@ export default function CrossTable({ category, config }) {
             </Button>
           </CardContent>
         </Card>
-        <BustarviejoSchedule config={config} />
       </div>
     );
   }
@@ -134,7 +132,6 @@ export default function CrossTable({ category, config }) {
         <Card><CardContent className="p-8 text-center">
           <p className="text-slate-600">No se encontraron datos de tabla cruzada.</p>
         </CardContent></Card>
-        <BustarviejoSchedule config={config} />
       </div>
     );
   }
@@ -239,10 +236,6 @@ export default function CrossTable({ category, config }) {
           </table>
         </div>
       </Card>
-
-
-
-      <BustarviejoSchedule config={config} />
 
       <p className="text-[10px] text-slate-400 text-center">
         Datos extraídos de la intranet RFFM · Desliza horizontalmente para ver toda la tabla
