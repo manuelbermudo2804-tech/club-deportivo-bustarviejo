@@ -290,7 +290,34 @@ async function syncCategory(config, cookies, base44, temporada) {
       }
       if (latestJ && latestM) {
         const existing = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ }));
-        if (!existing.length) {
+        
+        // Normalize team name for matching
+        const norm = (s) => (s || '').trim().toUpperCase().replace(/\s+/g, ' ');
+        
+        if (existing.length) {
+          // UPDATE existing records (pendiente → finalizado) instead of creating duplicates
+          let updated = 0;
+          for (const m of latestM.filter(m2 => m2.jugado)) {
+            const match = existing.find(e => 
+              norm(e.local) === norm(m.local) && norm(e.visitante) === norm(m.visitante)
+            );
+            if (match && match.estado !== 'finalizado') {
+              await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.update(match.id, {
+                goles_local: m.goles_local, goles_visitante: m.goles_visitante,
+                estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
+                ...(m.fecha ? { fecha_partido: m.fecha } : {}),
+                ...(m.hora ? { hora_partido: m.hora } : {}),
+                ...(m.campo ? { campo: m.campo } : {}),
+              }));
+              updated++;
+              await sleep(500);
+            }
+          }
+          result.results = updated > 0 
+            ? { jornada: latestJ, updated, matches: updated } 
+            : { jornada: latestJ, skipped: true };
+        } else {
+          // No existing records for this jornada — create new ones
           const records = latestM.filter(m => m.jugado).map(m => ({
             temporada, categoria: cat, jornada: latestJ, local: m.local, visitante: m.visitante,
             goles_local: m.goles_local, goles_visitante: m.goles_visitante,
@@ -303,6 +330,7 @@ async function syncCategory(config, cookies, base44, temporada) {
             await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.bulkCreate(records));
             result.results = { jornada: latestJ, matches: records.length };
           }
+        }
 
           // Auto-generate MatchObservation for Bustarviejo
           try {
@@ -313,7 +341,7 @@ async function syncCategory(config, cookies, base44, temporada) {
               const gf = isLocal ? bustMatch.goles_local : bustMatch.goles_visitante;
               const gc = isLocal ? bustMatch.goles_visitante : bustMatch.goles_local;
               const tipo = gf > gc ? 'Victoria' : gf === gc ? 'Empate' : 'Derrota';
-              const emoji = tipo === 'Victoria' ? '✅' : tipo === 'Empate' ? '🤝' : '❌';
+              const emoji = tipo === 'Victoria' ? '\u2705' : tipo === 'Empate' ? '\ud83e\udd1d' : '\u274c';
               const existingObs = await retryOnRateLimit(() => base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ }));
               if (!existingObs.length) {
                 await base44.asServiceRole.entities.MatchObservation.create({
@@ -327,13 +355,12 @@ async function syncCategory(config, cookies, base44, temporada) {
                   email_enviado: false, entrenador_email: '', entrenador_nombre: '',
                 });
                 result.autoObservation = { rival, resultado: `${gf}-${gc}`, tipo };
-                // Email coach
                 try {
                   const users = await retryOnRateLimit(() => base44.asServiceRole.entities.User.list());
                   const coaches = users.filter(u => u.es_entrenador && (u.categorias_entrenador || []).some(c => c === cat));
                   for (const coach of coaches) {
                     if (!coach.email) continue;
-                    await sendViaResend(coach.email, `${emoji} Ficha de partido: ${gf}-${gc} vs ${rival} (${cat})`, `<div style="font-family:Arial;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#c2410c);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">⚽ Ficha de partido</h2><p style="color:#fed7aa;margin:4px 0">${cat} — J${latestJ}</p></div><div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p style="font-size:24px;font-weight:bold;text-align:center">${emoji} CD Bustarviejo ${gf} - ${gc} ${rival}</p><p>Hola ${coach.full_name||'Entrenador'}, ya está la ficha del partido. Puedes añadir tus observaciones desde la app.</p></div></div>`);
+                    await sendViaResend(coach.email, `${emoji} Ficha de partido: ${gf}-${gc} vs ${rival} (${cat})`, `<div style="font-family:Arial;max-width:600px;margin:0 auto"><div style="background:linear-gradient(to right,#ea580c,#c2410c);padding:20px;border-radius:12px 12px 0 0"><h2 style="color:white;margin:0">\u26bd Ficha de partido</h2><p style="color:#fed7aa;margin:4px 0">${cat} \u2014 J${latestJ}</p></div><div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px"><p style="font-size:24px;font-weight:bold;text-align:center">${emoji} CD Bustarviejo ${gf} - ${gc} ${rival}</p><p>Hola ${coach.full_name||'Entrenador'}, ya est\u00e1 la ficha del partido. Puedes a\u00f1adir tus observaciones desde la app.</p></div></div>`);
                     const obs = await base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ });
                     if (obs[0]) await base44.asServiceRole.entities.MatchObservation.update(obs[0].id, { entrenador_email: coach.email, entrenador_nombre: coach.full_name || '', email_enviado: true });
                   }
@@ -341,7 +368,6 @@ async function syncCategory(config, cookies, base44, temporada) {
               }
             }
           } catch (oe) { console.error(`Observation error (${cat}):`, oe.message); }
-        } else { result.results = { jornada: latestJ, skipped: true }; }
       }
     } catch (e) { result.errors.push({ type: 'results', error: e.message }); }
   }
