@@ -12,7 +12,8 @@ import ScorersList from "../components/scorers/ScorersList";
 import RivalAnalysisModal from "../components/coach/RivalAnalysisModal";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
-import { Trophy, List, Users, Target, Search, Star, StarOff, Settings } from "lucide-react";
+import CrossTable from "../components/competition/CrossTable";
+import { Trophy, List, Users, Target, Search, Star, StarOff, Settings, Grid3X3 } from "lucide-react";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
 const FALLBACK_CATEGORIES = [
@@ -74,7 +75,7 @@ export default function CentroCompeticionTecnico() {
     }
   }, [myCats]);
 
-  const [view, setView] = React.useState(getUrlParam('vista', 'clasificacion')); // 'clasificacion' | 'resultados' | 'goleadores'
+  const [view, setView] = React.useState(getUrlParam('vista', 'clasificacion')); // 'clasificacion' | 'resultados' | 'goleadores' | 'cruces'
   const [search, setSearch] = React.useState("");
   const [fav, setFav] = React.useState(() => (typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') === initialCatGuess : false));
   React.useEffect(() => { setFav((typeof window !== 'undefined' ? localStorage.getItem('fav_comp_cat') : '') === category); }, [category]);
@@ -267,20 +268,20 @@ export default function CentroCompeticionTecnico() {
   };
 
   const ViewToggle = () => (
-    <div className="w-full grid grid-cols-3 rounded-xl border overflow-hidden">
+    <div className="w-full grid grid-cols-4 rounded-xl border overflow-hidden">
       <Button
         variant={view === 'clasificacion' ? 'default' : 'ghost'}
         onClick={() => setView('clasificacion')}
         className={`${view === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
       >
-        <Trophy className="w-4 h-4 mr-1.5" /> Clasificación
+        <Trophy className="w-4 h-4 mr-1.5" /> Clasif.
       </Button>
       <Button
         variant={view === 'resultados' ? 'default' : 'ghost'}
         onClick={() => setView('resultados')}
         className={`${view === 'resultados' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
       >
-        <List className="w-4 h-4 mr-1.5" /> Resultados
+        <List className="w-4 h-4 mr-1.5" /> Result.
       </Button>
       <Button
         variant={view === 'goleadores' ? 'default' : 'ghost'}
@@ -288,6 +289,13 @@ export default function CentroCompeticionTecnico() {
         className={`${view === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
       >
         <Users className="w-4 h-4 mr-1.5" /> Goleadores
+      </Button>
+      <Button
+        variant={view === 'cruces' ? 'default' : 'ghost'}
+        onClick={() => setView('cruces')}
+        className={`${view === 'cruces' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+      >
+        <Grid3X3 className="w-4 h-4 mr-1.5" /> Cruces
       </Button>
     </div>
   );
@@ -375,6 +383,10 @@ export default function CentroCompeticionTecnico() {
 
         {view === 'goleadores' && (
           <ScorersList categoryFullName={category} isAdmin={false} />
+        )}
+
+        {view === 'cruces' && (
+          <CrossTable category={category} config={standingsConfig} />
         )}
       </ErrorBoundary>
     {/* Configuración de categorías */}
