@@ -814,8 +814,112 @@ Deno.serve(async (req) => {
         return Response.json({ success: true, jornada: ja, matchDetails });
       }
 
+      // Fetch cross table (tabla cruzada)
+      case 'cross_table': {
+        // Try multiple URL patterns - RFFM is inconsistent
+        const urlVariants = [
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_TablaCruzada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`,
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_TablaCruzada?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}&codtemporada=${p.CodTemporada}`,
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_TablaCruzada?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}&codtemporada=${p.CodTemporada}&cod_agrupacion=1`,
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_TablaCruzada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`,
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpTablaCruzada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}`,
+          `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisTablaCruzada?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}&codtemporada=${p.CodTemporada}`,
+        ];
+        
+        let html = '';
+        let usedUrl = '';
+        for (const tryUrl of urlVariants) {
+          console.log(`[CROSS_TABLE] Trying: ${tryUrl}`);
+          html = await fetchPage(tryUrl, cookies);
+          console.log(`[CROSS_TABLE] HTML length: ${html.length}`);
+          if (html.length > 500 && !html.includes('Datos de Acceso')) {
+            usedUrl = tryUrl;
+            break;
+          }
+          // Re-login if needed
+          if (html.includes('Datos de Acceso') || html.length < 100) {
+            console.log('[CROSS_TABLE] Session expired, re-logging...');
+            cookies = await rffmLogin();
+            await new Promise(r => setTimeout(r, 1500));
+          }
+        }
+        
+        const $ct = load(html);
+        
+        // Debug: dump all tables
+        const tables = [];
+        $ct('table').each((i, table) => {
+          const rows = [];
+          $ct(table).find('tr').each((_, tr) => {
+            const cells = $ct(tr).find('th, td').map((__, c) => {
+              const text = $ct(c).text().replace(/\s+/g, ' ').trim().substring(0, 60);
+              const colspan = $ct(c).attr('colspan') || '1';
+              const bg = $ct(c).attr('bgcolor') || $ct(c).css('background-color') || '';
+              return { t: text, cs: parseInt(colspan), bg };
+            }).get();
+            if (cells.some(c => c.t.length > 0)) rows.push(cells);
+          });
+          if (rows.length > 0) tables.push({ idx: i, rowCount: rows.length, rows: rows.slice(0, 30) });
+        });
+        
+        // Also check for frames/iframes
+        const frames = $ct('frame, iframe').map((_, f) => ({ name: $ct(f).attr('name') || '', src: ($ct(f).attr('src') || '').substring(0, 300) })).get();
+        
+        // Check for form elements
+        const forms = $ct('form').map((_, f) => ({
+          action: ($ct(f).attr('action') || '').substring(0, 200),
+          method: $ct(f).attr('method') || 'GET',
+        })).get();
+        
+        // Check for selects
+        const selects = $ct('select').map((_, sel) => ({
+          name: $ct(sel).attr('name') || '',
+          options: $ct(sel).find('option').map((__, opt) => ({
+            value: ($ct(opt).attr('value') || '').substring(0, 50),
+            text: $ct(opt).text().trim().substring(0, 80),
+            selected: $ct(opt).attr('selected') !== undefined,
+          })).get().slice(0, 20),
+        })).get();
+        
+        // Find the main cross-table (the one with team names + scores)
+        let crossTableData = null;
+        $ct('table').each((i, table) => {
+          if (crossTableData) return;
+          const allText = $ct(table).text();
+          if (!allText.includes('CASA') || !allText.includes('FUERA')) return;
+          
+          const rows = [];
+          $ct(table).find('tr').each((_, tr) => {
+            const cells = $ct(tr).find('th, td').map((__, c) => {
+              const text = $ct(c).text().replace(/\s+/g, ' ').trim();
+              const colspan = parseInt($ct(c).attr('colspan') || '1');
+              const bg = $ct(c).attr('bgcolor') || '';
+              const cls = $ct(c).attr('class') || '';
+              return { t: text.substring(0, 80), cs: colspan, bg, cls };
+            }).get();
+            rows.push(cells);
+          });
+          crossTableData = { tableIdx: i, rowCount: rows.length, rows };
+        });
+        
+        // Get raw HTML of the cross table to understand structure
+        let rawTableHtml = '';
+        $ct('table').each((i, table) => {
+          if (rawTableHtml) return;
+          const text = $ct(table).text();
+          if (text.includes('CASA') && text.includes('FUERA')) {
+            // Get first 2 data rows raw HTML
+            const trs = $ct(table).find('> tbody > tr, > tr').toArray();
+            if (trs.length > 1) {
+              rawTableHtml = $ct(trs[1]).html().substring(0, 2000);
+            }
+          }
+        });
+        return Response.json({ success: true, usedUrl, htmlLength: html.length, rawRow: rawTableHtml });
+      }
+
       default:
-        return Response.json({ error: 'Supported actions: test, results, all_results, next_match, standings, scorers, debug_standings, debug_actas' }, { status: 400 });
+        return Response.json({ error: 'Supported actions: test, results, all_results, next_match, standings, scorers, cross_table, debug_standings, debug_actas' }, { status: 400 });
     }
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
