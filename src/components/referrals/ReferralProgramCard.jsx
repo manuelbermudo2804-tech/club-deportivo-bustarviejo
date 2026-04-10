@@ -19,6 +19,12 @@ const REWARD_TIERS = [
 ];
 
 export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
+  // AI Assistant State — must be before any early returns (React hooks rules)
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [targetType, setTargetType] = useState("");
+  const [generatedMessage, setGeneratedMessage] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
   if (!seasonConfig) return null;
   // if (!seasonConfig?.programa_referidos_activo) return null; // PERMITIR MOSTRAR SOLO INVITACIÓN SI ESTÁ INACTIVO
   // if (hasPlayersInClub !== true) return null; // Permitir a todos los usuarios ver el programa
@@ -116,12 +122,6 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
 
   const nextTier = getNextTier();
   const referralsToNext = nextTier ? nextTier - userReferrals : 0;
-
-  // AI Assistant State
-  const [showAiModal, setShowAiModal] = useState(false);
-  const [targetType, setTargetType] = useState("");
-  const [generatedMessage, setGeneratedMessage] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerateMessage = async () => {
     if (!targetType) return;

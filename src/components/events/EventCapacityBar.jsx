@@ -84,7 +84,7 @@ export default function EventCapacityBar({ event, stats }) {
         </div>
       </div>
 
-      {totalAcompanantes > 0 && (
+      {stats.totalAcompanantes > 0 && (
         <div className="text-xs text-slate-600 text-center pt-2 border-t">
           + {stats.totalAcompanantes} acompañantes
         </div>

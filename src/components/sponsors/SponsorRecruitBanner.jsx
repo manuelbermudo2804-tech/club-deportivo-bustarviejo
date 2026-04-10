@@ -14,6 +14,12 @@ const SHOW_INTERVAL_DAYS = 30; // Mostrar una vez al mes
 export default function SponsorRecruitBanner({ user }) {
   // Banner desactivado
   return null;
+};
+
+// Dead code below kept for future reactivation
+function SponsorRecruitBannerContent({ user }) {
+  const [visible, setVisible] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   const handleDismiss = () => {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));

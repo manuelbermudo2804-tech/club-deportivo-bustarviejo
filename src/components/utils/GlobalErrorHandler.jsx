@@ -63,7 +63,7 @@ function showErrorBanner(msg) {
   } catch { /* incluso el DOM puede fallar — no propagamos */ }
 }
 
-function logToStorage(event, msg) {
+async function logToStorage(event, msg) {
   try {
     const raw = localStorage.getItem('upload_log');
     const logs = raw ? JSON.parse(raw) : [];
@@ -74,7 +74,7 @@ function logToStorage(event, msg) {
 
   // Intentar enviar al servidor para diagnóstico remoto
   try {
-    const { base44 } = require("@/api/base44Client");
+    const { base44 } = await import("@/api/base44Client");
     base44.entities.UploadDiagnostic.create({
       user_email: 'unknown',
       event_type: 'diagnostic_report',

@@ -478,7 +478,8 @@ export default function Home() {
         // Si tiene menos de 5 confirmaciones y es un evento reciente, mostrarlo
         if (totalConfirmaciones > 0) {
           // Contar confirmaciones en las últimas 24h
-          const recentConfirm = event.confirmaciones?.filter(c => new Date(c.fecha_confirmacion) > yesterday).length || 0;
+          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          const recentConfirm = event.confirmaciones?.filter(c => new Date(c.fecha_confirmacion) > oneDayAgo).length || 0;
           pendingEventConfirmations += recentConfirm;
         }
       });

@@ -64,9 +64,8 @@ export default function PushNotificationSubscriber({ user }) {
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: process.env.REACT_APP_VAPID_PUBLIC_KEY || 
-                             (window.__VAPID_PUBLIC_KEY ? 
-                              Uint8Array.from(atob(window.__VAPID_PUBLIC_KEY), c => c.charCodeAt(0)) : null)
+        applicationServerKey: window.__VAPID_PUBLIC_KEY ? 
+                             Uint8Array.from(atob(window.__VAPID_PUBLIC_KEY), c => c.charCodeAt(0)) : null
       });
 
       if (!subscription) throw new Error('No se pudo crear suscripción');

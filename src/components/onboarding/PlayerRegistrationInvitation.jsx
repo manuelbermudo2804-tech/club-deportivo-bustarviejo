@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Users, ChevronRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
-export default function PlayerRegistrationInvitation({ user, onClose }) {
+export default function PlayerRegistrationInvitation({ user, onClose, isPlayer = false }) {
+  const step = 'invitation';
   const handleStartRegistration = async () => {
     try {
       // Marcar que debe mostrar el formulario en ParentPlayers

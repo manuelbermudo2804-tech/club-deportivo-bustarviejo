@@ -92,12 +92,10 @@ export default function ParentDirectMessages() {
     }
   }, [selectedContact, user, allMessages]);
 
-  if (!user) return null;
-
   // Get available contacts (admins and coaches)
-  const contacts = users.filter(u => 
+  const contacts = (user ? users.filter(u => 
     u.email !== user.email && (u.role === "admin" || u.es_entrenador)
-  ).map(u => ({
+  ) : []).map(u => ({
     email: u.email,
     nombre: u.full_name,
     rol: u.role === "admin" ? "admin" : "coach"
@@ -157,6 +155,8 @@ export default function ParentDirectMessages() {
   };
 
   const totalUnread = contacts.reduce((sum, contact) => sum + getUnreadCount(contact.email), 0);
+
+  if (!user) return null;
 
   return (
     <div className="p-4 lg:p-6">

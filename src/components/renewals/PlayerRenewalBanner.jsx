@@ -49,6 +49,45 @@ export default function PlayerRenewalBanner({ player, seasonConfig }) {
     enabled: showPaymentFlow,
   });
 
+  const renewMutation = useMutation({
+    mutationFn: async ({ paymentsData }) => {
+      await base44.entities.Player.update(player.id, {
+        deporte: paymentsData.newCategory,
+        categoria_principal: paymentsData.newCategory,
+        estado_renovacion: "renovado",
+        fecha_renovacion: new Date().toISOString(),
+        activo: true,
+        temporada_renovacion: seasonConfig.temporada
+      });
+      for (const payment of paymentsData.payments) {
+        await base44.entities.Payment.create(payment);
+      }
+      const emailTo = player.email_jugador || player.email_padre;
+      if (emailTo) {
+        await base44.integrations.Core.SendEmail({
+          from_name: "CD Bustarviejo",
+          to: emailTo,
+          subject: `✅ Renovación Confirmada - ${player.nombre} - Temporada ${seasonConfig.temporada}`,
+          body: `¡Hola ${player.nombre}!\n\nTu renovación ha sido procesada correctamente.\n\n📋 Categoría: ${paymentsData.newCategory}\n💳 Modalidad: ${paymentsData.tipoPago}\n\nAccede a "Pagos" en la app para registrar tus transferencias.\n\n¡Gracias por seguir con nosotros!\nCD Bustarviejo`
+        });
+      }
+      return paymentsData;
+    },
+    onSuccess: (paymentsData) => {
+      queryClient.invalidateQueries({ queryKey: ['myPlayerProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['playerPayments'] });
+      setSuccessData({
+        player,
+        newCategory: paymentsData.newCategory,
+        tipoPago: paymentsData.tipoPago,
+        cuotasGeneradas: paymentsData.payments,
+        descuentoHermano: 0
+      });
+      setShowPaymentFlow(false);
+      setShowSuccess(true);
+    },
+  });
+
   // No mostrar si no hay renovaciones activas o el jugador no está pendiente
   if (!seasonConfig?.permitir_renovaciones) return null;
   if (!player) return null;
@@ -96,51 +135,6 @@ export default function PlayerRenewalBanner({ player, seasonConfig }) {
       </Card>
     );
   }
-
-  const renewMutation = useMutation({
-    mutationFn: async ({ paymentsData }) => {
-      // Actualizar jugador
-      await base44.entities.Player.update(player.id, {
-        deporte: paymentsData.newCategory,
-        categoria_principal: paymentsData.newCategory,
-        estado_renovacion: "renovado",
-        fecha_renovacion: new Date().toISOString(),
-        activo: true,
-        temporada_renovacion: seasonConfig.temporada
-      });
-
-      // Crear pagos
-      for (const payment of paymentsData.payments) {
-        await base44.entities.Payment.create(payment);
-      }
-
-      // Enviar email confirmación
-      const emailTo = player.email_jugador || player.email_padre;
-      if (emailTo) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
-          to: emailTo,
-          subject: `✅ Renovación Confirmada - ${player.nombre} - Temporada ${seasonConfig.temporada}`,
-          body: `¡Hola ${player.nombre}!\n\nTu renovación ha sido procesada correctamente.\n\n📋 Categoría: ${paymentsData.newCategory}\n💳 Modalidad: ${paymentsData.tipoPago}\n\nAccede a "Pagos" en la app para registrar tus transferencias.\n\n¡Gracias por seguir con nosotros!\nCD Bustarviejo`
-        });
-      }
-
-      return paymentsData;
-    },
-    onSuccess: (paymentsData) => {
-      queryClient.invalidateQueries({ queryKey: ['myPlayerProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['playerPayments'] });
-      setSuccessData({
-        player,
-        newCategory: paymentsData.newCategory,
-        tipoPago: paymentsData.tipoPago,
-        cuotasGeneradas: paymentsData.payments,
-        descuentoHermano: 0
-      });
-      setShowPaymentFlow(false);
-      setShowSuccess(true);
-    },
-  });
 
   if (showSuccess && successData) {
     return (

@@ -271,7 +271,7 @@ export default function ClubMembersManagement() {
                           ✅ SOCIO VERIFICADO
                         </div>
                         <p style="color: #22c55e; font-size: 12px; margin-top: 10px;">
-                          CUOTA PAGADA • ${CUOTA_SOCIO}€
+                         CUOTA PAGADA • 25€
                         </p>
                       </div>
                     </div>

@@ -24,6 +24,21 @@ import { logUploadStart, logUploadError, logUploadSuccess, logFileValidationReje
 const MAX_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB — subimos el límite, el sistema se encarga de reducir
 
 /**
+ * Espera a que iOS entregue el archivo completo.
+ * En Chrome iOS, el File puede llegar con size=0 momentáneamente.
+ * Reintenta hasta 3 veces con delays crecientes.
+ */
+async function waitForFileReady(file, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    if (file && typeof file.size === 'number' && file.size > 0) return file;
+    await new Promise(r => setTimeout(r, 300 * (i + 1)));
+    // Re-check — iOS may update the File object in place
+    if (file && typeof file.size === 'number' && file.size > 0) return file;
+  }
+  return file; // devolver como está, validateFile decidirá
+}
+
+/**
  * Validación ultra defensiva del archivo.
  */
 function validateFile(file) {
@@ -332,7 +347,9 @@ async function cascadeUpload(file, isPDF = false) {
 export function useImageUpload() {
   const [uploading, setUploading] = useState(false);
 
-  const uploadFile = useCallback(async (file) => {
+  const uploadFile = useCallback(async (rawFile) => {
+    // iOS Chrome fix: esperar a que el archivo esté listo
+    const file = await waitForFileReady(rawFile);
     const validation = validateFile(file);
     if (!validation.ok) {
       if (validation.message) {

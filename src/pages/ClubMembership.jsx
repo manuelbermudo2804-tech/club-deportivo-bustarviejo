@@ -590,7 +590,6 @@ export default function ClubMembership() {
     }
     if (!formData.nombre_completo || !formData.dni || !formData.telefono || !formData.email || !formData.direccion || !formData.municipio) {
       toast.error("Por favor, rellena todos los campos obligatorios");
-      setOpeningStripe(false);
       return;
     }
     if (!formData.justificante_url) {

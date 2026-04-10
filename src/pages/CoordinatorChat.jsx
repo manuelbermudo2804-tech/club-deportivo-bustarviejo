@@ -68,7 +68,7 @@ export default function CoordinatorChat({ embedded = false }) {
   }, [isCoordinator, queryClient]);
 
   // Marcar como leído via backend persistente
-  const { markRead } = useChatUnreadCounts(user);
+  const { markRead, counts: chatCounts } = useChatUnreadCounts(user);
   useEffect(() => {
     if (!selectedConversation?.id || !user?.email) return;
     markRead('coordinatorForStaff', selectedConversation.id);
@@ -113,7 +113,6 @@ export default function CoordinatorChat({ embedded = false }) {
   )].sort();
 
   // Use backend-computed coordinator unread count (more reliable than legacy field)
-  const { counts: chatCounts } = useChatUnreadCounts(user);
   const totalUnread = chatCounts?.coordinator || 0;
 
 

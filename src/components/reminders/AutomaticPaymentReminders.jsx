@@ -22,6 +22,8 @@ export default function AutomaticPaymentReminders({ user }) {
     }
 
     const checkAndSendReminders = async () => {
+      // Define lockKey at the top of the async function so it's accessible in catch/finally
+      let lockKey = '';
       try {
         const now = new Date();
         const currentMonth = now.getMonth() + 1; // 1-12
@@ -97,7 +99,7 @@ export default function AutomaticPaymentReminders({ user }) {
         }
         
         // LOCK global para evitar ejecuciones simultáneas
-        const lockKey = `payment_reminder_lock_${currentSeason}_${mesRecordatorio}_${tipoRecordatorio}`;
+        lockKey = `payment_reminder_lock_${currentSeason}_${mesRecordatorio}_${tipoRecordatorio}`;
         const existingLock = sessionStorage.getItem(lockKey);
         if (existingLock) {
           console.log(`🔒 [AutomaticPaymentReminders] Ya hay un proceso en ejecución - ABORTANDO`);
