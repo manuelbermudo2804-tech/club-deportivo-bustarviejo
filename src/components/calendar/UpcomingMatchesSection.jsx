@@ -193,6 +193,7 @@ function categoriesMatch(matchCat, playerCategories) {
 export default function UpcomingMatchesSection({ myCategories = [] }) {
   const [expanded, setExpanded] = useState(false);
   const [filterMine, setFilterMine] = useState(false);
+  const [selectedCat, setSelectedCat] = useState(null);
 
   // Fuente 1: Partidos scrapeados de la federación (ProximoPartido)
   const { data: proximosPartidos = [], isLoading: loadingProximos } = useQuery({
@@ -206,8 +207,19 @@ export default function UpcomingMatchesSection({ myCategories = [] }) {
   // Solo datos de la RFFM (ProximoPartido) — sin mezclar convocatorias manuales
   const matches = proximosPartidos;
 
-  // Si el usuario tiene categorías, auto-activar filtro en la primera carga
+  // Categorías disponibles: las del usuario o todas las de los partidos
   const hasMyCategories = myCategories.length > 0;
+
+  // Extraer todas las categorías únicas de los partidos
+  const allMatchCategories = useMemo(() => {
+    const cats = new Set();
+    (matches || []).forEach(m => { if (m.categoria) cats.add(m.categoria); });
+    return [...cats].sort();
+  }, [matches]);
+
+  // Las categorías para filtrar: si tiene jugadores usa esas, si no las de los partidos
+  const filterCategories = hasMyCategories ? myCategories : (selectedCat ? [selectedCat] : []);
+  const canFilter = hasMyCategories || allMatchCategories.length > 1;
 
   if (isLoading) {
     return (
@@ -263,13 +275,13 @@ export default function UpcomingMatchesSection({ myCategories = [] }) {
     })
     .sort((a, b) => a.dateInfo.raw - b.dateInfo.raw);
 
-  // Apply "Solo mis partidos" filter
-  const futureMatches = (filterMine && hasMyCategories)
-    ? futureMatchesAll.filter(m => categoriesMatch(m.categoria, myCategories))
+  // Apply filter
+  const futureMatches = (filterMine && filterCategories.length > 0)
+    ? futureMatchesAll.filter(m => categoriesMatch(m.categoria, filterCategories))
     : futureMatchesAll;
 
-  const recentResultsFiltered = (filterMine && hasMyCategories)
-    ? recentResults.filter(m => categoriesMatch(m.categoria, myCategories))
+  const recentResultsFiltered = (filterMine && filterCategories.length > 0)
+    ? recentResults.filter(m => categoriesMatch(m.categoria, filterCategories))
     : recentResults;
 
   if (futureMatchesAll.length === 0 && recentResults.length === 0) {
@@ -316,26 +328,59 @@ export default function UpcomingMatchesSection({ myCategories = [] }) {
 
   return (
     <div className="space-y-4">
-      {/* Filtro "Solo mis partidos" */}
-      {hasMyCategories && (futureMatchesAll.length > 0 || recentResults.length > 0) && (
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant={filterMine ? "default" : "outline"}
-            onClick={() => setFilterMine(!filterMine)}
-            className={filterMine ? "bg-orange-600 hover:bg-orange-700 gap-1.5 rounded-full" : "gap-1.5 rounded-full border-orange-300 text-orange-700 hover:bg-orange-50"}
-          >
-            <Filter className="w-3.5 h-3.5" />
-            Solo mis partidos
-          </Button>
-          {filterMine && (
-            <div className="flex flex-wrap gap-1">
-              {myCategories.map(c => (
-                <Badge key={c} variant="outline" className="text-[10px] border-orange-300 text-orange-700 bg-orange-50">
-                  {c.replace('Fútbol ', '').replace('(Mixto)', '').trim()}
-                </Badge>
-              ))}
-            </div>
+      {/* Filtro por categoría */}
+      {canFilter && (futureMatchesAll.length > 0 || recentResults.length > 0) && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {hasMyCategories ? (
+            /* Padre/jugador: botón simple "Solo mis partidos" */
+            <>
+              <Button
+                size="sm"
+                variant={filterMine ? "default" : "outline"}
+                onClick={() => setFilterMine(!filterMine)}
+                className={filterMine ? "bg-orange-600 hover:bg-orange-700 gap-1.5 rounded-full" : "gap-1.5 rounded-full border-orange-300 text-orange-700 hover:bg-orange-50"}
+              >
+                <Filter className="w-3.5 h-3.5" />
+                Solo mis partidos
+              </Button>
+              {filterMine && (
+                <div className="flex flex-wrap gap-1">
+                  {myCategories.map(c => (
+                    <Badge key={c} variant="outline" className="text-[10px] border-orange-300 text-orange-700 bg-orange-50">
+                      {c.replace('Fútbol ', '').replace('(Mixto)', '').trim()}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            /* Admin/coach: selector de categoría */
+            <>
+              <span className="text-xs text-slate-500 font-medium">Filtrar:</span>
+              <Button
+                size="sm"
+                variant={!filterMine ? "default" : "outline"}
+                onClick={() => { setFilterMine(false); setSelectedCat(null); }}
+                className={!filterMine ? "bg-orange-600 hover:bg-orange-700 rounded-full text-xs h-7" : "rounded-full text-xs h-7 border-slate-300"}
+              >
+                Todos
+              </Button>
+              {allMatchCategories.map(cat => {
+                const isActive = filterMine && selectedCat === cat;
+                const short = cat.replace('Fútbol ', '').replace('(Mixto)', '').replace('Baloncesto ', '🏀 ').trim();
+                return (
+                  <Button
+                    key={cat}
+                    size="sm"
+                    variant={isActive ? "default" : "outline"}
+                    onClick={() => { setFilterMine(true); setSelectedCat(cat); }}
+                    className={isActive ? "bg-orange-600 hover:bg-orange-700 rounded-full text-xs h-7" : "rounded-full text-xs h-7 border-slate-300"}
+                  >
+                    {short}
+                  </Button>
+                );
+              })}
+            </>
           )}
         </div>
       )}
@@ -358,8 +403,8 @@ export default function UpcomingMatchesSection({ myCategories = [] }) {
       {/* Empty state when filter is active but no matches */}
       {filterMine && futureMatches.length === 0 && futureMatchesAll.length > 0 && (
         <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6 text-center">
-          <p className="text-orange-800 font-semibold">No hay partidos próximos para tu categoría</p>
-          <p className="text-orange-600 text-sm mt-1">Desactiva el filtro para ver todos los partidos del club</p>
+          <p className="text-orange-800 font-semibold">No hay partidos próximos para esta categoría</p>
+          <p className="text-orange-600 text-sm mt-1">Selecciona otra categoría o muestra todos los partidos</p>
         </div>
       )}
 
