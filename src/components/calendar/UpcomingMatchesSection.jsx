@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, Clock, MapPin, ChevronDown, ChevronUp, Zap, Filter } from "lucide-react";
 import RecentResultCard from "./RecentResultCard";
+import LeagueJourneyView from "./LeagueJourneyView";
 import { extractTownFromCampo } from "../utils/campoParsing";
 
 function formatMatchDate(dateStr) {
@@ -220,6 +221,14 @@ export default function UpcomingMatchesSection({ myCategories = [] }) {
   // Las categorías para filtrar: si tiene jugadores usa esas, si no las de los partidos
   const filterCategories = hasMyCategories ? myCategories : (selectedCat ? [selectedCat] : []);
   const canFilter = hasMyCategories || allMatchCategories.length > 1;
+
+  // Categories to show in league journey view (must be before early returns for hooks rules)
+  const leagueCategories = useMemo(() => {
+    if (filterMine && filterCategories.length > 0) {
+      return allMatchCategories.filter(cat => categoriesMatch(cat, filterCategories));
+    }
+    return allMatchCategories;
+  }, [filterMine, filterCategories, allMatchCategories]);
 
   if (isLoading) {
     return (
@@ -477,6 +486,32 @@ export default function UpcomingMatchesSection({ myCategories = [] }) {
               <RecentResultCard key={match.id || idx} match={match} />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Calendario de Liga por Categoría */}
+      {matches.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <Calendar className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-900 text-lg leading-tight">Calendario de Liga</h3>
+              <p className="text-[11px] text-slate-500">Todas las jornadas · resultados y próximos rivales</p>
+            </div>
+          </div>
+
+          {leagueCategories.map(cat => (
+            <div key={cat} className="bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm">
+              <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-2.5">
+                <span className="text-white font-bold text-sm">⚽ {getShortCategory(cat)}</span>
+              </div>
+              <div className="p-3">
+                <LeagueJourneyView matches={matches} category={cat} />
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
