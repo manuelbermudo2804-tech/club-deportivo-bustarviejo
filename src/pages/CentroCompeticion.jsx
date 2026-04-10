@@ -21,6 +21,8 @@ import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
 import CrossTable from "../components/competition/CrossTable";
 import RffmMonitorPanel from "../components/competition/RffmMonitorPanel";
+import BustarviejoSchedule from "../components/competition/BustarviejoSchedule";
+import SeasonSchedule from "../components/competition/SeasonSchedule";
 import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2, Database, Grid3X3, Calendar } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
@@ -73,7 +75,7 @@ export default function CentroCompeticion() {
   const defaultView = getUrlParam('vista', 'clasificacion');
 
   const [category, setCategory] = React.useState(defaultCat);
-  const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores' | 'cruces'
+  const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores' | 'cruces' | 'jornadas'
   const [search, setSearch] = React.useState('');
   const [fav, setFav] = React.useState(() => storedFav === defaultCat);
   const queryClient = useQueryClient();
@@ -437,30 +439,36 @@ export default function CentroCompeticion() {
   };
 
   const ViewToggle = () => (
-    <div className="w-full grid grid-cols-4 rounded-xl overflow-hidden bg-white/10 border border-white/20">
+    <div className="w-full grid grid-cols-5 rounded-xl overflow-hidden bg-white/10 border border-white/20">
       <button
         onClick={() => setView('clasificacion')}
-        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'clasificacion' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'clasificacion' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Trophy className="w-4 h-4" /> Clasif.
+        <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Clasif.
       </button>
       <button
         onClick={() => setView('resultados')}
-        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'resultados' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'resultados' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <List className="w-4 h-4" /> Result.
+        <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Result.
       </button>
       <button
         onClick={() => setView('goleadores')}
-        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'goleadores' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'goleadores' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Users className="w-4 h-4" /> Goleadores
+        <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Golea.
       </button>
       <button
         onClick={() => setView('cruces')}
-        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'cruces' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'cruces' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Grid3X3 className="w-4 h-4" /> Cruces
+        <Grid3X3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Cruces
+      </button>
+      <button
+        onClick={() => setView('jornadas')}
+        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'jornadas' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+      >
+        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Jornadas
       </button>
     </div>
   );
@@ -808,6 +816,15 @@ export default function CentroCompeticion() {
 
         {view === 'cruces' && (
           <CrossTable category={category} config={config} />
+        )}
+
+        {view === 'jornadas' && (
+          <div className="space-y-6">
+            {config?.rfef_url && (
+              <BustarviejoSchedule config={config} />
+            )}
+            <SeasonSchedule category={category} />
+          </div>
         )}
       </ErrorBoundary>
 
