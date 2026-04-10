@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import BustarviejoSchedule from "./BustarviejoSchedule";
 
-export default function MyLeagueSchedules({ myCategories, isAdmin }) {
+export default function MyLeagueSchedules({ myCategories, isAdmin, isStaff }) {
   const { data: configs, isLoading } = useQuery({
     queryKey: ["standings-configs"],
     queryFn: () => base44.entities.StandingsConfig.list(),
@@ -32,12 +32,11 @@ export default function MyLeagueSchedules({ myCategories, isAdmin }) {
     );
   }
 
-  // Filter configs: admin sees all, others see only their categories
-  const relevantConfigs = isAdmin
+  // Filter configs: admin/staff sees all, others see only their categories
+  const relevantConfigs = (isAdmin || isStaff)
     ? configs.filter(c => c.rfef_url)
     : configs.filter(c => {
         if (!c.rfef_url) return false;
-        // If user has no categories, show nothing (not all)
         if (!myCategories || myCategories.length === 0) return false;
         // Match by partial category name
         const cat = (c.categoria || "").toLowerCase();

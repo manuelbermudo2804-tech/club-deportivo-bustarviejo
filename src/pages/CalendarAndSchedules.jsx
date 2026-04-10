@@ -433,7 +433,7 @@ export default function CalendarAndSchedules() {
             <h2 className="text-lg font-bold text-slate-800 mb-1">Calendario de Liga</h2>
             <p className="text-sm text-slate-500 mb-4">Todas las jornadas de tus equipos: resultados y partidos pendientes</p>
           </div>
-          <MyLeagueSchedules myCategories={myCategories} isAdmin={isAdmin} />
+          <MyLeagueSchedules myCategories={myCategories} isAdmin={isAdmin} isStaff={userRole === 'coach'} />
         </TabsContent>
 
         {/* CALENDARIO TAB */}

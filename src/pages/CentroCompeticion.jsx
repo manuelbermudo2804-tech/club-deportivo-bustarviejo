@@ -91,11 +91,7 @@ export default function CentroCompeticion() {
     refetchOnWindowFocus: false,
   });
   const CATEGORIES = (dynamicCategories && dynamicCategories.length > 0) ? dynamicCategories : FALLBACK_CATEGORIES;
-  React.useEffect(() => {
-    if (me && !isAdmin && (me.es_entrenador || me.es_coordinador)) {
-      window.location.href = createPageUrl('CentroCompeticionTecnico');
-    }
-  }, [me, isAdmin]);
+  const isStaff = !!me?.es_entrenador || !!me?.es_coordinador;
   const [adminTab, setAdminTab] = React.useState('clasificacion');
   const [standingsDraft, setStandingsDraft] = React.useState(null);
   const [savingStandings, setSavingStandings] = React.useState(false);
