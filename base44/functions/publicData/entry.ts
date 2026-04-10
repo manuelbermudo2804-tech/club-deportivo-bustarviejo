@@ -494,10 +494,19 @@ function generarHTML(data, jornadasCache, crossTableCache) {
   // ─── CALENDARIO DE JORNADAS ───
   let jornadasHTML = '';
   const hasCachedJornadas = Object.keys(jornadasCache || {}).length > 0;
-  if (hasCachedJornadas) {
-    for (const cat of Object.keys(jornadasCache).sort()) {
+  const jornadasCats = Object.keys(jornadasCache || {}).sort();
+  if (hasCachedJornadas && jornadasCats.length > 0) {
+    // Category filter pills
+    jornadasHTML += '<div class="cat-filter" id="jornadas-filter">';
+    jornadasHTML += jornadasCats.map((cat, i) =>
+      `<button class="cat-pill ${i === 0 ? 'cat-pill-active' : ''}" onclick="filterJornadas(this, '${cat.replace(/'/g, "\\'")}')">` + catCorta(cat) + '</button>'
+    ).join('');
+    jornadasHTML += '</div>';
+    for (const cat of jornadasCats) {
       const jData = jornadasCache[cat];
       if (!jData.jornadas || jData.jornadas.length === 0) continue;
+      const isFirst = cat === jornadasCats[0];
+      jornadasHTML += `<div class="jornadas-cat-group" data-jcat="${cat}" style="${isFirst ? '' : 'display:none'}">`;
       jornadasHTML += `<div class="clasif-grupo"><h3>${cat}</h3>`;
       for (const j of jData.jornadas) {
         if (!j.matches || j.matches.length === 0) continue;
@@ -520,7 +529,7 @@ function generarHTML(data, jornadasCache, crossTableCache) {
         }
         jornadasHTML += '</div></div>';
       }
-      jornadasHTML += '</div>';
+      jornadasHTML += '</div></div>';
     }
   }
   if (!jornadasHTML) jornadasHTML = '<p class="sin-datos">No hay datos de jornadas disponibles. Se actualizan automáticamente cada 4 horas.</p>';
@@ -528,10 +537,19 @@ function generarHTML(data, jornadasCache, crossTableCache) {
   // ─── TABLA CRUZADA ───
   let cruzadaHTML = '';
   const hasCrossTable = Object.keys(crossTableCache || {}).length > 0;
-  if (hasCrossTable) {
-    for (const cat of Object.keys(crossTableCache).sort()) {
+  const cruzadaCats = Object.keys(crossTableCache || {}).sort();
+  if (hasCrossTable && cruzadaCats.length > 0) {
+    // Category filter pills for cross table
+    cruzadaHTML += '<div class="cat-filter" id="cruzada-filter">';
+    cruzadaHTML += cruzadaCats.map((cat, i) =>
+      `<button class="cat-pill ${i === 0 ? 'cat-pill-active' : ''}" onclick="filterCruzada(this, '${cat.replace(/'/g, "\\'")}')">` + catCorta(cat) + '</button>'
+    ).join('');
+    cruzadaHTML += '</div>';
+    for (const cat of cruzadaCats) {
       const ct = crossTableCache[cat];
       if (!ct.teams || ct.teams.length === 0) continue;
+      const isFirst = cat === cruzadaCats[0];
+      cruzadaHTML += `<div class="cruzada-cat-group" data-ccat="${cat}" style="${isFirst ? '' : 'display:none'}">`;
       cruzadaHTML += `<div class="clasif-grupo"><h3>${cat}</h3><p class="cross-info">Local ↓ / Visitante → · ${ct.teams.length} equipos · ${ct.result_count || 0} enfrentamientos</p><div class="tabla-scroll"><table class="cross-table">`;
       // Header
       cruzadaHTML += '<thead><tr><th class="cross-corner">Local \\ Visitante</th>';
@@ -562,7 +580,7 @@ function generarHTML(data, jornadasCache, crossTableCache) {
         }
         cruzadaHTML += '</tr>';
       }
-      cruzadaHTML += '</tbody></table></div></div>';
+      cruzadaHTML += '</tbody></table></div></div></div>';
     }
   }
   if (!cruzadaHTML) cruzadaHTML = '<p class="sin-datos">No hay datos de tabla cruzada disponibles. Se actualizan automáticamente cada 4 horas.</p>';
@@ -771,6 +789,12 @@ tbody tr:hover { background: #f8fafc; }
 .jm-score { font-weight: 900; font-size: 0.9rem; min-width: 50px; text-align: center; color: #0f172a; }
 .jm-pending { font-size: 0.72rem; color: #94a3b8; min-width: 90px; text-align: center; }
 
+/* ═══ CATEGORY FILTER PILLS ═══ */
+.cat-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; }
+.cat-pill { padding: 8px 18px; border-radius: 50px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #64748b; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.3px; font-family: inherit; }
+.cat-pill:hover { background: #e2e8f0; }
+.cat-pill-active { background: #0f172a; color: #fff; border-color: #0f172a; box-shadow: 0 4px 14px rgba(15,23,42,0.25); }
+
 /* ═══ CROSS TABLE ═══ */
 .cross-info { font-size: 0.75rem; color: #64748b; margin-bottom: 10px; }
 .cross-table { font-size: 0.65rem; min-width: 400px; }
@@ -930,6 +954,19 @@ tbody tr:hover { background: #f8fafc; }
     </div>
   </div>
 </div>
+
+<script>
+function filterJornadas(btn, cat) {
+  document.querySelectorAll('#jornadas-filter .cat-pill').forEach(b => b.classList.remove('cat-pill-active'));
+  btn.classList.add('cat-pill-active');
+  document.querySelectorAll('.jornadas-cat-group').forEach(g => g.style.display = g.dataset.jcat === cat ? '' : 'none');
+}
+function filterCruzada(btn, cat) {
+  document.querySelectorAll('#cruzada-filter .cat-pill').forEach(b => b.classList.remove('cat-pill-active'));
+  btn.classList.add('cat-pill-active');
+  document.querySelectorAll('.cruzada-cat-group').forEach(g => g.style.display = g.dataset.ccat === cat ? '' : 'none');
+}
+</script>
 
 <footer class="footer">
   <div class="footer-contenido">
