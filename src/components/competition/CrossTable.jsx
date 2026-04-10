@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
+import BustarviejoSchedule from "./BustarviejoSchedule";
 import { toast } from "sonner";
 
 const BUST = ["BUSTARVIEJO"];
@@ -229,6 +230,8 @@ export default function CrossTable({ category, config }) {
       </Card>
 
       {bustIdx >= 0 && <BustarvijoDetail teams={teams} matrix={matrix} bustIdx={bustIdx} />}
+
+      <BustarviejoSchedule config={config} />
 
       <p className="text-[10px] text-slate-400 text-center">
         Datos extraídos de la intranet RFFM · Desliza horizontalmente para ver toda la tabla
