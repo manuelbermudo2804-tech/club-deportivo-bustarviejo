@@ -19,8 +19,9 @@ import RffmImportButton from "../components/competition/RffmImportButton";
 import RffmUrlManager from "../components/competition/RffmUrlManager";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
+import SeasonSchedule from "../components/competition/SeasonSchedule";
 import RffmMonitorPanel from "../components/competition/RffmMonitorPanel";
-import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2, Database } from "lucide-react";
+import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2, Database, Calendar } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 import { toast } from "sonner";
@@ -72,7 +73,7 @@ export default function CentroCompeticion() {
   const defaultView = getUrlParam('vista', 'clasificacion');
 
   const [category, setCategory] = React.useState(defaultCat);
-  const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores'
+  const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores' | 'calendario'
   const [search, setSearch] = React.useState('');
   const [fav, setFav] = React.useState(() => storedFav === defaultCat);
   const queryClient = useQueryClient();
@@ -193,6 +194,7 @@ export default function CentroCompeticion() {
   const [showUrlManager, setShowUrlManager] = React.useState(false);
   const [showMonitor, setShowMonitor] = React.useState(false);
   const [importingHistory, setImportingHistory] = React.useState(false);
+  const [importingCalendar, setImportingCalendar] = React.useState(false);
 
   const importFullHistory = async () => {
     if (!confirm(`¿Importar historial COMPLETO de resultados de "${category}" desde la RFFM?\n\nEsto descargará todas las jornadas jugadas que no estén ya en la base de datos. Puede tardar 1-2 minutos.`)) return;
@@ -439,24 +441,30 @@ export default function CentroCompeticion() {
   };
 
   const ViewToggle = () => (
-    <div className="w-full grid grid-cols-3 rounded-xl overflow-hidden bg-white/10 border border-white/20">
+    <div className="w-full grid grid-cols-4 rounded-xl overflow-hidden bg-white/10 border border-white/20">
       <button
         onClick={() => setView('clasificacion')}
         className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'clasificacion' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Trophy className="w-4 h-4" /> Clasificación
+        <Trophy className="w-4 h-4" /> Clasif.
       </button>
       <button
         onClick={() => setView('resultados')}
         className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'resultados' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <List className="w-4 h-4" /> Resultados
+        <List className="w-4 h-4" /> Result.
       </button>
       <button
         onClick={() => setView('goleadores')}
         className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'goleadores' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
         <Users className="w-4 h-4" /> Goleadores
+      </button>
+      <button
+        onClick={() => setView('calendario')}
+        className={`flex items-center justify-center gap-1.5 h-11 text-xs sm:text-sm font-semibold transition-all ${view === 'calendario' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+      >
+        <Calendar className="w-4 h-4" /> Calendario
       </button>
     </div>
   );
@@ -651,15 +659,40 @@ export default function CentroCompeticion() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <RffmImportButton type="results" config={config} category={category} onDataReady={(d) => setResultsDraft(d)} />
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={importFullHistory}
-                    disabled={importingHistory}
-                    className="gap-1.5 border-purple-300 text-purple-700 hover:bg-purple-50"
+                   variant="outline"
+                   size="sm"
+                   onClick={importFullHistory}
+                   disabled={importingHistory}
+                   className="gap-1.5 border-purple-300 text-purple-700 hover:bg-purple-50"
                   >
-                    {importingHistory ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <History className="w-3.5 h-3.5" />}
-                    {importingHistory ? 'Importando...' : 'Importar historial completo'}
+                   {importingHistory ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <History className="w-3.5 h-3.5" />}
+                   {importingHistory ? 'Importando...' : 'Importar historial completo'}
                   </Button>
+                  <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={async () => {
+                     if (!confirm(`¿Importar CALENDARIO COMPLETO de "${category}" (partidos jugados + pendientes con fechas)?\n\nEsto reemplazará los datos existentes. Puede tardar 1-2 minutos.`)) return;
+                     setImportingCalendar(true);
+                     try {
+                       const res = await base44.functions.invoke('fetchSeasonCalendar', { categoria: category });
+                       const data = res.data;
+                       if (data.error) { toast.error(data.error); return; }
+                       toast.success(`✅ Calendario importado: ${data.totalMatches} partidos (${data.totalPlayed} jugados + ${data.totalPending} pendientes)`);
+                       queryClient.refetchQueries({ queryKey: ['resultados', category] });
+                       queryClient.refetchQueries({ queryKey: ['season-schedule', category] });
+                     } catch (e) {
+                       toast.error('Error: ' + (e.message || 'desconocido'));
+                     } finally {
+                       setImportingCalendar(false);
+                     }
+                   }}
+                   disabled={importingCalendar}
+                   className="gap-1.5 border-teal-300 text-teal-700 hover:bg-teal-50"
+                  >
+                   {importingCalendar ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Calendar className="w-3.5 h-3.5" />}
+                   {importingCalendar ? 'Importando...' : '📅 Importar calendario completo'}
+                   </Button>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="destructive" size="sm" onClick={async () => {
@@ -775,6 +808,10 @@ export default function CentroCompeticion() {
 
         {view === 'goleadores' && (
           <ScorersList categoryFullName={category} isAdmin={isAdmin} />
+        )}
+
+        {view === 'calendario' && (
+          <SeasonSchedule category={category} />
         )}
       </ErrorBoundary>
 

@@ -295,6 +295,9 @@ async function syncCategory(config, cookies, base44, temporada) {
             temporada, categoria: cat, jornada: latestJ, local: m.local, visitante: m.visitante,
             goles_local: m.goles_local, goles_visitante: m.goles_visitante,
             estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
+            ...(m.fecha ? { fecha_partido: m.fecha } : {}),
+            ...(m.hora ? { hora_partido: m.hora } : {}),
+            ...(m.campo ? { campo: m.campo } : {}),
           }));
           if (records.length) {
             await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.bulkCreate(records));

@@ -1,10 +1,11 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { load } from 'npm:cheerio@1.0.0';
 
 /**
- * RFFM Full History Sync — one-time import of ALL jornadas for a category.
- * Requires { categoria } param. Admin only.
- * Imports all played jornadas that don't already exist in the DB.
+ * Fetch ALL jornadas for a category from RFFM and save them to Resultado entity.
+ * Unlike rffmFullHistorySync, this imports BOTH played AND pending matches
+ * so we have the full season calendar with dates/times.
+ * Admin only. Requires { categoria }.
  */
 
 async function rffmLogin() {
@@ -75,21 +76,7 @@ function parseMatches(html) {
     const sm = noDate.match(/(\d+)\s*[-–]\s*(\d+)/); if (sm) { gl = parseInt(sm[1]); gv = parseInt(sm[2]); jug = true; }
     let mc = campo;
     if (tds.length > 3) { const ctx = $(tds[3]).text().replace(/\s+/g,' ').trim(); const cmm = ctx.match(/Campo:\s*(.+?)(?:\s*-\s*Hierba|\s*-\s*Tierra|\s*-\s*Cesped|$)/i); if (cmm) mc = cmm[1].replace(/\s*\(HA\)\s*$/i,'').replace(/\s*\(H\.A\.\)\s*$/i,'').trim(); else { const sc = ctx.match(/Campo:\s*(.+)/); if (sc) mc = sc[1].trim(); } }
-    // Look for ficha link: first inside the match table itself, then in sibling tables
-    let actaUrl = null;
-    const inlineLink = $(t).find('a[href*="NFG_CmpPartido"]').first();
-    if (inlineLink.length) { const h = inlineLink.attr('href') || ''; if (h) actaUrl = 'https://intranet.ffmadrid.es' + h; }
-    if (!actaUrl) {
-      let nextT = $(t).next('table');
-      for (let k = 0; k < 3 && nextT.length; k++) {
-        const nh = nextT.html() || '';
-        if (nh.includes('escudo_clb') || nh.includes('pimg/Clubes')) break;
-        const fichaLink = nextT.find('a[href*="NFG_CmpPartido"]').first();
-        if (fichaLink.length) { const h = fichaLink.attr('href') || ''; if (h) actaUrl = 'https://intranet.ffmadrid.es' + h; break; }
-        nextT = nextT.next('table');
-      }
-    }
-    matches.push({ local: loc, visitante: vis, goles_local: gl, goles_visitante: gv, jugado: jug, fecha, hora, campo: mc, acta_url: actaUrl });
+    matches.push({ local: loc, visitante: vis, goles_local: gl, goles_visitante: gv, jugado: jug, fecha, hora, campo: mc });
   }
   return matches;
 }
@@ -123,22 +110,20 @@ Deno.serve(async (req) => {
     const j1Html = await fetchPage(buildJornadaUrl(p, 1), cookies);
     const totalJornadas = detectTotal(j1Html);
 
-    // Get existing jornadas in DB to skip them
+    // Delete ALL existing results for this category/season to replace with full calendar
     const existing = await base44.asServiceRole.entities.Resultado.filter({ categoria: targetCat, temporada }, '-jornada', 5000);
-    const existingJornadas = new Set(existing.map(r => r.jornada));
+    // Batch delete
+    for (let i = 0; i < existing.length; i += 4) {
+      const batch = existing.slice(i, i + 4);
+      await Promise.all(batch.map(r => base44.asServiceRole.entities.Resultado.delete(r.id)));
+      if (i + 4 < existing.length) await new Promise(r => setTimeout(r, 500));
+    }
 
     const imported = [];
-    const skipped = [];
     const errors = [];
 
-    // Scan all jornadas
+    // Scan ALL jornadas (played AND pending)
     for (let j = 1; j <= totalJornadas; j++) {
-      // Skip if already in DB
-      if (existingJornadas.has(j)) {
-        skipped.push(j);
-        continue;
-      }
-
       try {
         const html = j === 1 ? j1Html : await fetchPage(buildJornadaUrl(p, j), cookies);
         const matches = parseMatches(html);
@@ -155,7 +140,6 @@ Deno.serve(async (req) => {
           hora_partido: m.hora || undefined,
           campo: m.campo || undefined,
           fecha_actualizacion: new Date().toISOString(),
-          ...(m.acta_url ? { acta_url: m.acta_url } : {}),
         }));
 
         // bulkCreate in batches of 10
@@ -163,7 +147,7 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.entities.Resultado.bulkCreate(records.slice(b, b + 10));
         }
 
-        imported.push({ jornada: j, matches: records.length });
+        imported.push({ jornada: j, matches: records.length, played: matches.filter(m => m.jugado).length, pending: matches.filter(m => !m.jugado).length });
       } catch (e) {
         errors.push({ jornada: j, error: e.message });
       }
@@ -178,7 +162,9 @@ Deno.serve(async (req) => {
       temporada,
       totalJornadas,
       imported,
-      skipped: skipped.length,
+      totalMatches: imported.reduce((s, j) => s + j.matches, 0),
+      totalPlayed: imported.reduce((s, j) => s + j.played, 0),
+      totalPending: imported.reduce((s, j) => s + j.pending, 0),
       errors: errors.length ? errors : undefined,
       timestamp: new Date().toISOString(),
     });

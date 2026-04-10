@@ -1,0 +1,75 @@
+{
+  "name": "Resultado",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada (ej: 2024/2025)"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda completa (ej: F\u00fatbol Juvenil)"
+    },
+    "jornada": {
+      "type": "number",
+      "description": "N\u00famero de jornada"
+    },
+    "local": {
+      "type": "string",
+      "description": "Nombre equipo local"
+    },
+    "visitante": {
+      "type": "string",
+      "description": "Nombre equipo visitante"
+    },
+    "goles_local": {
+      "type": "number",
+      "description": "Goles del local"
+    },
+    "goles_visitante": {
+      "type": "number",
+      "description": "Goles del visitante"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "finalizado"
+      ],
+      "default": "pendiente",
+      "description": "Estado del partido"
+    },
+    "fecha_partido": {
+      "type": "string",
+      "description": "Fecha del partido (dd/mm/yyyy)"
+    },
+    "hora_partido": {
+      "type": "string",
+      "description": "Hora del partido (HH:MM)"
+    },
+    "campo": {
+      "type": "string",
+      "description": "Campo donde se juega"
+    },
+    "acta_url": {
+      "type": "string",
+      "description": "Enlace al acta si existe"
+    },
+    "fuente_imagen_url": {
+      "type": "string",
+      "description": "URL de imagen usada para extracci\u00f3n (opcional)"
+    },
+    "fecha_actualizacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima actualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "temporada",
+    "categoria",
+    "jornada",
+    "local",
+    "visitante"
+  ]
+}
