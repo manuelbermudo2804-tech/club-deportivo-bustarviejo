@@ -20,7 +20,6 @@ import TrainingScheduleForm from "../components/training/TrainingScheduleForm";
 import ContactCard from "../components/ContactCard";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import UpcomingMatchesSection from "../components/calendar/UpcomingMatchesSection";
-import MyTeamSchedule from "../components/calendar/MyTeamSchedule";
 
 const DIAS_ORDEN = {
   "Lunes": 1,
@@ -411,9 +410,6 @@ export default function CalendarAndSchedules() {
 
         {/* PARTIDOS TAB */}
         <TabsContent value="partidos" className="space-y-4 mt-4">
-          {!isAdmin && myCategories.length > 0 && (
-            <MyTeamSchedule myCategories={myCategories} />
-          )}
           <UpcomingMatchesSection />
           <ContactCard />
         </TabsContent>
