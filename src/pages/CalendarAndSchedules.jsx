@@ -126,8 +126,13 @@ export default function CalendarAndSchedules() {
 
   useEffect(() => {
     if (myPlayers.length > 0) {
-      const categories = [...new Set(myPlayers.map(p => p.deporte))];
-      setMyCategories(categories);
+      const cats = new Set();
+      myPlayers.forEach(p => {
+        if (p.deporte) cats.add(p.deporte);
+        if (p.categoria_principal) cats.add(p.categoria_principal);
+        if (p.categorias && Array.isArray(p.categorias)) p.categorias.forEach(c => cats.add(c));
+      });
+      setMyCategories([...cats]);
     }
   }, [myPlayers]);
 
@@ -410,7 +415,7 @@ export default function CalendarAndSchedules() {
 
         {/* PARTIDOS TAB */}
         <TabsContent value="partidos" className="space-y-4 mt-4">
-          <UpcomingMatchesSection />
+          <UpcomingMatchesSection myCategories={myCategories} />
           <ContactCard />
         </TabsContent>
 
