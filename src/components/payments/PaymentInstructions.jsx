@@ -8,16 +8,29 @@ import { toast } from "sonner";
 const CLUB_IBAN = "ES8200494447382010004048";
 const CLUB_BANK = "Banco Santander";
 
-export default function PaymentInstructions({ playerName, playerCategory, amount, paymentType }) {
+export default function PaymentInstructions({ playerName, playerCategory, amount, paymentType, paymentMonth }) {
   const [copied, setCopied] = useState(false);
   
   const generateReference = () => {
-    if (!playerName || !playerCategory) return "";
+    if (!playerName) return "";
     
-    const categoryCode = playerCategory.split(' ')[1] || "CLUB";
-    const cleanName = playerName.trim().replace(/\s+/g, '_').toUpperCase();
+    // Nombre completo en mayúsculas
+    const cleanName = playerName.trim().replace(/\s+/g, ' ').toUpperCase();
     
-    return `${categoryCode}-${cleanName}`;
+    // Categoría abreviada pero clara (ej: "PRE", "BEN", "ALE", "INF", "CAD", "JUV", "AFI", "FEM", "BAS")
+    const catMap = {
+      'Pre-Benjamín': 'PRE', 'Benjamín': 'BEN', 'Alevín': 'ALE',
+      'Infantil': 'INF', 'Cadete': 'CAD', 'Juvenil': 'JUV',
+      'Aficionado': 'AFI', 'Femenino': 'FEM', 'Baloncesto': 'BAS'
+    };
+    const catCode = Object.entries(catMap).find(([k]) => (playerCategory || '').includes(k))?.[1] || 'CLUB';
+    
+    // Mes/tipo de pago
+    const monthCode = paymentMonth || (paymentType === 'Único' ? 'UNICO' : '');
+    
+    // Formato: CAD GARCIA LOPEZ MARTINEZ JUN
+    const parts = [catCode, cleanName, monthCode].filter(Boolean);
+    return parts.join(' ');
   };
 
   const reference = generateReference();

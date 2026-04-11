@@ -426,6 +426,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
                 playerCategory={selectedPlayer.deporte}
                 amount={currentPayment.cantidad}
                 paymentType={currentPayment.tipo_pago}
+                paymentMonth={currentPayment.mes}
               />
             </div>
           )}
