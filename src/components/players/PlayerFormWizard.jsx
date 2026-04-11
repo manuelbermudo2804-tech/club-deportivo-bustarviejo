@@ -608,8 +608,8 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
             </motion.div>
           </AnimatePresence>
 
-          {/* Banner de ayuda: aparece tras 3+ fallos de subida */}
-          {isParent && uploadFailCount >= 3 && (
+          {/* Banner de ayuda: aparece tras 2+ fallos de subida (cualquier rol) */}
+          {uploadFailCount >= 2 && (
             <div className="my-4">
               <HelpRequestBanner
                 failedAttempts={uploadFailCount}
