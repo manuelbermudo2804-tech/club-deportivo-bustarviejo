@@ -496,10 +496,9 @@ function generarHTML(data, jornadasCache, crossTableCache) {
   const hasCachedJornadas = Object.keys(jornadasCache || {}).length > 0;
   const jornadasCats = Object.keys(jornadasCache || {}).sort();
   if (hasCachedJornadas && jornadasCats.length > 0) {
-    // Category filter pills using numeric indices to avoid special char issues
     jornadasHTML += '<div class="cat-filter" id="jornadas-filter">';
     jornadasHTML += jornadasCats.map((cat, i) =>
-      `<button type="button" class="cat-pill ${i === 0 ? 'cat-pill-active' : ''}" data-idx="${i}" onclick="filterJornadas(this, ${i})">${catCorta(cat)}</button>`
+      `<label class="cat-pill${i === 0 ? ' cat-pill-active' : ''}" data-target="jornadas" data-idx="${i}">${catCorta(cat)}</label>`
     ).join('');
     jornadasHTML += '</div>';
     for (let ci = 0; ci < jornadasCats.length; ci++) {
@@ -539,10 +538,9 @@ function generarHTML(data, jornadasCache, crossTableCache) {
   const hasCrossTable = Object.keys(crossTableCache || {}).length > 0;
   const cruzadaCats = Object.keys(crossTableCache || {}).sort();
   if (hasCrossTable && cruzadaCats.length > 0) {
-    // Category filter pills using numeric indices
     cruzadaHTML += '<div class="cat-filter" id="cruzada-filter">';
     cruzadaHTML += cruzadaCats.map((cat, i) =>
-      `<button type="button" class="cat-pill ${i === 0 ? 'cat-pill-active' : ''}" data-idx="${i}" onclick="filterCruzada(this, ${i})">${catCorta(cat)}</button>`
+      `<label class="cat-pill${i === 0 ? ' cat-pill-active' : ''}" data-target="cruzada" data-idx="${i}">${catCorta(cat)}</label>`
     ).join('');
     cruzadaHTML += '</div>';
     for (let ci = 0; ci < cruzadaCats.length; ci++) {
@@ -791,7 +789,7 @@ tbody tr:hover { background: #f8fafc; }
 
 /* ═══ CATEGORY FILTER PILLS ═══ */
 .cat-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; }
-.cat-pill { padding: 8px 18px; border-radius: 50px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #64748b; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.3px; font-family: inherit; }
+.cat-pill { display: inline-block; padding: 8px 18px; border-radius: 50px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #64748b; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.3px; font-family: inherit; user-select: none; }
 .cat-pill:hover { background: #e2e8f0; }
 .cat-pill-active { background: #0f172a; color: #fff; border-color: #0f172a; box-shadow: 0 4px 14px rgba(15,23,42,0.25); }
 
@@ -955,21 +953,26 @@ tbody tr:hover { background: #f8fafc; }
   </div>
 </div>
 
+
+
 <script>
-function filterJornadas(btn, idx) {
-  document.querySelectorAll('#jornadas-filter .cat-pill').forEach(function(b) { b.classList.remove('cat-pill-active'); });
-  btn.classList.add('cat-pill-active');
-  document.querySelectorAll('.jornadas-cat-group').forEach(function(g) {
-    g.style.display = g.getAttribute('data-jidx') == idx ? '' : 'none';
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.cat-pill').forEach(function(pill) {
+    pill.addEventListener('click', function() {
+      var target = this.getAttribute('data-target');
+      var idx = this.getAttribute('data-idx');
+      // Update active pill
+      this.parentNode.querySelectorAll('.cat-pill').forEach(function(p) { p.classList.remove('cat-pill-active'); });
+      this.classList.add('cat-pill-active');
+      // Show/hide groups
+      var groupClass = target === 'jornadas' ? 'jornadas-cat-group' : 'cruzada-cat-group';
+      var dataAttr = target === 'jornadas' ? 'data-jidx' : 'data-cidx';
+      document.querySelectorAll('.' + groupClass).forEach(function(g) {
+        g.style.display = g.getAttribute(dataAttr) === idx ? '' : 'none';
+      });
+    });
   });
-}
-function filterCruzada(btn, idx) {
-  document.querySelectorAll('#cruzada-filter .cat-pill').forEach(function(b) { b.classList.remove('cat-pill-active'); });
-  btn.classList.add('cat-pill-active');
-  document.querySelectorAll('.cruzada-cat-group').forEach(function(g) {
-    g.style.display = g.getAttribute('data-cidx') == idx ? '' : 'none';
-  });
-}
+});
 </script>
 
 <footer class="footer">
