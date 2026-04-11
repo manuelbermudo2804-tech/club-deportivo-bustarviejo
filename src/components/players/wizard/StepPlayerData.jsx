@@ -58,19 +58,33 @@ export default function StepPlayerData({
             )}
           </div>
 
-          <input type="file" accept="image/*" onChange={onPhotoUpload} className="hidden" id="wiz-photo-main" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+          <input type="file" accept="image/*" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+          <input type="file" accept="image/*" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
 
-          <Button
-            type="button"
-            variant="default"
-            className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl text-sm"
-            style={{ minHeight: '52px', WebkitAppearance: 'none' }}
-            disabled={uploadingPhoto}
-            onClick={() => document.getElementById('wiz-photo-main').click()}
-          >
-            {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
-            {currentPlayer.foto_url ? 'Cambiar foto' : '📷 Seleccionar Foto'}
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="default"
+              className="bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl text-sm"
+              style={{ minHeight: '52px', WebkitAppearance: 'none' }}
+              disabled={uploadingPhoto}
+              onClick={() => document.getElementById('wiz-photo-camera').click()}
+            >
+              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+              Hacer foto
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="font-semibold rounded-xl text-sm border-orange-300 text-orange-700 hover:bg-orange-50"
+              style={{ minHeight: '52px', WebkitAppearance: 'none' }}
+              disabled={uploadingPhoto}
+              onClick={() => document.getElementById('wiz-photo-gallery').click()}
+            >
+              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+              Galería
+            </Button>
+          </div>
 
           {currentPlayer.foto_url && (
             <p className="text-xs text-green-700 font-medium text-center mt-2">✅ Foto guardada correctamente</p>

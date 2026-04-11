@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Loader2, FileText } from "lucide-react";
+import { Upload, Loader2, FileText, Camera } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
 
 export default function StepDocuments({
@@ -37,18 +37,32 @@ export default function StepDocuments({
       </div>
       <div className="p-3 bg-white">
         {error && <p className="text-xs text-red-600 mb-2">⚠️ {error}</p>}
-        <input type="file" accept="image/*,application/pdf" onChange={onUpload} className="hidden" id={inputId} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-        <Button
-          type="button"
-          variant={uploaded ? "outline" : "default"}
-          onClick={() => document.getElementById(inputId).click()}
-          disabled={uploading}
-          className={`w-full rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-          style={{ minHeight: '52px' }}
-        >
-          {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-          {uploaded ? "Cambiar documento" : "📄 Subir documento"}
-        </Button>
+        <input type="file" accept="image/*,application/pdf" capture="environment" onChange={onUpload} className="hidden" id={`${inputId}-camera`} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+        <input type="file" accept="image/*,application/pdf" onChange={onUpload} className="hidden" id={`${inputId}-gallery`} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant={uploaded ? "outline" : "default"}
+            onClick={() => document.getElementById(`${inputId}-camera`).click()}
+            disabled={uploading}
+            className={`rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+            style={{ minHeight: '48px' }}
+          >
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Camera className="w-4 h-4 mr-1" />}
+            {uploaded ? "Repetir foto" : "📷 Foto"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => document.getElementById(`${inputId}-gallery`).click()}
+            disabled={uploading}
+            className={`rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+            style={{ minHeight: '48px' }}
+          >
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
+            Galería
+          </Button>
+        </div>
         {children}
       </div>
     </div>
