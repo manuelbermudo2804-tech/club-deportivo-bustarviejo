@@ -6,7 +6,7 @@
  * El redimensionado y compresión se hacen en el backend (sharp).
  */
 
-const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 /**

@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { ShieldAlert, Camera, ChevronDown, ChevronUp } from "lucide-react";
 
 /**
- * Detecta si el navegador/PWA tiene permisos de cámara/archivos bloqueados
- * y muestra un aviso al usuario con instrucciones para desbloquearlo.
+ * Detecta si el navegador/PWA tiene permisos de cámara bloqueados.
+ * IMPORTANTE: NO intenta getUserMedia automáticamente (causaba problemas en iOS PWA).
+ * Solo usa navigator.permissions.query (no intrusivo).
  */
 export default function CameraPermissionCheck() {
-  const [status, setStatus] = useState('checking'); // checking | ok | blocked | unknown
+  const [status, setStatus] = useState('unknown'); // ok | blocked | unknown
   const [showHelp, setShowHelp] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState('');
 
@@ -26,7 +27,8 @@ export default function CameraPermissionCheck() {
       
       setDeviceInfo(`${isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop'} · ${browser}${isPWA ? ' · PWA' : ''}`);
 
-      // Método 1: navigator.permissions API (Chrome/Android)
+      // Solo usar navigator.permissions.query — NO getUserMedia
+      // getUserMedia abre la cámara real y causa problemas en iOS PWA
       if (navigator.permissions?.query) {
         try {
           const result = await navigator.permissions.query({ name: 'camera' });
@@ -38,37 +40,13 @@ export default function CameraPermissionCheck() {
             setStatus('ok');
             return;
           }
-          // 'prompt' = no decidido aún, es normal
+          // 'prompt' = no decidido, es normal
         } catch {
-          // permissions.query no soporta 'camera' en este navegador
+          // permissions.query no soporta 'camera' en este navegador (iOS Safari)
         }
       }
 
-      // Método 2: Intentar acceder brevemente a la cámara (más fiable en iOS)
-      if (navigator.mediaDevices?.getUserMedia) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          // Éxito — cerrar inmediatamente
-          stream.getTracks().forEach(t => t.stop());
-          setStatus('ok');
-          return;
-        } catch (err) {
-          const name = err?.name || '';
-          if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
-            setStatus('blocked');
-            return;
-          }
-          if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
-            // No tiene cámara (desktop sin webcam) — no es problema para subir fotos desde galería
-            setStatus('ok');
-            return;
-          }
-          // Otro error — no podemos determinar
-        }
-      }
-
-      // Método 3: Comprobar si el input file funciona (test rápido)
-      // No podemos simularlo sin interacción del usuario, así que asumimos ok
+      // No podemos determinar — asumimos ok (no molestar al usuario)
       setStatus('unknown');
     } catch {
       setStatus('unknown');
