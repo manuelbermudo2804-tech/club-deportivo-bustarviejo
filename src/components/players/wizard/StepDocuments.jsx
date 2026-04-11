@@ -3,11 +3,8 @@ import { Label } from "@/components/ui/label";
 import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Loader2, FileText, ImagePlus } from "lucide-react";
+import { Upload, Loader2, FileText } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
-import { logUploadButtonClick } from "../../utils/uploadLogger";
-import CameraPermissionCheck from "../../upload/CameraPermissionCheck";
-import { markCameraOpening } from "./useFormPersistence";
 import PasteFromClipboard from "../../upload/PasteFromClipboard";
 
 export default function StepDocuments({
@@ -28,58 +25,39 @@ export default function StepDocuments({
 }) {
   const docLabel = currentPlayer.tipo_documento === "Pasaporte" ? "Pasaporte" : "DNI";
 
-  const DocumentUploadCard = ({ label, uploaded, uploading, onUpload, inputId, error, children }) => {
-    const altId = `${inputId}-alt`;
-    return (
-      <div className={`rounded-2xl overflow-hidden ${error ? 'ring-2 ring-red-500' : uploaded ? 'ring-1 ring-green-300' : 'ring-1 ring-slate-200'}`}>
-        <div className={`px-4 py-2.5 flex items-center justify-between ${error ? 'bg-red-50' : uploaded ? 'bg-green-50' : 'bg-slate-50'}`}>
-          <div className="flex items-center gap-2">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center ${error ? 'bg-red-100' : uploaded ? 'bg-green-100' : 'bg-slate-200'}`}>
-              {uploaded ? <span className="text-green-600 text-xs font-bold">✓</span> : <FileText className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-500'}`} />}
-            </div>
-            <span className={`text-sm font-medium ${error ? 'text-red-800' : uploaded ? 'text-green-800' : 'text-slate-700'}`}>{label}</span>
+  const DocumentUploadCard = ({ label, uploaded, uploading, onUpload, inputId, error, children }) => (
+    <div className={`rounded-2xl overflow-hidden ${error ? 'ring-2 ring-red-500' : uploaded ? 'ring-1 ring-green-300' : 'ring-1 ring-slate-200'}`}>
+      <div className={`px-4 py-2.5 flex items-center justify-between ${error ? 'bg-red-50' : uploaded ? 'bg-green-50' : 'bg-slate-50'}`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center ${error ? 'bg-red-100' : uploaded ? 'bg-green-100' : 'bg-slate-200'}`}>
+            {uploaded ? <span className="text-green-600 text-xs font-bold">✓</span> : <FileText className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-500'}`} />}
           </div>
-          {uploaded && <PrivateFileViewer fileUri={uploaded} label="Ver" />}
+          <span className={`text-sm font-medium ${error ? 'text-red-800' : uploaded ? 'text-green-800' : 'text-slate-700'}`}>{label}</span>
         </div>
-        <div className="p-3 bg-white">
-          {error && <p className="text-xs text-red-600 mb-2">⚠️ {error}</p>}
-          {/* Input principal: acepta formatos específicos */}
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onUpload} className="hidden" id={inputId} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-          {/* Input alternativo: accept más amplio para dispositivos problemáticos */}
-          <input type="file" accept="image/*,application/pdf" onChange={onUpload} className="hidden" id={altId} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-          <Button
-            type="button"
-            variant={uploaded ? "outline" : "default"}
-            onClick={() => { markCameraOpening(inputId); logUploadButtonClick(inputId, label); document.getElementById(inputId).click(); }}
-            disabled={uploading}
-            className={`w-full rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-            style={{ minHeight: '48px' }}
-          >
-            {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-            {uploaded ? "Cambiar documento" : "📄 Subir documento"}
-          </Button>
-          {/* Botón alternativo siempre visible si no hay documento */}
-          {!uploaded && (
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full mt-1.5 text-slate-500 text-xs h-auto py-2 hover:text-blue-600"
-              disabled={uploading}
-              onClick={() => { logUploadButtonClick(altId, label + '_alt'); document.getElementById(altId).click(); }}
-            >
-              <ImagePlus className="w-3.5 h-3.5 mr-1" />
-              ¿No funciona? Pulsa aquí
-            </Button>
-          )}
-          {children}
-        </div>
+        {uploaded && <PrivateFileViewer fileUri={uploaded} label="Ver" />}
       </div>
-    );
-  };
+      <div className="p-3 bg-white">
+        {error && <p className="text-xs text-red-600 mb-2">⚠️ {error}</p>}
+        <input type="file" accept="image/*,application/pdf" onChange={onUpload} className="hidden" id={inputId} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+        <Button
+          type="button"
+          variant={uploaded ? "outline" : "default"}
+          onClick={() => document.getElementById(inputId).click()}
+          disabled={uploading}
+          className={`w-full rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+          style={{ minHeight: '52px' }}
+        >
+          {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+          {uploaded ? "Cambiar documento" : "📄 Subir documento"}
+        </Button>
+        {children}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
-      <CameraPermissionCheck />
+
 
       {/* Tipo de documento */}
       <div className="space-y-1.5">

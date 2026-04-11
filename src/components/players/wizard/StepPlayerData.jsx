@@ -1,11 +1,8 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, Upload, Loader2, ImagePlus } from "lucide-react";
+import { Camera, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { logUploadButtonClick } from "../../utils/uploadLogger";
-import CameraPermissionCheck from "../../upload/CameraPermissionCheck";
-import { markCameraOpening } from "./useFormPersistence";
 import PasteFromClipboard from "../../upload/PasteFromClipboard";
 
 export default function StepPlayerData({
@@ -22,8 +19,7 @@ export default function StepPlayerData({
 }) {
   return (
     <div className="space-y-5">
-      {/* CHECK PERMISOS CÁMARA */}
-      <CameraPermissionCheck />
+
 
       {/* FOTO TIPO CARNET */}
       <div className={`rounded-2xl overflow-hidden ${fieldErrors.foto_url ? 'ring-2 ring-red-500' : 'ring-1 ring-slate-200'}`}>
@@ -63,46 +59,43 @@ export default function StepPlayerData({
             )}
           </div>
 
-          {/* Botones debajo, a ancho completo */}
-          {/* Input para cámara: capture="environment" abre cámara directa */}
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-          {/* Input para galería: SIN capture para que abra selector de archivos */}
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={onPhotoUpload} className="hidden" id="wiz-photo-gallery" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-          {/* Input genérico: accept más amplio como fallback */}
-          <input type="file" accept="image/*" onChange={onPhotoUpload} className="hidden" id="wiz-photo-any" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+          {/* Un solo input genérico que funciona en TODOS los dispositivos */}
+          <input type="file" accept="image/*" onChange={onPhotoUpload} className="hidden" id="wiz-photo-main" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+          {/* Input con capture para cámara directa (opción secundaria) */}
+          <input type="file" accept="image/*" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button type="button" variant="default" className="bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl text-sm" style={{ minHeight: '48px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-camera'); logUploadButtonClick('wiz-photo-camera', 'foto_camara'); document.getElementById('wiz-photo-camera').click(); }}>
-              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Camera className="w-4 h-4 mr-1" />}
-              📷 Hacer Foto
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="default"
+              className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl text-sm"
+              style={{ minHeight: '52px', WebkitAppearance: 'none' }}
+              disabled={uploadingPhoto}
+              onClick={() => document.getElementById('wiz-photo-main').click()}
+            >
+              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+              📷 Seleccionar Foto
             </Button>
-            <Button type="button" variant="outline" className="font-medium rounded-xl text-slate-600 text-sm" style={{ minHeight: '48px', WebkitAppearance: 'none' }} disabled={uploadingPhoto} onClick={() => { markCameraOpening('wiz-photo-gallery'); logUploadButtonClick('wiz-photo-gallery', 'foto_galeria'); document.getElementById('wiz-photo-gallery').click(); }}>
-              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
-              🖼️ Galería
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full font-medium rounded-xl text-slate-500 text-xs"
+              style={{ minHeight: '40px', WebkitAppearance: 'none' }}
+              disabled={uploadingPhoto}
+              onClick={() => document.getElementById('wiz-photo-camera').click()}
+            >
+              <Camera className="w-3.5 h-3.5 mr-1" />
+              Abrir cámara directamente
             </Button>
           </div>
 
-          {/* Botón alternativo siempre visible — no esperar a que falle */}
-          {!currentPlayer.foto_url && (
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full mt-2 text-slate-500 text-xs h-auto py-2 hover:text-orange-600"
-              disabled={uploadingPhoto}
-              onClick={() => { logUploadButtonClick('wiz-photo-any', 'foto_alternativa'); document.getElementById('wiz-photo-any').click(); }}
-            >
-              <ImagePlus className="w-3.5 h-3.5 mr-1" />
-              ¿No funciona? Pulsa aquí para otra forma de subir
-            </Button>
-          )}
+
 
           {currentPlayer.foto_url && (
             <p className="text-xs text-green-700 font-medium text-center mt-2">✅ Foto guardada correctamente</p>
           )}
 
-          {!currentPlayer.foto_url && !uploadingPhoto && (
-            <p className="text-xs text-slate-400 mt-2 text-center">💡 Si "Hacer Foto" cierra la app, usa "Galería" o el botón alternativo</p>
-          )}
+
           
           {/* Pegar desde portapapeles — siempre visible si no hay foto (no esperar a fallo) */}
           {!currentPlayer.foto_url && (
