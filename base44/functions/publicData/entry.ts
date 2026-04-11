@@ -496,17 +496,17 @@ function generarHTML(data, jornadasCache, crossTableCache) {
   const hasCachedJornadas = Object.keys(jornadasCache || {}).length > 0;
   const jornadasCats = Object.keys(jornadasCache || {}).sort();
   if (hasCachedJornadas && jornadasCats.length > 0) {
-    // Category filter pills
+    // Category filter pills using numeric indices to avoid special char issues
     jornadasHTML += '<div class="cat-filter" id="jornadas-filter">';
     jornadasHTML += jornadasCats.map((cat, i) =>
-      `<button class="cat-pill ${i === 0 ? 'cat-pill-active' : ''}" onclick="filterJornadas(this, '${cat.replace(/'/g, "\\'")}')">` + catCorta(cat) + '</button>'
+      `<button class="cat-pill ${i === 0 ? 'cat-pill-active' : ''}" data-idx="${i}" onclick="filterJornadas(this, ${i})">${catCorta(cat)}</button>`
     ).join('');
     jornadasHTML += '</div>';
-    for (const cat of jornadasCats) {
+    for (let ci = 0; ci < jornadasCats.length; ci++) {
+      const cat = jornadasCats[ci];
       const jData = jornadasCache[cat];
       if (!jData.jornadas || jData.jornadas.length === 0) continue;
-      const isFirst = cat === jornadasCats[0];
-      jornadasHTML += `<div class="jornadas-cat-group" data-jcat="${cat}" style="${isFirst ? '' : 'display:none'}">`;
+      jornadasHTML += `<div class="jornadas-cat-group" data-jidx="${ci}" style="${ci === 0 ? '' : 'display:none'}">`;
       jornadasHTML += `<div class="clasif-grupo"><h3>${cat}</h3>`;
       for (const j of jData.jornadas) {
         if (!j.matches || j.matches.length === 0) continue;
@@ -539,17 +539,17 @@ function generarHTML(data, jornadasCache, crossTableCache) {
   const hasCrossTable = Object.keys(crossTableCache || {}).length > 0;
   const cruzadaCats = Object.keys(crossTableCache || {}).sort();
   if (hasCrossTable && cruzadaCats.length > 0) {
-    // Category filter pills for cross table
+    // Category filter pills using numeric indices
     cruzadaHTML += '<div class="cat-filter" id="cruzada-filter">';
     cruzadaHTML += cruzadaCats.map((cat, i) =>
-      `<button class="cat-pill ${i === 0 ? 'cat-pill-active' : ''}" onclick="filterCruzada(this, '${cat.replace(/'/g, "\\'")}')">` + catCorta(cat) + '</button>'
+      `<button class="cat-pill ${i === 0 ? 'cat-pill-active' : ''}" data-idx="${i}" onclick="filterCruzada(this, ${i})">${catCorta(cat)}</button>`
     ).join('');
     cruzadaHTML += '</div>';
-    for (const cat of cruzadaCats) {
+    for (let ci = 0; ci < cruzadaCats.length; ci++) {
+      const cat = cruzadaCats[ci];
       const ct = crossTableCache[cat];
       if (!ct.teams || ct.teams.length === 0) continue;
-      const isFirst = cat === cruzadaCats[0];
-      cruzadaHTML += `<div class="cruzada-cat-group" data-ccat="${cat}" style="${isFirst ? '' : 'display:none'}">`;
+      cruzadaHTML += `<div class="cruzada-cat-group" data-cidx="${ci}" style="${ci === 0 ? '' : 'display:none'}">`;
       cruzadaHTML += `<div class="clasif-grupo"><h3>${cat}</h3><p class="cross-info">Local ↓ / Visitante → · ${ct.teams.length} equipos · ${ct.result_count || 0} enfrentamientos</p><div class="tabla-scroll"><table class="cross-table">`;
       // Header
       cruzadaHTML += '<thead><tr><th class="cross-corner">Local \\ Visitante</th>';
@@ -571,7 +571,7 @@ function generarHTML(data, jornadasCache, crossTableCache) {
           const cell = ct.matrix?.[li]?.[vi];
           const isBustCol = (ct.teams[vi].name || '').toUpperCase().includes('BUSTARVIEJO');
           if (!cell || !cell.jugado) {
-            cruzadaHTML += `<td class="cross-empty ${(isBustRow || isBustCol) ? 'cross-highlight' : ''}">—</td>`;
+            cruzadaHTML += `<td class="cross-empty ${(isBustRow || isBustCol) ? 'cross-highlight' : ''}">&mdash;</td>`;
           } else {
             const gl = cell.goles_local, gv = cell.goles_visitante;
             const cls = gl > gv ? 'cross-win' : gl < gv ? 'cross-loss' : 'cross-draw';
@@ -956,15 +956,19 @@ tbody tr:hover { background: #f8fafc; }
 </div>
 
 <script>
-function filterJornadas(btn, cat) {
-  document.querySelectorAll('#jornadas-filter .cat-pill').forEach(b => b.classList.remove('cat-pill-active'));
+function filterJornadas(btn, idx) {
+  document.querySelectorAll('#jornadas-filter .cat-pill').forEach(function(b) { b.classList.remove('cat-pill-active'); });
   btn.classList.add('cat-pill-active');
-  document.querySelectorAll('.jornadas-cat-group').forEach(g => g.style.display = g.dataset.jcat === cat ? '' : 'none');
+  document.querySelectorAll('.jornadas-cat-group').forEach(function(g) {
+    g.style.display = g.getAttribute('data-jidx') == idx ? '' : 'none';
+  });
 }
-function filterCruzada(btn, cat) {
-  document.querySelectorAll('#cruzada-filter .cat-pill').forEach(b => b.classList.remove('cat-pill-active'));
+function filterCruzada(btn, idx) {
+  document.querySelectorAll('#cruzada-filter .cat-pill').forEach(function(b) { b.classList.remove('cat-pill-active'); });
   btn.classList.add('cat-pill-active');
-  document.querySelectorAll('.cruzada-cat-group').forEach(g => g.style.display = g.dataset.ccat === cat ? '' : 'none');
+  document.querySelectorAll('.cruzada-cat-group').forEach(function(g) {
+    g.style.display = g.getAttribute('data-cidx') == idx ? '' : 'none';
+  });
 }
 </script>
 
