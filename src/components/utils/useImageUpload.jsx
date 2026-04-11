@@ -372,8 +372,8 @@ export function useImageUpload() {
         const diagCode = generateDiagnosticCode();
         logUploadError(file, new Error(`[${diagCode}] ${result.error}`), 'cascade_all_failed');
         toast.error(
-          `No se ha podido subir la imagen. Usa la opción alternativa que aparecerá debajo del botón.`,
-          { duration: 12000 }
+          `No se ha podido subir la imagen. Comprueba tu conexión e inténtalo de nuevo.`,
+          { duration: 8000 }
         );
         return null;
       }

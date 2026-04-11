@@ -5,12 +5,8 @@ import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, Loader2, Download, Users, X, CheckCircle2, Lock } from "lucide-react";
-import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
+import { Upload, Loader2, Camera, Users, X, CheckCircle2, FileText } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
-import { logUploadButtonClick } from "../../utils/uploadLogger";
-import { markCameraOpening } from "./useFormPersistence";
-import PasteFromClipboard from "../../upload/PasteFromClipboard";
 
 export default function StepTutor({
   currentPlayer,
@@ -157,7 +153,7 @@ export default function StepTutor({
         </div>
       </div>
 
-      {/* Subidas DNI tutor - tarjetas compactas */}
+      {/* Subidas DNI tutor - tarjetas con 2 botones */}
       {(() => {
         const tutorDocLabel = currentPlayer.tipo_documento_tutor === "Pasaporte" ? "Pasaporte" : "DNI";
         const TutorDocCard = ({ label, uploaded, uploading, onUpload, inputId, error }) => (
@@ -165,7 +161,7 @@ export default function StepTutor({
             <div className={`px-4 py-2.5 flex items-center justify-between ${error ? 'bg-red-50' : uploaded ? 'bg-green-50' : 'bg-slate-50'}`}>
               <div className="flex items-center gap-2">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center ${error ? 'bg-red-100' : uploaded ? 'bg-green-100' : 'bg-slate-200'}`}>
-                  {uploaded ? <span className="text-green-600 text-xs font-bold">✓</span> : <Upload className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-500'}`} />}
+                  {uploaded ? <span className="text-green-600 text-xs font-bold">✓</span> : <FileText className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-500'}`} />}
                 </div>
                 <span className={`text-sm font-medium ${error ? 'text-red-800' : uploaded ? 'text-green-800' : 'text-slate-700'}`}>{label}</span>
               </div>
@@ -173,18 +169,32 @@ export default function StepTutor({
             </div>
             <div className="p-3 bg-white">
               {error && <p className="text-xs text-red-600 mb-2">⚠️ {error}</p>}
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" onChange={onUpload} className="hidden" id={inputId} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-              <Button
-                type="button"
-                variant={uploaded ? "outline" : "default"}
-                onClick={() => { markCameraOpening(inputId); logUploadButtonClick(inputId, label); document.getElementById(inputId).click(); }}
-                disabled={uploading}
-                className={`w-full rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                style={{ minHeight: '44px' }}
-              >
-                {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                {uploaded ? "Cambiar documento" : "Subir documento"}
-              </Button>
+              <input type="file" accept="image/*,application/pdf" capture="environment" onChange={onUpload} className="hidden" id={`${inputId}-camera`} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+              <input type="file" accept="image/*,application/pdf" onChange={onUpload} className="hidden" id={`${inputId}-gallery`} style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={uploaded ? "outline" : "default"}
+                  onClick={() => document.getElementById(`${inputId}-camera`).click()}
+                  disabled={uploading}
+                  className={`rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                  style={{ minHeight: '48px' }}
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Camera className="w-4 h-4 mr-1" />}
+                  {uploaded ? "Repetir foto" : "📷 Foto"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById(`${inputId}-gallery`).click()}
+                  disabled={uploading}
+                  className={`rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+                  style={{ minHeight: '48px' }}
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
+                  Galería
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -198,12 +208,6 @@ export default function StepTutor({
               inputId="wiz-dni-tutor-upload"
               error={fieldErrors.dni_tutor_legal_url}
             />
-            {!currentPlayer.dni_tutor_legal_url && dniTutorUploadFailed && (
-              <PasteFromClipboard label="DNI tutor" disabled={uploadingDNITutor} onUploadComplete={(url) => {
-                setCurrentPlayer(prev => ({ ...prev, dni_tutor_legal_url: url }));
-                if (fieldErrors.dni_tutor_legal_url) setFieldErrors(prev => ({ ...prev, dni_tutor_legal_url: null }));
-              }} />
-            )}
             {currentPlayer.tipo_documento_tutor === "DNI" && (
               <TutorDocCard
                 label="DNI — Cara trasera *"
