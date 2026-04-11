@@ -100,13 +100,12 @@ export default function SponsorBanner() {
           onMouseLeave={() => { speedRef.current = 0.5; }}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          <div className="flex items-center gap-5 px-4 whitespace-nowrap">
+          <div className="flex items-center px-4 whitespace-nowrap">
             {items.map((sponsor, idx) => {
               const isPremium = ["Principal", "Oro"].includes(sponsor.nivel_patrocinio);
 
               const inner = (
                 <div
-                  key={`${sponsor.id}-${idx}`}
                   className="flex items-center gap-2 flex-shrink-0"
                 >
                   {sponsor.logo_url ? (
@@ -132,12 +131,23 @@ export default function SponsorBanner() {
                 </div>
               );
 
-              return sponsor.website_url ? (
+              const separator = (
+                <span key={`sep-${idx}`} className="text-slate-300 mx-3 flex-shrink-0 select-none" aria-hidden="true">•</span>
+              );
+
+              const item = sponsor.website_url ? (
                 <a key={`${sponsor.id}-${idx}`} href={sponsor.website_url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0" onClick={() => handleSponsorClick(sponsor)}>
                   {inner}
                 </a>
               ) : (
                 <div key={`${sponsor.id}-${idx}`} className="flex-shrink-0">{inner}</div>
+              );
+
+              return (
+                <React.Fragment key={`frag-${sponsor.id}-${idx}`}>
+                  {item}
+                  {separator}
+                </React.Fragment>
               );
             })}
           </div>
