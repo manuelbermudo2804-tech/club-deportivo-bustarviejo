@@ -10,6 +10,21 @@ const CLUB_BANK = "Banco Santander";
 
 export default function PaymentInstructions({ playerName, playerCategory, amount, paymentType, paymentMonth }) {
 
+  const generateReference = () => {
+    if (!playerName) return "";
+    const cleanName = playerName.trim().replace(/\s+/g, ' ').toUpperCase();
+    const catMap = {
+      'Pre-Benjamín': 'PRE', 'Benjamín': 'BEN', 'Alevín': 'ALE',
+      'Infantil': 'INF', 'Cadete': 'CAD', 'Juvenil': 'JUV',
+      'Aficionado': 'AFI', 'Femenino': 'FEM', 'Baloncesto': 'BAS'
+    };
+    const catCode = Object.entries(catMap).find(([k]) => (playerCategory || '').includes(k))?.[1] || 'CLUB';
+    const monthCode = paymentMonth || (paymentType === 'Único' ? 'UNICO' : '');
+    return [catCode, cleanName, monthCode].filter(Boolean).join(' ');
+  };
+
+  const reference = generateReference();
+
   const generateQRUrl = () => {
     const data = `IBAN: ${CLUB_IBAN}
 Concepto: ${reference}

@@ -254,38 +254,9 @@ export default function CoachCallups() {
       
       await Promise.all(emailPromises);
       
-      // Send chat message to the team group
-      try {
-        const grupoId = callup.categoria?.replace(/\s+/g, '_') || 'general';
-        const fechaFormateada = format(new Date(callup.fecha_partido), "EEEE d 'de' MMMM", { locale: es });
-        const horaTexto = callup.hora_partido ? ` a las ${callup.hora_partido}` : '';
-        const rivalTexto = callup.rival ? ` vs ${callup.rival}` : '';
-        const localVisitante = callup.local_visitante ? ` (${callup.local_visitante})` : '';
-        
-        const chatMsg = `🏆 ¡NUEVA CONVOCATORIA!
-
-📋 ${callup.titulo}${rivalTexto}${localVisitante}
-📅 ${fechaFormateada}${horaTexto}
-📍 ${callup.ubicacion || 'Por confirmar'}
-${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}` : ''}
-
-👥 ${callup.jugadores_convocados.length} jugadores convocados
-
-⚠️ Por favor, confirma la asistencia de tu hijo/a lo antes posible desde la sección "Convocatorias" de la app.`;
-
-        await base44.entities.ChatMessage.create({
-          remitente_email: user.email,
-          remitente_nombre: user.full_name || 'Entrenador',
-          mensaje: chatMsg,
-          tipo: 'entrenador_a_grupo',
-          grupo_id: grupoId,
-          deporte: callup.categoria,
-          prioridad: 'Importante'
-        });
-        console.log('💬 [CoachCallups] Mensaje de convocatoria enviado al chat del grupo:', grupoId);
-      } catch (chatError) {
-        console.error('⚠️ [CoachCallups] Error enviando mensaje al chat:', chatError);
-      }
+      // Chat group message REMOVED — convocados reciben email individual personalizado.
+      // Enviar al chat generaba confusión: padres de jugadores NO convocados recibían el mensaje.
+      // El email es el canal fiable y llega solo a quien corresponde.
 
       // Mark as sent (only update the flag, not the whole object)
       await base44.entities.Convocatoria.update(callup.id, {
@@ -365,57 +336,10 @@ ${callup.hora_concentracion ? `🕐 Concentración: ${callup.hora_concentracion}
 
     await base44.entities.Convocatoria.update(callup.id, updateData);
 
-    // Send notification to chat group
-    const grupoId = callup.categoria?.replace(/\s+/g, '_') || 'general';
-    const fechaFormateada = format(new Date(callup.fecha_partido), "EEEE d 'de' MMMM", { locale: es });
-
-    let chatMsg;
-    if (isCancelling) {
-      chatMsg = `🚫 CONVOCATORIA CANCELADA\n\n📋 ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''}\n📅 ${fechaFormateada} a las ${callup.hora_partido}\n\n📝 Motivo: ${motivo}\n\nNo es necesario acudir. Disculpad las molestias.`;
-    } else {
-      const nuevaFechaFormateada = format(new Date(nuevaFecha), "EEEE d 'de' MMMM", { locale: es });
-      chatMsg = `🔄 CONVOCATORIA REPROGRAMADA\n\n📋 ${callup.titulo}${callup.rival ? ` vs ${callup.rival}` : ''}\n\n❌ Antes: ${fechaFormateada} a las ${callup.hora_partido}\n✅ Ahora: ${nuevaFechaFormateada} a las ${nuevaHora}\n\n📝 Motivo: ${motivo}\n\n⚠️ Por favor, revisad vuestra disponibilidad para la nueva fecha.`;
-    }
-
-    try {
-      // Desanclar mensajes anteriores de esta convocatoria en el chat del grupo
-      try {
-        const existingMessages = await base44.entities.ChatMessage.filter({
-          grupo_id: grupoId,
-          anclado: true
-        });
-        const callupTitle = callup.titulo || '';
-        const callupRival = callup.rival || '';
-        for (const msg of existingMessages) {
-          const txt = msg.mensaje || '';
-          // Identificar mensajes de la misma convocatoria (contienen el título o rival)
-          const isRelated = (callupTitle && txt.includes(callupTitle)) || 
-            (callupRival && txt.includes(callupRival) && (txt.includes('CONVOCATORIA') || txt.includes('REPROGRAMADA') || txt.includes('CANCELADA')));
-          if (isRelated) {
-            await base44.entities.ChatMessage.update(msg.id, { anclado: false });
-            console.log('📌 Desanclado mensaje anterior:', msg.id);
-          }
-        }
-      } catch (unpinErr) {
-        console.warn('⚠️ Error desanclando mensajes anteriores:', unpinErr);
-      }
-
-      // Crear nuevo mensaje anclado
-      await base44.entities.ChatMessage.create({
-        remitente_email: user.email,
-        remitente_nombre: user.full_name || 'Entrenador',
-        mensaje: chatMsg,
-        tipo: 'entrenador_a_grupo',
-        grupo_id: grupoId,
-        deporte: callup.categoria,
-        prioridad: 'Urgente',
-        anclado: true,
-        anclado_por: user.email,
-        anclado_fecha: new Date().toISOString()
-      });
-    } catch (e) {
-      console.error('Error sending chat notification:', e);
-    }
+    // Chat group message REMOVED para cancelación/reprogramación.
+    // Motivo: el chat llega a TODOS los padres del grupo, pero la convocatoria
+    // solo afecta a los convocados. Esto causaba confusión.
+    // Los convocados reciben: email (cancelación) + push (si lo tienen instalado).
 
     // Send emails
     const allPlayersData = await base44.entities.Player.list();
