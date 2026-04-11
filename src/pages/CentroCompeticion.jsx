@@ -22,7 +22,7 @@ import NextMatchFromDB from "../components/competition/NextMatchFromDB";
 import CrossTable from "../components/competition/CrossTable";
 import RffmMonitorPanel from "../components/competition/RffmMonitorPanel";
 import BustarviejoSchedule from "../components/competition/BustarviejoSchedule";
-import SeasonSchedule from "../components/competition/SeasonSchedule";
+
 import { Trophy, List, Users, Star, StarOff, Share2, Search, Settings, Link2, History, Loader2, Database, Grid3X3, Calendar } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
@@ -819,12 +819,16 @@ export default function CentroCompeticion() {
         )}
 
         {view === 'jornadas' && (
-          <div className="space-y-6">
-            {config?.rfef_url && (
-              <BustarviejoSchedule config={config} />
-            )}
-            <SeasonSchedule category={category} />
-          </div>
+          config?.rfef_url ? (
+            <BustarviejoSchedule config={config} />
+          ) : (
+            <Card className="border-2 border-dashed border-orange-200 bg-orange-50">
+              <CardContent className="p-8 text-center">
+                <p className="text-orange-800 font-semibold">No hay datos de jornadas</p>
+                <p className="text-sm text-orange-600 mt-1">Las jornadas aparecerán cuando se configure la URL de la RFFM para esta categoría.</p>
+              </CardContent>
+            </Card>
+          )
         )}
       </ErrorBoundary>
 
