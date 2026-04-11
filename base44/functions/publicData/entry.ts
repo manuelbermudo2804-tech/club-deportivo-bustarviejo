@@ -498,14 +498,14 @@ function generarHTML(data, jornadasCache, crossTableCache) {
   if (hasCachedJornadas && jornadasCats.length > 0) {
     jornadasHTML += '<div class="cat-filter" id="jornadas-filter">';
     jornadasHTML += jornadasCats.map((cat, i) =>
-      `<label class="cat-pill${i === 0 ? ' cat-pill-active' : ''}" data-target="jornadas" data-idx="${i}">${catCorta(cat)}</label>`
+      `<label class="cat-pill" for="jcat-${i}">${catCorta(cat)}</label>`
     ).join('');
     jornadasHTML += '</div>';
     for (let ci = 0; ci < jornadasCats.length; ci++) {
       const cat = jornadasCats[ci];
       const jData = jornadasCache[cat];
       if (!jData.jornadas || jData.jornadas.length === 0) continue;
-      jornadasHTML += `<div class="jornadas-cat-group" data-jidx="${ci}" style="${ci === 0 ? '' : 'display:none'}">`;
+      jornadasHTML += `<div class="jornadas-cat-group" data-jidx="${ci}">`;
       jornadasHTML += `<div class="clasif-grupo"><h3>${cat}</h3>`;
       for (const j of jData.jornadas) {
         if (!j.matches || j.matches.length === 0) continue;
@@ -540,14 +540,14 @@ function generarHTML(data, jornadasCache, crossTableCache) {
   if (hasCrossTable && cruzadaCats.length > 0) {
     cruzadaHTML += '<div class="cat-filter" id="cruzada-filter">';
     cruzadaHTML += cruzadaCats.map((cat, i) =>
-      `<label class="cat-pill${i === 0 ? ' cat-pill-active' : ''}" data-target="cruzada" data-idx="${i}">${catCorta(cat)}</label>`
+      `<label class="cat-pill" for="ccat-${i}">${catCorta(cat)}</label>`
     ).join('');
     cruzadaHTML += '</div>';
     for (let ci = 0; ci < cruzadaCats.length; ci++) {
       const cat = cruzadaCats[ci];
       const ct = crossTableCache[cat];
       if (!ct.teams || ct.teams.length === 0) continue;
-      cruzadaHTML += `<div class="cruzada-cat-group" data-cidx="${ci}" style="${ci === 0 ? '' : 'display:none'}">`;
+      cruzadaHTML += `<div class="cruzada-cat-group" data-cidx="${ci}">`;
       cruzadaHTML += `<div class="clasif-grupo"><h3>${cat}</h3><p class="cross-info">Local ↓ / Visitante → · ${ct.teams.length} equipos · ${ct.result_count || 0} enfrentamientos</p><div class="tabla-scroll"><table class="cross-table">`;
       // Header
       cruzadaHTML += '<thead><tr><th class="cross-corner">Local \\ Visitante</th>';
@@ -787,11 +787,57 @@ tbody tr:hover { background: #f8fafc; }
 .jm-score { font-weight: 900; font-size: 0.9rem; min-width: 50px; text-align: center; color: #0f172a; }
 .jm-pending { font-size: 0.72rem; color: #94a3b8; min-width: 90px; text-align: center; }
 
-/* ═══ CATEGORY FILTER PILLS ═══ */
+/* ═══ CATEGORY FILTER PILLS (CSS-only, same as main tabs) ═══ */
+input.cat-radio { display: none; }
 .cat-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; }
 .cat-pill { display: inline-block; padding: 8px 18px; border-radius: 50px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #f1f5f9; color: #64748b; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.3px; font-family: inherit; user-select: none; }
 .cat-pill:hover { background: #e2e8f0; }
-.cat-pill-active { background: #0f172a; color: #fff; border-color: #0f172a; box-shadow: 0 4px 14px rgba(15,23,42,0.25); }
+/* Hide all cat groups by default, show only the one matching checked radio */
+.jornadas-cat-group, .cruzada-cat-group { display: none; }
+/* Jornadas category radios */
+#jcat-0:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="0"],
+#jcat-1:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="1"],
+#jcat-2:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="2"],
+#jcat-3:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="3"],
+#jcat-4:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="4"],
+#jcat-5:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="5"],
+#jcat-6:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="6"],
+#jcat-7:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="7"],
+#jcat-8:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="8"],
+#jcat-9:checked ~ .contenido-comp .jornadas-cat-group[data-jidx="9"] { display: block; }
+/* Jornadas active pill style */
+#jcat-0:checked ~ .contenido-comp label[for="jcat-0"],
+#jcat-1:checked ~ .contenido-comp label[for="jcat-1"],
+#jcat-2:checked ~ .contenido-comp label[for="jcat-2"],
+#jcat-3:checked ~ .contenido-comp label[for="jcat-3"],
+#jcat-4:checked ~ .contenido-comp label[for="jcat-4"],
+#jcat-5:checked ~ .contenido-comp label[for="jcat-5"],
+#jcat-6:checked ~ .contenido-comp label[for="jcat-6"],
+#jcat-7:checked ~ .contenido-comp label[for="jcat-7"],
+#jcat-8:checked ~ .contenido-comp label[for="jcat-8"],
+#jcat-9:checked ~ .contenido-comp label[for="jcat-9"] { background: #0f172a; color: #fff; border-color: #0f172a; box-shadow: 0 4px 14px rgba(15,23,42,0.25); }
+/* Cruzada category radios */
+#ccat-0:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="0"],
+#ccat-1:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="1"],
+#ccat-2:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="2"],
+#ccat-3:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="3"],
+#ccat-4:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="4"],
+#ccat-5:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="5"],
+#ccat-6:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="6"],
+#ccat-7:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="7"],
+#ccat-8:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="8"],
+#ccat-9:checked ~ .contenido-comp .cruzada-cat-group[data-cidx="9"] { display: block; }
+/* Cruzada active pill style */
+#ccat-0:checked ~ .contenido-comp label[for="ccat-0"],
+#ccat-1:checked ~ .contenido-comp label[for="ccat-1"],
+#ccat-2:checked ~ .contenido-comp label[for="ccat-2"],
+#ccat-3:checked ~ .contenido-comp label[for="ccat-3"],
+#ccat-4:checked ~ .contenido-comp label[for="ccat-4"],
+#ccat-5:checked ~ .contenido-comp label[for="ccat-5"],
+#ccat-6:checked ~ .contenido-comp label[for="ccat-6"],
+#ccat-7:checked ~ .contenido-comp label[for="ccat-7"],
+#ccat-8:checked ~ .contenido-comp label[for="ccat-8"],
+#ccat-9:checked ~ .contenido-comp label[for="ccat-9"] { background: #0f172a; color: #fff; border-color: #0f172a; box-shadow: 0 4px 14px rgba(15,23,42,0.25); }
 
 /* ═══ CROSS TABLE ═══ */
 .cross-info { font-size: 0.75rem; color: #64748b; margin-bottom: 10px; }
@@ -897,6 +943,8 @@ tbody tr:hover { background: #f8fafc; }
 <input type="radio" name="tab" id="radio-goleadores">
 <input type="radio" name="tab" id="radio-jornadas">
 <input type="radio" name="tab" id="radio-cruzada">
+${jornadasCats.map((c, i) => `<input type="radio" name="jornada-cat" id="jcat-${i}" class="cat-radio"${i === 0 ? ' checked' : ''}>`).join('\n')}
+${cruzadaCats.map((c, i) => `<input type="radio" name="cruzada-cat" id="ccat-${i}" class="cat-radio"${i === 0 ? ' checked' : ''}>`).join('\n')}
 
 <div class="tabs-bar">
   <label class="tab-label" for="radio-proximos">📅 Partidos</label>
@@ -955,25 +1003,7 @@ tbody tr:hover { background: #f8fafc; }
 
 
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.cat-pill').forEach(function(pill) {
-    pill.addEventListener('click', function() {
-      var target = this.getAttribute('data-target');
-      var idx = this.getAttribute('data-idx');
-      // Update active pill
-      this.parentNode.querySelectorAll('.cat-pill').forEach(function(p) { p.classList.remove('cat-pill-active'); });
-      this.classList.add('cat-pill-active');
-      // Show/hide groups
-      var groupClass = target === 'jornadas' ? 'jornadas-cat-group' : 'cruzada-cat-group';
-      var dataAttr = target === 'jornadas' ? 'data-jidx' : 'data-cidx';
-      document.querySelectorAll('.' + groupClass).forEach(function(g) {
-        g.style.display = g.getAttribute(dataAttr) === idx ? '' : 'none';
-      });
-    });
-  });
-});
-</script>
+
 
 <footer class="footer">
   <div class="footer-contenido">
