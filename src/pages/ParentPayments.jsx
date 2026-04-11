@@ -454,24 +454,25 @@ export default function ParentPayments() {
   // --- Carrito de pagos ---
   const generateConceptCode = () => {
     if (cartSelected.length === 0) return '';
-    const abbr = (mes) => ({ 'Junio': 'Jun', 'Septiembre': 'Sep', 'Diciembre': 'Dic' }[mes] || mes?.slice(0,3));
-    // Agrupar por apellido y acumular meses
-    const groups = {};
-    cartSelected.forEach(({ player, payment }) => {
-      const name = (player?.nombre || '').trim();
-      const surname = name ? (name.split(' ').slice(-1)[0] || name) : 'FAMILIA';
-      const key = surname.toUpperCase();
-      if (!groups[key]) groups[key] = new Set();
-      groups[key].add(abbr(payment?.mes));
+    const abbr = (mes) => ({ 'Junio': 'JUN', 'Septiembre': 'SEP', 'Diciembre': 'DIC' }[mes] || (mes || '').slice(0,3).toUpperCase());
+    const catAbbr = (cat) => {
+      const map = { 'Pre-Benjamín': 'PRE', 'Benjamín': 'BEN', 'Alevín': 'ALE', 'Infantil': 'INF', 'Cadete': 'CAD', 'Juvenil': 'JUV', 'Aficionado': 'AFI', 'Femenino': 'FEM', 'Baloncesto': 'BAS' };
+      return Object.entries(map).find(([k]) => (cat || '').includes(k))?.[1] || '';
+    };
+    // Generar concepto con nombre completo, categoría y mes
+    const lines = cartSelected.map(({ player, payment }) => {
+      const name = (player?.nombre || '').trim().toUpperCase();
+      const cat = catAbbr(player?.deporte);
+      const mes = abbr(payment?.mes);
+      return [cat, name, mes].filter(Boolean).join(' ');
     });
-    const parts = Object.entries(groups)
-      .map(([surname, monthsSet]) => `${surname}:${Array.from(monthsSet).join('+')}`);
-    const base = `CDB ${parts.join(' | ')}`;
-    // Limitar longitud
-    if (base.length <= 60) return base;
-    const first = parts[0];
-    const restCount = parts.length - 1;
-    return `CDB ${first} +${restCount}`;
+    const base = `CDB ${lines.join(' / ')}`;
+    // Limitar longitud para campos de concepto bancario (~140 chars)
+    if (base.length <= 140) return base;
+    // Si es muy largo, acortar mostrando primer jugador + count
+    const first = lines[0];
+    const restCount = lines.length - 1;
+    return `CDB ${first}${restCount > 0 ? ` +${restCount} mas` : ''}`;  
   };
 
   const ensureRealPayments = async (selected) => {
