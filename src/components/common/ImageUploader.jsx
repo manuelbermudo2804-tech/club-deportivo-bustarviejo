@@ -1,10 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
-import { validateImage } from "../utils/imageCompressor";
-import { toast } from "sonner";
-import { logUploadStart, logUploadError, logUploadSuccess } from "../utils/uploadLogger";
 import { useImageUpload } from "../utils/useImageUpload";
 
 export default function ImageUploader({ images = [], onChange, max = 4 }) {
