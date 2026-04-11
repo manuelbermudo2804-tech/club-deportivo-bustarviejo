@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Camera, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import PasteFromClipboard from "../../upload/PasteFromClipboard";
 
 export default function StepPlayerData({
   currentPlayer,
@@ -59,37 +58,19 @@ export default function StepPlayerData({
             )}
           </div>
 
-          {/* Un solo input genérico que funciona en TODOS los dispositivos */}
           <input type="file" accept="image/*" onChange={onPhotoUpload} className="hidden" id="wiz-photo-main" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
-          {/* Input con capture para cámara directa (opción secundaria) */}
-          <input type="file" accept="image/*" capture="environment" onChange={onPhotoUpload} className="hidden" id="wiz-photo-camera" style={{ display: 'none', visibility: 'hidden', position: 'absolute', width: 0, height: 0 }} />
 
-          <div className="space-y-2">
-            <Button
-              type="button"
-              variant="default"
-              className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl text-sm"
-              style={{ minHeight: '52px', WebkitAppearance: 'none' }}
-              disabled={uploadingPhoto}
-              onClick={() => document.getElementById('wiz-photo-main').click()}
-            >
-              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-              📷 Seleccionar Foto
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full font-medium rounded-xl text-slate-500 text-xs"
-              style={{ minHeight: '40px', WebkitAppearance: 'none' }}
-              disabled={uploadingPhoto}
-              onClick={() => document.getElementById('wiz-photo-camera').click()}
-            >
-              <Camera className="w-3.5 h-3.5 mr-1" />
-              Abrir cámara directamente
-            </Button>
-          </div>
-
-
+          <Button
+            type="button"
+            variant="default"
+            className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl text-sm"
+            style={{ minHeight: '52px', WebkitAppearance: 'none' }}
+            disabled={uploadingPhoto}
+            onClick={() => document.getElementById('wiz-photo-main').click()}
+          >
+            {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+            {currentPlayer.foto_url ? 'Cambiar foto' : '📷 Seleccionar Foto'}
+          </Button>
 
           {currentPlayer.foto_url && (
             <p className="text-xs text-green-700 font-medium text-center mt-2">✅ Foto guardada correctamente</p>
@@ -97,19 +78,7 @@ export default function StepPlayerData({
 
 
           
-          {/* Pegar desde portapapeles — siempre visible si no hay foto (no esperar a fallo) */}
-          {!currentPlayer.foto_url && (
-            <div className="mt-3">
-              <PasteFromClipboard 
-                label="foto" 
-                disabled={uploadingPhoto}
-                onUploadComplete={(url) => {
-                  setCurrentPlayer(prev => ({ ...prev, foto_url: url }));
-                  if (fieldErrors.foto_url) setFieldErrors(prev => ({ ...prev, foto_url: null }));
-                }} 
-              />
-            </div>
-          )}
+
         </div>
       </div>
 

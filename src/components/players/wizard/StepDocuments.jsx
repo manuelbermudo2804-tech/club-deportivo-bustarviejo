@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, Loader2, FileText } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
-import PasteFromClipboard from "../../upload/PasteFromClipboard";
 
 export default function StepDocuments({
   currentPlayer,
@@ -98,16 +97,7 @@ export default function StepDocuments({
         onUpload={onDNIUpload}
         inputId="wiz-dni-upload"
         error={fieldErrors.dni_jugador_url}
-      >
-        {!currentPlayer.dni_jugador_url && (
-          <div className="mt-2">
-            <PasteFromClipboard label="cara delantera" disabled={uploadingDNI} onUploadComplete={(url) => {
-              setCurrentPlayer(prev => ({ ...prev, dni_jugador_url: url }));
-              if (fieldErrors.dni_jugador_url) setFieldErrors(prev => ({ ...prev, dni_jugador_url: null }));
-            }} />
-          </div>
-        )}
-      </DocumentUploadCard>
+      />
 
       {/* Cara trasera (solo DNI) */}
       {currentPlayer.tipo_documento === "DNI" && (
@@ -132,14 +122,6 @@ export default function StepDocuments({
           error={fieldErrors.libro_familia_url}
         >
           <p className="text-xs text-slate-500 mt-2">📌 Solo la página donde aparece el jugador</p>
-          {!currentPlayer.libro_familia_url && (
-            <div className="mt-2">
-              <PasteFromClipboard label="libro de familia" disabled={uploadingLibroFamilia} onUploadComplete={(url) => {
-                setCurrentPlayer(prev => ({ ...prev, libro_familia_url: url }));
-                if (fieldErrors.libro_familia_url) setFieldErrors(prev => ({ ...prev, libro_familia_url: null }));
-              }} />
-            </div>
-          )}
         </DocumentUploadCard>
       )}
 
