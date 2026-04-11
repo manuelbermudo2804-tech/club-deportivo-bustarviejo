@@ -3,63 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Copy, CheckCircle2, QrCode, CreditCard, Info } from "lucide-react";
-import { toast } from "sonner";
+import CopyButton from "./CopyButton";
 
 const CLUB_IBAN = "ES8200494447382010004048";
 const CLUB_BANK = "Banco Santander";
 
 export default function PaymentInstructions({ playerName, playerCategory, amount, paymentType, paymentMonth }) {
-  const [copied, setCopied] = useState(false);
-  
-  const generateReference = () => {
-    if (!playerName) return "";
-    
-    // Nombre completo en mayúsculas
-    const cleanName = playerName.trim().replace(/\s+/g, ' ').toUpperCase();
-    
-    // Categoría abreviada pero clara (ej: "PRE", "BEN", "ALE", "INF", "CAD", "JUV", "AFI", "FEM", "BAS")
-    const catMap = {
-      'Pre-Benjamín': 'PRE', 'Benjamín': 'BEN', 'Alevín': 'ALE',
-      'Infantil': 'INF', 'Cadete': 'CAD', 'Juvenil': 'JUV',
-      'Aficionado': 'AFI', 'Femenino': 'FEM', 'Baloncesto': 'BAS'
-    };
-    const catCode = Object.entries(catMap).find(([k]) => (playerCategory || '').includes(k))?.[1] || 'CLUB';
-    
-    // Mes/tipo de pago
-    const monthCode = paymentMonth || (paymentType === 'Único' ? 'UNICO' : '');
-    
-    // Formato: CAD GARCIA LOPEZ MARTINEZ JUN
-    const parts = [catCode, cleanName, monthCode].filter(Boolean);
-    return parts.join(' ');
-  };
-
-  const reference = generateReference();
-
-  const copyToClipboard = async (text, label) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      toast.success(`${label} copiado al portapapeles`);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Error al copiar. Por favor, copia manualmente.");
-    }
-  };
-
-  const copyAllData = async () => {
-    const fullText = `DATOS PARA TRANSFERENCIA
-━━━━━━━━━━━━━━━━━━━━━━
-IBAN: ${CLUB_IBAN}
-Banco: ${CLUB_BANK}
-Beneficiario: CD Bustarviejo
-Concepto: ${reference}
-Importe: ${amount}€
-━━━━━━━━━━━━━━━━━━━━━━
-
-⚠️ IMPORTANTE: Indica el concepto exacto para identificar el pago`;
-
-    await copyToClipboard(fullText, "Datos completos");
-  };
 
   const generateQRUrl = () => {
     const data = `IBAN: ${CLUB_IBAN}
@@ -92,14 +41,7 @@ Importe: ${amount}€`;
                 <p className="text-xs text-slate-600 font-medium mb-1">IBAN</p>
                 <p className="font-mono font-bold text-sm md:text-base text-slate-900 tracking-wider">{CLUB_IBAN}</p>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => copyToClipboard(CLUB_IBAN, "IBAN")}
-                className="ml-2"
-              >
-                {copied ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-              </Button>
+              <CopyButton text={CLUB_IBAN} className="ml-2" />
             </div>
 
             {/* Banco */}
@@ -119,14 +61,7 @@ Importe: ${amount}€`;
               <div className="p-3 bg-orange-100 rounded-lg border-2 border-orange-400">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs text-orange-900 font-bold">⚠️ CONCEPTO (Obligatorio)</p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => copyToClipboard(reference, "Concepto")}
-                    className="bg-white"
-                  >
-                    {copied ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                  </Button>
+                  <CopyButton text={reference} className="bg-white" />
                 </div>
                 <p className="font-mono font-bold text-lg text-orange-900">{reference}</p>
                 <p className="text-xs text-orange-800 mt-2">
@@ -145,13 +80,12 @@ Importe: ${amount}€`;
           </div>
 
           {/* Botón copiar todo */}
-          <Button
-            onClick={copyAllData}
+          <CopyButton
+            text={`DATOS PARA TRANSFERENCIA\n━━━━━━━━━━━━━━━━━━━━━━\nIBAN: ${CLUB_IBAN}\nBanco: ${CLUB_BANK}\nBeneficiario: CD Bustarviejo\nConcepto: ${reference}\nImporte: ${amount}€\n━━━━━━━━━━━━━━━━━━━━━━\n\n⚠️ IMPORTANTE: Indica el concepto exacto para identificar el pago`}
+            label="Copiar Todos los Datos"
             className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-6"
-          >
-            <Copy className="w-5 h-5 mr-2" />
-            Copiar Todos los Datos
-          </Button>
+            size="default"
+          />
         </div>
 
         {/* Código QR */}

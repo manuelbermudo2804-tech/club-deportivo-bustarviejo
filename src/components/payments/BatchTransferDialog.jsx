@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, Copy, CheckCircle2 } from "lucide-react";
+import CopyButton from "./CopyButton";
 
 export default function BatchTransferDialog({ open, onClose, concept, total, onConfirm }) {
   const [file, setFile] = useState(null);
@@ -25,7 +25,7 @@ export default function BatchTransferDialog({ open, onClose, concept, total, onC
                   <p className="text-xs text-slate-600">IBAN</p>
                   <p className="font-mono font-bold tracking-wider">ES8200494447382010004048</p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText('ES8200494447382010004048'); toast.success('IBAN copiado'); }}>Copiar</Button>
+                <CopyButton text="ES8200494447382010004048" />
               </div>
               <p className="text-xs text-slate-600"><strong>Banco:</strong> Banco Santander</p>
               <p className="text-xs text-slate-600"><strong>Beneficiario:</strong> CD Bustarviejo</p>
@@ -34,21 +34,16 @@ export default function BatchTransferDialog({ open, onClose, concept, total, onC
               <p className="text-xs font-bold text-orange-900 mb-1">Concepto (Obligatorio)</p>
               <div className="flex items-center justify-between gap-2">
                 <p className="font-mono font-bold text-orange-900 truncate">{concept}</p>
-                <Button size="sm" variant="outline" className="bg-white" onClick={() => { navigator.clipboard.writeText(concept); toast.success('Concepto copiado'); }}>Copiar</Button>
+                <CopyButton text={concept} className="bg-white" />
               </div>
             </div>
             <div>
-              <Button
+              <CopyButton
+                text={`DATOS PARA TRANSFERENCIA\nIBAN: ES8200494447382010004048\nBanco: Banco Santander\nBeneficiario: CD Bustarviejo\nConcepto: ${concept}\nImporte: ${total.toFixed(2)}€`}
+                label="Copiar todos los datos"
                 className="w-full"
-                variant="outline"
-                onClick={() => {
-                  const txt = `DATOS PARA TRANSFERENCIA\nIBAN: ES8200494447382010004048\nBanco: Banco Santander\nBeneficiario: CD Bustarviejo\nConcepto: ${concept}\nImporte: ${total.toFixed(2)}€`;
-                  navigator.clipboard.writeText(txt);
-                  toast.success('Todos los datos copiados');
-                }}
-              >
-                Copiar todos los datos
-              </Button>
+                size="default"
+              />
             </div>
 
             {/* QR de pago con datos */}

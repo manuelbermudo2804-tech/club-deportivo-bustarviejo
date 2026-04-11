@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Banknote, Shield, Gift, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import CopyButton from "./CopyButton";
 
 export default function PayModal({ open, onClose, player, payment, onPayCard, onPaySubscription, onChooseTransfer, onUploadTransfer }) {
   const [openingStripe, setOpeningStripe] = useState(false);
@@ -72,7 +72,7 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
                       <p className="text-xs text-slate-600">IBAN</p>
                       <p className="font-mono font-bold tracking-wider">ES8200494447382010004048</p>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText('ES8200494447382010004048'); toast.success('IBAN copiado'); }}>Copiar</Button>
+                    <CopyButton text="ES8200494447382010004048" />
                   </div>
                   <p className="text-xs text-slate-600"><strong>Banco:</strong> Banco Santander</p>
                   <p className="text-xs text-slate-600"><strong>Beneficiario:</strong> CD Bustarviejo</p>
@@ -88,7 +88,7 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
                     return (
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-mono font-bold text-orange-900 truncate">{concept}</p>
-                        <Button size="sm" variant="outline" className="bg-white" onClick={() => { navigator.clipboard.writeText(concept); toast.success('Concepto copiado'); }}>Copiar</Button>
+                        <CopyButton text={concept} className="bg-white" />
                       </div>
                     );
                   })()}
