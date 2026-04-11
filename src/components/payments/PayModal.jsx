@@ -77,11 +77,20 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
                   <p className="text-xs text-slate-600"><strong>Beneficiario:</strong> CD Bustarviejo</p>
                 </div>
                 <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-3">
-                  <p className="text-xs font-bold text-orange-900 mb-1">Concepto sugerido</p>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-mono font-bold text-orange-900 truncate">{`CDB CUOTA ${payment.mes} ${(payment.temporada||'').replace(/-/g,'/')} ${(player.nombre||'').trim().split(' ').slice(-1)[0]?.toUpperCase()}`}</p>
-                    <Button size="sm" variant="outline" className="bg-white" onClick={() => navigator.clipboard.writeText(`CDB CUOTA ${payment.mes} ${(payment.temporada||'').replace(/-/g,'/')} ${(player.nombre||'').trim().split(' ').slice(-1)[0]?.toUpperCase()}`)}>Copiar</Button>
-                  </div>
+                  <p className="text-xs font-bold text-orange-900 mb-1">Concepto (Obligatorio)</p>
+                  {(() => {
+                    const catMap = { 'Pre-Benjamín': 'PRE', 'Benjamín': 'BEN', 'Alevín': 'ALE', 'Infantil': 'INF', 'Cadete': 'CAD', 'Juvenil': 'JUV', 'Aficionado': 'AFI', 'Femenino': 'FEM', 'Baloncesto': 'BAS' };
+                    const catCode = Object.entries(catMap).find(([k]) => (player.deporte || '').includes(k))?.[1] || '';
+                    const cleanName = (player.nombre || '').trim().replace(/\s+/g, ' ').toUpperCase();
+                    const monthCode = payment.mes || '';
+                    const concept = [catCode, cleanName, monthCode].filter(Boolean).join(' ');
+                    return (
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-mono font-bold text-orange-900 truncate">{concept}</p>
+                        <Button size="sm" variant="outline" className="bg-white" onClick={() => navigator.clipboard.writeText(concept)}>Copiar</Button>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm text-slate-700">Sube el justificante para esta cuota y lo pondremos en revisión al momento.</p>
