@@ -76,11 +76,12 @@ Deno.serve(async (req) => {
       if (!grupoId) return Response.json({ skipped: 'no grupo_id' });
 
       // Skip automatic callup/cancel/reschedule chat messages — those have their own targeted push to convocados only
-      const msgBody = data.mensaje || '';
+      const msgBody = (data.mensaje || '').toLowerCase();
       if (data.tipo === 'entrenador_a_grupo' && (
-        msgBody.includes('NUEVA CONVOCATORIA') ||
-        msgBody.includes('CONVOCATORIA CANCELADA') ||
-        msgBody.includes('CONVOCATORIA REPROGRAMADA')
+        msgBody.includes('nueva convocatoria') ||
+        msgBody.includes('convocatoria cancelada') ||
+        msgBody.includes('convocatoria reprogramada') ||
+        msgBody.includes('convocatoria pendiente')
       )) {
         return Response.json({ skipped: 'callup chat notification - push handled separately for convocados only' });
       }
