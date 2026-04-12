@@ -220,24 +220,25 @@ export function buildParentNavigation(ctx) {
   const {
     programaSociosActivo, isMemberPaid, pendingCallupsCount,
     pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount,
+    onlyComplementary,
   } = ctx;
 
-  return [
+  const items = [
     ...(programaSociosActivo && isMemberPaid ? [{ title: "🎫 MI CARNET DE SOCIO", url: createPageUrl("MemberCardDisplay"), icon: Users, highlight: true }] : []),
     { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: chatMenuCounts.systemMessagesCount },
     { title: "🎓 Chat Coordinador (1-a-1)", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorForFamilyCount },
     { title: "⚽ Chat Equipo (Grupal)", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: chatMenuCounts.coachForFamilyCount },
-    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
-    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
+    ...(!onlyComplementary ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
+    ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "👥 Mis Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
-    { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+    ...(!onlyComplementary ? [{ title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy }] : []),
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
     { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },
@@ -247,12 +248,13 @@ export function buildParentNavigation(ctx) {
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
   ];
+  return items;
 }
 
 export function buildPlayerNavigation(ctx) {
   const {
     programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount,
-    chatMenuCounts, loteriaVisible, marketNewCount,
+    chatMenuCounts, loteriaVisible, marketNewCount, onlyComplementary,
   } = ctx;
 
   return [
@@ -263,14 +265,14 @@ export function buildPlayerNavigation(ctx) {
     { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: chatMenuCounts.systemMessagesCount },
     { title: "🎓 Chat Coordinador (1-a-1)", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorForFamilyCount },
     { title: "⚽ Chat Equipo (Grupal)", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: chatMenuCounts.coachForFamilyCount },
-    { title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
-    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
+    ...(!onlyComplementary ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
+    ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
-    { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
+    ...(!onlyComplementary ? [{ title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy }] : []),
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },

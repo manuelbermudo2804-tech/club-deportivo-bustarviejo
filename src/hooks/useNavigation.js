@@ -25,6 +25,7 @@ export default function useNavigation({
   loteriaVisible,
   isMemberPaid,
   programaSociosActivo,
+  onlyComplementary,
   // Notification counts
   playersNeedingReview,
   pendingSignaturesAdmin,
@@ -47,7 +48,7 @@ export default function useNavigation({
     pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible,
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders,
     marketNewCount, unresolvedAdminChats, paymentsInReview,
-    programaSociosActivo, isMemberPaid, isPlayer, user,
+    programaSociosActivo, isMemberPaid, isPlayer, user, onlyComplementary,
   };
 
   // Each role builds its own menu — memoized with relevant deps
@@ -61,10 +62,10 @@ export default function useNavigation({
     [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, user?.es_entrenador]);
 
   const parentNav = useMemo(() => buildParentNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount]);
+    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount, onlyComplementary]);
 
   const playerNav = useMemo(() => buildPlayerNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, loteriaVisible, marketNewCount]);
+    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, loteriaVisible, marketNewCount, onlyComplementary]);
 
   const treasurerNav = useMemo(() => buildTreasurerNavigation(navCtx),
     [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, unreadAnnouncementsCount, marketNewCount]);

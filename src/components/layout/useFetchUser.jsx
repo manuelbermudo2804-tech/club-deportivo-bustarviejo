@@ -21,6 +21,7 @@ export function useFetchUser(location) {
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [extraChargeVisible, setExtraChargeVisible] = useState(null);
+  const [onlyComplementary, setOnlyComplementary] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const fetchUserOnceRef = useRef(false);
   // Detectar inmediatamente si es página pública (antes de cualquier async)
@@ -332,21 +333,23 @@ export function useFetchUser(location) {
         }
       } catch (error) {}
 
+      // Detectar si SOLO tiene actividades complementarias (no competitivas)
+      try {
+        const allMyP = cachedMyPlayers || await fetchMyPlayers();
+        if (allMyP.length > 0 && currentUser.role !== 'admin' && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
+          const catConfigs = await base44.entities.CategoryConfig.filter({ activa: true }).catch(() => []);
+          const competitiveCats = new Set(catConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre));
+          const playerCats = new Set(allMyP.flatMap(p => [p.categoria_principal, p.deporte, ...(p.categorias || [])].filter(Boolean)));
+          const hasAnyCompetitive = [...playerCats].some(cat => competitiveCats.has(cat));
+          setOnlyComplementary(!hasAnyCompetitive);
+        } else {
+          setOnlyComplementary(false);
+        }
+      } catch { setOnlyComplementary(false); }
+
       // Detección de hasPlayers (reutiliza allMyPlayers cacheados)
       if (currentUser.role === "admin" || currentUser.es_entrenador || currentUser.es_coordinador || currentUser.es_tesorero) {
         setHasPlayers(currentUser.tiene_hijos_jugando === true);
-        setIsLoading(false);
-      } else if (playerDetected && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero) {
-        setHasPlayers(false);
-        setIsLoading(false);
-        const currentPath = window.location.pathname.toLowerCase();
-        if (currentPath !== '/playerdashboard' && !currentPath.includes('player')) {
-          window.location.href = createPageUrl('PlayerDashboard');
-          return;
-        }
-      } else {
-        const myPlayers = cachedMyPlayers || await fetchMyPlayers();
-        setHasPlayers(myPlayers.length > 0);
         setIsLoading(false);
 
         if (currentUser.tipo_panel === 'familia' && (currentUser.app_instalada === true || currentUser.es_segundo_progenitor === true)) {
@@ -396,7 +399,7 @@ export function useFetchUser(location) {
   return {
     user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, minorPlayerData,
     hasPlayers, playerName, isLoading, showSpecialScreen, activeSeasonConfig, isMemberPaid,
-    loteriaVisible, sponsorBannerVisible, extraChargeVisible, authChecked, isPublicPageRef,
+    loteriaVisible, sponsorBannerVisible, extraChargeVisible, onlyComplementary, authChecked, isPublicPageRef,
     executeFetch
   };
 }

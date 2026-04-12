@@ -107,7 +107,7 @@ export default function Layout({ children, currentPageName }) {
   const {
     user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, minorPlayerData,
     hasPlayers, playerName, isLoading, showSpecialScreen, activeSeasonConfig, isMemberPaid,
-    loteriaVisible, sponsorBannerVisible, extraChargeVisible, authChecked, isPublicPageRef,
+    loteriaVisible, sponsorBannerVisible, extraChargeVisible, onlyComplementary, authChecked, isPublicPageRef,
     executeFetch
   } = useFetchUser(location);
   const clothingStoreUrl = activeSeasonConfig?.tienda_ropa_url || null;
@@ -313,7 +313,7 @@ export default function Layout({ children, currentPageName }) {
 
   const navigationItems = useNavigation({
     user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, hasPlayers,
-    loteriaVisible, isMemberPaid, programaSociosActivo,
+    loteriaVisible, isMemberPaid, programaSociosActivo, onlyComplementary,
     playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses,
     chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount,
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount,

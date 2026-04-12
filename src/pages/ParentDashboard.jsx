@@ -77,6 +77,7 @@ export default function ParentDashboard() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
+  const [onlyComplementary, setOnlyComplementary] = useState(false);
   const { notifications } = useUnifiedNotifications(user);
 
 
@@ -121,6 +122,23 @@ export default function ParentDashboard() {
     refetchOnMount: false,
     enabled: !!user,
   });
+
+  // Detectar si solo tiene actividades complementarias
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['categoryConfigs-complementary'],
+    queryFn: () => base44.entities.CategoryConfig.filter({ activa: true }),
+    staleTime: 600000,
+    enabled: !!user && allPlayers.length > 0,
+  });
+
+  useEffect(() => {
+    if (allPlayers.length > 0 && categoryConfigs.length > 0) {
+      const competitiveCats = new Set(categoryConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre));
+      const playerCats = new Set(allPlayers.flatMap(p => [p.categoria_principal, p.deporte, ...(p.categorias || [])].filter(Boolean)));
+      const hasCompetitive = [...playerCats].some(cat => competitiveCats.has(cat));
+      setOnlyComplementary(!hasCompetitive);
+    }
+  }, [allPlayers, categoryConfigs]);
 
   // Ya vienen filtrados de la query — solo separar activos/inactivos
   const players = allPlayers.filter(p => p.activo === true);
@@ -330,12 +348,13 @@ export default function ParentDashboard() {
   // Determinar qué botones mostrar según configuración del usuario (BD > localStorage > default)
   const selectedButtonIds = userButtonConfig?.selected_buttons || cachedParentButtonIds || DEFAULT_PARENT_BUTTONS;
 
-  // Filtrar botones disponibles (excluir condicionales si no aplican)
+  // Filtrar botones disponibles (excluir condicionales y competición si solo complementarias)
   const availableButtons = ALL_PARENT_BUTTONS.filter(button => {
     if (button.conditional) {
       if (button.conditionKey === "loteriaVisible") return loteriaVisible;
       return false;
     }
+    if (button.competitionOnly && onlyComplementary) return false;
     return true;
   });
 
@@ -462,8 +481,8 @@ export default function ParentDashboard() {
 
 
 
-        {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der) */}
-        {!playersLoading && myPlayers.length > 0 && (
+        {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der) — solo para categorías competitivas */}
+        {!playersLoading && myPlayers.length > 0 && !onlyComplementary && (
           <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />
         )}
 
