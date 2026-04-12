@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
       }
 
       for (const coach of categoryCoaches) {
-        const title = `${emoji} Convocatoria pendiente`;
+        const title = `${emoji} [Entrenador] Convocatoria pendiente`;
         const pushBody = `${draft.categoria}: ${draft.rival || draft.titulo} es ${daysText}. Revisa y publica cuando esté lista.`;
         await sendPush(base44, coach.email, title, pushBody, '/CoachCallups', `draft-${draft.categoria}-${draft.fecha_partido}`);
 
