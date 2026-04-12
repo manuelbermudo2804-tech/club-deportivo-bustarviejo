@@ -434,9 +434,13 @@ export default function ParentDashboard() {
         {/* Desktop: header mejorado */}
         <DesktopDashboardHeader
           user={user}
-          roleName="Panel Familias"
-          roleEmoji="👨‍👩‍👧"
-          kpis={[
+          roleName={onlyComplementary ? "Mis Actividades" : "Panel Familias"}
+          roleEmoji={onlyComplementary ? "🏅" : "👨‍👩‍👧"}
+          kpis={onlyComplementary ? [
+            { icon: Users, label: "Inscritos", value: myPlayers.length, color: "from-blue-600 to-blue-700" },
+            { icon: CreditCard, label: "Pagos pendientes", value: pagosPendientesCount, color: "from-green-600 to-green-700", sub: pagosPendientesCount > 0 ? "por realizar" : null },
+            { icon: Clock, label: "Próximas clases", value: "📅", color: "from-purple-600 to-purple-700" },
+          ] : [
             { icon: Users, label: "Jugadores", value: myPlayers.length, color: "from-orange-600 to-orange-700" },
             { icon: CreditCard, label: "Pagos pendientes", value: pagosPendientesCount, color: "from-green-600 to-green-700", sub: pagosPendientesCount > 0 ? "por realizar" : null },
             { icon: Bell, label: "Convocatorias", value: pendingCallups, color: "from-yellow-600 to-yellow-700", sub: pendingCallups > 0 ? "por confirmar" : null },
@@ -539,8 +543,8 @@ export default function ParentDashboard() {
           </div>
         </Link>
 
-        {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP */}
-        {activeSeason?.bonus_femenino_activo && myPlayers && myPlayers.length > 0 && (
+        {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP (solo para familias de fútbol) */}
+        {activeSeason?.bonus_femenino_activo && myPlayers && myPlayers.length > 0 && !onlyComplementary && (
           <FemeninoShareBanner />
         )}
 

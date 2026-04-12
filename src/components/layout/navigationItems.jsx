@@ -241,7 +241,7 @@ export function buildParentNavigation(ctx) {
     ...(!onlyComplementary ? [{ title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy }] : []),
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
-    { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },
+    ...(!onlyComplementary ? [{ title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag }] : []),
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
