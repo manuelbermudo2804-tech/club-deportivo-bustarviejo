@@ -30,8 +30,9 @@ const AppRouter = () => {
   const location = useLocation();
   
   // Rutas 100% públicas (sin auth, sin layout)
+  const cleanPath = location.pathname.replace(/\/+$/, '');
   const publicPaths = ['/PublicMemberCard', '/FamilyPresentation'];
-  if (publicPaths.includes(location.pathname)) {
+  if (publicPaths.includes(cleanPath)) {
     return (
       <Routes>
         <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
@@ -90,7 +91,6 @@ const AuthenticatedApp = () => {
       <Route path="/CreditUsage" element={<LayoutWrapper currentPageName="CreditUsage"><CreditUsage /></LayoutWrapper>} />
       <Route path="/PushBadgeTest" element={<LayoutWrapper currentPageName="PushBadgeTest"><PushBadgeTest /></LayoutWrapper>} />
       <Route path="/PushStats" element={<LayoutWrapper currentPageName="PushStats"><PushStats /></LayoutWrapper>} />
-      <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
       <Route path="/SocialHub" element={<LayoutWrapper currentPageName="SocialHub"><SocialHub /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
