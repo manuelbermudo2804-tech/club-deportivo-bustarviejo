@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Maximize, Minimize } from "lucide-react";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
-const card = "bg-white/10 backdrop-blur-sm rounded-2xl md:rounded-3xl border border-white/20 p-4 md:p-8";
+const card = "bg-white/10 backdrop-blur-sm rounded-xl md:rounded-3xl border border-white/20 p-3 md:p-8";
 
 const slides = [
   // ===== 1. BIENVENIDA =====
@@ -26,31 +26,31 @@ const slides = [
     id: "not_extraescolar",
     bg: "from-red-800 via-red-900 to-slate-900",
     content: (
-      <div className="flex flex-col justify-center h-full text-white px-4 md:px-[4vw] py-4 md:py-[2vh]">
-        <div className="text-center mb-4 md:mb-[3vh]">
-          <p className="text-[5vw] md:text-[2.5vw] opacity-60 line-through mb-1 md:mb-2">"Es como una extraescolar, ¿no?"</p>
-          <h2 className="text-[9vw] md:text-[5.5vw] font-black leading-none">🚫 NO.</h2>
-          <div className="w-32 md:w-48 h-1 bg-red-500 mx-auto mt-2 md:mt-4 rounded-full" />
+      <div className="flex flex-col justify-center h-full text-white px-4 md:px-[4vw] py-2 md:py-[2vh]">
+        <div className="text-center mb-2 md:mb-[3vh]">
+          <p className="text-[3.5vw] md:text-[2.5vw] opacity-60 line-through mb-1">"Es como una extraescolar, ¿no?"</p>
+          <h2 className="text-[8vw] md:text-[5.5vw] font-black leading-none">🚫 NO.</h2>
+          <div className="w-24 md:w-48 h-1 bg-red-500 mx-auto mt-1 md:mt-4 rounded-full" />
         </div>
 
-        <div className="bg-white/10 border-2 border-red-400/40 rounded-2xl md:rounded-3xl p-4 md:p-[3vw] mb-4 md:mb-[3vh]">
-          <h3 className="text-[5.5vw] md:text-[3vw] font-black text-center mb-3 md:mb-[2vh]">Somos una Asociación Sin Ánimo de Lucro</h3>
-          <div className="space-y-3 md:space-y-[2vh]">
+        <div className="bg-white/10 border-2 border-red-400/40 rounded-xl md:rounded-3xl p-3 md:p-[3vw] mb-2 md:mb-[3vh]">
+          <h3 className="text-[4.5vw] md:text-[3vw] font-black text-center mb-2 md:mb-[2vh]">Somos una Asociación Sin Ánimo de Lucro</h3>
+          <div className="space-y-2 md:space-y-[2vh]">
             {[
               { icon: "🏛️", text: "Una entidad legalmente constituida — no un servicio que se contrata" },
               { icon: "🤝", text: "Un proyecto COMUNITARIO que existe porque personas del pueblo decidieron crearlo" },
               { icon: "❤️", text: "Aquí no hay clientes. Hay FAMILIAS que forman parte de algo más grande" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2 md:gap-[1.5vw]">
-                <span className="text-[6vw] md:text-[3.5vw] flex-shrink-0">{item.icon}</span>
-                <p className="text-[3.8vw] md:text-[2.2vw] leading-snug opacity-90">{item.text}</p>
+                <span className="text-[5vw] md:text-[3.5vw] flex-shrink-0">{item.icon}</span>
+                <p className="text-[3.2vw] md:text-[2.2vw] leading-snug opacity-90">{item.text}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-yellow-500/20 border border-yellow-400/40 rounded-2xl md:rounded-3xl p-3 md:p-[2vw] text-center">
-          <p className="text-[4.5vw] md:text-[2.5vw] font-black">⚠️ Una extraescolar cobra, da un servicio y se desentiende.<br/>Nosotros pedimos IMPLICACIÓN porque esto es DE TODOS.</p>
+        <div className="bg-yellow-500/20 border border-yellow-400/40 rounded-xl md:rounded-3xl p-2.5 md:p-[2vw] text-center">
+          <p className="text-[3.5vw] md:text-[2.5vw] font-black">⚠️ Una extraescolar cobra y se desentiende.<br/>Nosotros pedimos IMPLICACIÓN porque es DE TODOS.</p>
         </div>
       </div>
     ),
@@ -61,40 +61,40 @@ const slides = [
     id: "how_we_survive",
     bg: "from-slate-900 via-slate-800 to-emerald-900",
     content: (
-      <div className="flex flex-col justify-center h-full text-white px-4 md:px-[4vw] py-4 md:py-[2vh]">
-        <h2 className="text-[8vw] md:text-[5vw] font-black text-center mb-2 md:mb-[1.5vh] leading-none">💰 ¿Cómo sobrevive el club?</h2>
-        <p className="text-[4vw] md:text-[2.2vw] opacity-70 text-center mb-4 md:mb-[3vh]">Con total transparencia</p>
+      <div className="flex flex-col justify-center h-full text-white px-4 md:px-[4vw] py-2 md:py-[2vh]">
+        <h2 className="text-[6.5vw] md:text-[5vw] font-black text-center mb-1 md:mb-[1.5vh] leading-none">💰 ¿Cómo sobrevive el club?</h2>
+        <p className="text-[3.2vw] md:text-[2.2vw] opacity-70 text-center mb-2 md:mb-[3vh]">Con total transparencia</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-[2vw] mb-4 md:mb-[3vh]">
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-[2vw] mb-2 md:mb-[3vh]">
           <div className={`${card} border-green-400/30`}>
-            <h3 className="text-[5vw] md:text-[2.8vw] font-bold mb-2 md:mb-[1.5vh]">💚 Nuestros ingresos</h3>
-            <div className="space-y-2 md:space-y-[1.5vh]">
-              <p className="text-[3.5vw] md:text-[2vw]">📋 <strong>Cuotas de las familias</strong> — nuestra base principal</p>
-              <p className="text-[3.5vw] md:text-[2vw]">🏛️ <strong>Pequeña subvención del Ayuntamiento</strong> — ayuda, pero no es suficiente</p>
-              <p className="text-[3.5vw] md:text-[2vw]">🤝 <strong>Patrocinadores locales</strong> — colaboraciones puntuales</p>
+            <h3 className="text-[3.8vw] md:text-[2.8vw] font-bold mb-1 md:mb-[1.5vh]">💚 Ingresos</h3>
+            <div className="space-y-1 md:space-y-[1.5vh]">
+              <p className="text-[2.8vw] md:text-[2vw]">📋 <strong>Cuotas familias</strong></p>
+              <p className="text-[2.8vw] md:text-[2vw]">🏛️ <strong>Subvención Ayto.</strong></p>
+              <p className="text-[2.8vw] md:text-[2vw]">🤝 <strong>Patrocinadores</strong></p>
             </div>
           </div>
 
           <div className={`${card} border-orange-400/30`}>
-            <h3 className="text-[5vw] md:text-[2.8vw] font-bold mb-2 md:mb-[1.5vh]">🔥 Nuestros gastos</h3>
-            <div className="space-y-2 md:space-y-[1.5vh]">
-              <p className="text-[3.5vw] md:text-[2vw]">⚽ Federación, seguros, árbitros</p>
-              <p className="text-[3.5vw] md:text-[2vw]">🏟️ Mantenimiento de instalaciones</p>
-              <p className="text-[3.5vw] md:text-[2vw]">👕 Material deportivo y equipación</p>
-              <p className="text-[3.5vw] md:text-[2vw]">📱 Herramientas de gestión (app, etc.)</p>
+            <h3 className="text-[3.8vw] md:text-[2.8vw] font-bold mb-1 md:mb-[1.5vh]">🔥 Gastos</h3>
+            <div className="space-y-1 md:space-y-[1.5vh]">
+              <p className="text-[2.8vw] md:text-[2vw]">⚽ Federación, árbitros</p>
+              <p className="text-[2.8vw] md:text-[2vw]">🏟️ Instalaciones</p>
+              <p className="text-[2.8vw] md:text-[2vw]">👕 Material deportivo</p>
+              <p className="text-[2.8vw] md:text-[2vw]">📱 App y gestión</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-red-500/20 border-2 border-red-400/40 rounded-2xl md:rounded-3xl p-3 md:p-[2vw]">
-          <div className="space-y-2 md:space-y-[1.5vh]">
+        <div className="bg-red-500/20 border-2 border-red-400/40 rounded-xl md:rounded-3xl p-2.5 md:p-[2vw]">
+          <div className="space-y-1.5 md:space-y-[1.5vh]">
             <div className="flex items-start gap-2 md:gap-[1vw]">
-              <span className="text-[5vw] md:text-[3vw] flex-shrink-0">👷</span>
-              <p className="text-[3.5vw] md:text-[2.2vw]"><strong>Solo 2 personas reciben una pequeña compensación</strong> (coordinador y un entrenador, unas horas). El resto de entrenadores y toda la junta directiva son <strong>100% voluntarios</strong>.</p>
+              <span className="text-[4vw] md:text-[3vw] flex-shrink-0">👷</span>
+              <p className="text-[3vw] md:text-[2.2vw]"><strong>Solo 2 personas reciben compensación</strong>. El resto de entrenadores y la junta son <strong>100% voluntarios</strong>.</p>
             </div>
             <div className="flex items-start gap-2 md:gap-[1vw]">
-              <span className="text-[5vw] md:text-[3vw] flex-shrink-0">⏰</span>
-              <p className="text-[3.5vw] md:text-[2.2vw]">Personas que dedican <strong>su tiempo libre</strong> — tardes, fines de semana, festivos — por los niños y niñas del pueblo.</p>
+              <span className="text-[4vw] md:text-[3vw] flex-shrink-0">⏰</span>
+              <p className="text-[3vw] md:text-[2.2vw]">Personas que dedican <strong>su tiempo libre</strong> por los niños del pueblo.</p>
             </div>
           </div>
         </div>
@@ -107,36 +107,51 @@ const slides = [
     id: "projects",
     bg: "from-emerald-700 via-teal-800 to-slate-900",
     content: (
-      <div className="flex flex-col justify-center h-full text-white px-4 md:px-[4vw] py-4 md:py-[2vh]">
-        <h2 className="text-[8vw] md:text-[5vw] font-black text-center mb-2 md:mb-[1.5vh] leading-none">🚀 Proyectos en marcha</h2>
-        <p className="text-[4vw] md:text-[2.2vw] opacity-70 text-center mb-4 md:mb-[3vh]">Vuestras cuotas se invierten en mejorar</p>
+      <div className="flex flex-col justify-center h-full text-white px-4 md:px-[4vw] py-2 md:py-[2vh]">
+        <h2 className="text-[6.5vw] md:text-[5vw] font-black text-center mb-1 md:mb-[1.5vh] leading-none">🚀 Proyectos en marcha</h2>
+        <p className="text-[3.2vw] md:text-[2.2vw] opacity-70 text-center mb-2 md:mb-[3vh]">Vuestras cuotas se invierten en mejorar</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-[2vw] mb-4 md:mb-[3vh]">
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-[2vw] mb-2 md:mb-[3vh]">
           {[
-            { icon: "🚶", title: "Acera para subir al campo", desc: "Acceso seguro para familias y jugadores", status: "En desarrollo" },
-            { icon: "🛡️", title: "Protecciones de las vallas", desc: "Seguridad en todo el perímetro del campo", status: "En desarrollo" },
-            { icon: "🏟️", title: "Gradas y zona de entrenamientos", desc: "Proyecto de mejora integral de las instalaciones", status: "En proyecto" },
-            { icon: "👕", title: "Cambio de proveedor de ropa", desc: "Mejor calidad y precios más competitivos", status: "Próx. temporada" },
+            { icon: "🚶", title: "Acera al campo", desc: "Acceso seguro", status: "En desarrollo" },
+            { icon: "🛡️", title: "Vallas protegidas", desc: "Seguridad perímetro", status: "En desarrollo" },
+            { icon: "🏟️", title: "Gradas nuevas", desc: "Mejora instalaciones", status: "En proyecto" },
+            { icon: "👕", title: "Nuevo proveedor ropa", desc: "Mejor calidad/precio", status: "Próx. temporada" },
           ].map((item, i) => (
             <div key={i} className={card}>
-              <div className="flex items-center gap-2 md:gap-[1vw] mb-1 md:mb-2">
-                <span className="text-[6vw] md:text-[3.5vw]">{item.icon}</span>
-                <h3 className="text-[4.5vw] md:text-[2.5vw] font-bold">{item.title}</h3>
+              <div className="flex items-center gap-1 md:gap-[1vw] mb-0.5 md:mb-2">
+                <span className="text-[4.5vw] md:text-[3.5vw]">{item.icon}</span>
+                <h3 className="text-[3.2vw] md:text-[2.5vw] font-bold leading-tight">{item.title}</h3>
               </div>
-              <p className="text-[3.5vw] md:text-[1.8vw] opacity-80 mb-1 md:mb-2">{item.desc}</p>
-              <span className="inline-block bg-emerald-500/30 border border-emerald-400/40 rounded-full px-2 md:px-3 py-0.5 md:py-1 text-[2.8vw] md:text-[1.4vw] font-semibold">{item.status}</span>
+              <p className="text-[2.8vw] md:text-[1.8vw] opacity-80 mb-0.5 md:mb-2">{item.desc}</p>
+              <span className="inline-block bg-emerald-500/30 border border-emerald-400/40 rounded-full px-1.5 md:px-3 py-0.5 text-[2.5vw] md:text-[1.4vw] font-semibold">{item.status}</span>
             </div>
           ))}
         </div>
 
         <div className={`${card} text-center`}>
-          <p className="text-[4vw] md:text-[2.2vw]">💡 Todas las iniciativas buscan <strong>mejorar el club minimizando el impacto económico</strong> en las familias. Cada decisión se medita.</p>
+          <p className="text-[3.2vw] md:text-[2.2vw]">💡 Todas las iniciativas buscan <strong>mejorar el club minimizando el impacto económico</strong> en las familias.</p>
         </div>
       </div>
     ),
   },
 
-  // ===== 5. POR QUÉ LA APP =====
+  // ===== 5. TRANSICIÓN: Y AHORA... LA APP =====
+  {
+    id: "transition",
+    bg: "from-slate-900 via-orange-900 to-slate-900",
+    content: (
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-6 md:px-[4vw]">
+        <div className="text-[15vw] md:text-[10vw] mb-4 md:mb-8">📱</div>
+        <h2 className="text-[8vw] md:text-[6vw] font-black leading-none mb-3 md:mb-6">Y para gestionar<br/>todo esto...</h2>
+        <div className="w-24 md:w-48 h-1 bg-orange-500 rounded-full mb-3 md:mb-6" />
+        <p className="text-[5vw] md:text-[3.5vw] font-bold opacity-90">Hemos creado una app</p>
+        <p className="text-[3.5vw] md:text-[2.5vw] opacity-60 mt-2 md:mt-4">que lo cambia todo →</p>
+      </div>
+    ),
+  },
+
+  // ===== 6. POR QUÉ LA APP =====
   {
     id: "why_needed",
     bg: "from-red-700 to-red-900",
@@ -563,10 +578,24 @@ export default function FamilyPresentation() {
   const [current, setCurrent] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
+  const [transitioning, setTransitioning] = useState(false);
   const total = slides.length;
 
-  const goNext = useCallback(() => setCurrent((c) => Math.min(c + 1, total - 1)), [total]);
-  const goPrev = useCallback(() => setCurrent((c) => Math.max(c - 1, 0)), []);
+  const goTo = useCallback((idx) => {
+    if (transitioning) return;
+    setTransitioning(true);
+    setTimeout(() => {
+      setCurrent(idx);
+      setTimeout(() => setTransitioning(false), 50);
+    }, 200);
+  }, [transitioning]);
+
+  const goNext = useCallback(() => {
+    if (current < total - 1) goTo(current + 1);
+  }, [current, total, goTo]);
+  const goPrev = useCallback(() => {
+    if (current > 0) goTo(current - 1);
+  }, [current, goTo]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -615,8 +644,13 @@ export default function FamilyPresentation() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Scrollable content */}
-      <div className="h-full w-full overflow-y-auto pb-12 md:pb-16">{slide.content}</div>
+      {/* Scrollable content with fade transition */}
+      <div
+        className="h-full w-full overflow-y-auto pb-12 md:pb-16 transition-opacity duration-200"
+        style={{ opacity: transitioning ? 0 : 1 }}
+      >
+        {slide.content}
+      </div>
 
       {/* Desktop nav arrows */}
       {current > 0 && (
@@ -637,7 +671,7 @@ export default function FamilyPresentation() {
           {slides.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrent(i)}
+              onClick={() => goTo(i)}
               className={`rounded-full transition-all ${i === current ? "bg-white scale-150" : "bg-white/40 hover:bg-white/60"}`}
               style={{width:'0.8vw', height:'0.8vw'}}
             />
