@@ -30,11 +30,12 @@ const AppRouter = () => {
   const location = useLocation();
   
   // Rutas 100% públicas (sin auth, sin layout)
-  const publicPaths = ['/PublicMemberCard'];
+  const publicPaths = ['/PublicMemberCard', '/FamilyPresentation'];
   if (publicPaths.includes(location.pathname)) {
     return (
       <Routes>
         <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
+        <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
       </Routes>
     );
   }
