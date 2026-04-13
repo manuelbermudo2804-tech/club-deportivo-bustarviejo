@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from "lucide-react";
-// v2 — 18 slides including clothing shop
+// v3 — TV/projector mode: all text scaled up for 300-person auditorium
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -10,13 +10,13 @@ const slides = [
     id: "welcome",
     bg: "from-orange-600 via-orange-700 to-green-700",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
-        <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-32 h-32 rounded-full border-4 border-white/40 shadow-2xl mb-8" />
-        <h1 className="text-5xl md:text-7xl font-black mb-4 drop-shadow-lg">CD Bustarviejo</h1>
-        <p className="text-2xl md:text-3xl font-light opacity-90 mb-2">Nueva App del Club</p>
-        <p className="text-lg md:text-xl opacity-90 mt-2 font-semibold">Temporada 2026–2027</p>
-        <p className="text-base opacity-70 mt-4">Reunión de Familias</p>
-        <div className="mt-12 animate-bounce opacity-60 text-sm">Pulsa → para avanzar</div>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12">
+        <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-48 h-48 rounded-full border-4 border-white/40 shadow-2xl mb-10" />
+        <h1 className="text-7xl lg:text-9xl font-black mb-6 drop-shadow-lg leading-tight">CD Bustarviejo</h1>
+        <p className="text-4xl lg:text-5xl font-light opacity-90 mb-3">Nueva App del Club</p>
+        <p className="text-3xl opacity-90 mt-3 font-semibold">Temporada 2026–2027</p>
+        <p className="text-2xl opacity-70 mt-6">Reunión de Familias</p>
+        <div className="mt-16 animate-bounce opacity-60 text-2xl">Pulsa → para avanzar</div>
       </div>
     ),
   },
@@ -26,21 +26,21 @@ const slides = [
     id: "why_needed",
     bg: "from-red-700 to-red-900",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">🚨</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-6">¿Por qué necesitamos esta app?</h2>
-        <div className="flex flex-col gap-5 w-full max-w-2xl text-left">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-            <p className="text-lg font-bold mb-2">📋 Gestión imposible sin ella</p>
-            <p className="text-sm opacity-85">Con alrededor de 130 jugadores y familias — y con la esperanza de seguir creciendo — necesitamos una herramienta centralizada. No podemos seguir con papeles, llamadas y mensajes dispersos.</p>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">🚨</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-10">¿Por qué necesitamos esta app?</h2>
+        <div className="flex flex-col gap-6 w-full max-w-5xl text-left">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+            <p className="text-3xl font-bold mb-3">📋 Gestión imposible sin ella</p>
+            <p className="text-2xl opacity-85 leading-relaxed">Con alrededor de 130 jugadores y familias — y con la esperanza de seguir creciendo — necesitamos una herramienta centralizada. No podemos seguir con papeles, llamadas y mensajes dispersos.</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-            <p className="text-lg font-bold mb-2">💬 WhatsApp genera problemas</p>
-            <p className="text-sm opacity-85">Los grupos de WhatsApp se descontrolan, se pierde información, hay malentendidos y no hay forma de gestionar pagos, convocatorias ni asistencia por ahí.</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+            <p className="text-3xl font-bold mb-3">💬 WhatsApp genera problemas</p>
+            <p className="text-2xl opacity-85 leading-relaxed">Los grupos de WhatsApp se descontrolan, se pierde información, hay malentendidos y no hay forma de gestionar pagos, convocatorias ni asistencia por ahí.</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-            <p className="text-lg font-bold mb-2">⚖️ Igualdad y transparencia</p>
-            <p className="text-sm opacity-85">Todos los padres reciben la misma información al mismo tiempo. Sin favoritismos, sin "a mí no me han dicho nada".</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+            <p className="text-3xl font-bold mb-3">⚖️ Igualdad y transparencia</p>
+            <p className="text-2xl opacity-85 leading-relaxed">Todos los padres reciben la misma información al mismo tiempo. Sin favoritismos, sin "a mí no me han dicho nada".</p>
           </div>
         </div>
       </div>
@@ -52,36 +52,36 @@ const slides = [
     id: "mandatory",
     bg: "from-slate-900 to-slate-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-7xl mb-6">⚠️</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-6">Es OBLIGATORIA</h2>
-        <p className="text-xl opacity-90 mb-8">No es opcional. Es el único canal oficial del club.</p>
-        <div className="bg-red-500/20 border-2 border-red-400/40 rounded-2xl p-8 max-w-2xl w-full mb-6">
-          <div className="flex flex-col gap-4 text-left">
-            <div className="flex items-start gap-4">
-              <span className="text-3xl flex-shrink-0">📱</span>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">⚠️</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Es OBLIGATORIA</h2>
+        <p className="text-3xl opacity-90 mb-10">No es opcional. Es el único canal oficial del club.</p>
+        <div className="bg-red-500/20 border-2 border-red-400/40 rounded-3xl p-10 max-w-5xl w-full mb-8">
+          <div className="flex flex-col gap-8 text-left">
+            <div className="flex items-start gap-6">
+              <span className="text-5xl flex-shrink-0">📱</span>
               <div>
-                <p className="font-bold text-lg">Sin app → No puedes inscribir a tus hijos</p>
-                <p className="text-sm opacity-80">Las inscripciones se hacen exclusivamente por la app</p>
+                <p className="font-bold text-3xl">Sin app → No puedes inscribir a tus hijos</p>
+                <p className="text-2xl opacity-80 mt-1">Las inscripciones se hacen exclusivamente por la app</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <span className="text-3xl flex-shrink-0">💳</span>
+            <div className="flex items-start gap-6">
+              <span className="text-5xl flex-shrink-0">💳</span>
               <div>
-                <p className="font-bold text-lg">Sin inscripción → No puedes pagar</p>
-                <p className="text-sm opacity-80">Los pagos se gestionan dentro de la app</p>
+                <p className="font-bold text-3xl">Sin inscripción → No puedes pagar</p>
+                <p className="text-2xl opacity-80 mt-1">Los pagos se gestionan dentro de la app</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <span className="text-3xl flex-shrink-0">💛</span>
+            <div className="flex items-start gap-6">
+              <span className="text-5xl flex-shrink-0">💛</span>
               <div>
-                <p className="font-bold text-lg">Sin pagar → Problema para todos</p>
-                <p className="text-sm opacity-80">El club siempre escucha a familias con dificultades. Hablad con nosotros. Pero los impagos acumulados son un problema serio que afecta a todo el club.</p>
+                <p className="font-bold text-3xl">Sin pagar → Problema para todos</p>
+                <p className="text-2xl opacity-80 mt-1">El club siempre escucha a familias con dificultades. Hablad con nosotros.</p>
               </div>
             </div>
           </div>
         </div>
-        <p className="text-sm opacity-60 max-w-lg">No queremos ser estrictos — queremos que funcione para todos. Si tenéis cualquier problema, hablad con nosotros.</p>
+        <p className="text-xl opacity-60 max-w-3xl">No queremos ser estrictos — queremos que funcione para todos. Si tenéis cualquier problema, hablad con nosotros.</p>
       </div>
     ),
   },
@@ -91,29 +91,29 @@ const slides = [
     id: "free",
     bg: "from-green-600 to-emerald-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-7xl mb-6">🆓</div>
-        <h2 className="text-4xl md:text-6xl font-black mb-4">Pero... ¡es 100% GRATUITA!</h2>
-        <p className="text-xl md:text-2xl opacity-90 mb-8">No cuesta nada. Ni ahora ni nunca.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-3xl mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-3xl mb-3">💰</div>
-            <p className="font-bold">0€</p>
-            <p className="text-xs opacity-80 mt-1">Sin coste para las familias</p>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">🆓</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Pero... ¡es 100% GRATUITA!</h2>
+        <p className="text-3xl opacity-90 mb-10">No cuesta nada. Ni ahora ni nunca.</p>
+        <div className="grid grid-cols-3 gap-8 w-full max-w-5xl mb-10">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10 text-center">
+            <div className="text-5xl mb-4">💰</div>
+            <p className="font-bold text-4xl">0€</p>
+            <p className="text-xl opacity-80 mt-2">Sin coste para las familias</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-3xl mb-3">📱</div>
-            <p className="font-bold">Solo necesitas tu móvil</p>
-            <p className="text-xs opacity-80 mt-1">Y un email para acceder</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10 text-center">
+            <div className="text-5xl mb-4">📱</div>
+            <p className="font-bold text-2xl">Solo tu móvil</p>
+            <p className="text-xl opacity-80 mt-2">Y un email para acceder</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-3xl mb-3">⏱️</div>
-            <p className="font-bold">5 minutos</p>
-            <p className="text-xs opacity-80 mt-1">Es lo que tardas en instalarla</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10 text-center">
+            <div className="text-5xl mb-4">⏱️</div>
+            <p className="font-bold text-4xl">5 min</p>
+            <p className="text-xl opacity-80 mt-2">Es lo que tardas en instalarla</p>
           </div>
         </div>
-        <div className="bg-white/15 backdrop-blur-sm rounded-xl p-5 max-w-2xl border border-white/20">
-          <p className="text-sm">💚 El club ha invertido en esta herramienta para facilitaros la vida. Solo necesitamos que <strong>todas las familias colaboren usándola</strong>.</p>
+        <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 max-w-4xl border border-white/20">
+          <p className="text-2xl">💚 El club ha invertido en esta herramienta para facilitaros la vida. Solo necesitamos que <strong>todas las familias colaboren usándola</strong>.</p>
         </div>
       </div>
     ),
@@ -124,11 +124,11 @@ const slides = [
     id: "bye_whatsapp",
     bg: "from-slate-800 to-slate-900",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">🔄</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Adiós WhatsApp, emails y papeles</h2>
-        <p className="text-xl opacity-80 mb-8">Todo en un solo sitio</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-3xl">
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">🔄</div>
+        <h2 className="text-6xl lg:text-7xl font-black mb-6">Adiós WhatsApp, emails y papeles</h2>
+        <p className="text-3xl opacity-80 mb-10">Todo en un solo sitio</p>
+        <div className="grid grid-cols-2 gap-6 w-full max-w-5xl">
           {[
             { icon: "💬", old: "Grupos de WhatsApp", now: "Chat integrado por categoría (controlado)" },
             { icon: "📧", old: "Emails y circulares", now: "Anuncios y notificaciones al instante" },
@@ -137,12 +137,12 @@ const slides = [
             { icon: "📅", old: "Calendarios dispersos", now: "Calendario unificado del club" },
             { icon: "📞", old: "Llamadas para todo", now: "Chat directo con entrenador y coordinador" },
           ].map((item, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-5 text-left border border-white/10">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">{item.icon}</span>
-                <span className="text-red-400 line-through text-sm">{item.old}</span>
+            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
+              <div className="flex items-center gap-4 mb-3">
+                <span className="text-4xl">{item.icon}</span>
+                <span className="text-red-400 line-through text-2xl">{item.old}</span>
               </div>
-              <p className="text-green-400 font-bold text-sm">✅ {item.now}</p>
+              <p className="text-green-400 font-bold text-2xl">✅ {item.now}</p>
             </div>
           ))}
         </div>
@@ -155,30 +155,30 @@ const slides = [
     id: "screenshots",
     bg: "from-gray-900 to-gray-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-5xl mx-auto">
-        <div className="text-6xl mb-4">📱</div>
-        <h2 className="text-3xl md:text-5xl font-black mb-6">Así se ve la app por dentro</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl">
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-6">📱</div>
+        <h2 className="text-5xl lg:text-7xl font-black mb-8">Así se ve la app por dentro</h2>
+        <div className="grid grid-cols-4 gap-6 w-full max-w-6xl">
           {[
             { label: "Panel principal", icon: "🏠", items: ["Próximos partidos", "Alertas y avisos", "Accesos rápidos", "Chat y anuncios"] },
             { label: "Convocatorias", icon: "🏆", items: ["Rival y hora", "Confirmar asistencia", "Transporte", "Cómo llegar"] },
             { label: "Chat de equipo", icon: "💬", items: ["Mensajes grupales", "Fotos y archivos", "Encuestas rápidas", "Audio y emojis"] },
             { label: "Mis pagos", icon: "💳", items: ["Estado de cuotas", "Subir justificante", "Histórico", "Recibos PDF"] },
           ].map((item, i) => (
-            <div key={i} className="flex flex-col items-center gap-2">
-              <div className="bg-gradient-to-b from-white/15 to-white/5 rounded-2xl border-2 border-white/20 p-5 shadow-2xl w-full" style={{aspectRatio:'9/16', display:'flex', flexDirection:'column', justifyContent:'center'}}>
-                <div className="text-4xl mb-3">{item.icon}</div>
-                <div className="space-y-2">
+            <div key={i} className="flex flex-col items-center gap-3">
+              <div className="bg-gradient-to-b from-white/15 to-white/5 rounded-3xl border-2 border-white/20 p-6 shadow-2xl w-full" style={{aspectRatio:'9/16', display:'flex', flexDirection:'column', justifyContent:'center'}}>
+                <div className="text-6xl mb-4">{item.icon}</div>
+                <div className="space-y-3">
                   {item.items.map((line, j) => (
-                    <div key={j} className="bg-white/10 rounded-lg px-3 py-2 text-xs text-left">{line}</div>
+                    <div key={j} className="bg-white/10 rounded-xl px-4 py-3 text-xl text-left">{line}</div>
                   ))}
                 </div>
               </div>
-              <span className="text-xs font-bold opacity-70">{item.label}</span>
+              <span className="text-xl font-bold opacity-70">{item.label}</span>
             </div>
           ))}
         </div>
-        <p className="text-sm opacity-60 mt-6">👉 En la demo en vivo veréis la app real funcionando</p>
+        <p className="text-xl opacity-60 mt-8">👉 En la demo en vivo veréis la app real funcionando</p>
       </div>
     ),
   },
@@ -188,31 +188,31 @@ const slides = [
     id: "install",
     bg: "from-blue-600 to-blue-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">📲</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Cómo instalar la app</h2>
-        <p className="text-xl opacity-80 mb-8">NO es de tienda — se instala desde el navegador en 1 minuto</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
-            <div className="text-4xl mb-4">🍎</div>
-            <h3 className="font-bold text-xl mb-4">iPhone / iPad</h3>
-            <ol className="text-left space-y-3 text-sm">
-              <li className="flex gap-2"><span className="font-bold text-blue-300">1.</span> Abrir <strong>Safari</strong> (obligatorio)</li>
-              <li className="flex gap-2"><span className="font-bold text-blue-300">2.</span> Ir al enlace de la app</li>
-              <li className="flex gap-2"><span className="font-bold text-blue-300">3.</span> Pulsar ⬆️ (compartir)</li>
-              <li className="flex gap-2"><span className="font-bold text-blue-300">4.</span> "Añadir a pantalla de inicio"</li>
-              <li className="flex gap-2"><span className="font-bold text-blue-300">5.</span> Confirmar → ¡Listo!</li>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">📲</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Cómo instalar la app</h2>
+        <p className="text-3xl opacity-80 mb-10">NO es de tienda — se instala desde el navegador en 1 minuto</p>
+        <div className="grid grid-cols-2 gap-10 w-full max-w-5xl">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/10">
+            <div className="text-6xl mb-6">🍎</div>
+            <h3 className="font-bold text-4xl mb-6">iPhone / iPad</h3>
+            <ol className="text-left space-y-5 text-2xl">
+              <li className="flex gap-3"><span className="font-bold text-blue-300">1.</span> Abrir <strong>Safari</strong> (obligatorio)</li>
+              <li className="flex gap-3"><span className="font-bold text-blue-300">2.</span> Ir al enlace de la app</li>
+              <li className="flex gap-3"><span className="font-bold text-blue-300">3.</span> Pulsar ⬆️ (compartir)</li>
+              <li className="flex gap-3"><span className="font-bold text-blue-300">4.</span> "Añadir a pantalla de inicio"</li>
+              <li className="flex gap-3"><span className="font-bold text-blue-300">5.</span> Confirmar → ¡Listo!</li>
             </ol>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
-            <div className="text-4xl mb-4">🤖</div>
-            <h3 className="font-bold text-xl mb-4">Android</h3>
-            <ol className="text-left space-y-3 text-sm">
-              <li className="flex gap-2"><span className="font-bold text-green-300">1.</span> Abrir <strong>Chrome</strong></li>
-              <li className="flex gap-2"><span className="font-bold text-green-300">2.</span> Ir al enlace de la app</li>
-              <li className="flex gap-2"><span className="font-bold text-green-300">3.</span> Pulsar ⋮ (3 puntos)</li>
-              <li className="flex gap-2"><span className="font-bold text-green-300">4.</span> "Instalar aplicación"</li>
-              <li className="flex gap-2"><span className="font-bold text-green-300">5.</span> Confirmar → ¡Listo!</li>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/10">
+            <div className="text-6xl mb-6">🤖</div>
+            <h3 className="font-bold text-4xl mb-6">Android</h3>
+            <ol className="text-left space-y-5 text-2xl">
+              <li className="flex gap-3"><span className="font-bold text-green-300">1.</span> Abrir <strong>Chrome</strong></li>
+              <li className="flex gap-3"><span className="font-bold text-green-300">2.</span> Ir al enlace de la app</li>
+              <li className="flex gap-3"><span className="font-bold text-green-300">3.</span> Pulsar ⋮ (3 puntos)</li>
+              <li className="flex gap-3"><span className="font-bold text-green-300">4.</span> "Instalar aplicación"</li>
+              <li className="flex gap-3"><span className="font-bold text-green-300">5.</span> Confirmar → ¡Listo!</li>
             </ol>
           </div>
         </div>
@@ -225,11 +225,11 @@ const slides = [
     id: "register",
     bg: "from-emerald-600 to-emerald-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">👨‍👩‍👧</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Registro e inscripción</h2>
-        <p className="text-xl opacity-80 mb-8">Proceso sencillo paso a paso</p>
-        <div className="flex flex-col gap-4 w-full max-w-2xl">
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">👨‍👩‍👧</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Registro e inscripción</h2>
+        <p className="text-3xl opacity-80 mb-10">Proceso sencillo paso a paso</p>
+        <div className="flex flex-col gap-6 w-full max-w-4xl">
           {[
             { step: "1", title: "Entrar con tu email", desc: "Se te envía un código de acceso — sin contraseña" },
             { step: "2", title: "Verificar código del club", desc: "El club te dará un código para confirmar tu identidad" },
@@ -237,11 +237,11 @@ const slides = [
             { step: "4", title: "Registrar a tus hijos", desc: "Datos, foto tipo carnet y documentos" },
             { step: "5", title: "Elegir categoría y pagar", desc: "Cuota única o fraccionada en 3 plazos" },
           ].map((item, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-5 flex items-center gap-5 text-left border border-white/10">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl font-black flex-shrink-0">{item.step}</div>
+            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 flex items-center gap-8 text-left border border-white/10">
+              <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-4xl font-black flex-shrink-0">{item.step}</div>
               <div>
-                <h3 className="font-bold text-lg">{item.title}</h3>
-                <p className="text-sm opacity-80">{item.desc}</p>
+                <h3 className="font-bold text-3xl">{item.title}</h3>
+                <p className="text-2xl opacity-80 mt-1">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -255,24 +255,24 @@ const slides = [
     id: "adults",
     bg: "from-amber-700 to-orange-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">🔞</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Jugadores mayores de 18</h2>
-        <p className="text-xl opacity-80 mb-8">Importante: se gestionan ellos mismos</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 text-left">
-            <div className="text-3xl mb-3">🚫</div>
-            <h3 className="font-bold text-lg mb-2">NO los deis de alta como hijos</h3>
-            <p className="text-sm opacity-85">Un jugador mayor de 18 años <strong>NO puede estar dado de alta por un padre</strong>. Debe registrarse él mismo con su propio email.</p>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">🔞</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Jugadores mayores de 18</h2>
+        <p className="text-3xl opacity-80 mb-10">Importante: se gestionan ellos mismos</p>
+        <div className="grid grid-cols-2 gap-8 w-full max-w-5xl">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/10 text-left">
+            <div className="text-6xl mb-4">🚫</div>
+            <h3 className="font-bold text-3xl mb-3">NO los deis de alta como hijos</h3>
+            <p className="text-2xl opacity-85 leading-relaxed">Un jugador mayor de 18 años <strong>NO puede estar dado de alta por un padre</strong>. Debe registrarse él mismo con su propio email.</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 text-left">
-            <div className="text-3xl mb-3">✅</div>
-            <h3 className="font-bold text-lg mb-2">Se registran solos</h3>
-            <p className="text-sm opacity-85">Se instalan la app, eligen perfil "Jugador +18", y gestionan sus propias convocatorias, pagos y documentos.</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/10 text-left">
+            <div className="text-6xl mb-4">✅</div>
+            <h3 className="font-bold text-3xl mb-3">Se registran solos</h3>
+            <p className="text-2xl opacity-85 leading-relaxed">Se instalan la app, eligen perfil "Jugador +18", y gestionan sus propias convocatorias, pagos y documentos.</p>
           </div>
         </div>
-        <div className="mt-6 bg-yellow-500/20 border border-yellow-400/30 rounded-xl p-5 max-w-2xl w-full">
-          <p className="text-sm font-bold">⚠️ Si tenéis un hijo mayor de 18, decídselo: tiene que instalarse la app él mismo y registrarse con su email personal.</p>
+        <div className="mt-10 bg-yellow-500/20 border border-yellow-400/30 rounded-2xl p-8 max-w-4xl w-full">
+          <p className="text-2xl font-bold">⚠️ Si tenéis un hijo mayor de 18, decídselo: tiene que instalarse la app él mismo y registrarse con su email personal.</p>
         </div>
       </div>
     ),
@@ -283,35 +283,35 @@ const slides = [
     id: "minor_access",
     bg: "from-violet-700 to-purple-900",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">🧑‍🎓</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Acceso Juvenil (13–17 años)</h2>
-        <p className="text-xl opacity-80 mb-8">Para que los chavales se gestionen solos</p>
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-2xl w-full border border-white/10 text-left">
-          <div className="space-y-4">
-            <div className="flex items-start gap-4">
-              <span className="text-2xl flex-shrink-0">📱</span>
-              <p className="text-sm">Los menores de 13 a 17 años pueden tener su <strong>propio acceso a la app</strong> con su email</p>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">🧑‍🎓</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Acceso Juvenil (13–17 años)</h2>
+        <p className="text-3xl opacity-80 mb-10">Para que los chavales se gestionen solos</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 max-w-4xl w-full border border-white/10 text-left">
+          <div className="space-y-8">
+            <div className="flex items-start gap-6">
+              <span className="text-5xl flex-shrink-0">📱</span>
+              <p className="text-2xl leading-relaxed">Los menores de 13 a 17 años pueden tener su <strong>propio acceso a la app</strong> con su email</p>
             </div>
-            <div className="flex items-start gap-4">
-              <span className="text-2xl flex-shrink-0">👨‍👩‍👧</span>
-              <p className="text-sm">El padre/madre debe <strong>autorizar</strong> el acceso desde su cuenta</p>
+            <div className="flex items-start gap-6">
+              <span className="text-5xl flex-shrink-0">👨‍👩‍👧</span>
+              <p className="text-2xl leading-relaxed">El padre/madre debe <strong>autorizar</strong> el acceso desde su cuenta</p>
             </div>
-            <div className="flex items-start gap-4">
-              <span className="text-2xl flex-shrink-0">✅</span>
-              <p className="text-sm">El menor puede <strong>ver convocatorias, calendario, evaluaciones y anuncios</strong></p>
+            <div className="flex items-start gap-6">
+              <span className="text-5xl flex-shrink-0">✅</span>
+              <p className="text-2xl leading-relaxed">El menor puede <strong>ver convocatorias, calendario, evaluaciones y anuncios</strong></p>
             </div>
-            <div className="flex items-start gap-4">
-              <span className="text-2xl flex-shrink-0">🚫</span>
-              <p className="text-sm"><strong>NO tienen chat</strong> ni acceso a pagos ni datos sensibles</p>
+            <div className="flex items-start gap-6">
+              <span className="text-5xl flex-shrink-0">🚫</span>
+              <p className="text-2xl leading-relaxed"><strong>NO tienen chat</strong> ni acceso a pagos ni datos sensibles</p>
             </div>
-            <div className="flex items-start gap-4">
-              <span className="text-2xl flex-shrink-0">🎯</span>
-              <p className="text-sm">Así el chaval puede <strong>confirmar sus propias convocatorias</strong> sin depender de los padres</p>
+            <div className="flex items-start gap-6">
+              <span className="text-5xl flex-shrink-0">🎯</span>
+              <p className="text-2xl leading-relaxed">Así el chaval puede <strong>confirmar sus propias convocatorias</strong> sin depender de los padres</p>
             </div>
           </div>
         </div>
-        <p className="text-xs opacity-50 mt-4">El padre puede revocar el acceso del menor en cualquier momento</p>
+        <p className="text-xl opacity-50 mt-6">El padre puede revocar el acceso del menor en cualquier momento</p>
       </div>
     ),
   },
@@ -321,29 +321,29 @@ const slides = [
     id: "callups",
     bg: "from-amber-600 to-red-700",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">🏆</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Convocatorias</h2>
-        <p className="text-xl opacity-80 mb-8">El entrenador convoca → tú confirmas</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">📩</div>
-            <h3 className="font-bold mb-2">Te llega aviso</h3>
-            <p className="text-sm opacity-80">Notificación cuando tu hijo es convocado</p>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">🏆</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Convocatorias</h2>
+        <p className="text-3xl opacity-80 mb-10">El entrenador convoca → tú confirmas</p>
+        <div className="grid grid-cols-3 gap-8 w-full max-w-5xl">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">📩</div>
+            <h3 className="font-bold text-2xl mb-3">Te llega aviso</h3>
+            <p className="text-xl opacity-80">Notificación cuando tu hijo es convocado</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">✅</div>
-            <h3 className="font-bold mb-2">Confirmas</h3>
-            <p className="text-sm opacity-80">"Asistirá", "No asistirá" o "Duda" — un solo toque</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">✅</div>
+            <h3 className="font-bold text-2xl mb-3">Confirmas</h3>
+            <p className="text-xl opacity-80">"Asistirá", "No asistirá" o "Duda" — un solo toque</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">🚗</div>
-            <h3 className="font-bold mb-2">Transporte compartido</h3>
-            <p className="text-sm opacity-80">Ofrece o pide plazas para partidos fuera</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">🚗</div>
+            <h3 className="font-bold text-2xl mb-3">Transporte compartido</h3>
+            <p className="text-xl opacity-80">Ofrece o pide plazas para partidos fuera</p>
           </div>
         </div>
-        <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-xl p-5 max-w-2xl border border-white/10">
-          <p className="text-sm">💡 <strong>Confirma siempre rápido</strong> para que el entrenador pueda planificar.</p>
+        <div className="mt-10 bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl border border-white/10">
+          <p className="text-2xl">💡 <strong>Confirma siempre rápido</strong> para que el entrenador pueda planificar.</p>
         </div>
       </div>
     ),
@@ -354,21 +354,21 @@ const slides = [
     id: "payments",
     bg: "from-purple-700 to-indigo-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">💳</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Pagos y Cuotas</h2>
-        <p className="text-xl opacity-80 mb-8">Transparente y sencillo</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 text-left">
-            <h3 className="font-bold text-lg mb-3">💰 Formas de pago</h3>
-            <ul className="space-y-2 text-sm">
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">💳</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Pagos y Cuotas</h2>
+        <p className="text-3xl opacity-80 mb-10">Transparente y sencillo</p>
+        <div className="grid grid-cols-2 gap-8 w-full max-w-5xl">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/10 text-left">
+            <h3 className="font-bold text-3xl mb-5">💰 Formas de pago</h3>
+            <ul className="space-y-4 text-2xl">
               <li>✅ <strong>Pago único</strong> — toda la cuota de una vez</li>
               <li>✅ <strong>3 plazos</strong> — Junio, Septiembre, Diciembre</li>
             </ul>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 text-left">
-            <h3 className="font-bold text-lg mb-3">📄 Proceso</h3>
-            <ul className="space-y-2 text-sm">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/10 text-left">
+            <h3 className="font-bold text-3xl mb-5">📄 Proceso</h3>
+            <ul className="space-y-4 text-2xl">
               <li>1️⃣ Selecciona el pago pendiente</li>
               <li>2️⃣ Paga por transferencia o tarjeta</li>
               <li>3️⃣ Sube el justificante (transferencia)</li>
@@ -376,8 +376,8 @@ const slides = [
             </ul>
           </div>
         </div>
-        <div className="mt-6 bg-yellow-500/20 backdrop-blur-sm rounded-xl p-4 max-w-2xl border border-yellow-400/30">
-          <p className="text-sm">⚠️ Los jugadores con pagos pendientes <strong>no serán convocados</strong> a los partidos.</p>
+        <div className="mt-8 bg-yellow-500/20 backdrop-blur-sm rounded-2xl p-6 max-w-4xl border border-yellow-400/30">
+          <p className="text-2xl font-bold">⚠️ Los jugadores con pagos pendientes <strong>no serán convocados</strong> a los partidos.</p>
         </div>
       </div>
     ),
@@ -388,29 +388,29 @@ const slides = [
     id: "chat",
     bg: "from-cyan-600 to-teal-700",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">💬</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Comunicación</h2>
-        <p className="text-xl opacity-80 mb-8">3 canales — todo dentro de la app</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">⚽</div>
-            <h3 className="font-bold mb-2">Chat de Equipo</h3>
-            <p className="text-sm opacity-80">Grupal con entrenador y familias de la categoría</p>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">💬</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Comunicación</h2>
+        <p className="text-3xl opacity-80 mb-10">3 canales — todo dentro de la app</p>
+        <div className="grid grid-cols-3 gap-8 w-full max-w-5xl">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">⚽</div>
+            <h3 className="font-bold text-2xl mb-3">Chat de Equipo</h3>
+            <p className="text-xl opacity-80">Grupal con entrenador y familias de la categoría</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">🎓</div>
-            <h3 className="font-bold mb-2">Chat Coordinador</h3>
-            <p className="text-sm opacity-80">Privado 1-a-1 para temas personales</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">🎓</div>
+            <h3 className="font-bold text-2xl mb-3">Chat Coordinador</h3>
+            <p className="text-xl opacity-80">Privado 1-a-1 para temas personales</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">🔔</div>
-            <h3 className="font-bold mb-2">Mensajes del Club</h3>
-            <p className="text-sm opacity-80">Avisos oficiales y recordatorios</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">🔔</div>
+            <h3 className="font-bold text-2xl mb-3">Mensajes del Club</h3>
+            <p className="text-xl opacity-80">Avisos oficiales y recordatorios</p>
           </div>
         </div>
-        <div className="mt-8 bg-red-500/20 border border-red-400/30 rounded-xl p-5 max-w-2xl">
-          <p className="text-sm font-bold">🚫 Los grupos de WhatsApp del club se eliminarán. Toda la comunicación será por la app.</p>
+        <div className="mt-10 bg-red-500/20 border border-red-400/30 rounded-2xl p-8 max-w-4xl">
+          <p className="text-2xl font-bold">🚫 Los grupos de WhatsApp del club se eliminarán. Toda la comunicación será por la app.</p>
         </div>
       </div>
     ),
@@ -421,25 +421,25 @@ const slides = [
     id: "competition",
     bg: "from-rose-600 to-pink-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">🏆</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Competición en directo</h2>
-        <p className="text-xl opacity-80 mb-8">Toda la info deportiva actualizada automáticamente</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">🏆</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Competición en directo</h2>
+        <p className="text-3xl opacity-80 mb-10">Toda la info deportiva actualizada automáticamente</p>
+        <div className="grid grid-cols-2 gap-8 w-full max-w-5xl">
           {[
             { icon: "📊", title: "Clasificaciones", desc: "Posición de todos los equipos del club en liga" },
             { icon: "⚽", title: "Resultados", desc: "Marcadores actualizados jornada a jornada" },
             { icon: "🥇", title: "Goleadores", desc: "Tabla de máximos goleadores del club" },
             { icon: "📅", title: "Próximos partidos", desc: "Calendario con hora, rival y ubicación" },
           ].map((item, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-left border border-white/10">
-              <div className="text-3xl mb-3">{item.icon}</div>
-              <h3 className="font-bold text-lg mb-1">{item.title}</h3>
-              <p className="text-sm opacity-80">{item.desc}</p>
+            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 text-left border border-white/10">
+              <div className="text-5xl mb-4">{item.icon}</div>
+              <h3 className="font-bold text-3xl mb-2">{item.title}</h3>
+              <p className="text-2xl opacity-80">{item.desc}</p>
             </div>
           ))}
         </div>
-        <p className="text-sm opacity-60 mt-6">📱 También hay una web pública de competición para compartir con cualquiera</p>
+        <p className="text-xl opacity-60 mt-8">📱 También hay una web pública de competición para compartir con cualquiera</p>
       </div>
     ),
   },
@@ -449,29 +449,29 @@ const slides = [
     id: "shop",
     bg: "from-indigo-700 to-blue-900",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">🛍️</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Tienda de Ropa del Club</h2>
-        <p className="text-xl opacity-80 mb-8">Los packs y equipación se piden desde la app</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">👕</div>
-            <h3 className="font-bold mb-2">Pack obligatorio</h3>
-            <p className="text-sm opacity-80">Equipación completa: 1ª y 2ª equipación, ropa de entrenamiento, paseo, etc.</p>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">🛍️</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Tienda de Ropa del Club</h2>
+        <p className="text-3xl opacity-80 mb-10">Los packs y equipación se piden desde la app</p>
+        <div className="grid grid-cols-3 gap-8 w-full max-w-5xl mb-10">
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">👕</div>
+            <h3 className="font-bold text-2xl mb-3">Pack obligatorio</h3>
+            <p className="text-xl opacity-80">Equipación completa: 1ª y 2ª equipación, ropa de entrenamiento, paseo, etc.</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">🧥</div>
-            <h3 className="font-bold mb-2">Ropa opcional</h3>
-            <p className="text-sm opacity-80">Chaqueta de partidos, chubasquero, anorak, mochila…</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">🧥</div>
+            <h3 className="font-bold text-2xl mb-3">Ropa opcional</h3>
+            <p className="text-xl opacity-80">Chaqueta de partidos, chubasquero, anorak, mochila…</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-            <div className="text-4xl mb-3">📦</div>
-            <h3 className="font-bold mb-2">Te llega a casa</h3>
-            <p className="text-sm opacity-80">Eliges tallas, pagas y recibes el pedido sin moverte</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="text-6xl mb-4">📦</div>
+            <h3 className="font-bold text-2xl mb-3">Te llega a casa</h3>
+            <p className="text-xl opacity-80">Eliges tallas, pagas y recibes el pedido sin moverte</p>
           </div>
         </div>
-        <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-xl p-5 max-w-2xl w-full">
-          <p className="text-sm font-bold">⚠️ El pedido de ropa se hace exclusivamente desde la app. Elegís tallas por prenda, pagáis y os llega a casa.</p>
+        <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-2xl p-8 max-w-4xl w-full">
+          <p className="text-2xl font-bold">⚠️ El pedido de ropa se hace exclusivamente desde la app. Elegís tallas por prenda, pagáis y os llega a casa.</p>
         </div>
       </div>
     ),
@@ -482,11 +482,11 @@ const slides = [
     id: "extras",
     bg: "from-slate-700 to-slate-900",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">✨</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-4">Y mucho más...</h2>
-        <p className="text-xl opacity-80 mb-8">La app sigue creciendo</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-3xl">
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">✨</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-6">Y mucho más...</h2>
+        <p className="text-3xl opacity-80 mb-10">La app sigue creciendo</p>
+        <div className="grid grid-cols-3 gap-6 w-full max-w-5xl">
           {[
             { icon: "🖼️", title: "Galería de fotos" },
             { icon: "📋", title: "Encuestas" },
@@ -498,9 +498,9 @@ const slides = [
             { icon: "🤖", title: "Asistente virtual" },
             { icon: "🖊️", title: "Firmas federación" },
           ].map((item, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-              <div className="text-2xl mb-2">{item.icon}</div>
-              <p className="text-xs font-bold">{item.title}</p>
+            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <div className="text-5xl mb-3">{item.icon}</div>
+              <p className="text-2xl font-bold">{item.title}</p>
             </div>
           ))}
         </div>
@@ -508,15 +508,15 @@ const slides = [
     ),
   },
 
-  // ── 16. FAQ ──
+  // ── 17. FAQ ──
   {
     id: "faq",
     bg: "from-indigo-700 to-violet-800",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8 max-w-4xl mx-auto">
-        <div className="text-6xl mb-6">❓</div>
-        <h2 className="text-4xl md:text-5xl font-black mb-8">Preguntas Frecuentes</h2>
-        <div className="flex flex-col gap-4 w-full max-w-2xl text-left">
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12 max-w-7xl mx-auto">
+        <div className="text-8xl mb-8">❓</div>
+        <h2 className="text-6xl lg:text-8xl font-black mb-10">Preguntas Frecuentes</h2>
+        <div className="flex flex-col gap-5 w-full max-w-5xl text-left">
           {[
             { q: "¿Ambos padres pueden acceder?", a: "Sí. Se invita al segundo progenitor desde la app." },
             { q: "¿Puedo ver datos de varios hijos?", a: "Sí, todos tus hijos aparecen en tu cuenta aunque estén en categorías distintas." },
@@ -525,9 +525,9 @@ const slides = [
             { q: "¿Mi hijo de 19 puede estar en mi cuenta?", a: "No. Los mayores de 18 se registran ellos mismos con su email." },
             { q: "¿Quién ve mis datos?", a: "Solo administradores y entrenadores del club. Cumplimos con la LOPD." },
           ].map((item, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-              <h3 className="font-bold text-sm mb-1">{item.q}</h3>
-              <p className="text-xs opacity-80">{item.a}</p>
+            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <h3 className="font-bold text-2xl mb-2">{item.q}</h3>
+              <p className="text-xl opacity-80">{item.a}</p>
             </div>
           ))}
         </div>
@@ -535,23 +535,23 @@ const slides = [
     ),
   },
 
-  // ── 17. CIERRE ──
+  // ── 18. CIERRE ──
   {
     id: "end",
     bg: "from-orange-600 via-orange-700 to-green-700",
     content: (
-      <div className="flex flex-col items-center justify-center h-full text-white text-center px-8">
-        <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-28 h-28 rounded-full border-4 border-white/40 shadow-2xl mb-8" />
-        <h2 className="text-4xl md:text-6xl font-black mb-4">¡Gracias!</h2>
-        <p className="text-xl md:text-2xl opacity-90 mb-2">¿Alguna pregunta?</p>
-        <p className="text-lg opacity-70 mt-4">Estamos aquí para ayudaros 💪</p>
-        <div className="mt-10 bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 max-w-md">
-          <p className="text-sm opacity-80 mb-2">Si necesitáis ayuda con la app:</p>
-          <p className="font-bold">🤖 Usad el Asistente Virtual dentro de la app</p>
-          <p className="text-sm opacity-60 mt-2">o escribid al coordinador por el chat</p>
+      <div className="flex flex-col items-center justify-center h-full text-white text-center px-12">
+        <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-48 h-48 rounded-full border-4 border-white/40 shadow-2xl mb-10" />
+        <h2 className="text-7xl lg:text-9xl font-black mb-6">¡Gracias!</h2>
+        <p className="text-4xl opacity-90 mb-4">¿Alguna pregunta?</p>
+        <p className="text-3xl opacity-70 mt-4">Estamos aquí para ayudaros 💪</p>
+        <div className="mt-12 bg-white/10 backdrop-blur-sm rounded-3xl p-10 border border-white/10 max-w-3xl">
+          <p className="text-2xl opacity-80 mb-3">Si necesitáis ayuda con la app:</p>
+          <p className="font-bold text-3xl">🤖 Usad el Asistente Virtual dentro de la app</p>
+          <p className="text-xl opacity-60 mt-3">o escribid al coordinador por el chat</p>
         </div>
-        <div className="mt-8 bg-red-500/20 border border-red-400/30 rounded-xl p-4 max-w-md">
-          <p className="text-sm font-bold">📱 ¡Instaladla HOY! No dejéis para mañana lo que podéis hacer en 5 minutos.</p>
+        <div className="mt-10 bg-red-500/20 border border-red-400/30 rounded-2xl p-8 max-w-3xl">
+          <p className="text-2xl font-bold">📱 ¡Instaladla HOY! No dejéis para mañana lo que podéis hacer en 5 minutos.</p>
         </div>
       </div>
     ),
@@ -600,34 +600,34 @@ export default function FamilyPresentation() {
       {current > 0 && (
         <button
           onClick={goPrev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all"
+          className="absolute left-6 top-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all"
         >
-          <ChevronLeft className="w-8 h-8" />
+          <ChevronLeft className="w-12 h-12" />
         </button>
       )}
       {current < total - 1 && (
         <button
           onClick={goNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all"
+          className="absolute right-6 top-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all"
         >
-          <ChevronRight className="w-8 h-8" />
+          <ChevronRight className="w-12 h-12" />
         </button>
       )}
 
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-6 py-4 bg-black/20">
-        <div className="flex gap-1.5 flex-wrap max-w-[60%]">
+      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-8 py-5 bg-black/20">
+        <div className="flex gap-2 flex-wrap max-w-[60%]">
           {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`w-2 h-2 rounded-full transition-all ${i === current ? "bg-white scale-150" : "bg-white/40 hover:bg-white/60"}`}
+              className={`w-3 h-3 rounded-full transition-all ${i === current ? "bg-white scale-150" : "bg-white/40 hover:bg-white/60"}`}
             />
           ))}
         </div>
-        <div className="flex items-center gap-4 text-white/70 text-sm">
+        <div className="flex items-center gap-6 text-white/70 text-xl">
           <span>{current + 1} / {total}</span>
           <button onClick={toggleFullscreen} className="hover:text-white transition-colors" title="Pantalla completa (F)">
-            {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+            {isFullscreen ? <Minimize className="w-7 h-7" /> : <Maximize className="w-7 h-7" />}
           </button>
         </div>
       </div>
