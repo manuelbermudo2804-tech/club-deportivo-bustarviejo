@@ -4,23 +4,23 @@ import { Trophy, Users, Shield, Star, Target, Mountain } from "lucide-react";
 
 const stats = [
   { value: "+130", label: "Deportistas activos", icon: Users, color: "from-blue-500 to-cyan-500" },
-  { value: "6", label: "Categorías deportivas", icon: Trophy, color: "from-orange-500 to-red-500" },
+  { value: "6", label: "Categor\u00edas deportivas", icon: Trophy, color: "from-orange-500 to-red-500" },
   { value: "~20", label: "Entrenadores y equipo técnico", icon: Shield, color: "from-green-500 to-emerald-500" },
   { value: "100+", label: "Familias en el club", icon: Star, color: "from-purple-500 to-pink-500" },
-  { value: "4", label: "Fútbol, Basket, Pádel, F. Sala", icon: Target, color: "from-yellow-500 to-orange-500" },
-  { value: "365", label: "Días de actividad en temporada", icon: Mountain, color: "from-slate-500 to-slate-700" },
+  { value: "4", label: "F\u00fatbol, Basket, P\u00e1del, F. Sala", icon: Target, color: "from-yellow-500 to-orange-500" },
+  { value: "365", label: "D\u00edas de actividad en temporada", icon: Mountain, color: "from-slate-500 to-slate-700" },
 ];
 
 const values = [
   {
     emoji: "🤝",
-    title: "Compromiso social e inclusión",
-    desc: "Ofrecemos facilidades de pago a familias con dificultades. Apostamos por la integración multicultural y la igualdad de oportunidades. Ningún niño o niña se queda fuera."
+    title: "Compromiso social e inclusi\u00f3n",
+    desc: "Ofrecemos facilidades de pago a familias con dificultades. Apostamos por la integraci\u00f3n multicultural y la igualdad de oportunidades. Ning\u00fan ni\u00f1o o ni\u00f1a se queda fuera."
   },
   {
     emoji: "⚽",
     title: "Referentes del deporte femenino",
-    desc: "Somos un club comprometido con el fútbol femenino. Trabajamos cada día para que todas las niñas y mujeres de Bustarviejo tengan su espacio, sus referentes y las mismas oportunidades en el deporte."
+    desc: "Somos un club comprometido con el f\u00fatbol femenino. Trabajamos cada d\u00eda para que todas las ni\u00f1as y mujeres de Bustarviejo tengan su espacio, sus referentes y las mismas oportunidades en el deporte."
   },
   {
     emoji: "🌿",
@@ -30,7 +30,7 @@ const values = [
   {
     emoji: "🌱",
     title: "Cantera de talento",
-    desc: "Desde Pre-Benjamín hasta el equipo Aficionado, acompañamos el crecimiento deportivo y personal de nuestros y nuestras deportistas."
+    desc: "Desde Pre-Benjam\u00edn hasta el equipo Aficionado, acompa\u00f1amos el crecimiento deportivo y personal de todos nuestros deportistas, chicos y chicas."
   }
 ];
 
