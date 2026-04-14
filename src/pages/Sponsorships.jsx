@@ -10,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 import SponsorForm from "../components/sponsors/SponsorForm";
 import SponsorCard from "../components/sponsors/SponsorCard";
 import SponsorDashboard from "../components/sponsors/SponsorDashboard";
+import SponsorInterestPanel from "../components/sponsors/SponsorInterestPanel";
 
 export default function Sponsorships() {
   const [showForm, setShowForm] = useState(false);
@@ -148,6 +149,9 @@ export default function Sponsorships() {
           />
         )}
       </AnimatePresence>
+
+      {/* Solicitudes de patrocinio en camiseta */}
+      <SponsorInterestPanel />
 
       {/* Dashboard KPIs */}
       <SponsorDashboard sponsors={sponsors} />

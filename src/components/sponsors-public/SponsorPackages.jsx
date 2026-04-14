@@ -1,14 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight } from "lucide-react";
+import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight, Hand } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import SponsorInterestModal from "./SponsorInterestModal";
+
+const BIDDING_POSITIONS = ["Camiseta PECHO", "Camiseta TRASERA", "Manga", "Trasero derecha", "Trasero izquierda"];
 
 const addons = [
   { name: "Pancarta en el campo", price: "150€", sub: "primer año · 100€/año siguiente", icon: Flag },
-  { name: "Camiseta PECHO", price: "400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
-  { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt },
-  { name: "Manga", price: "150€", sub: "posición lateral", icon: Shirt },
-  { name: "Trasero derecha", price: "150€", sub: "pantalón lado derecho", icon: Shirt },
-  { name: "Trasero izquierda", price: "150€", sub: "pantalón lado izquierdo", icon: Shirt },
+  { name: "Camiseta PECHO", price: "400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true, biddable: true },
+  { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt, biddable: true },
+  { name: "Manga", price: "150€", sub: "posición lateral", icon: Shirt, biddable: true },
+  { name: "Trasero derecha", price: "150€", sub: "pantalón lado derecho", icon: Shirt, biddable: true },
+  { name: "Trasero izquierda", price: "150€", sub: "pantalón lado izquierdo", icon: Shirt, biddable: true },
 ];
 
 const baseIncludes = [
@@ -19,7 +23,29 @@ const baseIncludes = [
 ];
 
 export default function SponsorPackages() {
+  const [interestCounts, setInterestCounts] = useState({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+
+  useEffect(() => {
+    base44.functions.invoke("getSponsorInterestCounts", {})
+      .then(res => setInterestCounts(res.data.counts || {}))
+      .catch(() => {});
+  }, [modalOpen]);
+
+  const handleInterest = (positionName) => {
+    setSelectedPosition(positionName);
+    setModalOpen(true);
+  };
+
   return (
+    <>
+    <SponsorInterestModal
+      open={modalOpen}
+      onOpenChange={setModalOpen}
+      posicion={selectedPosition}
+      currentCount={interestCounts[selectedPosition] || 0}
+    />
     <section className="py-20 lg:py-28 bg-white" id="paquetes">
       <div className="max-w-5xl mx-auto px-4">
         <motion.div
@@ -131,6 +157,26 @@ export default function SponsorPackages() {
                 </div>
                 <p className="font-bold text-slate-800 text-sm">{addon.name}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{addon.sub}</p>
+
+                {addon.biddable && (
+                  <div className="mt-3 space-y-2">
+                    {(interestCounts[addon.name] || 0) > 0 && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
+                        <span className="text-amber-600 text-xs">🔥</span>
+                        <span className="text-xs font-bold text-amber-800">
+                          {interestCounts[addon.name]} interesado{interestCounts[addon.name] > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleInterest(addon.name)}
+                      className="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-sm"
+                    >
+                      <Hand className="w-3.5 h-3.5" />
+                      Me interesa
+                    </button>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
@@ -201,5 +247,6 @@ export default function SponsorPackages() {
         </motion.div>
       </div>
     </section>
+    </>
   );
 }
