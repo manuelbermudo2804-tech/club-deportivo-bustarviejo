@@ -161,6 +161,22 @@ export default function SponsorPackages() {
               <strong> Clientes reales, sin intermediarios.</strong>
             </p>
 
+            {/* Capturas del carnet */}
+            <div className="flex justify-center gap-4 lg:gap-8 mb-8">
+              <div className="text-center">
+                <div className="rounded-2xl overflow-hidden shadow-xl border-2 border-green-400 w-40 sm:w-48 lg:w-56">
+                  <img src="https://media.base44.com/images/public/6992c6be619d2da592897991/c0bd0e036_generated_image.png" alt="Carnet de Socio Activo" className="w-full h-auto" />
+                </div>
+                <p className="text-xs font-bold text-green-600 mt-2">✅ Carnet ACTIVO</p>
+              </div>
+              <div className="text-center">
+                <div className="rounded-2xl overflow-hidden shadow-xl border-2 border-red-300 w-40 sm:w-48 lg:w-56">
+                  <img src="https://media.base44.com/images/public/6992c6be619d2da592897991/a666bd91f_generated_image.png" alt="Carnet de Socio Expirado" className="w-full h-auto" />
+                </div>
+                <p className="text-xs font-bold text-red-500 mt-2">❌ Carnet EXPIRADO</p>
+              </div>
+            </div>
+
             <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-4 text-sm font-semibold">
               {["Socio con Carnet ACTIVO", "Visita tu comercio", "Muestra el carnet", "Aplicas ventaja", "Cliente directo"].map((step, i) => (
                 <React.Fragment key={i}>
