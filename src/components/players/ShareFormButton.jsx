@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Share2, Copy, Check, UserPlus, Users, Presentation, Smartphone } from "lucide-react";
+import { Share2, Copy, Check, UserPlus, Users, Monitor, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 const SHARE_LINKS = [
@@ -27,7 +27,7 @@ const SHARE_LINKS = [
   },
   {
     id: "presentacion",
-    icon: Presentation,
+    icon: Monitor,
     color: "text-purple-600",
     bg: "bg-purple-50",
     label: "Presentación para familias",
