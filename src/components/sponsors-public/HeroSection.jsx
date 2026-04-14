@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-const HERO_BG = "https://media.base44.com/images/public/6992c6be619d2da592897991/c5befc446_generated_image.png";
+const HERO_BG = "https://media.base44.com/images/public/6992c6be619d2da592897991/948117dc5_image.png";
 
 export default function HeroSection() {
   return (
