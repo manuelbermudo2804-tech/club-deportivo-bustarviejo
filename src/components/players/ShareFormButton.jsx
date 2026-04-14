@@ -44,7 +44,6 @@ const ALL_SHARE_LINKS = [
     desc: "Para que nuevas familias pidan su código de acceso",
     getUrl: () => `${window.location.origin}/SolicitarAcceso`,
     whatsappText: "📲 Solicita tu acceso a la App del CD Bustarviejo",
-    staffOnly: true,
   },
 ];
 
@@ -93,9 +92,9 @@ function LinkCard({ link }) {
   );
 }
 
-export default function ShareFormButton({ isStaff = false }) {
+export default function ShareFormButton() {
   const [open, setOpen] = useState(false);
-  const links = isStaff ? ALL_SHARE_LINKS : ALL_SHARE_LINKS.filter(l => !l.staffOnly);
+  const links = ALL_SHARE_LINKS;
 
   return (
     <>

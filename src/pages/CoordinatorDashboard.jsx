@@ -186,7 +186,7 @@ export default function CoordinatorDashboard() {
               </Button>
             </Link>
           </div>
-          <ShareFormButton isStaff={true} />
+          <ShareFormButton />
         </div>
         
         <div className="lg:hidden text-center">

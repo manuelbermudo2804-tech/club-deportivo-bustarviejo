@@ -631,7 +631,7 @@ export default function Home() {
                 IA
               </Button>
             </Link>
-            <ShareFormButton isStaff={true} />
+            <ShareFormButton />
           </div>
         </div>
 
@@ -747,7 +747,7 @@ export default function Home() {
                 Asistente IA
               </Button>
             </Link>
-            <ShareFormButton isStaff={true} />
+            <ShareFormButton />
           </div>
         )}
 
