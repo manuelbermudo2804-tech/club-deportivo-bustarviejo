@@ -19,12 +19,14 @@ const CATEGORIAS = [
 
 export default function PublicAccessRequest() {
   const [email, setEmail] = useState("");
+  const [emailConfirm, setEmailConfirm] = useState("");
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState("");
-  const [nombreJugador, setNombreJugador] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+
+  const emailsMatch = email && emailConfirm && email.trim().toLowerCase() === emailConfirm.trim().toLowerCase();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,13 +37,17 @@ export default function PublicAccessRequest() {
       return;
     }
 
+    if (!emailsMatch) {
+      setError("Los emails no coinciden. Revísalos por favor.");
+      return;
+    }
+
     setSending(true);
     try {
       await base44.functions.invoke("submitAccessRequest", {
         email: email.trim().toLowerCase(),
         nombre_progenitor: nombre.trim(),
         categoria,
-        nombre_jugador: nombreJugador.trim(),
       });
       setSent(true);
     } catch (err) {
@@ -121,6 +127,29 @@ export default function PublicAccessRequest() {
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
+              Confirmar email *
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="email"
+                value={emailConfirm}
+                onChange={(e) => setEmailConfirm(e.target.value)}
+                placeholder="Repite tu email"
+                onPaste={(e) => e.preventDefault()}
+                className={`w-full border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none ${
+                  emailConfirm && !emailsMatch ? "border-red-400 bg-red-50" : "border-slate-300"
+                }`}
+                required
+              />
+            </div>
+            {emailConfirm && !emailsMatch && (
+              <p className="text-xs text-red-500 mt-1">Los emails no coinciden</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">
               Categoría del hijo/a *
             </label>
             <select
@@ -134,19 +163,6 @@ export default function PublicAccessRequest() {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">
-              Nombre del jugador/a <span className="font-normal text-slate-400">(opcional)</span>
-            </label>
-            <input
-              type="text"
-              value={nombreJugador}
-              onChange={(e) => setNombreJugador(e.target.value)}
-              placeholder="Ej: Pablo García"
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
-            />
           </div>
 
           {error && (
