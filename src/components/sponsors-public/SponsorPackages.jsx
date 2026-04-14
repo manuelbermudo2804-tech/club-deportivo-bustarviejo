@@ -120,8 +120,8 @@ export default function SponsorPackages() {
               </div>
 
               <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-                <p className="text-sm text-slate-700 mb-3">
-                  <strong>¿Solo te interesa la cuota de Colaborador</strong> sin añadir posiciones en equipación ni pancarta?
+                <p className="text-sm text-slate-600 mb-3">
+                  Las posiciones de abajo <strong>ya incluyen esta cuota</strong>. Solo usa este botón si no quieres añadir ninguna posición extra:
                 </p>
                 <button
                   onClick={() => handleInterest("Colaborador (solo cuota base)")}
@@ -135,9 +135,6 @@ export default function SponsorPackages() {
                   <Hand className="w-4 h-4" />
                   {isDeadlinePassed ? "Plazo cerrado" : "Solo cuota base · 100€"}
                 </button>
-                <p className="text-xs text-slate-500 mt-2">
-                  Si te interesa alguna posición extra (camiseta, pancarta...), usa directamente los botones de abajo — ya incluyen la cuota de colaborador.
-                </p>
               </div>
             </div>
           </div>
