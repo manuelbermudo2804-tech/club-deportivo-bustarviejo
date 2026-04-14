@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import BulkInviteDialog from "@/components/admin/BulkInviteDialog";
 import AssistedRegistrationPanel from "@/components/admin/AssistedRegistrationPanel.jsx";
+import AccessRequestsPanel from "@/components/admin/AccessRequestsPanel";
 
 function InviteDialog({ open, onOpenChange, onInvite }) {
   const [email, setEmail] = useState("");
@@ -548,6 +549,20 @@ export default function AdminAccessCodes() {
           </Button>
         </div>
       </div>
+
+      {/* 📬 SOLICITUDES DE CÓDIGO (formulario público) */}
+      <Card className="mb-6">
+        <CardHeader className="pb-2 cursor-pointer" onClick={() => document.getElementById('requestsPanel')?.classList.toggle('hidden')}>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Mail className="w-5 h-5 text-orange-600" />
+            📬 Solicitudes de Familias
+            <Badge className="bg-orange-100 text-orange-700 text-xs ml-auto">Formulario público</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent id="requestsPanel">
+          <AccessRequestsPanel />
+        </CardContent>
+      </Card>
 
       {/* 📞 SOLICITUDES DE ALTA ASISTIDA */}
       <AssistedRegistrationPanel />

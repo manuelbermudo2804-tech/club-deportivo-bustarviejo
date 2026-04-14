@@ -1,0 +1,54 @@
+{
+  "name": "AccessRequest",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del primer progenitor/tutor"
+    },
+    "nombre_progenitor": {
+      "type": "string",
+      "description": "Nombre del primer progenitor/tutor"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)",
+        "No lo s\u00e9 a\u00fan"
+      ],
+      "description": "Categor\u00eda del hijo/a"
+    },
+    "nombre_jugador": {
+      "type": "string",
+      "description": "Nombre del hijo/a (opcional)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "codigo_enviado",
+        "completado"
+      ],
+      "default": "pendiente",
+      "description": "Estado de la solicitud"
+    },
+    "codigo_enviado_id": {
+      "type": "string",
+      "description": "ID del AccessCode generado para esta solicitud"
+    }
+  },
+  "required": [
+    "email",
+    "nombre_progenitor",
+    "categoria"
+  ]
+}

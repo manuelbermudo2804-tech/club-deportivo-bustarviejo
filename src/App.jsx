@@ -17,6 +17,7 @@ import PushStats from '@/pages/PushStats';
 import FamilyPresentation from '@/pages/FamilyPresentation';
 import PublicMemberCard from '@/pages/PublicMemberCard';
 import SocialHub from '@/pages/SocialHub';
+import PublicAccessRequest from '@/pages/PublicAccessRequest';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -31,12 +32,13 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '');
-  const publicPaths = ['/PublicMemberCard', '/FamilyPresentation'];
+  const publicPaths = ['/PublicMemberCard', '/FamilyPresentation', '/SolicitarAcceso'];
   if (publicPaths.includes(cleanPath)) {
     return (
       <Routes>
         <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
         <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
+        <Route path="/SolicitarAcceso" element={<PublicAccessRequest />} />
       </Routes>
     );
   }
