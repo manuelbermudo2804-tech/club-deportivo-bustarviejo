@@ -4,15 +4,15 @@ import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight, Hand } 
 import { base44 } from "@/api/base44Client";
 import SponsorInterestModal from "./SponsorInterestModal";
 
-const BIDDING_POSITIONS = ["Camiseta PECHO", "Camiseta TRASERA", "Manga", "Trasero derecha", "Trasero izquierda"];
+const AUCTION_POSITIONS = ["Camiseta PECHO", "Camiseta TRASERA", "Manga", "Trasero derecha", "Trasero izquierda"];
 
 const addons = [
-  { name: "Pancarta en el campo", price: "150€", sub: "primer año · 100€/año siguiente", icon: Flag },
-  { name: "Camiseta PECHO", price: "400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true, biddable: true },
-  { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt, biddable: true },
-  { name: "Manga", price: "150€", sub: "posición lateral", icon: Shirt, biddable: true },
-  { name: "Trasero derecha", price: "150€", sub: "pantalón lado derecho", icon: Shirt, biddable: true },
-  { name: "Trasero izquierda", price: "150€", sub: "pantalón lado izquierdo", icon: Shirt, biddable: true },
+  { name: "Pancarta en el campo", price: "150€", sub: "1ª temporada · 100€ la siguiente", icon: Flag, biddable: true, auction: false },
+  { name: "Camiseta PECHO", price: "400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true, biddable: true, auction: true },
+  { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt, biddable: true, auction: true },
+  { name: "Manga", price: "150€", sub: "posición lateral", icon: Shirt, biddable: true, auction: true },
+  { name: "Trasero derecha", price: "150€", sub: "pantalón lado derecho", icon: Shirt, biddable: true, auction: true },
+  { name: "Trasero izquierda", price: "150€", sub: "pantalón lado izquierdo", icon: Shirt, biddable: true, auction: true },
 ];
 
 const baseIncludes = [
@@ -26,10 +26,14 @@ export default function SponsorPackages() {
   const [interestCounts, setInterestCounts] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const [deadline, setDeadline] = useState(null);
 
   useEffect(() => {
     base44.functions.invoke("getSponsorInterestCounts", {})
-      .then(res => setInterestCounts(res.data.counts || {}))
+      .then(res => {
+        setInterestCounts(res.data.counts || {});
+        if (res.data.fecha_limite) setDeadline(res.data.fecha_limite);
+      })
       .catch(() => {});
   }, [modalOpen]);
 
@@ -56,7 +60,7 @@ export default function SponsorPackages() {
           className="text-center mb-16"
         >
           <span className="inline-block bg-orange-100 text-orange-700 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
-            Propuesta de Patrocinio Local
+            Propuesta de Patrocinio · 2 temporadas
           </span>
           <h2 className="text-3xl lg:text-5xl font-black text-slate-900 mb-4">
             Colabora y gana <span className="text-orange-600">visibilidad real</span>
@@ -83,7 +87,7 @@ export default function SponsorPackages() {
               </div>
               <div className="text-right">
                 <p className="text-4xl lg:text-5xl font-black text-white">100€</p>
-                <p className="text-orange-200 text-sm">/temporada</p>
+                <p className="text-orange-200 text-sm">/temporada · compromiso 2 años</p>
               </div>
             </div>
 
@@ -160,12 +164,17 @@ export default function SponsorPackages() {
 
                 {addon.biddable && (
                   <div className="mt-3 space-y-2">
-                    {(interestCounts[addon.name] || 0) > 0 && (
+                    {addon.auction && (interestCounts[addon.name] || 0) > 0 && (
                       <div className="bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
                         <span className="text-amber-600 text-xs">🔥</span>
                         <span className="text-xs font-bold text-amber-800">
                           {interestCounts[addon.name]} interesado{interestCounts[addon.name] > 1 ? "s" : ""}
                         </span>
+                      </div>
+                    )}
+                    {!addon.auction && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg px-2.5 py-1.5">
+                        <span className="text-xs font-semibold text-green-700">✅ Precio fijo · Sin subasta</span>
                       </div>
                     )}
                     <button
@@ -183,8 +192,19 @@ export default function SponsorPackages() {
 
           <p className="text-xs text-slate-400 mt-4 text-center italic">
             * Todas las opciones adicionales requieren ser colaborador (cuota base de 100€).
-            Precios por temporada, IVA no incluido.
+            Compromiso mínimo de <strong>2 temporadas</strong>. IVA no incluido.
           </p>
+
+          {deadline && (
+            <div className="mt-6 bg-red-50 border-2 border-red-300 rounded-2xl p-4 text-center">
+              <p className="text-sm font-bold text-red-700">
+                ⏰ Fecha límite para presentar solicitudes: {new Date(deadline).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+              <p className="text-xs text-red-600 mt-1">
+                Las posiciones de camiseta con más de un interesado se resolverán por subasta tras esta fecha.
+              </p>
+            </div>
+          )}
         </motion.div>
 
         {/* Generación de clientes */}

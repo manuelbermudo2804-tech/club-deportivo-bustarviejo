@@ -344,6 +344,11 @@
       "type": "number",
       "default": 14,
       "description": "D\u00edas de gracia despu\u00e9s del vencimiento del pago antes de marcar al jugador como moroso en convocatorias"
+    },
+    "fecha_limite_patrocinios": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite para presentar solicitudes de patrocinio (se muestra en la web p\u00fablica)"
     }
   },
   "required": [

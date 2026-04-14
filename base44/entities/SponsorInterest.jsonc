@@ -5,13 +5,14 @@
     "posicion": {
       "type": "string",
       "enum": [
+        "Pancarta en el campo",
         "Camiseta PECHO",
         "Camiseta TRASERA",
         "Manga",
         "Trasero derecha",
         "Trasero izquierda"
       ],
-      "description": "Posici\u00f3n de la camiseta que le interesa"
+      "description": "Posici\u00f3n o elemento de patrocinio que le interesa"
     },
     "nombre_comercio": {
       "type": "string",
