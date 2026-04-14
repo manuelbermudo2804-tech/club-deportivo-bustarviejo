@@ -150,6 +150,23 @@ export default function FeatureControlSection({
           {/* Patrocinadores */}
           <FeatureRow icon={<Image className="w-5 h-5 text-indigo-600" />} title="Banner Patrocinadores" subtitle="Mostrar patrocinadores en la app" checked={activeSeason.mostrar_patrocinadores || false} onChange={(v) => toggleFeature('mostrar_patrocinadores', v)} />
 
+          {/* Fecha límite patrocinios */}
+          <div className="ml-8 flex items-center gap-2 p-3 bg-indigo-50 rounded-lg border-2 border-indigo-200">
+            <Label className="text-sm font-medium whitespace-nowrap">📅 Fecha límite patrocinios:</Label>
+            <Input
+              type="date"
+              value={activeSeason.fecha_limite_patrocinios || ""}
+              onChange={(e) => update({ fecha_limite_patrocinios: e.target.value || null })}
+              className="w-44"
+            />
+            {activeSeason.fecha_limite_patrocinios && (
+              <Button size="sm" variant="ghost" className="text-red-500 text-xs" onClick={() => update({ fecha_limite_patrocinios: null })}>
+                <Trash2 className="w-3 h-3 mr-1" /> Quitar
+              </Button>
+            )}
+            <p className="text-xs text-slate-500 hidden sm:block">Se muestra en la web pública de patrocinadores</p>
+          </div>
+
           {/* Notificaciones Email */}
           <FeatureRow icon={<Mail className="w-5 h-5 text-red-600" />} title="Notificaciones por Email" subtitle="Enviar emails automáticos al admin" checked={activeSeason.notificaciones_admin_email || false} onChange={(v) => toggleFeature('notificaciones_admin_email', v)} />
 
