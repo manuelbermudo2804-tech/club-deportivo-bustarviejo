@@ -5,6 +5,7 @@
     "posicion": {
       "type": "string",
       "enum": [
+        "Colaborador (solo cuota base)",
         "Pancarta en el campo",
         "Camiseta PECHO",
         "Camiseta TRASERA",
