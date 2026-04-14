@@ -144,9 +144,13 @@ export default function SponsorPackages() {
             <div>
               <p className="font-black text-purple-900 text-sm">Sistema de subasta en posiciones de camiseta</p>
               <p className="text-xs text-purple-700 mt-1 leading-relaxed">
-                Las posiciones en la equipaci\u00f3n (pecho, trasera, manga, pantal\u00f3n) se adjudican por <strong>subasta</strong>: 
-                el precio indicado es el <strong>m\u00ednimo de salida</strong>. Si hay m\u00e1s de un interesado, se abre un proceso 
-                de puja y se adjudica al mejor postor. La pancarta tiene <strong>precio fijo</strong>, sin subasta.
+                {"Las posiciones en la equipaci\u00f3n (pecho, trasera, manga, pantal\u00f3n) se adjudican por "}
+                <strong>subasta</strong>
+                {": el precio indicado es el "}
+                <strong>{`m\u00ednimo de salida`}</strong>
+                {`. Si hay m\u00e1s de un interesado, se abre un proceso de puja y se adjudica al mejor postor. La pancarta tiene `}
+                <strong>precio fijo</strong>
+                {", sin subasta."}
               </p>
             </div>
           </div>
