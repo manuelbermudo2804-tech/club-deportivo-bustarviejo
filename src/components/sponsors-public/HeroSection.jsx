@@ -3,13 +3,16 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-// Fondo degradado mientras no tengamos foto real del campo
+const HERO_BG = "https://media.base44.com/images/public/6992c6be619d2da592897991/c5befc446_generated_image.png";
 
 export default function HeroSection() {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-green-900 to-orange-900" />
+      <div className="absolute inset-0">
+        <img src={HERO_BG} alt="Campo de Fútbol de Bustarviejo" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+      </div>
 
       {/* Animated particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
