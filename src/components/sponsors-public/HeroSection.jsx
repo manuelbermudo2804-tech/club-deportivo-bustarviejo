@@ -3,16 +3,13 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-const HERO_BG = "https://media.base44.com/images/public/6992c6be619d2da592897991/81002b818_generated_image.png";
+// Fondo degradado mientras no tengamos foto real del campo
 
 export default function HeroSection() {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0">
-        <img src={HERO_BG} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-green-900 to-orange-900" />
 
       {/* Animated particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -52,7 +49,7 @@ export default function HeroSection() {
             </span>
           </h1>
           <p className="text-lg lg:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Más de <strong className="text-white">200 niños y jóvenes</strong> crecen cada día en nuestro club. 
+            Más de <strong className="text-white">130 jugadores y sus familias</strong> forman parte de nuestro club. 
             Tu marca puede ser parte de esta historia.
           </p>
         </motion.div>

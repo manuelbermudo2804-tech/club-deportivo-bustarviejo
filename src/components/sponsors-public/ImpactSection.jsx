@@ -3,11 +3,11 @@ import { motion } from "framer-motion";
 import { Trophy, Users, Shield, Star, Target, Mountain } from "lucide-react";
 
 const stats = [
-  { value: "+200", label: "Deportistas activos", icon: Users, color: "from-blue-500 to-cyan-500" },
+  { value: "+130", label: "Jugadores activos", icon: Users, color: "from-blue-500 to-cyan-500" },
   { value: "10+", label: "Categorías", icon: Trophy, color: "from-orange-500 to-red-500" },
   { value: "30+", label: "Entrenadores y staff", icon: Shield, color: "from-green-500 to-emerald-500" },
   { value: "100+", label: "Familias del club", icon: Star, color: "from-purple-500 to-pink-500" },
-  { value: "2", label: "Deportes: Fútbol y Basket", icon: Target, color: "from-yellow-500 to-orange-500" },
+  { value: "4", label: "Fútbol, Basket, Pádel, F. Sala", icon: Target, color: "from-yellow-500 to-orange-500" },
   { value: "365", label: "Días de actividad", icon: Mountain, color: "from-slate-500 to-slate-700" },
 ];
 

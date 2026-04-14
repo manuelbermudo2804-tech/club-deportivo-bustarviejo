@@ -12,7 +12,6 @@ import HeroSection from "../components/sponsors-public/HeroSection";
 import ClubHistorySection from "../components/sponsors-public/ClubHistorySection";
 import ImpactSection from "../components/sponsors-public/ImpactSection";
 import SponsorPackages from "../components/sponsors-public/SponsorPackages";
-import TestimonialsSection from "../components/sponsors-public/TestimonialsSection";
 import ContactCTA from "../components/sponsors-public/ContactCTA";
 import SponsorFooter from "../components/sponsors-public/SponsorFooter";
 
@@ -23,7 +22,6 @@ export default function PublicSponsors() {
       <ClubHistorySection />
       <ImpactSection />
       <SponsorPackages />
-      <TestimonialsSection />
       <ContactCTA />
       <SponsorFooter />
     </div>

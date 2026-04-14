@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { MapPin, Calendar, Heart, Users } from "lucide-react";
 
-const KIDS_IMG = "https://media.base44.com/images/public/6992c6be619d2da592897991/40b4a0ca7_generated_image.png";
+// Imagen eliminada hasta tener foto real del club
 
 const fadeInUp = {
   initial: { opacity: 0, y: 40 },
@@ -35,11 +35,11 @@ export default function ClubHistorySection() {
             <p className="text-lg text-slate-700 leading-relaxed">
               En un entorno privilegiado rodeado de montañas, ofrecemos a los niños y jóvenes de la zona 
               un espacio seguro donde <strong>crecer, aprender valores y desarrollarse</strong> como personas 
-              a través del fútbol y el baloncesto.
+              a través del deporte: fútbol, baloncesto, y torneos de pádel y fútbol sala.
             </p>
             <p className="text-lg text-slate-700 leading-relaxed">
-              Cada temporada, más de <strong>200 deportistas</strong> de todas las edades visten nuestra camiseta 
-              con orgullo — desde los más pequeños de Pre-Benjamín hasta nuestro equipo Aficionado.
+              Cada temporada, más de <strong>130 jugadores y sus familias</strong> forman parte del club 
+              — desde los más pequeños de Pre-Benjamín hasta nuestro equipo Aficionado.
             </p>
 
             <div className="grid grid-cols-2 gap-4 pt-4">
@@ -47,7 +47,7 @@ export default function ClubHistorySection() {
                 { icon: MapPin, label: "Sierra Norte de Madrid", sub: "Entorno natural único" },
                 { icon: Calendar, label: "Décadas de historia", sub: "Tradición y compromiso" },
                 { icon: Heart, label: "Formación en valores", sub: "Respeto, esfuerzo, equipo" },
-                { icon: Users, label: "+200 deportistas", sub: "De 4 a 40 años" },
+                { icon: Users, label: "+130 jugadores", sub: "De 4 a 40 años" },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-100 to-green-100 flex items-center justify-center flex-shrink-0">
@@ -70,14 +70,12 @@ export default function ClubHistorySection() {
             className="relative"
           >
             <div className="absolute -inset-4 bg-gradient-to-br from-orange-200 to-green-200 rounded-3xl blur-2xl opacity-40" />
-            <img
-              src={KIDS_IMG}
-              alt="Jugadores del CD Bustarviejo celebrando"
-              className="relative rounded-3xl shadow-2xl w-full object-cover aspect-[4/3]"
-            />
-            <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-orange-600 to-green-600 text-white rounded-2xl px-5 py-3 shadow-xl">
-              <p className="font-black text-2xl">+200</p>
-              <p className="text-xs opacity-90">jóvenes deportistas</p>
+            <div className="relative rounded-3xl shadow-2xl w-full aspect-[4/3] bg-gradient-to-br from-green-700 to-orange-600 flex items-center justify-center">
+              <div className="text-center text-white">
+                <p className="text-6xl mb-3">⚽🏀</p>
+                <p className="font-black text-3xl">+130</p>
+                <p className="text-sm opacity-90 mt-1">jugadores y familias</p>
+              </div>
             </div>
           </motion.div>
         </div>

@@ -4,7 +4,7 @@ import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight } from "
 
 const addons = [
   { name: "Pancarta en el campo", price: "150€", sub: "primer año · 100€/año siguiente", icon: Flag },
-  { name: "Camiseta PECHO", price: "400€", sub: "~140 jugadores llevan tu logo", icon: Shirt, highlight: true },
+  { name: "Camiseta PECHO", price: "400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
   { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt },
   { name: "Manga", price: "150€", sub: "posición lateral", icon: Shirt },
   { name: "Trasero derecha", price: "150€", sub: "pantalón lado derecho", icon: Shirt },
@@ -174,7 +174,7 @@ export default function SponsorPackages() {
 
             <div className="mt-6 flex items-center justify-center gap-2 text-green-700 bg-green-100 rounded-xl px-4 py-3">
               <Users className="w-5 h-5" />
-              <p className="text-sm font-bold">+100 familias activas en el club = +100 potenciales clientes para tu negocio</p>
+              <p className="text-sm font-bold">+130 jugadores y sus familias = potenciales clientes directos para tu negocio</p>
             </div>
           </div>
         </motion.div>
