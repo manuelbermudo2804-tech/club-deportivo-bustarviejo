@@ -280,7 +280,7 @@ export default function TreasurerDashboard() {
               </Button>
             </Link>
           </div>
-          <ShareFormButton />
+          <ShareFormButton isStaff={true} />
         </div>
 
         <DesktopDashboardHeader
