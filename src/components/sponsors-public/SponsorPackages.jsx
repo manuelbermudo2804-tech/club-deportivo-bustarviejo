@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight, Hand } from "lucide-react";
+import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight, Hand, Gift } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import SponsorInterestModal from "./SponsorInterestModal";
+import DeadlineCountdown from "./DeadlineCountdown";
 
 const AUCTION_POSITIONS = ["Camiseta PECHO", "Camiseta TRASERA", "Manga", "Trasero derecha", "Trasero izquierda"];
 
@@ -204,33 +205,7 @@ export default function SponsorPackages() {
             Compromiso mínimo de <strong>2 temporadas</strong>. IVA no incluido.
           </p>
 
-          {deadline && (
-            <div className={`mt-6 border-2 rounded-2xl p-4 text-center ${
-              isDeadlinePassed
-                ? 'bg-slate-100 border-slate-300'
-                : 'bg-red-50 border-red-300'
-            }`}>
-              {isDeadlinePassed ? (
-                <>
-                  <p className="text-sm font-bold text-slate-700">
-                    🔒 El plazo para presentar solicitudes finalizó el {new Date(deadline).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Las posiciones con más de un interesado se resolverán por subasta. El club contactará con los candidatos.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm font-bold text-red-700">
-                    ⏰ Fecha límite para presentar solicitudes: {new Date(deadline).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
-                  </p>
-                  <p className="text-xs text-red-600 mt-1">
-                    Las posiciones de camiseta con más de un interesado se resolverán por subasta tras esta fecha.
-                  </p>
-                </>
-              )}
-            </div>
-          )}
+          {deadline && <DeadlineCountdown deadline={deadline} />}
         </motion.div>
 
         {/* Generación de clientes */}
@@ -249,14 +224,46 @@ export default function SponsorPackages() {
 
             <p className="text-slate-700 mb-4 leading-relaxed">
               Nuestro sistema de <strong>Carnet de Socio digital</strong> conecta directamente a las familias del club
-              con tu negocio. Los socios muestran su carnet activo en tu comercio y tú les aplicas una ventaja.
+              con tu negocio. Los socios muestran su carnet activo en tu comercio y <strong>tú decides libremente qué ventaja ofrecer</strong>.
               <strong> Clientes reales, sin intermediarios.</strong>
             </p>
-            <p className="text-slate-700 mb-6 leading-relaxed">
+            <p className="text-slate-700 mb-4 leading-relaxed">
               Y no solo las familias de la app: <strong>cualquier persona de Bustarviejo o la sierra puede hacerse 
               socia a través de nuestra web</strong> y obtener su carnet digital. Eso significa cientos y cientos 
               de potenciales clientes para tu negocio.
             </p>
+
+            {/* Ejemplos de ventajas */}
+            <div className="bg-white rounded-2xl border-2 border-green-200 p-5 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Gift className="w-5 h-5 text-green-600" />
+                <p className="font-bold text-slate-900">Tú decides la ventaja — ¡libertad total!</p>
+              </div>
+              <p className="text-sm text-slate-600 mb-4">
+                Cada comercio elige libremente qué ofrecer a los socios del club. No hay un formato fijo. Ejemplos reales:
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {[
+                  { emoji: "🍔", example: "Hamburguesa completa a 8€", type: "Bar / Restaurante" },
+                  { emoji: "🔧", example: "5% de descuento en todos los productos", type: "Ferretería / Tienda" },
+                  { emoji: "🐾", example: "10% en piensos y accesorios", type: "Tienda de animales" },
+                  { emoji: "💇", example: "Corte de pelo a precio especial", type: "Peluquería" },
+                  { emoji: "🍕", example: "Menú del día con bebida incluida", type: "Restaurante" },
+                  { emoji: "🏋️", example: "Primera clase gratis", type: "Gimnasio / Academia" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-2.5 bg-green-50 rounded-xl p-3">
+                    <span className="text-xl flex-shrink-0">{item.emoji}</span>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">{item.example}</p>
+                      <p className="text-[11px] text-slate-500">{item.type}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-green-700 font-semibold mt-3 text-center">
+                💡 Descuentos, ofertas especiales, menús, regalos, servicios... ¡lo que mejor encaje con tu negocio!
+              </p>
+            </div>
 
             {/* Capturas del carnet */}
             <div className="flex justify-center gap-4 lg:gap-8 mb-8">
