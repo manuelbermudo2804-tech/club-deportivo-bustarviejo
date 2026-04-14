@@ -115,7 +115,9 @@ const slides = [
           {[
             { icon: "🚶", title: "Acera al campo", desc: "Acceso seguro", status: "En desarrollo" },
             { icon: "🛡️", title: "Vallas protegidas", desc: "Seguridad perímetro", status: "En desarrollo" },
-            { icon: "🏟️", title: "Gradas nuevas", desc: "Mejora instalaciones", status: "En proyecto" },
+            { icon: "🏋️", title: "Zona de físico", desc: "Parte trasera del campo", status: "En proyecto" },
+            { icon: "🎉", title: "San Isidro (15 mayo)", desc: "Torneo fútbol chapa y más en la plaza", status: "Confirmado" },
+            { icon: "🏆", title: "Torneo fin de temporada", desc: "Equipos invitados de fuera", status: "Próx. junio" },
             { icon: "👕", title: "Nuevo proveedor ropa", desc: "Mejor calidad/precio", status: "Próx. temporada" },
           ].map((item, i) => (
             <div key={i} className={card}>
