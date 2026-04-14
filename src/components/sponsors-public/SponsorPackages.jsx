@@ -1,84 +1,27 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Star, Trophy, Shield, Heart } from "lucide-react";
+import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight } from "lucide-react";
 
-const packages = [
-  {
-    name: "Bronce",
-    emoji: "🥉",
-    price: "Desde 150€",
-    period: "/temporada",
-    color: "from-amber-700 to-amber-800",
-    border: "border-amber-300",
-    bg: "bg-amber-50",
-    popular: false,
-    benefits: [
-      "Logo en la web del club",
-      "Mención en redes sociales (1 publicación)",
-      "Logo en el banner rotativo de la app",
-      "Certificado de colaborador",
-    ]
-  },
-  {
-    name: "Plata",
-    emoji: "🥈",
-    price: "Desde 350€",
-    period: "/temporada",
-    color: "from-slate-400 to-slate-600",
-    border: "border-slate-300",
-    bg: "bg-slate-50",
-    popular: false,
-    benefits: [
-      "Todo lo de Bronce, más:",
-      "Logo en cartelería de partidos",
-      "Mención en redes sociales (trimestral)",
-      "Logo en equipaciones de entrenamiento",
-      "Entrada VIP a eventos del club",
-    ]
-  },
-  {
-    name: "Oro",
-    emoji: "🥇",
-    price: "Desde 600€",
-    period: "/temporada",
-    color: "from-yellow-500 to-amber-600",
-    border: "border-yellow-400",
-    bg: "bg-yellow-50",
-    popular: true,
-    benefits: [
-      "Todo lo de Plata, más:",
-      "Logo en camisetas de partido",
-      "Publicidad en vallas del campo",
-      "Mención en redes sociales (mensual)",
-      "Descuentos exclusivos para socios del club",
-      "Reportes de impacto trimestrales",
-    ]
-  },
-  {
-    name: "Principal",
-    emoji: "⭐",
-    price: "A consultar",
-    period: "",
-    color: "from-orange-500 to-red-600",
-    border: "border-orange-400",
-    bg: "bg-orange-50",
-    popular: false,
-    benefits: [
-      "Todo lo de Oro, más:",
-      "Naming de categoría o equipo",
-      "Presencia destacada en toda la comunicación",
-      "Acceso a eventos privados del club",
-      "Co-branding en merchandising oficial",
-      "Paquete personalizado según necesidades",
-      "Máxima visibilidad en app y redes",
-    ]
-  },
+const addons = [
+  { name: "Pancarta en el campo", price: "150€", sub: "primer año · 100€/año siguiente", icon: Flag },
+  { name: "Camiseta PECHO", price: "400€", sub: "~140 jugadores llevan tu logo", icon: Shirt, highlight: true },
+  { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt },
+  { name: "Manga", price: "150€", sub: "posición lateral", icon: Shirt },
+  { name: "Trasero derecha", price: "150€", sub: "pantalón lado derecho", icon: Shirt },
+  { name: "Trasero izquierda", price: "150€", sub: "pantalón lado izquierdo", icon: Shirt },
+];
+
+const baseIncludes = [
+  "Logo en la App del club (usado por todas las familias y jugadores)",
+  "Logo en la Web oficial del club",
+  "Mención en el boletín del club",
+  "Publicación en redes sociales del club",
 ];
 
 export default function SponsorPackages() {
   return (
     <section className="py-20 lg:py-28 bg-white" id="paquetes">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-5xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -86,77 +29,155 @@ export default function SponsorPackages() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="inline-block bg-purple-100 text-purple-700 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
-            Paquetes de Patrocinio
+          <span className="inline-block bg-orange-100 text-orange-700 font-semibold text-sm px-4 py-1.5 rounded-full mb-4">
+            Propuesta de Patrocinio Local
           </span>
           <h2 className="text-3xl lg:text-5xl font-black text-slate-900 mb-4">
-            Elige tu nivel de <span className="text-purple-600">colaboración</span>
+            Colabora y gana <span className="text-orange-600">visibilidad real</span>
           </h2>
           <p className="text-slate-500 max-w-2xl mx-auto">
-            Todos los paquetes son orientativos y personalizables. 
-            Podemos adaptarnos a tus necesidades y presupuesto.
+            El club reúne a familias y actividad semanal. Colaborar permite ganar visibilidad 
+            y <strong className="text-slate-700">generar clientes reales</strong> entre las familias del pueblo.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {packages.map((pkg, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
-              className={`relative rounded-3xl border-2 ${pkg.border} ${pkg.bg} p-6 flex flex-col hover:shadow-xl transition-all hover:-translate-y-1 ${pkg.popular ? 'ring-2 ring-yellow-400 shadow-xl scale-[1.02]' : 'shadow-lg'}`}
-            >
-              {pkg.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                  ⭐ MÁS POPULAR
-                </div>
-              )}
+        {/* Base: Colaborador 100€ */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="relative mb-12"
+        >
+          <div className="absolute -inset-2 bg-gradient-to-br from-orange-200 to-green-200 rounded-[2rem] blur-xl opacity-40" />
+          <div className="relative bg-white rounded-3xl border-2 border-orange-400 shadow-xl overflow-hidden">
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <p className="text-orange-100 text-xs font-semibold uppercase tracking-wider">Base obligatoria</p>
+                <h3 className="text-2xl lg:text-3xl font-black text-white">Colaborador</h3>
+              </div>
+              <div className="text-right">
+                <p className="text-4xl lg:text-5xl font-black text-white">100€</p>
+                <p className="text-orange-200 text-sm">/temporada</p>
+              </div>
+            </div>
 
-              <div className="text-center mb-6">
-                <span className="text-4xl mb-2 block">{pkg.emoji}</span>
-                <h3 className="text-xl font-black text-slate-900">{pkg.name}</h3>
-                <div className="mt-2">
-                  <span className="text-2xl lg:text-3xl font-black bg-gradient-to-r bg-clip-text text-transparent" style={{backgroundImage: `linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to))`}}>
-                    <span className={`bg-gradient-to-r ${pkg.color} bg-clip-text text-transparent`}>{pkg.price}</span>
-                  </span>
-                  {pkg.period && <span className="text-sm text-slate-500">{pkg.period}</span>}
-                </div>
+            <div className="p-6 lg:p-8">
+              <p className="text-slate-600 mb-4 text-sm font-medium">
+                La cuota base que te da presencia en todos los canales digitales del club:
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {baseIncludes.map((item, i) => (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-slate-700">{item}</span>
+                  </div>
+                ))}
               </div>
 
-              <ul className="space-y-3 flex-1">
-                {pkg.benefits.map((benefit, j) => (
-                  <li key={j} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-slate-700">{benefit}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="mt-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 flex items-start gap-3">
+                <span className="text-2xl">📢</span>
+                <div>
+                  <p className="font-bold text-slate-900 text-sm">Canales de visibilidad</p>
+                  <p className="text-xs text-slate-600 mt-1">
+                    App (familias y jugadores) · Web · Redes sociales · Campo · Eventos · Equipaciones
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
-              <a
-                href="#contacto"
-                className={`mt-6 block text-center font-bold py-3 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                  pkg.popular
-                    ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg'
-                    : 'bg-slate-900 text-white hover:bg-slate-800'
+        {/* Opciones adicionales */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-12"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <Plus className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl lg:text-2xl font-black text-slate-900">Opciones adicionales</h3>
+              <p className="text-sm text-slate-500">Combínalas con la cuota de colaborador</p>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {addons.map((addon, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className={`relative bg-white rounded-2xl p-5 border-2 shadow-md hover:shadow-lg transition-all hover:-translate-y-1 ${
+                  addon.highlight ? 'border-yellow-400 ring-2 ring-yellow-200' : 'border-slate-200'
                 }`}
               >
-                Solicitar información
-              </a>
-            </motion.div>
-          ))}
-        </div>
+                {addon.highlight && (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow">
+                    ⭐ MÁS IMPACTO
+                  </div>
+                )}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                    addon.highlight ? 'bg-yellow-100' : 'bg-slate-100'
+                  }`}>
+                    <addon.icon className={`w-5 h-5 ${addon.highlight ? 'text-yellow-600' : 'text-slate-500'}`} />
+                  </div>
+                  <p className="text-2xl font-black text-slate-900">{addon.price}</p>
+                </div>
+                <p className="font-bold text-slate-800 text-sm">{addon.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{addon.sub}</p>
+              </motion.div>
+            ))}
+          </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          <p className="text-xs text-slate-400 mt-4 text-center italic">
+            * Todas las opciones adicionales requieren ser colaborador (cuota base de 100€).
+            Precios por temporada, IVA no incluido.
+          </p>
+        </motion.div>
+
+        {/* Generación de clientes */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center text-slate-400 text-sm mt-8"
         >
-          * Precios orientativos. Todos los paquetes son personalizables según tus necesidades.
-          <br />Los precios no incluyen IVA.
-        </motion.p>
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-3xl p-6 lg:p-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-xl lg:text-2xl font-black text-slate-900">Generación de clientes directa</h3>
+            </div>
+
+            <p className="text-slate-700 mb-6 leading-relaxed">
+              Nuestro sistema de <strong>Carnet de Socio digital</strong> conecta directamente a las familias del club
+              con tu negocio. Los socios muestran su carnet activo en tu comercio y tú les aplicas una ventaja.
+              <strong> Clientes reales, sin intermediarios.</strong>
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-4 text-sm font-semibold">
+              {["Socio con Carnet ACTIVO", "Visita tu comercio", "Muestra el carnet", "Aplicas ventaja", "Cliente directo"].map((step, i) => (
+                <React.Fragment key={i}>
+                  <div className="bg-white rounded-xl px-4 py-2 shadow-sm border border-green-200 text-slate-700 text-center">
+                    {step}
+                  </div>
+                  {i < 4 && <ArrowRight className="w-4 h-4 text-green-500 hidden sm:block flex-shrink-0" />}
+                </React.Fragment>
+              ))}
+            </div>
+
+            <div className="mt-6 flex items-center justify-center gap-2 text-green-700 bg-green-100 rounded-xl px-4 py-3">
+              <Users className="w-5 h-5" />
+              <p className="text-sm font-bold">+100 familias activas en el club = +100 potenciales clientes para tu negocio</p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
