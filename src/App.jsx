@@ -32,8 +32,8 @@ const AppRouter = () => {
   const location = useLocation();
   
   // Rutas 100% públicas (sin auth, sin layout)
-  const cleanPath = location.pathname.replace(/\/+$/, '');
-  const publicPaths = ['/PublicMemberCard', '/FamilyPresentation', '/SolicitarAcceso', '/Patrocinadores'];
+  const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores'];
   if (publicPaths.includes(cleanPath)) {
     return (
       <Routes>
