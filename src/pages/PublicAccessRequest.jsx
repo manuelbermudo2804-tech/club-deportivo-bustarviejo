@@ -4,6 +4,32 @@ import { CheckCircle2, Loader2, Mail, Send } from "lucide-react";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
+// Mapa de dominios mal escritos → corrección
+const TYPO_DOMAINS = {
+  "gmial.com": "gmail.com", "gmal.com": "gmail.com", "gmil.com": "gmail.com",
+  "gmai.com": "gmail.com", "gamil.com": "gmail.com", "gnail.com": "gmail.com",
+  "gmail.co": "gmail.com", "gmail.es": "gmail.com", "gmaill.com": "gmail.com",
+  "gmaiil.com": "gmail.com", "gemail.com": "gmail.com", "gimail.com": "gmail.com",
+  "hotmal.com": "hotmail.com", "hotmial.com": "hotmail.com", "hotmai.com": "hotmail.com",
+  "hotmaill.com": "hotmail.com", "hotamil.com": "hotmail.com", "hotmil.com": "hotmail.com",
+  "hotmail.co": "hotmail.com", "hotmail.con": "hotmail.com",
+  "outloo.com": "outlook.com", "outlok.com": "outlook.com", "outllook.com": "outlook.com",
+  "outlool.com": "outlook.com", "outlook.co": "outlook.com",
+  "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.co": "yahoo.com",
+  "yahho.com": "yahoo.com", "yhaoo.com": "yahoo.com",
+  "iclod.com": "icloud.com", "icluod.com": "icloud.com", "icloud.co": "icloud.com",
+  "gmail.con": "gmail.com", "hotmail.con": "hotmail.com", "outlook.con": "outlook.com",
+};
+
+function checkEmailTypo(emailValue) {
+  if (!emailValue || !emailValue.includes("@")) return null;
+  const domain = emailValue.split("@")[1]?.toLowerCase();
+  if (!domain) return null;
+  const suggestion = TYPO_DOMAINS[domain];
+  if (suggestion) return emailValue.split("@")[0] + "@" + suggestion;
+  return null;
+}
+
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
   "Fútbol Benjamín (Mixto)",
@@ -27,6 +53,7 @@ export default function PublicAccessRequest() {
   const [error, setError] = useState("");
 
   const emailsMatch = email && emailConfirm && email.trim().toLowerCase() === emailConfirm.trim().toLowerCase();
+  const emailSuggestion = checkEmailTypo(email);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +61,11 @@ export default function PublicAccessRequest() {
 
     if (!email.trim() || !nombre.trim() || !categoria) {
       setError("Por favor, rellena todos los campos obligatorios.");
+      return;
+    }
+
+    if (emailSuggestion) {
+      setError(`¿Quisiste escribir ${emailSuggestion}? Corrige tu email antes de continuar.`);
       return;
     }
 
@@ -122,7 +154,13 @@ export default function PublicAccessRequest() {
                 required
               />
             </div>
-            <p className="text-xs text-slate-500 mt-1">Este será tu email de acceso a la app</p>
+            {emailSuggestion ? (
+              <p className="text-xs text-amber-600 mt-1 font-medium">
+                ⚠️ ¿Quisiste decir <button type="button" className="underline font-bold" onClick={() => { setEmail(emailSuggestion); setEmailConfirm(""); }}>{emailSuggestion}</button>?
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500 mt-1">Este será tu email de acceso a la app</p>
+            )}
           </div>
 
           <div>
