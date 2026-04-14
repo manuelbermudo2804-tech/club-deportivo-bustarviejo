@@ -19,8 +19,8 @@ const values = [
   },
   {
     emoji: "⚽",
-    title: "Impulso al deporte femenino",
-    desc: "Creemos firmemente en el fútbol femenino y en la participación igualitaria. Trabajamos para que todas las niñas y mujeres de la sierra tengan su espacio en el deporte."
+    title: "Referentes del deporte femenino",
+    desc: "Somos un club comprometido con el fútbol femenino. Trabajamos cada día para que todas las niñas y mujeres de Bustarviejo tengan su espacio, sus referentes y las mismas oportunidades en el deporte."
   },
   {
     emoji: "🌿",

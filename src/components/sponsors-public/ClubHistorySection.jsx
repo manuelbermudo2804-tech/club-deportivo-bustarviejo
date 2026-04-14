@@ -30,17 +30,22 @@ export default function ClubHistorySection() {
             <p className="text-lg text-slate-700 leading-relaxed">
               El <strong>CD Bustarviejo</strong> nació del corazón de un pueblo de la Sierra Norte de Madrid.
               Desde hace décadas, nuestro club es el punto de encuentro donde generaciones de familias 
-              han compartido la pasión por el deporte.
+              han compartido la pasión por el deporte. Somos mucho más que fútbol: somos <strong>el latido 
+              deportivo de todo un pueblo</strong>.
             </p>
             <p className="text-lg text-slate-700 leading-relaxed">
               En un entorno privilegiado rodeado de montañas, ofrecemos a los niños, niñas y jóvenes de la zona 
               un espacio seguro donde <strong>crecer, aprender valores y desarrollarse</strong> como personas 
-              a través del deporte: fútbol, baloncesto, y torneos de pádel y fútbol sala. Apostamos 
-              por la <strong>inclusión, la igualdad y el deporte femenino</strong>.
+              a través del deporte: fútbol, baloncesto, pádel y fútbol sala.
+            </p>
+            <p className="text-lg text-slate-700 leading-relaxed">
+              Apostamos firmemente por la <strong>inclusión, la igualdad y el deporte femenino</strong>.
+              Nuestro equipo femenino es una de nuestras mayores apuestas: creemos que cada niña y cada mujer
+              merece las mismas oportunidades sobre el terreno de juego.
             </p>
             <p className="text-lg text-slate-700 leading-relaxed">
               Cada temporada, más de <strong>130 deportistas y sus familias</strong> forman parte del club 
-              — desde los más pequeños de Pre-Benjamín hasta nuestro equipo Aficionado.
+              — desde los más pequeños de Pre-Benjamín hasta nuestro equipo Aficionado. Y seguimos creciendo.
             </p>
 
             <div className="grid grid-cols-2 gap-4 pt-4">
@@ -71,11 +76,16 @@ export default function ClubHistorySection() {
             className="relative"
           >
             <div className="absolute -inset-4 bg-gradient-to-br from-orange-200 to-green-200 rounded-3xl blur-2xl opacity-40" />
-            <div className="relative rounded-3xl shadow-2xl w-full aspect-[4/3] bg-gradient-to-br from-green-700 to-orange-600 flex items-center justify-center">
-              <div className="text-center text-white">
-                <p className="text-6xl mb-3">⚽🏀</p>
-                <p className="font-black text-3xl">+130</p>
-                <p className="text-sm opacity-90 mt-1">jugadores y familias</p>
+            <div className="relative rounded-3xl shadow-2xl w-full aspect-[4/3] overflow-hidden">
+              <img 
+                src="https://media.base44.com/images/public/6992c6be619d2da592897991/eb2439635_fondo_optimizado.jpg" 
+                alt="Fútbol femenino CD Bustarviejo" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <p className="font-black text-2xl lg:text-3xl">+130 deportistas</p>
+                <p className="text-sm opacity-90 mt-1">y sus familias, unidos por el deporte</p>
               </div>
             </div>
           </motion.div>

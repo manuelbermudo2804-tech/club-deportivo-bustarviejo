@@ -155,10 +155,15 @@ export default function SponsorPackages() {
               <h3 className="text-xl lg:text-2xl font-black text-slate-900">Generación de clientes directa</h3>
             </div>
 
-            <p className="text-slate-700 mb-6 leading-relaxed">
+            <p className="text-slate-700 mb-4 leading-relaxed">
               Nuestro sistema de <strong>Carnet de Socio digital</strong> conecta directamente a las familias del club
               con tu negocio. Los socios muestran su carnet activo en tu comercio y tú les aplicas una ventaja.
               <strong> Clientes reales, sin intermediarios.</strong>
+            </p>
+            <p className="text-slate-700 mb-6 leading-relaxed">
+              Y no solo las familias de la app: <strong>cualquier persona de Bustarviejo o la sierra puede hacerse 
+              socia a través de nuestra web</strong> y obtener su carnet digital. Eso significa cientos y cientos 
+              de potenciales clientes para tu negocio.
             </p>
 
             {/* Capturas del carnet */}
@@ -190,7 +195,7 @@ export default function SponsorPackages() {
 
             <div className="mt-6 flex items-center justify-center gap-2 text-green-700 bg-green-100 rounded-xl px-4 py-3">
               <Users className="w-5 h-5" />
-              <p className="text-sm font-bold">+130 deportistas y sus familias = potenciales clientes directos para tu negocio</p>
+              <p className="text-sm font-bold">Deportistas, familias y socios de la web = cientos de potenciales clientes directos para tu negocio</p>
             </div>
           </div>
         </motion.div>
