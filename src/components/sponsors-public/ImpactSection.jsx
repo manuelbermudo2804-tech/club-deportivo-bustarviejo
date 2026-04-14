@@ -3,34 +3,34 @@ import { motion } from "framer-motion";
 import { Trophy, Users, Shield, Star, Target, Mountain } from "lucide-react";
 
 const stats = [
-  { value: "+130", label: "Jugadores activos", icon: Users, color: "from-blue-500 to-cyan-500" },
-  { value: "10+", label: "Categorías", icon: Trophy, color: "from-orange-500 to-red-500" },
-  { value: "30+", label: "Entrenadores y staff", icon: Shield, color: "from-green-500 to-emerald-500" },
-  { value: "100+", label: "Familias del club", icon: Star, color: "from-purple-500 to-pink-500" },
+  { value: "+130", label: "Deportistas activos", icon: Users, color: "from-blue-500 to-cyan-500" },
+  { value: "6", label: "Categorías deportivas", icon: Trophy, color: "from-orange-500 to-red-500" },
+  { value: "~20", label: "Entrenadores y equipo técnico", icon: Shield, color: "from-green-500 to-emerald-500" },
+  { value: "100+", label: "Familias en el club", icon: Star, color: "from-purple-500 to-pink-500" },
   { value: "4", label: "Fútbol, Basket, Pádel, F. Sala", icon: Target, color: "from-yellow-500 to-orange-500" },
-  { value: "365", label: "Días de actividad", icon: Mountain, color: "from-slate-500 to-slate-700" },
+  { value: "365", label: "Días de actividad en temporada", icon: Mountain, color: "from-slate-500 to-slate-700" },
 ];
 
 const values = [
   {
     emoji: "🤝",
-    title: "Compromiso social",
-    desc: "Ofrecemos becas y facilidades de pago a familias con dificultades. Ningún niño se queda fuera por motivos económicos."
+    title: "Compromiso social e inclusión",
+    desc: "Ofrecemos facilidades de pago a familias con dificultades. Apostamos por la integración multicultural y la igualdad de oportunidades. Ningún niño o niña se queda fuera."
   },
   {
-    emoji: "📚",
-    title: "Formación integral",
-    desc: "Nuestros entrenadores titulados forman deportistas, pero sobre todo personas con valores: respeto, esfuerzo y compañerismo."
+    emoji: "⚽",
+    title: "Impulso al deporte femenino",
+    desc: "Creemos firmemente en el fútbol femenino y en la participación igualitaria. Trabajamos para que todas las niñas y mujeres de la sierra tengan su espacio en el deporte."
   },
   {
     emoji: "🌿",
     title: "Arraigo local",
-    desc: "Somos el motor deportivo y social de Bustarviejo y los pueblos de la sierra. El deporte vertebra nuestra comunidad."
+    desc: "Somos el motor deportivo y social de Bustarviejo. El deporte vertebra nuestra comunidad y une a las familias del pueblo."
   },
   {
-    emoji: "⚽",
+    emoji: "🌱",
     title: "Cantera de talento",
-    desc: "Desde Pre-Benjamín hasta Aficionados, acompañamos el crecimiento deportivo de nuestros jugadores durante toda su vida."
+    desc: "Desde Pre-Benjamín hasta el equipo Aficionado, acompañamos el crecimiento deportivo y personal de nuestros y nuestras deportistas."
   }
 ];
 
@@ -82,7 +82,7 @@ export default function ImpactSection() {
             ¿Por qué <span className="text-orange-600">patrocinarnos</span>?
           </h3>
           <p className="text-slate-500 mt-2 max-w-xl mx-auto">
-            Tu inversión impacta directamente en la vida de cientos de jóvenes y en la comunidad
+            Tu inversión impacta directamente en la vida de cientos de jóvenes y sus familias
           </p>
         </motion.div>
 

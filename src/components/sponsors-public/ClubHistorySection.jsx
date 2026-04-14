@@ -33,12 +33,13 @@ export default function ClubHistorySection() {
               han compartido la pasión por el deporte.
             </p>
             <p className="text-lg text-slate-700 leading-relaxed">
-              En un entorno privilegiado rodeado de montañas, ofrecemos a los niños y jóvenes de la zona 
+              En un entorno privilegiado rodeado de montañas, ofrecemos a los niños, niñas y jóvenes de la zona 
               un espacio seguro donde <strong>crecer, aprender valores y desarrollarse</strong> como personas 
-              a través del deporte: fútbol, baloncesto, y torneos de pádel y fútbol sala.
+              a través del deporte: fútbol, baloncesto, y torneos de pádel y fútbol sala. Apostamos 
+              por la <strong>inclusión, la igualdad y el deporte femenino</strong>.
             </p>
             <p className="text-lg text-slate-700 leading-relaxed">
-              Cada temporada, más de <strong>130 jugadores y sus familias</strong> forman parte del club 
+              Cada temporada, más de <strong>130 deportistas y sus familias</strong> forman parte del club 
               — desde los más pequeños de Pre-Benjamín hasta nuestro equipo Aficionado.
             </p>
 
@@ -47,7 +48,7 @@ export default function ClubHistorySection() {
                 { icon: MapPin, label: "Sierra Norte de Madrid", sub: "Entorno natural único" },
                 { icon: Calendar, label: "Décadas de historia", sub: "Tradición y compromiso" },
                 { icon: Heart, label: "Formación en valores", sub: "Respeto, esfuerzo, equipo" },
-                { icon: Users, label: "+130 jugadores", sub: "De 4 a 40 años" },
+                { icon: Users, label: "+130 deportistas", sub: "De 4 a 40 años" },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-100 to-green-100 flex items-center justify-center flex-shrink-0">

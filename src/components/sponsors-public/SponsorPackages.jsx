@@ -12,8 +12,8 @@ const addons = [
 ];
 
 const baseIncludes = [
-  "Logo en la App del club (usado por todas las familias y jugadores)",
-  "Logo en la Web oficial del club",
+  "Logo en la App del club — completamente nueva (usada por todas las familias y deportistas)",
+  "Logo en la Web oficial del club — completamente renovada",
   "Mención en el boletín del club",
   "Publicación en redes sociales del club",
 ];
@@ -174,7 +174,7 @@ export default function SponsorPackages() {
 
             <div className="mt-6 flex items-center justify-center gap-2 text-green-700 bg-green-100 rounded-xl px-4 py-3">
               <Users className="w-5 h-5" />
-              <p className="text-sm font-bold">+130 jugadores y sus familias = potenciales clientes directos para tu negocio</p>
+              <p className="text-sm font-bold">+130 deportistas y sus familias = potenciales clientes directos para tu negocio</p>
             </div>
           </div>
         </motion.div>

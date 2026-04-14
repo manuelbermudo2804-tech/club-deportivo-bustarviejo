@@ -52,7 +52,7 @@ export default function HeroSection() {
             </span>
           </h1>
           <p className="text-lg lg:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Más de <strong className="text-white">130 jugadores y sus familias</strong> forman parte de nuestro club. 
+            Más de <strong className="text-white">130 deportistas y sus familias</strong> forman parte de nuestro club. 
             Tu marca puede ser parte de esta historia.
           </p>
         </motion.div>

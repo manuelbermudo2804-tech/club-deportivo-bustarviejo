@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Mail, Phone, ArrowRight } from "lucide-react";
 
-const CLUB_EMAIL = "cdbustarviejo@gmail.com";
+const CLUB_EMAIL = "info@cdbustarviejo.com";
 const CLUB_PHONE = "";
 
 export default function ContactCTA() {
