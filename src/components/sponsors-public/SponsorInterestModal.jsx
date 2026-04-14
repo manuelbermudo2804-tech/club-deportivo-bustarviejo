@@ -12,13 +12,22 @@ export default function SponsorInterestModal({ open, onOpenChange, posicion, cur
   const [success, setSuccess] = useState(false);
   const [resultCount, setResultCount] = useState(null);
 
+  const [error, setError] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    const res = await base44.functions.invoke("submitSponsorInterest", { ...form, posicion });
-    setResultCount(res.data.count);
-    setSuccess(true);
-    setSubmitting(false);
+    setError(false);
+    try {
+      const res = await base44.functions.invoke("submitSponsorInterest", { ...form, posicion });
+      setResultCount(res.data?.count || 1);
+      setSuccess(true);
+    } catch (err) {
+      console.error("Error submitting sponsor interest:", err);
+      setError(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -26,6 +35,7 @@ export default function SponsorInterestModal({ open, onOpenChange, posicion, cur
     setTimeout(() => {
       setSuccess(false);
       setResultCount(null);
+      setError(false);
       setForm({ nombre_comercio: "", nombre_contacto: "", email: "", telefono: "" });
     }, 300);
   };
@@ -34,9 +44,11 @@ export default function SponsorInterestModal({ open, onOpenChange, posicion, cur
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-md mx-auto">
         {success ? (
-          <div className="text-center py-6">
-            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-900 mb-2">¡Solicitud enviada!</h3>
+          <div className="text-center py-8 animate-fade-in-scale">
+            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
+              <CheckCircle2 className="w-12 h-12 text-green-500" />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-2">¡Solicitud enviada! 🎉</h3>
             <p className="text-slate-600 mb-3">
               Hemos registrado tu interés en <strong>{posicion}</strong>.
             </p>
@@ -112,6 +124,11 @@ export default function SponsorInterestModal({ open, onOpenChange, posicion, cur
                   placeholder="600 123 456"
                 />
               </div>
+              {error && (
+                <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-center">
+                  <p className="text-sm font-bold text-red-700">❌ Error al enviar. Inténtalo de nuevo.</p>
+                </div>
+              )}
               <Button
                 type="submit"
                 disabled={submitting}
