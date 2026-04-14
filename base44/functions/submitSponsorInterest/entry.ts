@@ -32,7 +32,7 @@ async function sendResendEmail(apiKey, to, subject, html) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { posicion, nombre_comercio, nombre_contacto, email, telefono } = await req.json();
+    const { posicion, nombre_comercio, nombre_contacto, email, telefono, interesa_carnet_socio } = await req.json();
 
     if (!posicion || !nombre_comercio || !nombre_contacto || !email || !telefono) {
       return Response.json({ error: 'Todos los campos son obligatorios' }, { status: 400 });
@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
       nombre_contacto,
       email,
       telefono,
+      interesa_carnet_socio: !!interesa_carnet_socio,
       estado: 'pendiente'
     });
 
@@ -75,6 +76,7 @@ Deno.serve(async (req) => {
                 <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Contacto</td><td style="padding:8px 0;font-weight:600;color:#1e293b;">${nombre_contacto}</td></tr>
                 <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#ea580c;font-weight:600;">${email}</a></td></tr>
                 <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Teléfono</td><td style="padding:8px 0;"><a href="tel:${telefono}" style="color:#ea580c;font-weight:600;">${telefono}</a></td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Carnet Socio</td><td style="padding:8px 0;font-weight:600;color:${interesa_carnet_socio ? '#16a34a' : '#94a3b8'};">${interesa_carnet_socio ? '✅ Interesado' : '—'}</td></tr>
               </table>
               <div style="margin-top:16px;padding:12px;background:#f1f5f9;border-radius:8px;text-align:center;">
                 <p style="margin:0;font-size:14px;color:#475569;">📊 Total interesados en <strong>"${posicion}"</strong>: <strong style="color:#ea580c;font-size:18px;">${count}</strong></p>

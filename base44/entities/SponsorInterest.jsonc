@@ -31,6 +31,11 @@
       "type": "string",
       "description": "Tel\u00e9fono de contacto"
     },
+    "interesa_carnet_socio": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el comercio est\u00e1 interesado en participar en el programa de Carnet de Socio"
+    },
     "estado": {
       "type": "string",
       "enum": [

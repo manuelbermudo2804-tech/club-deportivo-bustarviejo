@@ -4,10 +4,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 
 export default function SponsorInterestModal({ open, onOpenChange, posicion, currentCount }) {
-  const [form, setForm] = useState({ nombre_comercio: "", nombre_contacto: "", email: "", telefono: "" });
+  const [form, setForm] = useState({ nombre_comercio: "", nombre_contacto: "", email: "", telefono: "", interesa_carnet_socio: false });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [resultCount, setResultCount] = useState(null);
@@ -36,7 +37,7 @@ export default function SponsorInterestModal({ open, onOpenChange, posicion, cur
       setSuccess(false);
       setResultCount(null);
       setError(false);
-      setForm({ nombre_comercio: "", nombre_contacto: "", email: "", telefono: "" });
+      setForm({ nombre_comercio: "", nombre_contacto: "", email: "", telefono: "", interesa_carnet_socio: false });
     }, 300);
   };
 
@@ -123,6 +124,19 @@ export default function SponsorInterestModal({ open, onOpenChange, posicion, cur
                   onChange={(e) => setForm({ ...form, telefono: e.target.value })}
                   placeholder="600 123 456"
                 />
+              </div>
+              <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl p-3">
+                <Checkbox
+                  id="carnet_socio"
+                  checked={form.interesa_carnet_socio}
+                  onCheckedChange={(checked) => setForm({ ...form, interesa_carnet_socio: !!checked })}
+                  className="mt-0.5"
+                />
+                <label htmlFor="carnet_socio" className="text-sm text-slate-700 leading-snug cursor-pointer">
+                  {"Tambi\u00e9n me interesa participar en el "}
+                  <strong>Carnet de Socio</strong>
+                  {" (ofrecer ventajas a socios del club)"}
+                </label>
               </div>
               {error && (
                 <div className="bg-red-50 border border-red-300 rounded-xl p-3 text-center">
