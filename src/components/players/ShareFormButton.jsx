@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Share2, Copy, Check, UserPlus, Users, Monitor, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
-const SHARE_LINKS = [
+const ALL_SHARE_LINKS = [
   {
     id: "inscripcion",
     icon: UserPlus,
@@ -44,6 +44,7 @@ const SHARE_LINKS = [
     desc: "Para que nuevas familias pidan su código de acceso",
     getUrl: () => `${window.location.origin}/SolicitarAcceso`,
     whatsappText: "📲 Solicita tu acceso a la App del CD Bustarviejo",
+    staffOnly: true,
   },
 ];
 
@@ -92,8 +93,9 @@ function LinkCard({ link }) {
   );
 }
 
-export default function ShareFormButton() {
+export default function ShareFormButton({ isStaff = false }) {
   const [open, setOpen] = useState(false);
+  const links = isStaff ? ALL_SHARE_LINKS : ALL_SHARE_LINKS.filter(l => !l.staffOnly);
 
   return (
     <>
@@ -118,7 +120,7 @@ export default function ShareFormButton() {
               <p className="text-xs text-slate-500 mt-1">Envía estos enlaces a familias y jugadores</p>
             </div>
 
-            {SHARE_LINKS.map((link) => (
+            {links.map((link) => (
               <LinkCard key={link.id} link={link} />
             ))}
           </div>
