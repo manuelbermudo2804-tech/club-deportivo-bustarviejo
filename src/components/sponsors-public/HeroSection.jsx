@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import HeroCountdownBadge from "./HeroCountdownBadge";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 const HERO_BG = "https://media.base44.com/images/public/6992c6be619d2da592897991/948117dc5_image.png";
 
 export default function HeroSection() {
+  const [deadline, setDeadline] = useState(null);
+
+  useEffect(() => {
+    base44.functions.invoke("getSponsorInterestCounts", {})
+      .then(res => {
+        if (res.data?.fecha_limite) setDeadline(res.data.fecha_limite);
+      })
+      .catch(() => {});
+  }, []);
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background */}
@@ -57,11 +68,13 @@ export default function HeroSection() {
           </p>
         </motion.div>
 
+        <HeroCountdownBadge deadline={deadline} />
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
+          className="mt-6 flex flex-col sm:flex-row gap-3 justify-center"
         >
           <a
             href="#paquetes"
