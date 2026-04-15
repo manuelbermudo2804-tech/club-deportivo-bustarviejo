@@ -14,10 +14,12 @@ import ImpactSection from "../components/sponsors-public/ImpactSection";
 import SponsorPackages from "../components/sponsors-public/SponsorPackages";
 import ContactCTA from "../components/sponsors-public/ContactCTA";
 import SponsorFooter from "../components/sponsors-public/SponsorFooter";
+import BackToAppButton from "../components/public/BackToAppButton";
 
 export default function PublicSponsors() {
   return (
     <div className="min-h-screen bg-white">
+      <BackToAppButton />
       <HeroSection />
       <ClubHistorySection />
       <ImpactSection />
