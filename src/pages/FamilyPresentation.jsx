@@ -73,6 +73,7 @@ const slides = [
               <p className="text-[2.8vw] md:text-[1.8vh]">📋 <strong>Cuotas familias</strong></p>
               <p className="text-[2.8vw] md:text-[1.8vh]">🏛️ <strong>Subvención Ayto.</strong></p>
               <p className="text-[2.8vw] md:text-[1.8vh]">🤝 <strong>Patrocinadores</strong></p>
+              <p className="text-[2.8vw] md:text-[1.8vh]">☕ <span className="opacity-70">Eventos (mínimos)</span></p>
             </div>
           </div>
           <div className={`${card} border-orange-400/30`}>
@@ -87,6 +88,10 @@ const slides = [
         </div>
         <div className="bg-red-500/20 border-2 border-red-400/40 rounded-xl p-2 md:p-[1vh_1.5vw]">
           <div className="space-y-1 md:space-y-[0.5vh]">
+            <div className="flex items-start gap-2">
+              <span className="text-[4vw] md:text-[2vh] flex-shrink-0">📉</span>
+              <p className="text-[3vw] md:text-[1.8vh]">La realidad: <strong>lo que cuesta un jugador muchas veces no lo cubren las cuotas</strong>.</p>
+            </div>
             <div className="flex items-start gap-2">
               <span className="text-[4vw] md:text-[2vh] flex-shrink-0">👷</span>
               <p className="text-[3vw] md:text-[1.8vh]"><strong>Solo 2 personas reciben compensación</strong>. El resto son <strong>100% voluntarios</strong>.</p>
