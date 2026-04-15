@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { withPushSyncLock } from './pushSyncLock';
 
 /**
  * Componente silencioso que auto-suscribe al usuario a push notifications.
@@ -22,13 +23,13 @@ export default function AutoPushSubscriber({ user }) {
     autoSubscribe(user.email, lastEndpoint);
 
     // También al volver a la app (tab/app focus)
-    const onFocus = () => autoSubscribe(user.email, lastEndpoint);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') onFocus();
-    });
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') autoSubscribe(user.email, lastEndpoint);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
-      document.removeEventListener('visibilitychange', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [user?.email]);
 
@@ -85,8 +86,8 @@ async function autoSubscribe(email, lastEndpointRef) {
     if (lastEndpointRef.current === sub.endpoint) return;
     lastEndpointRef.current = sub.endpoint;
 
-    // Sincronizar con BD
-    await syncSubscriptionToDB(email, sub);
+    // Sincronizar con BD (con lock para evitar race condition con PushPermissionBanner)
+    await withPushSyncLock(() => syncSubscriptionToDB(email, sub));
     console.log('✅ Auto-push subscription synced');
   } catch (e) {
     console.warn('Auto-push subscription failed (non-blocking):', e.message);

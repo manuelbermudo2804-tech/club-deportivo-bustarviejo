@@ -47,7 +47,8 @@ async function sendPushToEmails(base44, emails, title, body, url, tag) {
       } catch (err) {
         failed++;
         if (err.statusCode === 410 || err.statusCode === 404) {
-          try { await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false }); } catch {}
+          // Endpoint muerto → eliminar de la BD (no acumular inactivos)
+          try { await base44.asServiceRole.entities.PushSubscription.delete(sub.id); } catch {}
         }
       }
     }

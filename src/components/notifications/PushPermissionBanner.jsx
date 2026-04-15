@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Bell, X, BellOff, ExternalLink } from 'lucide-react';
+import { Bell, X, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
+import { withPushSyncLock } from './pushSyncLock';
 
 const DISMISS_KEY = 'push_banner_dismissed_at';
 const DISMISS_DAYS = 1;
@@ -93,26 +94,28 @@ export default function PushPermissionBanner({ user }) {
           }
         }
         if (sub) {
-          const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
-          const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
-          // Check all subs for this user — update matching endpoint, delete stale ones
-          const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email });
-          const existing = allSubs.find(s => s.endpoint === sub.endpoint);
-          if (existing) {
-            await base44.entities.PushSubscription.update(existing.id, {
-              p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
-            });
-          } else {
-            await base44.entities.PushSubscription.create({
-              usuario_email: user.email, endpoint: sub.endpoint,
-              p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
-            });
-          }
-          // Clean up stale subscriptions
-          const stale = allSubs.filter(s => s.endpoint !== sub.endpoint);
-          for (const s of stale) {
-            try { await base44.entities.PushSubscription.delete(s.id); } catch {}
-          }
+          // Sincronizar con lock compartido con AutoPushSubscriber
+          await withPushSyncLock(async () => {
+            const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
+            const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
+            const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email });
+            const existing = allSubs.find(s => s.endpoint === sub.endpoint);
+            if (existing) {
+              await base44.entities.PushSubscription.update(existing.id, {
+                p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
+              });
+            } else {
+              await base44.entities.PushSubscription.create({
+                usuario_email: user.email, endpoint: sub.endpoint,
+                p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
+              });
+            }
+            // Clean up stale subscriptions
+            const stale = allSubs.filter(s => s.endpoint !== sub.endpoint);
+            for (const s of stale) {
+              try { await base44.entities.PushSubscription.delete(s.id); } catch {}
+            }
+          });
         }
       }
     } catch (e) {
