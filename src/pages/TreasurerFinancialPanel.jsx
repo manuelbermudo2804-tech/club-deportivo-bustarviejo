@@ -1587,6 +1587,27 @@ export default function TreasurerFinancialPanel() {
         {/* TAB PRESUPUESTOS */}
         <TabsContent value="presupuestos" className="space-y-6 mt-6">
 
+          {/* Planificador próxima temporada */}
+          <Card className="border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 shadow-lg">
+            <CardContent className="p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">📋 Presupuesto 2026-2027</h3>
+                  <p className="text-sm text-slate-600">Simulador interactivo con gráficos — editable y exportable a PDF</p>
+                </div>
+              </div>
+              <Link to="/BudgetPlanner">
+                <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-lg px-6">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Abrir Planificador
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
           {!currentBudget ? (
             <Card className="border-none shadow-xl">
               <CardContent className="p-12 text-center">

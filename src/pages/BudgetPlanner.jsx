@@ -119,7 +119,7 @@ export default function BudgetPlanner() {
   const handleExportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text("Presupuesto Temporada 2025-2026", 20, 20);
+    doc.text("Presupuesto Temporada 2026-2027", 20, 20);
     doc.setFontSize(10);
     doc.text(`CD Bustarviejo - Generado: ${new Date().toLocaleDateString("es-ES")}`, 20, 28);
 
@@ -158,7 +158,7 @@ export default function BudgetPlanner() {
     const res = totals.resultado;
     doc.text(`RESULTADO: ${res >= 0 ? "+" : ""}${res.toLocaleString("es-ES")}€ ${res >= 0 ? "(SUPERÁVIT)" : "(DÉFICIT)"}`, 20, y);
 
-    doc.save("presupuesto_2025-2026.pdf");
+    doc.save("presupuesto_2026-2027.pdf");
     toast.success("PDF descargado");
   };
 
@@ -202,7 +202,7 @@ export default function BudgetPlanner() {
             </Button>
           </Link>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold">📋 Presupuesto Temporada 2025-2026</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">📋 Presupuesto Temporada 2026-2027</h1>
         <p className="text-slate-300 mt-1 text-sm">Simulador interactivo — haz clic en cualquier número para editarlo</p>
         <div className="flex flex-wrap gap-2 mt-3">
           <Badge className="bg-blue-500/20 text-blue-200 border-blue-400/30">{totals.totalJugadores} jugadores</Badge>
@@ -414,7 +414,7 @@ export default function BudgetPlanner() {
       <Card className={`border-2 shadow-xl ${totals.resultado >= 0 ? "border-green-300 bg-gradient-to-r from-green-50 to-emerald-50" : "border-red-300 bg-gradient-to-r from-red-50 to-orange-50"}`}>
         <CardContent className="p-6">
           <div className="text-center">
-            <p className="text-lg font-semibold text-slate-600 mb-2">Resultado Final Temporada 2025-2026</p>
+            <p className="text-lg font-semibold text-slate-600 mb-2">Resultado Final Temporada 2026-2027</p>
             <p className={`text-5xl font-black ${totals.resultado >= 0 ? "text-green-700" : "text-red-700"}`}>
               {totals.resultado >= 0 ? "+" : ""}{totals.resultado.toLocaleString("es-ES")}€
             </p>
