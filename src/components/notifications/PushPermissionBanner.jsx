@@ -20,11 +20,22 @@ export default function PushPermissionBanner({ user }) {
     if (Notification.permission === 'granted') {
       (async () => {
         try {
+          // First check browser subscription
           const regs = await navigator.serviceWorker.getRegistrations();
           const reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
           if (reg?.pushManager) {
             const sub = await reg.pushManager.getSubscription();
-            if (sub) return;
+            if (sub) return; // browser has active sub, AutoPushSubscriber will sync it
+          }
+          // Browser has no sub — but AutoPushSubscriber may be creating one right now.
+          // Wait a moment then also check the DB as fallback before showing banner.
+          await new Promise(r => setTimeout(r, 3000));
+          // Re-check browser (AutoPushSubscriber may have created one by now)
+          const reg2 = (await navigator.serviceWorker.getRegistrations())
+            .find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
+          if (reg2?.pushManager) {
+            const sub2 = await reg2.pushManager.getSubscription();
+            if (sub2) return;
           }
           setVisible(true);
         } catch {}
@@ -84,11 +95,11 @@ export default function PushPermissionBanner({ user }) {
         if (sub) {
           const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
           const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
-          const existing = await base44.entities.PushSubscription.filter({
-            usuario_email: user.email, endpoint: sub.endpoint
-          });
-          if (existing.length > 0) {
-            await base44.entities.PushSubscription.update(existing[0].id, {
+          // Check all subs for this user — update matching endpoint, delete stale ones
+          const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: user.email });
+          const existing = allSubs.find(s => s.endpoint === sub.endpoint);
+          if (existing) {
+            await base44.entities.PushSubscription.update(existing.id, {
               p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
             });
           } else {
@@ -96,6 +107,11 @@ export default function PushPermissionBanner({ user }) {
               usuario_email: user.email, endpoint: sub.endpoint,
               p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
             });
+          }
+          // Clean up stale subscriptions
+          const stale = allSubs.filter(s => s.endpoint !== sub.endpoint);
+          for (const s of stale) {
+            try { await base44.entities.PushSubscription.delete(s.id); } catch {}
           }
         }
       }

@@ -135,11 +135,11 @@ async function syncSubscriptionToDB(email, sub) {
       });
     }
 
-    // Desactivar suscripciones viejas con endpoints distintos (ya no sirven)
-    const stale = allSubs.filter(s => s.endpoint !== sub.endpoint && s.activa);
+    // Eliminar suscripciones viejas con endpoints distintos (ya no sirven, evitar acumulación)
+    const stale = allSubs.filter(s => s.endpoint !== sub.endpoint);
     for (const s of stale) {
       try {
-        await base44.entities.PushSubscription.update(s.id, { activa: false });
+        await base44.entities.PushSubscription.delete(s.id);
       } catch {}
     }
   } catch (e) {
