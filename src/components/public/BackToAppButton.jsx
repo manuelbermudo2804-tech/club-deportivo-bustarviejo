@@ -1,25 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
-import { Home } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function BackToAppButton() {
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    base44.auth.isAuthenticated().then((authed) => {
-      if (authed) setShow(true);
-    }).catch(() => {});
-  }, []);
-
-  if (!show) return null;
+  const handleBack = () => {
+    // Try to go back in history, otherwise go to app root
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = "/";
+    }
+  };
 
   return (
-    <a
-      href="/"
-      className="fixed top-4 left-4 z-50 flex items-center gap-2 bg-slate-900/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2.5 rounded-full shadow-xl hover:bg-slate-800 transition-all hover:scale-105 active:scale-95"
+    <button
+      onClick={handleBack}
+      className="fixed top-4 left-4 z-50 flex items-center gap-2 bg-white/90 backdrop-blur-sm text-slate-800 font-semibold text-sm px-4 py-2.5 rounded-full shadow-lg hover:bg-white hover:scale-105 active:scale-95 transition-all border border-slate-200"
     >
-      <Home className="w-4 h-4" />
+      <ArrowLeft className="w-4 h-4" />
       Volver a la app
-    </a>
+    </button>
   );
 }
