@@ -19,6 +19,7 @@ import PublicMemberCard from '@/pages/PublicMemberCard';
 import SocialHub from '@/pages/SocialHub';
 import PublicAccessRequest from '@/pages/PublicAccessRequest';
 import PublicSponsors from '@/pages/PublicSponsors';
+import BudgetPlanner from '@/pages/BudgetPlanner';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -96,6 +97,7 @@ const AuthenticatedApp = () => {
       <Route path="/PushBadgeTest" element={<LayoutWrapper currentPageName="PushBadgeTest"><PushBadgeTest /></LayoutWrapper>} />
       <Route path="/PushStats" element={<LayoutWrapper currentPageName="PushStats"><PushStats /></LayoutWrapper>} />
       <Route path="/SocialHub" element={<LayoutWrapper currentPageName="SocialHub"><SocialHub /></LayoutWrapper>} />
+      <Route path="/BudgetPlanner" element={<LayoutWrapper currentPageName="BudgetPlanner"><BudgetPlanner /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
