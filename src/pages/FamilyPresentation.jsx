@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Maximize, Minimize } from "lucide-react";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
-const card = "bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl border border-white/20 p-3 md:p-5";
+const card = "bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl border border-white/20 p-3 md:p-6";
 
 const slides = [
   // ===== 1. BIENVENIDA =====
@@ -62,8 +62,8 @@ const slides = [
     bg: "from-slate-900 via-slate-800 to-emerald-900",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-2 md:py-4">
-        <h2 className="text-[6.5vw] md:text-4xl font-black text-center mb-1 md:mb-2 leading-none">💰 ¿Cómo sobrevive el club?</h2>
-        <p className="text-[3.2vw] md:text-lg opacity-70 text-center mb-2 md:mb-4">Con total transparencia</p>
+        <h2 className="text-[6.5vw] md:text-5xl font-black text-center mb-1 md:mb-3 leading-none">💰 ¿Cómo sobrevive el club?</h2>
+        <p className="text-[3.2vw] md:text-xl opacity-70 text-center mb-2 md:mb-5">Con total transparencia</p>
 
         <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4 mb-2 md:mb-4">
           <div className={`${card} border-green-400/30`}>
@@ -108,8 +108,8 @@ const slides = [
     bg: "from-emerald-700 via-teal-800 to-slate-900",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-2 md:py-4">
-        <h2 className="text-[6.5vw] md:text-4xl font-black text-center mb-1 md:mb-2 leading-none">🚀 Proyectos en marcha</h2>
-        <p className="text-[3.2vw] md:text-lg opacity-70 text-center mb-2 md:mb-4">Vuestras cuotas se invierten en mejorar</p>
+        <h2 className="text-[6.5vw] md:text-5xl font-black text-center mb-1 md:mb-3 leading-none">🚀 Proyectos en marcha</h2>
+        <p className="text-[3.2vw] md:text-xl opacity-70 text-center mb-2 md:mb-5">Vuestras cuotas se invierten en mejorar</p>
 
         <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4 mb-2 md:mb-4">
           {[
@@ -144,11 +144,11 @@ const slides = [
     bg: "from-slate-900 via-orange-900 to-slate-900",
     content: (
       <div className="flex flex-col items-center justify-center h-full text-white text-center px-6 md:px-12">
-        <div className="text-[15vw] md:text-7xl mb-4 md:mb-8">📱</div>
-        <h2 className="text-[8vw] md:text-5xl font-black leading-none mb-3 md:mb-6">Y para gestionar<br/>todo esto...</h2>
+        <div className="text-[15vw] md:text-8xl mb-4 md:mb-8">📱</div>
+        <h2 className="text-[8vw] md:text-6xl font-black leading-none mb-3 md:mb-6">Y para gestionar<br/>todo esto...</h2>
         <div className="w-24 md:w-36 h-1 bg-orange-500 rounded-full mb-3 md:mb-6" />
-        <p className="text-[5vw] md:text-2xl font-bold opacity-90">Hemos creado una app</p>
-        <p className="text-[3.5vw] md:text-lg opacity-60 mt-2 md:mt-4">que lo cambia todo →</p>
+        <p className="text-[5vw] md:text-3xl font-bold opacity-90">Hemos creado una herramienta</p>
+        <p className="text-[3.5vw] md:text-xl opacity-60 mt-2 md:mt-4">que nos ayuda a organizarnos mejor →</p>
       </div>
     ),
   },
@@ -156,19 +156,19 @@ const slides = [
   // ===== 6. POR QUÉ LA APP =====
   {
     id: "why_needed",
-    bg: "from-red-700 to-red-900",
+    bg: "from-orange-700 to-red-800",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-4 md:mb-4 leading-none">🚨 ¿Por qué necesitamos la app?</h2>
-        <div className="flex flex-col gap-3 md:gap-3">
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-4 md:mb-4 leading-none">📱 ¿Por qué una app propia?</h2>
+        <div className="flex flex-col gap-3 md:gap-4">
           {[
-            { icon: "📋", title: "Gestión imposible sin ella", desc: "Con alrededor de 130 jugadores y familias — y creciendo — necesitamos una herramienta centralizada." },
-            { icon: "💬", title: "WhatsApp genera problemas", desc: "Los grupos se descontrolan, se pierde información, hay malentendidos y no hay forma de gestionar pagos ni convocatorias." },
-            { icon: "⚖️", title: "Igualdad y transparencia", desc: "Todos los padres reciben la misma información al mismo tiempo. Sin favoritismos." },
+            { icon: "📋", title: "130 jugadores y creciendo", desc: "Gestionar tantas familias, pagos, convocatorias y documentos requiere una herramienta centralizada que nos ayude a todos." },
+            { icon: "💬", title: "WhatsApp se nos queda corto", desc: "Los grupos no permiten gestionar pagos, convocatorias ni documentos. La información se pierde entre mensajes y es difícil encontrar lo importante." },
+            { icon: "⚖️", title: "Igualdad y transparencia", desc: "Todas las familias reciben la misma información al mismo tiempo. Sin malentendidos." },
           ].map((item, i) => (
             <div key={i} className={card}>
-              <p className="text-[5vw] md:text-xl font-bold mb-1">{item.icon} {item.title}</p>
-              <p className="text-[3.5vw] md:text-lg opacity-85 leading-snug">{item.desc}</p>
+              <p className="text-[5vw] md:text-2xl font-bold mb-1">{item.icon} {item.title}</p>
+              <p className="text-[3.5vw] md:text-xl opacity-85 leading-snug">{item.desc}</p>
             </div>
           ))}
         </div>
@@ -176,20 +176,20 @@ const slides = [
     ),
   },
 
-  // ===== 6. ES OBLIGATORIA =====
+  // ===== 6. CANAL OFICIAL =====
   {
     id: "mandatory",
-    bg: "from-slate-900 to-slate-800",
+    bg: "from-slate-800 to-orange-900",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">⚠️ Es OBLIGATORIA</h2>
-        <p className="text-[4vw] md:text-lg opacity-90 text-center mb-4 md:mb-4">No es opcional. Es el único canal oficial del club.</p>
-        <div className="bg-red-500/20 border-2 border-red-400/40 rounded-2xl md:rounded-3xl p-4 md:p-6">
-          <div className="space-y-4 md:space-y-3">
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">📱 Canal oficial del club</h2>
+        <p className="text-[4vw] md:text-xl opacity-90 text-center mb-4 md:mb-5">La app es la herramienta que usamos para organizarnos. Necesitamos que todas las familias la utilicen.</p>
+        <div className="bg-orange-500/20 border-2 border-orange-400/40 rounded-2xl md:rounded-3xl p-4 md:p-6">
+          <div className="space-y-4 md:space-y-4">
             {[
-              { icon: "📱", title: "Sin app → No puedes inscribir a tus hijos", desc: "Las inscripciones se hacen exclusivamente por la app" },
-              { icon: "💳", title: "Sin inscripción → No puedes pagar", desc: "Los pagos se gestionan dentro de la app" },
-              { icon: "💛", title: "Sin pagar → Problema para todos", desc: "El club siempre escucha a familias con dificultades. Hablad con nosotros." },
+              { icon: "📱", title: "Inscripciones por la app", desc: "Para poder inscribir a tus hijos necesitas tener la app instalada" },
+              { icon: "💳", title: "Pagos y justificantes", desc: "Los pagos y la subida de justificantes se gestionan desde la app" },
+              { icon: "💛", title: "Estamos para ayudar", desc: "Si tenéis cualquier dificultad, hablad con nosotros. Siempre buscamos soluciones." },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2 md:gap-3">
                 <span className="text-[6vw] md:text-[4vw] flex-shrink-0">{item.icon}</span>
@@ -211,8 +211,8 @@ const slides = [
     bg: "from-green-600 to-emerald-800",
     content: (
       <div className="flex flex-col justify-center items-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">🆓 ¡100% GRATUITA!</h2>
-        <p className="text-[4vw] md:text-xl opacity-90 text-center mb-4 md:mb-5">No cuesta nada. Ni ahora ni nunca.</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-4 leading-none">🆓 ¡100% GRATUITA!</h2>
+        <p className="text-[4vw] md:text-2xl opacity-90 text-center mb-4 md:mb-6">No cuesta nada. Ni ahora ni nunca.</p>
         <div className="grid grid-cols-3 gap-2 md:gap-4 w-full mb-4 md:mb-4">
           {[
             { icon: "💰", val: "0€", sub: "Sin coste" },
@@ -239,8 +239,8 @@ const slides = [
     bg: "from-slate-800 to-slate-900",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[7vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">🔄 Adiós WhatsApp, emails y papeles</h2>
-        <p className="text-[3.5vw] md:text-lg opacity-80 text-center mb-4 md:mb-4">Todo en un solo sitio</p>
+        <h2 className="text-[7vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">🔄 Todo en un solo sitio</h2>
+        <p className="text-[3.5vw] md:text-xl opacity-80 text-center mb-4 md:mb-5">Centralizamos la comunicación y gestión poco a poco</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
           {[
             { icon: "💬", old: "Grupos de WhatsApp", now: "Chat integrado por categoría" },
@@ -269,7 +269,7 @@ const slides = [
     bg: "from-gray-900 to-gray-800",
     content: (
       <div className="flex flex-col justify-center items-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[7vw] md:text-4xl font-black text-center mb-4 md:mb-4 leading-none">📱 Así se ve por dentro</h2>
+        <h2 className="text-[7vw] md:text-5xl font-black text-center mb-4 md:mb-5 leading-none">📱 Así se ve por dentro</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 w-full flex-1 max-h-[65vh]">
           {[
             { label: "Panel principal", icon: "🏠", items: ["Próximos partidos", "Alertas y avisos", "Accesos rápidos", "Chat y anuncios"] },
@@ -300,8 +300,8 @@ const slides = [
     bg: "from-blue-600 to-blue-800",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">📲 Cómo instalar la app</h2>
-        <p className="text-[3.5vw] md:text-lg opacity-80 text-center mb-4 md:mb-4">NO es de tienda — se instala desde el navegador en 1 minuto</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">📲 Cómo instalar la app</h2>
+        <p className="text-[3.5vw] md:text-xl opacity-80 text-center mb-4 md:mb-5">NO es de tienda — se instala desde el navegador en 1 minuto</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {[
             { icon: "🍎", title: "iPhone / iPad", color: "text-blue-300", steps: ["Abrir Safari (obligatorio)", "Ir al enlace de la app", "Pulsar ⬆️ (compartir)", '"Añadir a pantalla de inicio"', "Confirmar → ¡Listo!"] },
@@ -330,8 +330,8 @@ const slides = [
     bg: "from-emerald-600 to-emerald-800",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">👨‍👩‍👧 Registro e inscripción</h2>
-        <p className="text-[3.5vw] md:text-lg opacity-80 text-center mb-4 md:mb-4">Proceso sencillo paso a paso</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">👨‍👩‍👧 Registro e inscripción</h2>
+        <p className="text-[3.5vw] md:text-xl opacity-80 text-center mb-4 md:mb-5">Proceso sencillo paso a paso</p>
         <div className="space-y-2 md:space-y-2">
           {[
             { step: "1", title: "Entrar con tu email", desc: "Se te envía un código — sin contraseña" },
@@ -359,8 +359,8 @@ const slides = [
     bg: "from-amber-700 to-orange-800",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">🔞 Jugadores +18</h2>
-        <p className="text-[4vw] md:text-lg opacity-80 text-center mb-4 md:mb-4">Se gestionan ellos mismos</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">🔞 Jugadores +18</h2>
+        <p className="text-[4vw] md:text-xl opacity-80 text-center mb-4 md:mb-5">Se gestionan ellos mismos</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-4">
           <div className={card}>
             <div className="text-[7vw] md:text-4xl mb-1 md:mb-2">🚫</div>
@@ -386,8 +386,8 @@ const slides = [
     bg: "from-violet-700 to-purple-900",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">🧑‍🎓 Acceso Juvenil (13–17)</h2>
-        <p className="text-[4vw] md:text-lg opacity-80 text-center mb-4 md:mb-4">Para que los chavales se gestionen solos</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">🧑‍🎓 Acceso Juvenil (13–17)</h2>
+        <p className="text-[4vw] md:text-xl opacity-80 text-center mb-4 md:mb-5">Para que los chavales se gestionen solos</p>
         <div className={`${card} w-full`}>
           <div className="space-y-3 md:space-y-3">
             {[
@@ -414,8 +414,8 @@ const slides = [
     bg: "from-amber-600 to-red-700",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">🏆 Convocatorias</h2>
-        <p className="text-[4vw] md:text-lg opacity-80 text-center mb-4 md:mb-4">El entrenador convoca → tú confirmas</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">🏆 Convocatorias</h2>
+        <p className="text-[4vw] md:text-xl opacity-80 text-center mb-4 md:mb-5">El entrenador convoca → tú confirmas</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-4">
           {[
             { icon: "📩", title: "Te llega aviso", desc: "Notificación cuando tu hijo es convocado" },
@@ -442,8 +442,8 @@ const slides = [
     bg: "from-purple-700 to-indigo-800",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">💳 Pagos y Cuotas</h2>
-        <p className="text-[4vw] md:text-lg opacity-90 text-center mb-4 md:mb-4">Transparente y sencillo</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">💳 Pagos y Cuotas</h2>
+        <p className="text-[4vw] md:text-xl opacity-90 text-center mb-4 md:mb-5">Transparente y sencillo</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-4">
           <div className={card}>
             <h3 className="text-[5vw] md:text-xl font-bold mb-2 md:mb-3">💰 Formas de pago</h3>
@@ -475,8 +475,8 @@ const slides = [
     bg: "from-cyan-600 to-teal-700",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">💬 Comunicación</h2>
-        <p className="text-[4vw] md:text-lg opacity-80 text-center mb-4 md:mb-4">3 canales — todo dentro de la app</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">💬 Comunicación</h2>
+        <p className="text-[4vw] md:text-xl opacity-80 text-center mb-4 md:mb-5">3 canales — todo dentro de la app</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-4">
           {[
             { icon: "⚽", title: "Chat de Equipo", desc: "Grupal con entrenador y familias" },
@@ -490,8 +490,8 @@ const slides = [
             </div>
           ))}
         </div>
-        <div className="bg-red-500/20 border border-red-400/30 rounded-2xl md:rounded-3xl p-3 md:p-4 text-center">
-          <p className="text-[4vw] md:text-lg font-bold">🚫 Los grupos de WhatsApp del club se eliminarán. Toda la comunicación será por la app.</p>
+        <div className="bg-blue-500/20 border border-blue-400/30 rounded-2xl md:rounded-3xl p-3 md:p-5 text-center">
+          <p className="text-[4vw] md:text-xl font-bold">📲 Iremos centralizando la comunicación en la app poco a poco. Los grupos de WhatsApp se irán cerrando de forma gradual.</p>
         </div>
       </div>
     ),
@@ -503,8 +503,8 @@ const slides = [
     bg: "from-slate-700 to-slate-900",
     content: (
       <div className="flex flex-col justify-center items-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-2 md:mb-2 leading-none">✨ Y mucho más...</h2>
-        <p className="text-[4vw] md:text-lg opacity-80 text-center mb-4 md:mb-5">La app sigue creciendo</p>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-2 md:mb-3 leading-none">✨ Y mucho más...</h2>
+        <p className="text-[4vw] md:text-xl opacity-80 text-center mb-4 md:mb-5">La app sigue creciendo</p>
         <div className="grid grid-cols-3 gap-2 md:gap-3 w-full">
           {[
             { icon: "🏆", title: "Competición en directo" },
@@ -533,7 +533,7 @@ const slides = [
     bg: "from-indigo-700 to-violet-800",
     content: (
       <div className="flex flex-col justify-center h-full text-white px-4 md:px-12 py-4 md:py-4">
-        <h2 className="text-[8vw] md:text-4xl font-black text-center mb-4 md:mb-4 leading-none">❓ Preguntas Frecuentes</h2>
+        <h2 className="text-[8vw] md:text-5xl font-black text-center mb-4 md:mb-5 leading-none">❓ Preguntas Frecuentes</h2>
         <div className="space-y-2 md:space-y-2">
           {[
             { q: "¿Ambos padres pueden acceder?", a: "Sí. Se invita al segundo progenitor desde la app." },
@@ -568,8 +568,8 @@ const slides = [
           <p className="text-[4.5vw] md:text-xl font-bold">🤖 Usad el Asistente Virtual dentro de la app</p>
           <p className="text-[2.8vw] md:text-sm opacity-60 mt-1 md:mt-2">o escribid al coordinador por el chat</p>
         </div>
-        <div className="bg-red-500/20 border border-red-400/30 rounded-2xl md:rounded-3xl p-3 md:p-4 mt-3 md:mt-4 max-w-full md:max-w-3xl">
-          <p className="text-[4vw] md:text-lg font-bold">📱 ¡Instaladla HOY! No dejéis para mañana lo que podéis hacer en 5 minutos.</p>
+        <div className="bg-orange-500/20 border border-orange-400/30 rounded-2xl md:rounded-3xl p-3 md:p-5 mt-3 md:mt-4 max-w-full md:max-w-3xl">
+          <p className="text-[4vw] md:text-xl font-bold">📱 ¡Instaladla hoy! Son solo 5 minutos y nos ayuda a todos a organizarnos mejor.</p>
         </div>
       </div>
     ),
@@ -694,7 +694,7 @@ export default function FamilyPresentation() {
         </div>
 
         {/* Desktop: counter + fullscreen */}
-        <div className="hidden md:flex items-center gap-[1.5vw] text-white/70" className="text-base">
+        <div className="hidden md:flex items-center gap-4 text-white/70 text-lg">
           <span>{current + 1} / {total}</span>
           <button onClick={toggleFullscreen} className="hover:text-white transition-colors" title="Pantalla completa (F)">
             {isFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
