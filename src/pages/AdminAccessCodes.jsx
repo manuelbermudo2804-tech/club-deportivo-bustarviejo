@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import BulkInviteDialog from "@/components/admin/BulkInviteDialog";
 import AssistedRegistrationPanel from "@/components/admin/AssistedRegistrationPanel.jsx";
 import AccessRequestsPanel from "@/components/admin/AccessRequestsPanel";
+import AccessAuditPanel from "@/components/admin/AccessAuditPanel";
 
 function InviteDialog({ open, onOpenChange, onInvite }) {
   const [email, setEmail] = useState("");
@@ -787,6 +788,13 @@ export default function AdminAccessCodes() {
           </CardContent>
         </Card>
       )}
+
+      {/* 🔍 AUDITORÍA COMPARATIVA */}
+      <AccessAuditPanel 
+        accessCodes={accessCodes} 
+        accessAttempts={accessAttempts} 
+        allUsers={allUsers} 
+      />
 
       {/* Info: sistema de reenvío automático */}
       <Card className="mb-6 border-2 border-blue-200 bg-blue-50">
