@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, SendHorizonal, CheckCircle2, Clock, Inbox, Copy, ExternalLink } from "lucide-react";
+import { Loader2, Mail, SendHorizonal, CheckCircle2, Clock, Inbox, Copy, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AccessRequestsPanel() {
@@ -114,19 +114,34 @@ export default function AccessRequestsPanel() {
                       <p className="text-xs text-slate-500 mt-0.5">⚽ Jugador: {req.nombre_jugador}</p>
                     )}
                   </div>
-                  <Button
-                    size="sm"
-                    className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
-                    onClick={() => sendCodeMutation.mutate(req)}
-                    disabled={sendingId === req.id}
-                  >
-                    {sendingId === req.id ? (
-                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                    ) : (
-                      <SendHorizonal className="w-3 h-3 mr-1" />
-                    )}
-                    Enviar Código
-                  </Button>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Button
+                      size="sm"
+                      className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
+                      onClick={() => sendCodeMutation.mutate(req)}
+                      disabled={sendingId === req.id}
+                    >
+                      {sendingId === req.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                      ) : (
+                        <SendHorizonal className="w-3 h-3 mr-1" />
+                      )}
+                      Enviar Código
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600 border-red-200 hover:bg-red-100"
+                      onClick={async () => {
+                        if (!confirm(`¿Eliminar la solicitud de ${req.nombre_progenitor}?`)) return;
+                        await base44.entities.AccessRequest.delete(req.id);
+                        queryClient.invalidateQueries({ queryKey: ['accessRequests'] });
+                        toast.success('Solicitud eliminada');
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -145,10 +160,28 @@ export default function AccessRequestsPanel() {
       {/* Solicitudes procesadas */}
       {processedRequests.length > 0 && (
         <div className="space-y-2">
-          <h3 className="font-bold text-slate-600 text-sm flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-600" />
-            Procesadas ({processedRequests.length})
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-slate-600 text-sm flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              Procesadas ({processedRequests.length})
+            </h3>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-red-600 border-red-200 hover:bg-red-100 text-xs h-7"
+              onClick={async () => {
+                if (!confirm(`¿Eliminar las ${processedRequests.length} solicitudes procesadas?`)) return;
+                for (const r of processedRequests) {
+                  try { await base44.entities.AccessRequest.delete(r.id); } catch {}
+                }
+                queryClient.invalidateQueries({ queryKey: ['accessRequests'] });
+                toast.success('Solicitudes procesadas eliminadas');
+              }}
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              Borrar todas
+            </Button>
+          </div>
           <div className="space-y-1.5 max-h-64 overflow-y-auto">
             {processedRequests.map((req) => (
               <div key={req.id} className="flex items-center gap-3 bg-green-50 rounded-xl px-3 py-2 border border-green-200">

@@ -172,7 +172,7 @@ export default function AccessCodeVerification({ user, onSuccess }) {
 
           <div className="pt-2 border-t">
             <p className="text-xs text-slate-400">
-              CD Bustarviejo • <a href="mailto:CDBUSTARVIEJO@GMAIL.COM" className="text-orange-500">CDBUSTARVIEJO@GMAIL.COM</a>
+              CD Bustarviejo • <a href="mailto:info@cdbustarviejo.com" className="text-orange-500">INFO@CDBUSTARVIEJO.COM</a>
             </p>
           </div>
         </CardContent>

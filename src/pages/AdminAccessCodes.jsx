@@ -764,24 +764,45 @@ export default function AdminAccessCodes() {
                       Registrado: {new Date(u.created_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
-                  {u.existingCode ? (
-                    <Badge className="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs whitespace-nowrap">
-                      <Clock className="w-3 h-3 mr-1" />
-                      Código enviado: {u.existingCode.codigo}
-                    </Badge>
-                  ) : (
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {u.existingCode ? (
+                      <Badge className="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs whitespace-nowrap">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Código enviado: {u.existingCode.codigo}
+                      </Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
+                        onClick={() => {
+                          generateMutation.mutate({ email: u.email, nombre_destino: u.full_name || '', tipo: 'padre_nuevo' });
+                        }}
+                        disabled={generateMutation.isPending}
+                      >
+                        {generateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <SendHorizonal className="w-3 h-3 mr-1" />}
+                        Enviar Código
+                      </Button>
+                    )}
                     <Button
                       size="sm"
-                      className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
-                      onClick={() => {
-                        generateMutation.mutate({ email: u.email, nombre_destino: u.full_name || '', tipo: 'padre_nuevo' });
+                      variant="outline"
+                      className="text-red-600 border-red-200 hover:bg-red-100"
+                      onClick={async () => {
+                        if (!confirm(`¿Eliminar a ${u.full_name || u.email} de esta lista? (Esto marca su código como validado)`)) return;
+                        try {
+                          await base44.entities.User.update(u.id, { codigo_acceso_validado: true });
+                          if (u.existingCode) {
+                            await base44.entities.AccessCode.update(u.existingCode.id, { estado: 'cancelado' });
+                          }
+                          queryClient.invalidateQueries({ queryKey: ['allUsersAccessCodes'] });
+                          queryClient.invalidateQueries({ queryKey: ['accessCodes'] });
+                          toast.success('Usuario eliminado de la lista');
+                        } catch { toast.error('Error'); }
                       }}
-                      disabled={generateMutation.isPending}
                     >
-                      {generateMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <SendHorizonal className="w-3 h-3 mr-1" />}
-                      Enviar Código
+                      <Trash2 className="w-3 h-3" />
                     </Button>
-                  )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -789,12 +810,29 @@ export default function AdminAccessCodes() {
         </Card>
       )}
 
-      {/* 🔍 AUDITORÍA COMPARATIVA */}
-      <AccessAuditPanel 
-        accessCodes={accessCodes} 
-        accessAttempts={accessAttempts} 
-        allUsers={allUsers} 
-      />
+      {/* 🔍 AUDITORÍA COMPARATIVA (desplegable) */}
+      <Card className="mb-6 border-2 border-indigo-300 cursor-pointer" onClick={() => {
+        const el = document.getElementById('auditPanelContent');
+        if (el) el.classList.toggle('hidden');
+        const arrow = document.getElementById('auditPanelArrow');
+        if (arrow) arrow.classList.toggle('rotate-180');
+      }}>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <span>🔍</span>
+            Auditoría: Códigos vs Intentos de Acceso
+            <span id="auditPanelArrow" className="ml-auto transition-transform text-slate-400">▼</span>
+          </CardTitle>
+          <p className="text-sm text-slate-500">Pulsa para desplegar la comparativa completa</p>
+        </CardHeader>
+      </Card>
+      <div id="auditPanelContent" className="hidden mb-6" onClick={(e) => e.stopPropagation()}>
+        <AccessAuditPanel 
+          accessCodes={accessCodes} 
+          accessAttempts={accessAttempts} 
+          allUsers={allUsers} 
+        />
+      </div>
 
       {/* Info: sistema de reenvío automático */}
       <Card className="mb-6 border-2 border-blue-200 bg-blue-50">
