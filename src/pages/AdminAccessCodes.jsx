@@ -268,7 +268,7 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
   );
 }
 
-function CodeCard({ code, onResend, onCancel, isResending }) {
+function CodeCard({ code, onResend, onCancel, onDelete, isResending }) {
   const isExpired = code.fecha_expiracion && new Date(code.fecha_expiracion) < new Date();
   const displayEstado = isExpired && code.estado === 'pendiente' ? 'expirado' : code.estado;
 
@@ -344,6 +344,17 @@ function CodeCard({ code, onResend, onCancel, isResending }) {
                 Cancelar
               </Button>
             )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                if (confirm(`¿Eliminar permanentemente esta invitación para ${code.email}?`)) onDelete(code.id);
+              }}
+              className="text-xs text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              Borrar
+            </Button>
           </div>
         </div>
       </CardContent>
@@ -479,6 +490,14 @@ export default function AdminAccessCodes() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accessCodes'] });
       toast.success('Invitación cancelada');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.AccessCode.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accessCodes'] });
+      toast.success('Invitación eliminada');
     }
   });
 
@@ -645,6 +664,20 @@ export default function AdminAccessCodes() {
                         <SendHorizonal className="w-3 h-3 mr-1" />
                         Enviar Código
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 border-red-200 hover:bg-red-100 whitespace-nowrap"
+                        onClick={async () => {
+                          if (!confirm(`¿Borrar los registros de ${u.email}?`)) return;
+                          const toDelete = accessAttempts.filter(a => a.user_email?.toLowerCase() === u.email);
+                          for (const a of toDelete) { try { await base44.entities.AccessCodeAttempt.delete(a.id); } catch {} }
+                          queryClient.invalidateQueries({ queryKey: ['accessAttempts'] });
+                          toast.success('Registros borrados');
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -684,6 +717,20 @@ export default function AdminAccessCodes() {
                           </Badge>
                         </div>
                       </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 border-red-200 hover:bg-red-100 whitespace-nowrap"
+                        onClick={async () => {
+                          if (!confirm(`¿Borrar los registros de ${alert.email}?`)) return;
+                          const toDelete = accessAttempts.filter(a => a.user_email?.toLowerCase() === alert.email);
+                          for (const a of toDelete) { try { await base44.entities.AccessCodeAttempt.delete(a.id); } catch {} }
+                          queryClient.invalidateQueries({ queryKey: ['accessAttempts'] });
+                          toast.success('Registros borrados');
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -843,6 +890,7 @@ export default function AdminAccessCodes() {
               code={code}
               onResend={(id) => resendMutation.mutate(id)}
               onCancel={(id) => cancelMutation.mutate(id)}
+              onDelete={(id) => deleteMutation.mutate(id)}
               isResending={resendingId === code.id}
             />
           ))}
