@@ -37,8 +37,7 @@ export function ClosedSeasonScreen({ user, isAdmin }) {
               </div>
             )}
             <div className="pt-4 border-t border-slate-200">
-              <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" className="text-sm text-orange-600 block">C.D.BUSTARVIEJO@HOTMAIL.ES</a>
-              <a href="mailto:CDBUSTARVIEJO@GMAIL.COM" className="text-sm text-orange-600 block">CDBUSTARVIEJO@GMAIL.COM</a>
+              <a href="mailto:info@cdbustarviejo.com" className="text-sm text-orange-600 block">INFO@CDBUSTARVIEJO.COM</a>
             </div>
           </CardContent>
         </Card>
@@ -143,8 +142,7 @@ export function RestrictedAccessScreen({ user, restriction }) {
               </div>
             )}
             <div className="pt-4 border-t border-slate-200">
-              <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" className="text-sm text-orange-600 block">C.D.BUSTARVIEJO@HOTMAIL.ES</a>
-              <a href="mailto:CDBUSTARVIEJO@GMAIL.COM" className="text-sm text-orange-600 block">CDBUSTARVIEJO@GMAIL.COM</a>
+              <a href="mailto:info@cdbustarviejo.com" className="text-sm text-orange-600 block">INFO@CDBUSTARVIEJO.COM</a>
             </div>
           </CardContent>
         </Card>
