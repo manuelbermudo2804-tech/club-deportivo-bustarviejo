@@ -29,6 +29,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import { useImageUpload } from "../components/utils/useImageUpload";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -42,6 +43,7 @@ export default function StaffChat() {
   const navigate = useNavigate();
    const [user, setUser] = useState(null);
    const [isStaff, setIsStaff] = useState(false);
+  const [uploadingImage, uploadFile] = useImageUpload();
   const [uploading, setUploading] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -278,17 +280,18 @@ export default function StaffChat() {
     try {
       const uploaded = [];
       for (const file of files) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: file.type,
-          tamano: file.size
-        });
+        const isImage = file.type?.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
+        if (isImage) {
+          const url = await uploadFile(file);
+          if (url) uploaded.push({ url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size });
+        } else {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          uploaded.push({ url: file_url, nombre: file.name, tipo: file.type, tamano: file.size });
+        }
       }
       if (uploaded.length > 0) {
         toast.success("Archivos adjuntados");
-        return uploaded; // Retornar para que el input los gestione
+        return uploaded;
       }
       return [];
     } catch (error) {
@@ -305,15 +308,10 @@ export default function StaffChat() {
     
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const fileObj = {
-        url: file_url,
-        nombre: file.name,
-        tipo: file.type,
-        tamano: file.size
-      };
+      const url = await uploadFile(file);
+      if (!url) return null;
       toast.success("Foto capturada");
-      return fileObj; // Retornar para que el input lo gestione
+      return { url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size };
     } catch (error) {
       toast.error("Error al capturar foto");
       return null;
@@ -975,7 +973,7 @@ export default function StaffChat() {
             onLocationClick={() => setShowLocationDialog(true)}
             onPollClick={() => setShowPollDialog(true)}
             onExerciseClick={() => setShowQuickReplies(!showQuickReplies)}
-            uploading={uploading}
+            uploading={uploading || uploadingImage}
             showExercise={false}
             placeholder="Escribe un mensaje..."
           />

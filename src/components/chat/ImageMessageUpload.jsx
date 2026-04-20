@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
 import { Loader2, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createSafePreviewUrl } from "../utils/useImageUpload";
-import { logUploadStart, logUploadError, logUploadSuccess, logFileValidationReject } from "../utils/uploadLogger";
+import { useImageUpload, createSafePreviewUrl } from "../utils/useImageUpload";
 
 export default function ImageMessageUpload({ file, onUploadComplete, onRemove }) {
   const [status, setStatus] = useState('uploading');
@@ -11,6 +9,7 @@ export default function ImageMessageUpload({ file, onUploadComplete, onRemove })
   const [uploadedUrl, setUploadedUrl] = useState(null);
   const [error, setError] = useState(null);
   const retryCountRef = useRef(0);
+  const [, uploadFile] = useImageUpload();
 
   // Preview local segura (modo degradado → null)
   useEffect(() => {
@@ -29,55 +28,31 @@ export default function ImageMessageUpload({ file, onUploadComplete, onRemove })
     } catch { /* sin preview — no es crítico */ }
   }, [file]);
 
-  // Subida al backend
+  // Subida usando la cascada robusta centralizada
   useEffect(() => {
     if (!file || uploadedUrl) return;
 
-    // Guard: archivo vacío
-    if (!file.size || file.size === 0) {
-      logFileValidationReject(file, 'size_zero');
-      setError('La imagen está vacía. Inténtalo de nuevo.');
-      setStatus('error');
-      return;
-    }
-
-    // Guard: archivo demasiado grande (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      const mb = (file.size / 1024 / 1024).toFixed(0);
-      const msg = `La foto pesa ${mb}MB y el máximo es 5MB.`;
-      logFileValidationReject(file, 'size_too_large');
-      setError(msg);
-      setStatus('error');
-      return;
-    }
-
     const upload = async () => {
       try {
-        logUploadStart(file);
-        const response = await base44.functions.invoke('processImage', { image: file });
-        const data = response?.data;
-
-        if (!data) throw new Error('Respuesta vacía del servidor');
-        if (data.error) throw new Error(data.userMessage || data.error);
-        if (!data.file_url) throw new Error('El servidor no devolvió URL de imagen');
-
-        logUploadSuccess(file, data.file_url);
-        setUploadedUrl(data.file_url);
-        setStatus('sent');
-        try {
-          onUploadComplete?.({ url: data.file_url, nombre: file.name, tipo: 'image/jpeg' });
-        } catch (cbErr) {
-          logUploadError(file, cbErr, 'onUploadComplete_callback');
+        const url = await uploadFile(file);
+        if (url) {
+          setUploadedUrl(url);
+          setStatus('sent');
+          try {
+            onUploadComplete?.({ url, nombre: file.name, tipo: 'image/jpeg' });
+          } catch { /* callback error no crítico */ }
+        } else {
+          setError('No se pudo subir la imagen. Inténtalo de nuevo.');
+          setStatus('error');
         }
       } catch (err) {
-        logUploadError(file, err, 'ImageMessageUpload');
-        setError(err.message || 'Error al subir. Inténtalo de nuevo.');
+        setError(err?.message || 'Error al subir. Inténtalo de nuevo.');
         setStatus('error');
       }
     };
 
     upload();
-  }, [file, uploadedUrl, onUploadComplete]);
+  }, [file, uploadedUrl, retryCountRef.current]);
 
   const retry = () => {
     retryCountRef.current += 1;

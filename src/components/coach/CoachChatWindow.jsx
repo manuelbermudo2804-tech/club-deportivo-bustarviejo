@@ -21,6 +21,7 @@ import CoachChatInput from "../chat/CoachChatInput";
 import EmojiScaler from "../chat/EmojiScaler";
 import ChatImageBubble from "../chat/ChatImageBubble";
 import ChatAudioBubble from "../chat/ChatAudioBubble";
+import { useImageUpload } from "../utils/useImageUpload";
 import DateSeparator from "../chat/DateSeparator";
 import NewMessageButton from "../chat/NewMessageButton";
 import { groupConsecutiveMessages } from "../chat/MessageGrouping";
@@ -40,6 +41,7 @@ const normalizeCategory = (s) =>
 const toGroupId = (s) => normalizeCategory(s).replace(/\s+/g, '_');
 
 export default function CoachChatWindow({ selectedCategory, user, allPlayers }) {
+  const [uploadingImage, uploadFile] = useImageUpload();
   const [uploading, setUploading] = useState(false);
   const [playingAudio, setPlayingAudio] = useState(null);
   const [showReactions, setShowReactions] = useState(null);
@@ -211,45 +213,6 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     return;
   };
 
-  const compressImage = (file) => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob((blob) => {
-            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
-          }, 'image/jpeg', 0.7);
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);
@@ -262,18 +225,15 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           continue;
         }
         
-        let fileToUpload = file;
-        if (file.type.startsWith('image/')) {
-          fileToUpload = await compressImage(file);
+        const url = await uploadFile(file);
+        if (url) {
+          uploaded.push({
+            url,
+            nombre: file.name,
+            tipo: file.type?.startsWith('image/') ? 'image/jpeg' : file.type,
+            tamano: file.size
+          });
         }
-        
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: file.type,
-          tamano: file.size
-        });
       }
       if (uploaded.length > 0) {
         toast.success("Archivos adjuntados");
@@ -294,12 +254,12 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     
     setUploading(true);
     try {
-      const compressedFile = await compressImage(file);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressedFile });
+      const url = await uploadFile(file);
+      if (!url) return null;
       const fileObj = {
-        url: file_url,
+        url,
         nombre: file.name,
-        tipo: file.type,
+        tipo: 'image/jpeg',
         tamano: file.size
       };
       toast.success("Foto capturada");
@@ -1139,7 +1099,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         onLocationClick={() => setShowLocationDialog(true)}
         onPollClick={() => setShowPollDialog(true)}
         onExerciseClick={() => setShowExerciseShare(true)}
-        uploading={uploading}
+        uploading={uploading || uploadingImage}
         placeholder="Escribe un mensaje..."
       />
 

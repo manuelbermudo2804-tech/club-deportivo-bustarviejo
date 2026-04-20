@@ -7,10 +7,13 @@
  * 
  * Cascada de estrategias (en orden):
  * 1. Comprimir en frontend (canvas 800px) + subir comprimido
- * 2. processImage (backend resize/compress)
- * 3. Subida directa sin procesar
+ * 2. Subida directa sin procesar
+ * 3. processImage (backend resize/compress)
  * 4. Comprimir a miniatura (400px) + subir
- * 5. Convertir a base64 blob + subir
+ * 5. Convertir a ArrayBuffer blob + subir
+ * 6. EMERGENCIA: Miniatura 300px q30 o subida cruda con timeout extendido
+ * 
+ * Cada estrategia tiene reintentos automáticos (backoff exponencial) y timeouts.
  * 
  * Nunca lanza excepciones al árbol React.
  */
