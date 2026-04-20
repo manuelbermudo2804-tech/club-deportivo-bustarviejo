@@ -4,7 +4,7 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon, Share2
+  User as UserIcon, Share2, ExternalLink
 } from "lucide-react";
 
 /**
@@ -85,6 +85,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📊 Estadísticas Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
     { title: "🔬 Centro de Diagnóstico", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
     { title: "⚡ Monitor de Créditos", url: createPageUrl("CreditUsage"), icon: BarChart3 },
+    { title: "🌐 Páginas Externas", url: "/ExternalLinks", icon: ExternalLink },
 
     { title: "─ SAN ISIDRO ─", section: true },
     { title: "🎉 Inscripciones San Isidro", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },
