@@ -203,12 +203,18 @@ export default function SanIsidroInscripcion() {
         {/* Formulario */}
         {step === "form" && (
           <form onSubmit={handleSubmit} className="p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setStep("select")} className="text-slate-400 hover:text-slate-800">
-                <ArrowLeft className="w-5 h-5" />
-              </button>
+            <button
+              type="button"
+              onClick={() => setStep("select")}
+              className="flex items-center gap-2 text-sm text-red-600 font-semibold hover:text-red-800 active:scale-95 transition-all bg-red-50 hover:bg-red-100 rounded-lg px-3 py-2 w-fit"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Cambiar torneo
+            </button>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-2xl">{mod?.icon}</span>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">{mod?.icon} {mod?.label}</h3>
+                <h3 className="text-lg font-bold text-slate-900">{mod?.label}</h3>
                 <p className="text-xs text-slate-500">{isChapa ? "1 jugador por inscripción" : "Equipo de 3 jugadores"}</p>
               </div>
             </div>
