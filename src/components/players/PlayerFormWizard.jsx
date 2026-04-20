@@ -203,7 +203,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (!isEditing && currentPlayer.nombre) {
       saveFormDraft(currentPlayer, step);
     }
-  }, [step, currentPlayer.nombre, currentPlayer.foto_url, currentPlayer.dni_jugador_url, currentPlayer.libro_familia_url, currentPlayer.dni_tutor_legal_url]);
+  }, [step, currentPlayer.nombre, currentPlayer.foto_url, currentPlayer.dni_jugador_url, currentPlayer.dni_jugador_trasero_url, currentPlayer.libro_familia_url, currentPlayer.dni_tutor_legal_url, currentPlayer.dni_tutor_legal_trasero_url]);
 
   // Detectar recarga (por cámara o por crash) y restaurar borrador al montar
   useEffect(() => {
@@ -332,8 +332,10 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
           if (draft.playerData) { draft.playerData.dni_jugador_trasero_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
         } catch {}
         setCurrentPlayer(p => ({ ...p, dni_jugador_trasero_url: url }));
+      } else {
+        setUploadFailCount(c => c + 1);
       }
-    } catch (err) { logUploadError(null, err, 'handleDNITraseroUpload_catch'); }
+    } catch (err) { setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleDNITraseroUpload_catch'); }
   };
   const handleDNITutorUpload = async (e) => {
     try {
@@ -370,8 +372,10 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
           if (draft.playerData) { draft.playerData.dni_tutor_legal_trasero_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
         } catch {}
         setCurrentPlayer(p => ({ ...p, dni_tutor_legal_trasero_url: url }));
+      } else {
+        setUploadFailCount(c => c + 1);
       }
-    } catch (err) { logUploadError(null, err, 'handleDNITutorTraseroUpload_catch'); }
+    } catch (err) { setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleDNITutorTraseroUpload_catch'); }
   };
 
   const handleLoadPreviousTutorData = (playerId) => {

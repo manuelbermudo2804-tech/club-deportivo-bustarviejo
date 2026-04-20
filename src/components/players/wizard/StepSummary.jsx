@@ -69,6 +69,7 @@ export default function StepSummary({ currentPlayer, playerAge, isMayorDeEdad, s
       { label: "Normativa del club", value: currentPlayer.acepta_normativa ? "✅ Aceptada" : "❌ Pendiente", ok: currentPlayer.acepta_normativa },
       { label: "Política privacidad", value: currentPlayer.acepta_politica_privacidad ? "✅ Aceptada" : "❌ Pendiente", ok: currentPlayer.acepta_politica_privacidad },
       { label: "Fotografías", value: currentPlayer.autorizacion_fotografia || "❌ Pendiente", ok: !!currentPlayer.autorizacion_fotografia },
+      ...(!isAdultPlayerSelfRegistration ? [{ label: "Resp. desplazamiento", value: currentPlayer.acepta_responsabilidad_desplazamiento ? "✅ Aceptada" : "❌ Pendiente", ok: currentPlayer.acepta_responsabilidad_desplazamiento }] : []),
     ]
   });
 
