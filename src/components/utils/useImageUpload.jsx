@@ -26,16 +26,56 @@ const MAX_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB — subimos el límite, el sis
 /**
  * Espera a que iOS entregue el archivo completo.
  * En Chrome iOS, el File puede llegar con size=0 momentáneamente.
- * Reintenta hasta 3 veces con delays crecientes.
+ * En cámaras de alta resolución (108MP+) puede tardar >1s.
+ * Reintenta hasta 6 veces con delays crecientes (total ~6.3s).
  */
-async function waitForFileReady(file, maxRetries = 3) {
+async function waitForFileReady(file, maxRetries = 6) {
   for (let i = 0; i < maxRetries; i++) {
     if (file && typeof file.size === 'number' && file.size > 0) return file;
-    await new Promise(r => setTimeout(r, 300 * (i + 1)));
-    // Re-check — iOS may update the File object in place
+    await new Promise(r => setTimeout(r, 200 * Math.pow(1.5, i)));
     if (file && typeof file.size === 'number' && file.size > 0) return file;
   }
-  return file; // devolver como está, validateFile decidirá
+  // Último intento: leer un slice para forzar materialización del File
+  try {
+    if (file && typeof file.slice === 'function') {
+      const slice = file.slice(0, 1);
+      await slice.arrayBuffer();
+      if (file.size > 0) return file;
+    }
+  } catch {}
+  return file;
+}
+
+/**
+ * Ejecuta una función con timeout. Si se pasa del tiempo, rechaza.
+ */
+function withTimeout(promise, ms, label = '') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`Timeout ${label} (${ms}ms)`)), ms))
+  ]);
+}
+
+/**
+ * Reintenta una función async hasta N veces con backoff exponencial.
+ * Solo reintenta en errores de red/timeout, no en errores lógicos.
+ */
+async function withRetry(fn, maxRetries = 2, label = '') {
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      const msg = (err?.message || '').toLowerCase();
+      const isRetryable = /network|fetch|timeout|econnreset|socket|abort|503|502|429/i.test(msg);
+      if (!isRetryable || attempt === maxRetries) throw err;
+      const delay = 1000 * Math.pow(2, attempt) + Math.random() * 500;
+      console.warn(`[Upload] ⏳ Reintento ${attempt + 1}/${maxRetries} para ${label} en ${Math.round(delay)}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  throw lastError;
 }
 
 /**
@@ -140,21 +180,35 @@ function compressInFrontend(file, maxDim = 800, quality = 0.6) {
 }
 
 /**
+ * Sube un File/Blob al storage y devuelve la URL.
+ * Wrapper con reintentos y timeout.
+ */
+async function uploadToStorage(fileToUpload, label = '') {
+  return withRetry(async () => {
+    const response = await withTimeout(
+      base44.integrations.Core.UploadFile({ file: fileToUpload }),
+      30000, label
+    );
+    const url = response?.file_url || response?.data?.file_url;
+    if (!url) throw new Error('no_url_returned');
+    return url;
+  }, 2, label);
+}
+
+/**
  * Estrategia 1: Comprimir en frontend (800px, JPEG 60%) y subir.
  * Consume poca memoria. Ideal para dispositivos limitados.
  */
 async function strategy_frontendCompress(file) {
   try {
     console.info('[Upload] 🔄 Estrategia 1: Compresión frontend (800px)...');
-    const blob = await compressInFrontend(file, 800, 0.6);
+    const blob = await withTimeout(compressInFrontend(file, 800, 0.6), 12000, 'compress800');
     if (!blob || blob.size === 0) return { error: 'compress_failed' };
     
     const compressedFile = new File([blob], file.name?.replace(/\.[^.]+$/, '.jpg') || 'photo.jpg', { type: 'image/jpeg' });
     console.info(`[Upload] Comprimido: ${Math.round(file.size/1024)}KB → ${Math.round(compressedFile.size/1024)}KB`);
     
-    const response = await base44.integrations.Core.UploadFile({ file: compressedFile });
-    const url = response?.file_url || response?.data?.file_url;
-    if (!url) return { error: 'no_url' };
+    const url = await uploadToStorage(compressedFile, 'frontend800');
     return { url, strategy: 'frontend_compress_800' };
   } catch (err) {
     return { error: err?.message || 'frontend_compress_error' };
@@ -162,16 +216,22 @@ async function strategy_frontendCompress(file) {
 }
 
 /**
- * Estrategia 2: processImage (backend resize + compresión con sharp).
+ * Estrategia 2: processImage (backend resize + compresión).
  * Mejor calidad pero requiere más memoria en el envío.
  */
 async function strategy_processImage(file) {
   try {
     console.info('[Upload] 🔄 Estrategia 2: processImage (backend)...');
-    const response = await base44.functions.invoke('processImage', { image: file });
-    const data = response?.data;
-    if (!data || data.error || !data.file_url) return { error: data?.error || 'no_url' };
-    return { url: data.file_url, strategy: 'process_image' };
+    const response = await withRetry(async () => {
+      const res = await withTimeout(
+        base44.functions.invoke('processImage', { image: file }),
+        45000, 'processImage'
+      );
+      const data = res?.data;
+      if (!data || data.error || !data.file_url) throw new Error(data?.error || 'no_url');
+      return data;
+    }, 1, 'processImage');
+    return { url: response.file_url, strategy: 'process_image' };
   } catch (err) {
     return { error: err?.message || 'process_image_error' };
   }
@@ -183,9 +243,7 @@ async function strategy_processImage(file) {
 async function strategy_directUpload(file) {
   try {
     console.info('[Upload] 🔄 Estrategia 3: Subida directa...');
-    const response = await base44.integrations.Core.UploadFile({ file });
-    const url = response?.file_url || response?.data?.file_url;
-    if (!url) return { error: 'no_url' };
+    const url = await uploadToStorage(file, 'direct');
     return { url, strategy: 'direct' };
   } catch (err) {
     return { error: err?.message || 'direct_error' };
@@ -199,15 +257,13 @@ async function strategy_directUpload(file) {
 async function strategy_tinyCompress(file) {
   try {
     console.info('[Upload] 🔄 Estrategia 4: Miniatura agresiva (400px)...');
-    const blob = await compressInFrontend(file, 400, 0.4);
+    const blob = await withTimeout(compressInFrontend(file, 400, 0.4), 8000, 'compress400');
     if (!blob || blob.size === 0) return { error: 'tiny_compress_failed' };
     
     const tinyFile = new File([blob], 'photo_tiny.jpg', { type: 'image/jpeg' });
     console.info(`[Upload] Miniatura: ${Math.round(file.size/1024)}KB → ${Math.round(tinyFile.size/1024)}KB`);
     
-    const response = await base44.integrations.Core.UploadFile({ file: tinyFile });
-    const url = response?.file_url || response?.data?.file_url;
-    if (!url) return { error: 'no_url' };
+    const url = await uploadToStorage(tinyFile, 'tiny400');
     return { url, strategy: 'tiny_400' };
   } catch (err) {
     return { error: err?.message || 'tiny_error' };
@@ -215,22 +271,47 @@ async function strategy_tinyCompress(file) {
 }
 
 /**
- * Estrategia 5: Leer como base64, crear blob y subir.
- * Alternativa por si el File no se envía bien en FormData.
+ * Estrategia 5: Leer como ArrayBuffer, crear blob nuevo y subir.
+ * Soluciona Files corruptos que no se envían bien en FormData.
  */
 async function strategy_base64Upload(file) {
   try {
-    console.info('[Upload] 🔄 Estrategia 5: Base64 → Blob → Subir...');
-    const arrayBuffer = await file.arrayBuffer();
+    console.info('[Upload] 🔄 Estrategia 5: ArrayBuffer → Blob → Subir...');
+    const arrayBuffer = await withTimeout(file.arrayBuffer(), 10000, 'readBuffer');
     const blob = new Blob([arrayBuffer], { type: file.type || 'image/jpeg' });
     const newFile = new File([blob], file.name || 'photo.jpg', { type: file.type || 'image/jpeg' });
     
-    const response = await base44.integrations.Core.UploadFile({ file: newFile });
-    const url = response?.file_url || response?.data?.file_url;
-    if (!url) return { error: 'no_url' };
+    const url = await uploadToStorage(newFile, 'base64blob');
     return { url, strategy: 'base64_blob' };
   } catch (err) {
     return { error: err?.message || 'base64_error' };
+  }
+}
+
+/**
+ * Estrategia 6 (EMERGENCIA): Compresión mínima (300px, JPEG 30%) + subir.
+ * Solo se usa si TODAS las anteriores fallan. Calidad mínima aceptable.
+ */
+async function strategy_emergencyUpload(file) {
+  try {
+    console.info('[Upload] 🔄 Estrategia 6: EMERGENCIA (300px, q=30)...');
+    const blob = await withTimeout(compressInFrontend(file, 300, 0.3), 6000, 'emergency300');
+    if (!blob || blob.size === 0) {
+      // Si ni siquiera podemos comprimir, subir el original sin procesar como último recurso absoluto
+      console.info('[Upload] Compresión fallida, subida cruda sin reintentos...');
+      const response = await withTimeout(
+        base44.integrations.Core.UploadFile({ file }),
+        60000, 'emergency_raw'
+      );
+      const url = response?.file_url || response?.data?.file_url;
+      if (!url) return { error: 'emergency_no_url' };
+      return { url, strategy: 'emergency_raw' };
+    }
+    const emergencyFile = new File([blob], 'photo_emergency.jpg', { type: 'image/jpeg' });
+    const url = await uploadToStorage(emergencyFile, 'emergency');
+    return { url, strategy: 'emergency_300' };
+  } catch (err) {
+    return { error: err?.message || 'emergency_error' };
   }
 }
 
@@ -275,6 +356,7 @@ async function cascadeUpload(file, isPDF = false) {
     'Directa': { name: 'Directa', fn: () => strategy_directUpload(file) },
     'Miniatura 400px': { name: 'Miniatura 400px', fn: () => strategy_tinyCompress(file) },
     'Base64': { name: 'Base64', fn: () => strategy_base64Upload(file) },
+    'Emergencia': { name: 'Emergencia', fn: () => strategy_emergencyUpload(file) },
   };
 
   // Si ya tenemos una estrategia ganadora, intentarla primero
@@ -305,6 +387,7 @@ async function cascadeUpload(file, isPDF = false) {
         strategyMap['Directa'],
         strategyMap['Base64'],
         strategyMap['processImage'],
+        strategyMap['Emergencia'],
       ]
     : [
         strategyMap['Frontend 800px'],
@@ -312,6 +395,7 @@ async function cascadeUpload(file, isPDF = false) {
         strategyMap['processImage'],
         strategyMap['Miniatura 400px'],
         strategyMap['Base64'],
+        strategyMap['Emergencia'],
       ];
 
   for (const strategy of strategies) {
@@ -319,7 +403,7 @@ async function cascadeUpload(file, isPDF = false) {
       const result = await strategy.fn();
       if (result.url) {
         console.info(`[Upload] ✅ Éxito con estrategia: ${strategy.name} (${result.strategy})`);
-        _winningStrategyName = strategy.name; // Recordar para la próxima subida
+        _winningStrategyName = strategy.name;
         return result;
       }
       errors.push(`${strategy.name}: ${result.error}`);
@@ -330,7 +414,7 @@ async function cascadeUpload(file, isPDF = false) {
     }
   }
 
-  // TODAS las estrategias fallaron
+  // TODAS las estrategias fallaron — esto NO debería pasar nunca
   return { 
     error: `Se probaron ${strategies.length} métodos y ninguno funcionó.\n${errors.join(' | ')}`,
     allErrors: errors 
@@ -372,14 +456,16 @@ export function useImageUpload() {
         const diagCode = generateDiagnosticCode();
         logUploadError(file, new Error(`[${diagCode}] ${result.error}`), 'cascade_all_failed');
         toast.error(
-          `No se ha podido subir la imagen. Comprueba tu conexión e inténtalo de nuevo.`,
-          { duration: 8000 }
+          `No se ha podido subir la imagen (${diagCode}). Comprueba tu conexión WiFi/datos e inténtalo de nuevo. Si el problema persiste, envía la foto por WhatsApp a ti mismo para reducirla.`,
+          { duration: 12000 }
         );
         return null;
       }
 
       logUploadSuccess(file, result.url);
-      if (result.strategy === 'tiny_400') {
+      if (result.strategy === 'emergency_300' || result.strategy === 'emergency_raw') {
+        toast.success('Foto subida (calidad mínima — puedes repetirla después si quieres)');
+      } else if (result.strategy === 'tiny_400') {
         toast.success('Foto subida (calidad reducida por limitaciones del dispositivo)');
       } else {
         toast.success('Foto subida correctamente ✅');

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
  * Backend function: recibe una imagen cruda (multipart/form-data o binary body),
