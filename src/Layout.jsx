@@ -43,7 +43,6 @@ import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
 import SponsorRecruitBanner from "./components/sponsors/SponsorRecruitBanner";
-import SanIsidroPopup from "./components/sanisidro/SanIsidroPopup";
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 
 
@@ -522,7 +521,6 @@ export default function Layout({ children, currentPageName }) {
             <ChatUnreadProvider user={user}>
             <>
               <GlobalErrorHandler />
-              <SanIsidroPopup />
               <ChatCountsBridge onCounts={setChatCounts} />
               <AutoPushSubscriber user={user} />
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
