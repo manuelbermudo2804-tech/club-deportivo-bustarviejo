@@ -162,6 +162,13 @@ export default function SanIsidroInscripcion() {
         {/* Selección de modalidad */}
         {step === "select" && (
           <div className="p-5 space-y-4">
+            <a
+              href={WEB_CLUB}
+              className="flex items-center gap-2 text-sm text-slate-500 font-semibold hover:text-slate-800 active:scale-95 transition-all bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-2 w-fit no-underline"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Volver a la web
+            </a>
             <h3 className="text-lg font-bold text-slate-900 text-center">Elige tu torneo</h3>
 
             <div className="space-y-2">
