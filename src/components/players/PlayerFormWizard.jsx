@@ -132,12 +132,16 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const [usePreviousTutorData, setUsePreviousTutorData] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  const [uploadingPhoto, uploadFile_photo] = useImageUpload();
-  const [uploadingDNI, uploadFile_dni] = useImageUpload();
-  const [uploadingDNITrasero, uploadFile_dniTrasero] = useImageUpload();
-  const [uploadingLibroFamilia, uploadFile_libro] = useImageUpload();
-  const [uploadingDNITutor, uploadFile_tutordni] = useImageUpload();
-  const [uploadingDNITutorTrasero, uploadFile_tutordniTrasero] = useImageUpload();
+  // Una sola instancia del hook de upload — serializa las subidas para no saturar memoria
+  const [uploadingAny, uploadFileSingle] = useImageUpload();
+  // Track cuál campo está subiendo para mostrar spinners individuales
+  const [uploadingField, setUploadingField] = useState(null);
+  const uploadingPhoto = uploadingField === 'photo';
+  const uploadingDNI = uploadingField === 'dni';
+  const uploadingDNITrasero = uploadingField === 'dniTrasero';
+  const uploadingLibroFamilia = uploadingField === 'libro';
+  const uploadingDNITutor = uploadingField === 'tutordni';
+  const uploadingDNITutorTrasero = uploadingField === 'tutordniTrasero';
 
   // Flags: se activan cuando una subida normal falla → muestra alternativa "pegar"
   const [photoUploadFailed, setPhotoUploadFailed] = useState(false);
@@ -253,130 +257,48 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
   }, [isParent, isAdultPlayerSelfRegistration, player]);
 
-  // Handlers de subida — usan el hook centralizado useImageUpload
-  // Cada handler registra: (1) que se disparó onChange, (2) cuántos archivos llegaron, (3) resultado
-  const handlePhotoUpload = async (e) => {
+  // Helper: sube una imagen con la instancia única y actualiza el campo correspondiente
+  const handleFieldUpload = async (e, fieldName, draftKey, failSetter) => {
+    if (uploadingAny) {
+      toast.warning('Espera a que termine la subida actual');
+      return;
+    }
     try {
-      clearCameraFlag();
-      logInputChange(e.target?.id || 'photo', e.target?.files, 'handlePhotoUpload');
+      // Guardar borrador ANTES de procesar (por si el SO mata la app durante subida)
+      saveFormDraft(currentPlayer, step);
+      logInputChange(e.target?.id || fieldName, e.target?.files, `handleUpload_${fieldName}`);
       const file = e.target.files?.[0];
       if (e.target) e.target.value = '';
-      if (!file) return;
-      const url = await uploadFile_photo(file);
-      if (url) {
-        setPhotoUploadFailed(false);
-        try {
-          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
-          if (draft.playerData) { draft.playerData.foto_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
-        } catch {}
-        setCurrentPlayer(p => ({ ...p, foto_url: url }));
-      } else {
-        setPhotoUploadFailed(true);
-        setUploadFailCount(c => c + 1);
-      }
-    } catch (err) { setPhotoUploadFailed(true); setUploadFailCount(c => c + 1); logUploadError(null, err, 'handlePhotoUpload_catch'); }
-  };
-  const handleDNIUpload = async (e) => {
-    try {
+      if (!file) { clearCameraFlag(); return; }
       clearCameraFlag();
-      logInputChange(e.target?.id || 'dni', e.target?.files, 'handleDNIUpload');
-      const file = e.target.files?.[0];
-      if (e.target) e.target.value = '';
-      if (!file) return;
-      const url = await uploadFile_dni(file);
+      setUploadingField(fieldName);
+      const url = await uploadFileSingle(file);
       if (url) {
-        setDniUploadFailed(false);
+        if (failSetter) failSetter(false);
         try {
           const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
-          if (draft.playerData) { draft.playerData.dni_jugador_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
+          if (draft.playerData) { draft.playerData[draftKey] = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
         } catch {}
-        setCurrentPlayer(p => ({ ...p, dni_jugador_url: url }));
+        setCurrentPlayer(p => ({ ...p, [draftKey]: url }));
       } else {
-        setDniUploadFailed(true);
+        if (failSetter) failSetter(true);
         setUploadFailCount(c => c + 1);
       }
-    } catch (err) { setDniUploadFailed(true); setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleDNIUpload_catch'); }
+    } catch (err) {
+      if (failSetter) failSetter(true);
+      setUploadFailCount(c => c + 1);
+      logUploadError(null, err, `handleUpload_${fieldName}_catch`);
+    } finally {
+      setUploadingField(null);
+    }
   };
-  const handleLibroFamiliaUpload = async (e) => {
-    try {
-      clearCameraFlag();
-      logInputChange(e.target?.id || 'libro', e.target?.files, 'handleLibroFamiliaUpload');
-      const file = e.target.files?.[0];
-      if (e.target) e.target.value = '';
-      if (!file) return;
-      const url = await uploadFile_libro(file);
-      if (url) {
-        setLibroUploadFailed(false);
-        try {
-          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
-          if (draft.playerData) { draft.playerData.libro_familia_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
-        } catch {}
-        setCurrentPlayer(p => ({ ...p, libro_familia_url: url }));
-      } else {
-        setLibroUploadFailed(true);
-        setUploadFailCount(c => c + 1);
-      }
-    } catch (err) { setLibroUploadFailed(true); setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleLibroFamiliaUpload_catch'); }
-  };
-  const handleDNITraseroUpload = async (e) => {
-    try {
-      clearCameraFlag();
-      logInputChange(e.target?.id || 'dni_trasero', e.target?.files, 'handleDNITraseroUpload');
-      const file = e.target.files?.[0];
-      if (e.target) e.target.value = '';
-      if (!file) return;
-      const url = await uploadFile_dniTrasero(file);
-      if (url) {
-        try {
-          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
-          if (draft.playerData) { draft.playerData.dni_jugador_trasero_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
-        } catch {}
-        setCurrentPlayer(p => ({ ...p, dni_jugador_trasero_url: url }));
-      } else {
-        setUploadFailCount(c => c + 1);
-      }
-    } catch (err) { setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleDNITraseroUpload_catch'); }
-  };
-  const handleDNITutorUpload = async (e) => {
-    try {
-      clearCameraFlag();
-      logInputChange(e.target?.id || 'tutordni', e.target?.files, 'handleDNITutorUpload');
-      const file = e.target.files?.[0];
-      if (e.target) e.target.value = '';
-      if (!file) return;
-      const url = await uploadFile_tutordni(file);
-      if (url) {
-        setDniTutorUploadFailed(false);
-        try {
-          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
-          if (draft.playerData) { draft.playerData.dni_tutor_legal_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
-        } catch {}
-        setCurrentPlayer(p => ({ ...p, dni_tutor_legal_url: url }));
-      } else {
-        setDniTutorUploadFailed(true);
-        setUploadFailCount(c => c + 1);
-      }
-    } catch (err) { setDniTutorUploadFailed(true); setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleDNITutorUpload_catch'); }
-  };
-  const handleDNITutorTraseroUpload = async (e) => {
-    try {
-      clearCameraFlag();
-      logInputChange(e.target?.id || 'tutor_trasero', e.target?.files, 'handleDNITutorTraseroUpload');
-      const file = e.target.files?.[0];
-      if (e.target) e.target.value = '';
-      if (!file) return;
-      const url = await uploadFile_tutordniTrasero(file);
-      if (url) {
-        try {
-          const draft = JSON.parse(localStorage.getItem('playerFormWizard_draft') || '{}');
-          if (draft.playerData) { draft.playerData.dni_tutor_legal_trasero_url = url; localStorage.setItem('playerFormWizard_draft', JSON.stringify(draft)); }
-        } catch {}
-        setCurrentPlayer(p => ({ ...p, dni_tutor_legal_trasero_url: url }));
-      } else {
-        setUploadFailCount(c => c + 1);
-      }
-    } catch (err) { setUploadFailCount(c => c + 1); logUploadError(null, err, 'handleDNITutorTraseroUpload_catch'); }
-  };
+
+  const handlePhotoUpload = (e) => handleFieldUpload(e, 'photo', 'foto_url', setPhotoUploadFailed);
+  const handleDNIUpload = (e) => handleFieldUpload(e, 'dni', 'dni_jugador_url', setDniUploadFailed);
+  const handleDNITraseroUpload = (e) => handleFieldUpload(e, 'dniTrasero', 'dni_jugador_trasero_url', null);
+  const handleLibroFamiliaUpload = (e) => handleFieldUpload(e, 'libro', 'libro_familia_url', setLibroUploadFailed);
+  const handleDNITutorUpload = (e) => handleFieldUpload(e, 'tutordni', 'dni_tutor_legal_url', setDniTutorUploadFailed);
+  const handleDNITutorTraseroUpload = (e) => handleFieldUpload(e, 'tutordniTrasero', 'dni_tutor_legal_trasero_url', null);
 
   const handleLoadPreviousTutorData = (playerId) => {
     const source = allPlayers.find(p => p.id === playerId);
@@ -558,7 +480,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
           </CardHeader>
           <CardContent className="pt-6">
             {/* Show date + name fields so user can see the issue */}
-            <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={{}} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto} onPhotoUpload={handlePhotoUpload} />
+            <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={{}} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto || uploadingAny} onPhotoUpload={handlePhotoUpload} />
             <div className="mt-4">
               <AdultPlayerInvitationRequest playerAge={playerAge} playerData={currentPlayer} parentEmail={currentUser?.email} parentName={currentUser?.full_name} onCancel={onCancel} />
             </div>
@@ -571,10 +493,10 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   // --- Render current step ---
   const renderStep = () => {
     switch (step) {
-      case 0: return <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto} onPhotoUpload={handlePhotoUpload} photoUploadFailed={photoUploadFailed} />;
+      case 0: return <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto || uploadingAny} onPhotoUpload={handlePhotoUpload} photoUploadFailed={photoUploadFailed} />;
       case 1: return <StepCategory currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} categories={categories} playerAge={playerAge} suggestCategoryByAge={suggestCategoryByAge} onUserChangeCategory={() => setUserChangedCategory(true)} />;
-      case 2: return <StepDocuments currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} requiresDNI={requiresDNI} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} uploadingDNI={uploadingDNI} uploadingDNITrasero={uploadingDNITrasero} uploadingLibroFamilia={uploadingLibroFamilia} onDNIUpload={handleDNIUpload} onDNITraseroUpload={handleDNITraseroUpload} onLibroFamiliaUpload={handleLibroFamiliaUpload} dniUploadFailed={dniUploadFailed} libroUploadFailed={libroUploadFailed} />;
-      case 3: return <StepTutor currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isParent={isParent} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} existingFamilyPlayers={existingFamilyPlayers} usePreviousTutorData={usePreviousTutorData} onLoadPreviousTutorData={handleLoadPreviousTutorData} onClearTutorData={handleClearTutorData} uploadingDNITutor={uploadingDNITutor} onDNITutorUpload={handleDNITutorUpload} uploadingDNITutorTrasero={uploadingDNITutorTrasero} onDNITutorTraseroUpload={handleDNITutorTraseroUpload} dniTutorUploadFailed={dniTutorUploadFailed} />;
+      case 2: return <StepDocuments currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} requiresDNI={requiresDNI} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} uploadingDNI={uploadingDNI || uploadingAny} uploadingDNITrasero={uploadingDNITrasero || uploadingAny} uploadingLibroFamilia={uploadingLibroFamilia || uploadingAny} onDNIUpload={handleDNIUpload} onDNITraseroUpload={handleDNITraseroUpload} onLibroFamiliaUpload={handleLibroFamiliaUpload} dniUploadFailed={dniUploadFailed} libroUploadFailed={libroUploadFailed} />;
+      case 3: return <StepTutor currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isParent={isParent} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} existingFamilyPlayers={existingFamilyPlayers} usePreviousTutorData={usePreviousTutorData} onLoadPreviousTutorData={handleLoadPreviousTutorData} onClearTutorData={handleClearTutorData} uploadingDNITutor={uploadingDNITutor || uploadingAny} onDNITutorUpload={handleDNITutorUpload} uploadingDNITutorTrasero={uploadingDNITutorTrasero || uploadingAny} onDNITutorTraseroUpload={handleDNITutorTraseroUpload} dniTutorUploadFailed={dniTutorUploadFailed} />;
       case 4: return (
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-slate-900">👥 Segundo Progenitor/Tutor (Opcional)</h3>

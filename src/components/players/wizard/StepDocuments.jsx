@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, Loader2, FileText, Camera } from "lucide-react";
 import PrivateFileViewer from "../../utils/PrivateFileViewer";
+import { markCameraOpening } from "./useFormPersistence";
 
 export default function StepDocuments({
   currentPlayer,
@@ -43,7 +44,7 @@ export default function StepDocuments({
           <Button
             type="button"
             variant={uploaded ? "outline" : "default"}
-            onClick={() => document.getElementById(`${inputId}-camera`).click()}
+            onClick={() => { markCameraOpening(`${inputId}-camera`); document.getElementById(`${inputId}-camera`).click(); }}
             disabled={uploading}
             className={`rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
             style={{ minHeight: '48px' }}
@@ -54,7 +55,7 @@ export default function StepDocuments({
           <Button
             type="button"
             variant="outline"
-            onClick={() => document.getElementById(`${inputId}-gallery`).click()}
+            onClick={() => { markCameraOpening(`${inputId}-gallery`); document.getElementById(`${inputId}-gallery`).click(); }}
             disabled={uploading}
             className={`rounded-xl ${uploaded ? 'border-green-300 text-green-700 hover:bg-green-50' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
             style={{ minHeight: '48px' }}

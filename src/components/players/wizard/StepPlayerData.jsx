@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Camera, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { markCameraOpening } from "./useFormPersistence";
 
 export default function StepPlayerData({
   currentPlayer,
@@ -68,7 +69,7 @@ export default function StepPlayerData({
               className="bg-orange-600 hover:bg-orange-700 active:bg-orange-800 font-semibold rounded-xl text-sm"
               style={{ minHeight: '52px', WebkitAppearance: 'none' }}
               disabled={uploadingPhoto}
-              onClick={() => document.getElementById('wiz-photo-camera').click()}
+              onClick={() => { markCameraOpening('wiz-photo-camera'); document.getElementById('wiz-photo-camera').click(); }}
             >
               {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
               Hacer foto
@@ -79,7 +80,7 @@ export default function StepPlayerData({
               className="font-semibold rounded-xl text-sm border-orange-300 text-orange-700 hover:bg-orange-50"
               style={{ minHeight: '52px', WebkitAppearance: 'none' }}
               disabled={uploadingPhoto}
-              onClick={() => document.getElementById('wiz-photo-gallery').click()}
+              onClick={() => { markCameraOpening('wiz-photo-gallery'); document.getElementById('wiz-photo-gallery').click(); }}
             >
               {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
               Galería
