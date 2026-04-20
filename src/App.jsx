@@ -23,6 +23,7 @@ import PublicSponsors from '@/pages/PublicSponsors';
 import BudgetPlanner from '@/pages/BudgetPlanner';
 import SanIsidroAdmin from '@/pages/SanIsidroAdmin';
 import SanIsidroInscripcion from '@/pages/SanIsidroInscripcion';
+import ExternalLinks from '@/pages/ExternalLinks';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -106,6 +107,7 @@ const AuthenticatedApp = () => {
       <Route path="/SocialHub" element={<LayoutWrapper currentPageName="SocialHub"><SocialHub /></LayoutWrapper>} />
       <Route path="/BudgetPlanner" element={<LayoutWrapper currentPageName="BudgetPlanner"><BudgetPlanner /></LayoutWrapper>} />
       <Route path="/SanIsidroAdmin" element={<LayoutWrapper currentPageName="SanIsidroAdmin"><SanIsidroAdmin /></LayoutWrapper>} />
+      <Route path="/ExternalLinks" element={<LayoutWrapper currentPageName="ExternalLinks"><ExternalLinks /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
