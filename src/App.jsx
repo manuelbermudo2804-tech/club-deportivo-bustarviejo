@@ -22,6 +22,7 @@ import PublicAccessRequest from '@/pages/PublicAccessRequest';
 import PublicSponsors from '@/pages/PublicSponsors';
 import BudgetPlanner from '@/pages/BudgetPlanner';
 import SanIsidroAdmin from '@/pages/SanIsidroAdmin';
+import SanIsidroInscripcion from '@/pages/SanIsidroInscripcion';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -36,7 +37,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro'];
   if (publicPaths.includes(cleanPath)) {
     return (
       <Routes>
@@ -44,6 +45,7 @@ const AppRouter = () => {
         <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
         <Route path="/SolicitarAcceso" element={<PublicAccessRequest />} />
         <Route path="/Patrocinadores" element={<PublicSponsors />} />
+        <Route path="/SanIsidro" element={<SanIsidroInscripcion />} />
       </Routes>
     );
   }

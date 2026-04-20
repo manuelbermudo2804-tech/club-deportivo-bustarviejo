@@ -1,0 +1,263 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Check, Trophy, Users, Loader2, PartyPopper, Clock } from "lucide-react";
+import { toast } from "sonner";
+
+const FECHA_INICIO = new Date("2026-04-19T00:00:00");
+const FECHA_FIN = new Date("2026-05-15T23:59:59");
+
+const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+
+const MODALIDADES = [
+  { id: "chapa_ninos", label: "Fútbol Chapa - Niños/Jóvenes", tipo: "chapa", icon: "🏆", color: "orange" },
+  { id: "chapa_adultos", label: "Fútbol Chapa - Adultos", tipo: "chapa", icon: "🏆", color: "orange" },
+  { id: "3para3_7_10", label: "3 para 3 (7-10 años)", tipo: "3para3", icon: "⚽", color: "green" },
+  { id: "3para3_11_15", label: "3 para 3 (11-15 años)", tipo: "3para3", icon: "⚽", color: "green" },
+];
+
+export default function SanIsidroInscripcion() {
+  const [step, setStep] = useState("select");
+  const [selectedMod, setSelectedMod] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    nombre_responsable: "",
+    telefono_responsable: "",
+    email_responsable: "",
+    jugador_nombre: "",
+    nombre_equipo: "",
+    jugador_1: "",
+    jugador_2: "",
+    jugador_3: "",
+    notas: "",
+  });
+
+  const now = new Date();
+  const isOpen = now >= FECHA_INICIO && now <= FECHA_FIN;
+
+  const mod = MODALIDADES.find(m => m.id === selectedMod);
+  const isChapa = mod?.tipo === "chapa";
+  const is3para3 = mod?.tipo === "3para3";
+
+  const updateField = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+
+  const resetForm = () => {
+    setStep("select");
+    setSelectedMod(null);
+    setForm({ nombre_responsable: "", telefono_responsable: "", email_responsable: "", jugador_nombre: "", nombre_equipo: "", jugador_1: "", jugador_2: "", jugador_3: "", notas: "" });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.nombre_responsable || !form.telefono_responsable) {
+      toast.error("Por favor, rellena el nombre y teléfono del responsable");
+      return;
+    }
+    if (isChapa && !form.jugador_nombre) {
+      toast.error("Por favor, indica el nombre del jugador");
+      return;
+    }
+    if (is3para3 && (!form.nombre_equipo || !form.jugador_1 || !form.jugador_2 || !form.jugador_3)) {
+      toast.error("Por favor, rellena el nombre del equipo y los 3 jugadores");
+      return;
+    }
+
+    setSaving(true);
+    const data = {
+      modalidad: mod.label,
+      nombre_responsable: form.nombre_responsable,
+      telefono_responsable: form.telefono_responsable,
+    };
+    if (form.email_responsable) data.email_responsable = form.email_responsable;
+    if (isChapa) data.jugador_nombre = form.jugador_nombre;
+    if (is3para3) {
+      data.nombre_equipo = form.nombre_equipo;
+      data.jugador_1 = form.jugador_1;
+      data.jugador_2 = form.jugador_2;
+      data.jugador_3 = form.jugador_3;
+    }
+    if (form.notas) data.notas = form.notas;
+
+    await base44.functions.invoke("sanIsidroRegister", data);
+    setSaving(false);
+    setStep("success");
+  };
+
+  // Fuera de fechas
+  if (!isOpen) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-4">
+          <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-20 h-20 rounded-full mx-auto object-cover" />
+          <h1 className="text-2xl font-black text-slate-900">San Isidro 2026</h1>
+          <div className="flex items-center justify-center gap-2 text-slate-500">
+            <Clock className="w-5 h-5" />
+            <p>Las inscripciones no están abiertas en este momento.</p>
+          </div>
+          <p className="text-sm text-slate-400">Periodo de inscripción: 19 abril - 15 mayo 2026</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Éxito
+  if (step === "success") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-4">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <Check className="w-10 h-10 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900">¡Inscripción Enviada!</h2>
+          <p className="text-slate-600">Tu inscripción en <strong>{mod?.label}</strong> se ha registrado correctamente.</p>
+          <p className="text-slate-500 text-sm">¡Te esperamos el 15 de Mayo! 🎉</p>
+          <div className="flex gap-2 justify-center pt-2">
+            <Button variant="outline" onClick={resetForm}>
+              Otra inscripción
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-700 via-red-600 to-green-700 p-5 text-center relative">
+          <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-14 h-14 rounded-full mx-auto object-cover mb-2 border-2 border-white shadow-lg" />
+          <h1 className="text-white text-xl font-black">🎉 SAN ISIDRO 2026</h1>
+          <p className="text-white/80 text-xs mt-1">Inscripciones Torneos Deportivos</p>
+          <p className="text-yellow-200 text-xs mt-1 font-semibold">15 de Mayo • CD Bustarviejo</p>
+        </div>
+
+        {/* Selección de modalidad */}
+        {step === "select" && (
+          <div className="p-5 space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 text-center">Elige tu torneo</h3>
+
+            <div className="space-y-2">
+              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide">🏆 Fútbol Chapa (Individual)</p>
+              {MODALIDADES.filter(m => m.tipo === "chapa").map(m => (
+                <button
+                  key={m.id}
+                  onClick={() => { setSelectedMod(m.id); setStep("form"); }}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-orange-200 hover:border-orange-400 hover:bg-orange-50 transition-all text-left active:scale-95"
+                >
+                  <span className="text-3xl">{m.icon}</span>
+                  <div>
+                    <p className="font-bold text-slate-800">{m.label}</p>
+                    <p className="text-xs text-slate-500">1 jugador por inscripción</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide">⚽ 3 para 3 (Equipos de 3)</p>
+              {MODALIDADES.filter(m => m.tipo === "3para3").map(m => (
+                <button
+                  key={m.id}
+                  onClick={() => { setSelectedMod(m.id); setStep("form"); }}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:bg-green-50 transition-all text-left active:scale-95"
+                >
+                  <span className="text-3xl">{m.icon}</span>
+                  <div>
+                    <p className="font-bold text-slate-800">{m.label}</p>
+                    <p className="text-xs text-slate-500">Equipo de 3 jugadores</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Formulario */}
+        {step === "form" && (
+          <form onSubmit={handleSubmit} className="p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setStep("select")} className="text-slate-400 hover:text-slate-800">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">{mod?.icon} {mod?.label}</h3>
+                <p className="text-xs text-slate-500">{isChapa ? "1 jugador por inscripción" : "Equipo de 3 jugadores"}</p>
+              </div>
+            </div>
+
+            {/* Responsable */}
+            <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-semibold text-slate-600 uppercase">Datos del responsable</p>
+              <div>
+                <Label className="text-xs text-slate-700">Nombre y apellidos *</Label>
+                <Input value={form.nombre_responsable} onChange={e => updateField("nombre_responsable", e.target.value)} placeholder="Ej: Juan García López" />
+              </div>
+              <div>
+                <Label className="text-xs text-slate-700">Teléfono *</Label>
+                <Input value={form.telefono_responsable} onChange={e => updateField("telefono_responsable", e.target.value)} placeholder="Ej: 600 123 456" type="tel" />
+              </div>
+              <div>
+                <Label className="text-xs text-slate-700">Email (opcional)</Label>
+                <Input value={form.email_responsable} onChange={e => updateField("email_responsable", e.target.value)} placeholder="Ej: email@ejemplo.com" type="email" />
+              </div>
+            </div>
+
+            {/* Chapa */}
+            {isChapa && (
+              <div className="bg-orange-50 rounded-xl p-4 space-y-3 border border-orange-200">
+                <p className="text-xs font-semibold text-orange-700 uppercase">Datos del jugador</p>
+                <div>
+                  <Label className="text-xs text-orange-700">Nombre y apellidos *</Label>
+                  <Input value={form.jugador_nombre} onChange={e => updateField("jugador_nombre", e.target.value)} placeholder="Ej: Pedro García" />
+                </div>
+              </div>
+            )}
+
+            {/* 3 para 3 */}
+            {is3para3 && (
+              <div className="bg-green-50 rounded-xl p-4 space-y-3 border border-green-200">
+                <p className="text-xs font-semibold text-green-700 uppercase">Datos del equipo</p>
+                <div>
+                  <Label className="text-xs text-green-700">Nombre del equipo *</Label>
+                  <Input value={form.nombre_equipo} onChange={e => updateField("nombre_equipo", e.target.value)} placeholder="Ej: Los Tigres" />
+                </div>
+                <div>
+                  <Label className="text-xs text-green-700">Jugador 1 - Nombre y apellidos *</Label>
+                  <Input value={form.jugador_1} onChange={e => updateField("jugador_1", e.target.value)} placeholder="Nombre completo" />
+                </div>
+                <div>
+                  <Label className="text-xs text-green-700">Jugador 2 - Nombre y apellidos *</Label>
+                  <Input value={form.jugador_2} onChange={e => updateField("jugador_2", e.target.value)} placeholder="Nombre completo" />
+                </div>
+                <div>
+                  <Label className="text-xs text-green-700">Jugador 3 - Nombre y apellidos *</Label>
+                  <Input value={form.jugador_3} onChange={e => updateField("jugador_3", e.target.value)} placeholder="Nombre completo" />
+                </div>
+              </div>
+            )}
+
+            {/* Notas */}
+            <div>
+              <Label className="text-xs text-slate-700">Observaciones (opcional)</Label>
+              <Textarea value={form.notas} onChange={e => updateField("notas", e.target.value)} placeholder="Algo que quieras comentar..." rows={2} />
+            </div>
+
+            <Button type="submit" disabled={saving} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-base">
+              {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : "✅ Enviar Inscripción"}
+            </Button>
+          </form>
+        )}
+
+        {/* Footer */}
+        <div className="bg-slate-50 border-t px-4 py-3 text-center">
+          <p className="text-xs text-slate-400">CD Bustarviejo • Fiestas de San Isidro 2026</p>
+        </div>
+      </div>
+    </div>
+  );
+}
